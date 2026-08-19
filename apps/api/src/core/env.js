@@ -11,6 +11,8 @@ const envSchema = z
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.coerce.number().int().positive().default(4000),
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+    /** Monorepo dev me repo root pe point karta hai; client repo me chhod do. */
+    MIGRATIONS_DIR: z.string().optional(),
 
     // Canonical URL — redirects, sitemap, OG tags aur CORS allowlist sab isi se
     SITE_URL: z.string().url(),

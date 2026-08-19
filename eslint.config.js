@@ -39,6 +39,28 @@ export default [
     rules: base,
   },
 
+  // CLI — console output hi iska interface hai
+  {
+    files: ['apps/api/src/cli.js'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+    rules: { ...base, 'no-console': 'off' },
+  },
+
+  // Migrations — deploy step pe chalti hain, model layer se independent
+  {
+    files: ['migrations/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+    rules: { ...base, 'no-console': 'off' },
+  },
+
   // Tests
   {
     files: ['**/*.test.js', '**/*.test.jsx', '**/tests/**/*.js'],

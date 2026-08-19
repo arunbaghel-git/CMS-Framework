@@ -10,6 +10,7 @@ import mongoose from 'mongoose'
 import { env, isProd } from './core/env.js'
 import { logger } from './core/logger.js'
 import { errorHandler, notFoundHandler } from './core/errors.js'
+import { checkPending } from './core/migrations/runner.js'
 
 /**
  * Express app banata hai. Server start karna `index.js` ka kaam hai —
@@ -56,12 +57,15 @@ export function createApp() {
     }),
   )
 
-  // Health — load balancer aur uptime check ke liye
-  app.get('/api/health', (req, res) => {
+  // Health — load balancer, uptime check, aur admin ka Site Health card
+  app.get('/api/health', async (req, res) => {
     const dbUp = mongoose.connection.readyState === 1
+    const migrations = dbUp ? await checkPending() : { pending: 0, modified: 0, missing: 0 }
+
     res.status(dbUp ? 200 : 503).json({
       status: dbUp ? 'ok' : 'degraded',
       db: dbUp ? 'connected' : 'disconnected',
+      migrations,
       uptime: Math.round(process.uptime()),
     })
   })
