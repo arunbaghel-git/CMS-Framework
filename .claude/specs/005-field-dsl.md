@@ -1,6 +1,6 @@
 # 005 — Field DSL: ek ya do?
 
-**Status:** 🔴 **Faisla pending** — ye spec nahi, decision hai
+**Status:** 🟢 Approved — Option A (ek DSL), 19 Aug 2026
 **Phase:** 0 (kyunki `packages/shared` me rehta hai)
 **Blocks:** Phase 5c (properties panel), Phase 6 (content type builder)
 **Related:** D-06, `02-ARCHITECTURE.md` §6.1

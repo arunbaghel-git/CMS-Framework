@@ -1,6 +1,6 @@
 # 004 — Seed definition
 
-**Status:** 🟡 Draft — approval chahiye
+**Status:** 🟢 Approved — 19 Aug 2026
 **Phase:** 0
 **Blocks:** Phase 0 seed script, Phase 8 `create-cms-site`
 **Related:** D-01, D-15, `06-OPERATIONS.md` §6
@@ -26,9 +26,11 @@ base nahi hoga.
 
 ## Kya seed hona chahiye
 
-### 1. Roles (5)
+### 1. Roles (4)
 [`001-permissions.md`](001-permissions.md) ke mapping se:
-`admin` · `editor` · `author` · `contributor` · `subscriber`
+`admin` · `editor` · `author` · `contributor`
+
+`subscriber` nahi banega (D-26).
 
 ### 2. Admin user (1)
 Env se — `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_NAME`.
@@ -111,18 +113,14 @@ Command: `pnpm seed` · reset (sirf dev): `pnpm seed --reset`
 
 ---
 
-## Open questions
+## Resolved questions
 
-1. **Home page me starter blocks daalein?** Abhi khaali `blocks: []` hai. Agar ek simple
-   hero + text daal dein to client ko turant kuch dikhega. **Recommendation:** khaali
-   rakho — setup wizard (Phase 7) starter content offer karega, seed nahi.
-
-2. **`Contact` page bhi seed karein?** Zyadatar sites pe chahiye hota hai.
-   **Recommendation:** nahi — Home aur Blog structural hain (settings unhe point karte
-   hain), Contact nahi. Wo wizard ka kaam hai.
-
-3. **`subscriber` role seed karein?** [`001`](001-permissions.md) me open question 2 se
-   juda hua. Agency sites pe shayad koi use na kare.
+1. ~~Home page me starter blocks daalein?~~ → **Nahi, khaali rakho.** Client ko saaf
+   shuruaat milegi, demo kachra hatana nahi padega. Starter content ka option setup
+   wizard (Phase 7) me aayega. (19 Aug 2026)
+2. ~~`Contact` page bhi seed karein?~~ → **Nahi.** Home aur Blog **structural** hain —
+   `settings` inhe point karte hain. Contact structural nahi hai, wo wizard ka kaam hai.
+3. ~~`subscriber` role seed karein?~~ → **Nahi.** Char roles hi honge (D-26).
 
 ---
 

@@ -5,7 +5,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** Planning complete (v3). Code shuru nahi hua.
+**Status:** Planning complete (v3), saare bade faisle ho chuke. Code shuru nahi hua.
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -15,7 +15,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam | Pehle ye padho |
 |---|---|
 | Koi bhi code likhna | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 14 non-negotiable rules |
-| "Aisa kyun hai?" | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-23 |
+| "Aisa kyun hai?" | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-27 |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md) |
 | Admin ka UI | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md) |
 | Phase shuru karna | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist |
@@ -124,7 +124,7 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Phase 0 ka code shuru karne se pehle 4 artifacts + 2 faisle pending hain →
+Phase 1 se pehle sirf 1 artifact baaki hai (Zod contract) →
 [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 Setup layer (monorepo, docker, CI, Express boilerplate) inpe **block nahi** hai —

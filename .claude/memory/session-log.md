@@ -6,12 +6,44 @@ Format:
 ```
 ## YYYY-MM-DD — <ek line summary>
 **Kya hua:** …
+
 **Faisle:** … (ya "koi nahi")
 **Agla:** …
 ```
 
 ---
 
+
+## 2026-08-19 — 8 faisle liye, specs approve hue
+
+**Kya hua**
+- User se 8 sawaal poochhe, sab ke jawab mile
+- Specs 001, 003, 004, 005 → Approved
+- 4 naye decision records: D-24 se D-27
+
+**Faisle**
+- D-24 Field DSL: **ek DSL** (contexts: content|block), do nahi
+- D-25 Trash: **`deletedAt` field**, `status: 'trash'` nahi — restore pe purani state wapas
+- D-26 Roles: **char** — `subscriber` nahi. `entry.purge`/`media.purge` sirf admin
+- D-27 Pehla milestone: **Slice 0 = Header + Footer** end-to-end
+- TypeScript: **nahi** — sab JavaScript, D-03 waise hi
+- Seed: **khaali** Home + Blog, koi demo blocks nahi
+- Payload spike: **approved**, Phase 1 se pehle
+
+**User ka input (Slice 0 pe)**
+Slice normal content page ka nahi, **header/footer** ka hoga — logo, navigation, CTA,
+footer columns/social/copyright ka minimal admin config, save/publish, aur public site
+pe render. Page builder abhi nahi.
+
+**Imaandari se:** ye slice cache invalidation aur settings/menus pipeline verify karti
+hai, par **preview parity nahi** — usme blocks chahiye. Wo risk Phase 5 tak khula.
+
+**Agla**
+1. A-2 — Zod contract likho (`packages/shared`)
+2. Phase 0 setup layer shuru
+3. Payload spike parallel me
+
+---
 ## 2026-08-19 — Docs v3: merge + `.claude` workspace
 
 **Kya hua**

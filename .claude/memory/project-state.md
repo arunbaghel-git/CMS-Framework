@@ -27,21 +27,45 @@ Abhi tak **koi application code nahi likha gaya**. Sirf planning aur documentati
 
 ---
 
-## Blockers — Phase 0 ke code se pehle
+## Faisle jo 19 Aug ko ho gaye
+
+| Faisla | Nateeja |
+|---|---|
+| Field DSL | **Ek DSL** — `contexts: ['content'\|'block']` (D-24) |
+| TypeScript | **Nahi** — sab JavaScript (D-03 waise hi) |
+| Trash | **`deletedAt` field**, `status: 'trash'` nahi (D-25) |
+| Roles | **Char** — `subscriber` nahi (D-26) |
+| Permanent delete | **Sirf admin** — editor trash me daal sakta hai, mita nahi sakta |
+| Seed content | **Khaali** Home + Blog, koi demo blocks nahi |
+| Payload spike | **Approved** — Phase 1 se pehle |
+| Pehla milestone | **Slice 0: Header + Footer** end-to-end (D-27) |
+
+Specs 001, 003, 004, 005 → 🟢 Approved
+
+---
+
+## Ab bhi baaki
 
 | ID | Kya | Status |
 |---|---|---|
-| A-1 | Permission strings | 🟡 Draft ban gaya — [`specs/001`](../specs/001-permissions.md) — **approval chahiye** |
-| A-2 | `entries` + block Zod contract | 🔴 Likhna hai — [`specs/002`](../specs/002-content-contract.md) |
-| A-3 | Env schema | 🟡 Draft ban gaya — [`specs/003`](../specs/003-env-schema.md) — **approval chahiye** |
-| A-4 | Seed definition | 🟡 Draft ban gaya — [`specs/004`](../specs/004-seed.md) — **approval chahiye** |
-| B-1 | Field DSL — ek ya do? | 🔴 **Faisla pending** — [`specs/005`](../specs/005-field-dsl.md) |
-| C-1 | `packages/shared`+`blocks` TypeScript me? | 🔴 Faisla pending — 2 ghante ka spike |
-| C-2 | Payload CMS spike | 🔴 Pending — Phase 1 se pehle |
+| A-2 | `entries` + block Zod contract | 🔴 **Likhna hai** — [`specs/002`](../specs/002-content-contract.md) |
+| C-2 | Payload CMS spike | 🔴 Karna hai — Phase 1 se pehle |
 
-**Jo abhi shuru ho sakta hai (kisi blocker pe depend nahi):**
-`git init` · pnpm monorepo skeleton · docker-compose (mongo) · ESLint/Prettier/jsconfig ·
+**Jo abhi shuru ho sakta hai (A-2 pe block nahi):**
+pnpm monorepo skeleton · docker-compose (mongo) · ESLint/Prettier/jsconfig ·
 CI pipeline · Express boilerplate (error handler, logger, helmet, CORS, rate limit)
+
+---
+
+## Agla order
+
+```
+1. A-2 — Zod contract likho aur freeze     (aadha din)
+2. Phase 0 — Foundation & Auth             (1.5 hafte)
+3. Slice 0 — Header + Footer end-to-end    (1.5 hafte)
+4. C-2 — Payload spike (parallel)          (2 din)
+5. Phase 1 — Content Core                  (3 hafte)
+```
 
 ---
 
@@ -49,10 +73,25 @@ CI pipeline · Express boilerplate (error handler, logger, helmet, CORS, rate li
 
 | Milestone | Cumulative |
 |---|---|
-| Phase 0-2 | 6 hafte |
-| **Phase 3-4 — usable CMS, demo ready** | **10 hafte** |
-| Phase 5 — builder live | 16-18 hafte |
-| Phase 6-8 — production | 23-28 hafte |
+| Phase 0 + Slice 0 | 3 hafte |
+| Phase 1-2 | 7.5 hafte |
+| **Phase 3-4 — usable CMS, demo ready** | **11.5 hafte** |
+| Phase 5 — builder live | 18-20 hafte |
+| Phase 6-8 — production | 25-30 hafte |
+
+*(Slice 0 ka ~1.5 hafta add hua)*
+
+---
+
+## Git
+
+```
+branch  : main
+commit  : 0933c1f  Planning docs v3 + .claude workspace
+remote  : github.com/progryss/crmmern.git  (configured, PUSH NAHI HUA)
+```
+
+⚠️ **Push kabhi bhi bina permission ke nahi karna.**
 
 ---
 

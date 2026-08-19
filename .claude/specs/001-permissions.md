@@ -1,6 +1,6 @@
 # 001 — Permission strings
 
-**Status:** 🟡 Draft — approval chahiye
+**Status:** 🟢 Approved — 19 Aug 2026
 **Phase:** 0
 **Blocks:** `requirePermission()` middleware, `Role` model, seed script
 **Related:** D-18 (statuses), `02-ARCHITECTURE.md` §8.3
@@ -17,7 +17,7 @@ kehte hain), isliye ye list Phase 0 ke code se pehle freeze honi chahiye.
 
 ## Scope me hai
 - Har resource ke liye permission strings
-- 5 default roles ka permission mapping
+- 4 default roles ka permission mapping
 - Naming convention
 
 ## Scope me nahi
@@ -120,34 +120,42 @@ activity.read
 
 ## Role mapping
 
-| Permission group | admin | editor | author | contributor | subscriber |
-|---|:---:|:---:|:---:|:---:|:---:|
-| `entry.read` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| `entry.create` | ✅ | ✅ | ✅ | ✅ | — |
-| `entry.update` | ✅ | ✅ | — | — | — |
-| `entry.update.own` | ✅ | ✅ | ✅ | ✅ | — |
-| `entry.publish` | ✅ | ✅ | — | — | — |
-| `entry.publish.own` | ✅ | ✅ | ✅ | — | — |
-| `entry.submitReview` | ✅ | ✅ | ✅ | ✅ | — |
-| `entry.delete` | ✅ | ✅ | — | — | — |
-| `entry.delete.own` | ✅ | ✅ | ✅ | ✅ | — |
-| `entry.purge` | ✅ | ✅ | — | — | — |
-| `taxonomy.*` | ✅ | ✅ | read | read | read |
-| `media.upload` | ✅ | ✅ | ✅ | ✅ | — |
-| `media.delete` | ✅ | ✅ | — | — | — |
-| `menu.*` `template.*` `pattern.*` `theme.*` | ✅ | ✅ | — | — | — |
-| `contentType.*` | ✅ | — | — | — | — |
-| `seo.*` `redirect.*` | ✅ | ✅ | — | — | — |
-| `form.*` | ✅ | ✅ | — | — | — |
-| `submission.read` | ✅ | ✅ | — | — | — |
-| `settings.update` | ✅ | — | — | — | — |
-| **`settings.scripts.update`** | ✅ | — | — | — | — |
-| `user.*` `role.*` | ✅ | — | — | — | — |
-| `tools.*` | ✅ | — | — | — | — |
-| `activity.read` | ✅ | ✅ | — | — | — |
+**Char roles** — `subscriber` nahi banega (D-26).
+
+| Permission group | admin | editor | author | contributor |
+|---|:---:|:---:|:---:|:---:|
+| `entry.read` | ✅ | ✅ | ✅ | ✅ |
+| `entry.create` | ✅ | ✅ | ✅ | ✅ |
+| `entry.update` | ✅ | ✅ | — | — |
+| `entry.update.own` | ✅ | ✅ | ✅ | ✅ |
+| `entry.publish` | ✅ | ✅ | — | — |
+| `entry.publish.own` | ✅ | ✅ | ✅ | — |
+| `entry.submitReview` | ✅ | ✅ | ✅ | ✅ |
+| `entry.delete` (trash) | ✅ | ✅ | — | — |
+| `entry.delete.own` | ✅ | ✅ | ✅ | ✅ |
+| `entry.restore` | ✅ | ✅ | — | — |
+| **`entry.purge`** (permanent) | ✅ | **—** | — | — |
+| `taxonomy.*` | ✅ | ✅ | read | read |
+| `media.upload` | ✅ | ✅ | ✅ | ✅ |
+| `media.delete` (trash) | ✅ | ✅ | — | — |
+| **`media.purge`** (permanent) | ✅ | **—** | — | — |
+| `menu.*` `template.*` `pattern.*` `theme.*` | ✅ | ✅ | — | — |
+| `contentType.*` | ✅ | — | — | — |
+| `seo.*` `redirect.*` | ✅ | ✅ | — | — |
+| `form.*` | ✅ | ✅ | — | — |
+| `submission.read` | ✅ | ✅ | — | — |
+| `settings.update` | ✅ | — | — | — |
+| **`settings.scripts.update`** | ✅ | — | — | — |
+| `user.*` `role.*` | ✅ | — | — | — |
+| `tools.*` | ✅ | — | — | — |
+| `activity.read` | ✅ | ✅ | — | — |
 
 **`contributor` ka poora rasta:** create → update.own → submitReview → (editor publish
 karta hai). Iske bina `pending` status ka koi matlab nahi.
+
+**Purge sirf admin ko** — editor trash me daal sakta hai par mita nahi sakta. Client ka
+data ek galti se hamesha ke liye jaane ka raasta band. Editor ko purge chahiye ho to
+admin se bolna padega — thoda friction, par recoverable.
 
 ---
 
@@ -157,7 +165,7 @@ karta hai). Iske bina `pending` status ka koi matlab nahi.
   taaki custom role banana Phase 7 me aasaan ho
 - `.own` check service layer me — `entry.authorId === user._id`
 - Permission constants `packages/shared/src/constants/permissions.js` me
-- Seed script default 5 roles banaye is mapping se
+- Seed script default 4 roles banaye is mapping se
 
 ---
 
@@ -166,21 +174,22 @@ karta hai). Iske bina `pending` status ka koi matlab nahi.
 - [ ] Saare permission strings `packages/shared` me constants ke roop me
 - [ ] `requirePermission()` middleware string leta hai, 403 deta hai
 - [ ] `.own` variant service layer me authorId check karta hai
-- [ ] 5 default roles seed hote hain is mapping ke saath
+- [ ] 4 default roles seed hote hain is mapping ke saath
 - [ ] Test: har role ka ek restricted route pe 403
 - [ ] Test: `contributor` publish nahi kar paata par submitReview kar paata hai
 - [ ] Docs: `02-ARCHITECTURE.md` §8.3 me link
 
 ---
 
-## Open questions
+## Resolved questions
 
-1. **`entry.purge` editor ko dena chahiye?** Abhi ✅ diya hai. Agar client ka data
-   permanently delete karna sirf admin ka kaam hona chahiye, to hatao.
-2. **`subscriber` role chahiye bhi?** Agency sites pe shayad koi use na kare. Rakhna
-   sasta hai, par seed me default banana zaroori nahi.
+1. ~~`entry.purge` editor ko dena chahiye?~~ → **Nahi, sirf admin.** (19 Aug 2026)
+2. ~~`subscriber` role chahiye bhi?~~ → **Nahi.** Char roles hi honge. Kabhi zaroorat
+   padi to add karna sasta hai — permission system string-based hai, schema change nahi.
+   (D-26, 19 Aug 2026)
 3. **Per-content-type permissions** (jaise "editor sirf Posts publish kare, Pages nahi")
    — abhi scope me nahi. Kabhi chahiye to `entry.publish:post` shape me extend hoga.
+   *(abhi bhi open, par blocking nahi)*
 
 ---
 

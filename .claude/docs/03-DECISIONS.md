@@ -421,13 +421,105 @@ Ye **decisions** hain, omissions nahi — isliye likhe gaye hain.
 
 ---
 
+## D-24 · Ek field DSL, do nahi
+
+**Context:** `contentTypes.fields[]` (Phase 6) aur `blockDefinition.schema[]` (Phase 5)
+dono field-definition systems hain. Overlap ~50%. Docs me ye kabhi connect nahi kiye gaye the.
+
+**Decision:** **Ek DSL**, `packages/shared/src/field-types.js` me, har type pe
+`contexts: ['content'|'block']` ke saath. Ek `<FieldRenderer field context />`
+component dono jagah kaam karega.
+
+```js
+text     contexts: ['content','block']
+richText contexts: ['content']
+spacing  contexts: ['block']
+```
+
+**Kyun:** Overlap already aadha hai — do systems rakhna matlab drift pakka. Phase 6 ka
+estimate 3-4 hafte hai aur shared renderer usme se kaafi kaat deta hai. Coupling
+manageable hai — `contexts` ek simple filter hai, complex abstraction nahi.
+
+**Reject kiya:** Do alag DSL. Har system apne hisaab se evolve kar sakta, par field
+renderer do baar banta, naya field type do jagah add hota, aur waqt ke saath `select`
+dono jagah thoda alag behave karne lagta.
+
+**Nateeja:** Ye faisla `packages/shared` ko chhoota hai, matlab **Phase 0 ka kaam** hai,
+Phase 5 ka nahi. `responsive: true` sirf `block` context me honour hoga.
+
+---
+
+## D-25 · Trash = `deletedAt` field, `status: 'trash'` nahi
+
+**Context:** Delete ko soft-delete karna hai (D-18). Mechanism kya ho — ek naya status,
+ya alag timestamp field?
+
+**Decision:** **`deletedAt` timestamp field.** `status` ko chhua nahi jaata.
+
+**Kyun:** Restore ka matlab *"jaisa tha waisa"* hona chahiye. `status: 'trash'` karne pe
+ye info kho jaati hai ki entry pehle published thi ya draft — restore pe user ko dobara
+publish karna padta, aur wo ek silent data-loss jaisa feel hota hai.
+
+**Reject kiya:** `status: 'trash'` — simple dikhta hai par publish state kha jaata hai.
+
+**Nateeja:** Har list query me `deletedAt: null` add karna padega — isliye ye index me
+shamil hai (`{ siteId, deletedAt, updatedAt }`). Bhoolne pe trashed entries public site
+pe dikh sakti hain, isliye ye service layer ka default filter hona chahiye, controller ka nahi.
+
+---
+
+## D-26 · Char roles, `subscriber` nahi
+
+**Context:** Paanch roles plan kiye the — `admin`, `editor`, `author`, `contributor`,
+`subscriber`.
+
+**Decision:** **Char roles.** `subscriber` (read-only) abhi nahi banega.
+
+**Kyun:** Agency sites pe read-only user ka koi asli use-case nahi mila. Permission
+system string-based hai, isliye kabhi zaroorat padi to role add karna sasta hai —
+schema change nahi hai.
+
+**Nateeja:** Seed 4 roles banayega. `role` enum me `subscriber` nahi hoga.
+
+**Saath me:** `entry.purge` (permanent delete) **sirf `admin`** ko. Editor trash me daal
+sakta hai, mita nahi sakta — client ka data ek galti se hamesha ke liye jaane ka raasta
+band.
+
+---
+
+## D-27 · Pehla milestone: Header + Footer ka vertical slice
+
+**Context:** Phase 0 se seedha shuru karein, ya pehle ek patli end-to-end slice?
+
+**Decision:** **Pehle ek patli slice** — aur wo slice **Header + Footer** hoga, koi
+content page nahi.
+
+Scope:
+```
+Admin me   : logo, navigation, CTA button, footer columns, social links, copyright
+API        : settings + menus (admin write, public read)
+Public site: header aur footer asli API data se render
+```
+
+**Kyun:** Header/footer har page pe aate hain, matlab sabse zyada reuse hone wala hissa
+hain. Aur ye original Phase 3 order se already match karta hai ("header/footer pehle,
+asli API data se, dummy se nahi"). Isse ye poora pipeline ek baar end-to-end verify ho
+jaata hai: admin → API → public render → cache invalidation.
+
+**Reject kiya:** Ek normal content page ka slice. Wo `entries` + `path` routing test
+karta, par header/footer se kam reuse deta.
+
+**Nateeja / imaandari se:** Ye slice **cache invalidation** aur settings/menus pipeline
+verify karta hai — par **preview parity verify nahi karta**, kyunki usme blocks chahiye.
+Wo risk Phase 5 tak khula rahega. Page builder is slice me nahi banega.
+
+---
+
 ## Abhi khule hue faisle
 
-Ye do abhi tay nahi hue, aur dono sirf **abhi** sasti hain:
-
-| # | Faisla | Deadline |
+| # | Faisla | Status |
 |---|---|---|
-| O-1 | `packages/shared` + `packages/blocks` TypeScript me? | Phase 0 se pehle |
-| O-2 | Payload CMS ka 2-din spike (~8 hafte ka kaam already solved ho sakta hai) | Phase 1 se pehle |
+| O-1 | `packages/shared` + `blocks` TypeScript me? | ✅ **Tay: nahi** — sab JavaScript. D-03 waise hi rahega, mitigations (Zod + checkJs + tree-op tests) ab optional nahi |
+| O-2 | Payload CMS ka 2-din spike | ✅ **Approved** — Phase 1 se pehle hoga. Result se ye decisions badal sakti hain |
 
-Detail: [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)
+Baaki open items: [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)

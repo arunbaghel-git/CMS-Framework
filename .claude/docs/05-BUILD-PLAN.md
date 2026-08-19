@@ -38,10 +38,66 @@ Poora reasoning [`03-DECISIONS.md`](03-DECISIONS.md) me.
 | 7 | `style` → server-generated scoped CSS | D-08 |
 | 8 | Preview parity — injected `components={{Link, Image}}` | D-07 |
 
-Saath hi ye char **artifacts** likhne hain (abhi exist nahi karte) →
+Saath hi ye char **artifacts** likhne hain →
 [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md):
-permission string list · `entries` + block envelope ka Zod contract · env schema ·
-seed definition.
+permission string list ✅ · env schema ✅ · seed definition ✅ ·
+`entries` + block envelope ka Zod contract (baaki hai).
+
+---
+
+## Slice 0 — Header + Footer, end-to-end (~1.5 hafte)
+
+**Phase 0 ke baad, Phase 1 se pehle.** Ye ek patli vertical slice hai jo poora pipeline
+ek baar verify karti hai — admin se lekar live site tak. Page builder isme **nahi** banega.
+
+### Kyun header/footer, koi content page nahi
+Header aur footer **har page pe** aate hain — poore system ka sabse zyada reuse hone
+wala hissa. Aur ye original Phase 3 order se match karta hai: *"header/footer pehle,
+asli API data se, dummy se nahi"*.
+
+### Scope
+
+**Admin me (minimal config screens)**
+- Logo upload + site name
+- Navigation — menu items add/reorder/nest (drag-drop)
+- Header CTA button (label + link)
+- Footer columns — links
+- Social links
+- Copyright text
+- Save aur publish
+
+**API**
+- `settings` — admin write + public read
+- `menus` + `menuLocations` — admin write + public read
+- Revalidate webhook (shared secret ke saath)
+
+**Public site**
+- Header aur footer **asli API data se** render
+- Theme tokens (colors, fonts) settings se driven
+- Menu change → site update (cache invalidation verify)
+
+### Done kab
+```
+1. Admin me login karo
+2. Logo badlo, menu me ek item add karo, CTA ka text badlo
+3. Save karo
+4. Public site refresh karo → change turant dikhe
+```
+
+### Kya verify ho jaata hai
+- ✅ Auth + admin shell + RBAC ka poora rasta
+- ✅ Settings aur menus ka API contract
+- ✅ **Cache invalidation** — menu badla, site update hui
+- ✅ Theme tokens ka mechanism
+- ✅ Deploy pipeline end-to-end
+
+### Kya verify NAHI hota (imaandari se)
+- ❌ **Preview parity** — usme blocks chahiye, wo Phase 5 me hi test hoga
+- ❌ `entries` + `path` routing — Phase 1/3 me
+- ❌ Page builder — Phase 5
+
+Ye slice cache aur config pipeline ka risk khatam karti hai; preview-parity ka risk
+khula rehta hai. Wo D-07 ke mechanism (injected primitives) pe depend karta hai.
 
 ---
 

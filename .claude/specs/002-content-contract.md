@@ -55,10 +55,11 @@ migration nahi likhni padegi.
 
 ### Status enum
 ```
-draft | pending | published | scheduled | private | trash
+draft | pending | published | scheduled | private
 ```
-Note: `trash` alag status hai ya `deletedAt` se derive hota hai — **ye tay karna hai**
-(open question 1).
+
+**`trash` status me nahi hai** — wo alag `deletedAt` timestamp field hai (D-25). Isse
+restore pe entry apni purani state me wapas aati hai (published thi to published hi).
 
 ---
 
@@ -89,13 +90,9 @@ Ye migration nahi hai, ye **foundation** hai. Iske baad har change migration maa
 
 ## Open questions
 
-**1. `trash` status hai ya `deletedAt` field?**
-Do options:
-- (a) `status: 'trash'` — simple, par publish state kho jaati hai (restore pe kya banega?)
-- (b) `deletedAt` timestamp + status untouched — restore pe purani state wapas mil jaati hai
-
-**Recommendation: (b).** Restore ka matlab "jaisa tha waisa" hona chahiye. Par tab
-har list query me `deletedAt: null` add karna padega — isliye index me shamil hai.
+**1.** ~~`trash` status hai ya `deletedAt` field?~~ → ✅ **`deletedAt` field** (D-25,
+19 Aug 2026). Status ko chhua nahi jaata; restore pe entry purani state me wapas.
+Har list query me `deletedAt: null` filter — service layer ka default ho, controller ka nahi.
 
 **2. `content.version` aur block-level version — dono chahiye?**
 Abhi sirf `content.version` plan me hai (poore tree ka). Kya kabhi per-block versioning

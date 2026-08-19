@@ -1,6 +1,6 @@
 # 003 — Environment schema
 
-**Status:** 🟡 Draft — approval chahiye
+**Status:** 🟢 Approved — 19 Aug 2026
 **Phase:** 0
 **Blocks:** App boot, aur D-15 ka client-repo contract
 **Related:** D-15, `06-OPERATIONS.md` §4

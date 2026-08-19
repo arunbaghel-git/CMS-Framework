@@ -89,7 +89,7 @@ query usse filter nahi karti — ye sirf future multi-site ke liye reserve hai (
 
 ```
 users            _id, name, email, passwordHash, role, status, avatarId, lastLoginAt
-roles            _id, key(admin|editor|author|contributor|subscriber), permissions[]
+roles            _id, key(admin|editor|author|contributor), permissions[]
 refreshTokens    userId, jti, familyId, expiresAt, usedAt, revokedAt, ua, ip
 migrations       name, appliedAt, checksum
 
@@ -235,12 +235,28 @@ patterns nahi. Published content ke baad pattern badla to redirects automatic ba
 
 ```
 draft ──> pending ──> published ──> (unpublish) ──> draft
-  │          │            │
-  │          │            └──> scheduled (publishAt future)
-  └──────────┴──> trash ──> restore / purge after N days
-
+             │            │
+             │            └──> scheduled (publishAt future)
+             │
 private = published, par sirf logged-in user ko dikhta hai (client staging pages)
 ```
+
+**Trash `status` nahi hai — wo `deletedAt` field hai** (D-25):
+
+```
+koi bhi status  +  deletedAt: null        →  normal
+koi bhi status  +  deletedAt: <timestamp> →  Trash me hai
+
+restore  →  deletedAt = null, status jaisa tha waisa wapas
+purge    →  permanent delete (sirf `admin`, sirf Trash screen se)
+```
+
+`status` ko chhua nahi jaata, isliye published entry restore hone pe **published hi**
+wapas aati hai. `status: 'trash'` karne pe ye info kho jaati.
+
+> **Har query me `deletedAt: null` filter zaroori hai.** Ye service layer ka default
+> hona chahiye, controller ka nahi — bhoolne pe trashed entries public site pe dikh
+> jaayengi.
 
 - **`pending` optional nahi hai** — `author`/`contributor` publish nahi kar sakte, to
   unke "kaam ho gaya, review karo" ka koi state hi nahi bachta.
@@ -490,11 +506,12 @@ ke saath same-origin execute hona poore system ka sabse bada target hai.
 
 | Role | Kya kar sakta hai |
 |---|---|
-| `admin` | Sab kuch — settings, scripts, users |
-| `editor` | Saara content publish, media, menus |
+| `admin` | Sab kuch — settings, scripts, users, **permanent delete** |
+| `editor` | Saara content publish, media, menus. Trash me daal sakta hai, mita nahi sakta |
 | `author` | Apna content **publish kar sakta hai** |
 | `contributor` | Apna content likhta hai, publish nahi — `pending` pe bhejta hai |
-| `subscriber` | Read-only |
+
+Char roles hi hain — `subscriber` nahi banega (D-26).
 
 Permissions string-based: `entry.create`, `entry.publish`, `entry.publish.own`,
 `media.delete`, `settings.update`, `settings.scripts.update`. Role → permissions[]
