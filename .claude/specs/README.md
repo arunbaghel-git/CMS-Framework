@@ -10,7 +10,7 @@ Spec likhne se wo decision implementation se pehle saamne aa jaata hai, baad me 
 | #                              | Spec                                    | Status                                      | Blocks        |
 | ------------------------------ | --------------------------------------- | ------------------------------------------- | ------------- |
 | [001](001-permissions.md)      | Permission strings                      | 🟢 **Approved** — 4 roles, purge admin-only | —             |
-| [002](002-content-contract.md) | `entries` + block envelope Zod contract | 🔴 **Likhna baaki**                         | Phase 1 poora |
+| [002](002-content-contract.md) | `entries` + block envelope Zod contract | ✅ **Implemented**                          | —             |
 | [003](003-env-schema.md)       | Environment schema                      | 🟢 **Approved**                             | —             |
 | [004](004-seed.md)             | Seed definition                         | 🟢 **Approved** — khaali Home + Blog        | —             |
 | [005](005-field-dsl.md)        | Field DSL                               | 🟢 **Approved** — Option A (ek DSL)         | —             |

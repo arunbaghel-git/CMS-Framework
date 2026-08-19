@@ -1,6 +1,6 @@
 # 002 — `entries` + block envelope Zod contract
 
-**Status:** 🔴 Pending
+**Status:** ✅ Implemented — 19 Aug 2026
 **Phase:** −1 (Phase 1 se pehle zaroori)
 **Blocks:** Phase 1 poora, Phase 5 builder, Phase 6 content types
 **Related:** D-04, D-05, D-09, `02-ARCHITECTURE.md` §3, §6

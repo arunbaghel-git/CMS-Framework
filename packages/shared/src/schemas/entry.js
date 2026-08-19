@@ -1,0 +1,160 @@
+import { z } from 'zod'
+import {
+  DEFAULT_LOCALE,
+  DEFAULT_SITE_ID,
+  ENTRY_STATUSES,
+  RESERVED_SLUGS,
+} from '../constants/index.js'
+import { contentSchema, emptyContent } from './content.js'
+import { emptySeo, seoSchema } from './seo.js'
+
+/**
+ * Entry schema — spec 002. Poora system isi pe khada hai.
+ *
+ * "Sab kuch content hai" (D-04): pages, posts aur custom types sab ek hi collection
+ * me hain, `type` field se alag. UI me `entries` shabd kabhi nahi dikhta (R11).
+ */
+
+/** Sirf lowercase, digits aur hyphen. Slug URL ka hissa banta hai. */
+export const slugSchema = z
+  .string()
+  .min(1)
+  .max(200)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug me sirf chhote letters, numbers aur hyphen')
+  .refine((s) => !RESERVED_SLUGS.includes(s), {
+    message: `Ye slug reserved hai: ${RESERVED_SLUGS.join(', ')}`,
+  })
+
+/**
+ * Stored public path — routing ka **single source of truth** (D-09).
+ *
+ * `{siteId, locale, path}` unique hai. Iske bina ek `page` "about" aur ek `service`
+ * "about" dono `/about` pe resolve kar sakte hain, aur `{siteId, type, slug}` unique
+ * hone ke baawajood ye collision pakda hi nahi jaata.
+ */
+export const pathSchema = z
+  .string()
+  .min(1)
+  .max(1000)
+  .regex(
+    /^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$/,
+    'Path `/` se shuru ho, lowercase ho',
+  )
+
+export const taxonomyRefsSchema = z.object({
+  categories: z.array(z.string()).default([]),
+  tags: z.array(z.string()).default([]),
+})
+
+/** Poori stored shape — DB me entry aisi dikhti hai. */
+export const entrySchema = z.object({
+  // Multi-site insurance — aaj koi query isse filter nahi karti (§3.2)
+  siteId: z.string().default(DEFAULT_SITE_ID),
+  // Multi-language insurance — feature baad me, field day 1 se
+  locale: z.string().default(DEFAULT_LOCALE),
+
+  type: z
+    .string()
+    .min(1)
+    .regex(/^[a-z][a-zA-Z0-9]*$/, 'contentType key camelCase hona chahiye'),
+
+  title: z.string().min(1).max(300),
+  slug: slugSchema,
+  path: pathSchema,
+
+  status: z.enum(ENTRY_STATUSES).default('draft'),
+  /** `scheduled` status ke saath zaroori. Cron atomic claim isi index pe chalti hai. */
+  publishAt: z.coerce.date().nullable().default(null),
+
+  authorId: z.string().nullable().default(null),
+  templateId: z.string().nullable().default(null),
+  parentId: z.string().nullable().default(null),
+  featuredImageId: z.string().nullable().default(null),
+
+  content: contentSchema.default(emptyContent),
+  /** contentType ke custom fields. Mixed rehta hai (D-21) — validation contentType se. */
+  fields: z.record(z.unknown()).default({}),
+  seo: seoSchema.default(emptySeo),
+  taxonomies: taxonomyRefsSchema.default({ categories: [], tags: [] }),
+
+  excerpt: z.string().max(1000).optional(),
+  order: z.number().int().default(0),
+
+  /** Flattened text — Mongo ek hi text index deta hai, isliye ye denormalized hai. */
+  searchText: z.string().default(''),
+
+  /** Optimistic concurrency. Mismatch pe API 409 deta hai. */
+  version: z.number().int().nonnegative().default(0),
+
+  /**
+   * Trash. `status: 'trash'` NAHI (D-25) — status chhua nahi jaata, isliye restore pe
+   * entry apni purani state me wapas aati hai (published thi to published hi).
+   *
+   * Har list query me `deletedAt: null` filter zaroori hai — service layer ka default
+   * ho, controller ka nahi.
+   */
+  deletedAt: z.coerce.date().nullable().default(null),
+
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+})
+
+/** API pe create ke waqt kya accept hota hai. Server `path`, `version`, `searchText` khud likhta hai. */
+export const entryCreateSchema = entrySchema
+  .omit({
+    path: true,
+    version: true,
+    searchText: true,
+    deletedAt: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .partial({
+    slug: true, // title se auto-generate ho jaayega
+    siteId: true,
+    locale: true,
+  })
+
+/**
+ * Update — sab optional, par `version` **zaroori** hai.
+ *
+ * Bina version ke: 30s autosave + do editor = silent lost update. Isliye client
+ * apna version bhejta hai aur mismatch pe 409 milta hai.
+ */
+export const entryUpdateSchema = entrySchema
+  .omit({ path: true, searchText: true, createdAt: true, updatedAt: true })
+  .partial()
+  .extend({ version: z.number().int().nonnegative() })
+
+/** Admin list query. Har param validated — kuch bhi seedha Mongoose query me nahi jaata (R9). */
+export const entryListQuerySchema = z.object({
+  type: z.string().optional(),
+  status: z.enum(ENTRY_STATUSES).optional(),
+  q: z.string().max(200).optional(),
+  authorId: z.string().optional(),
+  category: z.string().optional(),
+  tag: z.string().optional(),
+  parentId: z.string().optional(),
+  trashed: z.coerce.boolean().default(false),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  sort: z.enum(['updatedAt', 'createdAt', 'title', 'publishAt', 'order']).default('updatedAt'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+})
+
+/**
+ * Public site pe entry dikhni chahiye ya nahi.
+ *
+ * `scheduled && publishAt <= now` ko bhi published maanta hai — isse cron band ho
+ * jaaye to bhi site sahi rehti hai (self-healing, R2).
+ *
+ * @param {{ status: string, publishAt?: Date|null, deletedAt?: Date|null }} entry
+ * @param {Date} [now]
+ */
+export function isPubliclyVisible(entry, now = new Date()) {
+  if (!entry || entry.deletedAt) return false
+  if (entry.status === 'published') return true
+  if (entry.status === 'scheduled' && entry.publishAt && new Date(entry.publishAt) <= now)
+    return true
+  return false
+}
