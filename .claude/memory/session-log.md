@@ -6,6 +6,38 @@ Format:
 
 ```
 ## YYYY-MM-DD — <ek line summary>
+
+## 2026-08-19 — Coding shuru: setup + contract + migrations
+
+**Kya bana**
+- Phase 0 setup layer: pnpm monorepo, 3 apps + 2 packages, docker (mongo 8),
+  ESLint 10 + Prettier, GitHub Actions CI, Express base (helmet, CORS allowlist,
+  rate limit, pino, error envelope, /api/health, graceful shutdown)
+- Zod contract freeze (spec 002): block envelope, content, seo, entry +
+  create/update/listQuery. Permissions constants (spec 001). Field DSL (D-24).
+  JSDoc typedefs.
+- Migration runner: dono system — schema (numbered + ledger + checksum guard +
+  down() mandatory) aur block-tree (per-document, lazy). CLI: pnpm cms migrate.
+  Pehli migration: entries ke 6 indexes.
+
+**Verify (asli mongo pe, sirf test nahi)**
+migrate → 6 indexes bane · dobara → no-op · migrate:down → indexes gaye ·
+file edit → checksum guard fire · API boot → /api/health 200
+
+**Bug jo mila aur fix hua**
+MIGRATIONS_DIR cwd se resolve hoti thi, apps/api se chalane pe ledger "missing"
+dikhata tha. Env var override se fix. Ye sirf `pnpm test` se pakda hi nahi jaata —
+health endpoint hit karne se mila.
+
+**Faisle:** koi naya nahi
+
+**Desktop pe do files banayi** (samajhne ke liye, repo se bahar)
+CMS-Technology-Guide.html · CMS-Build-Roadmap.html
+
+**Agla:** Phase 0 ka auth — User/Role/RefreshToken models + migration, login/logout,
+refresh rotation + reuse detection, CSRF, requirePermission(), seed, admin shell.
+User se poochha tha: ek saath karein ya do hisson me — jawab pending.
+
 **Kya hua:** …
 
 **Faisle:** … (ya "koi nahi")
