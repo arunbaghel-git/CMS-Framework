@@ -5,6 +5,7 @@
 > admin IA. Ye sab architecture review ke findings se aaye hain.
 
 ## 1. Goal
+
 Ek reusable CMS framework jisse non-technical user admin panel se poori website
 banaye aur manage kare — pages, posts, media, menus, SEO, templates aur
 drag-and-drop page builder ke saath.
@@ -41,19 +42,20 @@ packages se aata hai — section 8.
 
 ### Teen apps, do shared packages
 
-| App | Tech | Kaam |
-|---|---|---|
-| `apps/api` | Express + Mongoose | Saara business logic, auth, uploads — single source of truth |
-| `apps/admin` | React 18 + Vite (JSX) | Admin UI, page builder, preview |
-| `apps/web` | Next.js (App Router) | Public website, SSR + ISR, SEO tags, sitemap |
-| `packages/blocks` | React (JSX) | **Block registry + renderer — dono apps yahi import karte hain** |
-| `packages/shared` | Zod | Validation schemas, constants, JSDoc typedefs |
+| App               | Tech                  | Kaam                                                             |
+| ----------------- | --------------------- | ---------------------------------------------------------------- |
+| `apps/api`        | Express + Mongoose    | Saara business logic, auth, uploads — single source of truth     |
+| `apps/admin`      | React 18 + Vite (JSX) | Admin UI, page builder, preview                                  |
+| `apps/web`        | Next.js (App Router)  | Public website, SSR + ISR, SEO tags, sitemap                     |
+| `packages/blocks` | React (JSX)           | **Block registry + renderer — dono apps yahi import karte hain** |
+| `packages/shared` | Zod                   | Validation schemas, constants, JSDoc typedefs                    |
 
 > **Sabse important decision:** block renderer ek hi jagah likho
 > (`packages/blocks`). Admin canvas aur public site dono wahi component use
 > karein. Warna "preview me kuch, live pe kuch aur" wala bug permanent ho jayega.
 
 ### Packaging: teen app, par ek deployable unit
+
 Teen apps alag develop hote hain, par **deploy ek hi unit ki tarah hota hai** — ek
 container image / ek process group per client, ek version number ke saath.
 15 client ka matlab 15 instance hai, 45 alag deployment nahi.
@@ -63,6 +65,7 @@ rehta hai par 15 replica set chalane ki zaroorat nahi. Ops cost ka sabse bada sa
 yahi hai, aur architecture pe koi asar nahi padta.
 
 ### Next.js kyun, jab MERN bola tha?
+
 Next.js React hi hai. SEO ke liye server-rendered HTML chahiye — pure SPA me
 crawler ko khaali div milta hai. Alternative Express + `react-dom/server` se manual
 SSR hai; kaam karega, par sitemap, ISR, image optimization, cache invalidation sab
@@ -120,20 +123,22 @@ forms          * siteId, name, fields[], notifyEmails[], successMessage
 submissions      formId, data, ip, createdAt, expiresAt
 activityLog      userId, action, entityType, entityId, meta, createdAt
 ```
+
 `users` / `roles` / `revisions` / `submissions` / `refreshTokens` / `activityLog` /
 `migrations` pe `siteId` nahi — ye user ya parent entry se derive ho jaate hain.
 
 ### Day 1 se reserve karne wale fields (kaam baad me, field abhi)
+
 Yahi wahi "insurance" logic hai jo `siteId` pe already lag chuka hai. Ye paanch bhi
 usi category me hain — **baad me daalna live data pe schema-wide change hai:**
 
-| Field | Kyun day 1 |
-|---|---|
-| `path` | Routing ka single source of truth — section 3c |
-| `deletedAt` | Trash/soft-delete har list query aur har index ko chhoota hai |
-| `locale` | Multi-language aane pe uniqueness `{siteId, locale, path}` ban jaati hai |
-| `version` | Optimistic concurrency — autosave + 2 editors = silent lost update |
-| `searchText` | Mongo me ek hi text index allowed hai; block content isi se searchable |
+| Field        | Kyun day 1                                                               |
+| ------------ | ------------------------------------------------------------------------ |
+| `path`       | Routing ka single source of truth — section 3c                           |
+| `deletedAt`  | Trash/soft-delete har list query aur har index ko chhoota hai            |
+| `locale`     | Multi-language aane pe uniqueness `{siteId, locale, path}` ban jaati hai |
+| `version`    | Optimistic concurrency — autosave + 2 editors = silent lost update       |
+| `searchText` | Mongo me ek hi text index allowed hai; block content isi se searchable   |
 
 ### 3b. Single-site by design, multi-site reserved
 
@@ -177,17 +182,18 @@ path likhne wala sirf ek function hai:  resolvePath(entry, contentType)
 resolve karta hai. `app/blog/[slug]` jaisa hardcoded route **mat banao** — wo
 `urlPattern` ke configurable hone ka matlab hi khatam kar deta hai.
 
-| Rule | Behaviour |
-|---|---|
-| Reserved slugs | `/admin` `/api` `/_next` `/media` `/uploads` — kabhi claim nahi ho sakte |
-| Slug collision | auto-suffix `-2`, `-3` |
-| Slug change | **automatic** 301, aur **descendants ka path cascade update** + har ek pe redirect |
-| Canonical | trailing-slash policy fix, lowercase enforce, baaki variants 301 |
-| Redirect safety | chain flatten + loop detection, warna infinite redirect |
-| Homepage | `settings.homepageEntryId` — `/` isi se resolve hota hai |
-| Posts page | `settings.postsPageEntryId` — post archive kis URL pe hai |
+| Rule            | Behaviour                                                                          |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Reserved slugs  | `/admin` `/api` `/_next` `/media` `/uploads` — kabhi claim nahi ho sakte           |
+| Slug collision  | auto-suffix `-2`, `-3`                                                             |
+| Slug change     | **automatic** 301, aur **descendants ka path cascade update** + har ek pe redirect |
+| Canonical       | trailing-slash policy fix, lowercase enforce, baaki variants 301                   |
+| Redirect safety | chain flatten + loop detection, warna infinite redirect                            |
+| Homepage        | `settings.homepageEntryId` — `/` isi se resolve hota hai                           |
+| Posts page      | `settings.postsPageEntryId` — post archive kis URL pe hai                          |
 
 **Archive routes (usi catch-all ke andar):**
+
 ```
 /                        homepage (settings se)
 /{postsPageSlug}         post archive
@@ -198,6 +204,7 @@ resolve karta hai. `app/blog/[slug]` jaisa hardcoded route **mat banao** — wo
 /search?q=               search results
 /feed                    RSS
 ```
+
 Permalink options **jaan-boojh kar limited** hain — `?p=123`, numeric aur date-based
 patterns nahi denge. Non-technical user ke liye chhota, sane set hi behtar hai. Aur
 published content ke baad pattern badla to redirects **automatic** banenge; chup-chaap
@@ -222,23 +229,43 @@ Review" filter + dashboard count chahiye.
 Delete action hamesha trash me daale; permanent delete sirf Trash screen ke andar se.
 
 ### Menu item (nested)
+
 ```json
-{ "id": "m1", "label": "About", "linkType": "entry|url|taxonomy",
-  "entryId": "...", "url": null, "target": "_self",
-  "cssClass": "", "children": [] }
+{
+  "id": "m1",
+  "label": "About",
+  "linkType": "entry|url|taxonomy",
+  "entryId": "...",
+  "url": null,
+  "target": "_self",
+  "cssClass": "",
+  "children": []
+}
 ```
+
 **Menus aur locations alag hain.** Pehle `key(main|footer)` hardcoded tha — client ko
 doosra footer menu chahiye to code change karna padta, jo "no code per client" rule
 hi tod deta hai. Ab: jitne chaho menus banao, aur theme jo `location` declare kare
 (`header`, `footer`, `mobile`) uspe assign kar do.
 
 ### SEO object (har entry pe embedded)
+
 ```json
-{ "title": "", "description": "", "canonical": "", "noindex": false, "nofollow": false,
-  "ogTitle": "", "ogDescription": "", "ogImageId": "",
-  "twitterCard": "summary_large_image", "schemaType": "WebPage|Article|Product",
-  "focusKeyword": "" }
+{
+  "title": "",
+  "description": "",
+  "canonical": "",
+  "noindex": false,
+  "nofollow": false,
+  "ogTitle": "",
+  "ogDescription": "",
+  "ogImageId": "",
+  "twitterCard": "summary_large_image",
+  "schemaType": "WebPage|Article|Product",
+  "focusKeyword": ""
+}
 ```
+
 Fallback chain: entry SEO → `settings.titleTemplates[type]` (jaise
 `%title% | %sitename%`) → `settings.defaultSeo` → entry title/excerpt.
 
@@ -248,7 +275,9 @@ sabse common aur sabse mehnga accident hai — isliye ye toggle on hone pe admin
 permanent warning banner dikhega.
 
 ### Indexes (day 1 se, warna baad me dard)
+
 Compound indexes me `siteId` **sabse pehle**.
+
 ```
 entries:   { siteId: 1, locale: 1, path: 1 }               unique   <- routing
 entries:   { siteId: 1, type: 1, slug: 1 }                 unique
@@ -264,6 +293,7 @@ revisions: { entryId: 1, createdAt: -1 }
 refreshTokens: { jti: 1 } unique · { userId: 1 } · { expiresAt: 1 } TTL
 submissions:   { expiresAt: 1 } TTL
 ```
+
 > **Text index ka trap:** MongoDB ek collection pe sirf **ek** text index allow karta
 > hai, aur `{title, seo.description}` block content ko cover hi nahi karta — matlab
 > page ke body text pe search chup-chaap kuch nahi dhoondhta. Isliye save pe
@@ -281,14 +311,21 @@ edit karna, theme badalna, responsive control sab impossible ho jayega.
 {
   "version": 1,
   "blocks": [
-    { "id": "b1", "type": "section",
+    {
+      "id": "b1",
+      "type": "section",
       "props": { "background": { "type": "color", "value": "#0f172a" } },
       "style": { "desktop": { "paddingY": 80 }, "mobile": { "paddingY": 40 } },
       "children": [
-        { "id": "b2", "type": "container", "props": { "maxWidth": 1200 }, "children": [
-          { "id": "b3", "type": "heading", "props": { "text": "Hello", "level": 1 } },
-          { "id": "b4", "type": "button", "props": { "label": "Contact", "href": "/contact" } }
-        ]}
+        {
+          "id": "b2",
+          "type": "container",
+          "props": { "maxWidth": 1200 },
+          "children": [
+            { "id": "b3", "type": "heading", "props": { "text": "Hello", "level": 1 } },
+            { "id": "b4", "type": "button", "props": { "label": "Contact", "href": "/contact" } }
+          ]
+        }
       ]
     }
   ]
@@ -296,6 +333,7 @@ edit karna, theme badalna, responsive control sab impossible ho jayega.
 ```
 
 ### 4a. `style` se CSS kaise banta hai (ye pehle decide karna zaroori tha)
+
 **Inline styles se media queries likhi hi nahi ja sakti** — matlab
 `style.{desktop,tablet,mobile}` wala model inline style se implement ho hi nahi sakta.
 Decision:
@@ -305,30 +343,45 @@ Decision:
 > space constrained hai (spacing scale, token colors) — free-form CSS nahi.
 
 ```css
-.blk-b1{padding-block:80px}
-@media(max-width:1023px){.blk-b1{padding-block:60px}}
-@media(max-width:767px){.blk-b1{padding-block:40px}}
+.blk-b1 {
+  padding-block: 80px;
+}
+@media (max-width: 1023px) {
+  .blk-b1 {
+    padding-block: 60px;
+  }
+}
+@media (max-width: 767px) {
+  .blk-b1 {
+    padding-block: 40px;
+  }
+}
 ```
+
 Ye function **`packages/blocks` me hi rahega** (`styleToCss(block)`), taaki admin
 canvas aur public site bilkul same CSS banayein. CSP ke liye is `<style>` pe nonce
 lagega (section 6).
 
 ### 4b. Preview == live kaise guarantee hoti hai
+
 Sirf component share karna **kaafi nahi hai** — host alag hai. Admin canvas Vite
 iframe hai, live page Next.js. `next/image` aur `next/link` canvas me chalenge hi nahi,
 aur agar blocks unhe import karein to canvas toot jaayega.
 
 > **Rule:** blocks framework-agnostic rahenge; host apne primitives inject karega.
+>
 > ```jsx
 > <BlockRenderer blocks={...} components={{ Link, Image }} />
 > ```
+>
 > `apps/web` Next ke `Link`/`Image` deta hai (image optimization milti rahegi), admin
 > canvas plain `<a>` / `<img>` deta hai. Block ka code ek hi rehta hai.
 
 Agar Phase 5 me divergence phir bhi dikhe, escape hatch: canvas iframe ko asli Next
-app pe draft-mode me point kar do — tab preview *hai hi* live.
+app pe draft-mode me point kar do — tab preview _hai hi_ live.
 
 ### Block definition (registry entry) — framework ka extension point
+
 ```
 {
   type: 'heading',
@@ -345,10 +398,12 @@ app pe draft-mode me point kar do — tab preview *hai hi* live.
   Render: (props) => JSX          // ek hi component: admin canvas + public site
 }
 ```
+
 **Fayda:** naya block = sirf ek file. Properties panel, drag list, defaults — sab
 schema se generate.
 
 ### 4c. Theming API (client customization ka contract)
+
 Rule "client customization theme me" tabhi chalega jab blocks ke paas ek **documented
 styling surface** ho. Sirf design tokens kaafi nahi hote.
 
@@ -361,6 +416,7 @@ Iske bina har client "thoda alag hero" maangega, core block file badalni padegi,
 framework 3 client baad forks ka dher ban jaayega.
 
 ### Builder UI ke hisse
+
 1. **Left** — block library (categories + search) + layers/tree view
 2. **Center** — canvas, **sandboxed iframe** me render
 3. **Right — do tabs: `Document` aur `Block`**
@@ -377,7 +433,9 @@ Libraries: `dnd-kit` (drag-drop), `zustand` + `immer` (editor state + history),
 `react-hook-form` + `zod` (forms), `TipTap` (rich text), `sharp` (image variants).
 
 ### Do editors, ek content field
+
 `hasBuilder` per content type decide karta hai kaunsa editor khulega:
+
 - `hasBuilder: false` (Posts) → rich text editor; content ek single `richText` block
 - `hasBuilder: true` (Pages) → full block builder
 
@@ -385,11 +443,13 @@ Dono **ek hi** `content.blocks` shape likhte hain, isliye type ko builder pe swi
 karna non-destructive hai.
 
 ### Responsive model
+
 Har block pe `style.desktop | tablet | mobile`. Mobile khaali ho to desktop se
 inherit. Sirf ye control do: spacing, alignment, visibility, columns, font size.
 Free-form CSS mat do — non-technical user usse site tod dega.
 
 ### Patterns aur Synced Patterns
+
 - **Pattern** — ready-made section (hero, features, CTA). Insert hote hi **copy** ban
   jaata hai; baad ka edit sirf usi page pe.
 - **Synced Pattern** — ek jagah save, har use pe **reference**. Ek jagah badlo, poori
@@ -410,6 +470,7 @@ User /about kholta hai
 ```
 
 ### 5a. Cache authority — ek hi, do nahi
+
 Pehle teen cache the: public API pe 60s LRU, Next ISR, aur revalidate webhook. Teen
 cache aur ek signal = "publish kiya par site update nahi hui" wala ticket.
 
@@ -417,12 +478,15 @@ cache aur ek signal = "publish kiya par site update nahi hui" wala ticket.
 > (ya sirf explicitly-invalidated cache — time-based kabhi nahi).
 
 ### 5b. Invalidation ek graph hai, ek path nahi
+
 `revalidatePath('/blog/x')` kaafi nahi. Ek post publish hone pe stale hote hain:
+
 ```
 post ka page · post archive + uske saare pagination pages ·
 har category/tag archive jisme wo hai · har page jisme "Post List" block hai ·
 menu (agar link hua) · sitemap.xml · RSS feed
 ```
+
 Isliye **tag-based invalidation**: har fetch pe tags (`entry:{id}`, `type:post`,
 `tax:{id}`, `menu:{location}`, `settings`), aur publish service ek explicit dependency
 map se `revalidateTag()` maare. Ye map **Phase 3 me design hoga, Phase 8 me retrofit
@@ -441,25 +505,29 @@ robots directives, auto `sitemap.xml`, `robots.txt`, **RSS feed**, JSON-LD
 ## 6. Auth & roles
 
 ### Deployment topology
+
 **Same-origin** rakho: admin `example.com/admin`, API `example.com/api`, dono ek
 reverse proxy ke peeche. Dev me Vite proxy se wahi setup mil jaata hai.
 
-| Setup | Cookie | CSRF ka bharosa |
-|---|---|---|
-| **Same-origin (recommended)** | `SameSite=Lax` kaam karta hai | Token defence-in-depth |
-| Cross-origin (`admin.x.com` ↔ `api.x.com`) | `SameSite=None; Secure` majboori — **SameSite ka protection zero** | Token hi akela sahara |
+| Setup                                       | Cookie                                                             | CSRF ka bharosa        |
+| ------------------------------------------- | ------------------------------------------------------------------ | ---------------------- |
+| **Same-origin (recommended)**               | `SameSite=Lax` kaam karta hai                                      | Token defence-in-depth |
+| Cross-origin (`admin.x.com` ↔ `api.x.com`) | `SameSite=None; Secure` majboori — **SameSite ka protection zero** | Token hi akela sahara  |
 
 ### Cookie + CSRF policy (explicit)
+
 ```
 access token   15 min   httpOnly · Secure (prod) · SameSite=Lax · Path=/ · __Host- prefix
 refresh token  7 din    wahi flags + rotation on use + reuse detection
 CSRF           double-submit token; har non-GET request pe verify
 CORS           strict origin allowlist + credentials:true  (wildcard kabhi nahi)
 ```
+
 localStorage me token kabhi mat rakho — CMS me user rich text aur embed HTML daalta
 hai, matlab XSS surface bada hai; cookie hi safe hai.
 
 **Teen cheezein jo iske saath zaroori hain:**
+
 1. **`refreshTokens` collection.** Reuse detection stateless JWT se ho hi nahi sakti —
    `jti` + `familyId` server pe store karna hi padega. Purana token dobara use hua =
    poori family revoke.
@@ -474,6 +542,7 @@ hai, matlab XSS surface bada hai; cookie hi safe hai.
 cookie name env-conditional rakho ya local HTTPS chalao.
 
 ### CSP
+
 Helmet enable karna kaafi nahi, **policy likhni padegi**. Nonce-based: block ka
 generated `<style>` aur theme scripts nonce carry karenge. `settings.scripts` (GTM
 etc.) is policy ka sabse bada dushman hai, isliye:
@@ -486,13 +555,14 @@ Canvas iframe **`sandbox` attribute ke saath** chalega. Untrusted block content 
 admin session ke saath same-origin execute hona is poore system ka sabse bada target hai.
 
 ### Roles
-| Role | Kya kar sakta hai |
-|---|---|
-| `admin` | Sab kuch — settings, scripts, users |
-| `editor` | Saara content publish, media, menus |
-| `author` | Apna content **publish kar sakta hai** |
+
+| Role          | Kya kar sakta hai                                               |
+| ------------- | --------------------------------------------------------------- |
+| `admin`       | Sab kuch — settings, scripts, users                             |
+| `editor`      | Saara content publish, media, menus                             |
+| `author`      | Apna content **publish kar sakta hai**                          |
 | `contributor` | Apna content likhta hai, publish nahi — `pending` pe bhejta hai |
-| `subscriber` | Read-only |
+| `subscriber`  | Read-only                                                       |
 
 Permissions string-based: `entry.create`, `entry.publish`, `entry.publish.own`,
 `media.delete`, `settings.update`, `settings.scripts.update`. Role → permissions[]
@@ -542,6 +612,7 @@ GET    /api/public/menus/:location
 GET    /api/public/settings
 GET    /api/public/sitemap  ·  /api/public/feed
 ```
+
 Admin aur public routes alag rakho: public read-only, admin authed.
 
 > `by-path` ki jagah `resolve` isliye ki ek hi endpoint entry, taxonomy archive,
@@ -560,12 +631,15 @@ Admin aur public routes alag rakho: public read-only, admin authed.
 ### Do repo, do kaam
 
 **1. Core repo** (ek, private) — versioned packages publish karta hai:
+
 ```
 @cms/api   @cms/admin   @cms/web   @cms/blocks   @cms/shared
 ```
+
 Semver follow karega. Breaking change = major + migration.
 
 **2. Client repo** (har client ka apna, patla):
+
 ```
 client-acme/
 ├─ package.json          # @cms/* ki pinned versions
@@ -574,19 +648,22 @@ client-acme/
 ├─ blocks/               # is client ke custom blocks
 └─ migrations/           # sirf client-specific data fixes
 ```
+
 Core upgrade = version bump + `pnpm cms migrate` + deploy. Aur ye ek query me pata
 chalna chahiye: **kaunsa client kis core version pe hai.**
 
 ### Migrations — do alag system
-| Kism | Kab chalti hai | Kaise |
-|---|---|---|
-| **Schema/data** | Deploy step pe, boot se pehle | Numbered files, `migrations` collection me record, ordered, idempotent |
-| **Block tree** | Read pe lazily + batch job | Har page ka `content.version` alag ho sakta hai (page v1, site v4) — isliye per-document aur idempotent |
+
+| Kism            | Kab chalti hai                | Kaise                                                                                                   |
+| --------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Schema/data** | Deploy step pe, boot se pehle | Numbered files, `migrations` collection me record, ordered, idempotent                                  |
+| **Block tree**  | Read pe lazily + batch job    | Har page ka `content.version` alag ho sakta hai (page v1, site v4) — isliye per-document aur idempotent |
 
 `contentTypes` se field delete hone pe kya ho — ye bhi define karo (orphan data rakho
 ya purge karo), warna admin ek click me 400 entries ka data uda dega.
 
 ### Fleet-level ops (per-instance cron nahi)
+
 15 instance ka matlab 15 `mongodump` cron = 15 silent failure modes. Backup,
 monitoring, uptime, Sentry aur core-version tracking **central** honge.
 
@@ -620,6 +697,7 @@ cms/
 ├─ migrations/
 └─ docker-compose.yml
 ```
+
 > **`themes/<client>/` core repo me nahi hai.** Client ka theme client ke repo me
 > rehta hai (section 8). Core me sirf `theme/` ka interface/contract hai.
 
@@ -654,6 +732,7 @@ Settings                  General · Reading · Permalinks · Media · Scripts
 ```
 
 ### List screen ka standard (har content type pe same)
+
 ```
 [ All (24) | Published (18) | Draft (4) | Pending (2) | Trash (7) ]
 [ search ]  [ filter: category · author · date ]          [ + Add New ]
@@ -664,10 +743,12 @@ Settings                  General · Reading · Permalinks · Media · Scripts
 
 [ Bulk actions: Publish | Unpublish | Trash | Assign category ]  [Apply]
 ```
+
 Bulk actions optional nahi hain — 200 posts wala client inke bina aapko call karega.
 Har row pe **View** (live page kholna) sabse zyada use hone wala action hai.
 
 ### Frontend edit bar
+
 Logged-in user jab live site dekhe, upar ek patli bar aaye: **"Edit this page"**.
 Iske bina loop ye hai — site pe typo dikha → admin kholo → list me page dhoondho →
 edit karo. Ek din ka kaam hai, roz kaam aata hai. Session/origin design Phase 3 me
@@ -681,13 +762,13 @@ waise bhi ho raha hai, isliye wahin add karo.
    **Mongoose hooks me sirf pure data normalization** — slugify, trim, `updatedAt`,
    denormalized counts. Koi side effect nahi, koi I/O nahi. Revision snapshot, cache
    invalidation, revalidate webhook, publish state machine, email — sab service me.
-   *Kyun:* `updateOne` / `findOneAndUpdate` / `bulkWrite` `save` hooks chalate hi nahi;
+   _Kyun:_ `updateOne` / `findOneAndUpdate` / `bulkWrite` `save` hooks chalate hi nahi;
    hook wala logic chup-chaap skip ho jaayega.
-1b. Scheduled publish **kabhi `setTimeout` se nahi** — DB source of truth
+   1b. Scheduled publish **kabhi `setTimeout` se nahi** — DB source of truth
    (`status:'scheduled'` + indexed `publishAt`), cron har minute atomic
    `findOneAndUpdate` se claim kare. Public read query khud bhi
    `scheduled && publishAt <= now` ko published maane (self-healing).
-1c. Library versions plan me hardcode mat karo — lockfile me exact pin, Node
+   1c. Library versions plan me hardcode mat karo — lockfile me exact pin, Node
    `.nvmrc` + `engines` me.
 2. Block ka `type` string kabhi rename mat karo. `content.version` rakho aur
    block-tree migration likho (section 8).
@@ -708,24 +789,24 @@ waise bhi ho raha hai, isliye wahin add karo.
 
 ## 12. Known traps
 
-| Trap | Kya hoga | Bachav |
-|---|---|---|
-| Builder me "Elementor jaisa sab kuch" | 3 mahine me bhi launch nahi hoga | Phase 5 me sirf ~10 block, fixed layout system |
-| Preview != live output | Client ka trust khatam | Shared renderer + injected platform components (4b) |
-| HTML string save karna | Aage kuch edit nahi hota | Hamesha JSON tree |
-| **Slug unique par path nahi** | Do type ek hi URL pe, silent collision | Stored `path` + unique index (3c) |
-| **Hardcoded `/blog/[slug]` route** | `urlPattern` configurable hone ka matlab khatam | Ek catch-all, `path` se resolve |
-| **`/` kahin define hi nahi** | Homepage ka koi jawab nahi | `settings.homepageEntryId` |
-| **Do cache layer** | "Publish kiya, site update nahi hui" | Ek authority + tag invalidation (5a/5b) |
-| **Text index block content miss karta hai** | Admin search chup-chaap kuch nahi dhoondhta | `searchText` denormalized field |
-| **Core update ka koi raasta nahi** | 12 fork, har fix 12 baar | Versioned packages + client repo (8) |
-| **`pending` status nahi** | contributor role bekaar | Status lifecycle (3d) |
-| **Trash nahi** | Non-technical user data uda dega | `deletedAt` day 1 |
-| **Reuse detection stateless JWT pe** | Feature exist hi nahi karta | `refreshTokens` collection |
-| **Parallel 401 → refresh stampede** | Random logout, week 3 me | Single-flight mutex |
-| Original image serve karna | Site slow, CWV down | Upload pe hi sharp se webp variants |
-| **SVG upload** | SVG ke andar `<script>` chal jaata hai | Sanitize ya disallow |
-| **Staging Google me index** | Client ka duplicate content live se compete kare | `searchEngineVisible` toggle + admin banner |
-| Saara data ek page me | Admin hang | Server-side pagination day 1 se |
-| Custom fields ko strict schema | Har client pe migration | `fields` Mixed, validation contentType se |
-| **Local disk pe media** | Instance stateful, deploy/backup mushkil | S3/R2 + CDN production default |
+| Trap                                        | Kya hoga                                         | Bachav                                              |
+| ------------------------------------------- | ------------------------------------------------ | --------------------------------------------------- |
+| Builder me "Elementor jaisa sab kuch"       | 3 mahine me bhi launch nahi hoga                 | Phase 5 me sirf ~10 block, fixed layout system      |
+| Preview != live output                      | Client ka trust khatam                           | Shared renderer + injected platform components (4b) |
+| HTML string save karna                      | Aage kuch edit nahi hota                         | Hamesha JSON tree                                   |
+| **Slug unique par path nahi**               | Do type ek hi URL pe, silent collision           | Stored `path` + unique index (3c)                   |
+| **Hardcoded `/blog/[slug]` route**          | `urlPattern` configurable hone ka matlab khatam  | Ek catch-all, `path` se resolve                     |
+| **`/` kahin define hi nahi**                | Homepage ka koi jawab nahi                       | `settings.homepageEntryId`                          |
+| **Do cache layer**                          | "Publish kiya, site update nahi hui"             | Ek authority + tag invalidation (5a/5b)             |
+| **Text index block content miss karta hai** | Admin search chup-chaap kuch nahi dhoondhta      | `searchText` denormalized field                     |
+| **Core update ka koi raasta nahi**          | 12 fork, har fix 12 baar                         | Versioned packages + client repo (8)                |
+| **`pending` status nahi**                   | contributor role bekaar                          | Status lifecycle (3d)                               |
+| **Trash nahi**                              | Non-technical user data uda dega                 | `deletedAt` day 1                                   |
+| **Reuse detection stateless JWT pe**        | Feature exist hi nahi karta                      | `refreshTokens` collection                          |
+| **Parallel 401 → refresh stampede**         | Random logout, week 3 me                         | Single-flight mutex                                 |
+| Original image serve karna                  | Site slow, CWV down                              | Upload pe hi sharp se webp variants                 |
+| **SVG upload**                              | SVG ke andar `<script>` chal jaata hai           | Sanitize ya disallow                                |
+| **Staging Google me index**                 | Client ka duplicate content live se compete kare | `searchEngineVisible` toggle + admin banner         |
+| Saara data ek page me                       | Admin hang                                       | Server-side pagination day 1 se                     |
+| Custom fields ko strict schema              | Har client pe migration                          | `fields` Mixed, validation contentType se           |
+| **Local disk pe media**                     | Instance stateful, deploy/backup mushkil         | S3/R2 + CDN production default                      |

@@ -12,13 +12,13 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ## Kaam shuru karne se pehle
 
-| Kaam | Pehle ye padho |
-|---|---|
-| Koi bhi code likhna | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 14 non-negotiable rules |
-| "Aisa kyun hai?" | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-27 |
-| Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md) |
-| Admin ka UI | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md) |
-| Phase shuru karna | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist |
+| Kaam                  | Pehle ye padho                                                          |
+| --------------------- | ----------------------------------------------------------------------- |
+| Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 14 non-negotiable rules |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-27                |
+| Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
+| Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
+| Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
 
 Poora index: [`docs/README.md`](docs/README.md)
 
@@ -75,16 +75,16 @@ apps/api/src/modules/<name>/
 
 ## Naming
 
-| Cheez | Convention |
-|---|---|
-| Files | kebab-case — `media-picker.jsx` |
-| React components | PascalCase — `BlockRenderer` |
-| Functions / vars | camelCase — `resolvePath` |
-| Constants | SCREAMING_SNAKE — `DEFAULT_SITE_ID` |
+| Cheez             | Convention                                |
+| ----------------- | ----------------------------------------- |
+| Files             | kebab-case — `media-picker.jsx`           |
+| React components  | PascalCase — `BlockRenderer`              |
+| Functions / vars  | camelCase — `resolvePath`                 |
+| Constants         | SCREAMING_SNAKE — `DEFAULT_SITE_ID`       |
 | Mongo collections | plural lowercase — `entries`, `mediaRefs` |
-| Permissions | `resource.action` — `entry.publish` |
-| Cache tags | `type:id` — `entry:abc123` |
-| Block types | camelCase — `richText` |
+| Permissions       | `resource.action` — `entry.publish`       |
+| Cache tags        | `type:id` — `entry:abc123`                |
+| Block types       | camelCase — `richText`                    |
 
 ---
 
@@ -108,14 +108,14 @@ docker compose up         # mongo
 
 Code badle to doc bhi badle, **usi PR me**:
 
-| Kya badla | Kaunsa doc |
-|---|---|
-| Naya collection / field | `02-ARCHITECTURE.md` §3 |
-| Architectural faisla | `03-DECISIONS.md` — naya `D-xx` |
-| Admin screen / nav | `04-ADMIN-UX.md` + wireframe |
-| Phase scope | `05-BUILD-PLAN.md` |
-| Env var / deploy step | `06-OPERATIONS.md` |
-| Naya rule | `07-CONVENTIONS.md` |
+| Kya badla               | Kaunsa doc                      |
+| ----------------------- | ------------------------------- |
+| Naya collection / field | `02-ARCHITECTURE.md` §3         |
+| Architectural faisla    | `03-DECISIONS.md` — naya `D-xx` |
+| Admin screen / nav      | `04-ADMIN-UX.md` + wireframe    |
+| Phase scope             | `05-BUILD-PLAN.md`              |
+| Env var / deploy step   | `06-OPERATIONS.md`              |
+| Naya rule               | `07-CONVENTIONS.md`             |
 
 Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 "Superseded by D-yy" likh do.

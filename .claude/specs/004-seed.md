@@ -14,11 +14,13 @@ har client thoda alag start karega, aur `create-cms-site` (Phase 8) ka koi relia
 base nahi hoga.
 
 ## Scope me hai
+
 - Fresh instance ka exact starting state
 - Idempotent seed — dobara chale to duplicate na bane
 - `create-cms-site` ke liye base
 
 ## Scope me nahi
+
 - Demo content (lorem pages) — client ko khaali site milni chahiye, kachra nahi
 - Setup wizard (Phase 7) — wo seed ke **baad** chalta hai
 
@@ -27,16 +29,19 @@ base nahi hoga.
 ## Kya seed hona chahiye
 
 ### 1. Roles (4)
+
 [`001-permissions.md`](001-permissions.md) ke mapping se:
 `admin` · `editor` · `author` · `contributor`
 
 `subscriber` nahi banega (D-26).
 
 ### 2. Admin user (1)
+
 Env se — `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_ADMIN_NAME`.
 Password bcrypt hashed. Pehle login pe password change prompt.
 
 ### 3. Settings (1 document)
+
 ```
 siteName            env se ya "My Site"
 tagline             khaali
@@ -56,29 +61,34 @@ scripts             khaali
 > dilaata rahega.
 
 ### 4. Content types (2, dono `isBuiltIn: true`)
-| key | label | hasBuilder | urlPattern | archive |
-|---|---|---|---|---|
-| `page` | Page | ✅ | `/{slug}` (parent chain ke saath) | ❌ |
-| `post` | Post | ❌ | `/{postsPageSlug}/{slug}` | ✅ |
+
+| key    | label | hasBuilder | urlPattern                        | archive |
+| ------ | ----- | ---------- | --------------------------------- | ------- |
+| `page` | Page  | ✅         | `/{slug}` (parent chain ke saath) | ❌      |
+| `post` | Post  | ❌         | `/{postsPageSlug}/{slug}`         | ✅      |
 
 `isBuiltIn` matlab delete nahi ho sakte aur `key` immutable hai.
 
 ### 5. Taxonomies (1)
+
 `Uncategorized` category, `isDefault: true` — taaki har post ke paas ek category ho.
 
 ### 6. Templates (2 + parts)
+
 - `Default Page` — `isDefault: true` for `page`
 - `Single Post` — `isDefault: true` for `post`
 - Header aur footer template parts (khaali, theme fill karega)
 
 ### 7. Menus (1)
+
 `Primary Navigation` — khaali, `header` location pe assigned.
 
 ### 8. Entries (2)
-| Title | Type | Slug | Path | Status |
-|---|---|---|---|---|
-| Home | page | `home` | `/` | published |
-| Blog | page | `blog` | `/blog` | published |
+
+| Title | Type | Slug   | Path    | Status    |
+| ----- | ---- | ------ | ------- | --------- |
+| Home  | page | `home` | `/`     | published |
+| Blog  | page | `blog` | `/blog` | published |
 
 Dono ke `content` = `{ version: 1, blocks: [] }`. Home `homepageEntryId` me set,
 Blog `postsPageEntryId` me.
@@ -91,6 +101,7 @@ Blog `postsPageEntryId` me.
 ## Idempotency
 
 Seed **dobara chalne pe safe** hona chahiye:
+
 - Har document pe deterministic check (email, key, slug) — exist kare to skip
 - `--force` flag se hi overwrite
 - Existing data pe kabhi destructive nahi

@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": false,
+    "resolveJsonModule": true,
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@cms/shared": ["packages/shared/src/index.js"],
+      "@cms/shared/*": ["packages/shared/src/*"],
+      "@cms/blocks": ["packages/blocks/src/index.js"],
+      "@cms/blocks/*": ["packages/blocks/src/*"]
+    }
+  },
+  "exclude": ["node_modules", "**/dist", "**/.next", "**/build"]
+}

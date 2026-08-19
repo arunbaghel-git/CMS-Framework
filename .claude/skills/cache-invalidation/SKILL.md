@@ -9,7 +9,7 @@ description: Jab koi aisa content change ho jo public site pe dikhta hai — pub
 
 **Next.js ISR hi authority hai.** Public API pe koi TTL cache nahi.
 
-Do cache layer aur ek invalidation signal = *"publish kiya par site update nahi hui"*
+Do cache layer aur ek invalidation signal = _"publish kiya par site update nahi hui"_
 wala support ticket. Ye is project ka sabse common predictable bug hai.
 
 ## Rule 2 — Invalidation ek graph hai, ek path nahi
@@ -33,16 +33,16 @@ Isliye **tag-based** invalidation, path-based nahi.
 
 Har public fetch pe tags lagao:
 
-| Tag | Kab lagta hai | Kab invalidate hota hai |
-|---|---|---|
-| `entry:{id}` | Ek entry fetch | Wo entry change/publish/trash ho |
-| `type:{type}` | Kisi type ki list | Us type ki koi bhi entry publish/unpublish ho |
-| `tax:{id}` | Taxonomy archive | Wo taxonomy change ho, ya koi entry usme add/remove ho |
-| `menu:{location}` | Menu fetch | Wo menu ya uska assignment badle |
-| `settings` | Settings fetch | Settings update ho |
-| `template:{id}` | Template fetch | Template ya uske parts badlein |
-| `sitemap` | sitemap.xml | Koi bhi entry publish/unpublish/trash ho |
-| `feed` | RSS | Koi post publish/unpublish ho |
+| Tag               | Kab lagta hai     | Kab invalidate hota hai                                |
+| ----------------- | ----------------- | ------------------------------------------------------ |
+| `entry:{id}`      | Ek entry fetch    | Wo entry change/publish/trash ho                       |
+| `type:{type}`     | Kisi type ki list | Us type ki koi bhi entry publish/unpublish ho          |
+| `tax:{id}`        | Taxonomy archive  | Wo taxonomy change ho, ya koi entry usme add/remove ho |
+| `menu:{location}` | Menu fetch        | Wo menu ya uska assignment badle                       |
+| `settings`        | Settings fetch    | Settings update ho                                     |
+| `template:{id}`   | Template fetch    | Template ya uske parts badlein                         |
+| `sitemap`         | sitemap.xml       | Koi bhi entry publish/unpublish/trash ho               |
+| `feed`            | RSS               | Koi post publish/unpublish ho                          |
 
 ## Dependency map
 
@@ -51,20 +51,23 @@ Publish service ise explicitly follow karti hai:
 ```js
 // concept — service.js me
 const INVALIDATION_MAP = {
-  'entry.publish': (entry) => [
-    `entry:${entry._id}`,
-    `type:${entry.type}`,
-    ...entry.taxonomies.categories.map(id => `tax:${id}`),
-    ...entry.taxonomies.tags.map(id => `tax:${id}`),
-    'sitemap',
-    entry.type === 'post' ? 'feed' : null,
-  ].filter(Boolean),
+  'entry.publish': (entry) =>
+    [
+      `entry:${entry._id}`,
+      `type:${entry.type}`,
+      ...entry.taxonomies.categories.map((id) => `tax:${id}`),
+      ...entry.taxonomies.tags.map((id) => `tax:${id}`),
+      'sitemap',
+      entry.type === 'post' ? 'feed' : null,
+    ].filter(Boolean),
 
-  'entry.trash':    (entry) => [ /* same as publish */ ],
-  'menu.update':    (menu)  => [`menu:${menu.location}`],
-  'settings.update': ()     => ['settings', 'sitemap', 'feed'],
-  'taxonomy.update': (tax)  => [`tax:${tax._id}`, `type:${tax.appliesTo}`],
-  'template.update': (tpl)  => [`template:${tpl._id}`, `type:${tpl.type}`],
+  'entry.trash': (entry) => [
+    /* same as publish */
+  ],
+  'menu.update': (menu) => [`menu:${menu.location}`],
+  'settings.update': () => ['settings', 'sitemap', 'feed'],
+  'taxonomy.update': (tax) => [`tax:${tax._id}`, `type:${tax.appliesTo}`],
+  'template.update': (tpl) => [`template:${tpl._id}`, `type:${tpl.type}`],
 }
 ```
 

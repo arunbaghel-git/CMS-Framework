@@ -13,23 +13,26 @@ ek file, naya content type = admin se banega, client branding = theme tokens se.
 
 Detailed design pehle se do documents me likha ja chuka hai (ye plan unka executable
 version hai):
+
 - `Desktop/CMS PLAN/01-ARCHITECTURE.md`
 - `Desktop/CMS PLAN/02-BUILD-PLAN.md`
 
 ### Confirmed decisions
-| Decision | Choice |
-|---|---|
-| Public site renderer | **Next.js** (App Router) — SSR/ISR, sitemap, metadata API se SEO handle |
-| Language | **JavaScript** (ESM) everywhere — no TypeScript |
-| Multi-site | **Single-site** behaviour, par `siteId` field + compound indexes day 1 se reserved |
-| Versions | Plan me hardcode **nahi** — implementation ke waqt current stable/LTS. Lockfile + `.nvmrc`/`engines` me exact pin |
-| Deployment topology | **Same-origin** — admin `/admin`, API `/api`, ek reverse proxy ke peeche |
+
+| Decision             | Choice                                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Public site renderer | **Next.js** (App Router) — SSR/ISR, sitemap, metadata API se SEO handle                                           |
+| Language             | **JavaScript** (ESM) everywhere — no TypeScript                                                                   |
+| Multi-site           | **Single-site** behaviour, par `siteId` field + compound indexes day 1 se reserved                                |
+| Versions             | Plan me hardcode **nahi** — implementation ke waqt current stable/LTS. Lockfile + `.nvmrc`/`engines` me exact pin |
+| Deployment topology  | **Same-origin** — admin `/admin`, API `/api`, ek reverse proxy ke peeche                                          |
 
 ### Char engineering rules (in par plan explicitly commit karta hai)
+
 1. **Mongoose hooks me sirf pure data normalization** — slugify, trim, `updatedAt`,
    counts. Koi side effect, koi I/O nahi. Revision snapshot, cache invalidation,
    revalidate webhook, publish state machine, email — **sab service layer me**.
-   *Kyun:* `updateOne` / `findOneAndUpdate` / `bulkWrite` `save` hooks chalate hi
+   _Kyun:_ `updateOne` / `findOneAndUpdate` / `bulkWrite` `save` hooks chalate hi
    nahi — hook wala logic chup-chaap skip ho jaayega, bina error bina log.
 2. **Scheduled publish DB-based, `setTimeout` kabhi nahi** — restart pe schedule kho
    jaata hai. `status:'scheduled'` + indexed `publishAt`; cron har minute atomic
@@ -47,8 +50,10 @@ version hai):
    native modules mismatch pe toot-te hain.
 
 ### JavaScript choice — iska matlab kya hai
+
 TS nahi hai, to jo safety compiler deta wo **runtime pe** leni padegi. Teen cheezein
 non-negotiable ho jaati hain:
+
 1. **Zod har boundary pe** — API input, block props, contentType fields. `packages/shared`
    me schemas ek jagah, admin aur api dono wahi import karein.
 2. **`jsconfig.json` with `checkJs: true` + JSDoc typedefs** core shapes pe (`Entry`,
@@ -74,12 +79,13 @@ packages/shared   Zod schemas + constants + JSDoc typedefs  ← admin aur api DO
    collection with `type` field. Custom types (Services, Portfolio) isse free milte hain.
 2. **Layout = JSON tree, HTML kabhi nahi.** `{ id, type, props, style: {desktop,tablet,mobile}, children[] }`.
    HTML string save kiya to edit/theme-change/responsive sab mar jaata hai.
-3. **Block definition me `schema` array** hota hai — properties panel usi se *auto*
+3. **Block definition me `schema` array** hota hai — properties panel usi se _auto_
    generate hota hai. Naya block add karne pe core code touch nahi hona chahiye.
 4. **Renderer shared + canvas iframe me.** Warna "preview me kuch, live pe kuch aur"
    wala bug permanent ho jaata hai.
 
 ### Data model (MongoDB)
+
 ```
 users · roles · settings
 contentTypes   key, label, fields[], hasBuilder, urlPattern
@@ -89,7 +95,9 @@ revisions      entryId, snapshot, createdBy
 media          filename, mime, variants[{key,url,w,h}], alt, folderId
 mediaFolders · menus · templates · taxonomies · redirects · forms · submissions
 ```
+
 Indexes day 1 se (siteId reserved):
+
 ```
 entries:   { siteId:1, type:1, slug:1 } unique
 entries:   { siteId:1, type:1, status:1, publishAt:-1 }
@@ -98,6 +106,7 @@ redirects: { siteId:1, from:1 } unique
 ```
 
 ### Single-site vs multi-site — sthiti saaf
+
 Ye architecture **single-site** hai: ek deploy = ek website. Naya client = naya
 instance (apna DB, apna domain). Framework ke liye ye multi-tenancy se behtar hai —
 data isolation automatic, ek client ka traffic doosre ko affect nahi karta, aur
@@ -106,10 +115,12 @@ client-specific block/theme baaki clients pe asar nahi daalta.
 `siteId` sirf **insurance** ke taur pe reserve hai — taaki kabhi multi-site karna pade
 to bade data pe index rebuild na karna pade. Reserve **in sab content-scoped
 collections pe** hona chahiye (aadha-adhoora reserve bekaar hai):
+
 ```
 entries · redirects · menus · templates · taxonomies · media · mediaFolders
 · contentTypes · forms · settings
 ```
+
 `users`, `roles`, `revisions`, `submissions` pe nahi — ye entry/user se derive ho jaate hain.
 
 **Jo abhi NAHI banega** (multi-site tab ~2-3 hafte ka kaam hai, aur risk yahi hai):
@@ -127,14 +138,15 @@ Agency/framework use-case me multi-instance hi sahi hai.
 Har phase ek shippable milestone hai. Estimates 1 full-time dev ke liye.
 
 ### Build order — UI kab banta hai (confusion se bachne ke liye)
+
 Is project me **do alag UI** hain, inhe mix mat karo:
 
-| UI | Kab | Kya |
-|---|---|---|
-| **Admin panel UI** | Phase 0 | Login screen + sidebar shell — sabse pehla UI yahi banta hai |
-| Admin ke andar ke screens | Phase 1-2 | Entry editor, media grid |
-| **Website ka header + footer** | **Phase 3** | `themes/default` + template regions |
-| Page builder UI | Phase 5 | Canvas, block library, properties panel |
+| UI                             | Kab         | Kya                                                          |
+| ------------------------------ | ----------- | ------------------------------------------------------------ |
+| **Admin panel UI**             | Phase 0     | Login screen + sidebar shell — sabse pehla UI yahi banta hai |
+| Admin ke andar ke screens      | Phase 1-2   | Entry editor, media grid                                     |
+| **Website ka header + footer** | **Phase 3** | `themes/default` + template regions                          |
+| Page builder UI                | Phase 5     | Canvas, block library, properties panel                      |
 
 **Header/footer Phase 3 me isliye hai** ki wo teen cheezein API se leta hai —
 logo + brand colors (`settings`, Phase 0), menu items (`menus`, Phase 3), footer
@@ -142,7 +154,9 @@ links + social (`menus` + `settings`). **Dummy/hardcoded data se nahi banega** �
 Phase 3 me pehle ye APIs ready hongi, tabhi header/footer banega.
 
 ### Phase 3 ka internal order (header/footer pehle)
+
 Phase 3 ke andar sequence ye rahegi, taaki website ka pehla UI header/footer hi bane:
+
 1. `menus` model + CRUD API + admin drag-drop menu builder
 2. Public API: `settings` + `menus` endpoints
 3. `themes/default` design tokens (settings-driven CSS variables)
@@ -153,6 +167,7 @@ Phase 3 ke andar sequence ye rahegi, taaki website ka pehla UI header/footer hi 
 ---
 
 ### Phase 0 — Foundation & Auth · 1 hafta
+
 - pnpm monorepo (ESM), ESLint + Prettier, `jsconfig.json` (path aliases + `checkJs`),
   `docker-compose.yml` (mongo)
 - Express core: error handler, pino logger, helmet, CORS, rate limit, Zod validate middleware
@@ -170,6 +185,7 @@ Files: `apps/api/src/{core,middleware,modules/auth}`, `apps/admin/src/{lib/api.j
 ---
 
 ### Phase 1 — Content Core · 2 hafte
+
 - `entries` model + service + controller + routes; slug auto-gen + uniqueness per type
 - Draft / Published / Scheduled; publish, unpublish, duplicate
 - Scheduled publish: DB-based cron (atomic claim), NOT setTimeout — rule 2 dekho
@@ -186,6 +202,7 @@ Files: `apps/api/src/modules/entries/*`, `packages/shared/src/schemas/entry.js`
 ---
 
 ### Phase 2 — Media Library · 1 hafta
+
 - Upload: multer + `sharp` → variants (thumb 300 / medium 800 / large 1600, webp)
 - Storage adapter interface: `local` implementation ab, `s3` baad me — call site same rahega
 - Folders, rename, delete with usage-check
@@ -197,7 +214,9 @@ Files: `apps/api/src/modules/entries/*`, `packages/shared/src/schemas/entry.js`
 ---
 
 ### Phase 3 — Public Site + Templates + Menus · 2 hafte
-*(Pehli baar site live dikhti hai)*
+
+_(Pehli baar site live dikhti hai)_
+
 - `packages/blocks`: registry + `<BlockRenderer />` + 4 starter blocks
   (`richText`, `image`, `section`, `container`) — abhi builder UI nahi, sirf renderer
 - Public API (read-only, cacheable): `by-path`, list+pagination, menus, settings
@@ -213,6 +232,7 @@ Files: `apps/api/src/modules/entries/*`, `packages/shared/src/schemas/entry.js`
 ---
 
 ### Phase 4 — SEO Module · 1 hafta
+
 - Entry editor SEO tab: title, description, canonical, noindex/nofollow, OG image,
   schema type + Google preview snippet
 - Fallback chain: entry SEO → `settings.defaultSeo` → title/excerpt
@@ -224,6 +244,7 @@ Files: `apps/api/src/modules/entries/*`, `packages/shared/src/schemas/entry.js`
 ---
 
 ### Phase 5 — Page Builder MVP · 3-4 hafte
+
 **Project ka sabse bada risk. Scope tight rakhna hai.**
 
 - **5a Engine (1 hafta):** zustand + immer store, tree ops (add/move/delete/duplicate/select),
@@ -241,12 +262,14 @@ Files: `apps/api/src/modules/entries/*`, `packages/shared/src/schemas/entry.js`
 **Explicitly OUT of scope:** animations, custom CSS box, absolute positioning/z-index,
 live multi-user collab, nested global blocks.
 
-**Done:** non-technical banda 20 min me landing page bana le, aur live site pe *bilkul* wahi dikhe.
+**Done:** non-technical banda 20 min me landing page bana le, aur live site pe _bilkul_ wahi dikhe.
 
 ---
 
 ### Phase 6 — Content-Type Builder + Global Blocks · 2 hafte
-*(Yahan project "ek website" se "framework" banta hai)*
+
+_(Yahan project "ek website" se "framework" banta hai)_
+
 - `contentTypes` admin UI: naya type (label, icon, URL pattern, builder on/off) + custom fields
 - Field types: text, textarea, richText, number, boolean, date, select, media,
   relation, repeater
@@ -261,12 +284,14 @@ pe "Services List" block se dikha de.
 ---
 
 ### Phase 7 — Forms, Users & Polish · 1-2 hafte
+
 Form builder + submissions inbox + CSV export + honeypot/rate-limit · user management
 (invite, role, deactivate) · activity log · settings screens · dashboard widgets ·
 setup wizard (site name, logo, colors, starter pages) · Cmd+K search ·
 empty/error/loading states (non-technical user ke liye yahi actual UX hai).
 
 ### Phase 8 — Hardening & Deploy · 1 hafta
+
 Security (XSS sanitize on rich text, CSRF for cookie auth, file type/size validation,
 Mongo injection guard) · caching (LRU → Redis) + index review · mongodump cron +
 restore test · Sentry + health endpoint · CI/CD · docs (block guide, theme guide,
@@ -276,16 +301,17 @@ runbook, **screenshot-based admin manual**) · `create-cms-site` starter script.
 
 ## Timeline
 
-| Milestone | Cumulative |
-|---|---|
-| Phase 0-2 (admin + content + media) | 4 hafte |
+| Milestone                                     | Cumulative  |
+| --------------------------------------------- | ----------- |
+| Phase 0-2 (admin + content + media)           | 4 hafte     |
 | **Phase 3-4 → usable CMS, client demo ready** | **7 hafte** |
-| Phase 5 → page builder live | 11 hafte |
-| Phase 6-8 → full framework, production | 14-16 hafte |
+| Phase 5 → page builder live                   | 11 hafte    |
+| Phase 6-8 → full framework, production        | 14-16 hafte |
 
 ---
 
 ## Testing strategy (parallel me chalta rahe)
+
 - **Vitest unit** — services: slug logic, permission checks, SEO fallback chain,
   **block tree operations** (JS me ye tests optional nahi — silent bugs sabse zyada wahin)
 - **supertest + mongodb-memory-server** — har API module ka happy path + auth failure
@@ -293,6 +319,7 @@ runbook, **screenshot-based admin manual**) · `create-cms-site` starter script.
   builder drag+save · public page render
 
 ## Verification (har phase ke baad)
+
 1. `docker compose up` → mongo + api + admin + web chalein
 2. `pnpm seed` → admin user bane, `pnpm test` green
 3. Manual smoke: login → page banao → block drop karo → publish → `apps/web` pe
@@ -303,6 +330,7 @@ runbook, **screenshot-based admin manual**) · `create-cms-site` starter script.
 ---
 
 ## Sabse pehla kadam
+
 1. Monorepo skeleton + docker-compose (mongo chalu)
 2. **`entries` aur block JSON ka Zod contract `packages/shared` me likh ke freeze karo** —
    poora system isi pe khada hai, baad me badalna sabse mehnga refactor hai
@@ -311,6 +339,7 @@ runbook, **screenshot-based admin manual**) · `create-cms-site` starter script.
    wahi Phase 5 ki final list hai (guess karne se behtar)
 
 ## Biggest risk
+
 **Phase 5 (builder) ko Phase 3-4 se pehle mat chhedna.** Bina public renderer +
 templates ke builder banaoge to preview aur live output kabhi match nahi karenge,
 aur wo bug baad me poora rewrite maangta hai.

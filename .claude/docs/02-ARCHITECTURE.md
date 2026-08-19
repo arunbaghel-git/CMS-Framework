@@ -26,13 +26,13 @@ System ka technical reference. "Aisa kyun hai" ke jawab
                  +--------------------------+
 ```
 
-| Package | Tech | Kaam |
-|---|---|---|
-| `apps/api` | Express + Mongoose | Saara business logic, auth, uploads — single source of truth |
-| `apps/admin` | React 18 + Vite (JSX) | Admin UI, page builder, preview |
-| `apps/web` | Next.js App Router | Public website, SSR + ISR, SEO tags, sitemap |
-| `packages/blocks` | React (JSX) | Block registry, renderer, `styleToCss()` — **admin aur web dono** |
-| `packages/shared` | Zod | Validation schemas, constants, JSDoc typedefs — **admin aur api dono** |
+| Package           | Tech                  | Kaam                                                                   |
+| ----------------- | --------------------- | ---------------------------------------------------------------------- |
+| `apps/api`        | Express + Mongoose    | Saara business logic, auth, uploads — single source of truth           |
+| `apps/admin`      | React 18 + Vite (JSX) | Admin UI, page builder, preview                                        |
+| `apps/web`        | Next.js App Router    | Public website, SSR + ISR, SEO tags, sitemap                           |
+| `packages/blocks` | React (JSX)           | Block registry, renderer, `styleToCss()` — **admin aur web dono**      |
+| `packages/shared` | Zod                   | Validation schemas, constants, JSDoc typedefs — **admin aur api dono** |
 
 **Deployment:** teen apps alag develop hote hain par **deploy ek hi unit ki tarah** —
 ek container image / ek process group per client, ek version number ke saath. 15 client
@@ -136,13 +136,13 @@ activityLog      userId, action, entityType, entityId, meta, createdAt
 Ye "insurance" hain — kaam baad me, par **field abhi**, kyunki live data pe baad me
 daalna schema-wide change hai.
 
-| Field | Kyun day 1 |
-|---|---|
-| `siteId` | Multi-site kabhi karna pada to bade data pe index rebuild na karna pade |
-| `path` | Routing ka single source of truth — §4 |
-| `deletedAt` | Trash/soft-delete har list query aur har index ko chhoota hai |
-| `locale` | Multi-language pe uniqueness `{siteId, locale, path}` ban jaati hai |
-| `version` | Optimistic concurrency — autosave + 2 editors = silent lost update |
+| Field        | Kyun day 1                                                              |
+| ------------ | ----------------------------------------------------------------------- |
+| `siteId`     | Multi-site kabhi karna pada to bade data pe index rebuild na karna pade |
+| `path`       | Routing ka single source of truth — §4                                  |
+| `deletedAt`  | Trash/soft-delete har list query aur har index ko chhoota hai           |
+| `locale`     | Multi-language pe uniqueness `{siteId, locale, path}` ban jaati hai     |
+| `version`    | Optimistic concurrency — autosave + 2 editors = silent lost update      |
 | `searchText` | Mongo ek hi text index deta hai; block content isi se searchable banega |
 
 ### 3.2 Single-site by design, multi-site reserved
@@ -189,8 +189,7 @@ submissions:   { expiresAt: 1 } TTL
 `service` "about" dono `/about` pe resolve kar sakte hain — unique index isko rok nahi
 paata.
 
-> **Rule:** har entry pe computed `path` field stored hai, `{siteId, locale, path}`
-> **unique** hai. Lookup ek single indexed equality query hai.
+> **Rule:** har entry pe computed `path` field stored hai, `{siteId, locale, path}` > **unique** hai. Lookup ek single indexed equality query hai.
 
 ```
 path likhne wala sirf EK function hai:  resolvePath(entry, contentType)
@@ -204,17 +203,18 @@ path likhne wala sirf EK function hai:  resolvePath(entry, contentType)
 resolve karta hai. `app/blog/[slug]` jaisa hardcoded route banana `urlPattern` ke
 configurable hone ka matlab hi khatam kar deta hai.
 
-| Rule | Behaviour |
-|---|---|
-| Reserved slugs | `/admin` `/api` `/_next` `/media` `/uploads` kabhi claim nahi ho sakte |
-| Slug collision | auto-suffix `-2`, `-3` |
-| Slug change | **automatic** 301, aur **descendants ka path cascade update** + har ek pe redirect |
-| Canonical | trailing-slash policy fix, lowercase enforce, baaki variants 301 |
-| Redirect safety | chain flatten + loop detection |
-| Homepage | `settings.homepageEntryId` — `/` isi se resolve |
-| Posts page | `settings.postsPageEntryId` — archive kis URL pe hai |
+| Rule            | Behaviour                                                                          |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Reserved slugs  | `/admin` `/api` `/_next` `/media` `/uploads` kabhi claim nahi ho sakte             |
+| Slug collision  | auto-suffix `-2`, `-3`                                                             |
+| Slug change     | **automatic** 301, aur **descendants ka path cascade update** + har ek pe redirect |
+| Canonical       | trailing-slash policy fix, lowercase enforce, baaki variants 301                   |
+| Redirect safety | chain flatten + loop detection                                                     |
+| Homepage        | `settings.homepageEntryId` — `/` isi se resolve                                    |
+| Posts page      | `settings.postsPageEntryId` — archive kis URL pe hai                               |
 
 **Archive routes (usi catch-all ke andar):**
+
 ```
 /                        homepage (settings se)
 /{postsPageSlug}         post archive
@@ -279,14 +279,21 @@ Page ka layout ek **JSON tree** hai, HTML string nahi.
 {
   "version": 1,
   "blocks": [
-    { "id": "b1", "type": "section",
+    {
+      "id": "b1",
+      "type": "section",
       "props": { "background": { "type": "color", "value": "#0f172a" } },
       "style": { "desktop": { "paddingY": 80 }, "mobile": { "paddingY": 40 } },
       "children": [
-        { "id": "b2", "type": "container", "props": { "maxWidth": 1200 }, "children": [
-          { "id": "b3", "type": "heading", "props": { "text": "Hello", "level": 1 } },
-          { "id": "b4", "type": "button", "props": { "label": "Contact", "href": "/contact" } }
-        ]}
+        {
+          "id": "b2",
+          "type": "container",
+          "props": { "maxWidth": 1200 },
+          "children": [
+            { "id": "b3", "type": "heading", "props": { "text": "Hello", "level": 1 } },
+            { "id": "b4", "type": "button", "props": { "label": "Contact", "href": "/contact" } }
+          ]
+        }
       ]
     }
   ]
@@ -324,9 +331,19 @@ inline style se implement ho hi nahi sakta.
 > (`.blk-b1`), render ke waqt ek `<style>` emit hota hai jisme asli media queries hain.
 
 ```css
-.blk-b1{padding-block:80px}
-@media(max-width:1023px){.blk-b1{padding-block:60px}}
-@media(max-width:767px){.blk-b1{padding-block:40px}}
+.blk-b1 {
+  padding-block: 80px;
+}
+@media (max-width: 1023px) {
+  .blk-b1 {
+    padding-block: 60px;
+  }
+}
+@media (max-width: 767px) {
+  .blk-b1 {
+    padding-block: 40px;
+  }
+}
 ```
 
 Ye function `packages/blocks` me hai (`styleToCss(block)`), taaki admin canvas aur
@@ -339,14 +356,16 @@ Sirf component share karna **kaafi nahi** — host alag hai. Admin canvas Vite i
 live page Next.js. `next/image` aur `next/link` canvas me chalenge hi nahi.
 
 > **Rule:** blocks framework-agnostic rahenge; host apne primitives inject karega.
+>
 > ```jsx
 > <BlockRenderer blocks={...} components={{ Link, Image }} />
 > ```
+>
 > `apps/web` Next ke `Link`/`Image` deta hai (image optimization milti rahegi),
 > admin canvas plain `<a>` / `<img>` deta hai. Block ka code ek hi rehta hai.
 
 Escape hatch agar Phase 5 me divergence dikhe: canvas iframe ko asli Next app pe
-draft-mode me point kar do — tab preview *hai hi* live.
+draft-mode me point kar do — tab preview _hai hi_ live.
 
 ### 6.4 Theming API — client customization ka contract
 
@@ -449,11 +468,21 @@ endpoint hai.
 index ho jaana agency ka sabse mehnga routine accident hai.
 
 **SEO object (har entry pe embedded):**
+
 ```json
-{ "title": "", "description": "", "canonical": "", "noindex": false, "nofollow": false,
-  "ogTitle": "", "ogDescription": "", "ogImageId": "",
-  "twitterCard": "summary_large_image", "schemaType": "WebPage|Article|Product",
-  "focusKeyword": "" }
+{
+  "title": "",
+  "description": "",
+  "canonical": "",
+  "noindex": false,
+  "nofollow": false,
+  "ogTitle": "",
+  "ogDescription": "",
+  "ogImageId": "",
+  "twitterCard": "summary_large_image",
+  "schemaType": "WebPage|Article|Product",
+  "focusKeyword": ""
+}
 ```
 
 ---
@@ -472,10 +501,10 @@ CORS           strict origin allowlist + credentials:true  (wildcard kabhi nahi)
 localStorage me token kabhi nahi — CMS me user rich text aur embed HTML daalta hai,
 XSS surface bada hai; cookie hi safe hai.
 
-| Setup | Cookie | CSRF ka bharosa |
-|---|---|---|
-| **Same-origin (chuna hua)** | `SameSite=Lax` kaam karta hai | Token defence-in-depth |
-| Cross-origin | `SameSite=None; Secure` majboori — **SameSite ka protection zero** | Token akela sahara |
+| Setup                       | Cookie                                                             | CSRF ka bharosa        |
+| --------------------------- | ------------------------------------------------------------------ | ---------------------- |
+| **Same-origin (chuna hua)** | `SameSite=Lax` kaam karta hai                                      | Token defence-in-depth |
+| Cross-origin                | `SameSite=None; Secure` majboori — **SameSite ka protection zero** | Token akela sahara     |
 
 **Teen zaroori saathi:**
 
@@ -504,12 +533,12 @@ ke saath same-origin execute hona poore system ka sabse bada target hai.
 
 ### 8.3 Roles
 
-| Role | Kya kar sakta hai |
-|---|---|
-| `admin` | Sab kuch — settings, scripts, users, **permanent delete** |
-| `editor` | Saara content publish, media, menus. Trash me daal sakta hai, mita nahi sakta |
-| `author` | Apna content **publish kar sakta hai** |
-| `contributor` | Apna content likhta hai, publish nahi — `pending` pe bhejta hai |
+| Role          | Kya kar sakta hai                                                             |
+| ------------- | ----------------------------------------------------------------------------- |
+| `admin`       | Sab kuch — settings, scripts, users, **permanent delete**                     |
+| `editor`      | Saara content publish, media, menus. Trash me daal sakta hai, mita nahi sakta |
+| `author`      | Apna content **publish kar sakta hai**                                        |
+| `contributor` | Apna content likhta hai, publish nahi — `pending` pe bhejta hai               |
 
 Char roles hi hain — `subscriber` nahi banega (D-26).
 

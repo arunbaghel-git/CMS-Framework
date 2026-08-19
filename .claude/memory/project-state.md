@@ -29,16 +29,16 @@ Abhi tak **koi application code nahi likha gaya**. Sirf planning aur documentati
 
 ## Faisle jo 19 Aug ko ho gaye
 
-| Faisla | Nateeja |
-|---|---|
-| Field DSL | **Ek DSL** — `contexts: ['content'\|'block']` (D-24) |
-| TypeScript | **Nahi** — sab JavaScript (D-03 waise hi) |
-| Trash | **`deletedAt` field**, `status: 'trash'` nahi (D-25) |
-| Roles | **Char** — `subscriber` nahi (D-26) |
+| Faisla           | Nateeja                                                          |
+| ---------------- | ---------------------------------------------------------------- |
+| Field DSL        | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)             |
+| TypeScript       | **Nahi** — sab JavaScript (D-03 waise hi)                        |
+| Trash            | **`deletedAt` field**, `status: 'trash'` nahi (D-25)             |
+| Roles            | **Char** — `subscriber` nahi (D-26)                              |
 | Permanent delete | **Sirf admin** — editor trash me daal sakta hai, mita nahi sakta |
-| Seed content | **Khaali** Home + Blog, koi demo blocks nahi |
-| Payload spike | **Approved** — Phase 1 se pehle |
-| Pehla milestone | **Slice 0: Header + Footer** end-to-end (D-27) |
+| Seed content     | **Khaali** Home + Blog, koi demo blocks nahi                     |
+| Payload spike    | **Approved** — Phase 1 se pehle                                  |
+| Pehla milestone  | **Slice 0: Header + Footer** end-to-end (D-27)                   |
 
 Specs 001, 003, 004, 005 → 🟢 Approved
 
@@ -46,10 +46,10 @@ Specs 001, 003, 004, 005 → 🟢 Approved
 
 ## Ab bhi baaki
 
-| ID | Kya | Status |
-|---|---|---|
+| ID  | Kya                            | Status                                                              |
+| --- | ------------------------------ | ------------------------------------------------------------------- |
 | A-2 | `entries` + block Zod contract | 🔴 **Likhna hai** — [`specs/002`](../specs/002-content-contract.md) |
-| C-2 | Payload CMS spike | 🔴 Karna hai — Phase 1 se pehle |
+| C-2 | Payload CMS spike              | 🔴 Karna hai — Phase 1 se pehle                                     |
 
 **Jo abhi shuru ho sakta hai (A-2 pe block nahi):**
 pnpm monorepo skeleton · docker-compose (mongo) · ESLint/Prettier/jsconfig ·
@@ -71,15 +71,15 @@ CI pipeline · Express boilerplate (error handler, logger, helmet, CORS, rate li
 
 ## Timeline
 
-| Milestone | Cumulative |
-|---|---|
-| Phase 0 + Slice 0 | 3 hafte |
-| Phase 1-2 | 7.5 hafte |
+| Milestone                              | Cumulative     |
+| -------------------------------------- | -------------- |
+| Phase 0 + Slice 0                      | 3 hafte        |
+| Phase 1-2                              | 7.5 hafte      |
 | **Phase 3-4 — usable CMS, demo ready** | **11.5 hafte** |
-| Phase 5 — builder live | 18-20 hafte |
-| Phase 6-8 — production | 25-30 hafte |
+| Phase 5 — builder live                 | 18-20 hafte    |
+| Phase 6-8 — production                 | 25-30 hafte    |
 
-*(Slice 0 ka ~1.5 hafta add hua)*
+_(Slice 0 ka ~1.5 hafta add hua)_
 
 ---
 

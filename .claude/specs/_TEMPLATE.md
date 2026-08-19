@@ -29,11 +29,12 @@ paata kyunki…">
 > Sabse zaroori section. `.claude/skills/schema-change/SKILL.md` ka day-1 reserve
 > test yahan chalao.
 
-| Collection | Change | Day-1 reserve? | Migration? |
-|---|---|---|---|
-| `<name>` | <naya field / index / collection> | haan/nahi + kyun | haan/nahi |
+| Collection | Change                            | Day-1 reserve?   | Migration? |
+| ---------- | --------------------------------- | ---------------- | ---------- |
+| `<name>`   | <naya field / index / collection> | haan/nahi + kyun | haan/nahi  |
 
 **Indexes:**
+
 ```
 <naye ya badle hue indexes>
 ```

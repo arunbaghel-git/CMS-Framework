@@ -9,14 +9,15 @@
 
 ## Problem
 
-Dono planning docs isse **"step 2"** bolte hain — *"`entries` aur block JSON ka contract
-likh ke freeze karo, poora system isi pe khada hai"*. Par contract khud kahin likha nahi
+Dono planning docs isse **"step 2"** bolte hain — _"`entries` aur block JSON ka contract
+likh ke freeze karo, poora system isi pe khada hai"_. Par contract khud kahin likha nahi
 hai.
 
 Bina iske Phase 1 shuru hoga to shape ad-hoc invent hoga — aur wahi cheez hai jiske
 khilaaf plan warn karta hai. Baad me badalna sabse mehnga refactor hai.
 
 ## Scope me hai
+
 - `entrySchema` — saare fields
 - `blockSchema` — **envelope** (block ki list nahi)
 - `contentSchema` — `{ version, blocks[] }`
@@ -25,6 +26,7 @@ khilaaf plan warn karta hai. Baad me badalna sabse mehnga refactor hai.
 - Ye sab `packages/shared/src/schemas/`
 
 ## Scope me nahi
+
 - Block ki **list** — wo Phase 5 me asli client design se nikalegi
 - Field DSL ka final shape — wo [005](005-field-dsl.md) me
 - contentType fields ka validation — Phase 6
@@ -34,6 +36,7 @@ khilaaf plan warn karta hai. Baad me badalna sabse mehnga refactor hai.
 ## Kya freeze hona hai
 
 ### Block envelope — **ye 5 keys kabhi nahi badlenge**
+
 ```
 { id, type, props, style: { desktop, tablet, mobile }, children }
 ```
@@ -42,6 +45,7 @@ Naye blocks aate rahenge; envelope wahi rahega. Isi liye ise "envelope" bola hai
 container freeze hai, contents nahi.
 
 ### Content shape
+
 ```
 { version: 1, blocks: [] }
 ```
@@ -50,10 +54,12 @@ container freeze hai, contents nahi.
 migration nahi likhni padegi.
 
 ### Entry — saare fields
+
 `02-ARCHITECTURE.md` §3 se lo. Khaas dhyaan in reserved fields pe:
 `siteId` · `locale` · `path` · `version` · `deletedAt` · `searchText`
 
 ### Status enum
+
 ```
 draft | pending | published | scheduled | private
 ```
@@ -65,9 +71,9 @@ restore pe entry apni purani state me wapas aati hai (published thi to published
 
 ## Schema impact
 
-| Collection | Change | Day-1 reserve? | Migration? |
-|---|---|---|---|
-| `entries` | Poora schema define | Haan — sab reserved fields | Nahi (naya) |
+| Collection | Change              | Day-1 reserve?             | Migration?  |
+| ---------- | ------------------- | -------------------------- | ----------- |
+| `entries`  | Poora schema define | Haan — sab reserved fields | Nahi (naya) |
 
 Ye migration nahi hai, ye **foundation** hai. Iske baad har change migration maangega.
 

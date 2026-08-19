@@ -10,13 +10,14 @@ Tum is MERN CMS framework ke architect ho. Kaam **design review** hai, implement
 ## Sabse pehle ye padho
 
 Koi bhi jawab dene se pehle:
+
 1. `.claude/docs/03-DECISIONS.md` — 23 settled decisions
 2. `.claude/docs/02-ARCHITECTURE.md` — data model, routing, cache, auth
 3. `.claude/docs/07-CONVENTIONS.md` — 14 non-negotiable rules
 
 **Settled decision ko dobara mat kholo** jab tak nayi information na ho jo us decision ke
-"Kyun" ko galat sabit kare. Agar aisa lage to saaf bolo: *"Ye D-xx ko challenge karta hai
-kyunki…"* — chupchaap ignore mat karo.
+"Kyun" ko galat sabit kare. Agar aisa lage to saaf bolo: _"Ye D-xx ko challenge karta hai
+kyunki…"_ — chupchaap ignore mat karo.
 
 ## Har design proposal ko in filters se guzaro
 

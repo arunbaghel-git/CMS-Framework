@@ -4,17 +4,17 @@ Estimates 1 full-time dev ke hisaab se hain. 2 dev ho to roughly 60% time.
 Har phase ek **shippable milestone** hai — beech me ruk gaye to bhi jo bana hai
 wo kaam karta hai.
 
-| Phase | Naam | Time | Milestone |
-|---|---|---|---|
-| 0 | Foundation & Auth | 1 hafta | Admin me login ho jaata hai |
-| 1 | Content Core (pages + posts) | 2 hafte | Rich-text se page/post ban ke DB me save |
-| 2 | Media Library | 1 hafta | Upload, crop-free variants, picker |
-| 3 | Public Site + Templates + Menus | 2 hafte | **Pehli live website chal padi** |
-| 4 | SEO Module | 1 hafta | Meta, sitemap, redirects, JSON-LD |
-| 5 | Page Builder MVP | 3-4 hafte | Drag-drop se page banta hai |
-| 6 | Content-Type Builder + Global Blocks | 2 hafte | Ab ye "framework" hai |
-| 7 | Forms, Users, Polish | 1-2 hafte | Client ko dene laayak |
-| 8 | Hardening & Deploy | 1 hafta | Production, backup, monitoring |
+| Phase | Naam                                 | Time      | Milestone                                |
+| ----- | ------------------------------------ | --------- | ---------------------------------------- |
+| 0     | Foundation & Auth                    | 1 hafta   | Admin me login ho jaata hai              |
+| 1     | Content Core (pages + posts)         | 2 hafte   | Rich-text se page/post ban ke DB me save |
+| 2     | Media Library                        | 1 hafta   | Upload, crop-free variants, picker       |
+| 3     | Public Site + Templates + Menus      | 2 hafte   | **Pehli live website chal padi**         |
+| 4     | SEO Module                           | 1 hafta   | Meta, sitemap, redirects, JSON-LD        |
+| 5     | Page Builder MVP                     | 3-4 hafte | Drag-drop se page banta hai              |
+| 6     | Content-Type Builder + Global Blocks | 2 hafte   | Ab ye "framework" hai                    |
+| 7     | Forms, Users, Polish                 | 1-2 hafte | Client ko dene laayak                    |
+| 8     | Hardening & Deploy                   | 1 hafta   | Production, backup, monitoring           |
 
 **Total ~14-16 hafte.** Phase 0-4 ke baad (7 hafte) hi ek usable CMS mil jaata
 hai — page builder ke bina, classic editor ke saath.
@@ -24,6 +24,7 @@ hai — page builder ke bina, classic editor ke saath.
 ## Phase 0 — Foundation & Auth (1 hafta)
 
 **Banana kya hai**
+
 - Monorepo (pnpm workspaces): `apps/api`, `apps/admin`, `packages/shared`
 - Express setup: error handler, logger (pino), CORS, helmet, rate limit, Zod validate middleware
 - Mongoose connect + `User`, `Role`, `Settings` models
@@ -46,6 +47,7 @@ karoge). Baad me RBAC retrofit karna sabse mehnga refactor hota hai.
 ## Phase 1 — Content Core (2 hafte)
 
 **Banana kya hai**
+
 - `entries` model + service (type/slug/status/publishAt/seo/fields/content)
 - Slug auto-generate + uniqueness per type + manual override
 - Draft / Published / Scheduled states, publish + unpublish + duplicate
@@ -70,6 +72,7 @@ ko ek `richText` block ke andar store karo. Phase 5 me migration nahi likhni pad
 ## Phase 2 — Media Library (1 hafta)
 
 **Banana kya hai**
+
 - Upload API: multer + `sharp` -> variants (thumb 300, medium 800, large 1600, webp)
 - Storage adapter interface: `local` (Phase 2) aur `s3` (baad me) — call site same
 - Folders, rename, delete (usage check: kahin use to nahi ho raha)
@@ -89,6 +92,7 @@ ko Phase 4 ke SEO checklist se joda jaayega, isliye field abhi banao.
 Ye phase sabse zyada "wow" deta hai — pehli baar site live dikhti hai.
 
 **Banana kya hai**
+
 - `packages/blocks`: registry + `<BlockRenderer />` + 4 starter blocks
   (richText, image, section, container). Abhi UI nahi, sirf renderer.
 - Public API: `by-path`, list with pagination, menus, settings (cache headers)
@@ -107,6 +111,7 @@ se ban jaaye, koi code change nahi.
 ## Phase 4 — SEO Module (1 hafta)
 
 **Banana kya hai**
+
 - Entry editor me SEO tab: title, description, canonical, noindex/nofollow,
   OG image, schema type + Google preview snippet
 - `settings.defaultSeo` + fallback chain
@@ -127,16 +132,19 @@ card dikhe, aur slug badalne pe purana URL 301 kare.
 **Yahi project ka sabse bada risk hai — scope tight rakho.**
 
 ### 5a — Engine (1 hafta)
+
 - Editor store: zustand + immer, tree ops (add/move/delete/duplicate/select)
 - Undo/redo history stack (patches based, 50 steps)
 - Canvas iframe + postMessage bridge, hover/selection outlines
 - Drop zones + drag from library aur canvas ke andar (dnd-kit)
 
 ### 5b — Blocks v1 (1 hafta) — sirf ye 10, aur kuch nahi
+
 `section` · `container` · `columns (2/3/4)` · `heading` · `text` · `image` ·
 `button` · `spacer` · `video` · `form-placeholder`
 
 ### 5c — Properties panel (1 hafta)
+
 - Schema-driven field renderer: text, textarea, number, select, toggle, color,
   slider, image (MediaPicker), link, align, spacing
 - Responsive tabs desktop/tablet/mobile + inherit indicator
@@ -144,6 +152,7 @@ card dikhe, aur slug badalne pe purana URL 301 kare.
   radius, shadow, max-width, visibility per breakpoint
 
 ### 5d — Polish (0.5-1 hafta)
+
 - Layers panel, keyboard shortcuts (Ctrl+Z/C/V/D, Delete)
 - Save draft / publish, "unsaved changes" guard
 - Preview mode + device preview
@@ -164,6 +173,7 @@ Ye sab Phase 6+ ya baad ke versions me.
 Isi phase me project "ek website" se "framework" ban jaata hai.
 
 **Banana kya hai**
+
 - `contentTypes` CRUD admin UI: naya type banao (label, icon, URL pattern,
   builder on/off), custom fields define karo
 - Field types: text, textarea, richText, number, boolean, date, select,
@@ -212,6 +222,7 @@ aur home page pe "Services List" block se wo dikha de.
 ---
 
 ## Testing strategy (parallel me chalta rahe)
+
 - **Unit (Vitest):** services — slug logic, permission checks, SEO fallback,
   block tree operations. Yahi sabse zyada value deta hai.
 - **Integration (supertest + mongodb-memory-server):** har API module ka
@@ -225,20 +236,20 @@ aur home page pe "Services List" block se wo dikha de.
 
 ## Tech stack (final picks)
 
-| Kaam | Choice | Kyun |
-|---|---|---|
-| API | Express + Mongoose | Team familiar, ecosystem bada. Versions implementation ke waqt current stable |
-| Validation | Zod (shared package) | Ek schema, admin + API dono |
-| Admin UI | React + Vite + Tailwind + shadcn/ui | Fast dev, accessible components free |
-| Server state | TanStack Query | Cache, refetch, optimistic updates |
-| Editor state | Zustand + Immer | Undo/redo ke liye patches easy |
-| Drag & drop | dnd-kit | Accessible, nested support, actively maintained |
-| Rich text | TipTap | JSON output (HTML nahi), extensible |
-| Images | sharp | Variants + webp |
-| Public site | Next.js App Router | SSR/ISR, SEO, image optimization built-in |
-| Auth | jsonwebtoken + httpOnly cookies + CSRF token | XSS-safe; Secure + SameSite=Lax + double-submit CSRF |
-| Cache | in-memory LRU -> Redis | Chhote se shuru |
-| Jobs | DB-based cron -> BullMQ (Phase 7+) | setTimeout restart pe schedule kho deta hai |
+| Kaam         | Choice                                       | Kyun                                                                          |
+| ------------ | -------------------------------------------- | ----------------------------------------------------------------------------- |
+| API          | Express + Mongoose                           | Team familiar, ecosystem bada. Versions implementation ke waqt current stable |
+| Validation   | Zod (shared package)                         | Ek schema, admin + API dono                                                   |
+| Admin UI     | React + Vite + Tailwind + shadcn/ui          | Fast dev, accessible components free                                          |
+| Server state | TanStack Query                               | Cache, refetch, optimistic updates                                            |
+| Editor state | Zustand + Immer                              | Undo/redo ke liye patches easy                                                |
+| Drag & drop  | dnd-kit                                      | Accessible, nested support, actively maintained                               |
+| Rich text    | TipTap                                       | JSON output (HTML nahi), extensible                                           |
+| Images       | sharp                                        | Variants + webp                                                               |
+| Public site  | Next.js App Router                           | SSR/ISR, SEO, image optimization built-in                                     |
+| Auth         | jsonwebtoken + httpOnly cookies + CSRF token | XSS-safe; Secure + SameSite=Lax + double-submit CSRF                          |
+| Cache        | in-memory LRU -> Redis                       | Chhote se shuru                                                               |
+| Jobs         | DB-based cron -> BullMQ (Phase 7+)           | setTimeout restart pe schedule kho deta hai                                   |
 
 ---
 

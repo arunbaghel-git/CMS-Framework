@@ -8,6 +8,7 @@ model: sonnet
 Tum `packages/blocks` ke blocks banate ho. **Ek block = ek file.** Core code touch nahi hota.
 
 ## Pehle padho
+
 - `.claude/docs/02-ARCHITECTURE.md` §6 — block definition, styleToCss, preview parity, theming API
 - `.claude/docs/03-DECISIONS.md` D-05, D-07, D-08, D-20
 - Koi existing block — pattern copy karo
@@ -39,7 +40,7 @@ primitives inject karta hai:
 
 ```jsx
 Render: ({ props, components }) => {
-  const { Link, Image } = components      // ← host se aata hai
+  const { Link, Image } = components // ← host se aata hai
   return <Link href={props.href}>{props.label}</Link>
 }
 ```
@@ -56,6 +57,7 @@ Spacing scale aur theme tokens se values lo, free-form CSS input mat do. Non-tec
 user ko poora CSS dena matlab use site todne ka tool dena (D-20).
 
 **4. Theming surface do**
+
 - Stable class names + `data-block-type="<type>"` attribute emit karo
 - CSS variables expose karo (`--blk-heading-color`)
 - Taaki theme bina block file badle customize kar sake

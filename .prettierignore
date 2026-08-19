@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.next/
+coverage/
+pnpm-lock.yaml
+
+# Documentation hand-authored hai — prettier ki tables reformat na kare
+.claude/docs/
+.claude/specs/
+.claude/agents/
+.claude/skills/
+.claude/commands/

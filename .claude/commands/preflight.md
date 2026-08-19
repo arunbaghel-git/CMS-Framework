@@ -11,6 +11,7 @@ argument-hint: <phase number> [done]
   actually complete hai?
 
 Agent ko ye yaad dilao:
+
 - Plan ke checkbox pe bharosa nahi karna — repo me verify karna
 - `.claude/docs/08-RISKS.md` ka phase-wise section padhna
 - GO / NO-GO / PARTIAL verdict dena, aur missing items ke saath ye batana ki wo kya block kar rahe hain

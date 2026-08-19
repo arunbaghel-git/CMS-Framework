@@ -65,22 +65,22 @@ reverse-engineer karna band.
 
 ## Poori rules list
 
-| # | Rule |
-|---|---|
-| R1 | Business logic sirf `service.js` me; hooks me sirf pure normalization |
-| R2 | Scheduled publish DB-based; `setTimeout` kabhi nahi |
-| R3 | Versions lockfile me pin; Node `.nvmrc` + `engines` me |
-| R4 | Block ka `type` string kabhi rename nahi — migration likho |
-| R5 | Naya block = ek file + registry entry; core untouched |
-| R6 | Client customization client repo me (`theme/`, `blocks/`) |
-| R7 | Revision snapshot publish pe **aur** save pe |
-| R8 | Har input pe Zod, schema `packages/shared` se |
-| R9 | Har query param Zod se validated |
-| R10 | Routing ka ekmatra source `entries.path` |
-| R11 | UI me internal naam kabhi nahi |
-| R12 | Delete = trash; permanent delete sirf Trash se |
-| R13 | State-changing GET kabhi nahi |
-| R14 | Har list pe server-side pagination, day 1 se |
+| #   | Rule                                                                  |
+| --- | --------------------------------------------------------------------- |
+| R1  | Business logic sirf `service.js` me; hooks me sirf pure normalization |
+| R2  | Scheduled publish DB-based; `setTimeout` kabhi nahi                   |
+| R3  | Versions lockfile me pin; Node `.nvmrc` + `engines` me                |
+| R4  | Block ka `type` string kabhi rename nahi — migration likho            |
+| R5  | Naya block = ek file + registry entry; core untouched                 |
+| R6  | Client customization client repo me (`theme/`, `blocks/`)             |
+| R7  | Revision snapshot publish pe **aur** save pe                          |
+| R8  | Har input pe Zod, schema `packages/shared` se                         |
+| R9  | Har query param Zod se validated                                      |
+| R10 | Routing ka ekmatra source `entries.path`                              |
+| R11 | UI me internal naam kabhi nahi                                        |
+| R12 | Delete = trash; permanent delete sirf Trash se                        |
+| R13 | State-changing GET kabhi nahi                                         |
+| R14 | Har list pe server-side pagination, day 1 se                          |
 
 Detail: `.claude/docs/07-CONVENTIONS.md`
 
@@ -103,16 +103,16 @@ Content-scoped collection = `siteId` + `deletedAt` zaroori. Indexes me `siteId` 
 
 ## Naming
 
-| Cheez | Convention | Example |
-|---|---|---|
-| Files | kebab-case | `media-picker.jsx` |
-| Components | PascalCase | `BlockRenderer` |
-| Functions | camelCase | `resolvePath` |
-| Constants | SCREAMING_SNAKE | `DEFAULT_SITE_ID` |
-| Collections | plural lowercase | `entries`, `mediaRefs` |
-| Permissions | `resource.action` | `entry.publish` |
-| Cache tags | `type:id` | `entry:abc123` |
-| Block types | camelCase | `richText` |
+| Cheez       | Convention        | Example                |
+| ----------- | ----------------- | ---------------------- |
+| Files       | kebab-case        | `media-picker.jsx`     |
+| Components  | PascalCase        | `BlockRenderer`        |
+| Functions   | camelCase         | `resolvePath`          |
+| Constants   | SCREAMING_SNAKE   | `DEFAULT_SITE_ID`      |
+| Collections | plural lowercase  | `entries`, `mediaRefs` |
+| Permissions | `resource.action` | `entry.publish`        |
+| Cache tags  | `type:id`         | `entry:abc123`         |
+| Block types | camelCase         | `richText`             |
 
 **UI naming (R11):**
 `entries` → Pages/Posts · `taxonomies` → Categories/Tags ·

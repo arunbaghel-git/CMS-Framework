@@ -56,14 +56,14 @@ migrations/
 └─ 003-backfill-search-text.js
 ```
 
-| Rule | Detail |
-|---|---|
-| Numbered | Strictly sequential, gaps nahi |
-| Recorded | `migrations` collection — `name`, `appliedAt`, `checksum` |
-| Idempotent | Dobara chale to kuch na bigde |
-| Reversible | Har migration me `down()` — rollback ke liye zaroori |
-| Boot se pehle | Deploy step pe chale, app start hone se pehle |
-| Batched | Bade collections pe cursor + batch, poora `updateMany` nahi |
+| Rule          | Detail                                                      |
+| ------------- | ----------------------------------------------------------- |
+| Numbered      | Strictly sequential, gaps nahi                              |
+| Recorded      | `migrations` collection — `name`, `appliedAt`, `checksum`   |
+| Idempotent    | Dobara chale to kuch na bigde                               |
+| Reversible    | Har migration me `down()` — rollback ke liye zaroori        |
+| Boot se pehle | Deploy step pe chale, app start hone se pehle               |
+| Batched       | Bade collections pe cursor + batch, poora `updateMany` nahi |
 
 Command: `pnpm cms migrate` · status: `pnpm cms migrate:status`
 
@@ -81,11 +81,11 @@ function migrateTree(content) {
 }
 ```
 
-| Rule | Detail |
-|---|---|
-| Kab chale | Read pe **lazily**, aur background batch job se |
-| Scope | Per-document, per-version |
-| Idempotent | Zaroori — ek document pe kai baar chal sakti hai |
+| Rule         | Detail                                                             |
+| ------------ | ------------------------------------------------------------------ |
+| Kab chale    | Read pe **lazily**, aur background batch job se                    |
+| Scope        | Per-document, per-version                                          |
+| Idempotent   | Zaroori — ek document pe kai baar chal sakti hai                   |
 | Block `type` | **Kabhi rename mat karo.** Rename chahiye to migration me map karo |
 
 ## Step 5 — Index rules

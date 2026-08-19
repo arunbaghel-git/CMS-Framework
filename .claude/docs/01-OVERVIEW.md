@@ -40,20 +40,21 @@ aap chalao). Tab tak `siteId` field reserve hai — detail
 
 ## Kiske liye hai
 
-| Kaun | Kya karega |
-|---|---|
+| Kaun                       | Kya karega                                                                       |
+| -------------------------- | -------------------------------------------------------------------------------- |
 | **Client** (non-technical) | Content likhna, page banana, image upload, menu badalna, form submissions dekhna |
-| **Agency designer** | Theme tokens se branding, patterns banana, templates set karna |
-| **Agency developer** | Naya client instance khada karna, custom block likhna, core upgrade karna |
+| **Agency designer**        | Theme tokens se branding, patterns banana, templates set karna                   |
+| **Agency developer**       | Naya client instance khada karna, custom block likhna, core upgrade karna        |
 
 Sabse important user **client** hai. Har design faisla is sawaal se guzarta hai:
-*"kya ek non-technical banda ye bina call kiye kar lega?"*
+_"kya ek non-technical banda ye bina call kiye kar lega?"_
 
 ---
 
 ## Scope
 
 ### Andar hai
+
 - Pages, Posts, aur admin se bane custom content types (Services, Portfolio, Team)
 - Categories + tags, unke archive pages ke saath
 - Media library — folders, image variants, crop, usage tracking
@@ -67,37 +68,38 @@ Sabse important user **client** hai. Har design faisla is sawaal se guzarta hai:
 - Design tokens se theming
 
 ### Bahar hai (jaan-boojh kar)
-| Cheez | Kyun nahi |
-|---|---|
-| **Comments** | Agency sites pe spam + moderation ka bojh. Third-party embed block se ho jaayega |
-| **Plugin system** | Code aapke paas hai — blocks hi extension point hain |
-| **Multi-site / multi-tenant** | Ek instance = ek site. SaaS banane pe hi zaroori |
-| **E-commerce** | Alag product hai |
-| **Multi-language** | `locale` field day 1 se reserve hai, feature baad me |
-| **Live multi-user collab** | Builder ka scope phat jaayega |
-| **Free-form CSS in builder** | Non-technical user usse site tod dega |
+
+| Cheez                         | Kyun nahi                                                                        |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| **Comments**                  | Agency sites pe spam + moderation ka bojh. Third-party embed block se ho jaayega |
+| **Plugin system**             | Code aapke paas hai — blocks hi extension point hain                             |
+| **Multi-site / multi-tenant** | Ek instance = ek site. SaaS banane pe hi zaroori                                 |
+| **E-commerce**                | Alag product hai                                                                 |
+| **Multi-language**            | `locale` field day 1 se reserve hai, feature baad me                             |
+| **Live multi-user collab**    | Builder ka scope phat jaayega                                                    |
+| **Free-form CSS in builder**  | Non-technical user usse site tod dega                                            |
 
 ---
 
 ## Tech stack
 
-| Kaam | Choice | Kyun (detail → [03-DECISIONS](03-DECISIONS.md)) |
-|---|---|---|
-| API | Express + Mongoose | Team familiar, ecosystem bada |
-| Database | MongoDB | Flexible custom fields, per-client alag DB |
-| Admin UI | React + Vite + Tailwind + shadcn/ui | Fast dev, accessible components free |
-| Public site | Next.js App Router | SSR/ISR — SEO ke liye zaroori |
-| Language | JavaScript (ESM) | TS nahi — safety Zod + tests se aati hai |
-| Validation | Zod, `packages/shared` me | Ek schema, admin + API dono |
-| Server state | TanStack Query | Cache, refetch, optimistic updates |
-| Editor state | Zustand + Immer | Undo/redo ke liye patches easy |
-| Drag & drop | dnd-kit | Accessible, nested support |
-| Rich text | TipTap | JSON output deta hai, HTML nahi |
-| Images | sharp | Variants + webp |
-| Media storage | S3/R2 + CDN (prod), local (dev) | Instance stateless rahe |
-| Auth | JWT httpOnly cookies + CSRF + `refreshTokens` collection | Reuse detection ke liye server state chahiye |
-| Cache | Next ISR (single authority) + tag invalidation | Do cache layer = "publish kiya, update nahi hua" |
-| Jobs | DB-based cron → BullMQ (Phase 7+) | `setTimeout` restart pe schedule kho deta hai |
+| Kaam          | Choice                                                   | Kyun (detail → [03-DECISIONS](03-DECISIONS.md))  |
+| ------------- | -------------------------------------------------------- | ------------------------------------------------ |
+| API           | Express + Mongoose                                       | Team familiar, ecosystem bada                    |
+| Database      | MongoDB                                                  | Flexible custom fields, per-client alag DB       |
+| Admin UI      | React + Vite + Tailwind + shadcn/ui                      | Fast dev, accessible components free             |
+| Public site   | Next.js App Router                                       | SSR/ISR — SEO ke liye zaroori                    |
+| Language      | JavaScript (ESM)                                         | TS nahi — safety Zod + tests se aati hai         |
+| Validation    | Zod, `packages/shared` me                                | Ek schema, admin + API dono                      |
+| Server state  | TanStack Query                                           | Cache, refetch, optimistic updates               |
+| Editor state  | Zustand + Immer                                          | Undo/redo ke liye patches easy                   |
+| Drag & drop   | dnd-kit                                                  | Accessible, nested support                       |
+| Rich text     | TipTap                                                   | JSON output deta hai, HTML nahi                  |
+| Images        | sharp                                                    | Variants + webp                                  |
+| Media storage | S3/R2 + CDN (prod), local (dev)                          | Instance stateless rahe                          |
+| Auth          | JWT httpOnly cookies + CSRF + `refreshTokens` collection | Reuse detection ke liye server state chahiye     |
+| Cache         | Next ISR (single authority) + tag invalidation           | Do cache layer = "publish kiya, update nahi hua" |
+| Jobs          | DB-based cron → BullMQ (Phase 7+)                        | `setTimeout` restart pe schedule kho deta hai    |
 
 Versions kahin hardcode nahi — implementation ke waqt current stable/LTS lo, par
 lockfile me **exact pin** karo aur Node version `.nvmrc` + `engines` me rakho
@@ -110,20 +112,21 @@ lockfile me **exact pin** karo aur Node version `.nvmrc` + `engines` me rakho
 Ye shabd poore docs me consistently use hote hain. **Internal naam aur UI naam alag
 hain** — ye jaan-boojh kar hai (rule 9, [`07-CONVENTIONS.md`](07-CONVENTIONS.md)).
 
-| Internal (code, DB) | UI me dikhta hai | Matlab |
-|---|---|---|
-| `entry` | Page / Post / Service | Ek content item. Sab ek hi collection me hain, `type` se alag |
-| `contentType` | Content Type | Entry ka blueprint — fields, URL pattern, builder on/off |
-| `taxonomy` | Categories / Tags | Content ko group karne ka tareeka |
-| `block` | Block | Page ka ek hissa (heading, image, section) — JSON tree ka node |
-| `pattern` | Pattern | Ready-made section. Insert hote hi **copy** ban jaata hai |
-| `pattern (synced)` | Synced Pattern | Ek jagah save, har use pe **reference**. Ek jagah badlo, sab update |
-| `template.regions` | Template Parts | Header/footer jaise reusable page hisse |
-| `path` | URL | Entry ka poora public URL, DB me stored |
-| — | Instance | Ek client ka poora deployment (app + DB + domain) |
-| — | Core | `@cms/*` packages jo sab instances me same hain |
+| Internal (code, DB) | UI me dikhta hai      | Matlab                                                              |
+| ------------------- | --------------------- | ------------------------------------------------------------------- |
+| `entry`             | Page / Post / Service | Ek content item. Sab ek hi collection me hain, `type` se alag       |
+| `contentType`       | Content Type          | Entry ka blueprint — fields, URL pattern, builder on/off            |
+| `taxonomy`          | Categories / Tags     | Content ko group karne ka tareeka                                   |
+| `block`             | Block                 | Page ka ek hissa (heading, image, section) — JSON tree ka node      |
+| `pattern`           | Pattern               | Ready-made section. Insert hote hi **copy** ban jaata hai           |
+| `pattern (synced)`  | Synced Pattern        | Ek jagah save, har use pe **reference**. Ek jagah badlo, sab update |
+| `template.regions`  | Template Parts        | Header/footer jaise reusable page hisse                             |
+| `path`              | URL                   | Entry ka poora public URL, DB me stored                             |
+| —                   | Instance              | Ek client ka poora deployment (app + DB + domain)                   |
+| —                   | Core                  | `@cms/*` packages jo sab instances me same hain                     |
 
 **Naam ki teen galtiyaan jo nahi karni:**
+
 - UI me kabhi "Entries" mat dikhao — wahan "Pages"/"Posts" hi hoga
 - UI me kabhi "Taxonomies" mat dikhao — wahan "Categories"/"Tags" hi hoga
 - Block ka `type` string kabhi rename mat karo — wo DB me stored hai

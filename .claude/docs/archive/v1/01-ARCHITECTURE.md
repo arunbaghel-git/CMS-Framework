@@ -1,6 +1,7 @@
 # MERN CMS Framework — Architecture (v1)
 
 ## 1. Goal
+
 Ek reusable CMS framework jisse non-technical user admin panel se poori website
 banaye aur manage kare — pages, posts, media, menus, SEO, templates aur
 drag-and-drop page builder ke saath.
@@ -33,19 +34,20 @@ theme/blocks add karo, CMS core same rehta hai.
 
 ### Teen apps, do shared packages
 
-| App | Tech | Kaam |
-|---|---|---|
-| `apps/api` | Express + Mongoose | Saara business logic, auth, uploads — single source of truth |
-| `apps/admin` | React 18 + Vite (JSX) | Admin UI, page builder, preview |
-| `apps/web` | Next.js (App Router) | Public website, SSR + ISR, SEO tags, sitemap |
-| `packages/blocks` | React (JSX) | **Block registry + renderer — dono apps yahi import karte hain** |
-| `packages/shared` | Zod | Validation schemas, constants, JSDoc typedefs |
+| App               | Tech                  | Kaam                                                             |
+| ----------------- | --------------------- | ---------------------------------------------------------------- |
+| `apps/api`        | Express + Mongoose    | Saara business logic, auth, uploads — single source of truth     |
+| `apps/admin`      | React 18 + Vite (JSX) | Admin UI, page builder, preview                                  |
+| `apps/web`        | Next.js (App Router)  | Public website, SSR + ISR, SEO tags, sitemap                     |
+| `packages/blocks` | React (JSX)           | **Block registry + renderer — dono apps yahi import karte hain** |
+| `packages/shared` | Zod                   | Validation schemas, constants, JSDoc typedefs                    |
 
 > **Sabse important decision:** block renderer ek hi jagah likho
 > (`packages/blocks`). Admin canvas aur public site dono wahi component use
 > karein. Warna "preview me kuch, live pe kuch aur" wala bug permanent ho jayega.
 
 ### Next.js kyun, jab MERN bola tha?
+
 Next.js React hi hai. SEO ke liye server-rendered HTML chahiye — pure SPA me
 crawler ko khaali div milta hai. Agar strictly sirf Express rakhna hai to
 alternative: Express + `react-dom/server` se manual SSR. Kaam karega, par
@@ -88,6 +90,7 @@ redirects      * siteId, from, to, statusCode(301|302), hits
 forms          * siteId, name, fields[], notifyEmails[], successMessage
 submissions      formId, data, ip, createdAt
 ```
+
 `users` / `roles` / `revisions` / `submissions` pe `siteId` nahi — ye user ya parent
 entry se derive ho jaate hain.
 
@@ -114,25 +117,46 @@ automatic, ek client ka traffic spike doosre ko affect nahi karta, aur client-sp
 block/theme baaki clients pe asar nahi daalta.
 
 ### Menu item (nested)
+
 ```json
-{ "id": "m1", "label": "About", "linkType": "entry|url|taxonomy",
-  "entryId": "...", "url": null, "target": "_self", "children": [] }
+{
+  "id": "m1",
+  "label": "About",
+  "linkType": "entry|url|taxonomy",
+  "entryId": "...",
+  "url": null,
+  "target": "_self",
+  "children": []
+}
 ```
 
 ### SEO object (har entry pe embedded)
+
 ```json
-{ "title": "", "description": "", "canonical": "", "noindex": false, "nofollow": false,
-  "ogTitle": "", "ogDescription": "", "ogImageId": "",
-  "twitterCard": "summary_large_image", "schemaType": "WebPage|Article|Product",
-  "focusKeyword": "" }
+{
+  "title": "",
+  "description": "",
+  "canonical": "",
+  "noindex": false,
+  "nofollow": false,
+  "ogTitle": "",
+  "ogDescription": "",
+  "ogImageId": "",
+  "twitterCard": "summary_large_image",
+  "schemaType": "WebPage|Article|Product",
+  "focusKeyword": ""
+}
 ```
+
 Khaali fields pe fallback chain: entry SEO -> `settings.defaultSeo` -> entry
 title/excerpt.
 
 ### Indexes (day 1 se, warna baad me dard)
+
 Compound indexes me `siteId` **sabse pehle** rakho — yahi wo cheez hai jiske liye
 field reserve kiya hai. Single-site me koi nuksaan nahi (ek hi value hai), aur
 multi-site me index dobara banane se bach jaate ho.
+
 ```
 entries:   { siteId: 1, type: 1, slug: 1 }  unique
 entries:   { siteId: 1, type: 1, status: 1, publishAt: -1 }
@@ -153,14 +177,21 @@ dobara edit karna, theme badalna, responsive control sab impossible ho jayega.
 {
   "version": 1,
   "blocks": [
-    { "id": "b1", "type": "section",
+    {
+      "id": "b1",
+      "type": "section",
       "props": { "background": { "type": "color", "value": "#0f172a" } },
       "style": { "desktop": { "paddingY": 80 }, "mobile": { "paddingY": 40 } },
       "children": [
-        { "id": "b2", "type": "container", "props": { "maxWidth": 1200 }, "children": [
-          { "id": "b3", "type": "heading", "props": { "text": "Hello", "level": 1 } },
-          { "id": "b4", "type": "button", "props": { "label": "Contact", "href": "/contact" } }
-        ]}
+        {
+          "id": "b2",
+          "type": "container",
+          "props": { "maxWidth": 1200 },
+          "children": [
+            { "id": "b3", "type": "heading", "props": { "text": "Hello", "level": 1 } },
+            { "id": "b4", "type": "button", "props": { "label": "Contact", "href": "/contact" } }
+          ]
+        }
       ]
     }
   ]
@@ -168,6 +199,7 @@ dobara edit karna, theme badalna, responsive control sab impossible ho jayega.
 ```
 
 ### Block definition (registry entry) — framework ka extension point
+
 ```
 {
   type: 'heading',
@@ -183,11 +215,13 @@ dobara edit karna, theme badalna, responsive control sab impossible ho jayega.
   Render: (props) => JSX          // ek hi component: admin canvas + public site
 }
 ```
+
 **Fayda:** naya block add karne ke liye sirf ek file. Properties panel, drag
 list, defaults — sab schema se generate. Yahi cheez isko "CMS framework" banati
 hai, "ek website" nahi.
 
 ### Builder UI ke 4 hisse
+
 1. **Left** — block library (categories) + layer/tree view
 2. **Center** — canvas, **iframe me render** taaki theme CSS aur admin CSS na takraayein
 3. **Right** — properties panel (schema-driven) + responsive tabs (desktop/tablet/mobile)
@@ -197,11 +231,13 @@ Libraries: `dnd-kit` (drag-drop), `zustand` + `immer` (editor state + history),
 `react-hook-form` + `zod` (forms), `TipTap` (rich text), `sharp` (image variants).
 
 ### Responsive model
+
 Har block pe `style.desktop | tablet | mobile`. Mobile khaali ho to desktop se
 inherit. Sirf ye control do: spacing, alignment, visibility, columns, font size.
 Free-form CSS mat do — non-technical user usse site tod dega.
 
 ### Global/reusable blocks (Phase 6+)
+
 Block ko "Global" mark karo -> alag collection me save -> jahan use ho wahan
 reference. Header/footer/CTA ek jagah badlo, poori site update.
 
@@ -229,25 +265,29 @@ checklist (title length, meta length, H1 count, missing image alt, internal link
 ## 6. Auth & roles
 
 ### Deployment topology (pehle ye decide karo — cookie policy isi pe depend karti hai)
+
 **Same-origin** rakho: admin `example.com/admin`, API `example.com/api`, dono ek
 reverse proxy ke peeche. Dev me Vite proxy se wahi setup mil jaata hai.
 
-| Setup | Cookie | CSRF ka bharosa |
-|---|---|---|
-| **Same-origin (recommended)** | `SameSite=Lax` kaam karta hai | Token defence-in-depth |
-| Cross-origin (`admin.x.com` ↔ `api.x.com`) | `SameSite=None; Secure` majboori — **SameSite ka protection zero** | Token hi akela sahara |
+| Setup                                       | Cookie                                                             | CSRF ka bharosa        |
+| ------------------------------------------- | ------------------------------------------------------------------ | ---------------------- |
+| **Same-origin (recommended)**               | `SameSite=Lax` kaam karta hai                                      | Token defence-in-depth |
+| Cross-origin (`admin.x.com` ↔ `api.x.com`) | `SameSite=None; Secure` majboori — **SameSite ka protection zero** | Token hi akela sahara  |
 
 ### Cookie + CSRF policy (explicit)
+
 ```
 access token   15 min   httpOnly · Secure (prod) · SameSite=Lax · Path=/ · __Host- prefix
 refresh token  7 din    wahi flags + rotation on use + reuse detection (chori pakadne ke liye)
 CSRF           double-submit token; har non-GET request pe verify
 CORS           strict origin allowlist + credentials:true  (wildcard kabhi nahi)
 ```
+
 localStorage me token kabhi mat rakho — CMS me user rich text aur embed HTML
 daalta hai, matlab XSS surface bada hai; cookie hi safe hai.
 
 ### Roles
+
 - Roles: `admin` (sab), `editor` (sab content publish kar sakta), `author`
   (sirf apna content, publish nahi), `viewer` (read-only).
 - Permissions string-based: `entry.create`, `entry.publish`, `media.delete`,
@@ -280,6 +320,7 @@ GET    /api/public/menus/:key
 GET    /api/public/settings
 GET    /api/public/sitemap
 ```
+
 Admin aur public routes alag rakho: public read-only + cacheable, admin authed.
 
 ---
@@ -316,18 +357,19 @@ cms/
 ---
 
 ## 9. Non-negotiable rules (framework rehne ke liye)
+
 1. Business logic sirf `service.js` me. Controller patla, model sirf schema.
    **Mongoose hooks me sirf pure data normalization** — slugify, trim, `updatedAt`,
    denormalized counts. Koi side effect nahi, koi I/O nahi. Revision snapshot, cache
    invalidation, revalidate webhook, publish state machine, email — sab service me.
-   *Kyun:* `updateOne` / `findOneAndUpdate` / `bulkWrite` `save` hooks chalate hi nahi.
+   _Kyun:_ `updateOne` / `findOneAndUpdate` / `bulkWrite` `save` hooks chalate hi nahi.
    Logic hook me hua to wo chup-chaap skip ho jaayega — koi error nahi, koi log nahi.
-1b. Scheduled publish **kabhi `setTimeout` se nahi** — DB source of truth
+   1b. Scheduled publish **kabhi `setTimeout` se nahi** — DB source of truth
    (`status:'scheduled'` + indexed `publishAt`), cron har minute atomic
    `findOneAndUpdate` se claim kare (multi-instance pe double-publish se bachne ke liye).
    Public read query khud bhi `scheduled && publishAt <= now` ko published maane —
    isse cron band ho jaaye to bhi site sahi rahe (self-healing).
-1c. Library versions plan me hardcode mat karo — implementation ke waqt current
+   1c. Library versions plan me hardcode mat karo — implementation ke waqt current
    stable/LTS lo. Par `package.json` + lockfile me exact pin, aur Node version
    `.nvmrc` + `engines` me (native modules — sharp, bcrypt — mismatch pe toot-te hain).
 2. Block ka `type` string kabhi rename mat karo. `version` field rakho aur
@@ -342,12 +384,12 @@ cms/
 
 ## 10. Known traps
 
-| Trap | Kya hoga | Bachav |
-|---|---|---|
-| Builder me "Elementor jaisa sab kuch" | 3 mahine me bhi launch nahi hoga | Phase 5 me sirf ~10 block, fixed layout system |
-| Preview != live output | Client ka trust khatam | Shared renderer package, canvas iframe me |
-| HTML string save karna | Aage kuch edit nahi hota | Hamesha JSON tree |
-| Slug/URL logic bikhra hua | Duplicate URL, SEO loss | Ek `resolvePath()` util + unique index |
-| Original image serve karna | Site slow, Core Web Vitals down | Upload pe hi sharp se webp variants |
-| Saara data ek page me | Admin hang | Har list pe server-side pagination day 1 se |
-| Custom fields ko strict schema | Har client pe migration | `fields` ko Mixed rakho, validation contentType se |
+| Trap                                  | Kya hoga                         | Bachav                                             |
+| ------------------------------------- | -------------------------------- | -------------------------------------------------- |
+| Builder me "Elementor jaisa sab kuch" | 3 mahine me bhi launch nahi hoga | Phase 5 me sirf ~10 block, fixed layout system     |
+| Preview != live output                | Client ka trust khatam           | Shared renderer package, canvas iframe me          |
+| HTML string save karna                | Aage kuch edit nahi hota         | Hamesha JSON tree                                  |
+| Slug/URL logic bikhra hua             | Duplicate URL, SEO loss          | Ek `resolvePath()` util + unique index             |
+| Original image serve karna            | Site slow, Core Web Vitals down  | Upload pe hi sharp se webp variants                |
+| Saara data ek page me                 | Admin hang                       | Har list pe server-side pagination day 1 se        |
+| Custom fields ko strict schema        | Har client pe migration          | `fields` ko Mixed rakho, validation contentType se |

@@ -10,19 +10,19 @@ na hona behtar hai — kyunki stale doc pe log bharosa kar lete hain.
 
 ## Mapping — kya badla → kaunsi doc
 
-| Code me change | Doc update |
-|---|---|
-| Naya collection ya field | `docs/02-ARCHITECTURE.md` §3 + indexes §3.3 |
-| Naya index | `docs/02-ARCHITECTURE.md` §3.3 |
-| Architectural faisla | `docs/03-DECISIONS.md` — **naya `D-xx`** |
-| Admin screen ya navigation | `docs/04-ADMIN-UX.md` + `docs/admin-wireframe.html` |
-| Phase ka scope badla | `docs/05-BUILD-PLAN.md` |
-| Env var, deploy step, migration | `docs/06-OPERATIONS.md` |
-| Naya rule ya convention | `docs/07-CONVENTIONS.md` + root `CLAUDE.md` |
-| Naya risk mila | `docs/08-RISKS.md` traps table |
-| Open item resolve hua | `docs/09-OPEN-ITEMS.md` — hatao, aur jahan gaya wahan likho |
-| Naya API endpoint | `docs/02-ARCHITECTURE.md` §9 |
-| Naya permission string | `.claude/specs/001-permissions.md` |
+| Code me change                  | Doc update                                                  |
+| ------------------------------- | ----------------------------------------------------------- |
+| Naya collection ya field        | `docs/02-ARCHITECTURE.md` §3 + indexes §3.3                 |
+| Naya index                      | `docs/02-ARCHITECTURE.md` §3.3                              |
+| Architectural faisla            | `docs/03-DECISIONS.md` — **naya `D-xx`**                    |
+| Admin screen ya navigation      | `docs/04-ADMIN-UX.md` + `docs/admin-wireframe.html`         |
+| Phase ka scope badla            | `docs/05-BUILD-PLAN.md`                                     |
+| Env var, deploy step, migration | `docs/06-OPERATIONS.md`                                     |
+| Naya rule ya convention         | `docs/07-CONVENTIONS.md` + root `CLAUDE.md`                 |
+| Naya risk mila                  | `docs/08-RISKS.md` traps table                              |
+| Open item resolve hua           | `docs/09-OPEN-ITEMS.md` — hatao, aur jahan gaya wahan likho |
+| Naya API endpoint               | `docs/02-ARCHITECTURE.md` §9                                |
+| Naya permission string          | `.claude/specs/001-permissions.md`                          |
 
 ## Decision record kaise likhna hai
 
@@ -60,6 +60,7 @@ Doc update karte waqt ye bhi verify karo:
 ## Output
 
 Change ke baad batao:
+
 ```
 UPDATED
   docs/02-ARCHITECTURE.md   §3 — mediaRefs collection add

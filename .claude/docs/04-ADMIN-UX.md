@@ -6,7 +6,7 @@ Admin panel ka information architecture aur screen layouts.
 clickable, browser me kholo. Ye doc uska likha hua version hai.
 
 **Design principle:** har faisla is ek sawaal se guzarta hai —
-*"kya ek non-technical banda ye bina call kiye kar lega?"*
+_"kya ek non-technical banda ye bina call kiye kar lega?"_
 
 ---
 
@@ -66,14 +66,14 @@ Har content type pe **bilkul same** layout — Pages, Posts, Services, sab.
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-| Element | Kyun zaroori |
-|---|---|
-| **Status count tabs** | User ko turant pata chale kitna kaam pending hai |
-| **URL column** | Stored `path` se. Nested pages ka structure yahin dikhta hai |
-| **Row actions** | **View** sabse zyada use hota hai — live page kholne ke liye |
-| **Bulk actions** | Publish · Unpublish · Trash · Assign category. 200 posts wala client inke bina call karega |
-| **Server-side pagination** | Day 1 se. Saara data ek page me = admin hang |
-| **"front page" marker** | `settings.homepageEntryId` se |
+| Element                    | Kyun zaroori                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| **Status count tabs**      | User ko turant pata chale kitna kaam pending hai                                           |
+| **URL column**             | Stored `path` se. Nested pages ka structure yahin dikhta hai                               |
+| **Row actions**            | **View** sabse zyada use hota hai — live page kholne ke liye                               |
+| **Bulk actions**           | Publish · Unpublish · Trash · Assign category. 200 posts wala client inke bina call karega |
+| **Server-side pagination** | Day 1 se. Saara data ek page me = admin hang                                               |
+| **"front page" marker**    | `settings.homepageEntryId` se                                                              |
 
 ---
 
@@ -104,10 +104,11 @@ Jab `contentType.hasBuilder = false` ho (Posts).
 ```
 
 **Zaroori details:**
+
 - **Autosave recovery** — 30s autosave ka payoff yahi hai. Bina iske autosave ka koi
   matlab nahi
-- **Revisions on save**, sirf publish pe nahi. Recovery ka asli case *"maine save karke
-  tod diya"* hai. Restore se pehle **changed-summary** dikhao ("3 blocks changed,
+- **Revisions on save**, sirf publish pe nahi. Recovery ka asli case _"maine save karke
+  tod diya"_ hai. Restore se pehle **changed-summary** dikhao ("3 blocks changed,
   1 added") — timestamp list se blind restore non-technical user ke liye darawna hai
 - **SEO title template** placeholder me dikhe, taaki user ko samajh aaye khaali chhodne
   pe kya hoga
@@ -138,13 +139,13 @@ Jab `contentType.hasBuilder = true` ho (Pages).
 └─────────┴──────────────────────────────────┴─────────────────┘
 ```
 
-| Hissa | Detail |
-|---|---|
-| **Left** | Block library (categories + search) + layers/tree view |
-| **Center** | Canvas — **sandboxed iframe**, theme CSS aur admin CSS na takraayein |
-| **Right** | **Do tabs: Document aur Block** |
-| **Floating toolbar** | Selection pe — align, link, duplicate, delete, move |
-| **Top** | Undo/redo, breakpoint switch, preview, save/publish, unsaved guard |
+| Hissa                | Detail                                                               |
+| -------------------- | -------------------------------------------------------------------- |
+| **Left**             | Block library (categories + search) + layers/tree view               |
+| **Center**           | Canvas — **sandboxed iframe**, theme CSS aur admin CSS na takraayein |
+| **Right**            | **Do tabs: Document aur Block**                                      |
+| **Floating toolbar** | Selection pe — align, link, duplicate, delete, move                  |
+| **Top**              | Undo/redo, breakpoint switch, preview, save/publish, unsaved guard   |
 
 **Do tabs kyun zaroori hain:** builder mode me user ko slug, status, template ya
 category set karni ho to jagah honi chahiye. Sirf block properties dikhana matlab user
@@ -286,12 +287,12 @@ raha hai, isliye wahin add karna sasta hai.
 
 ## 10. Cross-cutting UX rules
 
-| Rule | Kyun |
-|---|---|
-| Har destructive action pe **undo ya confirm** | Non-technical user, galti hogi hi |
-| Delete ka matlab **trash**, permanent nahi | Recovery ka raasta hamesha khula rahe |
-| Har list pe **server-side pagination** day 1 se | Warna admin hang |
-| Empty / error / loading states har screen pe | Non-technical user ke liye yahi **actual UX** hai |
-| Error message me **kya hua + ab kya karein** | "Something went wrong" bekaar hai |
-| Save ke baad **toast** with clear wording | "Published" — action ka echo |
-| Pre-publish panel me SEO checklist | Tab me dabaa hua checklist koi nahi dekhta |
+| Rule                                            | Kyun                                              |
+| ----------------------------------------------- | ------------------------------------------------- |
+| Har destructive action pe **undo ya confirm**   | Non-technical user, galti hogi hi                 |
+| Delete ka matlab **trash**, permanent nahi      | Recovery ka raasta hamesha khula rahe             |
+| Har list pe **server-side pagination** day 1 se | Warna admin hang                                  |
+| Empty / error / loading states har screen pe    | Non-technical user ke liye yahi **actual UX** hai |
+| Error message me **kya hua + ab kya karein**    | "Something went wrong" bekaar hai                 |
+| Save ke baad **toast** with clear wording       | "Published" — action ka echo                      |
+| Pre-publish panel me SEO checklist              | Tab me dabaa hua checklist koi nahi dekhta        |

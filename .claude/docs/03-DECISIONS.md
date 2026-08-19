@@ -59,6 +59,7 @@ shared contracts pe khada hai — ye TypeScript ka sabse strong use-case hai.
 
 **Trade-off saaf hai:** jo safety compiler deta, wo ab **runtime pe** leni padegi. Teen
 cheezein non-negotiable ho jaati hain:
+
 1. **Zod har boundary pe** — API input, block props, contentType fields, aur har query param
 2. **`jsconfig.json` + `checkJs: true` + JSDoc typedefs** core shapes pe
 3. **Block tree operations pe unit tests** — JS me yahi wo jagah hai jahan silent bugs
@@ -131,6 +132,7 @@ hai. Isse kaise roka jaaye?
 
 **Decision:** Renderer ek hi jagah (`packages/blocks`), **aur** host apne primitives
 inject kare:
+
 ```jsx
 <BlockRenderer blocks={...} components={{ Link, Image }} />
 ```
@@ -144,7 +146,7 @@ Injection dono bacha leta hai.
 primitives hardcode — canvas hi na chale.
 
 **Escape hatch:** agar Phase 5 me phir bhi divergence dikhe, canvas iframe ko asli Next
-app pe draft-mode me point kar do — tab preview *hai hi* live.
+app pe draft-mode me point kar do — tab preview _hai hi_ live.
 
 ---
 
@@ -160,8 +162,9 @@ model inline style se implement ho hi nahi sakta. Ye ek hard technical limit hai
 preference nahi.
 
 **Reject kiya:** (a) Inline styles — kaam hi nahi karta. (b) CSS-in-JS — bundle weight
-+ SSR extraction ki complexity. (c) Utility classes — value space bahut hi seemit ho
-jaata.
+
+- SSR extraction ki complexity. (c) Utility classes — value space bahut hi seemit ho
+  jaata.
 
 **Nateeja:** CSP me is `<style>` ke liye nonce chahiye. Aur value space constrained
 rakhna hoga (spacing scale, token colors) — free-form CSS nahi (D-20).
@@ -185,7 +188,8 @@ padta.
 khatam kar deta hai.
 
 **Nateeja:** Parent ka slug badle to **descendants ka path cascade update** karna hoga
-+ har ek pe 301. Reserved slugs (`/admin`, `/api`) block karne padenge.
+
+- har ek pe 301. Reserved slugs (`/admin`, `/api`) block karne padenge.
 
 ---
 
@@ -300,10 +304,10 @@ chalna chahiye: **kaunsa client kis core version pe hai.**
 
 **Decision:** Do alag systems —
 
-| Kism | Kab chalti hai | Kaise |
-|---|---|---|
+| Kism            | Kab chalti hai                | Kaise                                                                  |
+| --------------- | ----------------------------- | ---------------------------------------------------------------------- |
 | **Schema/data** | Deploy step pe, boot se pehle | Numbered files, `migrations` collection me record, ordered, idempotent |
-| **Block tree** | Read pe lazily + batch job | Per-document aur idempotent |
+| **Block tree**  | Read pe lazily + batch job    | Per-document aur idempotent                                            |
 
 **Kyun:** Ye alag isliye hain ki ek page ka `content.version` v1 pe ho sakta hai jab
 site v4 pe hai. Block migration ko har document pe apne aap chalna hoga, ek baar nahi.
@@ -337,6 +341,7 @@ isi se banta hai, aur agency ise lagbhag har build pe maangti hai.
 (`deletedAt`), permanent delete sirf Trash screen ke andar se.
 
 **Kyun:**
+
 - `pending` ke bina `contributor` role ka koi "kaam ho gaya, review karo" state hi nahi
   bachta — matlab role **non-functional** hai.
 - `private` client staging pages ke liye chahiye (live, par sirf logged-in ko dikhe).
@@ -352,12 +357,12 @@ isi se banta hai, aur agency ise lagbhag har build pe maangti hai.
 
 **Decision:** UI me **kabhi bhi** internal naam nahi.
 
-| Code me | UI me |
-|---|---|
-| `entries` | Pages / Posts / Services |
-| `taxonomies` | Categories / Tags |
-| `template.regions` | Template Parts |
-| `pattern (synced)` | Synced Patterns |
+| Code me            | UI me                    |
+| ------------------ | ------------------------ |
+| `entries`          | Pages / Posts / Services |
+| `taxonomies`       | Categories / Tags        |
+| `template.regions` | Template Parts           |
+| `pattern (synced)` | Synced Patterns          |
 
 **Kyun:** Model ka generalized hona **developer ki suvidha** hai. Client ko "Entries"
 screen dikhana usse har roz confuse karega. Familiar vocabulary CMS ki adoption ka
@@ -456,7 +461,7 @@ ya alag timestamp field?
 
 **Decision:** **`deletedAt` timestamp field.** `status` ko chhua nahi jaata.
 
-**Kyun:** Restore ka matlab *"jaisa tha waisa"* hona chahiye. `status: 'trash'` karne pe
+**Kyun:** Restore ka matlab _"jaisa tha waisa"_ hona chahiye. `status: 'trash'` karne pe
 ye info kho jaati hai ki entry pehle published thi ya draft — restore pe user ko dobara
 publish karna padta, aur wo ek silent data-loss jaisa feel hota hai.
 
@@ -495,6 +500,7 @@ band.
 content page nahi.
 
 Scope:
+
 ```
 Admin me   : logo, navigation, CTA button, footer columns, social links, copyright
 API        : settings + menus (admin write, public read)
@@ -517,9 +523,9 @@ Wo risk Phase 5 tak khula rahega. Page builder is slice me nahi banega.
 
 ## Abhi khule hue faisle
 
-| # | Faisla | Status |
-|---|---|---|
+| #   | Faisla                                      | Status                                                                                                                |
+| --- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | O-1 | `packages/shared` + `blocks` TypeScript me? | ✅ **Tay: nahi** — sab JavaScript. D-03 waise hi rahega, mitigations (Zod + checkJs + tree-op tests) ab optional nahi |
-| O-2 | Payload CMS ka 2-din spike | ✅ **Approved** — Phase 1 se pehle hoga. Result se ye decisions badal sakti hain |
+| O-2 | Payload CMS ka 2-din spike                  | ✅ **Approved** — Phase 1 se pehle hoga. Result se ye decisions badal sakti hain                                      |
 
 Baaki open items: [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)

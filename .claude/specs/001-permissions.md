@@ -9,18 +9,20 @@
 
 ## Problem
 
-Dono planning docs kehte hain *"permission strings ki list abhi likh lo"* — par list
+Dono planning docs kehte hain _"permission strings ki list abhi likh lo"_ — par list
 kahin likhi nahi hai. RBAC retrofit karna sabse mehnga refactor hai (docs khud ye
 kehte hain), isliye ye list Phase 0 ke code se pehle freeze honi chahiye.
 
 **Rule:** aage sirf **add** karoge, remove nahi. Isliye ab thoda zyada soch lo.
 
 ## Scope me hai
+
 - Har resource ke liye permission strings
 - 4 default roles ka permission mapping
 - Naming convention
 
 ## Scope me nahi
+
 - Custom role builder UI (Phase 7)
 - Per-entry / per-field permissions (kabhi nahi — over-engineering)
 
@@ -39,6 +41,7 @@ kehte hain), isliye ye list Phase 0 ke code se pehle freeze honi chahiye.
 ## Proposed list
 
 ### Content
+
 ```
 entry.read
 entry.create
@@ -58,17 +61,20 @@ entry.revision.restore
 ```
 
 ### Taxonomy
+
 ```
 taxonomy.read · taxonomy.create · taxonomy.update · taxonomy.delete
 ```
 
 ### Media
+
 ```
 media.read · media.upload · media.update · media.delete
 media.purge · media.restore · media.edit          crop/rotate/replace
 ```
 
 ### Appearance
+
 ```
 menu.read · menu.update
 template.read · template.create · template.update · template.delete
@@ -77,23 +83,27 @@ theme.update                                       design tokens / site style
 ```
 
 ### Structure
+
 ```
 contentType.read · contentType.create · contentType.update · contentType.delete
 ```
 
 ### SEO
+
 ```
 seo.read · seo.update
 redirect.read · redirect.create · redirect.update · redirect.delete
 ```
 
 ### Forms
+
 ```
 form.read · form.create · form.update · form.delete
 submission.read · submission.delete · submission.export
 ```
 
 ### Settings
+
 ```
 settings.read
 settings.update
@@ -105,12 +115,14 @@ settings.scripts.update      ← ADMIN-ONLY, privilege boundary (D — CSP secti
 > security boundary hai.
 
 ### Users
+
 ```
 user.read · user.invite · user.update · user.deactivate
 role.read · role.update
 ```
 
 ### Tools
+
 ```
 tools.export · tools.import
 activity.read
@@ -122,33 +134,33 @@ activity.read
 
 **Char roles** — `subscriber` nahi banega (D-26).
 
-| Permission group | admin | editor | author | contributor |
-|---|:---:|:---:|:---:|:---:|
-| `entry.read` | ✅ | ✅ | ✅ | ✅ |
-| `entry.create` | ✅ | ✅ | ✅ | ✅ |
-| `entry.update` | ✅ | ✅ | — | — |
-| `entry.update.own` | ✅ | ✅ | ✅ | ✅ |
-| `entry.publish` | ✅ | ✅ | — | — |
-| `entry.publish.own` | ✅ | ✅ | ✅ | — |
-| `entry.submitReview` | ✅ | ✅ | ✅ | ✅ |
-| `entry.delete` (trash) | ✅ | ✅ | — | — |
-| `entry.delete.own` | ✅ | ✅ | ✅ | ✅ |
-| `entry.restore` | ✅ | ✅ | — | — |
-| **`entry.purge`** (permanent) | ✅ | **—** | — | — |
-| `taxonomy.*` | ✅ | ✅ | read | read |
-| `media.upload` | ✅ | ✅ | ✅ | ✅ |
-| `media.delete` (trash) | ✅ | ✅ | — | — |
-| **`media.purge`** (permanent) | ✅ | **—** | — | — |
-| `menu.*` `template.*` `pattern.*` `theme.*` | ✅ | ✅ | — | — |
-| `contentType.*` | ✅ | — | — | — |
-| `seo.*` `redirect.*` | ✅ | ✅ | — | — |
-| `form.*` | ✅ | ✅ | — | — |
-| `submission.read` | ✅ | ✅ | — | — |
-| `settings.update` | ✅ | — | — | — |
-| **`settings.scripts.update`** | ✅ | — | — | — |
-| `user.*` `role.*` | ✅ | — | — | — |
-| `tools.*` | ✅ | — | — | — |
-| `activity.read` | ✅ | ✅ | — | — |
+| Permission group                            | admin | editor | author | contributor |
+| ------------------------------------------- | :---: | :----: | :----: | :---------: |
+| `entry.read`                                |  ✅   |   ✅   |   ✅   |     ✅      |
+| `entry.create`                              |  ✅   |   ✅   |   ✅   |     ✅      |
+| `entry.update`                              |  ✅   |   ✅   |   —    |      —      |
+| `entry.update.own`                          |  ✅   |   ✅   |   ✅   |     ✅      |
+| `entry.publish`                             |  ✅   |   ✅   |   —    |      —      |
+| `entry.publish.own`                         |  ✅   |   ✅   |   ✅   |      —      |
+| `entry.submitReview`                        |  ✅   |   ✅   |   ✅   |     ✅      |
+| `entry.delete` (trash)                      |  ✅   |   ✅   |   —    |      —      |
+| `entry.delete.own`                          |  ✅   |   ✅   |   ✅   |     ✅      |
+| `entry.restore`                             |  ✅   |   ✅   |   —    |      —      |
+| **`entry.purge`** (permanent)               |  ✅   | **—**  |   —    |      —      |
+| `taxonomy.*`                                |  ✅   |   ✅   |  read  |    read     |
+| `media.upload`                              |  ✅   |   ✅   |   ✅   |     ✅      |
+| `media.delete` (trash)                      |  ✅   |   ✅   |   —    |      —      |
+| **`media.purge`** (permanent)               |  ✅   | **—**  |   —    |      —      |
+| `menu.*` `template.*` `pattern.*` `theme.*` |  ✅   |   ✅   |   —    |      —      |
+| `contentType.*`                             |  ✅   |   —    |   —    |      —      |
+| `seo.*` `redirect.*`                        |  ✅   |   ✅   |   —    |      —      |
+| `form.*`                                    |  ✅   |   ✅   |   —    |      —      |
+| `submission.read`                           |  ✅   |   ✅   |   —    |      —      |
+| `settings.update`                           |  ✅   |   —    |   —    |      —      |
+| **`settings.scripts.update`**               |  ✅   |   —    |   —    |      —      |
+| `user.*` `role.*`                           |  ✅   |   —    |   —    |      —      |
+| `tools.*`                                   |  ✅   |   —    |   —    |      —      |
+| `activity.read`                             |  ✅   |   ✅   |   —    |      —      |
 
 **`contributor` ka poora rasta:** create → update.own → submitReview → (editor publish
 karta hai). Iske bina `pending` status ka koi matlab nahi.
@@ -189,7 +201,7 @@ admin se bolna padega — thoda friction, par recoverable.
    (D-26, 19 Aug 2026)
 3. **Per-content-type permissions** (jaise "editor sirf Posts publish kare, Pages nahi")
    — abhi scope me nahi. Kabhi chahiye to `entry.publish:post` shape me extend hoga.
-   *(abhi bhi open, par blocking nahi)*
+   _(abhi bhi open, par blocking nahi)_
 
 ---
 

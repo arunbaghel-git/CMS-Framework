@@ -12,18 +12,18 @@
 Project me **do field-definition systems** hain, aur dono docs me alag-alag define hue
 hain — kabhi connect nahi kiye gaye:
 
-| System | Kahan | Kis liye |
-|---|---|---|
-| `contentTypes.fields[]` | Phase 6 | Entry editor ke custom fields |
-| `blockDefinition.schema[]` | Phase 5 | Block properties panel |
+| System                     | Kahan   | Kis liye                      |
+| -------------------------- | ------- | ----------------------------- |
+| `contentTypes.fields[]`    | Phase 6 | Entry editor ke custom fields |
+| `blockDefinition.schema[]` | Phase 5 | Block properties panel        |
 
 Overlap lagbhag aadha hai:
 
-| Field type | contentType | block schema |
-|---|:---:|:---:|
-| `text` `textarea` `number` `select` `boolean`/`toggle` `media` | ✅ | ✅ |
-| `richText` `date` `relation` `repeater` | ✅ | ❌ |
-| `color` `slider` `link` `align` `spacing` | ❌ | ✅ |
+| Field type                                                     | contentType | block schema |
+| -------------------------------------------------------------- | :---------: | :----------: |
+| `text` `textarea` `number` `select` `boolean`/`toggle` `media` |     ✅      |      ✅      |
+| `richText` `date` `relation` `repeater`                        |     ✅      |      ❌      |
+| `color` `slider` `link` `align` `spacing`                      |     ❌      |      ✅      |
 
 **Agar ek DSL:** ek field renderer likhoge jo **dono** jagah kaam karega — Phase 6 ka
 accha khaasa hissa gayab ho jaata hai.
@@ -32,38 +32,40 @@ accha khaasa hissa gayab ho jaata hai.
 
 ---
 
-## Option A — Ek DSL, per-context allowed list *(recommended)*
+## Option A — Ek DSL, per-context allowed list _(recommended)_
 
 ```js
 // packages/shared/src/field-types.js
 export const FIELD_TYPES = {
-  text:     { component: 'TextField',   contexts: ['content', 'block'] },
-  textarea: { component: 'TextArea',    contexts: ['content', 'block'] },
-  number:   { component: 'NumberField', contexts: ['content', 'block'] },
-  select:   { component: 'SelectField', contexts: ['content', 'block'] },
-  toggle:   { component: 'Toggle',      contexts: ['content', 'block'] },
-  media:    { component: 'MediaPicker', contexts: ['content', 'block'] },
+  text: { component: 'TextField', contexts: ['content', 'block'] },
+  textarea: { component: 'TextArea', contexts: ['content', 'block'] },
+  number: { component: 'NumberField', contexts: ['content', 'block'] },
+  select: { component: 'SelectField', contexts: ['content', 'block'] },
+  toggle: { component: 'Toggle', contexts: ['content', 'block'] },
+  media: { component: 'MediaPicker', contexts: ['content', 'block'] },
 
-  richText: { component: 'RichText',    contexts: ['content'] },
-  date:     { component: 'DateField',   contexts: ['content'] },
-  relation: { component: 'RelationField',contexts: ['content'] },
-  repeater: { component: 'Repeater',    contexts: ['content'] },
+  richText: { component: 'RichText', contexts: ['content'] },
+  date: { component: 'DateField', contexts: ['content'] },
+  relation: { component: 'RelationField', contexts: ['content'] },
+  repeater: { component: 'Repeater', contexts: ['content'] },
 
-  color:    { component: 'ColorField',  contexts: ['block'] },
-  slider:   { component: 'Slider',      contexts: ['block'] },
-  link:     { component: 'LinkField',   contexts: ['block'] },
-  align:    { component: 'AlignField',  contexts: ['block'] },
-  spacing:  { component: 'SpacingField',contexts: ['block'] },
+  color: { component: 'ColorField', contexts: ['block'] },
+  slider: { component: 'Slider', contexts: ['block'] },
+  link: { component: 'LinkField', contexts: ['block'] },
+  align: { component: 'AlignField', contexts: ['block'] },
+  spacing: { component: 'SpacingField', contexts: ['block'] },
 }
 ```
 
 **Fayde**
+
 - Ek field renderer, dono jagah
 - Naya field type ek jagah add hota hai
 - Phase 6 chhota ho jaata hai
 - `packages/shared` me ek hi source of truth
 
 **Nuksaan**
+
 - Ek abstraction jo do consumers ko serve karta hai — thoda coupling
 - `responsive: true` sirf block context me matlab rakhta hai
 
@@ -72,10 +74,12 @@ export const FIELD_TYPES = {
 ## Option B — Do alag DSL
 
 **Fayde**
+
 - Har system apne hisaab se evolve kar sakta hai
 - Koi coupling nahi
 
 **Nuksaan**
+
 - Field renderer do baar banega (~aadha Phase 6 ka kaam)
 - Naya field type do jagah add karna padega
 - Waqt ke saath drift — do jagah `select` thoda alag behave karega
@@ -110,9 +114,9 @@ export const FIELD_TYPES = {
 
 ## Faisla
 
-**Tay hone ki tareekh:** _______
+**Tay hone ki tareekh:** **\_\_\_**
 **Chuna gaya:** ☐ Option A · ☐ Option B
-**Kisne:** _______
+**Kisne:** **\_\_\_**
 
 Faisla hone ke baad: `03-DECISIONS.md` me `D-24` banao, aur is spec ka status
 🟢 Approved karo.

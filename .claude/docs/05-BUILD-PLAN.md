@@ -4,18 +4,18 @@ Estimates 1 full-time dev ke hisaab se. 2 dev ho to roughly 60% time.
 Har phase ek **shippable milestone** hai — beech me ruk gaye to bhi jo bana hai wo
 kaam karta hai.
 
-| Phase | Naam | Time | Milestone |
-|---|---|---|---|
-| −1 | Din-1 faisle | — | Koi code nahi, sirf freeze |
-| 0 | Foundation & Auth | 1.5 hafte | Admin me login ho jaata hai |
-| 1 | Content Core | 3 hafte | Page/post ban ke save, trash + revisions ke saath |
-| 2 | Media Library | 1.5 hafte | Upload, variants, picker, usage tracking |
-| 3 | Public Site + Routing + Menus | 3 hafte | **Pehli live website chal padi** |
-| 4 | SEO Module | 1.5 hafte | Meta, sitemap, redirects, JSON-LD, feed |
-| 5 | Page Builder MVP | 6-8 hafte | Drag-drop se page banta hai |
-| 6 | Content-Type Builder + Patterns | 3-4 hafte | Ab ye "framework" hai |
-| 7 | Forms, Users, Tools & Polish | 2-3 hafte | Client ko dene laayak |
-| 8 | Hardening & Fleet Ops | 1.5 hafte | Production, backup, monitoring |
+| Phase | Naam                            | Time      | Milestone                                         |
+| ----- | ------------------------------- | --------- | ------------------------------------------------- |
+| −1    | Din-1 faisle                    | —         | Koi code nahi, sirf freeze                        |
+| 0     | Foundation & Auth               | 1.5 hafte | Admin me login ho jaata hai                       |
+| 1     | Content Core                    | 3 hafte   | Page/post ban ke save, trash + revisions ke saath |
+| 2     | Media Library                   | 1.5 hafte | Upload, variants, picker, usage tracking          |
+| 3     | Public Site + Routing + Menus   | 3 hafte   | **Pehli live website chal padi**                  |
+| 4     | SEO Module                      | 1.5 hafte | Meta, sitemap, redirects, JSON-LD, feed           |
+| 5     | Page Builder MVP                | 6-8 hafte | Drag-drop se page banta hai                       |
+| 6     | Content-Type Builder + Patterns | 3-4 hafte | Ab ye "framework" hai                             |
+| 7     | Forms, Users, Tools & Polish    | 2-3 hafte | Client ko dene laayak                             |
+| 8     | Hardening & Fleet Ops           | 1.5 hafte | Production, backup, monitoring                    |
 
 **Total ~23-28 hafte.** Phase 0-4 ke baad (~10 hafte) ek **usable CMS** mil jaata hai —
 page builder ke bina, classic editor ke saath. Client demo isi point pe ho sakta hai.
@@ -27,16 +27,16 @@ page builder ke bina, classic editor ke saath. Client demo isi point pe ho sakta
 Ye schema aur repo layout me pak jaate hain. Code likhne se **pehle** freeze karo.
 Poora reasoning [`03-DECISIONS.md`](03-DECISIONS.md) me.
 
-| # | Faisla | Reference |
-|---|---|---|
-| 1 | Core distribution — versioned packages + client repo | D-15 |
-| 2 | Migration runner (schema + block-tree, do alag) | D-16 |
-| 3 | `entries.path` stored + unique indexed | D-09 |
-| 4 | Reserve fields: `deletedAt`, `locale`, `version`, `searchText` | §3.1 |
-| 5 | Statuses `pending` + `private` | D-18 |
-| 6 | `refreshTokens` collection | D-13 |
-| 7 | `style` → server-generated scoped CSS | D-08 |
-| 8 | Preview parity — injected `components={{Link, Image}}` | D-07 |
+| #   | Faisla                                                         | Reference |
+| --- | -------------------------------------------------------------- | --------- |
+| 1   | Core distribution — versioned packages + client repo           | D-15      |
+| 2   | Migration runner (schema + block-tree, do alag)                | D-16      |
+| 3   | `entries.path` stored + unique indexed                         | D-09      |
+| 4   | Reserve fields: `deletedAt`, `locale`, `version`, `searchText` | §3.1      |
+| 5   | Statuses `pending` + `private`                                 | D-18      |
+| 6   | `refreshTokens` collection                                     | D-13      |
+| 7   | `style` → server-generated scoped CSS                          | D-08      |
+| 8   | Preview parity — injected `components={{Link, Image}}`         | D-07      |
 
 Saath hi ye char **artifacts** likhne hain →
 [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md):
@@ -51,13 +51,15 @@ permission string list ✅ · env schema ✅ · seed definition ✅ ·
 ek baar verify karti hai — admin se lekar live site tak. Page builder isme **nahi** banega.
 
 ### Kyun header/footer, koi content page nahi
+
 Header aur footer **har page pe** aate hain — poore system ka sabse zyada reuse hone
-wala hissa. Aur ye original Phase 3 order se match karta hai: *"header/footer pehle,
-asli API data se, dummy se nahi"*.
+wala hissa. Aur ye original Phase 3 order se match karta hai: _"header/footer pehle,
+asli API data se, dummy se nahi"_.
 
 ### Scope
 
 **Admin me (minimal config screens)**
+
 - Logo upload + site name
 - Navigation — menu items add/reorder/nest (drag-drop)
 - Header CTA button (label + link)
@@ -67,16 +69,19 @@ asli API data se, dummy se nahi"*.
 - Save aur publish
 
 **API**
+
 - `settings` — admin write + public read
 - `menus` + `menuLocations` — admin write + public read
 - Revalidate webhook (shared secret ke saath)
 
 **Public site**
+
 - Header aur footer **asli API data se** render
 - Theme tokens (colors, fonts) settings se driven
 - Menu change → site update (cache invalidation verify)
 
 ### Done kab
+
 ```
 1. Admin me login karo
 2. Logo badlo, menu me ek item add karo, CTA ka text badlo
@@ -85,6 +90,7 @@ asli API data se, dummy se nahi"*.
 ```
 
 ### Kya verify ho jaata hai
+
 - ✅ Auth + admin shell + RBAC ka poora rasta
 - ✅ Settings aur menus ka API contract
 - ✅ **Cache invalidation** — menu badla, site update hui
@@ -92,6 +98,7 @@ asli API data se, dummy se nahi"*.
 - ✅ Deploy pipeline end-to-end
 
 ### Kya verify NAHI hota (imaandari se)
+
 - ❌ **Preview parity** — usme blocks chahiye, wo Phase 5 me hi test hoga
 - ❌ `entries` + `path` routing — Phase 1/3 me
 - ❌ Page builder — Phase 5
@@ -181,9 +188,10 @@ ko ek `richText` block ke andar. Phase 5 me migration nahi likhni padegi.
 
 ## Phase 3 — Public Site + Routing + Menus (3 hafte)
 
-*Sabse zyada "wow" is phase me — pehli baar site live dikhti hai.*
+_Sabse zyada "wow" is phase me — pehli baar site live dikhti hai._
 
 ### Internal order (header/footer pehle)
+
 1. `menus` + `menuLocations` model + CRUD + admin drag-drop builder
 2. Public API: `settings` + `menus` + **`resolve`** endpoints
 3. Theme design tokens (settings-driven CSS variables)
@@ -192,6 +200,7 @@ ko ek `richText` block ke andar. Phase 5 me migration nahi likhni padegi.
 6. `apps/web` **ek catch-all route** + BlockRenderer + archives
 
 ### Kaam
+
 - `packages/blocks`: registry + `<BlockRenderer />` + 4 starter blocks
   (richText, image, section, container). Abhi builder UI nahi, sirf renderer
 - **`components={{Link, Image}}` injection** — preview/live parity ka asli mechanism (D-07)
@@ -241,6 +250,7 @@ slug badalne pe purana URL 301 kare, staging pe noindex banner dikhe.
 **Project ka sabse bada risk. Scope tight rakhna hai.**
 
 ### 5a — Engine (2 hafte)
+
 - Editor store: zustand + immer, tree ops (add/move/delete/duplicate/select)
 - Undo/redo history stack (patches based, 50 steps)
 - Canvas **sandboxed** iframe + postMessage bridge, hover/selection outlines
@@ -249,10 +259,12 @@ slug badalne pe purana URL 301 kare, staging pe noindex banner dikhe.
 - **Tree ops ke saath-saath unit tests** — JS me yahan type safety nahi hai
 
 ### 5b — Blocks v1 (1.5 hafte) — sirf ye 10
+
 `section` · `container` · `columns (2/3/4)` · `heading` · `text` · `image` ·
 `button` · `spacer` · `video` · `form-placeholder`
 
 ### 5c — Properties panel (1.5-2 hafte)
+
 - Schema-driven field renderer: text, textarea, number, select, toggle, color, slider,
   image (MediaPicker), link, align, spacing
 - Responsive tabs desktop/tablet/mobile + **inherit indicator**
@@ -262,6 +274,7 @@ slug badalne pe purana URL 301 kare, staging pe noindex banner dikhe.
 - **Floating block toolbar** — align, link, duplicate, delete, move
 
 ### 5d — Polish (1-1.5 hafte)
+
 - Layers panel, keyboard shortcuts (Ctrl+Z/C/V/D, Delete)
 - Save draft / publish, "unsaved changes" guard
 - Preview mode + device preview
@@ -279,7 +292,7 @@ multi-user live collab, nested synced patterns.
 
 ## Phase 6 — Content-Type Builder + Patterns (3-4 hafte)
 
-*Isi phase me project "ek website" se "framework" ban jaata hai.*
+_Isi phase me project "ek website" se "framework" ban jaata hai._
 
 - `contentTypes` CRUD admin UI: label, icon, URL pattern, archive base, builder on/off
 - Field types: text, textarea, richText, number, boolean, date, select, media,
@@ -321,7 +334,7 @@ page pe "Services List" block se dikha de.
 ## Phase 8 — Hardening & Fleet Ops (1.5 hafte)
 
 - Security audit: rate limiting, file validation, secrets audit
-  *(XSS sanitize, Mongo injection guard, upload hardening pehle ke phases me hain)*
+  _(XSS sanitize, Mongo injection guard, upload hardening pehle ke phases me hain)_
 - Performance: DB index review, N+1 check, image lazy loading, bundle split
 - **Fleet-level ops** — 15 instance = 15 `mongodump` cron = 15 silent failure modes.
   Backup, monitoring, uptime, Sentry, **core-version tracking** central
@@ -335,16 +348,16 @@ page pe "Services List" block se dikha de.
 
 ## Post-launch backlog (jaan-boojh kar abhi nahi)
 
-| Item | Kyun abhi nahi |
-|---|---|
-| **WordPress WXR importer** | Sales feature hai (client migration), launch block nahi karta. Bas entries/media/taxonomy model ko aisa mat hone do ki import impossible ho jaaye |
-| Multi-language (`locale`) | Field day 1 se reserve, feature baad me |
-| Multi-site | Sirf tab jab SaaS banana ho |
-| Comments | Native nahi — third-party embed block (D-23) |
-| Quick Edit | Bulk actions 80% cover kar dete hain |
-| Author / date archives | Agency sites pe dead weight |
-| Full visual block-tree diff | Changed-summary kaafi hai |
-| Plugin system | Blocks hi extension point hain (D-23) |
+| Item                        | Kyun abhi nahi                                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **WordPress WXR importer**  | Sales feature hai (client migration), launch block nahi karta. Bas entries/media/taxonomy model ko aisa mat hone do ki import impossible ho jaaye |
+| Multi-language (`locale`)   | Field day 1 se reserve, feature baad me                                                                                                           |
+| Multi-site                  | Sirf tab jab SaaS banana ho                                                                                                                       |
+| Comments                    | Native nahi — third-party embed block (D-23)                                                                                                      |
+| Quick Edit                  | Bulk actions 80% cover kar dete hain                                                                                                              |
+| Author / date archives      | Agency sites pe dead weight                                                                                                                       |
+| Full visual block-tree diff | Changed-summary kaafi hai                                                                                                                         |
+| Plugin system               | Blocks hi extension point hain (D-23)                                                                                                             |
 
 ---
 

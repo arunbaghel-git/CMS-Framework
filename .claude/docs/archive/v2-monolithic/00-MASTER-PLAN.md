@@ -13,6 +13,7 @@ ek file, naya content type = admin se banega, client branding = theme tokens se,
 **core ka update sab clients tak versioned packages se pahunchega**.
 
 Detailed design do documents me hai (ye plan unka executable version hai):
+
 - `01-ARCHITECTURE.md`
 - `02-BUILD-PLAN.md`
 
@@ -22,18 +23,19 @@ Detailed design do documents me hai (ye plan unka executable version hai):
 > realistic kiye gaye. Purane docs `.bak` files me hain.
 
 ### Confirmed decisions
-| Decision | Choice |
-|---|---|
-| Public site renderer | **Next.js** (App Router) — SSR/ISR, sitemap, metadata API se SEO handle |
-| Language | **JavaScript** (ESM) everywhere — no TypeScript |
-| Multi-site | **Single-site** behaviour, par `siteId` field + compound indexes day 1 se reserved |
-| Versions | Plan me hardcode **nahi** — implementation ke waqt current stable/LTS. Lockfile + `.nvmrc`/`engines` me exact pin |
-| Deployment topology | **Same-origin** — admin `/admin`, API `/api`, ek reverse proxy ke peeche |
-| **Distribution** | **Versioned `@cms/*` packages + patla per-client repo.** Client ka theme/blocks core repo me **nahi** |
-| **Packaging** | Teen app, par **ek deployable unit** per client. Mongo: shared cluster, per-client alag DB |
-| **Routing** | Stored+indexed `entries.path`. Ek catch-all route. Koi hardcoded public route nahi |
-| **Cache** | **Next ISR hi authority.** Public API pe TTL cache nahi. Tag-based invalidation |
-| **Media storage** | Production me S3/R2 + CDN, local sirf dev |
+
+| Decision             | Choice                                                                                                            |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Public site renderer | **Next.js** (App Router) — SSR/ISR, sitemap, metadata API se SEO handle                                           |
+| Language             | **JavaScript** (ESM) everywhere — no TypeScript                                                                   |
+| Multi-site           | **Single-site** behaviour, par `siteId` field + compound indexes day 1 se reserved                                |
+| Versions             | Plan me hardcode **nahi** — implementation ke waqt current stable/LTS. Lockfile + `.nvmrc`/`engines` me exact pin |
+| Deployment topology  | **Same-origin** — admin `/admin`, API `/api`, ek reverse proxy ke peeche                                          |
+| **Distribution**     | **Versioned `@cms/*` packages + patla per-client repo.** Client ka theme/blocks core repo me **nahi**             |
+| **Packaging**        | Teen app, par **ek deployable unit** per client. Mongo: shared cluster, per-client alag DB                        |
+| **Routing**          | Stored+indexed `entries.path`. Ek catch-all route. Koi hardcoded public route nahi                                |
+| **Cache**            | **Next ISR hi authority.** Public API pe TTL cache nahi. Tag-based invalidation                                   |
+| **Media storage**    | Production me S3/R2 + CDN, local sirf dev                                                                         |
 
 ---
 
@@ -42,16 +44,16 @@ Detailed design do documents me hai (ye plan unka executable version hai):
 Ye schema aur repo layout me pak jaate hain — baad me badalna sabse mehnga refactor
 hai. Code likhne se **pehle** freeze karo.
 
-| # | Faisla | Kyun blocking |
-|---|---|---|
-| 1 | **Core distribution model** — versioned packages + client repo | Iske bina "no code per client" client #2 pe hi toot jaata hai. `themes/<client>/` core repo me = fork per client = har security fix N baar |
-| 2 | **Migration runner** (schema + block-tree, do alag system) | Ye wahi mechanism hai jo #1 ko chalne deta hai |
-| 3 | **`entries.path`** stored + unique indexed | `{siteId,type,slug}` unique hone pe bhi ek `page` "about" aur ek `service` "about" dono `/about` pe resolve kar sakte hain |
-| 4 | **Reserve fields:** `deletedAt`, `locale`, `version`, `searchText` | Wahi insurance logic jo `siteId` pe pehle se laga hai — live data pe baad me daalna schema-wide change hai |
-| 5 | **Statuses `pending` + `private`** | `pending` ke bina `contributor` role ka koi "review karo" state hi nahi bachta — role non-functional hai |
-| 6 | **`refreshTokens` collection** | Rotation + reuse detection stateless JWT se possible hi nahi |
-| 7 | **`style` → CSS strategy** (server-generated scoped CSS) | **Inline styles se media query likhi hi nahi ja sakti** — matlab `style.{desktop,tablet,mobile}` model inline se implement ho hi nahi sakta |
-| 8 | **Preview parity mechanism** — `<BlockRenderer components={{Link,Image}} />` | Sirf component share karna kaafi nahi; canvas Vite hai aur live Next hai. `next/image` canvas me chalta hi nahi |
+| #   | Faisla                                                                       | Kyun blocking                                                                                                                               |
+| --- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Core distribution model** — versioned packages + client repo               | Iske bina "no code per client" client #2 pe hi toot jaata hai. `themes/<client>/` core repo me = fork per client = har security fix N baar  |
+| 2   | **Migration runner** (schema + block-tree, do alag system)                   | Ye wahi mechanism hai jo #1 ko chalne deta hai                                                                                              |
+| 3   | **`entries.path`** stored + unique indexed                                   | `{siteId,type,slug}` unique hone pe bhi ek `page` "about" aur ek `service` "about" dono `/about` pe resolve kar sakte hain                  |
+| 4   | **Reserve fields:** `deletedAt`, `locale`, `version`, `searchText`           | Wahi insurance logic jo `siteId` pe pehle se laga hai — live data pe baad me daalna schema-wide change hai                                  |
+| 5   | **Statuses `pending` + `private`**                                           | `pending` ke bina `contributor` role ka koi "review karo" state hi nahi bachta — role non-functional hai                                    |
+| 6   | **`refreshTokens` collection**                                               | Rotation + reuse detection stateless JWT se possible hi nahi                                                                                |
+| 7   | **`style` → CSS strategy** (server-generated scoped CSS)                     | **Inline styles se media query likhi hi nahi ja sakti** — matlab `style.{desktop,tablet,mobile}` model inline se implement ho hi nahi sakta |
+| 8   | **Preview parity mechanism** — `<BlockRenderer components={{Link,Image}} />` | Sirf component share karna kaafi nahi; canvas Vite hai aur live Next hai. `next/image` canvas me chalta hi nahi                             |
 
 Detail: `01-ARCHITECTURE.md` §3c, §3d, §4a, §4b, §8.
 
@@ -62,7 +64,7 @@ Detail: `01-ARCHITECTURE.md` §3c, §3d, §4a, §4b, §8.
 1. **Mongoose hooks me sirf pure data normalization** — slugify, trim, `updatedAt`,
    counts. Koi side effect, koi I/O nahi. Revision snapshot, cache invalidation,
    revalidate webhook, publish state machine, email — **sab service layer me**.
-   *Kyun:* `updateOne` / `findOneAndUpdate` / `bulkWrite` `save` hooks chalate hi
+   _Kyun:_ `updateOne` / `findOneAndUpdate` / `bulkWrite` `save` hooks chalate hi
    nahi — hook wala logic chup-chaap skip ho jaayega, bina error bina log.
 2. **Scheduled publish DB-based, `setTimeout` kabhi nahi** — restart pe schedule kho
    jaata hai. `status:'scheduled'` + indexed `publishAt`; cron har minute atomic
@@ -82,6 +84,7 @@ Detail: `01-ARCHITECTURE.md` §3c, §3d, §4a, §4b, §8.
    native modules mismatch pe toot-te hain.
 
 ### Do naye rules (v2)
+
 5. **Routing ka ekmatra source `entries.path` hai.** Koi hardcoded public route nahi —
    `app/blog/[slug]` banate hi `urlPattern` ke configurable hone ka matlab khatam.
 6. **UI me internal naam kabhi nahi.** `entries` → Pages/Posts, `taxonomies` →
@@ -89,8 +92,10 @@ Detail: `01-ARCHITECTURE.md` §3c, §3d, §4a, §4b, §8.
    Data model generalized hai; UI familiar hona chahiye.
 
 ### JavaScript choice — iska matlab kya hai
+
 TS nahi hai, to jo safety compiler deta wo **runtime pe** leni padegi. Teen cheezein
 non-negotiable ho jaati hain:
+
 1. **Zod har boundary pe** — API input, block props, contentType fields, **aur har
    query param**. `packages/shared` me schemas ek jagah, admin aur api dono wahi
    import karein.
@@ -121,13 +126,15 @@ packages/shared   Zod schemas + constants + JSDoc typedefs    ← admin aur api 
    collection with `type` field. Custom types (Services, Portfolio) isse free milte
    hain. **Par UI me `entries` kabhi nahi dikhta.**
 2. **Layout = JSON tree, HTML kabhi nahi.** `{ id, type, props, style, children[] }`.
-3. **Block definition me `schema` array** hota hai — properties panel usi se *auto*
+3. **Block definition me `schema` array** hota hai — properties panel usi se _auto_
    generate hota hai. Naya block = ek file, core code touch nahi hota.
 4. **Renderer shared + canvas sandboxed iframe me + host primitives injected.**
    Warna "preview me kuch, live pe kuch aur" wala bug permanent ho jaata hai.
 
 ### Data model (MongoDB) — sirf naye/badle hue points
+
 Poora model `01-ARCHITECTURE.md` §3 me.
+
 ```
 entries    siteId, locale, type, title, slug, PATH, status(draft|pending|published|
            scheduled|private), publishAt, templateId, VERSION, DELETEDAT,
@@ -141,6 +148,7 @@ refreshTokens · migrations · activityLog
 ```
 
 Naye indexes:
+
 ```
 entries: { siteId:1, locale:1, path:1 } unique     <- routing
 entries: { siteId:1, deletedAt:1, updatedAt:-1 }
@@ -148,12 +156,14 @@ entries: { searchText: "text" }                    <- Mongo ek hi text index det
 ```
 
 ### Theming API — bina iske framework fork ban jaayega
+
 Blocks stable class names + `data-block-type` emit karein, CSS variables expose karein,
 aur registry me **override hook** ho (`registry.override('heading', MyHeading)`).
 Sirf design tokens se har client ka "thoda alag hero" handle nahi hoga — aur tab core
 block file badalni padegi.
 
 ### Single-site vs multi-site — sthiti saaf
+
 Ek deploy = ek website. Naya client = naya instance. `siteId` sirf **insurance** hai
 (index rebuild se bachne ko), aaj koi query usse filter nahi karti.
 
@@ -177,6 +187,7 @@ Users          All Users · Roles · My Profile
 Tools          Import · Export · Activity Log
 Settings       General · Reading · Permalinks · Media · Scripts
 ```
+
 **Appearance grouping** sabse zaroori addition hai — pehle Menus, Templates aur theme
 tokens teen alag features the jinka koi ghar nahi tha.
 
@@ -189,30 +200,32 @@ row hover pe **Edit · View · Duplicate · Trash**.
 
 Har phase ek shippable milestone hai. Estimates 1 full-time dev ke liye.
 
-| Phase | Naam | Time |
-|---|---|---|
-| -1 | Din-1 faisle (koi code nahi) | — |
-| 0 | Foundation & Auth | 1.5 hafte |
-| 1 | Content Core | 3 hafte |
-| 2 | Media Library | 1.5 hafte |
-| 3 | Public Site + Routing + Menus | 3 hafte |
-| 4 | SEO Module | 1.5 hafte |
-| 5 | Page Builder MVP | 6-8 hafte |
-| 6 | Content-Type Builder + Patterns | 3-4 hafte |
-| 7 | Forms, Users, Tools & Polish | 2-3 hafte |
-| 8 | Hardening & Fleet Ops | 1.5 hafte |
+| Phase | Naam                            | Time      |
+| ----- | ------------------------------- | --------- |
+| -1    | Din-1 faisle (koi code nahi)    | —         |
+| 0     | Foundation & Auth               | 1.5 hafte |
+| 1     | Content Core                    | 3 hafte   |
+| 2     | Media Library                   | 1.5 hafte |
+| 3     | Public Site + Routing + Menus   | 3 hafte   |
+| 4     | SEO Module                      | 1.5 hafte |
+| 5     | Page Builder MVP                | 6-8 hafte |
+| 6     | Content-Type Builder + Patterns | 3-4 hafte |
+| 7     | Forms, Users, Tools & Polish    | 2-3 hafte |
+| 8     | Hardening & Fleet Ops           | 1.5 hafte |
 
 Har phase ka detail + **NEW** additions: `02-BUILD-PLAN.md`.
 
 ### Build order — UI kab banta hai
-| UI | Kab |
-|---|---|
-| **Admin panel shell** (login + sidebar) | Phase 0 — sabse pehla UI |
-| Admin ke andar ke screens | Phase 1-2 |
-| **Website ka header + footer** | Phase 3 — asli API data se, dummy se nahi |
-| Page builder UI | Phase 5 |
+
+| UI                                      | Kab                                       |
+| --------------------------------------- | ----------------------------------------- |
+| **Admin panel shell** (login + sidebar) | Phase 0 — sabse pehla UI                  |
+| Admin ke andar ke screens               | Phase 1-2                                 |
+| **Website ka header + footer**          | Phase 3 — asli API data se, dummy se nahi |
+| Page builder UI                         | Phase 5                                   |
 
 ### Phase 3 ka internal order
+
 1. `menus` + `menuLocations` model + CRUD + admin drag-drop builder
 2. Public API: `settings` + `menus` + **`resolve`** endpoints
 3. Theme design tokens (settings-driven CSS variables)
@@ -224,12 +237,12 @@ Har phase ka detail + **NEW** additions: `02-BUILD-PLAN.md`.
 
 ## Timeline
 
-| Milestone | Cumulative |
-|---|---|
-| Phase 0-2 (admin + content + media) | 6 hafte |
+| Milestone                                     | Cumulative   |
+| --------------------------------------------- | ------------ |
+| Phase 0-2 (admin + content + media)           | 6 hafte      |
 | **Phase 3-4 → usable CMS, client demo ready** | **10 hafte** |
-| Phase 5 → page builder live | 16-18 hafte |
-| Phase 6-8 → full framework, production | 23-28 hafte |
+| Phase 5 → page builder live                   | 16-18 hafte  |
+| Phase 6-8 → full framework, production        | 23-28 hafte  |
 
 > Purana estimate 14-16 hafte tha. Phase 5 aur 6 dono apne estimate se lagbhag dugne
 > hain, aur v2 additions ka ~2-3 hafta Phase 0-4 me juda hai. Wo addition rework
@@ -239,6 +252,7 @@ Har phase ka detail + **NEW** additions: `02-BUILD-PLAN.md`.
 ---
 
 ## Testing strategy (parallel me chalta rahe)
+
 - **Vitest unit** — services: slug/path logic, cascade + redirect, permission checks,
   SEO fallback chain, **block tree operations**
 - **supertest + mongodb-memory-server** — har API module ka happy path + auth failure +
@@ -248,6 +262,7 @@ Har phase ka detail + **NEW** additions: `02-BUILD-PLAN.md`.
 - **CI Phase 0 se**, Phase 8 se nahi
 
 ## Verification (har phase ke baad)
+
 1. `docker compose up` → mongo + api + admin + web chalein
 2. `pnpm seed` → admin user bane; `pnpm cms migrate` chale; `pnpm test` green
 3. Manual smoke: login → page banao → block drop karo → publish → `apps/web` pe wahi
@@ -259,16 +274,18 @@ Har phase ka detail + **NEW** additions: `02-BUILD-PLAN.md`.
 ---
 
 ## Sabse pehla kadam
+
 1. **Phase -1 ke 8 faisle freeze karo** — repo layout inhi pe khada hai
 2. Monorepo skeleton + docker-compose (mongo chalu) + CI
 3. **`entries` aur block JSON ka Zod contract `packages/shared` me freeze karo.**
    Envelope freeze karo (`id`/`type`/`props`/`style`/`children`/`version`), block ki
-   *list* nahi — wo Phase 5 me asli design se nikalegi
+   _list_ nahi — wo Phase 5 me asli design se nikalegi
 4. Phase 0 complete: auth + RBAC + admin shell + migration runner
 5. Apne kisi asli client ka homepage design lo, blocks me todo — jo 10 block nikle
    wahi Phase 5 ki final list hai
 
 ## Biggest risks
+
 1. **Phase 5 (builder) ko Phase 3-4 se pehle mat chhedna.** Bina public renderer +
    templates ke builder banaoge to preview aur live output kabhi match nahi karenge.
 2. **Faisla #1 (distribution) taal dena.** 3 client ship karne ke baad ye decide

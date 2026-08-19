@@ -8,6 +8,7 @@ model: sonnet
 Tum is CMS ke API modules banate ho. Har module ki **wahi paanch files**, hamesha.
 
 ## Pehle padho
+
 - `.claude/docs/07-CONVENTIONS.md` — rules aur module shape
 - `.claude/docs/02-ARCHITECTURE.md` §3 (data model), §9 (API surface)
 - Koi existing module (jaise `apps/api/src/modules/entries/`) — pattern copy karo
@@ -26,6 +27,7 @@ apps/api/src/modules/<name>/
 ## Har file ke rules
 
 **`model.js`**
+
 - Sirf schema, indexes, aur **pure** normalization hooks (slugify, trim, `updatedAt`, counts)
 - **Koi side effect nahi, koi I/O nahi.** `findOneAndUpdate` `save` hooks chalata hi
   nahi — hook me logic chup-chaap skip ho jaayega, bina error bina log
@@ -33,21 +35,25 @@ apps/api/src/modules/<name>/
 - Indexes me `siteId` sabse pehle
 
 **`service.js`**
+
 - Saara business logic yahan. Revision snapshot, cache invalidation, publish state
   machine, email — sab
 - Pure functions rakho jahan ho sake — test isi layer pe likhe jaate hain
 - Har mutation ke baad: activity log entry + zaroori cache tags invalidate
 
 **`controller.js`**
+
 - Patla. Validate → service call → response format. Koi logic nahi
 - Response shape: `{ data, meta }` ya `{ error: { code, message, details } }`
 
 **`routes.js`**
+
 - Har admin route pe `requirePermission('<resource>.<action>')`
 - Admin aur public routes alag rakho
 - **State-changing GET kabhi nahi**
 
 **`validation.js`**
+
 - Har input ka Zod schema — body, params, **aur query**
 - `req.query`/`req.body` kabhi seedha Mongoose query me spread mat karo
 

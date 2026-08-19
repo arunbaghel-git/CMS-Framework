@@ -28,6 +28,7 @@ kaise pahunchta hai. **Project ka sabse zaroori structural hissa yahi hai** —
 ```
 
 ### Client repo — bas itna
+
 ```
 client-acme/
 ├─ package.json          # @cms/* ki PINNED versions
@@ -45,6 +46,7 @@ Core code client repo me **kabhi nahi** aata. Agar aana pade, to wo ek signal ha
 core me extension point missing hai — usse core me add karo, fork mat banao.
 
 ### Kyun ye zaroori hai
+
 `themes/<client>/` core repo ke andar rakhne ka matlab hai **fork per client**. 12 client
 = 12 fork = har security fix 12 baar cherry-pick. Agency frameworks isi tareeke se marte
 hain.
@@ -55,11 +57,11 @@ hain.
 
 Core packages **semver** follow karte hain:
 
-| Change | Version | Matlab |
-|---|---|---|
-| Bug fix, koi API change nahi | patch `2.4.1 → 2.4.2` | Bina soche upgrade karo |
-| Naya block, naya field type, naya endpoint | minor `2.4.x → 2.5.0` | Safe, par changelog padho |
-| Schema change, block `type` semantics, breaking API | major `2.x → 3.0.0` | **Migration zaroori** |
+| Change                                              | Version               | Matlab                    |
+| --------------------------------------------------- | --------------------- | ------------------------- |
+| Bug fix, koi API change nahi                        | patch `2.4.1 → 2.4.2` | Bina soche upgrade karo   |
+| Naya block, naya field type, naya endpoint          | minor `2.4.x → 2.5.0` | Safe, par changelog padho |
+| Schema change, block `type` semantics, breaking API | major `2.x → 3.0.0`   | **Migration zaroori**     |
 
 **Rule:** breaking change ke saath hamesha migration ship karo. "User khud fix kar lega"
 ek option nahi hai — 15 instances hain.
@@ -73,6 +75,7 @@ Site Health card me bhi dikhta hai.
 ## 3. Migrations — do alag system
 
 ### 3.1 Schema / data migrations
+
 ```
 migrations/
 ├─ 001-initial-seed.js
@@ -81,26 +84,27 @@ migrations/
 └─ 004-menus-to-locations.js
 ```
 
-| Property | Rule |
-|---|---|
-| Kab chalti hain | Deploy step pe, app boot se **pehle** |
-| Record kahan | `migrations` collection — `name`, `appliedAt`, `checksum` |
-| Order | Numbered, strictly sequential |
-| Idempotent | Dobara chalne pe kuch na bigde |
-| Rollback | Har migration ke saath `down()` likho |
+| Property        | Rule                                                      |
+| --------------- | --------------------------------------------------------- |
+| Kab chalti hain | Deploy step pe, app boot se **pehle**                     |
+| Record kahan    | `migrations` collection — `name`, `appliedAt`, `checksum` |
+| Order           | Numbered, strictly sequential                             |
+| Idempotent      | Dobara chalne pe kuch na bigde                            |
+| Rollback        | Har migration ke saath `down()` likho                     |
 
 Command: `pnpm cms migrate` · status: `pnpm cms migrate:status`
 
 ### 3.2 Block-tree migrations
+
 Ye alag isliye hain ki **ek page ka `content.version` v1 pe ho sakta hai jab site v4 pe
 hai** — page 2 saal se edit hi nahi hua.
 
-| Property | Rule |
-|---|---|
+| Property        | Rule                                                  |
+| --------------- | ----------------------------------------------------- |
 | Kab chalti hain | Read pe **lazily**, aur ek batch job se background me |
-| Scope | Per-document, per-version |
-| Idempotent | Zaroori — ek hi document pe kai baar chal sakti hai |
-| Registry | `migrations/blocks/v1-to-v2.js` — `type` ke hisaab se |
+| Scope           | Per-document, per-version                             |
+| Idempotent      | Zaroori — ek hi document pe kai baar chal sakti hai   |
+| Registry        | `migrations/blocks/v1-to-v2.js` — `type` ke hisaab se |
 
 ```js
 // concept
@@ -116,6 +120,7 @@ function migrateTree(content) {
 Rename karna hai to migration likho (D-05).
 
 ### 3.3 contentType field delete
+
 Admin jab kisi contentType se field hataye, to define karo ki kya hota hai —
 orphan data rehta hai ya purge hota hai. Bina is rule ke admin **ek click me 400 entries
 ka data uda dega**.
@@ -221,6 +226,7 @@ pnpm build && pnpm start
 **Target:** naya client 1 din me spin up ho jaaye, aur baaki din sirf design ka kaam ho.
 
 **Launch checklist** (har naye client pe):
+
 - [ ] `.env` ke saare secrets set, aur **har client ke alag** (shared secret kabhi nahi)
 - [ ] `searchEngineVisible = false` staging pe, aur **launch pe true karna yaad**
 - [ ] Homepage aur posts page settings me set
@@ -249,6 +255,7 @@ pnpm build && pnpm start
 ```
 
 **Smoke test** (har upgrade ke baad, 5 minute):
+
 - Login hota hai
 - Ek page edit karke publish hota hai
 - Live site pe wahi dikhta hai (preview vs live)
@@ -265,13 +272,13 @@ migration ke saath `down()` likhna zaroori hai.
 15 instance ka matlab **15 alag cron job nahi hona chahiye** — wo 15 silent failure
 modes hain.
 
-| Concern | Per-instance ❌ | Central ✅ |
-|---|---|---|
-| Backup | Har instance pe `mongodump` cron | Ek scheduler jo saare DBs dump kare |
-| Monitoring | Har instance pe alag Sentry project | Ek Sentry org, per-client tag |
-| Uptime | Manual check | Ek uptime service, saare domains |
-| Version tracking | SSH karke pata karo | Ek dashboard: client → core version |
-| Log aggregation | Container logs | Central log sink |
+| Concern          | Per-instance ❌                     | Central ✅                          |
+| ---------------- | ----------------------------------- | ----------------------------------- |
+| Backup           | Har instance pe `mongodump` cron    | Ek scheduler jo saare DBs dump kare |
+| Monitoring       | Har instance pe alag Sentry project | Ek Sentry org, per-client tag       |
+| Uptime           | Manual check                        | Ek uptime service, saare domains    |
+| Version tracking | SSH karke pata karo                 | Ek dashboard: client → core version |
+| Log aggregation  | Container logs                      | Central log sink                    |
 
 **Backup rule:** untested backup = no backup. **Restore test** quarterly, ek asli
 client DB pe (staging me restore karke).

@@ -3,6 +3,7 @@
 Append-only. Naya entry **upar** add karo.
 
 Format:
+
 ```
 ## YYYY-MM-DD — <ek line summary>
 **Kya hua:** …
@@ -13,15 +14,16 @@ Format:
 
 ---
 
-
 ## 2026-08-19 — 8 faisle liye, specs approve hue
 
 **Kya hua**
+
 - User se 8 sawaal poochhe, sab ke jawab mile
 - Specs 001, 003, 004, 005 → Approved
 - 4 naye decision records: D-24 se D-27
 
 **Faisle**
+
 - D-24 Field DSL: **ek DSL** (contexts: content|block), do nahi
 - D-25 Trash: **`deletedAt` field**, `status: 'trash'` nahi — restore pe purani state wapas
 - D-26 Roles: **char** — `subscriber` nahi. `entry.purge`/`media.purge` sirf admin
@@ -39,14 +41,17 @@ pe render. Page builder abhi nahi.
 hai, par **preview parity nahi** — usme blocks chahiye. Wo risk Phase 5 tak khula.
 
 **Agla**
+
 1. A-2 — Zod contract likho (`packages/shared`)
 2. Phase 0 setup layer shuru
 3. Payload spike parallel me
 
 ---
+
 ## 2026-08-19 — Docs v3: merge + `.claude` workspace
 
 **Kya hua**
+
 - Teenon planning docs merge karke topic-wise 10 documents banaye (`.claude/docs/`)
 - `03-DECISIONS.md` naya — 23 decisions with context/why/rejected/consequences
 - `08-RISKS.md` naya — top 5 risks + 28 traps + phase-wise pre-flight
@@ -63,6 +68,7 @@ field systems hain jo docs me kabhi connect nahi hue. ~50% overlap. Ek DSL banan
 Phase 6 ka kaafi kaam kam ho jaata hai. → `specs/005-field-dsl.md`
 
 **Agla**
+
 1. Specs 001, 003, 004 review + approve
 2. 005 (field DSL) ka faisla lo
 3. C-1 (TypeScript for packages) ka spike
@@ -74,6 +80,7 @@ Phase 6 ka kaafi kaam kam ho jaata hai. → `specs/005-field-dsl.md`
 ## 2026-08-19 — Architecture review + docs v2
 
 **Kya hua**
+
 - Teen planning docs ka independent architecture review
 - WordPress ke against product/IA validation
 - Findings v2 me merge kiye: distribution model, migrations, URL/path model,
@@ -81,6 +88,7 @@ Phase 6 ka kaafi kaam kam ho jaata hai. → `specs/005-field-dsl.md`
 - `admin-wireframe.html` banaya — 7 clickable screens
 
 **Faisle (v2 me added)**
+
 - D-15 distribution: versioned `@cms/*` packages + patla client repo
 - D-09 routing: stored `entries.path` + unique index
 - D-08 responsive: server-generated scoped CSS

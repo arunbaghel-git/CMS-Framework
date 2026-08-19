@@ -23,10 +23,12 @@ aur baaki sab yahan point karta hai.
 ## Har folder ka kaam
 
 ### `docs/` — project documentation
+
 Project ka poora structure, logic aur working. 10 documents, topic-wise.
 Index: [`docs/README.md`](docs/README.md)
 
 Sabse zyada kaam ke teen:
+
 - `03-DECISIONS.md` — har faisla + **kyun** + kya reject kiya
 - `07-CONVENTIONS.md` — 14 rules jo har PR pe apply hote hain
 - `09-OPEN-ITEMS.md` — jo abhi pending hai
@@ -34,27 +36,32 @@ Sabse zyada kaam ke teen:
 `docs/archive/` me purane versions safe hain — kuch delete nahi hua.
 
 ### `specs/` — feature specs
+
 Har non-trivial feature ka spec **code se pehle**. Template: `specs/_TEMPLATE.md`.
 
 Kyun: is project me schema decisions sabse mehngi hain. Spec likhne se wo decision
 implementation se pehle saamne aa jaata hai, baad me nahi.
 
 ### `agents/` — subagents
-| Agent | Kab use karo |
-|---|---|
-| `cms-architect` | Design review, "ye approach sahi hai?" |
-| `api-module` | Naya API module scaffold karna |
-| `block-author` | Naya block banana |
-| `doc-keeper` | Code change ke baad docs sync karna |
+
+| Agent            | Kab use karo                                    |
+| ---------------- | ----------------------------------------------- |
+| `cms-architect`  | Design review, "ye approach sahi hai?"          |
+| `api-module`     | Naya API module scaffold karna                  |
+| `block-author`   | Naya block banana                               |
+| `doc-keeper`     | Code change ke baad docs sync karna             |
 | `phase-reviewer` | Phase khatam hone pe done-criteria verify karna |
 
 ### `commands/` — slash commands
+
 `/preflight`, `/new-block`, `/new-module`, `/adr`, `/status`
 
 ### `skills/` — procedures
+
 Claude in-ko khud load karta hai jab task match kare. Manually `/skill-name` se bhi.
 
 ### `memory/` — project state
+
 `project-state.md` — abhi kahan hain, kya chal raha hai.
 `decisions-pending.md` — jo faisle abhi khule hain.
 

@@ -6,12 +6,14 @@ argument-hint: <module ka naam>
 `api-module` agent ko launch karo: `$ARGUMENTS` naam ka naya API module banao.
 
 Agent ko ye context do:
+
 - `apps/api/src/modules/$ARGUMENTS/` me paanch files
 - Data model `.claude/docs/02-ARCHITECTURE.md` §3 se lo — invent mat karo
 - API surface §9 se lo
 - Permission strings `.claude/specs/001-permissions.md` se lo — naye invent mat karo
 
 Agent se **explicitly** confirm karwao:
+
 - [ ] Paanch files: `model.js`, `service.js`, `controller.js`, `routes.js`, `validation.js`
 - [ ] Model hooks me sirf pure normalization — koi side effect, koi I/O nahi
 - [ ] Content-scoped hai to `siteId` + `deletedAt`
