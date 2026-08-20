@@ -34,6 +34,49 @@ export const passwordSchema = z
   .min(10, 'Password kam se kam 10 characters ka ho')
   .max(200, 'Password bahut lamba hai')
 
+/**
+ * Login **email** se hota hai, username se nahi. Username display ke liye hai — aur
+ * aage author archive URL (`/author/aditya`) me jaayega.
+ *
+ * Isiliye ye banne ke baad **immutable** hai: URL badalna purane link 404 kar deta hai
+ * aur SEO todta hai (D-34).
+ */
+export const usernameSchema = z
+  .string()
+  .min(3, 'Username kam se kam 3 characters ka ho')
+  .max(60)
+  .trim()
+  .toLowerCase()
+  .regex(
+    /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/,
+    'Username me sirf chhote letters, numbers, aur . _ - chalte hain',
+  )
+
+/**
+ * Email se ek shuruaati username banata hai. Ye sirf **suggestion** hai — admin form
+ * me ise badal sakta hai, aur uniqueness server check karta hai.
+ *
+ * Migration ka backfill bhi yahi function use karta hai, taaki purane users ka
+ * username wahi bane jo naye users ko suggest hota.
+ *
+ * @param {string} email
+ * @returns {string}
+ */
+export function suggestUsernameFromEmail(email) {
+  const local = String(email ?? '')
+    .split('@')[0]
+    .toLowerCase()
+    // allowed set se bahar ka sab hyphen, phir kinare saaf
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^[._-]+|[._-]+$/g, '')
+    .slice(0, 60)
+
+  // 3 se chhota reh gaya (jaise "a@site.com") to padding — schema warna reject karega
+  return local.length >= 3
+    ? local
+    : `${local || 'user'}${'0'.repeat(Math.max(0, 3 - local.length))}`
+}
+
 export const roleKeySchema = z
   .string()
   .min(1)
@@ -57,6 +100,7 @@ export const roleSchema = z.object({
 
 /** Stored shape — `users` collection. `passwordHash` yahan jaan-boojh kar nahi hai. */
 export const userSchema = z.object({
+  username: usernameSchema,
   name: z.string().min(1, 'Naam zaroori hai').max(120).trim(),
   email: emailSchema,
   role: roleKeySchema,
@@ -67,10 +111,20 @@ export const userSchema = z.object({
   lastLoginAt: z.date().nullable().default(null),
 })
 
-export const createUserSchema = userSchema
-  .pick({ name: true, email: true, role: true })
-  .extend({ password: passwordSchema })
+export const createUserSchema = userSchema.pick({ name: true, email: true, role: true }).extend({
+  password: passwordSchema,
+  /**
+   * Optional: form ise email se pehle hi bhar deta hai, par khaali aaye to server
+   * khud bana leta hai (`suggestUsernameFromEmail` + takraav pe number).
+   * Required rakhne se har API caller ko wahi logic dohraana padta.
+   */
+  username: usernameSchema.optional(),
+})
 
+/**
+ * Update me `username` jaan-boojh kar **nahi** hai — wo immutable hai (D-34).
+ * `.pick()` se list banane ka yahi fayda hai: naya field apne aap editable nahi ho jaata.
+ */
 export const updateUserSchema = userSchema
   .pick({ name: true, role: true, status: true, avatarMediaId: true })
   .partial()
@@ -111,6 +165,7 @@ export function toPublicUser(doc, permissions) {
 
   return {
     id: String(doc._id ?? doc.id),
+    username: doc.username,
     name: doc.name,
     email: doc.email,
     role: doc.role,

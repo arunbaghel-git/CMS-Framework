@@ -10,6 +10,12 @@ import { USER_STATUS, USER_STATUSES } from '@cms/shared'
  */
 const userSchema = new mongoose.Schema(
   {
+    /**
+     * Display ka naam aur aage author archive URL. Login isse **nahi** hota — wo
+     * email se hai. Banne ke baad immutable (D-34), isliye koi update path ise
+     * chhoota nahi: `updateUserSchema` me ye field hai hi nahi.
+     */
+    username: { type: String, required: true },
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true },
     /**
@@ -38,6 +44,9 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', function normalizeEmail(next) {
   if (this.isModified('email') && typeof this.email === 'string') {
     this.email = this.email.trim().toLowerCase()
+  }
+  if (this.isModified('username') && typeof this.username === 'string') {
+    this.username = this.username.trim().toLowerCase()
   }
   next()
 })

@@ -717,3 +717,78 @@ Path `import.meta.url` se banta hai, `process.cwd()` se nahi.
 
 **Nateeja:** Shell/CI ke vars `.env` se **jeette hain** — production me `.env` file
 hoti hi nahi, wahan asli env vars aate hain.
+
+---
+
+## D-34 · Users — `username`, asli delete, aur administrator ki suraksha
+
+**Context:** Admin design ke Users screen me do cheezein thin jo hamare model se
+takraati thin: ek **Username** column (Name aur Email se alag), aur row action me
+**"Delete"** — jabki architecture §8.3 kehta tha ki user delete hota hi nahi, sirf
+deactivate hota hai.
+
+Dono client ke saamne rakhe gaye. Faisle:
+
+### 1. `users.username` — naya field, immutable
+
+Login **email** se hi rahega. Username display ke liye hai aur aage author archive URL
+(`/author/aditya`) me jaayega.
+
+**Immutable** isliye ki wo URL me jaata hai — badalne se purane link 404 ho jaate hain.
+`updateUserSchema` me ye field hai hi nahi, isliye koi update path use chhoo bhi nahi
+sakta.
+
+Admin form me type karta hai; khaali chhoda to server email se bana leta hai
+(`suggestUsernameFromEmail`) aur takraav pe number lagata hai. Wahi function migration
+ka backfill bhi use karta hai — taaki purane user ka username wahi bane jo aaj naye ko
+suggest hota.
+
+> Day-1 reserve test me ye **do** pe haan deta hai: naya unique constraint hai, aur
+> baad me 15 instances pe backfill + unique index build karna mehnga hota. Isliye
+> abhi. Migration `003-user-username.js` — **pehle backfill, phir unique index**
+> (ulta karne pe wo instances fail hote jinke paas pehle se users hain).
+
+### 2. Delete asli delete hai, trash nahi
+
+Design jeeta (R15). User ki row DB se mit jaati hai — trash nahi, restore nahi.
+
+Delete se pehle poochha jaata hai **"iska content kise dein"**, WordPress ki tarah.
+**"Saara content bhi delete karo" wala option nahi banega** — ek click me client ki
+200 posts udna, wo bhi bina Trash ke, is system me sabse mehnga hadsa hota.
+
+`reassignContent()` abhi `{ entries: 0 }` lautata hai kyunki `entries` collection
+Phase 1 me banega. Poora flow (confirm screen, dropdown, API contract) aaj bana hua
+hai; Phase 1 me sirf wahi ek function bharna hai — D-30 wala pattern.
+
+### 3. Administrator kabhi delete nahi hota
+
+`admin` role wale user pe delete chalta hi nahi — 403, aur message "Deactivate
+karein". Uski jagah **Deactivate** hai, jo login band karta hai par record aur content
+bacha rehta hai.
+
+**Demote karke delete karne ka raasta bhi band:** aakhri admin ka role badalna allowed
+nahi. Ek se zyada admin hon to demote ho sakta hai — tab bhi site ke paas ek admin
+bacha rehta hai.
+
+Teesra guard: **koi apna khud ka account delete ya deactivate nahi kar sakta.**
+
+> Ye teenon **service me** hain, middleware me nahi. `requirePermission()` sirf ye
+> jaanta hai ki "ye kaam kar sakte ho ya nahi" — "kis PE kar sakte ho" ke liye
+> document chahiye, jo sirf service ke paas hota hai.
+
+### 4. `user.delete` naya permission — sirf admin
+
+`entry.purge` aur `media.purge` wahi rule follow karte hain: mitane wala kaam
+recoverable nahi hota, isliye ek hi role ke paas. Editor user ko deactivate kar sakta
+hai, mita nahi sakta.
+
+**Ek aur cheez jo raaste me pakdi gayi:** role ka wajood kahin check hi nahi ho raha
+tha. `role: "wizard"` wala user ban jaata tha — create `201` deta, par uski
+permissions hamesha khaali rehti aur wo har screen pe 403 khaata, bina kisi error ke.
+Ab `assertRoleExists()` `roles` **collection** se check karta hai (enum se nahi —
+Phase 7 ke custom roles enum me nahi honge).
+
+**Reject kiya:** username ko editable rakhna (URL badalne pe redirect ka poora
+intezaam chahiye hota); "saara content delete" wala option; aur admin protection ko
+sirf "aakhri admin" tak seemit rakhna — client ne kaha ki administrator practically
+owner hi hoga, isliye poora block hi simple aur sahi hai.

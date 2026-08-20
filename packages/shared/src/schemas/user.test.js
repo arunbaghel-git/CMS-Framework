@@ -72,13 +72,24 @@ describe('changePasswordSchema', () => {
 
 describe('userSchema', () => {
   it('status default active hai', () => {
-    const parsed = userSchema.parse({ name: 'A', email: 'a@b.com', role: 'editor' })
+    const parsed = userSchema.parse({
+      username: 'abc',
+      name: 'A',
+      email: 'a@b.com',
+      role: 'editor',
+    })
     expect(parsed.status).toBe('active')
     expect(parsed.mustChangePassword).toBe(false)
   })
 
   it('galat status reject karta hai', () => {
-    const input = { name: 'A', email: 'a@b.com', role: 'editor', status: 'deleted' }
+    const input = {
+      username: 'abc',
+      name: 'A',
+      email: 'a@b.com',
+      role: 'editor',
+      status: 'deleted',
+    }
     expect(() => userSchema.parse(input)).toThrow()
   })
 })

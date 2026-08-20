@@ -549,9 +549,16 @@ Permissions string-based: `entry.create`, `entry.publish`, `entry.publish.own`,
 mapping **DB me** (`roles` collection) — `packages/shared` ka `ROLE_PERMISSIONS` sirf
 seed ka default hai. Har admin route pe `requirePermission('...')`.
 
-**Users pe `deletedAt` nahi hai.** D-25 (trash) content ke liye hai; user delete karne
-se uska content aur activity log orphan ho jaate, isliye user `inactive` hota hai —
-hataya nahi jaata. Deactivate hote hi uske chalu sessions bhi revoke ho jaate hain.
+**Users pe `deletedAt` nahi hai** — na trash, na soft delete. Do alag raaste hain (D-34):
+
+| | Kya hota hai | Kiske liye |
+|---|---|---|
+| **Deactivate** | Login band, sessions turant revoke, record aur content bache rehte hain | Roz ka kaam. Administrator ko hataane ka **ekmatra** raasta |
+| **Delete** | Row DB se mit jaati hai. Pehle poochta hai "content kise dein" | Permanent. `user.delete` sirf admin ke paas |
+
+Teen guard service me hain, middleware me nahi (middleware ke paas document hota hi
+nahi): **administrator delete nahi hota** · **aakhri admin ka role nahi badalta** ·
+**koi apna account delete/deactivate nahi kar sakta**.
 
 ### 8.4 Kya ban chuka hai (Phase 0)
 
@@ -560,9 +567,10 @@ apps/api/src/core/tokens.js          JWT sign/verify + cookie flags + safeEqual
 apps/api/src/middleware/auth.js      attachUser · requireAuth · requirePermission
 apps/api/src/middleware/csrf.js      double-submit check
 apps/api/src/modules/auth/           RefreshToken model · login/refresh/logout/password
-apps/api/src/modules/users/          User model · GET|PATCH /api/me
-apps/api/src/modules/roles/          Role model · permissions cache · seed defaults
+apps/api/src/modules/users/          User model · /api/me · /api/users (CRUD + delete)
+apps/api/src/modules/roles/          Role model · permissions cache · seed · GET /api/roles
 migrations/002-auth-indexes.js       users · roles · refreshTokens (TTL ke saath)
+migrations/003-user-username.js      users.username backfill + unique index
 ```
 
 `attachUser` **har request pe user DB se laata hai** (role cached hai, user nahi).

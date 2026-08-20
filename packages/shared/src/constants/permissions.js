@@ -92,6 +92,11 @@ export const PERMISSION = Object.freeze({
   USER_INVITE: 'user.invite',
   USER_UPDATE: 'user.update',
   USER_DEACTIVATE: 'user.deactivate',
+  /**
+   * Permanent delete — sirf admin (D-34). `entry.purge` aur `media.purge` wahi rule
+   * follow karte hain: mitane wala kaam recoverable nahi hota, isliye ek hi role ke paas.
+   */
+  USER_DELETE: 'user.delete',
   ROLE_READ: 'role.read',
   ROLE_UPDATE: 'role.update',
 

@@ -118,6 +118,7 @@ settings.scripts.update      ← ADMIN-ONLY, privilege boundary (D — CSP secti
 
 ```
 user.read · user.invite · user.update · user.deactivate
+user.delete              permanent — sirf admin (D-34)
 role.read · role.update
 ```
 
@@ -161,7 +162,10 @@ activity.read
 | `submission.read`                           |  ✅   |   ✅   |   —    |      —      |
 | `settings.update`                           |  ✅   |   —    |   —    |      —      |
 | **`settings.scripts.update`**               |  ✅   |   —    |   —    |      —      |
-| `user.*` `role.*`                           |  ✅   |   —    |   —    |      —      |
+| `user.read` `user.invite` `user.update`      |  ✅   |   —    |   —    |      —      |
+| `user.deactivate`                            |  ✅   |   —    |   —    |      —      |
+| **`user.delete`** (permanent)                |  ✅   | **—**  |   —    |      —      |
+| `role.*`                                     |  ✅   |   —    |   —    |      —      |
 | `tools.*`                                   |  ✅   |   —    |   —    |      —      |
 | `activity.read`                             |  ✅   |   ✅   |   —    |      —      |
 

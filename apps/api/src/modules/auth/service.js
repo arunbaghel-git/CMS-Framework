@@ -24,8 +24,17 @@ import { RefreshToken } from './model.js'
  *   3. family = ek login session
  */
 
-/** bcrypt cost. 12 ≈ 250ms — brute force mehnga, login abhi bhi turant. */
-const BCRYPT_ROUNDS = 12
+/**
+ * bcrypt cost.
+ *
+ * 12 asli value hai — brute force mehnga, login abhi bhi turant.
+ *
+ * Test me 4: `bcryptjs` pure JavaScript hai aur cost 12 pe ek hash ~600ms leta hai.
+ * Ek integration test jo 7 users banata hai wo akela 4 second kha jaata tha aur timeout
+ * ho jaata. Cost sirf **kitna mehnga hai** ye badalta hai, **kya sahi/galat hai** wo nahi
+ * — isliye test ki value production ki security ko chhooti nahi.
+ */
+const BCRYPT_ROUNDS = process.env.NODE_ENV === 'test' ? 4 : 12
 
 /**
  * Login fail hone pe **hamesha yahi** error. "Email galat hai" aur "password galat

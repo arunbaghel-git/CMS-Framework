@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import mongoose from 'mongoose'
 import request from 'supertest'
 
 import { createApp } from '../app.js'
+import { connectTestDb, disconnectTestDb } from './db.js'
 import { COOKIE } from '../core/tokens.js'
 import { CSRF_HEADER } from '../middleware/csrf.js'
 import { RefreshToken } from '../modules/auth/model.js'
@@ -74,12 +74,11 @@ function refreshRequest(jar) {
 }
 
 beforeAll(async () => {
-  await mongoose.connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB_NAME })
+  await connectTestDb()
 })
 
 afterAll(async () => {
-  await mongoose.connection.dropDatabase()
-  await mongoose.connection.close()
+  await disconnectTestDb()
 })
 
 beforeEach(async () => {
