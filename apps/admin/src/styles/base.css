@@ -3,11 +3,40 @@
  * Source: admin-design.html, tokens section ke baad ka hissa.
  */
 
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{font-family:var(--font);font-size:13px;line-height:1.5;color:var(--text);background:var(--canvas)}
-a{color:var(--link);text-decoration:none}
-a:hover{color:var(--primary-hover);text-decoration:underline}
-h1,h2,h3,h4{margin:0;font-weight:600}
-input,select,textarea,button{font-family:inherit;font-size:13px}
-
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--canvas);
+}
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 600;
+}
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  font-size: 13px;
+}

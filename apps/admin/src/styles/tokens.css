@@ -7,28 +7,28 @@
  * Source: .claude/docs/reference/admin-design.html (FROZEN — D-28)
  */
 
-:root{
-  --nav-bg:#1d2327;
-  --nav-bg-sub:#2c3338;
-  --nav-text:#c3c4c7;
-  --nav-text-hover:#72aee6;
-  --nav-active:#2271b1;
-  --bar-bg:#1d2327;
-  --canvas:#f0f0f1;
-  --surface:#fff;
-  --border:#c3c4c7;
-  --border-soft:#dcdcde;
-  --text:#1d2327;
-  --text-muted:#646970;
-  --link:#2271b1;
-  --primary:#2271b1;
-  --primary-hover:#135e96;
-  --danger:#b32d2e;
-  --success:#00a32a;
-  --warn:#dba617;
-  --radius:3px;
-  --sidebar-w:200px;
-  --sidebar-w-collapsed:52px;
-  --bar-h:32px;
-  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+:root {
+  --nav-bg: #1d2327;
+  --nav-bg-sub: #2c3338;
+  --nav-text: #c3c4c7;
+  --nav-text-hover: #72aee6;
+  --nav-active: #2271b1;
+  --bar-bg: #1d2327;
+  --canvas: #f0f0f1;
+  --surface: #fff;
+  --border: #c3c4c7;
+  --border-soft: #dcdcde;
+  --text: #1d2327;
+  --text-muted: #646970;
+  --link: #2271b1;
+  --primary: #2271b1;
+  --primary-hover: #135e96;
+  --danger: #b32d2e;
+  --success: #00a32a;
+  --warn: #dba617;
+  --radius: 3px;
+  --sidebar-w: 200px;
+  --sidebar-w-collapsed: 52px;
+  --bar-h: 32px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
