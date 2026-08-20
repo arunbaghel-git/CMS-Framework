@@ -5,7 +5,8 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** Planning complete (v3), saare bade faisle ho chuke. Code shuru nahi hua.
+**Status:** **Phase 0 chal raha hai — ~65%.** Setup layer, Zod contract, migration runner
+aur CSS architecture ban chuke hain (44 tests passing). Agla bada kaam **auth + RBAC**.
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -15,7 +16,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 14 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-27                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-30                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -100,7 +101,7 @@ pnpm seed                 # admin user + defaults
 docker compose up         # mongo
 ```
 
-> Ye commands abhi exist nahi karte — Phase 0 me banenge.
+> `pnpm seed` abhi exist nahi karta — auth ke saath banega. Baaki sab chalte hain.
 
 ---
 
@@ -124,18 +125,22 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Phase 1 se pehle sirf 1 artifact baaki hai (Zod contract) →
-[`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
+Phase 0 pe **kuch block nahi** — auth stack abhi bana sakte ho.
 
-Setup layer (monorepo, docker, CI, Express boilerplate) inpe **block nahi** hai —
-wo aaj shuru ho sakta hai.
+| #   | Kya                                   | Kab tak           |
+| --- | ------------------------------------- | ----------------- |
+| C-2 | Payload CMS spike (2 din)             | Phase 1 se pehle  |
+| Q-3 | Field DSL me `matrix` + `table` types | Phase 5c se pehle |
+
+Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
 
 ## Admin design — FROZEN
 
-Admin ka spec `.claude/docs/reference/admin-design.html` hai
-(analysis: `docs/11-REFERENCE-ADMIN.md`). **Usi ke hisaab se banega** — layout,
+Admin ka spec [`docs/reference/admin-design.html`](docs/reference/admin-design.html) hai
+(analysis: [`docs/11-REFERENCE-ADMIN.md`](docs/11-REFERENCE-ADMIN.md)).
+**Usi ke hisaab se banega** — layout,
 colours, spacing, wording sab.
 
 `docs/04-ADMIN-UX.md` ab secondary hai; conflict ho to design jeetega.

@@ -643,3 +643,29 @@ to sirf ek query add hogi.
 ✅  Homepage  [ Koi page nahi hai — pehle banao ]
 ```
 Non-technical user ko pata chale ki **abhi kuch nahi hai**, na ki **kuch toot gaya hai**.
+
+---
+
+## D-31 · Login screen design me nahi hai — WordPress-style banega
+
+**Context:** Admin ka design (`docs/reference/admin-design.html`) SPEC hai — jo usme hai
+wahi banega. Par usme **login screen nahi hai**. Auth ka poora backend design pe depend
+nahi karta, sirf ye ek screen ruki hui thi.
+
+**Decision:** Client ke paas login ka design nahi hai. **WordPress-style simple centered
+card** banega — par design ke **apne tokens** (colours, spacing, radius, fonts) use karke,
+taaki login aur baaki admin ek hi product lage.
+
+**Kyun:** Ye ekmatra screen hai jo design me nahi hai. Guess karke poora naya visual
+language banane se do alag-alag dikhne wale product ban jaate. Tokens reuse karne se
+screen design ke andar hi rehti hai, bhale layout khud invent kiya ho.
+
+**Scope:** logo/site name · email + password · "Remember me" · error message ki jagah ·
+"Forgot password?" ka link (Phase 0 me dead, SMTP Phase 2+ me).
+
+**Kya NAHI:** koi naya colour, naya font, naya spacing scale. Sab
+`apps/admin/src/styles/tokens.css` se aayega.
+
+**Nateeja:** Q-1 band. Baad me client login ka design de to **sirf ye ek screen** badlegi
+— auth backend, routes, session handling sab waise hi rehta hai. Ye rule 8 (design change
+client se aata hai) ka apwaad nahi hai — client ne hi "nahi hai, tum banao" kaha.
