@@ -14,26 +14,26 @@ Kya pending hai → [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)
 
 ## Kaunsa doc kab padhna hai
 
-| #   | Doc                                | Isme kya hai                                              | Kaun padhe                            |
-| --- | ---------------------------------- | --------------------------------------------------------- | ------------------------------------- |
-| 01  | [Overview](01-OVERVIEW.md)         | Project kya hai, kiske liye, scope, glossary              | **Sabse pehle ye**                    |
-| 02  | [Architecture](02-ARCHITECTURE.md) | System design, data model, URL model, builder, auth, API  | Developer                             |
-| 03  | [Decisions](03-DECISIONS.md)       | Har bada faisla + **kyun** + kya reject kiya              | Jab "aisa kyun hai?" ka jawab chahiye |
-| 04  | [Admin UX](04-ADMIN-UX.md)         | Admin ki navigation, screens, list/editor/builder layout  | Frontend dev, designer                |
-| 05  | [Build Plan](05-BUILD-PLAN.md)     | Phase 0-8, estimates, done criteria                       | Roz ka kaam plan karne ke liye        |
-| 06  | [Operations](06-OPERATIONS.md)     | Distribution, versioning, migrations, deploy, env, backup | DevOps, release ke waqt               |
-| 07  | [Conventions](07-CONVENTIONS.md)   | Coding rules, naming, testing, contracts                  | Har PR se pehle                       |
-| 08  | [Risks](08-RISKS.md)               | Known traps aur unse kaise bachna hai                     | Phase shuru karne se pehle            |
-| 09  | [Open Items](09-OPEN-ITEMS.md)     | Jo abhi decide/likha nahi gaya                            | **Aaj**                               |
-| 10  | [Reference Design](10-REFERENCE-DESIGN.md) | Asli client design se nikle content types, blocks aur gaps | Slice 0 + Phase 5/6 se pehle |
-| 11  | [Reference Admin](11-REFERENCE-ADMIN.md) | Asli admin design — kya match karta hai, kya gap hai | Slice 0 + Phase 1 se pehle |
+| #   | Doc                                        | Isme kya hai                                                        | Kaun padhe                               |
+| --- | ------------------------------------------ | ------------------------------------------------------------------- | ---------------------------------------- |
+| 01  | [Overview](01-OVERVIEW.md)                 | Project kya hai, kiske liye, scope, glossary                        | **Sabse pehle ye**                       |
+| 02  | [Architecture](02-ARCHITECTURE.md)         | System design, data model, URL model, builder, auth, API            | Developer                                |
+| 03  | [Decisions](03-DECISIONS.md)               | Har bada faisla + **kyun** + kya reject kiya                        | Jab "aisa kyun hai?" ka jawab chahiye    |
+| 04  | [Admin UX](04-ADMIN-UX.md)                 | Admin UX ke **kyun** — reasoning aur rules (secondary, §11 jeetega) | Reasoning samajhne ke liye               |
+| 05  | [Build Plan](05-BUILD-PLAN.md)             | Phase 0-8, estimates, done criteria                                 | Roz ka kaam plan karne ke liye           |
+| 06  | [Operations](06-OPERATIONS.md)             | Distribution, versioning, migrations, deploy, env, backup           | DevOps, release ke waqt                  |
+| 07  | [Conventions](07-CONVENTIONS.md)           | Coding rules, naming, testing, contracts                            | Har PR se pehle                          |
+| 08  | [Risks](08-RISKS.md)                       | Known traps aur unse kaise bachna hai                               | Phase shuru karne se pehle               |
+| 09  | [Open Items](09-OPEN-ITEMS.md)             | Jo abhi decide/likha nahi gaya                                      | **Aaj**                                  |
+| 10  | [Reference Design](10-REFERENCE-DESIGN.md) | Asli client design se nikle content types, blocks aur gaps          | Slice 0 + Phase 5/6 se pehle             |
+| 11  | [Admin Design](11-REFERENCE-ADMIN.md)      | 🔒 **Admin ka FINAL SPEC** — bilkul aisa hi banega                  | **Admin ka koi bhi kaam karne se pehle** |
 
 **Interactive:**
-- [`admin-wireframe.html`](admin-wireframe.html) — humara 7-screen wireframe
-- [`reference/admin-design.html`](reference/admin-design.html) — **asli client admin design** (§11)
+
+- 🔒 [`reference/admin-design.html`](reference/admin-design.html) — **admin ka FINAL design** (§11) — build isse hoga
+- [`admin-wireframe.html`](admin-wireframe.html) — purana draft wireframe, sirf reference
 
 Dono browser me kholo.
-
 
 ---
 

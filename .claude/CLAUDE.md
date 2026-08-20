@@ -129,3 +129,14 @@ Phase 1 se pehle sirf 1 artifact baaki hai (Zod contract) →
 
 Setup layer (monorepo, docker, CI, Express boilerplate) inpe **block nahi** hai —
 wo aaj shuru ho sakta hai.
+
+---
+
+## Admin design — FROZEN
+
+Admin ka final spec `.claude/docs/reference/admin-design.html` hai
+(analysis: `docs/11-REFERENCE-ADMIN.md`). **Bilkul waisa hi banega** — layout,
+colours, spacing, wording sab.
+
+`docs/04-ADMIN-UX.md` ab secondary hai; conflict ho to design jeetega.
+Koi bhi change sirf client ke kehne pe — khud variation mat banao.

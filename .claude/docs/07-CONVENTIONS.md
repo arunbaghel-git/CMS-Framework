@@ -287,3 +287,7 @@ Code badle to doc bhi badle — **usi PR me**:
 
 **Decision reverse karna ho to purani D-xx entry delete mat karo** — usme
 "Superseded by D-yy" likh do. Reasoning ka itihaas hi is doc ki asli value hai.
+
+8. **Admin design frozen hai.** `.claude/docs/reference/admin-design.html` ka layout,
+   colours aur wording bilkul waisa hi banega. Apna variation mat banao — change
+   sirf client ke kehne pe.

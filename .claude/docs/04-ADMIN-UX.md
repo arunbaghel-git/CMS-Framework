@@ -1,9 +1,21 @@
 # 04 — Admin UX
 
+> ## ⚠️ Ye doc ab SECONDARY hai
+>
+> Admin ka **final spec** [`reference/admin-design.html`](reference/admin-design.html)
+> hai — dekho [`11-REFERENCE-ADMIN.md`](11-REFERENCE-ADMIN.md).
+> Wo design **frozen** hai aur bilkul waisa hi banega.
+>
+> **Conflict ho to design jeetega, ye doc nahi.**
+>
+> Ye doc ab sirf ek cheez ke liye kaam ka hai: **kyun** har screen aisi hai —
+> reasoning, rules, aur wo UX faisle jo design ke peeche hain.
+
 Admin panel ka information architecture aur screen layouts.
 
-**Interactive wireframe:** [`admin-wireframe.html`](admin-wireframe.html) — 7 screens,
-clickable, browser me kholo. Ye doc uska likha hua version hai.
+**Purana wireframe:** [`admin-wireframe.html`](admin-wireframe.html) — 7 screens,
+clickable. Ye humara **pehla draft** tha, asli design aane se pehle. Reference ke liye
+rakha hai, par **build isse nahi hoga**.
 
 **Design principle:** har faisla is ek sawaal se guzarta hai —
 _"kya ek non-technical banda ye bina call kiye kar lega?"_

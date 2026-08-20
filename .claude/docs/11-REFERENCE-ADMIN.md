@@ -1,14 +1,24 @@
-# 11 — Reference Admin Design
+# 11 — Admin Design (FINAL SPEC)
 
 **File:** [`reference/admin-design.html`](reference/admin-design.html) — browser me kholo
-**Analysed:** 20 Aug 2026
+**Status:** 🔒 **FROZEN** — 20 Aug 2026
 
-Ye ek **asli admin design** hai (travel CMS). Ye tay karta hai admin sach me kaisa
-dikhega aur kaam karega. Ye `04-ADMIN-UX.md` ko replace nahi karta — usko **update**
-karta hai.
+> ## ⚠️ Ye reference nahi, SPEC hai
+>
+> Admin **bilkul aisa hi banega** — layout, colours, spacing, wording, sab.
+> Ismein se cherry-pick nahi karna, apna variation nahi banana.
+>
+> **Koi bhi change sirf client ke kehne pe hoga.** Agar build ke waqt lage ki kuch
+> theek nahi hai — pehle poochho, khud mat badlo.
 
 Design ke CSS comments me `components/admin/Sidebar.jsx` jaise paths hain — matlab ye
-humare stack ke hisaab se hi banaya gaya hai.
+humare stack ke hisaab se hi banaya gaya hai. CSS aur structure seedha use kiya ja
+sakta hai.
+
+**Is doc ka kaam ab ye hai:** design ko dekh kar wo **technical capabilities** list
+karna jo isse banane ke liye chahiye — aur jo abhi plan me nahi thin.
+
+`04-ADMIN-UX.md` ab is design ke aage **secondary** hai. Conflict ho to design jeetega.
 
 ---
 
@@ -204,54 +214,83 @@ zaroorat shayad na pade.
 
 ---
 
-## 6. Kya **nahi** lena (mera suggestion)
+## 6. Design ke wo hisse jo **exactly** aise hi banenge
 
-| Cheez | Kyun nahi |
+Design frozen hai, isliye ye sab jaisa hai waisa hi:
+
+| Cheez | Note |
 |---|---|
-| Design ka WordPress-jaisa exact colour scheme | Familiar hona achha hai, par hu-ba-hu copy nahi. Apna palette rakho — `04-ADMIN-UX.md` wala |
-| "Wanderly" branding | Demo content hai |
-| Har package pe alag currency | Phase 6+ — abhi site-level currency kaafi hai |
-| Banners & Sliders alag module | Patterns se ho jaayega. Naya module tabhi jab pattern kam pade |
+| Colour scheme, spacing, typography | Design ka CSS seedha use hoga |
+| Admin bar + collapsible sidebar | Wahi structure, wahi behaviour |
+| Sidebar ka order aur icons | Jaisa design me hai |
+| Har screen ka layout aur panel positions | Wahi |
+| Button labels aur wording | Wahi — "Send Quotation", "Add Day", "Duplicate Last Day" |
+| WordPress-jaisa look | **Jaan-boojh kar** — client isse pehle se jaanta hai |
+
+**Sirf ek cheez badlegi:** "Wanderly" branding demo content hai — wo per-client
+settings se aayegi (`settings.siteName`, logo).
 
 ---
 
-## 7. Plan me kya badalna hai — summary
+## 7. Jo BANANA hai — summary
 
-| # | Kya | Kahan | Kab |
+Design frozen hai, isliye ye ab "sochna hai" nahi, **"banana hai"** hai.
+
+| # | Kya banana hai | Kahan | Kab |
 |---|---|---|---|
-| 1 | Mega-menu support (confirm ho gaya) | Menu model | **Slice 0** |
-| 2 | **Enquiries ko alag module banao** — 7b ya Phase 9 | `05-BUILD-PLAN.md` | Phase 7 se pehle decide |
+| 1 | Mega-menu support — `menuType` + `linkType: none` + `columns` | Menu model | **Slice 0** |
+| 2 | **Enquiries module** — apni collection, pipeline, quotation, notes | Naya module | Phase 7b |
 | 3 | Field DSL me `matrix` + `table` types | `field-types.js` + D-24 | Phase 5c se pehle |
-| 4 | Repeater me drag-reorder + collapse + duplicate | Phase 6 field types | Phase 6 |
-| 5 | Quick Edit wapas scope me | `04-ADMIN-UX.md` §2 | Phase 1 |
-| 6 | Settings me Email/SMTP + Integrations screens | Phase 7 | Phase 7 |
-| 7 | Dashboard me enquiry funnel + top packages | Phase 7 | Phase 7 |
-| 8 | Homepage Blocks alag screen? — sochna hai | Phase 5 | Phase 5 se pehle |
-| 9 | Multi-currency — note kiya, abhi nahi | — | Phase 6+ |
+| 4 | Repeater me drag-reorder + collapse + "duplicate last" | Field types | Phase 6 |
+| 5 | Quick Edit (inline row edit) | Phase 1 list screens | Phase 1 |
+| 6 | Settings ▸ Email/SMTP + Integrations screens | Phase 7 | Phase 7 |
+| 7 | Dashboard: enquiry chart + top packages + quick draft | Phase 7 | Phase 7 |
+| 8 | Appearance ▸ Homepage Blocks (alag screen) | Phase 5 | Phase 5 |
+| 9 | Appearance ▸ Banners & Sliders | Phase 5/6 | Phase 6 |
+| 10 | Sidebar collapse | Admin shell | Phase 0 |
+| 11 | Multi-currency (site + per-package) | Phase 6 | Phase 6 |
+| 12 | Departures & Pricing cross-package view | Phase 6 | Phase 6 |
+
+**#8 ka faisla ho gaya:** design me Homepage Blocks alag screen hai, to **wahi banega** —
+har page pe builder wala model isse replace nahi karega. Dono saath rahenge:
+normal pages pe builder, homepage ke liye alag screen.
 
 ---
 
-## 8. Ek badi baat
+## 8. Design frozen hai — phir framework ka kya?
 
-Ye design **travel-specific** hai — Packages, Itinerary, Departures, Enquiries.
-Humara CMS **generic framework** hai jo kisi bhi client ke liye chalna chahiye (D-01).
+Pehli nazar me lagta hai ki ye D-01 se takra raha hai: design me "Packages",
+"Itinerary Builder", "Departures" hain — par humara CMS to **generic framework** hai
+jo dental clinic ke liye bhi chalna chahiye.
 
-**Dono ko milane ka sahi tareeka:**
+**Takraav hai nahi.** Sahi tareeke se dekho:
+
+> Ye design **ek travel client ka instance** dikhata hai, na ki wo cheez jo core ship
+> karta hai. Generic engine jab travel ke config se chalta hai, to bilkul **yahi**
+> admin banta hai.
 
 ```
-CORE (@cms/*)                        CLIENT REPO (travel)
-─────────────────                    ────────────────────
-entries + contentTypes         →     "package" content type
-repeater / matrix / table      →     itinerary, departures, slabs
-custom collections support     →     enquiries module
-menus + mega-menu              →     travel mega-menu
-patterns                       →     banners & sliders
+CORE me ye GENERIC capability hoti hai   →   Travel config se ye BANTA hai
+──────────────────────────────────────       ────────────────────────────
+contentTypes + auto-generated screens    →   "Packages" sidebar + list + editor
+repeater field                           →   Itinerary Builder (7 din)
+matrix + table fields                    →   Occupancy slabs, Fixed departures
+taxonomies                               →   Destinations, Travel Themes
+menus + mega-menu                        →   Travel ka mega-menu
+patterns                                 →   Banners & Sliders
 ```
 
-Matlab: **core me generic capability banao, travel-specific cheezein client repo me**
-(R6). Warna agla client — jo dental clinic hai — uske admin me "Itinerary Builder"
-dikhega, aur framework ka poora point khatam ho jaayega.
+Matlab **sidebar me "Packages" hardcoded nahi hoga** — wo `contentTypes` collection se
+aayega (Phase 6). Dental clinic ke instance me wahi jagah "Treatments" dikhaayegi.
 
-**Sirf ek exception:** Enquiries. Lead management lagbhag har agency client ko chahiye
-(dental clinic ko bhi enquiries aati hain). Isliye **wo core me hona chahiye**, travel
-me nahi.
+Yahi is design ka sabse achha **proof** hai: agar generic engine se ye poora travel
+admin ban jaata hai, to engine sach me kaam kar raha hai.
+
+**Sirf ek cheez core me hardcoded hogi — Enquiries.** Lead management lagbhag har
+agency client ko chahiye (dental clinic ko bhi enquiries aati hain), aur uski apni
+lifecycle hai jo `contentTypes` se nahi banti.
+
+**Build karte waqt ka rule:** koi bhi cheez banate waqt poochho —
+*"ye core me generic hai, ya travel config se aa rahi hai?"*
+Agar core me "package" ya "itinerary" shabd likhna pad raha hai (Enquiries ke alawa),
+to kuch galat ja raha hai.
