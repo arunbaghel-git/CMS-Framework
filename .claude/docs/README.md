@@ -25,6 +25,7 @@ Kya pending hai → [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)
 | 07  | [Conventions](07-CONVENTIONS.md)   | Coding rules, naming, testing, contracts                  | Har PR se pehle                       |
 | 08  | [Risks](08-RISKS.md)               | Known traps aur unse kaise bachna hai                     | Phase shuru karne se pehle            |
 | 09  | [Open Items](09-OPEN-ITEMS.md)     | Jo abhi decide/likha nahi gaya                            | **Aaj**                               |
+| 10  | [Reference Design](10-REFERENCE-DESIGN.md) | Asli client design se nikle content types, blocks aur gaps | Slice 0 + Phase 5/6 se pehle |
 
 **Interactive:** [`admin-wireframe.html`](admin-wireframe.html) — 7 admin screens ka
 clickable wireframe. Browser me kholo.
