@@ -27,7 +27,6 @@ export default function UserForm() {
     email: '',
     role: 'author',
     password: '',
-    status: 'active',
   })
   /** User ne username khud chhua? Chhua ho to email badalne pe overwrite mat karo. */
   const [usernameTouched, setUsernameTouched] = useState(false)
@@ -78,7 +77,12 @@ export default function UserForm() {
           role: form.role,
           password: form.password,
         }
-      : { name: form.name, role: form.role, status: form.status }
+      : {
+          name: form.name,
+          role: form.role,
+          // Khaali chhoda to password chhua hi nahi jaata
+          ...(form.password ? { password: form.password } : {}),
+        }
 
     const parsed = schema.safeParse(payload)
     if (!parsed.success) {
@@ -96,7 +100,12 @@ export default function UserForm() {
         })
       } else {
         await api.patch(`/users/${id}`, parsed.data)
-        setNotice('Save ho gaya.')
+        setNotice(
+          form.password
+            ? 'Save ho gaya. Naya password user ko bhej dein — unke purane sessions band ho chuke hain.'
+            : 'Save ho gaya.',
+        )
+        setForm((f) => ({ ...f, password: '' }))
       }
     } catch (err) {
       setError(errorMessage(err))
@@ -187,46 +196,31 @@ export default function UserForm() {
             {isMe && <p className="hint">Apna role khud nahi badal sakte.</p>}
           </div>
 
-          {isNew ? (
-            <div className="field">
-              <label htmlFor="u-password">Password</label>
-              <div className="row">
-                <input
-                  id="u-password"
-                  className="inp"
-                  type="text"
-                  value={form.password}
-                  onChange={set('password')}
-                />
-                <button
-                  className="btn"
-                  type="button"
-                  onClick={() => setForm((f) => ({ ...f, password: generatePassword() }))}
-                >
-                  Generate
-                </button>
-              </div>
-              <p className="hint">
-                Kam se kam 10 characters. Ye password aapko user tak khud pahunchana hoga — pehle
-                login pe usse badalna padega.
-              </p>
-            </div>
-          ) : (
-            <div className="field">
-              <label htmlFor="u-status">Status</label>
-              <select
-                id="u-status"
-                className="sel"
-                value={form.status}
-                onChange={set('status')}
-                disabled={isMe}
+          <div className="field">
+            <label htmlFor="u-password">{isNew ? 'Password' : 'Naya password'}</label>
+            <div className="row">
+              <input
+                id="u-password"
+                className="inp"
+                type="text"
+                value={form.password}
+                onChange={set('password')}
+                placeholder={isNew ? '' : 'Badalna ho tabhi bharo'}
+              />
+              <button
+                className="btn"
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, password: generatePassword() }))}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive — login band</option>
-              </select>
-              {isMe && <p className="hint">Apna hi account deactivate nahi kar sakte.</p>}
+                Generate
+              </button>
             </div>
-          )}
+            <p className="hint">
+              {isNew
+                ? 'Kam se kam 10 characters. Ye password aapko user tak khud pahunchana hoga — wo isi se login karega.'
+                : 'Khaali chhod do to password waisa hi rahega. Badla to user ke chalu sessions band ho jaayenge.'}
+            </p>
+          </div>
 
           {/* SMTP Phase 2 me aayega — tab tak ye jaan-boojh kar disabled hai (D-30) */}
           <div className="field">
@@ -239,7 +233,7 @@ export default function UserForm() {
 
         <div className="panel-foot">
           <span className="hint" style={{ margin: 0 }}>
-            {isNew ? 'User turant login kar sakega.' : ''}
+            {isNew ? 'User isi password se turant login kar sakega.' : ''}
           </span>
           <button className="btn btn-primary" type="submit" disabled={saving}>
             {saving ? 'Ho raha hai…' : isNew ? 'Add User' : 'Save'}

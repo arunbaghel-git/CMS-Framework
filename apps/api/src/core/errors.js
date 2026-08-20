@@ -57,6 +57,20 @@ export function errorHandler(err, req, res, _next) {
     })
   }
 
+  /**
+   * Mongoose ka `CastError` — URL me aisi id aayi jo ObjectId ban hi nahi sakti
+   * (`/api/users/kuch-bhi`).
+   *
+   * Ye **client ki galti** hai, server ki nahi. Iske bina har galat id 500 deti thi:
+   * logs error se bhar jaate, monitoring alert karti, aur asli baat sirf itni hoti ki
+   * kisi ne galat link khola.
+   */
+  if (err?.name === 'CastError') {
+    return res.status(404).json({
+      error: { code: 'NOT_FOUND', message: 'Nahi mila' },
+    })
+  }
+
   if (err instanceof AppError) {
     return res.status(err.status).json({
       error: { code: err.code, message: err.message, details: err.details },

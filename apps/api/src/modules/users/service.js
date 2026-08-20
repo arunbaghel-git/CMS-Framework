@@ -134,7 +134,7 @@ async function resolveUsername(requested, email) {
  * @param {{ username?: string, name: string, email: string, role: string, password: string }} input
  * @param {{ mustChangePassword?: boolean, status?: string }} [options]
  */
-export async function createUser(input, { mustChangePassword = true, status } = {}) {
+export async function createUser(input, { mustChangePassword = false, status } = {}) {
   await assertRoleExists(input.role)
 
   if (await User.exists({ email: input.email })) {
@@ -149,8 +149,10 @@ export async function createUser(input, { mustChangePassword = true, status } = 
     passwordHash: await hashPassword(input.password),
     status: status ?? USER_STATUS.ACTIVE,
     /**
-     * Default `true`: password admin ne set kiya hai, matlab wo kam se kam do logon
-     * ko pata hai. Pehle login pe user use badalta hai.
+     * Default `false` (D-35): admin jo password deta hai, user bas wahi use karta hai.
+     *
+     * Sirf **seed** ka admin `true` ke saath banta hai — uska password `.env` file me
+     * plain text me padha hota hai, isliye wahan badalna zaroori hai.
      */
     mustChangePassword,
   })
@@ -160,10 +162,13 @@ export async function createUser(input, { mustChangePassword = true, status } = 
 
 /**
  * @param {string} userId
- * @param {{ name?: string, role?: string, status?: string, avatarMediaId?: string|null }} input
+ * Password bhi yahin se set hota hai — **user khud apna password nahi badal sakta**
+ * (D-35), isliye bhoola hua password reset karne ka ekmatra raasta yahi hai.
+ *
+ * @param {{ name?: string, role?: string, status?: string, password?: string, avatarMediaId?: string|null }} input
  * @param {any} actor jo ye kaam kar raha hai
  */
-export async function updateUser(userId, input, actor) {
+export async function updateUser(userId, { password, ...input }, actor) {
   const user = await User.findById(userId)
   if (!user) throw notFound('User nahi mila')
 
@@ -190,9 +195,17 @@ export async function updateUser(userId, input, actor) {
   }
 
   Object.assign(user, input)
+
+  if (password) {
+    user.passwordHash = await hashPassword(password)
+    // Password badla hai to purane sessions zinda rakhna galat hai — wo purane
+    // password ki umeed pe khule the
+    user.mustChangePassword = false
+  }
+
   await user.save()
 
-  if (deactivating) await revokeAllSessions(userId)
+  if (password || deactivating) await revokeAllSessions(userId)
 
   return toPublicUser(user)
 }

@@ -41,9 +41,13 @@ function RequireAuth({ children }) {
   if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
 
   /**
-   * `mustChangePassword` ek **gate** hai, banner nahi. Seed ka password `.env` me
-   * plain text me pada hai — jab tak wo badal na jaaye, admin ko andar jaane dena
-   * usi password ko zinda rakhna hai.
+   * `mustChangePassword` ek **gate** hai, banner nahi.
+   *
+   * Ye sirf **seed se bane admin** pe lagta hai — uska password `.env` file me plain
+   * text me padha hai. Form se bane users pe koi gate nahi (D-35): unka password admin
+   * deta hai aur wahi chalta hai.
+   *
+   * Isliye ye screen kahin route pe nahi hai — sirf yahan se aati hai, aur ek hi baar.
    */
   if (user.mustChangePassword) return <ChangePassword forced />
 
@@ -139,17 +143,6 @@ export default function App() {
           <RequireAuth>
             <Shell>
               <DeleteUser />
-            </Shell>
-          </RequireAuth>
-        }
-      />
-
-      <Route
-        path="/profile/password"
-        element={
-          <RequireAuth>
-            <Shell>
-              <ChangePassword />
             </Shell>
           </RequireAuth>
         }

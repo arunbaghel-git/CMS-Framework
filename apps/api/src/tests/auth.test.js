@@ -86,7 +86,11 @@ beforeEach(async () => {
   invalidateRoleCache()
 
   await ensureDefaultRoles()
-  await createUser({ name: 'Test Admin', email: EMAIL, role: 'admin', password: PASSWORD })
+  // `mustChangePassword: true` — warna change-password ka raasta hi band hai (D-35)
+  await createUser(
+    { username: 'testadmin', name: 'Test Admin', email: EMAIL, role: 'admin', password: PASSWORD },
+    { mustChangePassword: true },
+  )
 })
 
 describe('POST /api/auth/login', () => {
@@ -358,6 +362,19 @@ describe('POST /api/auth/change-password', () => {
       .send({ currentPassword: PASSWORD, newPassword: NEW_PASSWORD })
 
     expect(res.status).toBe(401)
+  })
+
+  it('gate na laga ho to 403 — user apna password khud nahi badal sakta (D-35)', async () => {
+    await User.updateOne({ email: EMAIL }, { $set: { mustChangePassword: false } })
+    const { jar } = await login()
+
+    const res = await changePassword(jar, {
+      currentPassword: PASSWORD,
+      newPassword: NEW_PASSWORD,
+    })
+
+    expect(res.status).toBe(403)
+    expect(res.body.error.message).toContain('administrator')
   })
 })
 

@@ -149,6 +149,20 @@ describe('GET /api/users', () => {
   })
 })
 
+describe('galat id', () => {
+  it('bekaar id pe 404 deta hai, 500 nahi', async () => {
+    // Mongoose CastError client ki galti hai — 500 se logs bhar jaate aur monitoring
+    // alert karti, jabki asli baat sirf ye hoti ki kisi ne galat link khola
+    const res = await authed('get', '/api/users/ye-koi-id-nahi', adminJar)
+    expect(res.status).toBe(404)
+  })
+
+  it('bekaar id pe PATCH bhi 404 deta hai', async () => {
+    const res = await authed('patch', '/api/users/ye-koi-id-nahi', adminJar).send({ name: 'X' })
+    expect(res.status).toBe(404)
+  })
+})
+
 describe('POST /api/users', () => {
   const newUser = {
     username: 'neha.s',
@@ -163,8 +177,8 @@ describe('POST /api/users', () => {
 
     expect(res.status).toBe(201)
     expect(res.body.data.user.username).toBe('neha.s')
-    // Password admin ne set kiya hai — pehle login pe user use badalta hai
-    expect(res.body.data.user.mustChangePassword).toBe(true)
+    // Koi gate nahi — user seedha admin wale password se andar aata hai (D-35)
+    expect(res.body.data.user.mustChangePassword).toBe(false)
   })
 
   it('naya user apne password se login kar leta hai', async () => {
@@ -252,6 +266,39 @@ describe('PATCH /api/users/:id', () => {
 
     const res = await authed('patch', `/api/users/${second.id}`, adminJar).send({ role: 'editor' })
     expect(res.status).toBe(200)
+  })
+
+  it('admin naya password set kar sakta hai', async () => {
+    await authed('patch', `/api/users/${editorId}`, adminJar).send({
+      password: 'bilkul-naya-passphrase',
+    })
+
+    const purana = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'ed@test.com', password: PASSWORD })
+    const naya = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'ed@test.com', password: 'bilkul-naya-passphrase' })
+
+    expect(purana.status).toBe(401)
+    expect(naya.status).toBe(200)
+  })
+
+  it('password set karne pe uske chalu sessions kat jaate hain', async () => {
+    // Purane sessions purane password ki umeed pe khule the
+    await loginAs('ed@test.com')
+    await authed('patch', `/api/users/${editorId}`, adminJar).send({
+      password: 'bilkul-naya-passphrase',
+    })
+
+    expect(await RefreshToken.countDocuments({ revokedAt: null })).toBe(1) // sirf admin ka
+  })
+
+  it('chhota password 400 deta hai', async () => {
+    const res = await authed('patch', `/api/users/${editorId}`, adminJar).send({
+      password: 'chhota',
+    })
+    expect(res.status).toBe(400)
   })
 
   it('deactivate karne pe uske sessions turant kat jaate hain', async () => {

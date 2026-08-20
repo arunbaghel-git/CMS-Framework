@@ -553,12 +553,18 @@ seed ka default hai. Har admin route pe `requirePermission('...')`.
 
 | | Kya hota hai | Kiske liye |
 |---|---|---|
-| **Deactivate** | Login band, sessions turant revoke, record aur content bache rehte hain | Roz ka kaam. Administrator ko hataane ka **ekmatra** raasta |
+| **Deactivate** | Login band, sessions turant revoke, record aur content bache rehte hain | **UI me nahi hai** (D-35) — API aur `status` field reserve hain |
 | **Delete** | Row DB se mit jaati hai. Pehle poochta hai "content kise dein" | Permanent. `user.delete` sirf admin ke paas |
 
 Teen guard service me hain, middleware me nahi (middleware ke paas document hota hi
 nahi): **administrator delete nahi hota** · **aakhri admin ka role nahi badalta** ·
 **koi apna account delete/deactivate nahi kar sakta**.
+
+**Password ka ekmatra source administrator hai** (D-35). User apna password khud nahi
+badal sakta — `/api/auth/change-password` sirf tab khulta hai jab `mustChangePassword`
+true ho, aur wo sirf seed wale admin pe lagta hai (uska password `.env` me plain text
+me hota hai). Admin Edit User se kabhi bhi reset kar sakta hai; reset hote hi us user
+ke saare sessions revoke ho jaate hain.
 
 ### 8.4 Kya ban chuka hai (Phase 0)
 

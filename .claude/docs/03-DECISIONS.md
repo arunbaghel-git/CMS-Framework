@@ -792,3 +792,54 @@ Phase 7 ke custom roles enum me nahi honge).
 intezaam chahiye hota); "saara content delete" wala option; aur admin protection ko
 sirf "aakhri admin" tak seemit rakhna — client ne kaha ki administrator practically
 owner hi hoga, isliye poora block hi simple aur sahi hai.
+
+---
+
+## D-35 · Password administrator set karta hai, user nahi
+
+> **D-34 ko extend karta hai.** Wahan Users ka delete/username tay hua tha; ye password
+> aur account status ke baare me hai.
+
+**Context:** Users screens test karne ke baad client ne teen cheezein badalne ko kahin:
+row me Deactivate nahi chahiye, Edit form me status nahi chahiye, aur naya user wahi
+password use kare jo administrator ne diya hai.
+
+### 1. User apna password khud nahi badal sakta
+
+Password ka ekmatra source **administrator** hai — Add User form me set karta hai, aur
+Edit User me kabhi bhi reset kar sakta hai.
+
+`/api/auth/change-password` khatam nahi kiya — wo **sirf tab khulta hai jab
+`mustChangePassword` true ho**, aur wo sirf ek jagah lagta hai: **seed se bana admin**,
+jiska password `.env` file me plain text me padha hai. Wo ek baar badalta hai, uske
+baad wahi raasta uske liye bhi band ho jaata hai (403).
+
+**Nateeja:** password bhoolne pa recovery ka ekmatra raasta admin hai. Isliye Edit User
+me password field **zaroori** hai — wo isi decision ka doosra aadha hissa hai, alag
+feature nahi. Password reset hote hi us user ke **saare chalu sessions revoke** ho
+jaate hain: wo purane password ki umeed pe khule the.
+
+Form se bana user ab `mustChangePassword: false` ke saath aata hai. `createUser` ka
+default bhi `false` hai; `ensureAdminUser` (seed) explicitly `true` bhejta hai.
+
+### 2. Deactivate poori tarah UI se hat gaya
+
+Row actions ab bilkul design jaise hain — **Edit | Delete**. Edit form me status
+dropdown nahi hai.
+
+> **Iska ek natija saaf likh dena zaroori hai:** administrator delete nahi hota
+> (D-34) aur ab deactivate bhi nahi hota — matlab **administrator ka access chheenne ka
+> koi raasta nahi bacha**. Client ne ye jaan-boojh kar chuna: administrator practically
+> owner hi hai aur ek hi hai. Kabhi doosra admin banane ki naubat aaye to ye decision
+> dobara dekhni padegi.
+
+`status` field aur `/api/users/:id/deactivate` **rehne diye gaye** — `inactive` user ka
+login abhi bhi block hota hai, aur field hataane ka matlab hota migration + login check
+badalna. UI se koi raasta nahi jaata; ye jaan-boojh kar reserve hai (D-30 wala pattern).
+
+**Raaste me pakda gaya:** galat id (`/api/users/kuch-bhi`) pe Mongoose `CastError`
+seedha 500 ban jaata tha. Wo client ki galti hai, server ki nahi — ab 404 deta hai.
+Iske bina har galat link error logs me jaata aur monitoring bewajah alert karti.
+
+**Reject kiya:** change-password endpoint bilkul hata dena — tab seed admin apna
+plain-text wala password kabhi badal hi nahi paata.

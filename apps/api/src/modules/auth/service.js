@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import { USER_STATUS, toPublicUser } from '@cms/shared'
 
 import { logger } from '../../core/logger.js'
-import { unauthorized, unprocessable } from '../../core/errors.js'
+import { forbidden, unauthorized, unprocessable } from '../../core/errors.js'
 import {
   REFRESH_TTL_MS,
   newCsrfToken,
@@ -210,7 +210,11 @@ export async function revokeAllSessions(userId) {
 }
 
 /**
- * Apna password badalna.
+ * Apna password badalna — **sirf jab gate laga ho** (D-35).
+ *
+ * Normal user apna password nahi badal sakta; wo admin set karta hai. Ye raasta sirf
+ * us ek case ke liye khula hai jahan gate laga hai — seed se bana admin, jiska
+ * password `.env` file me plain text me padha hai.
  *
  * @param {string} userId
  * @param {{ currentPassword: string, newPassword: string }} input
@@ -218,6 +222,10 @@ export async function revokeAllSessions(userId) {
 export async function changePassword(userId, { currentPassword, newPassword }) {
   const user = await User.findById(userId).select('+passwordHash')
   if (!user) throw unauthorized()
+
+  if (!user.mustChangePassword) {
+    throw forbidden('Password administrator set karta hai. Unse baat karein.')
+  }
 
   const ok = await verifyPassword(currentPassword, user.passwordHash)
   if (!ok) throw unprocessable('Abhi ka password galat hai')

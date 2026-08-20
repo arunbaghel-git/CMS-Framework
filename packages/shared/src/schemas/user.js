@@ -128,6 +128,13 @@ export const createUserSchema = userSchema.pick({ name: true, email: true, role:
 export const updateUserSchema = userSchema
   .pick({ name: true, role: true, status: true, avatarMediaId: true })
   .partial()
+  .extend({
+    /**
+     * Admin yahan se user ka password reset karta hai (D-35) — user khud nahi badal
+     * sakta, isliye bhoole hue password ka ekmatra raasta yahi hai.
+     */
+    password: passwordSchema.optional(),
+  })
 
 export const loginSchema = z.object({
   email: emailSchema,

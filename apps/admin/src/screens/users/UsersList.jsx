@@ -8,6 +8,9 @@ import './Users.css'
 /**
  * Users list — `admin-design.html` ke `#s-users` se.
  *
+ * Row actions design ke hisaab se hi hain — **Edit | Delete**. Delete un rows pe
+ * dikhta hi nahi jinpe wo chalega nahi: administrator aur apni row (D-34).
+ *
  * Design se ek jaan-boojh kar liya gaya farq: **row ka checkbox column nahi hai.**
  * Bulk actions abhi bane nahi hain, aur aisa checkbox jo select to ho par kuch kar na
  * sake — wo "khaali" nahi, "toota hua" lagta hai (D-30 ka ulta). Bulk actions ke saath
@@ -204,11 +207,6 @@ function UserRow({ user, me, can, roleLabel }) {
           {can('user.update') && (
             <span>
               <Link to={`/users/${user.id}`}>Edit</Link>
-            </span>
-          )}
-          {can('user.deactivate') && !isMe && user.status !== 'inactive' && (
-            <span>
-              <Link to={`/users/${user.id}`}>Deactivate</Link>
             </span>
           )}
           {canDelete && (
