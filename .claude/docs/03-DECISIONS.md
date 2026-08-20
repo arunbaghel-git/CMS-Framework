@@ -843,3 +843,48 @@ Iske bina har galat link error logs me jaata aur monitoring bewajah alert karti.
 
 **Reject kiya:** change-password endpoint bilkul hata dena — tab seed admin apna
 plain-text wala password kabhi badal hi nahi paata.
+
+---
+
+## D-36 · Built-in roles code-owned hain — unki permissions hamesha sync hoti hain
+
+**Context:** `user.delete` (D-34) code me juda, seed bhi chala, par admin ko Users list
+me Delete button dikha hi nahi. DB dekha to `admin` role ke paas 66 permissions thin,
+code me 67.
+
+Wajah: `ensureDefaultRoles()` existing role ko **poora skip** kar deta tha (idempotency
+ke naam pe). Matlab **code me joda gaya koi bhi naya permission string kisi chalu
+instance tak kabhi pahunchta hi nahi tha.**
+
+Ye is project ka sabse khatarnaak kism ka bug hai: koi error nahi, koi log nahi, bas
+button render nahi hota. Dhoondhne pe pehla shak UI pe jaata hai, jabki galti data me
+hai. Aur ye har naye permission ke saath, har client instance pe dohraata.
+
+**Decision:** **built-in roles (`isBuiltIn: true`) code-owned hain.** Unki permissions
+`ROLE_PERMISSIONS` se hamesha sync hoti hain — `force` ka intezaar nahi.
+
+Custom roles (`isBuiltIn: false`, Phase 7) ko ye haath nahi lagata — unki permissions
+admin ne set ki hain.
+
+**Do raaste, kyunki do alag mauke hain:**
+
+| Kab | Kaun |
+| --- | --- |
+| Naya instance | `pnpm seed` → `ensureDefaultRoles()` |
+| Chalu instance, deploy pe | `pnpm cms migrate` → `migrations/004-…` |
+
+Seed sirf naye instance pe chalta hai, isliye akela kaafi nahi tha — chalu instances
+tak pahunchne ka raasta migration hi hai (06-OPERATIONS §3.1 ka deploy step).
+
+**Nateeja jo yaad rakhna hai:** aage jab bhi `PERMISSION` me koi string add karo, us
+release me ek **sync migration** bhi chahiye — warna wo permission sirf naye instances
+pe pahunchegi. `004` isi ka template hai (chhoti, `up()` me sirf ek loop).
+
+**Reject kiya:** boot pe sync karna — index build ki tarah, ye deploy-time kaam hai,
+boot-time nahi (migration 001 ka comment yahi kehta hai). Aur `pnpm seed --force` pe
+chhod dena — force label/description bhi reset karta hai, aur "yaad rakhna padega"
+wala hal wahi hai jo abhi fail hua.
+
+Spec 001 ka _"mapping DB me, code me hardcode nahi"_ tootta nahi: source of truth abhi
+bhi `roles` collection hai, aur custom roles usi collection me banenge. Sirf built-in
+roles ka **content** code se aata hai.

@@ -54,7 +54,12 @@ export async function main(argv = process.argv.slice(2)) {
     const summary = await runSeed({ force })
 
     for (const r of summary.roles) {
-      logger.info({ role: r.key }, `Role ${r.action}`)
+      // Kya juda/hata bhi dikhao — "synced" akela ye nahi batata ki asar kya hua
+      const detail = {}
+      if (r.added?.length) detail.added = r.added
+      if (r.removed?.length) detail.removed = r.removed
+
+      logger.info({ role: r.key, ...detail }, `Role ${r.action}`)
     }
 
     if (summary.admin) {

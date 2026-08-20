@@ -54,8 +54,18 @@ export async function listRoles() {
  * Default roles banata hai — **idempotent** (spec 004). Dobara chale to duplicate
  * nahi banta.
  *
- * @param {{ force?: boolean }} [options] `force` existing roles ki permissions bhi
- *   reset kar deta hai — custom changes chale jaayenge.
+ * **Built-in roles ki permissions hamesha sync hoti hain**, sirf `force` pe nahi.
+ *
+ * Kyun: pehle existing role poora skip ho jaata tha. Nateeja ye tha ki code me joda
+ * gaya naya permission string kisi chalu instance tak pahunchta hi nahi — aur wo
+ * failure bilkul chup-chaap hoti hai. Button render nahi hota, koi error nahi aata,
+ * aur dhoondhne pe lagta hai ki UI ka bug hai. `user.delete` ke saath theek yahi hua.
+ *
+ * Built-in roles **code-owned** hain. Custom roles (Phase 7, `isBuiltIn: false`) ko
+ * ye haath nahi lagata.
+ *
+ * @param {{ force?: boolean }} [options] `force` label aur description bhi reset karta
+ *   hai — permissions to waise bhi hamesha sync hoti hain.
  */
 export async function ensureDefaultRoles({ force = false } = {}) {
   const labels = {
@@ -79,17 +89,29 @@ export async function ensureDefaultRoles({ force = false } = {}) {
   for (const [key, permissions] of Object.entries(ROLE_PERMISSIONS)) {
     const existing = await Role.findOne({ key })
 
-    if (existing && !force) {
-      results.push({ key, action: 'skipped' })
-      continue
-    }
-
     if (existing) {
+      // Custom role (Phase 7) — uski permissions admin ne set ki hain, chhoona nahi
+      if (!existing.isBuiltIn && !force) {
+        results.push({ key, action: 'skipped' })
+        continue
+      }
+
+      const added = permissions.filter((p) => !existing.permissions.includes(p))
+      const removed = existing.permissions.filter((p) => !permissions.includes(p))
+      const changed = added.length > 0 || removed.length > 0
+
+      if (!changed && !force) {
+        results.push({ key, action: 'up-to-date' })
+        continue
+      }
+
       existing.permissions = [...permissions]
-      existing.label = labels[key] ?? key
-      existing.description = descriptions[key] ?? ''
+      if (force) {
+        existing.label = labels[key] ?? key
+        existing.description = descriptions[key] ?? ''
+      }
       await existing.save()
-      results.push({ key, action: 'updated' })
+      results.push({ key, action: 'synced', added, removed })
       continue
     }
 

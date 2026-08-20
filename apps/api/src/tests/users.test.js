@@ -433,6 +433,36 @@ describe('GET /api/roles', () => {
     expect(typeof res.body.data[0].permissionCount).toBe('number')
   })
 
+  it('code me juda naya permission chalu instance tak pahunchta hai', async () => {
+    /**
+     * Ye asli bug tha: roles ek baar seed hote the aur uske baad skip. Code me
+     * `user.delete` juda par kisi chalu instance tak pahuncha hi nahi — admin ko
+     * Delete button dikhna band ho gaya aur koi error kahin nahi aaya.
+     */
+    await Role.updateOne({ key: 'admin' }, { $set: { permissions: ['entry.read'] } })
+
+    const result = await ensureDefaultRoles()
+    const admin = await Role.findOne({ key: 'admin' }).lean()
+
+    expect(admin.permissions).toContain('user.delete')
+    expect(result.find((r) => r.key === 'admin').action).toBe('synced')
+  })
+
+  it('custom role (isBuiltIn: false) ko sync haath nahi lagata', async () => {
+    // Uski permissions admin ne set ki hain, code ne nahi
+    await Role.create({ key: 'special', label: 'Special', permissions: ['entry.read'] })
+
+    await ensureDefaultRoles()
+
+    const special = await Role.findOne({ key: 'special' }).lean()
+    expect(special.permissions).toEqual(['entry.read'])
+  })
+
+  it('kuch na badla ho to up-to-date batata hai', async () => {
+    const result = await ensureDefaultRoles()
+    expect(result.every((r) => r.action === 'up-to-date')).toBe(true)
+  })
+
   it('editor ke paas role.read nahi hai — 403', async () => {
     const editorJar = await loginAs('ed@test.com')
     expect((await authed('get', '/api/roles', editorJar)).status).toBe(403)
