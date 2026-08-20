@@ -134,9 +134,10 @@ wo aaj shuru ho sakta hai.
 
 ## Admin design — FROZEN
 
-Admin ka final spec `.claude/docs/reference/admin-design.html` hai
-(analysis: `docs/11-REFERENCE-ADMIN.md`). **Bilkul waisa hi banega** — layout,
+Admin ka spec `.claude/docs/reference/admin-design.html` hai
+(analysis: `docs/11-REFERENCE-ADMIN.md`). **Usi ke hisaab se banega** — layout,
 colours, spacing, wording sab.
 
 `docs/04-ADMIN-UX.md` ab secondary hai; conflict ho to design jeetega.
-Koi bhi change sirf client ke kehne pe — khud variation mat banao.
+Design badal sakta hai — par change **client se** aayega, developer se nahi.
+Build ke waqt kuch theek na lage to pehle poochho, khud mat badlo.

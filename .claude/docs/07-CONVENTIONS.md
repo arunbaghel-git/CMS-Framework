@@ -288,9 +288,9 @@ Code badle to doc bhi badle — **usi PR me**:
 **Decision reverse karna ho to purani D-xx entry delete mat karo** — usme
 "Superseded by D-yy" likh do. Reasoning ka itihaas hi is doc ki asli value hai.
 
-8. **Admin design frozen hai.** `.claude/docs/reference/admin-design.html` ka layout,
-   colours aur wording bilkul waisa hi banega. Apna variation mat banao — change
-   sirf client ke kehne pe.
+8. **Admin design ek spec hai.** `.claude/docs/reference/admin-design.html` ka layout,
+   colours aur wording waisa hi banega. Design badal sakta hai, par change **client**
+   se aayega — developer se nahi. Kuch theek na lage to poochho, khud mat badlo.
 
 9. **CSS plain rahegi** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28).
    Shared styles `styles/` me, component ki apni CSS uske saath. Har component ka

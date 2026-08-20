@@ -1,15 +1,25 @@
-# 11 — Admin Design (FINAL SPEC)
+# 11 — Admin Design (SPEC)
 
 **File:** [`reference/admin-design.html`](reference/admin-design.html) — browser me kholo
-**Status:** 🔒 **FROZEN** — 20 Aug 2026
+**Status:** 🔒 **SPEC** — 20 Aug 2026
 
 > ## ⚠️ Ye reference nahi, SPEC hai
 >
-> Admin **bilkul aisa hi banega** — layout, colours, spacing, wording, sab.
-> Ismein se cherry-pick nahi karna, apna variation nahi banana.
+> Admin **isi design ke hisaab se banega** — layout, colours, spacing, wording, sab.
+> Ismein se cherry-pick nahi karna, aur implement karte waqt apna variation nahi banana.
 >
-> **Koi bhi change sirf client ke kehne pe hoga.** Agar build ke waqt lage ki kuch
-> theek nahi hai — pehle poochho, khud mat badlo.
+> ### Design badal sakta hai — par change **client se** aayega
+>
+> Section add ya remove hona, colour ya spacing tweak hona — bilkul normal hai.
+> Bas faisla client ka hoga, developer ka nahi.
+>
+> | Ye theek hai ✅ | Ye nahi ❌ |
+> |---|---|
+> | Client bole "sidebar 240px karo" → kar do | Aapko laga sidebar chhota hai → khud badal diya |
+> | Client naya section maange → add karo | Design me section hai par "zaroorat nahi lagi" → skip kar diya |
+> | Client bole "ye colour badlo" → badal do | "Ye colour achha nahi lag raha" → apna choose kar liya |
+>
+> Build ke waqt lage ki kuch theek nahi hai — **pehle poochho, khud mat badlo.**
 
 Design ke CSS comments me `components/admin/Sidebar.jsx` jaise paths hain — matlab ye
 humare stack ke hisaab se hi banaya gaya hai. CSS aur structure seedha use kiya ja
