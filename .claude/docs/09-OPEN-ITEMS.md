@@ -1,6 +1,6 @@
 # 09 — Open Items
 
-**Status:** Phase 0 chal raha hai (~65%). Code shuru ho chuka hai — 44 tests passing.
+**Status:** Phase 0 chal raha hai (~85%). Auth + RBAC land ho chuka — 130 tests passing.
 **Last updated:** 20 Aug 2026
 
 ---
@@ -31,6 +31,9 @@
 | Admin design                | ✅ **Client ka asli design ab SPEC hai** — `docs/reference/admin-design.html`            |
 | Ruki hui cheezein           | ✅ **Connection point abhi, data baad me** (D-30)                                        |
 | **Q-1 Login screen**        | ✅ **Design me nahi hai** — WordPress-style, design ke tokens se (D-31)                  |
+| Password hashing            | ✅ **`bcryptjs`** cost 12 — native `bcrypt` nahi (D-32)                                 |
+| `.env` load kaise ho        | ✅ **Node ka `process.loadEnvFile()`** — `dotenv` package nahi (D-33)                   |
+| Design-change rule kahan    | ✅ `07-CONVENTIONS.md` **R15** — pehle kahin likha hi nahi tha                          |
 
 **A-2 kahan bana:** `packages/shared/src/schemas/` — `entry.js`, `block.js`,
 `content.js`, `seo.js` + `schemas.test.js`. Contract ab **frozen** hai.
@@ -73,26 +76,51 @@ Spec 005 me add karne honge.
 ## Ab ka order
 
 ```
-1. Phase 0 — Auth + RBAC + admin shell           ← ABHI YAHAN
+1. Phase 0 — Users + Settings screens            ← ABHI YAHAN
 2. C-2 — Payload spike (parallel me)             (2 din)
 3. Slice 0 — Header + Footer end-to-end          (1.5 hafte)
 4. Phase 1 — Content Core                        (3 hafte)
 ```
 
 **Phase 0 me kya ho chuka:** monorepo + workspaces, docker-compose, ESLint/Prettier,
-CI, Express boilerplate, Zod contract, migration runner, CSS architecture.
+CI, Express boilerplate, Zod contract, migration runner, CSS architecture,
+**auth + RBAC + admin shell** (login, protected routes, sidebar, `/api/me`).
 
-**Phase 0 me kya baaki:** auth + RBAC, seed script, admin shell (login + sidebar).
+**Phase 0 me kya baaki:** Users screens (list, invite, deactivate), Settings screens,
+seed ka baaki hissa (settings/entries — wo Phase 1 pe block hai).
 
 ---
 
 ## Housekeeping
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
+- ✅ R15 likh diya gaya — design change client se aata hai
 - ⚠️ **Push abhi bhi nahi hua** (permission pe hoga). GitHub repo khaali hai
 - ⚠️ Repo ka naam **`crmmern`** hai par project **CMS** hai — rename karna ho to abhi sasta hai
 - ⚠️ `CLAUDE.md` `.claude/` ke andar hai. Load to ho rahi hai, par root pe rakhna
   zyada reliable hai
-- ⚠️ "Design change client se aayega" rule `07-CONVENTIONS.md` me **likha nahi hai** —
-  `project-state.md` usse "rule 8" bolta hai par R8 Zod validation hai. R15 banani chahiye
+- ⚠️ **9 files prettier-dirty hain** — 6 admin CSS, `App.jsx` se pehle wali,
+  aur dono memory files. `pnpm format` ek baar chala do
 - `docs/archive/` purane versions hain. Git history ab hai, isliye kabhi bhi hata sakte ho
+
+---
+
+## 🔧 Local setup ke do kaante (20 Aug me mile)
+
+Dono `apps/api/.env` me hain — wo file git me nahi hai, isliye code se theek nahi ho sakti.
+
+### 1. `COOKIE_SECURE=true` — local HTTP dev me login tik nahi payega
+
+`Secure` cookie plain `http://localhost` pe **browser store hi nahi karega**. Login
+200 dega par session bachega nahi. Cookie ka naam bhi `__Host-cms_at` ban jaata hai.
+
+```diff
+- COOKIE_SECURE=true
++ COOKIE_SECURE=false     # prod me true — wahan HTTPS hai
+```
+
+### 2. `MIGRATIONS_DIR=../../migrations` — cwd-relative hai
+
+`pnpm cms` repo **root** se chalta hai, isliye ye `C:\Users\deepa\migrations` pe
+resolve hota tha. Pehle iska nateeja **chup-chaap "koi pending migration nahi"** tha;
+ab runner saaf error deta hai. Absolute path do ya line hata do (default sahi hai).

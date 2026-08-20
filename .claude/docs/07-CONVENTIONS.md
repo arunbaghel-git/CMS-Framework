@@ -92,6 +92,26 @@ GET usi gap se CSRF-able hai.
 
 Saara data ek page me = admin hang.
 
+### R15 · Admin ka design badalna client ka kaam hai, developer ka nahi
+
+`docs/reference/admin-design.html` **spec hai**. Layout, colours, spacing, wording —
+sab wahin se aata hai. Build ke waqt kuch theek na lage to **pehle poochho, khud mat
+badlo**.
+
+| Theek hai                              | Theek nahi hai                                     |
+| -------------------------------------- | -------------------------------------------------- |
+| Client bole "sidebar 240px karo"       | Aapko laga sidebar chhota hai → khud badal diya    |
+| Client naya section maange             | Design me section tha par "zaroorat nahi lagi"     |
+| Client bole "ye colour badlo"          | "Colour achha nahi lag raha" → apna choose kar liya |
+| Design me hai hi nahi → poochho (D-31) | Design me hai hi nahi → apne hisaab se bana diya    |
+
+Semantic markup badalna is rule ke **khilaaf nahi** hai — design me toggle `<a>` hai
+par wo navigate nahi karta, isliye code me `<button>` hai. Dikhne me kuch nahi badalta,
+sirf keyboard aur screen reader theek se chalte hain.
+
+> Ye rule pehle sirf `CLAUDE.md` aur `project-state.md` me tha (galti se "rule 8"
+> bola jaata tha). Ab yahan hai.
+
 ---
 
 ## 2. Code layout

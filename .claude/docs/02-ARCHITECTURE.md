@@ -540,12 +540,34 @@ ke saath same-origin execute hona poore system ka sabse bada target hai.
 | `editor`      | Saara content publish, media, menus. Trash me daal sakta hai, mita nahi sakta |
 | `author`      | Apna content **publish kar sakta hai**                                        |
 | `contributor` | Apna content likhta hai, publish nahi — `pending` pe bhejta hai               |
+| `salesAgent`  | Enquiries handle karta hai, content nahi (D-29). Permissions Phase 7b me      |
 
-Char roles hi hain — `subscriber` nahi banega (D-26).
+**Paanch** roles hain — `subscriber` nahi banega (D-26), `salesAgent` add hua (D-29).
 
 Permissions string-based: `entry.create`, `entry.publish`, `entry.publish.own`,
 `media.delete`, `settings.update`, `settings.scripts.update`. Role → permissions[]
-mapping DB me. Har admin route pe `requirePermission('...')`.
+mapping **DB me** (`roles` collection) — `packages/shared` ka `ROLE_PERMISSIONS` sirf
+seed ka default hai. Har admin route pe `requirePermission('...')`.
+
+**Users pe `deletedAt` nahi hai.** D-25 (trash) content ke liye hai; user delete karne
+se uska content aur activity log orphan ho jaate, isliye user `inactive` hota hai —
+hataya nahi jaata. Deactivate hote hi uske chalu sessions bhi revoke ho jaate hain.
+
+### 8.4 Kya ban chuka hai (Phase 0)
+
+```
+apps/api/src/core/tokens.js          JWT sign/verify + cookie flags + safeEqual
+apps/api/src/middleware/auth.js      attachUser · requireAuth · requirePermission
+apps/api/src/middleware/csrf.js      double-submit check
+apps/api/src/modules/auth/           RefreshToken model · login/refresh/logout/password
+apps/api/src/modules/users/          User model · GET|PATCH /api/me
+apps/api/src/modules/roles/          Role model · permissions cache · seed defaults
+migrations/002-auth-indexes.js       users · roles · refreshTokens (TTL ke saath)
+```
+
+`attachUser` **har request pe user DB se laata hai** (role cached hai, user nahi).
+Ek query ki keemat pe ye guarantee milti hai ki deactivate kiya gaya user agli hi
+request pe bahar ho jaaye — 15 minute baad nahi jab access token expire ho.
 
 Har user ke liye **apni profile screen** (naam, email, password, avatar) — ye "dusron ko
 manage karna" se alag cheez hai.

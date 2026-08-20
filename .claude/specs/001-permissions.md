@@ -1,6 +1,6 @@
 # 001 — Permission strings
 
-**Status:** 🟢 Approved — 19 Aug 2026
+**Status:** ✅ Implemented — 20 Aug 2026 (Enquiries permissions Phase 7b me baaki)
 **Phase:** 0
 **Blocks:** `requirePermission()` middleware, `Role` model, seed script
 **Related:** D-18 (statuses), `02-ARCHITECTURE.md` §8.3
@@ -186,13 +186,15 @@ admin se bolna padega — thoda friction, par recoverable.
 
 ## Acceptance criteria
 
-- [ ] Saare permission strings `packages/shared` me constants ke roop me
-- [ ] `requirePermission()` middleware string leta hai, 403 deta hai
-- [ ] `.own` variant service layer me authorId check karta hai
-- [ ] 5 default roles seed hote hain is mapping ke saath
-- [ ] Test: har role ka ek restricted route pe 403
-- [ ] Test: `contributor` publish nahi kar paata par submitReview kar paata hai
-- [ ] Docs: `02-ARCHITECTURE.md` §8.3 me link
+- [x] Saare permission strings `packages/shared/src/constants/permissions.js` me
+- [x] `requirePermission()` middleware string leta hai, 403 deta hai
+- [ ] `.own` variant service layer me authorId check karta hai — **entries ke saath
+      aayega** (Phase 1); abhi koi `.own` route hai hi nahi
+- [x] 5 default roles seed hote hain is mapping ke saath (`ensureDefaultRoles`)
+- [ ] Test: har role ka ek restricted route pe 403 — **abhi sirf middleware ka unit
+      test hai**; asli protected route Phase 1 me aayega
+- [x] Test: `contributor` publish nahi kar paata par submitReview kar paata hai
+- [x] Docs: `02-ARCHITECTURE.md` §8.3 sync (§8.4 me file list bhi)
 
 ---
 

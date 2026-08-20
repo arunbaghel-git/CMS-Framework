@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
 import { z } from 'zod'
 
 /**
@@ -6,6 +9,34 @@ import { z } from 'zod'
  * Boot pe validate hota hai. Missing ya galat var pe app start hi nahi hoga —
  * runtime pe fail hona allowed nahi hai.
  */
+
+/**
+ * `apps/api/.env` load karta hai — Node ka apna loader, koi `dotenv` package nahi (R3:
+ * jitni kam dependencies utna kam maintenance).
+ *
+ * Path `import.meta.url` se banta hai, `process.cwd()` se nahi — `pnpm seed` repo root
+ * se chalti hai aur `pnpm dev:api` `apps/api` se; cwd pe bharosa karte to ek jagah
+ * `.env` milti aur dusri jagah nahi.
+ *
+ * File na ho to **chup-chaap** aage badho: production me asli env vars process me
+ * hote hain, `.env` file wahan hoti hi nahi.
+ */
+const envFile = fileURLToPath(new URL('../../.env', import.meta.url))
+
+/**
+ * Test me `.env` **kabhi nahi** load hoti.
+ *
+ * Warna suite developer ki local file pe depend karne lagti hai: kisi ke yahan
+ * `COOKIE_SECURE=true` hai to cookie ke naam badal jaate hain aur test fail hota hai,
+ * jabki CI pe wahi test pass karta hai. Test ka env `vitest.config.js` me hai — bas
+ * wahi, aur kuch nahi.
+ */
+const skipEnvFile = process.env.NODE_ENV === 'test'
+
+if (!skipEnvFile && existsSync(envFile) && typeof process.loadEnvFile === 'function') {
+  // Pehle se set vars ko overwrite nahi karta — shell/CI ki value jeetti hai
+  process.loadEnvFile(envFile)
+}
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -48,6 +79,15 @@ const envSchema = z
     MAIL_FROM: z.string().optional(),
 
     SENTRY_DSN: z.string().optional(),
+
+    /**
+     * Seed ka pehla admin — spec 004. Optional isliye hai ki ye sirf `pnpm seed` ke
+     * waqt chahiye; inke bina app normally boot hona chahiye. Seed inhe na paaye to
+     * admin user skip karke roles seed kar deta hai.
+     */
+    SEED_ADMIN_EMAIL: z.string().email().optional(),
+    SEED_ADMIN_PASSWORD: z.string().optional(),
+    SEED_ADMIN_NAME: z.string().optional(),
   })
   .superRefine((val, ctx) => {
     if (val.STORAGE_DRIVER === 's3') {
@@ -85,6 +125,7 @@ export const REDACTED_KEYS = [
   'S3_ACCESS_KEY',
   'SMTP_PASS',
   'MONGODB_URI',
+  'SEED_ADMIN_PASSWORD',
 ]
 
 /**

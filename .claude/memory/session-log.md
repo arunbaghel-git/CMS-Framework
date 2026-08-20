@@ -15,15 +15,62 @@ Format:
 
 ---
 
+## 2026-08-20 — Auth + RBAC + admin shell; docs ko asli state pe laaya
+
+**Kya hua**
+
+- `/status` chalaya to sabse bada mismatch `09-OPEN-ITEMS.md` me tha — "code shuru
+  nahi hua" likha tha jabki Phase 0 ~65% ho chuka tha. Wo aur `CLAUDE.md` sync kiye
+- Q-1 (login screen) client se clear hua → D-31
+- **Backend auth poora:** User/Role/RefreshToken models, migration 002 (TTL index ke
+  saath), JWT + cookie layer, CSRF double-submit, `requirePermission()`,
+  login/refresh/logout/change-password, `GET|PATCH /api/me`, roles seed
+- **Admin shell:** login screen, protected routes, AdminBar, Sidebar (design ke poore
+  menu ke saath), `mustChangePassword` gate, NotBuiltYet placeholder screens
+- `lib/api.js` ka purana TODO poora — **single-flight refresh mutex** (D-13)
+- Tests 44 → **130**. Auth ke integration tests asli Mongo pe chalte hain
+- Asli Mongo pe end-to-end verify: login → rotation → reuse detection → family revoke
+
+**Teen asli bug jo raaste me mile**
+
+1. `emailSchema` me `.email()` `.trim()` se **pehle** chal raha tha — `a@b.com`
+   reject hota tha aur user ko "email sahi nahi lag raha" dikhta, jabki email sahi thi
+2. `.env` file maujood thi par **use koi load hi nahi karta tha** — na dotenv, na
+   `--env-file`. `pnpm seed` iske bina chal hi nahi sakti thi (D-33)
+3. Migration runner missing directory pe **chup-chaap `[]`** lautata tha —
+   `pnpm cms migrate` "koi pending nahi" bol kar exit 0 deta tha aur indexes bante
+   hi nahi. Ab loud error deta hai. (`.env` ka `MIGRATIONS_DIR` cwd-relative hai,
+   isliye ye asli me ho raha tha)
+
+Ek regression khud banayi aur pakdi: `.env` load karne se **test env local file pe
+depend karne laga** (`COOKIE_SECURE=true` se cookie ke naam badle aur ek test fail
+hua). Ab `NODE_ENV=test` pe `.env` load hoti hi nahi.
+
+**Faisle:** D-31 login screen · D-32 `bcryptjs` (native bcrypt nahi) · D-33 `.env`
+Node ke apne loader se. Aur `07-CONVENTIONS.md` me **R15** likha — "design change
+client se aata hai" rule pehle kahin likha hi nahi tha (docs use galti se "rule 8"
+bolte the, jabki R8 Zod validation hai).
+
+**Agla**
+
+1. Users screens — list (server-side pagination), invite, edit, deactivate
+2. Settings General
+3. `roles` module ko `routes.js` do (abhi sirf model + service hai)
+4. `apps/api/.env` me `COOKIE_SECURE=false` aur `MIGRATIONS_DIR` wali line theek karo
+
+---
+
 ## 2026-08-20 — Client ke asli design aaye; CSS architecture tay hui
 
 **Kya hua**
+
 - Client ne do asli design diye — public site (Andaman travel) aur admin (travel CMS).
   Dono analyse kiye: `docs/10-REFERENCE-DESIGN.md` aur `docs/11-REFERENCE-ADMIN.md`
 - Admin design ab **SPEC** hai, reference nahi. `04-ADMIN-UX.md` secondary ho gaya
 - CSS architecture tay hui aur implement bhi — Tailwind hataya, plain CSS aaya
 
 **Faisle**
+
 - D-28 Plain CSS — Tailwind, CSS Modules, CSS-in-JS teenon reject.
   Sabse bada reason: blocks ka theming contract stable class names maangta hai,
   Tailwind utility classes se wo toot jaata hai. shadcn/ui bhi gaya (Tailwind pe
@@ -35,6 +82,7 @@ Format:
 - Design badal sakta hai par change client se aayega, developer se nahi (rule 8)
 
 **Design se jo gaps mile**
+
 - Mega-menu — humara menu model simple nested tree hai, design me columns aur
   non-clickable group headings hain. Slice 0 me fix karna hai
 - Enquiries ek mini-CRM hai (pipeline, assign, quotation, notes), form inbox nahi.
@@ -56,7 +104,8 @@ simple banega.
 
 ---
 
-  rate limit, pino, error envelope, /api/health, graceful shutdown)
+rate limit, pino, error envelope, /api/health, graceful shutdown)
+
 - Zod contract freeze (spec 002): block envelope, content, seo, entry +
   create/update/listQuery. Permissions constants (spec 001). Field DSL (D-24).
   JSDoc typedefs.
@@ -87,6 +136,7 @@ User se poochha tha: ek saath karein ya do hisson me — jawab pending.
 ## 2026-08-19 — Coding shuru: setup + contract + migrations
 
 **Kya bana**
+
 - Phase 0 setup layer: pnpm monorepo, 3 apps + 2 packages, docker (mongo 8),
   ESLint 10 + Prettier, GitHub Actions CI, Express base (helmet, CORS allowlist,
   rate limit, pino, error envelope, /api/health, graceful shutdown)
@@ -119,6 +169,7 @@ User se poochha tha: ek saath karein ya do hisson me — jawab pending.
 
 **Faisle:** … (ya "koi nahi")
 **Agla:** …
+
 ```
 
 ---
@@ -205,3 +256,4 @@ Phase 6 ka kaafi kaam kam ho jaata hai. → `specs/005-field-dsl.md`
 - D-18 statuses: `pending` + `private` + trash
 
 **Agla:** docs organize karna
+```

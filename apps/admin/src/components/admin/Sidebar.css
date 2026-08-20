@@ -7,27 +7,137 @@
 /* ============================================================
    SIDEBAR  (components/admin/Sidebar.jsx)
    ============================================================ */
-.sidebar{position:fixed;top:var(--bar-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--nav-bg);overflow-y:auto;overflow-x:hidden;z-index:110;transition:width .15s ease}
-.sidebar::-webkit-scrollbar{width:8px}
-.sidebar::-webkit-scrollbar-thumb{background:#3c434a;border-radius:4px}
-body.collapsed .sidebar{width:var(--sidebar-w-collapsed)}
-.menu{list-style:none;margin:0;padding:0}
-.menu > li{position:relative}
-.menu-link{display:flex;align-items:center;gap:10px;padding:9px 12px;color:var(--nav-text);font-size:14px;line-height:20px;cursor:pointer;user-select:none}
-.menu-link:hover{background:var(--nav-bg-sub);color:#72aee6;text-decoration:none}
-.menu-link .ico{width:20px;flex:0 0 20px;text-align:center;font-size:15px;opacity:.85}
-.menu-link .label{flex:1;white-space:nowrap;overflow:hidden}
-.menu-link .caret{font-size:9px;opacity:.55;transition:transform .15s}
-li.open > .menu-link .caret{transform:rotate(90deg)}
-li.current > .menu-link{background:var(--nav-active);color:#fff;font-weight:600;box-shadow:inset 4px 0 0 #fff}
-.menu-count{background:#d63638;color:#fff;border-radius:10px;padding:0 6px;font-size:11px;font-weight:600;line-height:17px}
-.submenu{list-style:none;margin:0;padding:6px 0;background:var(--nav-bg-sub);display:none}
-li.open > .submenu{display:block}
-.submenu a{display:block;padding:6px 12px 6px 42px;color:#c3c4c7;font-size:13px}
-.submenu a:hover{color:#72aee6;text-decoration:none}
-.submenu a.active{color:#fff;font-weight:600}
-.menu-sep{height:1px;background:#3c434a;margin:8px 10px}
-body.collapsed .menu-link .label,body.collapsed .menu-link .caret,
-body.collapsed .menu-count,body.collapsed .submenu,body.collapsed .collapse-label{display:none}
-.collapse-btn{margin-top:auto}
+.sidebar {
+  position: fixed;
+  top: var(--bar-h);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--nav-bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 110;
+  transition: width 0.15s ease;
+}
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #3c434a;
+  border-radius: 4px;
+}
+body.collapsed .sidebar {
+  width: var(--sidebar-w-collapsed);
+}
+.menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.menu > li {
+  position: relative;
+}
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  color: var(--nav-text);
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  user-select: none;
+}
+.menu-link:hover {
+  background: var(--nav-bg-sub);
+  color: #72aee6;
+  text-decoration: none;
+}
+.menu-link .ico {
+  width: 20px;
+  flex: 0 0 20px;
+  text-align: center;
+  font-size: 15px;
+  opacity: 0.85;
+}
+.menu-link .label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.menu-link .caret {
+  font-size: 9px;
+  opacity: 0.55;
+  transition: transform 0.15s;
+}
+li.open > .menu-link .caret {
+  transform: rotate(90deg);
+}
+li.current > .menu-link {
+  background: var(--nav-active);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: inset 4px 0 0 #fff;
+}
+.menu-count {
+  background: #d63638;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 17px;
+}
+.submenu {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  background: var(--nav-bg-sub);
+  display: none;
+}
+li.open > .submenu {
+  display: block;
+}
+.submenu a {
+  display: block;
+  padding: 6px 12px 6px 42px;
+  color: #c3c4c7;
+  font-size: 13px;
+}
+.submenu a:hover {
+  color: #72aee6;
+  text-decoration: none;
+}
+.submenu a.active {
+  color: #fff;
+  font-weight: 600;
+}
+.menu-sep {
+  height: 1px;
+  background: #3c434a;
+  margin: 8px 10px;
+}
+body.collapsed .menu-link .label,
+body.collapsed .menu-link .caret,
+body.collapsed .menu-count,
+body.collapsed .submenu,
+body.collapsed .collapse-label {
+  display: none;
+}
+.collapse-btn {
+  margin-top: auto;
+}
 
+/**
+ * Design me sub-menu kholne wale items `<a>` hain. Wo navigate nahi karte, sirf
+ * panel toggle karte hain — isliye markup me `<button>` hai (keyboard se chalta hai
+ * aur screen reader ko "expanded/collapsed" batata hai).
+ * Ye rule sirf browser ka default button chrome hataata hai; dikhne me kuch nahi badalta.
+ */
+button.menu-link {
+  width: 100%;
+  background: none;
+  border: 0;
+  font: inherit;
+  text-align: left;
+}

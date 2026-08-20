@@ -1,6 +1,6 @@
 # 004 — Seed definition
 
-**Status:** 🟢 Approved — 19 Aug 2026
+**Status:** 🟡 Aadha implemented — 20 Aug 2026 (roles + admin user ✅, baaki Phase 1)
 **Phase:** 0
 **Blocks:** Phase 0 seed script, Phase 8 `create-cms-site`
 **Related:** D-01, D-15, `06-OPERATIONS.md` §6
@@ -112,15 +112,25 @@ Command: `pnpm seed` · reset (sirf dev): `pnpm seed --reset`
 
 ## Acceptance criteria
 
-- [ ] `pnpm seed` fresh DB pe chale, upar ka poora state bane
-- [ ] Dobara chale to koi duplicate na bane, koi error na aaye
-- [ ] Admin user login kar paaye
-- [ ] `/` request Home entry resolve kare
-- [ ] `/blog` request Blog entry resolve kare
-- [ ] `searchEngineVisible: false` hai aur admin me banner dikhta hai
-- [ ] Built-in content types delete nahi ho paate (403)
-- [ ] Test: fresh DB → seed → smoke test (login + `/` resolve)
+- [~] `pnpm seed` chalti hai — **roles (5) + admin user** ban jaate hain. Settings,
+      content types, taxonomies, templates, menus, entries **Phase 1 me** (wo
+      collections abhi hain hi nahi)
+- [x] Dobara chale to koi duplicate na bane, koi error na aaye — verify kiya
+- [x] Admin user login kar paaye — verify kiya (asli Mongo pe end-to-end)
+- [ ] `/` request Home entry resolve kare — Phase 1
+- [ ] `/blog` request Blog entry resolve kare — Phase 1
+- [ ] `searchEngineVisible: false` + admin banner — Phase 1 (settings collection)
+- [ ] Built-in content types delete nahi ho paate (403) — Phase 1
+- [x] Test: roles seed + login ka integration test (`apps/api/src/tests/auth.test.js`)
 - [ ] Docs: `06-OPERATIONS.md` §6 launch checklist sync
+
+### Spec se farq
+
+- **Roles 4 nahi, 5 hain** — `salesAgent` add hua (D-29). §1 ka heading purana hai.
+- **`--reset` flag abhi nahi hai**, `--force` hai (sirf built-in roles ki permissions
+  reset karta hai). `--reset` tab banega jab reset karne layak data ho.
+- Seed ka admin `mustChangePassword: true` ke saath aata hai, aur admin panel usse
+  **gate** karta hai (banner nahi) — password `.env` me plain text me pada hai.
 
 ---
 

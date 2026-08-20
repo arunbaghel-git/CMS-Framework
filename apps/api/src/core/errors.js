@@ -1,3 +1,5 @@
+import { ZodError } from 'zod'
+
 /**
  * Error types + Express error handler.
  * Response shape: { error: { code, message, details } } — 07-CONVENTIONS.md §6
@@ -37,6 +39,24 @@ export const unprocessable = (msg, details) => new AppError(422, 'UNPROCESSABLE'
  */
 
 export function errorHandler(err, req, res, _next) {
+  /**
+   * Zod fail = client ne galat input bheja = 400 (07-CONVENTIONS §6).
+   *
+   * Iske bina har validation error 500 banta hai — matlab client ko "kuch galat ho
+   * gaya" milta hai jabki asli baat ye hai ki uska email khaali tha.
+   */
+  if (err instanceof ZodError) {
+    return res.status(400).json({
+      error: {
+        code: 'VALIDATION_FAILED',
+        message: 'Bheja gaya data sahi nahi hai',
+        details: {
+          fields: err.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+        },
+      },
+    })
+  }
+
   if (err instanceof AppError) {
     return res.status(err.status).json({
       error: { code: err.code, message: err.message, details: err.details },

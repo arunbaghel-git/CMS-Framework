@@ -44,7 +44,28 @@ function sha256(text) {
  * @param {string} [dir]
  */
 export async function loadMigrations(dir = MIGRATIONS_DIR) {
-  if (!existsSync(dir)) return []
+  if (!existsSync(dir)) {
+    /**
+     * `MIGRATIONS_DIR` set hai par wahan kuch hai hi nahi = **config galat hai**,
+     * "koi migration nahi" nahi.
+     *
+     * Chup-chaap `[]` lautana yahan ka sabse khatarnaak behaviour tha: `pnpm cms
+     * migrate` "Koi pending migration nahi" bol kar exit 0 deta tha, deploy green
+     * nikal jaata, aur indexes kabhi bante hi nahi. Path relative ho to ye aur aasaan
+     * hai — `../../migrations` cwd ke hisaab se badalta hai.
+     */
+    if (process.env.MIGRATIONS_DIR) {
+      throw new Error(
+        `MIGRATIONS_DIR aisi jagah point kar raha hai jo hai hi nahi:\n` +
+          `  MIGRATIONS_DIR = ${process.env.MIGRATIONS_DIR}\n` +
+          `  resolve hua     = ${dir}\n` +
+          `  cwd             = ${process.cwd()}\n` +
+          `Relative path cwd ke hisaab se badalta hai — absolute path do.`,
+      )
+    }
+
+    return []
+  }
 
   const entries = await readdir(dir, { withFileTypes: true })
   const files = entries

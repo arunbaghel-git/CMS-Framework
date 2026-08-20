@@ -1,39 +1,137 @@
-import './components/admin/AdminBar.css'
-import './components/admin/Sidebar.css'
+import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+
+import AdminBar from './components/admin/AdminBar.jsx'
+import Sidebar from './components/admin/Sidebar.jsx'
+import { useAuth } from './lib/auth.jsx'
+import ChangePassword from './screens/ChangePassword.jsx'
+import Dashboard from './screens/Dashboard.jsx'
+import Login from './screens/Login.jsx'
+import NotBuiltYet from './screens/NotBuiltYet.jsx'
 
 /**
- * Admin shell.
+ * Admin shell + routing.
  *
- * Layout aur styling `.claude/docs/reference/admin-design.html` se aati hai —
- * wo design FROZEN hai (D-28). Yahan structure abhi placeholder hai; asli
- * AdminBar aur Sidebar components Phase 0 me banenge.
+ * Layout `admin-design.html` se aata hai — wo FROZEN spec hai. Jo screens abhi nahi
+ * bani, unke liye `NotBuiltYet` hai: route maujood hai, page saaf batata hai ki kaam
+ * baaki hai (D-30).
  */
-export default function App() {
+
+/** Sab jagah dikhne wala loading — session check hone tak. */
+function Booting() {
+  return (
+    <div className="main">
+      <p className="subtitle">Load ho raha hai…</p>
+    </div>
+  )
+}
+
+/**
+ * Login zaroori. Bina session ke login pe bhejta hai — aur **yaad rakhta hai** ki
+ * user kahan jaana chahta tha, taaki login ke baad wahin wapas jaaye.
+ */
+function RequireAuth({ children }) {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+
+  if (loading) return <Booting />
+  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />
+
+  /**
+   * `mustChangePassword` ek **gate** hai, banner nahi. Seed ka password `.env` me
+   * plain text me pada hai — jab tak wo badal na jaaye, admin ko andar jaane dena
+   * usi password ko zinda rakhna hai.
+   */
+  if (user.mustChangePassword) return <ChangePassword forced />
+
+  return children
+}
+
+/** Sidebar + admin bar wala layout. */
+function Shell({ children }) {
+  const [collapsed, setCollapsed] = useState(false)
+
+  /**
+   * Collapse ka state `<body>` pe class se chalta hai — design ka CSS
+   * (`body.collapsed .main`, `body.collapsed .sidebar`) usi par likha hai.
+   */
+  useEffect(() => {
+    document.body.classList.toggle('collapsed', collapsed)
+    return () => document.body.classList.remove('collapsed')
+  }, [collapsed])
+
   return (
     <>
-      <div className="adminbar">
-        <span className="ab-item ab-brand">CMS</span>
-        <span className="spacer" />
-        <span className="ab-item">Skeleton chal raha hai</span>
-      </div>
-
-      <div className="main">
-        <div className="page-head">
-          <h1>Admin shell</h1>
-        </div>
-        <p className="subtitle">
-          Login, sidebar aur protected routes Phase 0 me banenge — design ke hisaab se.
-        </p>
-
-        <div className="card">
-          <div className="card-body">
-            <p style={{ margin: 0 }}>
-              CSS structure taiyaar hai: tokens → base → layout → primitives, aur har
-              component apni CSS ke saath.
-            </p>
-          </div>
-        </div>
-      </div>
+      <AdminBar />
+      <Sidebar collapsed={collapsed} onToggleCollapse={() => setCollapsed((v) => !v)} />
+      <div className="main">{children}</div>
     </>
+  )
+}
+
+/** Har wo route jo sidebar me hai par abhi bana nahi. */
+const PENDING_ROUTES = [
+  { path: '/posts/*', title: 'Posts', phase: 'Phase 1' },
+  { path: '/pages/*', title: 'Pages', phase: 'Phase 1' },
+  { path: '/media/*', title: 'Media', phase: 'Phase 2' },
+  { path: '/packages/*', title: 'Packages', phase: 'Phase 6' },
+  { path: '/enquiries/*', title: 'Enquiries', phase: 'Phase 7b' },
+  { path: '/appearance/*', title: 'Appearance', phase: 'Slice 0 ke baad' },
+  { path: '/users/*', title: 'Users', phase: 'Phase 0 ke agle step' },
+  { path: '/settings/*', title: 'Settings', phase: 'Phase 0 ke agle step' },
+]
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <Shell>
+              <Dashboard />
+            </Shell>
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/profile/password"
+        element={
+          <RequireAuth>
+            <Shell>
+              <ChangePassword />
+            </Shell>
+          </RequireAuth>
+        }
+      />
+
+      {PENDING_ROUTES.map(({ path, title, phase }) => (
+        <Route
+          key={path}
+          path={path}
+          element={
+            <RequireAuth>
+              <Shell>
+                <NotBuiltYet title={title} phase={phase} />
+              </Shell>
+            </RequireAuth>
+          }
+        />
+      ))}
+
+      <Route
+        path="*"
+        element={
+          <RequireAuth>
+            <Shell>
+              <NotBuiltYet title="Page nahi mila" />
+            </Shell>
+          </RequireAuth>
+        }
+      />
+    </Routes>
   )
 }

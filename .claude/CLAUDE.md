@@ -5,8 +5,9 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0 chal raha hai — ~65%.** Setup layer, Zod contract, migration runner
-aur CSS architecture ban chuke hain (44 tests passing). Agla bada kaam **auth + RBAC**.
+**Status:** **Phase 0 chal raha hai — ~85%.** Setup layer, Zod contract, migration runner,
+CSS architecture aur **auth + RBAC + admin shell** ban chuke hain (130 tests passing).
+Agla kaam **Users aur Settings screens**.
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -15,7 +16,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
-| Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 14 non-negotiable rules |
+| Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 15 non-negotiable rules |
 | "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-30                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
@@ -72,6 +73,10 @@ apps/api/src/modules/<name>/
 └─ validation.js    Zod schemas
 ```
 
+`roles` module isme apwaad hai — uske paas sirf `model.js` + `service.js` hain, kyunki
+uska abhi koi HTTP surface nahi. Route tab banega jab Users screens aayengi; adhoora
+`routes.js` pehle se rakh dena `requirePermission()` bhoolne ka aasaan raasta hai.
+
 ---
 
 ## Naming
@@ -101,7 +106,8 @@ pnpm seed                 # admin user + defaults
 docker compose up         # mongo
 ```
 
-> `pnpm seed` abhi exist nahi karta — auth ke saath banega. Baaki sab chalte hain.
+> Sab chalte hain. `pnpm seed` abhi roles + admin user banata hai; settings aur
+> entries Phase 1 me judenge (spec 004).
 
 ---
 

@@ -11,6 +11,10 @@ import { env, isProd } from './core/env.js'
 import { logger } from './core/logger.js'
 import { errorHandler, notFoundHandler } from './core/errors.js'
 import { checkPending } from './core/migrations/runner.js'
+import { attachUser } from './middleware/auth.js'
+import { csrfProtection } from './middleware/csrf.js'
+import { authRoutes } from './modules/auth/routes.js'
+import { meRoutes } from './modules/users/routes.js'
 
 /**
  * Express app banata hai. Server start karna `index.js` ka kaam hai —
@@ -44,6 +48,10 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true, limit: '1mb' }))
   app.use(cookieParser())
 
+  // Dono cookies padhte hain, isliye cookieParser ke BAAD hi lag sakte hain
+  app.use(csrfProtection)
+  app.use(attachUser)
+
   app.use(
     '/api',
     rateLimit({
@@ -70,8 +78,10 @@ export function createApp() {
     })
   })
 
-  // Modules yahan mount honge — auth, entries, media, menus, settings…
-  // app.use('/api/auth', authRoutes)
+  // Modules
+  app.use('/api/auth', authRoutes)
+  app.use('/api/me', meRoutes)
+  // Aage: entries, media, menus, taxonomies, settings…
 
   app.use(notFoundHandler)
   app.use(errorHandler)

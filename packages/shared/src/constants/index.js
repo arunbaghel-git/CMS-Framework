@@ -33,6 +33,22 @@ export const ROLE = Object.freeze({
 
 export const ROLES = Object.freeze(Object.values(ROLE))
 
+/**
+ * User ka lifecycle. Users pe `deletedAt` nahi hai (D-25 content ke liye hai) —
+ * user hataya nahi jaata, **deactivate** hota hai, taaki uska likha content aur
+ * activity log orphan na ho jaaye.
+ */
+export const USER_STATUS = Object.freeze({
+  /** Login kar sakta hai. */
+  ACTIVE: 'active',
+  /** Invite bheja gaya, abhi tak password set nahi kiya. */
+  INVITED: 'invited',
+  /** Login band, par record aur uska content bacha hua hai. */
+  INACTIVE: 'inactive',
+})
+
+export const USER_STATUSES = Object.freeze(Object.values(USER_STATUS))
+
 /** Public paths jo koi entry claim nahi kar sakti. */
 export const RESERVED_SLUGS = Object.freeze(['admin', 'api', '_next', 'media', 'uploads'])
 

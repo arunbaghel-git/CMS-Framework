@@ -669,3 +669,51 @@ screen design ke andar hi rehti hai, bhale layout khud invent kiya ho.
 **Nateeja:** Q-1 band. Baad me client login ka design de to **sirf ye ek screen** badlegi
 — auth backend, routes, session handling sab waise hi rehta hai. Ye rule 8 (design change
 client se aata hai) ka apwaad nahi hai — client ne hi "nahi hai, tum banao" kaha.
+
+---
+
+## D-32 · Password hashing — `bcryptjs`, native `bcrypt` nahi
+
+**Context:** Spec 004 kehta hai "password bcrypt hashed". Do implementations hain:
+native `bcrypt` (C++ addon) aur `bcryptjs` (pure JavaScript).
+
+**Decision:** **`bcryptjs`**, cost 12.
+
+**Kyun:** R3 khud warn karta hai — *"sharp/bcrypt jaise native modules mismatch pe
+toot-te hain"*. Dev Windows pe hai, prod Linux pe; har client ka apna instance deploy
+hota hai (D-01), matlab ye build har jagah alag machine pe chalega. Ek native addon
+jo kahin build na ho, wo poore instance ko boot hone se rok dega — aur wo failure
+deploy ke waqt milegi, pehle nahi.
+
+Hash format dono ka same hai (`$2a$`), isliye kabhi native pe jaana ho to **data
+migrate nahi karna padega** — sirf import badlega.
+
+**Keemat:** `bcryptjs` native se dheema hai. Login pe ~250ms lagta hai (cost 12), jo
+ek baar ka operation hai. Agar kabhi login throughput problem bane, tab native pe
+jaana khula hai.
+
+**Reject kiya:** `argon2` — behtar algorithm hai par wo bhi native addon hai, wahi
+problem. `crypto.scrypt` (zero dependency) — spec bcrypt kehta hai, aur bcrypt ka
+ecosystem/tooling zyada jaana-pehchana hai.
+
+---
+
+## D-33 · `.env` Node ke apne loader se, `dotenv` package se nahi
+
+**Context:** `apps/api/.env` maujood thi par usse **koi load hi nahi karta tha** —
+na `dotenv`, na `--env-file`. Sab kuch shell me export kiye gaye vars pe chal raha tha.
+`pnpm seed` iske bina chal hi nahi sakti thi.
+
+**Decision:** `core/env.js` `process.loadEnvFile()` (Node ≥ 20.12) use karta hai.
+Path `import.meta.url` se banta hai, `process.cwd()` se nahi.
+
+**Kyun:**
+- **Koi nayi dependency nahi** — Node me pehle se hai
+- **cwd pe bharosa nahi** — `pnpm seed` repo root se chalti hai, `pnpm dev:api`
+  `apps/api` se. cwd-relative path ek jagah kaam karta, dusri jagah nahi
+- **Test me load hoti hi nahi** (`NODE_ENV=test` pe skip) — warna suite developer ki
+  local file pe depend karne lagti: kisi ke yahan `COOKIE_SECURE=true` hai to cookie
+  ke naam badal jaate hain aur wahi test CI pe pass, local pe fail hota hai
+
+**Nateeja:** Shell/CI ke vars `.env` se **jeette hain** — production me `.env` file
+hoti hi nahi, wahan asli env vars aate hain.

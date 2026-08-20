@@ -1,6 +1,6 @@
 # 003 — Environment schema
 
-**Status:** 🟢 Approved — 19 Aug 2026
+**Status:** ✅ Implemented — 20 Aug 2026
 **Phase:** 0
 **Blocks:** App boot, aur D-15 ka client-repo contract
 **Related:** D-15, `06-OPERATIONS.md` §4
@@ -116,13 +116,29 @@ Conditional validation: `STORAGE_DRIVER=s3` hone pe S3 wale saare required ho ja
 
 ## Acceptance criteria
 
-- [ ] `packages/shared/src/env.js` — poora Zod schema, conditional rules ke saath
-- [ ] Boot pe validation, missing var pe saaf error + exit
-- [ ] `.env.example` schema se generated
-- [ ] `STORAGE_DRIVER=s3` pe S3 vars conditionally required
-- [ ] Secrets logger me redacted
-- [ ] Test: missing required var pe boot fail ho
+- [x] Poora Zod schema, conditional rules ke saath — ⚠️ **`apps/api/src/core/env.js` me,
+      `packages/shared` me nahi** (niche dekho)
+- [x] Boot pe validation, missing var pe saaf error + exit
+- [x] `.env.example` maujood hai — abhi haath se maintain hoti hai, generate nahi hoti
+- [x] `STORAGE_DRIVER=s3` pe S3 vars conditionally required
+- [x] Secrets logger me redacted (`REDACTED_KEYS`)
+- [ ] Test: missing required var pe boot fail ho — **abhi nahi likha**
 - [ ] Docs: `06-OPERATIONS.md` §4 sync
+
+### Spec se do farq (jaan-boojh kar nahi, dhyan me rakho)
+
+1. **Schema `apps/api` me hai, `packages/shared` me nahi.** `loadEnv()` boot pe
+   `process.exit(1)` karta hai — wo server ka behaviour hai, shared package ka nahi
+   (admin browser me chalta hai, wahan `process` hai hi nahi). Client repo ko env
+   contract chahiye hoga (D-15) tab ise shift karna pad sakta hai.
+2. **`.env.example` schema se generate nahi hoti** — dono haath se sync rehte hain,
+   yaani drift ka raasta khula hai. Ek chhota generator script isse band kar dega.
+
+### 20 Aug me kya juda
+
+- `.env` file ab **load bhi hoti hai** — pehle koi loader tha hi nahi (D-33)
+- `SEED_ADMIN_EMAIL` · `SEED_ADMIN_PASSWORD` · `SEED_ADMIN_NAME` (spec 004 ke liye)
+- `SEED_ADMIN_PASSWORD` `REDACTED_KEYS` me hai
 
 ---
 

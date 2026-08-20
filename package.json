@@ -22,6 +22,7 @@
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d mongo",
     "db:down": "docker compose down",
+    "seed": "node apps/api/src/seed.js",
     "cms": "node apps/api/src/cli.js"
   },
   "devDependencies": {
