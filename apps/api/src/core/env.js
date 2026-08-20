@@ -37,6 +37,24 @@ if (!skipEnvFile && existsSync(envFile) && typeof process.loadEnvFile === 'funct
   // Pehle se set vars ko overwrite nahi karta — shell/CI ki value jeetti hai
   process.loadEnvFile(envFile)
 }
+
+/**
+ * Env se boolean padhne ka sahi tareeka.
+ *
+ * `z.coerce.boolean()` yahan **kaam nahi karta** — wo JS ka `Boolean()` chalata hai,
+ * aur `Boolean('false') === true` hai. Matlab `COOKIE_SECURE=false` likhne ke baad
+ * bhi value `true` rehti thi, aur is var ko off karna mumkin hi nahi tha.
+ *
+ * Ye galti chup-chaap hoti hai: koi error nahi aata, bas setting maanti nahi.
+ */
+const envBoolean = z
+  .union([z.boolean(), z.string()])
+  .transform((value) =>
+    typeof value === 'boolean'
+      ? value
+      : ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase()),
+  )
+
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -56,7 +74,7 @@ const envSchema = z
     JWT_REFRESH_SECRET: z.string().min(32),
     ACCESS_TOKEN_TTL: z.string().default('15m'),
     REFRESH_TOKEN_TTL: z.string().default('7d'),
-    COOKIE_SECURE: z.coerce.boolean().default(false),
+    COOKIE_SECURE: envBoolean.default(false),
     COOKIE_DOMAIN: z.string().optional(),
 
     STORAGE_DRIVER: z.enum(['local', 's3']).default('local'),
