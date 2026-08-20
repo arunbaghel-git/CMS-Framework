@@ -28,8 +28,5 @@
       "Read(./**/.env)",
       "Read(./**/.env.*)"
     ]
-  },
-  "env": {
-    "NODE_ENV": "development"
   }
 }
