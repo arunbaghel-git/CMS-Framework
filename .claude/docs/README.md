@@ -26,9 +26,14 @@ Kya pending hai → [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)
 | 08  | [Risks](08-RISKS.md)               | Known traps aur unse kaise bachna hai                     | Phase shuru karne se pehle            |
 | 09  | [Open Items](09-OPEN-ITEMS.md)     | Jo abhi decide/likha nahi gaya                            | **Aaj**                               |
 | 10  | [Reference Design](10-REFERENCE-DESIGN.md) | Asli client design se nikle content types, blocks aur gaps | Slice 0 + Phase 5/6 se pehle |
+| 11  | [Reference Admin](11-REFERENCE-ADMIN.md) | Asli admin design — kya match karta hai, kya gap hai | Slice 0 + Phase 1 se pehle |
 
-**Interactive:** [`admin-wireframe.html`](admin-wireframe.html) — 7 admin screens ka
-clickable wireframe. Browser me kholo.
+**Interactive:**
+- [`admin-wireframe.html`](admin-wireframe.html) — humara 7-screen wireframe
+- [`reference/admin-design.html`](reference/admin-design.html) — **asli client admin design** (§11)
+
+Dono browser me kholo.
+
 
 ---
 
