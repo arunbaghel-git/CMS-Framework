@@ -225,7 +225,14 @@ export async function checkPending() {
   try {
     const s = await status()
     return { pending: s.pending, modified: s.modified, missing: s.missing }
-  } catch {
-    return { pending: 0, modified: 0, missing: 0, error: true }
+  } catch (err) {
+    /**
+     * Boot ko rokte nahi (chalti hui site down karna pending migration se zyada
+     * nuksaandeh hai) — par **wajah** saath bhejte hain.
+     *
+     * Pehle yahan se sirf `error: true` jaata tha, matlab galat `MIGRATIONS_DIR`
+     * jaisi config galti boot pe bilkul dikhti hi nahi thi.
+     */
+    return { pending: 0, modified: 0, missing: 0, error: true, message: err.message }
   }
 }

@@ -13,8 +13,13 @@ await connectDb()
  * migration se zyada nuksaandeh hai. Warning loud hai, aur /api/health se admin ke
  * Site Health card tak pahunchti hai.
  */
-const { pending, modified, missing } = await checkPending()
+const { pending, modified, missing, error, message } = await checkPending()
 
+if (error) {
+  // Migrations padhi hi nahi ja saki — usually galat MIGRATIONS_DIR. Iske baad ke
+  // "0 pending" ka koi matlab nahi hai, isliye ye sabse pehle aur loud hai.
+  logger.error({ message }, 'Migrations check fail — pending status pata nahi chal saka')
+}
 if (pending > 0) {
   logger.warn({ pending }, 'Pending migrations. Deploy step me "pnpm cms migrate" chalao')
 }
