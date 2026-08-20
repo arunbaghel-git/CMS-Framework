@@ -1,18 +1,39 @@
+import './components/admin/AdminBar.css'
+import './components/admin/Sidebar.css'
+
 /**
- * Admin shell. Sidebar IA 04-ADMIN-UX.md §1 se aata hai.
- * Abhi placeholder hai — auth aur routing Phase 0 me aayenge.
+ * Admin shell.
+ *
+ * Layout aur styling `.claude/docs/reference/admin-design.html` se aati hai —
+ * wo design FROZEN hai (D-28). Yahan structure abhi placeholder hai; asli
+ * AdminBar aur Sidebar components Phase 0 me banenge.
  */
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-3xl px-6 py-20">
-        <p className="font-mono text-xs uppercase tracking-widest text-slate-400">CMS Admin</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight">Skeleton chal raha hai</h1>
-        <p className="mt-3 max-w-prose text-slate-600">
-          Admin shell abhi khaali hai. Login, sidebar aur protected routes Phase 0 me banenge —
-          dekho <code className="font-mono text-sm">.claude/docs/05-BUILD-PLAN.md</code>.
-        </p>
+    <>
+      <div className="adminbar">
+        <span className="ab-item ab-brand">CMS</span>
+        <span className="spacer" />
+        <span className="ab-item">Skeleton chal raha hai</span>
       </div>
-    </div>
+
+      <div className="main">
+        <div className="page-head">
+          <h1>Admin shell</h1>
+        </div>
+        <p className="subtitle">
+          Login, sidebar aur protected routes Phase 0 me banenge — design ke hisaab se.
+        </p>
+
+        <div className="card">
+          <div className="card-body">
+            <p style={{ margin: 0 }}>
+              CSS structure taiyaar hai: tokens → base → layout → primitives, aur har
+              component apni CSS ke saath.
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }

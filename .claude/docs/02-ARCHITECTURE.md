@@ -58,9 +58,10 @@ cms/                                    ← CORE REPO (ek, private)
 │  │  ├─ middleware/                    auth, rbac, validate, upload, rateLimit, sanitize
 │  │  └─ index.js
 │  ├─ admin/src/
+│  │  ├─ styles/                        tokens · base · layout · primitives (§11)
 │  │  ├─ builder/                       canvas, layers, props-panel, toolbar, dnd, history
 │  │  ├─ modules/                       entries, media, appearance, seo, settings, users, tools
-│  │  ├─ components/ui/                 shadcn/ui
+│  │  ├─ components/admin/              AdminBar.jsx + AdminBar.css, Sidebar…
 │  │  └─ lib/api.js                     single-flight refresh mutex yahin
 │  └─ web/
 │     ├─ app/[[...slug]]/page.jsx       ← routing ka EKMATRA entry point
@@ -596,3 +597,96 @@ Admin aur public routes alag: public read-only, admin authed.
 > `by-path` ki jagah `resolve` isliye ki ek hi endpoint entry, taxonomy archive, custom
 > archive, redirect aur 404 — sabka jawab de. Next ka catch-all ek hi call me decide
 > kar le ki render kya karna hai.
+
+---
+
+## 11. CSS structure
+
+Poore project me **plain CSS** — Tailwind, CSS Modules aur CSS-in-JS teenon reject
+hue hain (D-28). Teen alag CSS "duniya" hain, kyunki teenon ki constraint alag hai.
+
+### 11.1 Admin (`apps/admin`)
+
+```
+src/
+├─ index.css                  ← entry: sirf SHARED layer import karta hai
+├─ styles/
+│  ├─ tokens.css              23 CSS variables — design se copy
+│  ├─ base.css                reset, body, a, h1-h4, input defaults
+│  ├─ layout.css              .main, .page-head, .subtitle
+│  └─ primitives.css          .btn .card .table .badge .form-* — reuse hone wale
+├─ components/admin/
+│  ├─ AdminBar.jsx  +  AdminBar.css     (.adminbar, .ab-*)
+│  └─ Sidebar.jsx   +  Sidebar.css      (.sidebar, .menu-*, .submenu)
+└─ modules/
+   └─ <feature>/Feature.jsx  +  Feature.css
+```
+
+**Rule:** shared cheez `styles/` me, component ki apni cheez uske saath.
+Component apni CSS **khud import** karta hai — `index.css` me nahi jaati.
+
+Ye split hum ne banaya nahi — **frozen design me pehle se hai**. Uske CSS comments
+literally kehte hain `/* SIDEBAR (components/admin/Sidebar.jsx) */`. Section →
+file mapping:
+
+| Design section | Kahan gaya |
+|---|---|
+| DESIGN TOKENS (`:root`) | `styles/tokens.css` |
+| reset + element defaults | `styles/base.css` |
+| LAYOUT | `styles/layout.css` |
+| BUTTONS · CARDS/PANELS · TABLES · BADGES/PILLS · FORMS | `styles/primitives.css` |
+| ADMIN BAR | `components/admin/AdminBar.css` |
+| SIDEBAR | `components/admin/Sidebar.css` |
+| DASHBOARD | `modules/dashboard/Dashboard.css` *(jab bane)* |
+| MEDIA | `modules/media/Media.css` *(jab bane)* |
+| ITINERARY BUILDER | client repo — travel-specific *(§11 of 11-REFERENCE-ADMIN)* |
+
+### 11.2 Blocks (`packages/blocks`)
+
+Blocks **admin canvas aur public site dono** me chalte hain, isliye admin ki CSS
+import nahi kar sakte.
+
+```
+packages/blocks/src/
+├─ styles/
+│  ├─ tokens.css       spacing scale, breakpoints
+│  └─ base.css         .blk-* resets
+└─ blocks/heading/
+   ├─ index.js         definition + Render
+   └─ heading.css      .blk-heading ke base styles
+```
+
+Iske **upar** runtime CSS aati hai — `styleToCss()` se per-page generate hoti hai
+aur `<style nonce>` me inject hoti hai (D-08). Wo file me nahi rehti.
+
+> `blk-` prefix **mandatory** hai. Theming API (§6.4) isi pe khadi hai — client theme
+> tabhi override kar sakta hai jab class names stable aur predictable hon.
+
+### 11.3 Public site theme (client repo)
+
+```
+client-acme/theme/
+├─ tokens.css              brand colours, fonts — DEFAULTS
+├─ base.css
+└─ components/Header.css, Footer.css
+```
+
+Yahan ek zaroori detail hai — **order**:
+
+```html
+<link href="/theme/tokens.css">          <!-- 1. defaults -->
+<style nonce>:root{--brand:#0e7c7b}</style>  <!-- 2. settings se, RUNTIME -->
+```
+
+Settings wala **baad me** aana chahiye, warna admin se brand colour badalne pe kuch
+nahi hoga.
+
+### 11.4 Rules
+
+| Rule | Kyun |
+|---|---|
+| Har component ka apna class prefix — `ab-`, `menu-`, `blk-` | Classes global hain; prefix hi collision rokta hai |
+| Colours/spacing hamesha `var(--token)` se, hardcoded nahi | Client ka brand ek jagah se badle |
+| Component delete → uski CSS bhi delete | Orphan CSS nahi bachegi |
+| Naya shared style → `primitives.css`, component me nahi | `.btn` 10 jagah duplicate na ho |
+| Frozen design ki value badalni ho → pehle poochho | Design spec hai (D-28, rule 8) |

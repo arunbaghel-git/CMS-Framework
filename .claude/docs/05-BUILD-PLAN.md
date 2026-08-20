@@ -122,7 +122,7 @@ khula rehta hai. Wo D-07 ke mechanism (injected primitives) pe depend karta hai.
   kabhi seedha Mongoose query me spread nahi
 - **CSP policy** likho (nonce-based) — helmet enable karna alag cheez hai
 - Seed script: pehla admin user + default roles + default settings
-- Admin shell: React + Vite + Tailwind + shadcn/ui, sidebar, protected routes
+- Admin shell: React + Vite + **plain CSS** (design se), sidebar, protected routes
 - **Activity log ka write path** service layer me (screen Phase 7 me) — ye backfill nahi ho sakta
 - **CI day 1 se** — lint + test on every commit
 - Docker compose: mongo + api + admin

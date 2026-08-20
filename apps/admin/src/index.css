@@ -1,3 +1,17 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/**
+ * Admin ka CSS entry point — sirf SHARED layer.
+ *
+ * Order maayne rakhta hai:
+ *   1. tokens      variables — sabse pehle
+ *   2. base        reset aur element defaults
+ *   3. layout      main area aur page heading
+ *   4. primitives  .btn .card .table .badge .form-* — reuse hone wale
+ *
+ * Component-specific CSS YAHAN NAHI aati. Har component apni .css khud import
+ * karta hai (Sidebar.jsx → Sidebar.css). Detail: docs/02-ARCHITECTURE.md §11
+ */
+
+@import './styles/tokens.css';
+@import './styles/base.css';
+@import './styles/layout.css';
+@import './styles/primitives.css';

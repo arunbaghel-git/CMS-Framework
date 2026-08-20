@@ -87,7 +87,7 @@ _"kya ek non-technical banda ye bina call kiye kar lega?"_
 | ------------- | -------------------------------------------------------- | ------------------------------------------------ |
 | API           | Express + Mongoose                                       | Team familiar, ecosystem bada                    |
 | Database      | MongoDB                                                  | Flexible custom fields, per-client alag DB       |
-| Admin UI      | React + Vite + Tailwind + shadcn/ui                      | Fast dev, accessible components free             |
+| Admin UI      | React + Vite + plain CSS + Radix primitives              | Design frozen hai, uska CSS seedha use hota hai (D-28) |
 | Public site   | Next.js App Router                                       | SSR/ISR — SEO ke liye zaroori                    |
 | Language      | JavaScript (ESM)                                         | TS nahi — safety Zod + tests se aati hai         |
 | Validation    | Zod, `packages/shared` me                                | Ek schema, admin + API dono                      |

@@ -1,0 +1,17 @@
+/**
+ * Admin bar — upar wali patti (site name, updates, +New, avatar).
+ * Source: admin-design.html, ADMIN BAR section.
+ * Prefix: .adminbar / .ab-*
+ */
+
+/* ============================================================
+   ADMIN BAR  (components/admin/AdminBar.jsx)
+   ============================================================ */
+.adminbar{position:fixed;top:0;left:0;right:0;height:var(--bar-h);background:var(--bar-bg);color:#c3c4c7;display:flex;align-items:center;z-index:120;font-size:13px}
+.adminbar .ab-item{display:flex;align-items:center;gap:6px;height:100%;padding:0 10px;color:#c3c4c7;cursor:pointer;white-space:nowrap}
+.adminbar .ab-item:hover{background:#2c3338;color:#72aee6;text-decoration:none}
+.adminbar .ab-brand{font-weight:600;color:#fff;padding-left:14px}
+.adminbar .spacer{flex:1}
+.ab-badge{background:#d63638;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;font-weight:600}
+.ab-avatar{width:20px;height:20px;border-radius:50%;background:#3858e9;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:700}
+

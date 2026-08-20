@@ -529,3 +529,49 @@ Wo risk Phase 5 tak khula rahega. Page builder is slice me nahi banega.
 | O-2 | Payload CMS ka 2-din spike                  | ✅ **Approved** — Phase 1 se pehle hoga. Result se ye decisions badal sakti hain                                      |
 
 Baaki open items: [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)
+
+---
+
+## D-28 · Plain CSS, Tailwind nahi
+
+**Context:** `apps/admin` me Tailwind install ho chuka tha aur `shadcn/ui` plan me tha.
+Phir client ka **frozen admin design** aaya — jo plain CSS hai, 23 CSS variables ke
+token system ke saath. Sawaal: design ko Tailwind me convert karein ya CSS waise hi lein?
+
+**Decision:** **Poore project me plain CSS.** Tailwind aur shadcn/ui dono hataye gaye.
+
+**Kyun:**
+
+1. **Blocks ka theming contract Tailwind se tootta hai.** `02-ARCHITECTURE.md` §6.4
+   kehta hai blocks ko *stable class names + CSS variables* expose karni hain, taaki
+   client theme unhe override kar sake. Tailwind utility classes se ye possible hi nahi
+   hai. Ye akela hi kaafi reason tha.
+2. **Design frozen hai, matlab CSS bhi frozen hai.** 242 lines ka taiyaar CSS ko dobara
+   likhne ka koi return nahi — sirf visual drift ka risk hai.
+3. **Change karna aasan rehta hai.** Client bole "sidebar chhota karo" → `--sidebar-w`
+   ek line. Tailwind me JSX me utility classes dhoondhni padtin.
+4. **Design se diff karna** seedha rehta hai — code aur frozen design compare ho sakte hain.
+5. **Team plain CSS me comfortable hai.** Familiarity ek asli architectural input hai —
+   yahi baat D-03 (TypeScript nahi) me bhi maani gayi thi.
+
+**Reject kiya:**
+- **Tailwind** — upar wale 5 reasons.
+- **CSS Modules** (`Header.module.css`) — class names hash ho jaate (`.sidebar` →
+  `._sidebar_x7f2k`). Isse frozen design se compare karna aur **theme override dono
+  marr jaate** — aur theme override humare framework ki jaan hai.
+- **CSS-in-JS** — SSR extraction ki complexity + bundle weight. Blocks ke liye ye
+  D-08 me pehle hi reject ho chuka tha.
+- **Sab ek hi file me** — 2000+ lines, kuch dhoondhna mushkil.
+- **Sirf per-component, shared layer ke bina** — `.btn` har jagah duplicate hota.
+
+**Nateeja:**
+- `shadcn/ui` bhi gaya (wo Tailwind pe khada hai). Uska visual hissa design se mil raha
+  hai. Jo bacha — accessibility behaviour (dropdown keyboard nav, dialog focus trap) —
+  wo **Radix primitives** se aayega: headless, unstyled, humari CSS ke saath chalte hain.
+- CSS structure ab teen layer ka hai — detail `02-ARCHITECTURE.md` §11.
+- Global class names hain, isliye **har component ka prefix zaroori** (`ab-`, `menu-`,
+  `blk-`) warna collision hogi.
+
+**Kya ise palat sakta hai:** agar client design badalta rehne lage (frozen na rahe), to
+Tailwind ki speed kaam aa sakti hai. Par blocks pe tab bhi Tailwind nahi — wahan
+theming contract non-negotiable hai.

@@ -291,3 +291,7 @@ Code badle to doc bhi badle — **usi PR me**:
 8. **Admin design frozen hai.** `.claude/docs/reference/admin-design.html` ka layout,
    colours aur wording bilkul waisa hi banega. Apna variation mat banao — change
    sirf client ke kehne pe.
+
+9. **CSS plain rahegi** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28).
+   Shared styles `styles/` me, component ki apni CSS uske saath. Har component ka
+   class prefix zaroori (`ab-`, `menu-`, `blk-`) kyunki classes global hain.
