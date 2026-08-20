@@ -475,6 +475,9 @@ pe dikh sakti hain, isliye ye service layer ka default filter hona chahiye, cont
 
 ## D-26 · Char roles, `subscriber` nahi
 
+> ⚠️ **Partially superseded by D-29** — ab paanch roles hain (`salesAgent` add hua).
+> `subscriber` wali baat waise hi rehti hai: wo abhi bhi nahi banega.
+
 **Context:** Paanch roles plan kiye the — `admin`, `editor`, `author`, `contributor`,
 `subscriber`.
 
@@ -575,3 +578,68 @@ token system ke saath. Sawaal: design ko Tailwind me convert karein ya CSS waise
 **Kya ise palat sakta hai:** agar client design badalta rehne lage (frozen na rahe), to
 Tailwind ki speed kaam aa sakti hai. Par blocks pe tab bhi Tailwind nahi — wahan
 theming contract non-negotiable hai.
+
+---
+
+## D-29 · Paanchwa role — `salesAgent`
+
+> **D-26 ko partially supersede karta hai** ("char roles"). `subscriber` wali baat
+> waise hi rehti hai — wo abhi bhi nahi banega.
+
+**Context:** Admin design me users list par role filter tabs hain —
+`Administrator (2)` · `Editor (2)` · **`Sales Agent (4)`** · `Author (1)`. Aur enquiry
+screen me "Assign to: Neha S ▾" hai. Sabse zyada users isi role me hain.
+
+**Decision:** **`salesAgent`** paanchwa role banega. Roles ab:
+`admin` · `editor` · `author` · `contributor` · `salesAgent`
+
+**Kyun:** Enquiries ka poora assignment model isi pe khada hai. Aur ye role content
+roles se alag kism ka hai — sales agent ko content edit nahi karna, use **enquiries**
+chahiye. Bina iske ya to har sales person ko `editor` banana padega (jo use poora
+content access de dega), ya assignment feature bekaar ho jaayega.
+
+**Permissions:**
+```
+salesAgent  →  enquiry.read · enquiry.update · enquiry.assign.own
+               enquiry.quote · entry.read (sirf packages dekhne ke liye)
+               content pe koi write permission NAHI
+```
+
+**Reject kiya:** Sales person ko `editor` banana — wo use poore content ka access de
+deta, jo galat hai. Aur "koi role nahi, bas ek flag" — phir permission system ka
+matlab hi nahi rehta.
+
+**Nateeja:** `ROLE` enum aur `ROLE_PERMISSIONS` dono me add hoga
+(`packages/shared/src/constants/`). Seed 5 roles banayega, 4 nahi. Enquiries ke
+permission strings spec 001 me add karne honge — wo abhi likhe nahi gaye kyunki
+Enquiries module Phase 7b me hai.
+
+---
+
+## D-30 · Ruki hui cheezon ke "connection point" abhi banao
+
+**Context:** Bahut si cheezein abhi block hain — homepage dropdown ke liye entries
+nahi, logo upload ke liye media nahi, users list me posts count ke liye entries nahi.
+Sawaal: inhe abhi chhod dein ya jagah bana dein?
+
+**Decision:** **Field, API shape aur UI ki jagah abhi banao. Data baad me aayega.**
+
+| Cheez | Abhi | Jab dependency aayegi |
+|---|---|---|
+| Homepage / Posts page | Field + dropdown, list khaali | Phase 1 → query add |
+| Logo / Favicon | Field hai, abhi URL text box | Phase 2 → MediaPicker |
+| Posts count | Column hai, `—` dikhta hai | Phase 1 → count query |
+| Enquiries count | Column hai, `—` dikhta hai | Phase 7b → count query |
+| Menu me Pages/Destinations | Panel hai, list khaali | Phase 1 + 6 |
+
+**Kyun:** Yahi rule `siteId`, `deletedAt`, `locale` pe pehle apply ho chuka hai —
+**field abhi, feature baad me**. Abhi chhoda to Phase 1 me **teen jagah** dobara
+chhuni padengi (schema, API, UI) aur schema badalna matlab migration. Abhi bana diya
+to sirf ek query add hogi.
+
+**Shart:** khaali cheez **khaali dikhni chahiye, tooti hui nahi.**
+```
+❌  Homepage  [ ▾ ]                              khaali dropdown — user confused
+✅  Homepage  [ Koi page nahi hai — pehle banao ]
+```
+Non-technical user ko pata chale ki **abhi kuch nahi hai**, na ki **kuch toot gaya hai**.

@@ -173,6 +173,11 @@ const EDITOR = [
  */
 export const ROLE_PERMISSIONS = Object.freeze({
   admin: PERMISSIONS,
+  /**
+   * Enquiries handle karta hai, content nahi (D-29). Poore permissions Phase 7b me
+   * aayenge (`enquiry.*`). Abhi sirf padh sakta hai — packages dekhne ke liye.
+   */
+  salesAgent: Object.freeze([P.ENTRY_READ, P.MEDIA_READ]),
   editor: Object.freeze([...new Set(EDITOR)]),
   author: Object.freeze([...new Set(AUTHOR)]),
   contributor: Object.freeze([...new Set(CONTRIBUTOR)]),

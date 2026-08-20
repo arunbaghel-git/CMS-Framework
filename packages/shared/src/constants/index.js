@@ -21,12 +21,14 @@ export const ENTRY_STATUS = Object.freeze({
 
 export const ENTRY_STATUSES = Object.freeze(Object.values(ENTRY_STATUS))
 
-/** Char roles — `subscriber` nahi banega (D-26). */
+/** Paanch roles — `subscriber` nahi (D-26), `salesAgent` add hua (D-29). */
 export const ROLE = Object.freeze({
   ADMIN: 'admin',
   EDITOR: 'editor',
   AUTHOR: 'author',
   CONTRIBUTOR: 'contributor',
+  /** Enquiries handle karta hai, content nahi (D-29). Permissions Phase 7b me. */
+  SALES_AGENT: 'salesAgent',
 })
 
 export const ROLES = Object.freeze(Object.values(ROLE))

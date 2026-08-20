@@ -18,7 +18,7 @@ kehte hain), isliye ye list Phase 0 ke code se pehle freeze honi chahiye.
 ## Scope me hai
 
 - Har resource ke liye permission strings
-- 4 default roles ka permission mapping
+- 5 default roles ka permission mapping
 - Naming convention
 
 ## Scope me nahi
@@ -132,7 +132,10 @@ activity.read
 
 ## Role mapping
 
-**Char roles** — `subscriber` nahi banega (D-26).
+**Paanch roles** — `subscriber` nahi banega (D-26), par `salesAgent` add hua (D-29).
+
+> `salesAgent` ke permissions abhi likhe nahi hain — wo Enquiries module ke saath
+> aayenge (Phase 7b). Shape: `enquiry.*` + `entry.read`, content pe koi write nahi.
 
 | Permission group                            | admin | editor | author | contributor |
 | ------------------------------------------- | :---: | :----: | :----: | :---------: |
@@ -177,7 +180,7 @@ admin se bolna padega — thoda friction, par recoverable.
   taaki custom role banana Phase 7 me aasaan ho
 - `.own` check service layer me — `entry.authorId === user._id`
 - Permission constants `packages/shared/src/constants/permissions.js` me
-- Seed script default 4 roles banaye is mapping se
+- Seed script default 5 roles banaye is mapping se (salesAgent Phase 7b me poora hoga)
 
 ---
 
@@ -186,7 +189,7 @@ admin se bolna padega — thoda friction, par recoverable.
 - [ ] Saare permission strings `packages/shared` me constants ke roop me
 - [ ] `requirePermission()` middleware string leta hai, 403 deta hai
 - [ ] `.own` variant service layer me authorId check karta hai
-- [ ] 4 default roles seed hote hain is mapping ke saath
+- [ ] 5 default roles seed hote hain is mapping ke saath
 - [ ] Test: har role ka ek restricted route pe 403
 - [ ] Test: `contributor` publish nahi kar paata par submitReview kar paata hai
 - [ ] Docs: `02-ARCHITECTURE.md` §8.3 me link

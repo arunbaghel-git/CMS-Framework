@@ -7,6 +7,83 @@ Format:
 ```
 ## YYYY-MM-DD — <ek line summary>
 
+**Kya hua:** …
+
+**Faisle:** … (ya "koi nahi")
+**Agla:** …
+```
+
+---
+
+## 2026-08-20 — Client ke asli design aaye; CSS architecture tay hui
+
+**Kya hua**
+- Client ne do asli design diye — public site (Andaman travel) aur admin (travel CMS).
+  Dono analyse kiye: `docs/10-REFERENCE-DESIGN.md` aur `docs/11-REFERENCE-ADMIN.md`
+- Admin design ab **SPEC** hai, reference nahi. `04-ADMIN-UX.md` secondary ho gaya
+- CSS architecture tay hui aur implement bhi — Tailwind hataya, plain CSS aaya
+
+**Faisle**
+- D-28 Plain CSS — Tailwind, CSS Modules, CSS-in-JS teenon reject.
+  Sabse bada reason: blocks ka theming contract stable class names maangta hai,
+  Tailwind utility classes se wo toot jaata hai. shadcn/ui bhi gaya (Tailwind pe
+  khada tha) — uski jagah Radix primitives aayenge.
+- D-29 `salesAgent` paanchwa role. Design ke users list me 4 users us role me hain,
+  aur enquiry assignment usi pe chalta hai. D-26 ko partially supersede karta hai.
+- D-30 Ruki hui cheezon ke connection point abhi banao — field, API shape aur UI ki
+  jagah abhi; data baad me. Khaali cheez khaali dikhe, tooti hui nahi.
+- Design badal sakta hai par change client se aayega, developer se nahi (rule 8)
+
+**Design se jo gaps mile**
+- Mega-menu — humara menu model simple nested tree hai, design me columns aur
+  non-clickable group headings hain. Slice 0 me fix karna hai
+- Enquiries ek mini-CRM hai (pipeline, assign, quotation, notes), form inbox nahi.
+  Plan me sirf "submissions inbox" tha — bahut under-scoped
+- Field DSL me `matrix` aur `table` types chahiye (occupancy slabs, departures)
+- Public site "listing" site hai — 20 me se 13 sections ek hi card shape ke.
+  Matlab Phase 6 (dynamic lists) is client ke liye Phase 5 se zyada zaroori hai
+
+**Analysis: Appearance / Users / Settings kitne ruke hain**
+Users ~90% · Settings ~75% · Appearance ~40%. Teenon `requirePermission()` pe
+depend karte hain, aur wo Users module hai — isliye auth pehle.
+
+**Agla:** Phase 0 ka auth — models, login, refresh rotation + reuse detection,
+CSRF, requirePermission(), admin login screen + protected routes.
+Uske baad Users + Settings, phir Appearance.
+
+**Ek sawaal pending:** login screen design me hai kya? Nahi to WordPress-style
+simple banega.
+
+---
+
+  rate limit, pino, error envelope, /api/health, graceful shutdown)
+- Zod contract freeze (spec 002): block envelope, content, seo, entry +
+  create/update/listQuery. Permissions constants (spec 001). Field DSL (D-24).
+  JSDoc typedefs.
+- Migration runner: dono system — schema (numbered + ledger + checksum guard +
+  down() mandatory) aur block-tree (per-document, lazy). CLI: pnpm cms migrate.
+  Pehli migration: entries ke 6 indexes.
+
+**Verify (asli mongo pe, sirf test nahi)**
+migrate → 6 indexes bane · dobara → no-op · migrate:down → indexes gaye ·
+file edit → checksum guard fire · API boot → /api/health 200
+
+**Bug jo mila aur fix hua**
+MIGRATIONS_DIR cwd se resolve hoti thi, apps/api se chalane pe ledger "missing"
+dikhata tha. Env var override se fix. Ye sirf `pnpm test` se pakda hi nahi jaata —
+health endpoint hit karne se mila.
+
+**Faisle:** koi naya nahi
+
+**Desktop pe do files banayi** (samajhne ke liye, repo se bahar)
+CMS-Technology-Guide.html · CMS-Build-Roadmap.html
+
+**Agla:** Phase 0 ka auth — User/Role/RefreshToken models + migration, login/logout,
+refresh rotation + reuse detection, CSRF, requirePermission(), seed, admin shell.
+User se poochha tha: ek saath karein ya do hisson me — jawab pending.
+
+---
+
 ## 2026-08-19 — Coding shuru: setup + contract + migrations
 
 **Kya bana**
@@ -45,7 +122,6 @@ User se poochha tha: ek saath karein ya do hisson me — jawab pending.
 ```
 
 ---
-
 ## 2026-08-19 — 8 faisle liye, specs approve hue
 
 **Kya hua**

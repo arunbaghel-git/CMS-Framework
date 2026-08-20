@@ -1,19 +1,20 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 19 Aug 2026
+> **Last updated:** 20 Aug 2026
 
 ---
 
 ## Abhi kahan hain
 
-**Phase 0 — ~65% poora.** Dhaancha khada hai, ab auth banana hai.
+**Phase 0 — ~65% poora.** Buniyaad khadi hai. Auth agla bada kaam hai.
 
 ```
 Phase −1  Din-1 faisle                    ✅ 8/8
 Phase 0   Setup layer                     ✅
           Zod contract (spec 002)         ✅
           Migration runner                ✅
+          CSS architecture (D-28)         ✅
           Auth + RBAC                     🔴  ← AGLA KAAM
           Seed script (spec 004)          🔴
           Admin shell (login + sidebar)   🔴
@@ -21,8 +22,25 @@ Slice 0   Header + Footer end-to-end      🔴
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 43 tests passing · lint / format / build clean · API asli Mongo se
-connect hoti hai aur `/api/health` 200 deta hai.
+**Health:** 44 tests passing · lint / format / build clean · API asli Mongo se
+connect hoti hai · `pnpm cms migrate` chalti hai
+
+---
+
+## 🔒 Design ab SPEC hai — sabse zaroori baat
+
+Client ne **do asli design** diye. Ye ab guess ki jagah le chuke hain:
+
+| File | Kya |
+|---|---|
+| `docs/reference/admin-design.html` | **Admin ka spec.** Isi ke hisaab se banega |
+| `docs/11-REFERENCE-ADMIN.md` | Uska analysis — kya match, kya gap |
+| `docs/10-REFERENCE-DESIGN.md` | Public site (Andaman) ka analysis |
+
+**Rule:** design badal sakta hai, par change **client se** aayega — developer se nahi.
+Kuch theek na lage to poochho, khud mat badlo. (`07-CONVENTIONS.md` rule 8)
+
+`04-ADMIN-UX.md` ab **secondary** hai — conflict ho to design jeetega.
 
 ---
 
@@ -33,56 +51,51 @@ connect hoti hai aur `/api/health` 200 deta hai.
 | Field DSL | **Ek DSL** — `contexts: ['content'\|'block']` (D-24) |
 | TypeScript | **Nahi** — sab JavaScript (D-03) |
 | Trash | **`deletedAt` field**, `status: 'trash'` nahi (D-25) |
-| Roles | **Char** — `subscriber` nahi (D-26) |
-| Permanent delete | **Sirf admin** — editor trash me daal sakta hai, mita nahi sakta |
-| Seed content | **Khaali** Home + Blog, koi demo blocks nahi |
-| Payload spike | **Approved** — Phase 1 se pehle |
-| Pehla milestone | **Slice 0: Header + Footer** end-to-end (D-27) |
+| Roles | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29) |
+| Permanent delete | **Sirf admin** |
+| Seed content | **Khaali** Home + Blog |
+| Payload spike | Approved — Phase 1 se pehle |
+| Pehla milestone | **Slice 0: Header + Footer** (D-27) |
+| **CSS** | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28) |
+| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30) |
 
-Specs 001, 002, 003, 004, 005 — sab ✅ approved ya implemented.
-
----
-
-## Agla order
-
-```
-1. Phase 0 ka auth                        (~1 hafta)
-   - User / Role / RefreshToken models + migration
-   - login · logout · forgot · reset
-   - refresh rotation + reuse detection + double-submit CSRF
-   - single-flight refresh mutex (admin client me)
-   - requirePermission() middleware
-   - seed script (spec 004)
-   - admin shell: login screen + sidebar + protected routes
-2. Slice 0 — Header + Footer end-to-end   (1.5 hafte)
-3. Payload spike (parallel me)            (2 din)
-4. Phase 1 — Content Core                 (3 hafte)
-```
-
-**User se ek sawaal pending:** auth ek saath banayein, ya do hisson me
-(pehle models + login, phir refresh / CSRF / RBAC)?
+Specs 001–005 sab approved ya implemented.
 
 ---
 
-## Ab bhi baaki (blockers)
+## Aaj ka plan (20 Aug) — auth se shuru
 
-| ID | Kya | Kab tak |
+User ne Appearance + Users + Settings maange the. Analysis ke baad order badla,
+kyunki teenon `requirePermission()` pe depend karte hain — aur wo Users module hai.
+
+```
+1. User · Role · RefreshToken models + migration
+2. 5 roles + permissions seed (salesAgent ke saath)
+3. Login / logout / refresh rotation + reuse detection + CSRF
+4. requirePermission() middleware
+5. Admin: login screen + protected routes + sidebar shell
+```
+
+**Kal:** Users screens + Settings. **Parso:** Appearance.
+
+**Har section kitna ruka hua hai:**
+
+| Section | Aaj kitna ban sakta hai | Kya rok raha hai |
 |---|---|---|
-| C-2 | Payload CMS spike | Phase 1 se pehle |
-
-Baaki sab (A-1 se A-4, B-1, C-1, D-1) ✅ ho chuke.
+| Users | ~90% | Posts/Enquiries count (Phase 1, 7b) · invite email (SMTP) |
+| Settings | ~75% | Homepage dropdown (Phase 1) · logo upload (Phase 2) |
+| Appearance | ~40% | Menu me Pages/Destinations chahiye (Phase 1 + 6) |
 
 ---
 
-## Timeline
+## Khule sawaal
 
-| Milestone | Cumulative |
-|---|---|
-| Phase 0 + Slice 0 | 3 hafte |
-| Phase 1-2 | 7.5 hafte |
-| **Phase 3-4 — client demo ready** | **12 hafte** |
-| Phase 5 — builder live | 18-20 hafte |
-| Phase 6-8 — production | 25-29 hafte |
+| # | Sawaal | Kab tak |
+|---|---|---|
+| 1 | **Login screen** design me hai kya? Nahi to WordPress-style simple banega | Auth se pehle |
+| 2 | Enquiries — Phase 7b banayein ya alag Phase 9? | Phase 7 se pehle |
+| 3 | Field DSL me `matrix` + `table` types add karne hain | Phase 5c se pehle |
+| 4 | Payload CMS spike | Phase 1 se pehle |
 
 ---
 
@@ -90,15 +103,20 @@ Baaki sab (A-1 se A-4, B-1, C-1, D-1) ✅ ho chuke.
 
 ```
 branch : main
-remote : github.com/progryss/crmmern.git   (configured, PUSH NAHI HUA)
+remote : github.com/progryss/crmmern.git
 
-5450902  Migration runner — dono system
+8415ac0  Design ka status saaf karo — SPEC
+f5d6ccc  Plain CSS pe shift karo — D-28
+6b5983d  Admin design ko FROZEN spec mark karo
+b8f46d0  Asli admin design add + analyse
+53cb34e  Reference design analyse (Andaman)
+5450902  Migration runner
 b2a1ac4  Zod contract freeze — spec 002
-8569996  Documented folder structure poora karo
-d4b6fef  Line endings LF me normalize karo
+8569996  Folder structure poora karo
+d4b6fef  Line endings LF
 85d416e  Phase 0 setup layer
-2e81050  8 faisle record kiye — D-24 se D-27
-0933c1f  Planning docs v3 + .claude workspace
+2e81050  8 faisle record
+0933c1f  Planning docs v3
 ```
 
 ⚠️ **Push kabhi bhi bina permission ke nahi karna.**
@@ -110,12 +128,12 @@ d4b6fef  Line endings LF me normalize karo
 ```bash
 pnpm install
 docker compose up -d mongo        # mongo 8, port 27017
-pnpm cms migrate                  # migrations chalao
+pnpm cms migrate                  # migrations
 pnpm dev                          # teenon apps
-pnpm test                         # 43 tests
+pnpm test                         # 44 tests
 ```
 
-`apps/api/.env` local hai aur git me nahi hai (`.env.example` se copy hota hai).
+`apps/api/.env` local hai, git me nahi (`.env.example` se copy hota hai).
 
 ---
 

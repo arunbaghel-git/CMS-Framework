@@ -240,9 +240,16 @@ describe('seo', () => {
 })
 
 describe('permissions', () => {
-  it('char roles hain, subscriber nahi (D-26)', () => {
-    expect(ROLES).toEqual(['admin', 'editor', 'author', 'contributor'])
+  it('paanch roles hain — subscriber nahi (D-26), salesAgent hai (D-29)', () => {
+    expect(ROLES).toEqual(['admin', 'editor', 'author', 'contributor', 'salesAgent'])
     expect(ROLES).not.toContain('subscriber')
+  })
+
+  it('salesAgent content edit nahi kar sakta — sirf padh sakta hai (D-29)', () => {
+    expect(ROLE_PERMISSIONS.salesAgent).toContain('entry.read')
+    expect(ROLE_PERMISSIONS.salesAgent).not.toContain('entry.create')
+    expect(ROLE_PERMISSIONS.salesAgent).not.toContain('entry.update')
+    expect(ROLE_PERMISSIONS.salesAgent).not.toContain('entry.publish')
   })
 
   it('purge sirf admin ko hai', () => {
