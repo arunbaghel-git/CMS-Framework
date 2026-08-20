@@ -102,28 +102,22 @@ Phase 1 aur 7b pe block hain.
 - ⚠️ Repo ka naam **`crmmern`** hai par project **CMS** hai — rename karna ho to abhi sasta hai
 - ⚠️ `CLAUDE.md` `.claude/` ke andar hai. Load to ho rahi hai, par root pe rakhna
   zyada reliable hai
-- ⚠️ **9 files prettier-dirty hain** — 6 admin CSS, `App.jsx` se pehle wali,
-  aur dono memory files. `pnpm format` ek baar chala do
 - `docs/archive/` purane versions hain. Git history ab hai, isliye kabhi bhi hata sakte ho
 
 ---
 
-## 🔧 Local setup ke do kaante (20 Aug me mile)
+## ✅ Local setup ke do kaante — theek ho chuke (20 Aug)
 
-Dono `apps/api/.env` me hain — wo file git me nahi hai, isliye code se theek nahi ho sakti.
+Dono `apps/api/.env` me the. Backup: `apps/api/.env.bak-1787215917` (gitignored).
 
-### 1. `COOKIE_SECURE=true` — local HTTP dev me login tik nahi payega
+| Kya tha | Ab | Kyun maayne rakhta tha |
+| --- | --- | --- |
+| `COOKIE_SECURE=true` | `false` | `Secure` cookie plain HTTP pe browser store hi nahi karta — login 200 deta par session tikta nahi |
+| `MIGRATIONS_DIR=../../migrations` | absolute path | cwd-relative tha; `pnpm cms` root se chalta hai, to ye `C:Usersdeepamigrations` pe resolve hota tha |
 
-`Secure` cookie plain `http://localhost` pe **browser store hi nahi karega**. Login
-200 dega par session bachega nahi. Cookie ka naam bhi `__Host-cms_at` ban jaata hai.
+Dono ke peeche **code ke bug** bhi mile, wo bhi theek ho chuke:
 
-```diff
-- COOKIE_SECURE=true
-+ COOKIE_SECURE=false     # prod me true — wahan HTTPS hai
-```
-
-### 2. `MIGRATIONS_DIR=../../migrations` — cwd-relative hai
-
-`pnpm cms` repo **root** se chalta hai, isliye ye `C:\Users\deepa\migrations` pe
-resolve hota tha. Pehle iska nateeja **chup-chaap "koi pending migration nahi"** tha;
-ab runner saaf error deta hai. Absolute path do ya line hata do (default sahi hai).
+- `z.coerce.boolean()` `Boolean('false') === true` deta hai — yaani `COOKIE_SECURE`
+  kabhi off ho hi nahi sakta tha. Ab proper `envBoolean` + 10 test
+- Migration runner missing directory pe chup-chaap `[]` lautata tha — `pnpm cms
+  migrate` "koi pending nahi" bol kar exit 0 deta. Ab loud error, aur boot pe bhi log
