@@ -1,0 +1,37 @@
+/**
+ * Users screens — list, form, delete confirm.
+ *
+ * Yahan sirf wo hai jo `primitives.css` me nahi mila. Table, badges, panel, buttons
+ * aur form fields sab design ke primitives se aa rahe hain — unhe yahan dobara mat
+ * likho (02-ARCHITECTURE.md §11).
+ */
+
+/* ============================================================
+   USERS  (screens/users/*)
+   ============================================================ */
+.users-search {
+  width: 220px;
+}
+
+/* Password + Generate button ek line me */
+.user-form .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.user-form .row .inp {
+  flex: 1;
+}
+
+/* Form ki chaudai padhne layak rakho — poori screen tak faila hua input
+   scan karne me mushkil hota hai */
+.user-form {
+  max-width: 560px;
+}
+
+.inline-lbl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 400;
+}

@@ -479,3 +479,27 @@ tr:hover .row-actions {
   border-color: var(--primary);
   color: var(--primary);
 }
+
+/* ============================================================
+   NOTICES  (admin-design.html se — pehle copy hone se reh gaya tha)
+   ============================================================ */
+.notice {
+  background: var(--surface);
+  border-left: 4px solid var(--primary);
+  padding: 10px 12px;
+  margin: 12px 0;
+  border-radius: 0 3px 3px 0;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.notice.ok {
+  border-left-color: var(--success);
+}
+.notice.warn {
+  border-left-color: var(--warn);
+}
+.notice.err {
+  border-left-color: var(--danger);
+}

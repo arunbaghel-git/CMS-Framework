@@ -1,6 +1,6 @@
 # 09 — Open Items
 
-**Status:** Phase 0 chal raha hai (~85%). Auth + RBAC land ho chuka — 130 tests passing.
+**Status:** Phase 0 chal raha hai (~92%). Users screens land ho chuke — 175 tests passing.
 **Last updated:** 20 Aug 2026
 
 ---
@@ -76,7 +76,7 @@ Spec 005 me add karne honge.
 ## Ab ka order
 
 ```
-1. Phase 0 — Users + Settings screens            ← ABHI YAHAN
+1. Phase 0 — Settings screens                    ← ABHI YAHAN
 2. C-2 — Payload spike (parallel me)             (2 din)
 3. Slice 0 — Header + Footer end-to-end          (1.5 hafte)
 4. Phase 1 — Content Core                        (3 hafte)
@@ -86,8 +86,11 @@ Spec 005 me add karne honge.
 CI, Express boilerplate, Zod contract, migration runner, CSS architecture,
 **auth + RBAC + admin shell** (login, protected routes, sidebar, `/api/me`).
 
-**Phase 0 me kya baaki:** Users screens (list, invite, deactivate), Settings screens,
-seed ka baaki hissa (settings/entries — wo Phase 1 pe block hai).
+**Phase 0 me kya baaki:** Settings screens, aur seed ka baaki hissa (settings/entries —
+wo Phase 1 pe block hai).
+
+**Users me kya baaki:** bulk actions, email badalna, avatar. Posts/Enquiries counts
+Phase 1 aur 7b pe block hain.
 
 ---
 

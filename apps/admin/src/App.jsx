@@ -8,6 +8,9 @@ import ChangePassword from './screens/ChangePassword.jsx'
 import Dashboard from './screens/Dashboard.jsx'
 import Login from './screens/Login.jsx'
 import NotBuiltYet from './screens/NotBuiltYet.jsx'
+import DeleteUser from './screens/users/DeleteUser.jsx'
+import UserForm from './screens/users/UserForm.jsx'
+import UsersList from './screens/users/UsersList.jsx'
 
 /**
  * Admin shell + routing.
@@ -77,7 +80,6 @@ const PENDING_ROUTES = [
   { path: '/packages/*', title: 'Packages', phase: 'Phase 6' },
   { path: '/enquiries/*', title: 'Enquiries', phase: 'Phase 7b' },
   { path: '/appearance/*', title: 'Appearance', phase: 'Slice 0 ke baad' },
-  { path: '/users/*', title: 'Users', phase: 'Phase 0 ke agle step' },
   { path: '/settings/*', title: 'Settings', phase: 'Phase 0 ke agle step' },
 ]
 
@@ -92,6 +94,51 @@ export default function App() {
           <RequireAuth>
             <Shell>
               <Dashboard />
+            </Shell>
+          </RequireAuth>
+        }
+      />
+
+      {/*
+        Users ke routes. Har screen ke andar bhi permission check hai (buttons/actions),
+        par asli rok server pe hai — `requirePermission()` har route pe.
+      */}
+      <Route
+        path="/users"
+        element={
+          <RequireAuth>
+            <Shell>
+              <UsersList />
+            </Shell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/users/new"
+        element={
+          <RequireAuth>
+            <Shell>
+              <UserForm />
+            </Shell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/users/:id"
+        element={
+          <RequireAuth>
+            <Shell>
+              <UserForm />
+            </Shell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/users/:id/delete"
+        element={
+          <RequireAuth>
+            <Shell>
+              <DeleteUser />
             </Shell>
           </RequireAuth>
         }

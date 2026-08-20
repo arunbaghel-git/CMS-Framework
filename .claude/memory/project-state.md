@@ -7,7 +7,7 @@
 
 ## Abhi kahan hain
 
-**Phase 0 — ~85% poora.** Auth + RBAC + admin shell land ho chuka hai.
+**Phase 0 — ~92% poora.** Auth, RBAC, admin shell aur Users screens ban chuke hain.
 
 ```
 Phase −1  Din-1 faisle                    ✅ 8/8
@@ -18,13 +18,13 @@ Phase 0   Setup layer                     ✅
           Auth + RBAC                     ✅  ← 20 Aug
           Seed script (spec 004)          🟡  roles + admin user ✅, baaki Phase 1 pe block
           Admin shell (login + sidebar)   ✅  ← 20 Aug
-          Users screens                   🔴  ← AGLA KAAM
-          Settings screens                🔴
+          Users screens                   ✅  ← 20 Aug
+          Settings screens                🔴  ← AGLA KAAM
 Slice 0   Header + Footer end-to-end      🔴
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 130 tests passing · lint clean · admin build clean · asli Mongo pe
+**Health:** 175 tests passing · lint clean · admin build clean · asli Mongo pe
 end-to-end verify kiya (login → rotation → reuse detection → logout)
 
 ⚠️ **9 files prettier-dirty hain** — 6 admin CSS + `App.jsx` se pehle wali + dono
@@ -51,21 +51,22 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 
 ## Faisle jo ho chuke hain
 
-| Faisla                | Nateeja                                                               |
-| --------------------- | --------------------------------------------------------------------- |
-| Field DSL             | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)                  |
-| TypeScript            | **Nahi** — sab JavaScript (D-03)                                      |
-| Trash                 | **`deletedAt` field**, `status: 'trash'` nahi (D-25)                  |
-| Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)        |
-| Permanent delete      | **Sirf admin**                                                        |
-| Seed content          | **Khaali** Home + Blog                                                |
-| Payload spike         | Approved — Phase 1 se pehle, abhi baaki                               |
-| Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                   |
-| **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28) |
-| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                            |
-| **Login screen**      | Design me nahi tha → WordPress-style, design ke tokens se (D-31)      |
-| **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                      |
-| **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                |
+| Faisla                | Nateeja                                                                |
+| --------------------- | ---------------------------------------------------------------------- |
+| Field DSL             | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)                   |
+| TypeScript            | **Nahi** — sab JavaScript (D-03)                                       |
+| Trash                 | **`deletedAt` field**, `status: 'trash'` nahi (D-25)                   |
+| Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)         |
+| Permanent delete      | **Sirf admin**                                                         |
+| Seed content          | **Khaali** Home + Blog                                                 |
+| Payload spike         | Approved — Phase 1 se pehle, abhi baaki                                |
+| Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                    |
+| **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28)  |
+| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                             |
+| **Login screen**      | Design me nahi tha → WordPress-style, design ke tokens se (D-31)       |
+| **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                       |
+| **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                 |
+| **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34) |
 
 Specs 001–005: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved.
 
@@ -94,14 +95,17 @@ permissions    roles collection se, 60s in-process cache
 
 ---
 
-## Aaj ka plan (agla session) — Users + Settings
+## Agla session — Settings
 
 ```
-1. Users list — server-side pagination (R14), role filter tabs (design se)
-2. Invite / edit / deactivate — har route pe requirePermission('user.*')
-3. Settings General — siteName, tagline, timezone, dateFormat
-4. `roles` module ko routes.js dena (abhi sirf model + service hai)
+1. `settings` collection ka schema + migration (schema-change skill se)
+2. Settings › General — Site Identity, Locale & Currency, Contact & Social
+3. Jo panels block hain wo D-30 style khaali dikhein:
+   Homepage & Archives (Phase 1) · Permalinks (Phase 6) · SEO defaults (Phase 4)
 ```
+
+**Users me kya baaki hai:** bulk actions (isiliye list me checkbox column nahi hai),
+email badalna, aur avatar. Posts/Enquiries counts Phase 1 aur 7b pe block hain.
 
 **Har section kitna ruka hua hai:**
 
@@ -159,7 +163,7 @@ docker compose up -d mongo        # mongo 8, port 27017
 pnpm cms migrate                  # migrations
 pnpm seed                         # roles + admin user
 pnpm dev                          # teenon apps
-pnpm test                         # 130 tests
+pnpm test                         # 175 tests
 ```
 
 Auth ke integration tests ko **chalta hua Mongo chahiye** (`pnpm db:up`) — wo
