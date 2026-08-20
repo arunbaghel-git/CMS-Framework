@@ -24,7 +24,7 @@ Slice 0   Header + Footer end-to-end      🔴
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 175 tests passing · lint clean · admin build clean · asli Mongo pe
+**Health:** 184 tests passing · lint clean · admin build clean · asli Mongo pe
 end-to-end verify kiya (login → rotation → reuse detection → logout)
 
 ⚠️ **9 files prettier-dirty hain** — 6 admin CSS + `App.jsx` se pehle wali + dono
@@ -67,6 +67,8 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                       |
 | **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                 |
 | **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34) |
+| **Password**          | Sirf admin set karta hai; user khud nahi badal sakta (D-35)            |
+| **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)           |
 
 Specs 001–005: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved.
 
@@ -95,17 +97,53 @@ permissions    roles collection se, 60s in-process cache
 
 ---
 
-## Agla session — Settings
+## Agla session — RBAC (yahin ruke the)
+
+Client ne **role-based access control** maanga hai: **Users → Roles** submenu, aur
+role ko jo sections diye jaayein **sirf wahi sidebar me dikhein**. Unka example:
+Sales Agent ko sirf Packages + Enquiries.
+
+Approach samjha di gayi hai, **code shuru nahi hua**. Do cheezein pending:
+
+1. **Spec `006-rbac.md` likhni hai** — client ne abhi "haan" nahi bola
+2. **Ek faisla client se lena hai** (niche "Khule sawaal" me #1)
+
+**Approach ka saar (jo client ko bataya):**
 
 ```
-1. `settings` collection ka schema + migration (schema-change skill se)
-2. Settings › General — Site Identity, Locale & Currency, Contact & Social
-3. Jo panels block hain wo D-30 style khaali dikhein:
-   Homepage & Archives (Phase 1) · Permalinks (Phase 6) · SEO defaults (Phase 4)
+Teen layer, par asli boundary sirf pehli hai:
+  1. server route   requirePermission()        ← asli rok
+  2. admin route    screen render hi na ho     ← /users type karne pe
+  3. sidebar        item chhupa do             ← sirf UX
+
+Sabse bada kaam: permissions me SCOPE — `entry.read:package`
+  Abhi `entry.read` = saara content. "Sirf Packages" kehne ka raasta hai hi nahi,
+  kyunki Posts/Pages/Packages teenon ek hi `entries` collection me hain.
+  Ye spec 001 ka khula sawaal tha; client ki demand ne use aaj bana diya.
+  Saath me service layer me list queries ko allowed types se filter karna hoga.
+
+Role screen: 67 checkbox nahi — section ke hisaab se
+  (Kuch nahi / Sirf dekhe / Edit kare / Poora) + "Advanced" me ek-ek permission
+
+Nav registry ek jagah: { id, label, to, permission } — sidebar aur route guard
+  dono wahi padhein, warna naya section jodne pe teen jagah yaad rakhni padegi
+
+Do guard: apna role koi edit na kare · jo permission khud ke paas nahi wo kisi ko
+  de na paaye. Aur role save pe invalidateRoleCache() — warna 60s tak kuch nahi hota
 ```
 
-**Users me kya baaki hai:** bulk actions (isiliye list me checkbox column nahi hai),
-email badalna, aur avatar. Posts/Enquiries counts Phase 1 aur 7b pe block hain.
+> **Aaj ki sachai jo client ko bata di gayi:** Packages (Phase 6) aur Enquiries
+> (Phase 7b) abhi bane hi nahi. RBAC aaj banega to Sales Agent ko wo do menu dikhenge
+> par andar "abhi nahi bana" page milega. Aaj test yahi ho payega ki use **Users aur
+> Settings dikhte hi nahi**. Ye D-30 wala pattern hai — jagah abhi, data baad me.
+
+**Uske baad: Settings** — `settings` collection ka schema + migration, phir General.
+
+**Users me chhota-mota baaki:** bulk actions (isiliye list me checkbox column nahi
+hai), email badalna, avatar (Phase 2), column sorting (API taiyaar hai, UI nahi),
+apni profile screen (`PATCH /api/me` bana hai, UI nahi — client ne kaha **naam
+editable, baaki read-only**), aur **activity log** (conventions me hai, code me
+kahin nahi).
 
 **Har section kitna ruka hua hai:**
 
@@ -119,11 +157,18 @@ email badalna, aur avatar. Posts/Enquiries counts Phase 1 aur 7b pe block hain.
 
 ## Khule sawaal
 
-| #   | Sawaal                                               | Kab tak           |
-| --- | ---------------------------------------------------- | ----------------- |
-| 1   | Enquiries — Phase 7b banayein ya alag Phase 9?       | Phase 7 se pehle  |
-| 2   | Field DSL me `matrix` + `table` types add karne hain | Phase 5c se pehle |
-| 3   | Payload CMS spike (2 din)                            | Phase 1 se pehle  |
+| #   | Sawaal                                                         | Kab tak           |
+| --- | -------------------------------------------------------------- | ----------------- |
+| 1   | **Built-in role (`salesAgent`) edit ho sake, ya "Duplicate"?** | **RBAC se pehle** |
+| 2   | Enquiries — Phase 7b banayein ya alag Phase 9?                 | Phase 7 se pehle  |
+| 3   | Field DSL me `matrix` + `table` types add karne hain           | Phase 5c se pehle |
+| 4   | Payload CMS spike (2 din)                                      | Phase 1 se pehle  |
+
+**#1 kyun blocking hai:** D-36 kehta hai built-in roles code-owned hain — unki
+permissions har deploy pe code se sync hoti hain. Agar admin unhe edit kar sake to
+**agla deploy uske changes mita dega**. Do hal: built-in roles read-only rakho aur
+"Duplicate" do, ya ek `customizedAt` flag rakho jisse chhue gaye role ko code sync
+karna band kar de. Doosra client ke example ke zyada kareeb hai.
 
 ---
 
@@ -149,7 +194,14 @@ Aur agar `pnpm seed` se admin banana ho to teen vars chahiye:
 ```
 branch : main
 remote : github.com/progryss/crmmern.git
+
+35d4780  Built-in roles ab sync hote hain — D-36
+5e28af3  Users ke teen changes — D-35
+0826815  Users screens
+5ffc545  Users backend — D-34
 ```
+
+`apps/api/.env` ka backup: `apps/api/.env.bak-1787215917` (gitignored).
 
 ⚠️ **Push kabhi bhi bina permission ke nahi karna.**
 
@@ -163,7 +215,7 @@ docker compose up -d mongo        # mongo 8, port 27017
 pnpm cms migrate                  # migrations
 pnpm seed                         # roles + admin user
 pnpm dev                          # teenon apps
-pnpm test                         # 175 tests
+pnpm test                         # 184 tests
 ```
 
 Auth ke integration tests ko **chalta hua Mongo chahiye** (`pnpm db:up`) — wo

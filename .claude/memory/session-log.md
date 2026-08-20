@@ -15,6 +15,57 @@ Format:
 
 ---
 
+## 2026-08-20 (shaam) — Users module poora; RBAC ka faisla pending
+
+**Kya hua**
+
+- Users backend + screens bane: list (pagination, role tabs, search), add, edit,
+  delete (reassign dropdown ke saath), `/api/roles`
+- Client ne screens test kiye, teen changes maange — sab lag gaye (D-35):
+  row me sirf Edit | Delete · Edit se status hataya · **password sirf admin set karta
+  hai**, user khud nahi badal sakta
+- Uska doosra aadha hissa jodna pada: Edit User me password field. Bina uske bhoole
+  hue password ka koi recovery raasta hi nahi bachta
+
+**Chaar bug mile, chaaron chup-chaap fail hone wale**
+
+1. `z.coerce.boolean()` — `Boolean('false') === true`. `COOKIE_SECURE` kabhi off ho
+   hi nahi sakta tha, aur uska nateeja tha "login 200 deta hai par session tikta nahi"
+2. Migration runner missing directory pe chup-chaap `[]` lautata tha — `pnpm cms
+migrate` "koi pending nahi" bol kar exit 0 deta, indexes bante hi nahi
+3. Role ka wajood kahin check hi nahi hota tha — `role:"wizard"` wala user ban jaata,
+   201 milta, par permissions khaali aur har screen pe 403
+4. **Sabse zaroori:** `ensureDefaultRoles()` existing role ko poora skip kar deta tha.
+   Matlab code me joda gaya koi bhi naya permission string kisi chalu instance tak
+   pahunchta hi nahi tha. `user.delete` isi wajah se Delete button gayab kar raha tha
+   → D-36: built-in roles code-owned, hamesha sync, aur migration 004
+
+Aur ek: galat id pe Mongoose CastError seedha 500 banta tha — ab 404.
+
+Do galat baatein maine kahin thin aur wapas leni padin: "Next 15 ko React 19 chahiye"
+(nahi — asli wajah `.claude/settings.json` ka `NODE_ENV=development` tha) aur
+"CI ka build red hai" (nahi — wo sirf mere chalane par toota tha).
+
+**Faisle:** D-34 (username immutable · asli delete + reassign · admin protected) ·
+D-35 (password admin set karta hai · deactivate UI se hata) · D-36 (built-in roles
+code-owned, permissions hamesha sync).
+
+**Tests:** 44 → **184**. `pnpm dev` chalta hai, login se delete tak sab asli DB pe
+verify kiya.
+
+**Agla — yahin se uthana hai**
+
+Client ne **role-based access control** maanga: Users → Roles submenu, aur role ko jo
+sections diye jaayein sirf wahi sidebar me dikhein. Maine approach samjha di
+(teen layer · scope wale permissions · role screen ka shape · D-36 ka takraav), par
+**abhi tak koi code nahi likha aur do cheezein pending hain**:
+
+1. Spec `006-rbac.md` likhni hai (client ne "haan" nahi bola abhi)
+2. **Ek faisla client se lena hai:** built-in roles (jaise `salesAgent`) ko edit karne
+   dein, ya unpe "Duplicate" karke copy edit karein? D-36 kehta hai built-in roles har
+   deploy pe code se sync hote hain — agar admin unhe edit kare to agla deploy uske
+   changes mita dega
+
 ## 2026-08-20 — Auth + RBAC + admin shell; docs ko asli state pe laaya
 
 **Kya hua**
