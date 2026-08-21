@@ -58,14 +58,33 @@ form fieldset {
   min-height: 70px;
 }
 
-/* Logo/Favicon ka drop zone jab tak Media nahi bani.
-   `.featured-drop` ka hover cursor pointer hai — yahan click ka koi matlab nahi,
-   isliye wo wapas normal kar diya. Dikhne me jagah wahi rehti hai (D-30). */
-.media-drop-pending {
+/* Logo/Favicon media upload. `.featured-drop` design se aata hai; yahan sirf screen
+   specific sizing aur preview layout hai. */
+.media-drop {
   height: 90px;
-  cursor: default;
+  padding: 0;
+  overflow: hidden;
 }
-.media-drop-pending:hover {
-  border-color: var(--border);
-  color: var(--text-muted);
+.media-drop-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #f6f7f7;
+}
+.media-drop-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  min-height: 30px;
+}
+.media-drop-input {
+  display: none;
+}
+.media-drop-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

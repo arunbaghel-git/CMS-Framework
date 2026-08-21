@@ -627,7 +627,7 @@ Sawaal: inhe abhi chhod dein ya jagah bana dein?
 | Cheez | Abhi | Jab dependency aayegi |
 |---|---|---|
 | Homepage / Posts page | Field + dropdown, list khaali | Phase 1 → query add |
-| Logo / Favicon | Field hai, abhi URL text box | Phase 2 → MediaPicker |
+| Logo / Favicon | Superseded by D-41 current scope: `logoMediaId`/`faviconMediaId` + Media upload | Phase 2 → MediaPicker |
 | Posts count | Column hai, `—` dikhta hai | Phase 1 → count query |
 | Enquiries count | Column hai, `—` dikhta hai | Phase 7b → count query |
 | Menu me Pages/Destinations | Panel hai, list khaali | Phase 1 + 6 |
@@ -1209,3 +1209,143 @@ deta hai), taaki migration chhoot jaane pe bhi admin ko 404 na mile.
 - **Saare planned fields (defaultSeo, titleTemplates, scripts) abhi jodna** — singleton
   collection me field baad me jodna sasta hai (backfill karne ko ek hi row hai). Wo apne
   screen ke saath aayenge.
+
+---
+
+## D-41 · Media foundation — variant aur storage contract freeze
+
+**Context:** Media poori Phase 2 library ke roop me baad me aani thi, par Logo/Favicon
+Slice 0 ko block kar rahe hain. Isliye abhi sirf foundation banegi: `media` collection,
+upload hardening, local storage driver, S3-compatible storage interface, aur raster image
+variants. Files upload ho jaane ke baad variant keys aur public URL scheme badalna stored
+data rewrite karne jaisa hoga, isliye ye contract code se pehle freeze karna zaroori hai.
+
+### 1. Variants
+
+Raster uploads se hamesha ye WebP variants banenge:
+
+| key      | Max width | Format |
+| -------- | --------- | ------ |
+| `thumb`  | 300       | webp   |
+| `medium` | 800       | webp   |
+| `large`  | 1600      | webp   |
+
+Aspect ratio preserve hoga. `media.variants[]` ka shape wahi rahega jo architecture me
+hai: `{ key, url, w, h }`. `w` aur `h` actual output dimensions honge, requested max
+width nahi.
+
+Original file metadata store ho sakta hai, par **original file public URL ke roop me
+serve nahi hogi**. Public UI ko variant URL hi milega.
+
+### 2. Storage keys aur URLs
+
+Storage key user ke filename se nahi banega. Sanitized original filename sirf metadata
+hai; identity nahi.
+
+Key scheme:
+
+```text
+sites/{siteId}/media/{yyyy}/{mm}/{mediaId}/{variantKey}.webp
+```
+
+Local public URL:
+
+```text
+/uploads/sites/{siteId}/media/{yyyy}/{mm}/{mediaId}/{variantKey}.webp
+```
+
+S3/R2 public URL:
+
+```text
+{CDN_BASE_URL}/sites/{siteId}/media/{yyyy}/{mm}/{mediaId}/{variantKey}.webp
+```
+
+`CDN_BASE_URL` nahi ho to S3-compatible driver apna public base derive karega, par
+production me CDN expected hai (D-22). DB me canonical value `variants[].url` rahegi,
+taaki admin aur public site ko storage driver details na pata hon.
+
+### 3. Allowed MIME types
+
+Foundation me sirf raster image upload allowed hai:
+
+```text
+image/jpeg
+image/png
+image/webp
+```
+
+Validation MIME header pe depend nahi karegi. Magic-byte check zaroori hai, size
+`MAX_UPLOAD_MB` se capped hai, filename sanitize hoga, aur sharp pixel/decompression-bomb
+limit lagegi.
+
+GIF, PDF, video, documents aur SVG foundation scope me nahi hain.
+
+### 4. SVG policy
+
+SVG foundation me **blocked** rahega.
+
+Kyun: SVG ke andar script chal sakta hai, aur CMS admin me ye session-bearing browser me
+render hota hai. Block karke baad me sanitize/allow karna safe migration hai; allow karke
+baad me block karna live logo tod sakta hai.
+
+Client agar confirm kare ki logo SVG hi hona zaroori hai, to alag decision me sanitizer,
+allowed surface, aur serving rules lock honge. Tab tak SVG allowed MIME list me nahi aayega.
+
+### 5. Local storage driver
+
+`STORAGE_DRIVER=local` sirf development/local setup ke liye hai.
+
+`UPLOAD_DIR` resolution explicit hai:
+
+- Absolute path diya ho to wahi use hoga.
+- Relative path diya ho to API app root (`apps/api`) se resolve hoga, `process.cwd()` se
+  nahi.
+- Files `UPLOAD_DIR` ke andar exactly wahi storage key layout use karke likhi jaayengi.
+
+Local driver `/uploads/*` serve karega sirf `STORAGE_DRIVER=local` hone par. Admin dev
+server bhi `/uploads` ko API pe proxy karega, taaki DB me relative `/uploads/...` URLs
+rahein aur kabhi `localhost:4000` jaisa dev hostname stored media record me na aaye.
+Production checklist me media object storage pe jaana zaroori rahega (D-22, operations
+docs).
+
+### 6. S3-compatible interface
+
+Storage call site driver-agnostic rahega. Interface minimum ye operations dega:
+
+```text
+putObject({ key, body, contentType, cacheControl })
+deleteObject({ key })
+publicUrl(key)
+```
+
+Foundation me local driver implement hoga. S3-compatible interface define hoga, par real
+S3/R2 implementation full Media phase tak defer ho sakti hai.
+
+**Important:** Agar `STORAGE_DRIVER=s3` select kiya gaya aur real S3 support abhi
+implemented nahi hai, API boot/upload path clear error ke saath fail karega. Local pe
+silent fallback kabhi nahi hoga.
+
+### 7. Delete aur `mediaRefs`
+
+Migration 006 me **`mediaRefs` collection/index nahi banega**. Wo full Media phase me
+usage tracking ke saath aayega.
+
+Foundation me `media` collection `folderId` aur `deletedAt` fields day 1 se reserve
+karegi, taaki folders aur trash baad me migration ke bina aa sakein. Lekin delete/trash,
+restore, purge, usage endpoint, crop/rotate, replace, library grid, folders aur full
+`<MediaPicker />` foundation scope me nahi hain.
+
+Delete jaan-boojh kar defer hai: `mediaRefs` ke bina delete live pages pe broken images
+bana sakta hai. Jab tak usage tracking end-to-end nahi hai, media delete route expose
+nahi hoga.
+
+**Reject kiya:**
+
+- **Filename-based public paths** — rename/collision/path traversal ka surface badhta hai.
+- **Original image serve karna** — Core Web Vitals aur payload size dono kharab hote hain.
+- **SVG sanitize abhi** — dependency aur policy surface badhta hai; immediate Slice 0 need
+  PNG/WebP se cover hoti hai.
+- **S3 selected hone pe local fallback** — production misconfiguration chup jaati hai aur
+  media local disk pe chali jaati hai.
+- **Migration 006 me `mediaRefs` banana** — usage model full Media phase ka hai; aadha
+  collection/index abhi lock karna unnecessary hai.

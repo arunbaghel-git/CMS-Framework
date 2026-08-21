@@ -16,6 +16,7 @@ export default defineConfig({
     // cookies aur CSRF isi par depend karte hain.
     proxy: {
       '/api': { target: 'http://localhost:4000', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:4000', changeOrigin: true },
     },
   },
 })

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CURRENCIES, DATE_FORMATS, TIMEZONES, updateSettingsSchema } from '@cms/shared'
 
 import { api, errorMessage } from '../../lib/api.js'
@@ -18,9 +18,8 @@ import './Settings.css'
  * alag tab ("Reading & Permalinks") me rehta hai. Pehle wo galti se General me daal
  * diya gaya tha; client ne pakda (D-40).
  *
- * **Logo aur Favicon drop zones hain, input nahi** — design me bhi wahi hain. Abhi wo
- * chalte nahi kyunki Media library bani nahi (D-30): jagah aur uska contract aaj
- * maujood hain, data baad me aayega.
+ * **Logo aur Favicon Media me store hote hain.** Picker Phase 2 me aayega; yahan ka
+ * live path direct upload hai, aur ID existing settings save ke saath persist hoti hai.
  */
 
 /** Design ke labels — value wahi token hai jo server store karta hai. */
@@ -44,13 +43,19 @@ export default function General() {
   const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(null)
+  const [media, setMedia] = useState({})
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState(null)
 
   useEffect(() => {
     api
       .get('/settings')
-      .then((res) => setSettings(res.data.data.settings))
+      .then((res) => {
+        const next = res.data.data.settings
+        setSettings(next)
+        return loadSavedMedia(next)
+      })
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setLoading(false))
   }, [])
@@ -74,6 +79,8 @@ export default function General() {
       siteName: settings.siteName,
       tagline: settings.tagline,
       adminEmail: settings.adminEmail,
+      logoMediaId: settings.logoMediaId,
+      faviconMediaId: settings.faviconMediaId,
       timezone: settings.timezone,
       dateFormat: settings.dateFormat,
       currency: settings.currency,
@@ -101,6 +108,60 @@ export default function General() {
     } finally {
       setSaving(false)
     }
+  }
+
+  async function loadSavedMedia(nextSettings) {
+    const entries = await Promise.all(
+      [
+        ['logoMediaId', nextSettings.logoMediaId],
+        ['faviconMediaId', nextSettings.faviconMediaId],
+      ]
+        .filter(([, id]) => id)
+        .map(async ([key, id]) => {
+          try {
+            const res = await api.get(`/media/${id}`)
+            return [key, res.data.data.media]
+          } catch {
+            return [key, null]
+          }
+        }),
+    )
+
+    setMedia(Object.fromEntries(entries.filter(([, item]) => item)))
+  }
+
+  async function uploadMedia(key, file) {
+    if (!file) return
+
+    setError(null)
+    setNotice(null)
+    setUploading(key)
+
+    const body = new FormData()
+    body.append('file', file)
+
+    try {
+      const res = await api.post('/media', body, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      const uploaded = res.data.data.media
+      setSettings((s) => ({ ...s, [key]: uploaded.id }))
+      setMedia((current) => ({ ...current, [key]: uploaded }))
+      setNotice(`${key === 'logoMediaId' ? 'Logo' : 'Favicon'} uploaded. Save changes to apply it.`)
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setUploading(null)
+    }
+  }
+
+  function clearMedia(key) {
+    setSettings((s) => ({ ...s, [key]: null }))
+    setMedia((current) => {
+      const next = { ...current }
+      delete next[key]
+      return next
+    })
   }
 
   if (loading) return <p className="subtitle">Loading…</p>
@@ -195,8 +256,22 @@ export default function General() {
               </div>
 
               <div className="row2">
-                <MediaDrop label="Logo" hint="Upload logo · SVG or PNG" />
-                <MediaDrop label="Favicon" hint="512×512 PNG" />
+                <MediaDrop
+                  label="Logo"
+                  hint="PNG, JPG or WebP"
+                  media={media.logoMediaId}
+                  uploading={uploading === 'logoMediaId'}
+                  onUpload={(file) => uploadMedia('logoMediaId', file)}
+                  onClear={() => clearMedia('logoMediaId')}
+                />
+                <MediaDrop
+                  label="Favicon"
+                  hint="512x512 PNG, JPG or WebP"
+                  media={media.faviconMediaId}
+                  uploading={uploading === 'faviconMediaId'}
+                  onUpload={(file) => uploadMedia('faviconMediaId', file)}
+                  onClear={() => clearMedia('faviconMediaId')}
+                />
               </div>
             </div>
           </div>
@@ -329,21 +404,52 @@ function Select({ id, label, value, options, labels, onChange }) {
 
 /**
  * Logo / Favicon ka drop zone — design ka `.featured-drop`.
- *
- * Abhi ye **click nahi hota**: uske peeche Media library chahiye, jo bani nahi (D-30).
- * Box aur uski jagah aaj maujood hain taaki Media aane pe sirf iska andar bharna pade,
- * poori screen dobara na likhni pade.
  */
-function MediaDrop({ label, hint }) {
+function MediaDrop({ label, hint, media, uploading, onUpload, onClear }) {
+  const inputRef = useRef(null)
+  const preview = media?.variants?.find((variant) => variant.key === 'thumb') ?? media?.variants?.[0]
+
   return (
     <div className="field">
       <label>{label}</label>
-      <div className="featured-drop media-drop-pending" aria-disabled="true">
-        <span>
-          {hint}
-          <br />
-          <span className="muted">Comes with the Media library</span>
-        </span>
+      <div
+        className="featured-drop media-drop"
+        role="button"
+        tabIndex={0}
+        onClick={() => inputRef.current?.click()}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return
+          event.preventDefault()
+          inputRef.current?.click()
+        }}
+      >
+        {preview ? (
+          <img src={preview.url} alt="" className="media-drop-preview" />
+        ) : (
+          <span>
+            {uploading ? 'Uploading...' : hint}
+            <br />
+            <span className="muted">{media?.filename ?? 'No file selected'}</span>
+          </span>
+        )}
+      </div>
+      <div className="media-drop-actions">
+        <input
+          ref={inputRef}
+          className="media-drop-input"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          onChange={(event) => {
+            onUpload(event.target.files?.[0])
+            event.target.value = ''
+          }}
+        />
+        {media && (
+          <button className="btn btn-plain" type="button" onClick={onClear}>
+            Remove
+          </button>
+        )}
+        {media?.filename && <span className="muted media-drop-name">{media.filename}</span>}
       </div>
     </div>
   )

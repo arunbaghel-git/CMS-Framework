@@ -163,6 +163,23 @@ describe('PATCH /api/settings', () => {
     expect(stored.siteName).toBe('Wanderly Travels')
   })
 
+  it('logo aur favicon media IDs persist karta hai', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      logoMediaId: '64f000000000000000000001',
+      faviconMediaId: '64f000000000000000000002',
+    })
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.settings).toMatchObject({
+      logoMediaId: '64f000000000000000000001',
+      faviconMediaId: '64f000000000000000000002',
+    })
+
+    const stored = await Settings.findOne({ siteId: 'default' }).lean()
+    expect(stored.logoMediaId).toBe('64f000000000000000000001')
+    expect(stored.faviconMediaId).toBe('64f000000000000000000002')
+  })
+
   /**
    * `social` nested hai, aur poora object `$set` karne se wo links ud jaate hain jo
    * request me nahi aaye the. Service dot-notation isiliye use karti hai.

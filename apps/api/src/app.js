@@ -17,12 +17,18 @@ import { authRoutes } from './modules/auth/routes.js'
 import { meRoutes, userRoutes } from './modules/users/routes.js'
 import { roleRoutes } from './modules/roles/routes.js'
 import { settingsRoutes } from './modules/settings/routes.js'
+import { mediaRoutes } from './modules/media/routes.js'
+import { getStorageDriver } from './modules/media/storage/index.js'
 
 /**
  * Express app banata hai. Server start karna `index.js` ka kaam hai —
  * isse test me app ko bina listen kiye use kiya ja sakta hai.
  */
 export function createApp() {
+  // Media storage config ko boot pe touch karo: `s3` selected ho aur support na ho to
+  // clear failure mile, local pe silent fallback kabhi nahi (D-41).
+  const storage = getStorageDriver()
+
   const app = express()
 
   // Reverse proxy ke peeche chalta hai — sahi client IP ke liye zaroori
@@ -32,6 +38,17 @@ export function createApp() {
   app.use(pinoHttp({ logger }))
   app.use(helmet())
   app.use(compression())
+
+  if (storage.kind === 'local') {
+    app.use(
+      '/uploads',
+      express.static(storage.root, {
+        dotfiles: 'deny',
+        fallthrough: true,
+        index: false,
+      }),
+    )
+  }
 
   // CORS allowlist — wildcard kabhi nahi (D-12).
   // Same-origin setup me ye sirf dev ke liye kaam aata hai.
@@ -86,7 +103,8 @@ export function createApp() {
   app.use('/api/users', userRoutes)
   app.use('/api/roles', roleRoutes)
   app.use('/api/settings', settingsRoutes)
-  // Aage: entries, media, menus, taxonomies, settings…
+  app.use('/api/media', mediaRoutes)
+  // Aage: entries, menus, taxonomies…
 
   app.use(notFoundHandler)
   app.use(errorHandler)

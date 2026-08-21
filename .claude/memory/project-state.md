@@ -7,7 +7,9 @@
 
 ## Abhi kahan hain
 
-**Phase 0 — ~92% poora.** Auth, RBAC, admin shell aur Users screens ban chuke hain.
+**Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
+Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
+Original Phase 0 ke teen backlog items abhi bhi deferred/non-blocking hain (neeche).
 
 ```
 Phase −1  Din-1 faisle                    ✅ 8/8
@@ -21,15 +23,18 @@ Phase 0   Setup layer                     ✅
           Users screens                   ✅  ← 20 Aug
           Users menu role-aware + Profile ✅  ← 21 Aug (D-37)
           Settings model + General screen ✅  ← 21 Aug (D-40)
-          Docker compose (api + admin)    🔴  chhota, kuch block nahi
-          CSP policy (nonce-based)        🔴  asli matlab Phase 4-5 me
-          forgot / reset                  🔴  SMTP pe block (Phase 2)
+          Media foundation                ✅  ← 21 Aug (D-41, pulled forward)
+          Settings Logo/Favicon live      ✅  current approved scope complete
+          Docker compose (api + admin)    🟡  deferred, chhota, kuch block nahi
+          CSP policy (nonce-based)        🟡  deferred to Phase 4-5
+          forgot / reset                  🟡  deferred, SMTP pe block (Phase 2)
 Slice 0   Header + Footer end-to-end      🔴
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 231 tests passing · lint clean · admin build clean · asli Mongo pe
-end-to-end verify kiya (login → rotation → reuse detection → logout)
+**Health:** 279 tests passing · lint clean · admin build clean · API media/settings
+integration clean. Media upload route, SVG rejection, media.upload permission, and
+settings logo/favicon ID persistence have focused coverage.
 
 `pnpm format:check` clean hai — pehle wali 9 prettier-dirty files theek ho chuki hain.
 
@@ -149,12 +154,10 @@ aur design frozen hai (R15). Wo tab lagegi jab wo screens banengi.
 
 ---
 
-## Agla kaam — Media ki foundation (naya session)
+## Media foundation aur General Logo/Favicon — complete for current scope
 
-**Client ne kaha Media ka poora kaam ek hi session me hoga.** Ye session usi ke liye
-khaali chhoda gaya hai.
-
-### Poora Phase 2 Media **nahi** — sirf foundation
+**Media Phase 2 ka poora scope nahi bana.** Sirf foundation pull-forward hui, kyunki Logo
+General Settings aur Slice 0 header dono ko block kar raha tha.
 
 ```
 media collection + indexes (migration 006)
@@ -162,11 +165,23 @@ storage driver abstraction     local abhi, s3 ka interface taiyaar
 upload hardening               magic-byte check · size cap · filename sanitize
                                sharp pixel limit (decompression bomb)
 sharp variants + webp          "original kabhi serve mat karo"
-Settings me Logo/Favicon       drop zone ab bana hua hai, bas andar bharna hai
+Settings me Logo/Favicon       clickable drop zone upload · saved preview · replace/remove
+                               logoMediaId/faviconMediaId settings me persist
+Local media preview            API serves local `/uploads` from resolved UPLOAD_DIR
+                               Vite dev proxies `/uploads` to API
 ```
+
+Stored media URLs stay relative (`/uploads/...`); never store `localhost:4000` or any
+other dev hostname in `media.variants[].url`.
 
 **Baad me (Phase 2 me hi):** library grid · folders · media trash · `mediaRefs` usage ·
 crop/rotate · replace · MediaPicker modal · S3 driver ka asli implementation.
+Settings ke Logo/Favicon bhi tab MediaPicker use karenge; abhi direct upload current
+scope ka live path hai, alag final picker UX nahi.
+
+**Favicon-specific dimension validation deferred:** UI hint `512x512` bolta hai, par
+backend abhi generic image validation karta hai. Ye current General completion ka blocker
+nahi; Phase 2 Media validation/picker work me aayega.
 
 **Delete jaan-boojh kar nahi banana.** `mediaRefs` ke bina delete = live page pe toota
 hua image (08-RISKS ka documented trap). Delete hi na ho to wo trap lag hi nahi sakta.
@@ -182,23 +197,13 @@ aur Phase 2 me use andar laane ke liye migration likhni padti. Foundation ke saa
 pehle din se `media` me hi rehta hai; picker aane pe Settings ka field sirf "upload" se
 "choose or upload" ban jaayega.
 
-### Ek faisla client se lena hai — **kaam shuru karne se pehle**
+**SVG policy ab current scope me resolved hai:** SVG upload blocked by default. Sanitized
+SVG support can be revisited in later Media work, but current General completion does not
+depend on it.
 
-**SVG allow karein ya nahi?** Logo aksar SVG hota hai, par SVG ke andar `<script>` chal
-jaata hai aur wo admin ke session me chalta hai (08-RISKS ka trap: "Sanitize ya
-disallow").
+### Ab official next task
 
-| Option       | Matlab                                                                      |
-| ------------ | --------------------------------------------------------------------------- |
-| SVG block    | Sabse surakshit. Client apna asli SVG logo nahi de payega — PNG dena padega |
-| SVG sanitize | Client SVG de sakta hai. ~aadha din extra + sanitizer ki dependency         |
-
-Client ka logo kis format me hai — wo pata ho to faisla aasaan hai.
-
-### Uske baad
-
-Media foundation → General ka Logo/Favicon → **General poora done** → **Slice 0**
-(Header + Footer, D-27).
+**Slice 0 — Header + Footer end-to-end (D-27).** Ye abhi unimplemented hai.
 
 ---
 
@@ -211,7 +216,7 @@ email badalna (SMTP), avatar (Phase 2). Column sorting **ban chuki** hai.
 | Section    | Abhi kitna ban sakta hai | Kya rok raha hai                                          |
 | ---------- | ------------------------ | --------------------------------------------------------- |
 | Users      | ~95%                     | Posts/Enquiries count (Phase 1, 7b) · invite email (SMTP) |
-| Settings   | ~90%                     | Logo/Favicon (Media) · Reading & Permalinks tab (Phase 1) |
+| Settings   | 100% current scope       | MediaPicker/fav icon dimensions later · Reading/Permalinks Phase 1+ |
 | Appearance | ~40%                     | Menu me Pages/Destinations chahiye (Phase 1 + 6)          |
 
 ---

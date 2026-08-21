@@ -1,8 +1,9 @@
 # 09 — Open Items
 
-**Status:** Phase 0 lagbhag poora (~97%). Users ka role-aware menu + Profile (D-37) aur
-Settings — model + migration 005 + General screen (D-40) land ho chuke —
-**231 tests passing**. Phase 0 me sirf teen non-blocking item bache hain (neeche).
+**Status:** Phase 0 ka approved execution scope poora. Users ka role-aware menu + Profile
+(D-37), Settings — model + migration 005 + General screen (D-40), Media foundation
+(D-41), aur Settings Logo/Favicon current scope me live hain — **279 tests passing**.
+Original Phase 0 ke teen items deferred/non-blocking hain (neeche).
 **Last updated:** 21 Aug 2026
 
 ---
@@ -52,6 +53,10 @@ Settings — model + migration 005 + General screen (D-40) land ho chuke —
 | **Session ki umr** | ✅ **24 ghante**, aur "Remember me" pe **7 din** — dono sliding (D-38) |
 | **"Remember me" ka bug** | ✅ Fix — choice ab `refreshTokens` record me, rotation ke saath chalti hai (D-38) |
 | **Profile pe email/avatar** | ✅ **Nahi** — email verification flow maangta hai (SMTP), avatar Phase 2 (Media) pe block |
+| **Media foundation** | ✅ Pulled forward from Phase 2: collection/indexes, local/S3 driver shape, upload hardening, WebP variants, `/api/media` upload |
+| **Q-5 SVG upload** | ✅ Current policy: SVG blocked by default. Sanitized SVG support can be revisited later, but it is not a blocker |
+| **Q-6 Logo stub mismatch** | ✅ Resolved by using `logoMediaId` / `faviconMediaId` and the Media upload path in Settings |
+| **Settings Logo/Favicon** | ✅ Current approved scope complete: clickable drop upload, saved preview, replace/remove, IDs persisted on Save |
 
 ---
 
@@ -71,47 +76,6 @@ Approve ho chuka hai, karna baaki hai. Kya check karna:
 5. Visual builder banane ki jagah milti hai ya nahi
 
 Result se D-01 se D-30 me se kuch badal sakti hain — isliye Phase 1 se pehle.
-
----
-
-### Q-5 · Media me SVG — allow karein ya sanitize?
-
-**Deadline:** Media ka upload path likhne se pehle
-**Kaam ko block NAHI karta** — neeche wajah
-
-Logo aksar SVG hota hai, par SVG ke andar `<script>` chal jaata hai aur wo **admin ke
-session me** chalta hai (`08-RISKS` ka documented trap: "Sanitize ya disallow").
-
-| Option       | Matlab                                                                      |
-| ------------ | --------------------------------------------------------------------------- |
-| SVG block    | Sabse surakshit. Client apna asli SVG logo nahi de payega — PNG dena padega |
-| SVG sanitize | Client SVG de sakta hai. ~aadha din extra + sanitizer ki dependency         |
-
-**Kaam kyun nahi rukta:** allowed-MIME list ek hi constant me rahegi (`packages/shared`),
-default me SVG **bahar**. Client ka jawab aaye to ek line badlegi.
-
-**Direction maayne rakhti hai:** block karke baad me allow karna kuch nahi todta; allow
-karke baad me block karna client ke **live logo** todta hai. Isliye default block.
-
-Client se poochhne wala sawaal: **unka logo kis format me hai?**
-
----
-
-### Q-6 · Logo ka interim stub teen jagah teen tarah define hai
-
-**Deadline:** Media foundation ke saath khud khatam ho jaayega
-**Yahan sirf record ke liye** — ye faisla lene layak cheez nahi, batane layak hai
-
-```
-D-30 ki table                        →  "Field hai, abhi URL text box"
-apps/api/.../settings/model.js       →  logoMediaId (ek ID, URL nahi)
-apps/admin/.../settings/General.jsx  →  <MediaDrop> — disabled drop zone
-```
-
-**Kyun likha hai:** agar Media se pehle Slice 0 kiya jaata aur logo ko _kaam karta hua_
-chahiye hota, to `logoUrl` field add karni padti (migration 006) aur Phase 2 me hatani
-padti (migration 007) — **do migration, ek se bachne ke liye**. Yahi wajah hai ki Media
-Slice 0 se pehle aa rahi hai. Media land hote hi ye teenon apne aap ek ho jaate hain.
 
 ---
 
@@ -148,9 +112,9 @@ Spec 005 me add karne honge.
 ```
 1. ✅ Users menu role-aware + Profile screen      (D-37 — 21 Aug)
 2. ✅ Settings — model + migration + General      (D-40 — 21 Aug)
-3. Media ki foundation                           ← ABHI YAHAN   (~3-4 din)
-4. Settings ka Logo/Favicon live → General 100%  (chhota)
-5. Slice 0 — Header + Footer end-to-end          (1.5 hafte)
+3. ✅ Media ki foundation                         (D-41 — pulled forward)
+4. ✅ Settings ka Logo/Favicon live → General 100% current scope
+5. Slice 0 — Header + Footer end-to-end          ← OFFICIAL NEXT (1.5 hafte)
 6. C-2 — Payload spike (parallel me)             (2 din)
 7. Phase 1 — Content Core                        (3 hafte)
 ```
@@ -170,12 +134,16 @@ media collection + indexes (migration 006)
 storage driver abstraction     local abhi, s3 ka interface taiyaar
 upload hardening               magic-byte · size cap · filename sanitize · sharp pixel limit
 sharp variants + webp          "original kabhi serve mat karo"
-Settings me Logo/Favicon       drop zone bana hua hai, bas andar bharna hai
+Settings me Logo/Favicon       clickable drop upload · saved preview · replace/remove
+                               local `/uploads` preview works via API static serving + Vite proxy
 ```
 
 **Baad me (Phase 2 me hi):** library grid · folders · media trash · `mediaRefs` usage ·
 crop/rotate · replace · `<MediaPicker />` · S3 driver ka asli implementation.
 Yaani Phase 2 ka budget zyada nahi ghatta — sirf ~3-4 din aage khiskte hain.
+Settings ke Logo/Favicon bhi tab MediaPicker use karenge; current scope me clickable
+drop-zone direct upload final enough hai. Favicon-specific `512x512` dimension validation
+also deferred to later Media validation work and is not a current General blocker.
 
 **Delete jaan-boojh kar nahi banega.** `mediaRefs` ke bina delete = live page pe toota
 hua image (`08-RISKS` ka documented trap). Delete hi na ho to wo trap lag hi nahi sakta.
@@ -192,20 +160,21 @@ hua image (`08-RISKS` ka documented trap). Delete hi na ho to wo trap lag hi nah
 `/uploads` pehle se reserved slugs hain — Settings ke schema ko haath lagane ki zaroorat
 nahi.
 
-**Phase 0 me kya bacha hai** (koi bhi kisi ko block nahi kar raha):
+**Original Phase 0 backlog jo deferred hai** (koi bhi Slice 0 ko block nahi kar raha):
 
 | Item | Kab karein |
 | --- | --- |
 | Docker compose me `api` + `admin` service | Chhota kaam — abhi `pnpm dev` se chalta hai |
 | CSP policy (nonce-based) | Phase 4-5 — asli matlab page builder aur `settings.scripts` ke saath hai |
-| `forgot` / `reset` auth routes | **SMTP pe block** — Phase 2 |
+| `forgot` / `reset` auth routes | **SMTP pe block** — SMTP work ke saath |
 
 **Phase 0 me kya ho chuka:** monorepo + workspaces, docker-compose, ESLint/Prettier,
 CI, Express boilerplate, Zod contract, migration runner, CSS architecture,
 **auth + RBAC + admin shell** (login, protected routes, sidebar, `/api/me`).
 
-**Phase 0 me kya baaki:** upar wali teen cheezein — teenon me se koi kuch block nahi
-kar rahi. Seed ka baaki hissa (content types, taxonomies, entries) Phase 1 pe hai.
+**Phase 0 approved execution scope me kya baaki:** kuch nahi. Upar wali teen cheezein
+deferred backlog hain; teenon me se koi Slice 0 ko block nahi kar rahi. Seed ka baaki
+hissa (content types, taxonomies, entries) Phase 1 pe hai.
 
 **Users me kya baaki:** bulk actions, email badalna (SMTP), avatar (Media pe block).
 Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block hain.
