@@ -560,11 +560,24 @@ Teen guard service me hain, middleware me nahi (middleware ke paas document hota
 nahi): **administrator delete nahi hota** · **aakhri admin ka role nahi badalta** ·
 **koi apna account delete/deactivate nahi kar sakta**.
 
-**Password ka ekmatra source administrator hai** (D-35). User apna password khud nahi
-badal sakta — `/api/auth/change-password` sirf tab khulta hai jab `mustChangePassword`
-true ho, aur wo sirf seed wale admin pe lagta hai (uska password `.env` me plain text
-me hota hai). Admin Edit User se kabhi bhi reset kar sakta hai; reset hote hi us user
-ke saare sessions revoke ho jaate hain.
+**Password badalne ke do raaste hain** (D-37, jo D-35 §1 ko supersede karta hai):
+
+| Raasta | Kaun | Kya chahiye |
+| --- | --- | --- |
+| **Profile** | har user, apne liye | **current password** + naya |
+| **Edit User** ka reset field | sirf admin, kisi ke liye | kuch nahi — recovery ka ekmatra raasta |
+
+Doosra raasta isliye zaroori hai ki abhi koi "forgot password" email flow nahi hai
+(SMTP pending). Reset ya change hote hi us user ke **doosre sessions revoke** ho jaate
+hain; jis session se badla wo zinda rehta hai.
+
+`mustChangePassword` wala **forced** flow alag cheez hai aur waise hi rahega — wo seed
+wale admin pe lagta hai (uska password `.env` me plain text me hota hai) aur poori screen
+block karta hai jab tak password na badle.
+
+> ⚠️ **Code abhi is doc se peeche hai.** `apps/api/src/modules/auth/service.js` me
+> `/api/auth/change-password` abhi bhi `mustChangePassword` false hone pe **403** deta hai.
+> Wo gate hatana baaki hai.
 
 ### 8.4 Kya ban chuka hai (Phase 0)
 
@@ -583,8 +596,9 @@ migrations/003-user-username.js      users.username backfill + unique index
 Ek query ki keemat pe ye guarantee milti hai ki deactivate kiya gaya user agli hi
 request pe bahar ho jaaye — 15 minute baad nahi jab access token expire ho.
 
-Har user ke liye **apni profile screen** (naam, email, password, avatar) — ye "dusron ko
-manage karna" se alag cheez hai.
+Har user ke liye **apni Profile screen** — ye "dusron ko manage karna" se alag cheez hai.
+Editable sirf **naam** aur **password** (D-37); username (D-34 — immutable), email aur
+role read-only hain. Avatar Phase 2 (Media) pe block hai.
 
 ---
 

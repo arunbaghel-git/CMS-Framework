@@ -39,7 +39,8 @@ Appearance                Site Style · Menus · Templates · Patterns
 
 SEO                       Defaults · Redirects · Sitemap
 
-Users                     All Users · Roles · My Profile
+Users (admin)             All Users · Add User · Profile        (D-37)
+Users (baaki roles)       Profile
 
 Tools                     Import · Export · Activity Log
 
@@ -49,6 +50,9 @@ Settings                  General · Reading · Permalinks · Media · Scripts
 **"Appearance" grouping sabse zaroori hissa hai.** Iske bina Menus, Templates aur theme
 tokens teen alag features ban jaate hain jinka koi ghar nahi — aur user unhe dhoondh
 hi nahi paata.
+
+**Users ka menu role-aware hai (D-37).** Jiske paas `user.read` nahi, use sirf
+**Profile** dikhta hai. **Roles submenu abhi nahi hai** — role builder Phase 7 me.
 
 **Naming rule (D-19):** UI me "Entries" ya "Taxonomies" kabhi nahi. Wahan Pages, Posts,
 Categories, Tags hi hoga.

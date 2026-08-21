@@ -15,6 +15,54 @@ Format:
 
 ---
 
+## 2026-08-21 — Users ka menu role-aware hua; Roles submenu drop; docs sync
+
+**Kya hua**
+
+- `/status` chalaya — **6 doc mismatch** mile. Sabse bade: `CLAUDE.md` "~85%, 130 tests,
+  agla kaam Users" keh rahi thi jabki Users ho chuke the aur **184 tests** hain; aur wo
+  abhi bhi keh rahi thi ki `roles` module ke paas koi HTTP surface nahi (jabki
+  `controller.js` + `routes.js` do commit pehle aa chuke the). `09-OPEN-ITEMS` "175 tests"
+  aur "GitHub repo khaali hai" — dono galat (origin/main `0e328cb` pe hai, 18 unpushed)
+- Client ne Users section ka **asli shape** diya. Kal wala "Users → Roles" submenu ka plan
+  **drop** — uski jagah menu role ke hisaab se badlega (D-37)
+- **Koi code nahi likha** — sirf docs. Client ne yahi kaha tha
+
+**Ek takraav pakda gaya (isiliye poochha)**
+
+Client ne kaha "editor apni profile se naam aur password badal sake". Par **D-35 §1 ulta
+kehta hai** — "user apna password khud nahi badal sakta" — aur wo code me laga hua bhi
+hai: `auth/service.js` me `/api/auth/change-password` `mustChangePassword` false hone pe
+**403** deta hai. Bina poochhe likh dete to doc apne hi decision se takraati.
+Client se teen jawab liye: current password **zaroori** · admin ka reset field **rahega** ·
+profile pe sirf **naam + password** (email/avatar nahi).
+
+**Faisle:** **D-37** — (1) Users ka menu role-aware: admin ko All Users · Add User ·
+Profile, baaki sabko sirf Profile; Roles submenu **nahi**, role builder Phase 7 me hi.
+(2) User apna password Profile se khud badal sakta hai, current password ke saath —
+**D-35 §1 superseded**, baaki D-35 waisa hi.
+
+**Ek blocker apne aap khatam ho gaya:** Q-1 (built-in role edit ho ya "Duplicate") RBAC ko
+block kar raha tha. Role-edit ka koi UI hi nahi ban raha, to wo Phase 7 pe khisak gaya.
+
+**Docs jo badle:** `03-DECISIONS` (D-37 add, D-35 §1 superseded mark) · `02-ARCHITECTURE`
+(§8.3 password ke do raaste, §8.4 profile) · `04-ADMIN-UX` (nav) · `05-BUILD-PLAN`
+(Users/Profile Phase 7 → Phase 0, custom-role builder Phase 7 me hi, `subscriber` wali
+purani line) · `09-OPEN-ITEMS` · `CLAUDE.md` · project-state.
+
+**Agla — code (abhi tak nahi likha)**
+
+1. Nav registry `{ id, label, to, permission }` — Sidebar ka `MENU` abhi hardcoded hai aur
+   kisi item pe `permission` nahi. **Sidebar aur route guard dono wahi padhein**, warna
+   "menu me chhupa par URL type karne pe khul jaata hai" wala bug banega
+2. Sidebar me `Users` ko flat link se **accordion group** banao
+3. Profile screen — `GET|PATCH /api/me` bana hua hai, UI nahi
+4. `/api/auth/change-password` ka 403 gate hatao + current-password check + **doosre**
+   sessions revoke (chalu wala nahi). `mustChangePassword` wala forced flow waisa hi rahe
+5. Phir Settings
+
+---
+
 ## 2026-08-20 (shaam) — Users module poora; RBAC ka faisla pending
 
 **Kya hua**

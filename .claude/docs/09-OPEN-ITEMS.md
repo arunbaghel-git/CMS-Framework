@@ -1,7 +1,7 @@
 # 09 — Open Items
 
-**Status:** Phase 0 chal raha hai (~92%). Users screens land ho chuke — 175 tests passing.
-**Last updated:** 20 Aug 2026
+**Status:** Phase 0 chal raha hai (~92%). Users screens land ho chuke — **184 tests passing**.
+**Last updated:** 21 Aug 2026
 
 ---
 
@@ -37,6 +37,17 @@
 
 **A-2 kahan bana:** `packages/shared/src/schemas/` — `entry.js`, `block.js`,
 `content.js`, `seo.js` + `schemas.test.js`. Contract ab **frozen** hai.
+
+### 21 Aug 2026
+
+| Item | Faisla |
+| --- | --- |
+| **Users ka menu** | ✅ **Role-aware** — admin ko All Users · Add User · Profile; baaki sabko sirf Profile (D-37) |
+| **Roles submenu** | ✅ **Abhi nahi banega** — role builder Phase 7 me. `GET /api/roles` read-only hi rahega |
+| **Q-1 built-in role edit** | ✅ **Phase 7 pe khisak gaya** — koi role-edit UI hi nahi ban raha, to ab kuch block nahi karta |
+| **Profile pe password** | ✅ **User khud badal sakta hai**, current password ke saath. D-35 §1 superseded (D-37) |
+| **Admin ka reset field** | ✅ **Rahega** — koi forgot-password email flow nahi hai (SMTP pending), recovery ka ekmatra raasta |
+| **Profile pe email/avatar** | ✅ **Nahi** — email verification flow maangta hai (SMTP), avatar Phase 2 (Media) pe block |
 
 ---
 
@@ -76,18 +87,19 @@ Spec 005 me add karne honge.
 ## Ab ka order
 
 ```
-1. Phase 0 — Settings screens                    ← ABHI YAHAN
-2. C-2 — Payload spike (parallel me)             (2 din)
-3. Slice 0 — Header + Footer end-to-end          (1.5 hafte)
-4. Phase 1 — Content Core                        (3 hafte)
+1. Users menu role-aware + Profile screen        ← ABHI YAHAN  (D-37)
+2. Phase 0 — Settings screens
+3. C-2 — Payload spike (parallel me)             (2 din)
+4. Slice 0 — Header + Footer end-to-end          (1.5 hafte)
+5. Phase 1 — Content Core                        (3 hafte)
 ```
 
 **Phase 0 me kya ho chuka:** monorepo + workspaces, docker-compose, ESLint/Prettier,
 CI, Express boilerplate, Zod contract, migration runner, CSS architecture,
 **auth + RBAC + admin shell** (login, protected routes, sidebar, `/api/me`).
 
-**Phase 0 me kya baaki:** Settings screens, aur seed ka baaki hissa (settings/entries —
-wo Phase 1 pe block hai).
+**Phase 0 me kya baaki:** Users ka role-aware menu + Profile screen (D-37), Settings
+screens, aur seed ka baaki hissa (settings/entries — wo Phase 1 pe block hai).
 
 **Users me kya baaki:** bulk actions, email badalna, avatar. Posts/Enquiries counts
 Phase 1 aur 7b pe block hain.
@@ -98,7 +110,9 @@ Phase 1 aur 7b pe block hain.
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **Push abhi bhi nahi hua** (permission pe hoga). GitHub repo khaali hai
+- ⚠️ **18 commits unpushed** hain. `origin/main` `0e328cb` pe khada hai (19 Aug wala
+  "Session state save karo") — repo khaali **nahi** hai, push pehle ho chuka tha.
+  Aage bhi push **sirf permission pe**
 - ⚠️ Repo ka naam **`crmmern`** hai par project **CMS** hai — rename karna ho to abhi sasta hai
 - ⚠️ `CLAUDE.md` `.claude/` ke andar hai. Load to ho rahi hai, par root pe rakhna
   zyada reliable hai

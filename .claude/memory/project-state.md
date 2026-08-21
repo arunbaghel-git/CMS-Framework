@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 20 Aug 2026
+> **Last updated:** 21 Aug 2026
 
 ---
 
@@ -19,7 +19,8 @@ Phase 0   Setup layer                     ✅
           Seed script (spec 004)          🟡  roles + admin user ✅, baaki Phase 1 pe block
           Admin shell (login + sidebar)   ✅  ← 20 Aug
           Users screens                   ✅  ← 20 Aug
-          Settings screens                🔴  ← AGLA KAAM
+          Users menu role-aware + Profile 🔴  ← AGLA KAAM (D-37)
+          Settings screens                🔴
 Slice 0   Header + Footer end-to-end      🔴
 Phase 1+  Content core aur aage           🔴
 ```
@@ -27,8 +28,7 @@ Phase 1+  Content core aur aage           🔴
 **Health:** 184 tests passing · lint clean · admin build clean · asli Mongo pe
 end-to-end verify kiya (login → rotation → reuse detection → logout)
 
-⚠️ **9 files prettier-dirty hain** — 6 admin CSS + `App.jsx` se pehle wali + dono
-memory files. `pnpm format` ek baar chala do.
+`pnpm format:check` clean hai — pehle wali 9 prettier-dirty files theek ho chuki hain.
 
 ---
 
@@ -69,6 +69,8 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34) |
 | **Password**          | Sirf admin set karta hai; user khud nahi badal sakta (D-35)            |
 | **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)           |
+| **Users ka menu**     | Role-aware — admin ko 3 item, baaki ko sirf Profile (D-37)             |
+| **Apna password**     | User Profile se khud badal sakta hai, current password ke saath (D-37) |
 
 Specs 001–005: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved.
 
@@ -97,53 +99,46 @@ permissions    roles collection se, 60s in-process cache
 
 ---
 
-## Agla session — RBAC (yahin ruke the)
+## Agla kaam — Users ka menu aur Profile screen (D-37)
 
-Client ne **role-based access control** maanga hai: **Users → Roles** submenu, aur
-role ko jo sections diye jaayein **sirf wahi sidebar me dikhein**. Unka example:
-Sales Agent ko sirf Packages + Enquiries.
-
-Approach samjha di gayi hai, **code shuru nahi hua**. Do cheezein pending:
-
-1. **Spec `006-rbac.md` likhni hai** — client ne abhi "haan" nahi bola
-2. **Ek faisla client se lena hai** (niche "Khule sawaal" me #1)
-
-**Approach ka saar (jo client ko bataya):**
+**21 Aug ko client ne Users section ka asli shape diya. Roles submenu ab nahi chahiye.**
 
 ```
-Teen layer, par asli boundary sirf pehli hai:
-  1. server route   requirePermission()        ← asli rok
-  2. admin route    screen render hi na ho     ← /users type karne pe
-  3. sidebar        item chhupa do             ← sirf UX
-
-Sabse bada kaam: permissions me SCOPE — `entry.read:package`
-  Abhi `entry.read` = saara content. "Sirf Packages" kehne ka raasta hai hi nahi,
-  kyunki Posts/Pages/Packages teenon ek hi `entries` collection me hain.
-  Ye spec 001 ka khula sawaal tha; client ki demand ne use aaj bana diya.
-  Saath me service layer me list queries ko allowed types se filter karna hoga.
-
-Role screen: 67 checkbox nahi — section ke hisaab se
-  (Kuch nahi / Sirf dekhe / Edit kare / Poora) + "Advanced" me ek-ek permission
-
-Nav registry ek jagah: { id, label, to, permission } — sidebar aur route guard
-  dono wahi padhein, warna naya section jodne pe teen jagah yaad rakhni padegi
-
-Do guard: apna role koi edit na kare · jo permission khud ke paas nahi wo kisi ko
-  de na paaye. Aur role save pe invalidateRoleCache() — warna 60s tak kuch nahi hota
+Administrator                    Editor / Author / Contributor / Sales Agent
+Users                            Users
+├─ All Users                     └─ Profile
+├─ Add User
+└─ Profile
 ```
 
-> **Aaj ki sachai jo client ko bata di gayi:** Packages (Phase 6) aur Enquiries
-> (Phase 7b) abhi bane hi nahi. RBAC aaj banega to Sales Agent ko wo do menu dikhenge
-> par andar "abhi nahi bana" page milega. Aaj test yahi ho payega ki use **Users aur
-> Settings dikhte hi nahi**. Ye D-30 wala pattern hai — jagah abhi, data baad me.
+Sidebar me `Users` abhi **flat link** hai (`{ id: users, to: /users }`) — use
+accordion group banana hai, jaise Settings hai.
+
+**Profile pe kya:** naam editable · password editable (**current password zaroori**) ·
+username, email, role read-only. Avatar Phase 2 pe block.
+
+**Teen cheezein jo code me abhi ulti hain:**
+
+1. `/api/auth/change-password` abhi `mustChangePassword` false hone pe **403** deta hai
+   (`apps/api/src/modules/auth/service.js`). Ye gate hatana hai — par
+   `mustChangePassword` wala **forced** flow (seed admin) waise hi rehna chahiye.
+   Current-password check add karna hai, aur password badalne pe **doosre** sessions
+   revoke — chalu wala nahi, warna user khud logout ho jaayega.
+2. `GET|PATCH /api/me` **bana hua hai**, uski koi UI nahi. Profile screen wahi use karegi.
+3. **Nav registry ek jagah chahiye** — `{ id, label, to, permission }`. Sidebar ka `MENU`
+   array abhi hardcoded hai aur kisi item pe `permission` nahi hai. Sidebar aur admin ka
+   route guard **dono wahi padhein**, warna "menu me chhupa hai par URL type karne pe
+   khul jaata hai" wala chup-chaap bug banta hai.
+
+**Roles ka builder Phase 7 me hi rahega.** `roles/routes.js` me sirf `GET /api/roles`
+hai (read-only, user form ke dropdown ke liye) aur wo waise hi rahega — us file ka comment
+bhi yahi kehta hai.
 
 **Uske baad: Settings** — `settings` collection ka schema + migration, phir General.
 
 **Users me chhota-mota baaki:** bulk actions (isiliye list me checkbox column nahi
 hai), email badalna, avatar (Phase 2), column sorting (API taiyaar hai, UI nahi),
-apni profile screen (`PATCH /api/me` bana hai, UI nahi — client ne kaha **naam
-editable, baaki read-only**), aur **activity log** (conventions me hai, code me
-kahin nahi).
+aur **activity log** (conventions me hai, code me kahin nahi).
 
 **Har section kitna ruka hua hai:**
 
@@ -157,18 +152,15 @@ kahin nahi).
 
 ## Khule sawaal
 
-| #   | Sawaal                                                         | Kab tak           |
-| --- | -------------------------------------------------------------- | ----------------- |
-| 1   | **Built-in role (`salesAgent`) edit ho sake, ya "Duplicate"?** | **RBAC se pehle** |
-| 2   | Enquiries — Phase 7b banayein ya alag Phase 9?                 | Phase 7 se pehle  |
-| 3   | Field DSL me `matrix` + `table` types add karne hain           | Phase 5c se pehle |
-| 4   | Payload CMS spike (2 din)                                      | Phase 1 se pehle  |
+| #   | Sawaal                                               | Kab tak           |
+| --- | ---------------------------------------------------- | ----------------- |
+| 1   | Enquiries — Phase 7b banayein ya alag Phase 9?       | Phase 7 se pehle  |
+| 2   | Field DSL me `matrix` + `table` types add karne hain | Phase 5c se pehle |
+| 3   | Payload CMS spike (2 din)                            | Phase 1 se pehle  |
 
-**#1 kyun blocking hai:** D-36 kehta hai built-in roles code-owned hain — unki
-permissions har deploy pe code se sync hoti hain. Agar admin unhe edit kar sake to
-**agla deploy uske changes mita dega**. Do hal: built-in roles read-only rakho aur
-"Duplicate" do, ya ek `customizedAt` flag rakho jisse chhue gaye role ko code sync
-karna band kar de. Doosra client ke example ke zyada kareeb hai.
+**Jo band ho gaya:** "built-in role (`salesAgent`) edit ho sake ya Duplicate?" — ye RBAC
+ko block kar raha tha. D-37 ke baad **role-edit ka koi UI hi nahi ban raha**, isliye ye
+sawaal Phase 7 (custom-role builder) pe khisak gaya. D-36 ka takraav tab dekha jaayega.
 
 ---
 
@@ -195,12 +187,14 @@ Aur agar `pnpm seed` se admin banana ho to teen vars chahiye:
 branch : main
 remote : github.com/progryss/crmmern.git
 
+88ffdc2  Session wrap — Users poora, RBAC ka faisla pending
 35d4780  Built-in roles ab sync hote hain — D-36
 5e28af3  Users ke teen changes — D-35
 0826815  Users screens
 5ffc545  Users backend — D-34
 ```
 
+26 commits · working tree clean · **18 commits unpushed** (`origin/main` `0e328cb` pe hai).
 `apps/api/.env` ka backup: `apps/api/.env.bak-1787215917` (gitignored).
 
 ⚠️ **Push kabhi bhi bina permission ke nahi karna.**

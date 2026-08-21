@@ -799,12 +799,18 @@ owner hi hoga, isliye poora block hi simple aur sahi hai.
 
 > **D-34 ko extend karta hai.** Wahan Users ka delete/username tay hua tha; ye password
 > aur account status ke baare me hai.
+>
+> ⚠️ **§1 ab Superseded by D-37** — user apna password **Profile se khud badal sakta hai**
+> (current password ke saath). §2 aur admin ka reset field jaise the waise hi hain.
 
 **Context:** Users screens test karne ke baad client ne teen cheezein badalne ko kahin:
 row me Deactivate nahi chahiye, Edit form me status nahi chahiye, aur naya user wahi
 password use kare jo administrator ne diya hai.
 
-### 1. User apna password khud nahi badal sakta
+### 1. ~~User apna password khud nahi badal sakta~~ — Superseded by D-37
+
+> Ye hissa ab lagoo nahi hota. Profile screen se har user apna password khud badal sakta
+> hai. Neeche wala text **historical** hai — kyun tab aisa tay hua tha, wo padhne ke liye.
 
 Password ka ekmatra source **administrator** hai — Add User form me set karta hai, aur
 Edit User me kabhi bhi reset kar sakta hai.
@@ -888,3 +894,79 @@ wala hal wahi hai jo abhi fail hua.
 Spec 001 ka _"mapping DB me, code me hardcode nahi"_ tootta nahi: source of truth abhi
 bhi `roles` collection hai, aur custom roles usi collection me banenge. Sirf built-in
 roles ka **content** code se aata hai.
+
+---
+
+## D-37 · Users ka menu role ke hisaab se — aur Profile se apna password khud badalna
+
+> **D-35 ka §1 supersede karta hai.** D-35 ka baaki hissa — admin ka reset field aur
+> deactivate ka UI se hatna — waise ka waisa hai.
+
+**Context:** Client ne Users section ka asli shape diya. Pehle plan me **Users → Roles**
+submenu tha (role builder ke saath); wo **abhi nahi chahiye**. Uski jagah Users ka menu
+**role ke hisaab se badalta hai**.
+
+### 1. Users ka menu role-aware hai
+
+```
+Administrator                    Editor / Author / Contributor / Sales Agent
+Users                            Users
+├─ All Users                     └─ Profile
+├─ Add User
+└─ Profile
+```
+
+Sidebar me `Users` ab flat link nahi rahega — **accordion group** banega, jaise Settings
+hai. Jiske paas `user.read` nahi, use sirf **Profile** dikhega.
+
+**"Roles" submenu abhi nahi banega.** Role ki permissions edit karna Phase 7 ka
+custom-role builder hai — `roles/routes.js` me yahi likha hai aur wo waisa hi rahega
+(`GET /api/roles` read-only).
+
+> **Iska ek seedha faayda:** Q-1 (built-in role edit ho sake ya sirf "Duplicate")
+> **ab kisi cheez ko block nahi karta**. Wo faisla Phase 7 pe khisak gaya, kyunki
+> built-in role edit karne ka koi UI hi nahi ban raha.
+
+### 2. Profile se user apna naam aur password khud badal sakta hai
+
+D-35 kehta tha password ka ekmatra source administrator hai. Client ne ab tay kiya ki
+har user **apni Profile se** apna password badal sake.
+
+| Field    | Profile pe                             |
+| -------- | -------------------------------------- |
+| Naam     | editable                               |
+| Password | editable — **current password zaroori** |
+| Username | read-only (D-34 — immutable)           |
+| Email    | read-only                              |
+| Role     | read-only                              |
+
+**Current password kyun zaroori hai:** iske bina kisi ka khula hua session mil jaana
+seedha **account takeover** ban jaata hai — jise session mila wo password badal kar asli
+user ko hamesha ke liye bahar kar dega. Current password maangne se chura hua session
+sirf tab tak chalta hai jab tak expire na ho. Ye "ek extra step" nahi, session hijack
+aur account takeover ke beech ki deewar hai.
+
+**Admin ka reset field rahega** — D-35 ka doosra aadha hissa. Abhi koi "forgot password"
+email flow nahi hai (SMTP pending), isliye password bhoolne pe recovery ka ekmatra raasta
+admin hi hai. Dono raaste saath chalenge: user khud badle, ya admin reset kare.
+
+Password badalne pe **baaki sessions revoke** honge, chalu wala zinda rahega — warna user
+apna hi password badal kar khud logout ho jaayega.
+
+**Code me kya badlega (abhi likha nahi gaya):** `/api/auth/change-password` filhaal
+`mustChangePassword` false hone pe **403** deta hai (`apps/api/src/modules/auth/service.js`).
+Wo gate hatana padega. `mustChangePassword` wala **forced** flow (seed admin) waise hi
+rahega — wo poori screen block karta hai aur alag cheez hai.
+
+**Reject kiya:**
+
+- **Bina current password ke change** — aasaan hai, par upar wali wajah se nahi.
+- **Profile pe email editable** — email login ki identity hai; badalne pe verification
+  ka poora flow chahiye, jo SMTP pe block hai.
+- **Avatar** — Phase 2 (Media library) pe block hai.
+
+**Nateeja jo yaad rakhna hai:** nav ab **role-aware** hai, isliye Sidebar ka hardcoded
+`MENU` array kaafi nahi. Har item pe `permission` chahiye, aur wahi ek registry admin ka
+**route guard** bhi padhega. Do jagah rakhoge to naya section jodte waqt ek jagah update
+karna bhoolna pakka hai — aur bhoolne ka nateeja "screen chhupi hui hai par URL type
+karke khul jaati hai" jaisa chup-chaap bug hota hai.

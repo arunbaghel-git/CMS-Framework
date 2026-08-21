@@ -123,12 +123,19 @@ khula rehta hai. Wo D-07 ke mechanism (injected primitives) pe depend karta hai.
 - **CSP policy** likho (nonce-based) — helmet enable karna alag cheez hai
 - Seed script: pehla admin user + default roles + default settings
 - Admin shell: React + Vite + **plain CSS** (design se), sidebar, protected routes
+- **Users screens** (Phase 7 se aage khiske): list · add · edit · delete + reassign (D-34/D-35)
+- **Users ka role-aware menu + Profile screen** (D-37) — admin ko All Users · Add User ·
+  Profile, baaki roles ko sirf Profile. Iske liye nav registry `{ id, label, to, permission }`
+  chahiye jise **sidebar aur route guard dono** padhein
 - **Activity log ka write path** service layer me (screen Phase 7 me) — ye backfill nahi ho sakta
 - **CI day 1 se** — lint + test on every commit
 - Docker compose: mongo + api + admin
 
-**Done kab:** admin login karke khaali dashboard dekhta hai; `subscriber` role
-restricted route pe 403 khaata hai; `pnpm cms migrate` chalta hai; CI green.
+**Done kab:** admin login karke khaali dashboard dekhta hai; `contributor` role
+restricted route pe 403 khaata hai **aur use sidebar me Users ke andar sirf Profile
+dikhta hai**; `pnpm cms migrate` chalta hai; CI green.
+
+> `subscriber` yahan likha tha — wo role banaya hi nahi gaya (D-26).
 
 ---
 
@@ -316,8 +323,13 @@ page pe "Services List" block se dikha de.
 
 - Form builder + submissions inbox + CSV export + honeypot/rate-limit spam guard
 - **Submissions retention + PII policy** (`ip` store hota hai — TTL + export/delete)
-- User management UI: invite, role assign, deactivate
-- **My Profile screen** (naam, email, password, avatar) — "dusron ko manage karna" se alag
+- ~~User management UI~~ → **Phase 0 me aa chuka** (list · add · edit · delete, D-34/D-35)
+- ~~My Profile screen~~ → **Phase 0 me aa raha hai** (D-37). Naam + password editable
+  (current password ke saath), baaki read-only. **Avatar** yahin rahega — wo Phase 2
+  (Media) pe block hai
+- **Custom role builder** — role ki permissions edit karne ka UI. **Yahi Phase 7 me hai**
+  (D-37); Phase 0 me sirf `GET /api/roles` read-only bana hai. Isi ke saath wo faisla bhi
+  aayega: built-in role edit ho sake, ya sirf "Duplicate"? (D-36 ka takraav)
 - Activity log screen (write path Phase 0 se chalu hai)
 - Settings screens: **General · Reading · Permalinks · Media · Scripts**
   - General: tagline, dateFormat

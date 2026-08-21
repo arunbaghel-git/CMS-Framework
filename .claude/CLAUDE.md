@@ -5,9 +5,10 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0 chal raha hai — ~85%.** Setup layer, Zod contract, migration runner,
-CSS architecture aur **auth + RBAC + admin shell** ban chuke hain (130 tests passing).
-Agla kaam **Users aur Settings screens**.
+**Status:** **Phase 0 chal raha hai — ~92%.** Setup layer, Zod contract, migration runner,
+CSS architecture, **auth + RBAC + admin shell** aur **Users screens** ban chuke hain
+(**184 tests passing**).
+Agla kaam **Users ka role-aware menu + Profile screen** (D-37), phir **Settings screens**.
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -17,7 +18,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 15 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-30                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-37                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -73,9 +74,11 @@ apps/api/src/modules/<name>/
 └─ validation.js    Zod schemas
 ```
 
-`roles` module isme apwaad hai — uske paas sirf `model.js` + `service.js` hain, kyunki
-uska abhi koi HTTP surface nahi. Route tab banega jab Users screens aayengi; adhoora
-`routes.js` pehle se rakh dena `requirePermission()` bhoolne ka aasaan raasta hai.
+`roles` module isme apwaad hai — uske paas `validation.js` nahi hai, aur uska
+`routes.js` me sirf **ek read-only route** hai (`GET /api/roles`, user form ke role
+dropdown ke liye). Role ki permissions **edit** karne ka koi route jaan-boojh kar nahi
+hai — wo Phase 7 ka custom-role builder hai (D-37). Permissions badalne ka raasta khula
+chhodna RBAC bypass karne ka sabse seedha tareeka hai.
 
 ---
 
