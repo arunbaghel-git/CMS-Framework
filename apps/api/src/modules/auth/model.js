@@ -23,6 +23,18 @@ const refreshTokenSchema = new mongoose.Schema(
     /** Rotation pe agla `jti`. Audit ke liye — kaun kis se badla. */
     replacedByJti: { type: String, default: null },
 
+    /**
+     * Login pe "Remember me" chuna tha ya nahi (D-38).
+     *
+     * **Yahan isliye hai ki rotation ke baad bhi zinda rahe.** Sirf cookie me rakhne se
+     * pata hi na chalta ki user ne kya chuna tha, aur refresh har baar apne hisaab se
+     * faisla le leta — theek wahi bug jo pehle tha.
+     *
+     * Migration nahi chahiye: purane records ise `false` padhte hain (safe direction),
+     * aur `refreshTokens` waise bhi TTL index se apne aap saaf ho jaata hai.
+     */
+    remember: { type: Boolean, default: false },
+
     /** Forensics — "kis device se login tha". Kabhi auth decision me use nahi hote. */
     userAgent: { type: String, default: null },
     ip: { type: String, default: null },

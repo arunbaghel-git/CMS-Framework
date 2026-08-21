@@ -74,7 +74,7 @@ export default function UsersList() {
         <div className="notice err" role="alert">
           <span>{error}</span>
           <button className="btn btn-sm" type="button" onClick={reload}>
-            Dobara koshish
+            Retry
           </button>
         </div>
       )}
@@ -118,7 +118,7 @@ export default function UsersList() {
           <input
             className="inp users-search"
             type="search"
-            placeholder="Users dhoondho…"
+            placeholder="Search users…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -143,7 +143,7 @@ export default function UsersList() {
           {loading && (
             <tr>
               <td colSpan={7} className="muted">
-                Load ho raha hai…
+                Loading…
               </td>
             </tr>
           )}
@@ -151,7 +151,7 @@ export default function UsersList() {
           {!loading && data.length === 0 && (
             <tr>
               <td colSpan={7} className="muted">
-                Koi user nahi mila.
+                No users found.
               </td>
             </tr>
           )}
@@ -220,7 +220,7 @@ function UserRow({ user, me, can, roleLabel }) {
       </td>
       <td>
         {user.name}
-        {isMe && <span className="muted"> — aap</span>}
+        {isMe && <span className="muted"> — you</span>}
       </td>
       <td className="muted">{user.email}</td>
       <td>{roleLabel(user.role)}</td>

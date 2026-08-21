@@ -17,7 +17,7 @@ import {
   seoSchema,
   slugSchema,
 } from './index.js'
-import { ENTRY_STATUSES, ROLE_PERMISSIONS, ROLES } from '../constants/index.js'
+import { ENTRY_STATUSES, ROLE_LABEL, ROLE_PERMISSIONS, ROLES } from '../constants/index.js'
 import { fieldTypesFor, isFieldTypeAllowed, isResponsive } from '../field-types.js'
 
 /** Ek valid entry — baaki tests isko base ki tarah use karte hain. */
@@ -243,6 +243,26 @@ describe('permissions', () => {
   it('paanch roles hain — subscriber nahi (D-26), salesAgent hai (D-29)', () => {
     expect(ROLES).toEqual(['admin', 'editor', 'author', 'contributor', 'salesAgent'])
     expect(ROLES).not.toContain('subscriber')
+  })
+
+  /**
+   * Har role ka label hona **zaroori** hai — bina label ke UI role ki **key** dikhane
+   * lagti hai, aur wo R4 ka seedha ulta hai (UI me internal naam kabhi nahi).
+   */
+  it('har role ka ek label hai', () => {
+    for (const key of ROLES) {
+      expect(ROLE_LABEL[key], `${key} ka label missing hai`).toBeTruthy()
+    }
+  })
+
+  /**
+   * Ye assertion ek asli bug se aayi hai: seed DB me "Administrator" likhta tha, par
+   * Profile screen key se label bana kar "Admin" dikha rahi thi. Ab dono isi map se
+   * aate hain.
+   */
+  it('admin ka label "Administrator" hai, "Admin" nahi', () => {
+    expect(ROLE_LABEL.admin).toBe('Administrator')
+    expect(ROLE_LABEL.salesAgent).toBe('Sales Agent')
   })
 
   it('salesAgent content edit nahi kar sakta — sirf padh sakta hai (D-29)', () => {

@@ -33,7 +33,7 @@ export default function AdminBar({ siteName = 'CMS' }) {
       </Link>
 
       {/* Public site abhi khadi nahi hui — link Slice 0 me chalu hoga */}
-      <a className="ab-item" href="/" title="Site dekho">
+      <a className="ab-item" href="/" title="View site">
         ⌂ Visit Site
       </a>
 
@@ -51,7 +51,7 @@ export default function AdminBar({ siteName = 'CMS' }) {
       </span>
 
       <button className="ab-item" type="button" onClick={handleLogout} disabled={busy}>
-        {busy ? 'Ruko…' : 'Log Out'}
+        {busy ? 'Signing out…' : 'Log Out'}
       </button>
     </header>
   )

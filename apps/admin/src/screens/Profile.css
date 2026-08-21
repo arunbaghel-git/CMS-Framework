@@ -1,0 +1,16 @@
+/**
+ * Profile screen.
+ *
+ * Yahan sirf wo hai jo `primitives.css` me nahi mila. Panel, field, inp, btn aur
+ * notice sab design ke primitives se aate hain — unhe yahan dobara mat likho
+ * (02-ARCHITECTURE.md §11).
+ */
+
+/* ============================================================
+   PROFILE  (screens/Profile.jsx)
+   ============================================================ */
+
+/* Form ki chaudai padhne layak rakho — Users form jaisi hi */
+.profile-form {
+  max-width: 560px;
+}

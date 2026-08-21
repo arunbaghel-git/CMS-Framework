@@ -28,7 +28,7 @@ export function csrfProtection(req, _res, next) {
   if (!cookieToken) return next()
 
   if (!headerToken || !safeEqual(cookieToken, headerToken)) {
-    return next(badRequest('CSRF token match nahi hua. Page refresh karke dobara koshish karein.'))
+    return next(badRequest('CSRF token did not match. Refresh the page and try again.'))
   }
 
   next()

@@ -30,7 +30,7 @@ const loginLimiter = rateLimit({
   message: {
     error: {
       code: 'RATE_LIMITED',
-      message: 'Bahut zyada login koshishein. 15 minute baad dobara try karein.',
+      message: 'Too many sign-in attempts. Try again in 15 minutes.',
     },
   },
 })

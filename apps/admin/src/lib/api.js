@@ -108,7 +108,7 @@ api.interceptors.response.use(
  * Server ka shape `{ error: { code, message, details } }` hai (07-CONVENTIONS §6).
  * Field-level Zod errors bhi yahin se aate hain.
  */
-export function errorMessage(error, fallback = 'Kuch galat ho gaya. Dobara koshish karein.') {
+export function errorMessage(error, fallback = 'Something went wrong. Please try again.') {
   const payload = error?.response?.data?.error
   if (!payload) return error?.message ?? fallback
 

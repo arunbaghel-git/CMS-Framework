@@ -9,7 +9,7 @@ import { useLocation } from 'react-router-dom'
  *
  * Isliye 404 nahi, blank page nahi — saaf jawab.
  */
-export default function NotBuiltYet({ title = 'Ye section', phase = null }) {
+export default function NotBuiltYet({ title = 'This section', phase = null }) {
   const location = useLocation()
 
   return (
@@ -18,13 +18,13 @@ export default function NotBuiltYet({ title = 'Ye section', phase = null }) {
         <h1>{title}</h1>
       </div>
 
-      <p className="subtitle">Ye hissa abhi bana nahi hai.</p>
+      <p className="subtitle">This part has not been built yet.</p>
 
       <div className="panel">
         <div className="panel-body">
           <p style={{ margin: 0 }}>
-            {phase ? `Ye ${phase} me aayega.` : 'Ye aage ke phase me aayega.'} Tab tak yahan kuch
-            karne ko nahi hai.
+            {phase ? `Coming in ${phase}.` : 'Coming in a later phase.'} There is nothing to do here
+            until then.
           </p>
           <p className="hint" style={{ marginBottom: 0 }}>
             {location.pathname}

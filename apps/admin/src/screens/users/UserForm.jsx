@@ -13,9 +13,27 @@ import './Users.css'
  * Ye screen design me **nahi** hai — sirf Users list hai (login screen jaisa hi case,
  * D-31). Layout WordPress-style hai, par har class design ke primitives se: `.panel`,
  * `.field`, `.inp`, `.sel`, `.btn`. Koi naya token nahi.
+ *
+ * **`key` yahan zaroori hai, cosmetic nahi.**
+ *
+ * `/users/:id` aur `/users/new` **ek hi component** render karte hain. React Router
+ * route badalne pe naya element to deta hai, par uska type wahi rehta hai — isliye React
+ * purana instance dobara use kar leta hai aur `useState` **zinda reh jaati hai**.
+ * Nateeja: edit karke "Add User" dabao to naya form pichhle user ke data se bhara aata
+ * tha.
+ *
+ * `key` badalte hi React poora component naye sire se mount karta hai. Ye har state ko
+ * reset karta hai — aage koi naya `useState` jude to use alag se yaad rakhne ki zaroorat
+ * nahi. Effect me manually reset karna bhi chalta, par wahan har naya field bhoolna
+ * aasaan hai.
  */
 export default function UserForm() {
   const { id } = useParams()
+
+  return <UserFormFields key={id ?? 'new'} id={id} />
+}
+
+function UserFormFields({ id }) {
   const isNew = !id
   const navigate = useNavigate()
   const { user: me } = useAuth()
@@ -102,8 +120,8 @@ export default function UserForm() {
         await api.patch(`/users/${id}`, parsed.data)
         setNotice(
           form.password
-            ? 'Save ho gaya. Naya password user ko bhej dein — unke purane sessions band ho chuke hain.'
-            : 'Save ho gaya.',
+            ? 'Saved. Share the new password with the user — their existing sessions have been signed out.'
+            : 'Saved.',
         )
         setForm((f) => ({ ...f, password: '' }))
       }
@@ -114,7 +132,7 @@ export default function UserForm() {
     }
   }
 
-  if (loading) return <p className="subtitle">Load ho raha hai…</p>
+  if (loading) return <p className="subtitle">Loading…</p>
 
   const isMe = !isNew && id === me?.id
 
@@ -154,8 +172,8 @@ export default function UserForm() {
             />
             <p className="hint">
               {isNew
-                ? 'Email se apne aap bhar jaata hai. Ek baar bann gaya to badla nahi ja sakta.'
-                : 'Username badla nahi ja sakta — wo aage page ke URL me jaata hai.'}
+                ? 'Filled in from the email. Once created it cannot be changed.'
+                : 'Cannot be changed — it becomes part of the public URL.'}
             </p>
           </div>
 
@@ -174,7 +192,7 @@ export default function UserForm() {
               disabled={!isNew}
               onChange={onEmailChange}
             />
-            {!isNew && <p className="hint">Email badalna abhi support nahi hai.</p>}
+            {!isNew && <p className="hint">Email changes are not supported yet.</p>}
           </div>
 
           <div className="field">
@@ -193,11 +211,11 @@ export default function UserForm() {
                 </option>
               ))}
             </select>
-            {isMe && <p className="hint">Apna role khud nahi badal sakte.</p>}
+            {isMe && <p className="hint">You cannot change your own role.</p>}
           </div>
 
           <div className="field">
-            <label htmlFor="u-password">{isNew ? 'Password' : 'Naya password'}</label>
+            <label htmlFor="u-password">{isNew ? 'Password' : 'New password'}</label>
             <div className="row">
               <input
                 id="u-password"
@@ -205,7 +223,7 @@ export default function UserForm() {
                 type="text"
                 value={form.password}
                 onChange={set('password')}
-                placeholder={isNew ? '' : 'Badalna ho tabhi bharo'}
+                placeholder={isNew ? '' : 'Only fill in to change'}
               />
               <button
                 className="btn"
@@ -217,26 +235,26 @@ export default function UserForm() {
             </div>
             <p className="hint">
               {isNew
-                ? 'Kam se kam 10 characters. Ye password aapko user tak khud pahunchana hoga — wo isi se login karega.'
-                : 'Khaali chhod do to password waisa hi rahega. Badla to user ke chalu sessions band ho jaayenge.'}
+                ? 'At least 10 characters. You will need to share this password with the user — they sign in with it.'
+                : 'Leave blank to keep the current password. Changing it signs the user out everywhere.'}
             </p>
           </div>
 
           {/* SMTP Phase 2 me aayega — tab tak ye jaan-boojh kar disabled hai (D-30) */}
           <div className="field">
-            <label className="inline-lbl" title="Email bhejne ke liye SMTP setup chahiye">
+            <label className="inline-lbl" title="Sending email needs SMTP setup">
               <input type="checkbox" disabled />
-              <span className="muted"> Send notification email — SMTP setup nahi hai</span>
+              <span className="muted"> Send notification email — SMTP is not set up</span>
             </label>
           </div>
         </div>
 
         <div className="panel-foot">
           <span className="hint" style={{ margin: 0 }}>
-            {isNew ? 'User isi password se turant login kar sakega.' : ''}
+            {isNew ? 'The user can sign in with this password right away.' : ''}
           </span>
           <button className="btn btn-primary" type="submit" disabled={saving}>
-            {saving ? 'Ho raha hai…' : isNew ? 'Add User' : 'Save'}
+            {saving ? 'Saving…' : isNew ? 'Add User' : 'Save'}
           </button>
         </div>
       </form>

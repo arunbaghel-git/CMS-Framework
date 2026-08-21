@@ -494,7 +494,8 @@ index ho jaana agency ka sabse mehnga routine accident hai.
 
 ```
 access token   15 min   httpOnly · Secure (prod) · SameSite=Lax · Path=/ · __Host- prefix
-refresh token  7 din    wahi flags + rotation on use + reuse detection
+refresh token  24 ghante  wahi flags + rotation on use + reuse detection
+               7 din      agar login pe "Remember me" tick hua ho (D-38)
 CSRF           double-submit token; har non-GET request pe verify
 CORS           strict origin allowlist + credentials:true  (wildcard kabhi nahi)
 ```
@@ -547,7 +548,8 @@ ke saath same-origin execute hona poore system ka sabse bada target hai.
 Permissions string-based: `entry.create`, `entry.publish`, `entry.publish.own`,
 `media.delete`, `settings.update`, `settings.scripts.update`. Role → permissions[]
 mapping **DB me** (`roles` collection) — `packages/shared` ka `ROLE_PERMISSIONS` sirf
-seed ka default hai. Har admin route pe `requirePermission('...')`.
+seed ka default hai. Built-in roles ke **labels** bhi wahin hain (`ROLE_LABEL`): seed
+unhe DB me likhta hai aur admin unhe seedha padhta hai, taaki dono kabhi alag na hon. Har admin route pe `requirePermission('...')`.
 
 **Users pe `deletedAt` nahi hai** — na trash, na soft delete. Do alag raaste hain (D-34):
 
@@ -575,9 +577,10 @@ hain; jis session se badla wo zinda rehta hai.
 wale admin pe lagta hai (uska password `.env` me plain text me hota hai) aur poori screen
 block karta hai jab tak password na badle.
 
-> ⚠️ **Code abhi is doc se peeche hai.** `apps/api/src/modules/auth/service.js` me
-> `/api/auth/change-password` abhi bhi `mustChangePassword` false hone pe **403** deta hai.
-> Wo gate hatana baaki hai.
+Password badalne pe purane saare sessions marte hain **aur usi waqt ek naya issue hota
+hai**. Dono zaroori hain: pehla isliye ki password aksar isiliye badla jaata hai ki
+kisi aur ke paas access aa gaya tha, doosra isliye ki warna user apna hi password badal
+kar khud logout ho jaata.
 
 ### 8.4 Kya ban chuka hai (Phase 0)
 
@@ -590,7 +593,16 @@ apps/api/src/modules/users/          User model · /api/me · /api/users (CRUD +
 apps/api/src/modules/roles/          Role model · permissions cache · seed · GET /api/roles
 migrations/002-auth-indexes.js       users · roles · refreshTokens (TTL ke saath)
 migrations/003-user-username.js      users.username backfill + unique index
+
+apps/admin/src/lib/nav.js            nav registry — sidebar AUR route guard dono isse (D-37)
+apps/admin/src/screens/Profile.jsx   apni profile — naam + password
+apps/admin/src/screens/NoAccess.jsx  permission na ho to yahi dikhta hai
 ```
+
+**Admin me permission ke do layer hain, aur dono ek hi jagah se aate hain** (`lib/nav.js`):
+sidebar item chhupana, aur route pe screen render hi na hone dena. Dono ko alag-alag
+files me rakhne ka nateeja hamesha ek hi hota hai — item menu se gayab, par URL type
+karne pe screen khul jaati hai. **Asli rok phir bhi server pe hi hai.**
 
 `attachUser` **har request pe user DB se laata hai** (role cached hai, user nahi).
 Ek query ki keemat pe ye guarantee milti hai ki deactivate kiya gaya user agli hi

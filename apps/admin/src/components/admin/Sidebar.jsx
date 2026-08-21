@@ -1,94 +1,39 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
+import { useAuth } from '../../lib/auth.jsx'
+import { visibleNav } from '../../lib/nav.js'
 import './Sidebar.css'
 
 /**
- * Left navigation — `admin-design.html` ke SIDEBAR section se.
+ * Left navigation.
  *
- * Menu **exactly wahi** hai jo design me hai (order, wording, icons, separators tak).
- * Design SPEC hai — kuch add/remove karna ho to client se aayega, yahan se nahi.
- *
- * Jo screens abhi bani nahi hain wo `ready: false` hain: link dikhta hai par
- * "abhi nahi bana" page pe le jaata hai. D-30 — **khaali cheez khaali dikhni chahiye,
- * tooti hui nahi.** Menu se hata dene se baad me poora nav dobara likhna padta.
+ * Menu ka data yahan **nahi** hai — wo `lib/nav.js` me hai, kyunki route guard bhi
+ * wahi padhta hai (D-37). Ye component sirf usse render karta hai.
  */
-const MENU = [
-  { id: 'dashboard', icon: '⌂', label: 'Dashboard', to: '/', ready: true },
-  {
-    id: 'posts',
-    icon: '✎',
-    label: 'Posts',
-    children: [
-      { label: 'All Posts', to: '/posts' },
-      { label: 'Add New', to: '/posts/new' },
-      { label: 'Categories', to: '/posts/categories' },
-      { label: 'Tags', to: '/posts/tags' },
-    ],
-  },
-  { id: 'media', icon: '▤', label: 'Media', to: '/media' },
-  {
-    id: 'pages',
-    icon: '▭',
-    label: 'Pages',
-    children: [
-      { label: 'All Pages', to: '/pages' },
-      { label: 'Add New', to: '/pages/new' },
-    ],
-  },
-  { separator: true },
-  {
-    id: 'packages',
-    icon: '🧳',
-    label: 'Packages',
-    children: [
-      { label: 'All Packages', to: '/packages' },
-      { label: 'Add New', to: '/packages/new' },
-      { label: 'Destinations', to: '/packages/destinations' },
-      { label: 'Travel Themes', to: '/packages/themes' },
-      { label: 'Departures & Pricing', to: '/packages/departures' },
-    ],
-  },
-  {
-    id: 'enquiries',
-    icon: '✉',
-    label: 'Enquiries',
-    children: [
-      { label: 'All Enquiries', to: '/enquiries' },
-      { label: 'Enquiry Detail', to: '/enquiries/detail' },
-      { label: 'Export CSV', to: '/enquiries/export' },
-    ],
-  },
-  { separator: true },
-  {
-    id: 'appearance',
-    icon: '🎨',
-    label: 'Appearance',
-    children: [
-      { label: 'Menus', to: '/appearance/menus' },
-      { label: 'Homepage Blocks', to: '/appearance/homepage' },
-      { label: 'Banners & Sliders', to: '/appearance/banners' },
-    ],
-  },
-  { id: 'users', icon: '👤', label: 'Users', to: '/users' },
-  {
-    id: 'settings',
-    icon: '⚙',
-    label: 'Settings',
-    children: [
-      { label: 'General', to: '/settings' },
-      { label: 'SEO & Schema', to: '/settings/seo' },
-      { label: 'Email / SMTP', to: '/settings/email' },
-      { label: 'Integrations', to: '/settings/integrations' },
-    ],
-  },
-]
-
 export default function Sidebar({ collapsed, onToggleCollapse }) {
   const location = useLocation()
+  const { can } = useAuth()
+
+  const menu = useMemo(() => visibleNav(can), [can])
+
+  /** Is waqt jis page pe hain, wo kis group ka hai. */
+  const currentGroupId =
+    menu.find((item) => item.children?.some((child) => child.to === location.pathname))?.id ?? null
 
   /** Kaunsa group khula hai. Ek waqt me ek — design me bhi accordion hi hai. */
-  const [openId, setOpenId] = useState(null)
+  const [openId, setOpenId] = useState(currentGroupId)
+
+  /**
+   * Jis group ka page khula hai wo group bhi khula rahe.
+   *
+   * Pehle Users ek flat link tha, to reload pe kuch dikkat nahi thi. Ab wo group ke
+   * andar hai (D-37) — bina iske `/users` pe seedha aane wale ko sirf ek band accordion
+   * dikhta, aur uske andar khada hai ye pata hi nahi chalta.
+   */
+  useEffect(() => {
+    if (currentGroupId) setOpenId(currentGroupId)
+  }, [currentGroupId])
 
   const isCurrent = (item) => {
     if (item.to) return item.to === '/' ? location.pathname === '/' : location.pathname === item.to
@@ -98,7 +43,7 @@ export default function Sidebar({ collapsed, onToggleCollapse }) {
   return (
     <nav className="sidebar">
       <ul className="menu">
-        {MENU.map((item, index) => {
+        {menu.map((item, index) => {
           if (item.separator) return <li className="menu-sep" key={`sep-${index}`} aria-hidden />
 
           const classes = [isCurrent(item) ? 'current' : '', openId === item.id ? 'open' : '']

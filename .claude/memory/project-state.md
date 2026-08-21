@@ -19,13 +19,13 @@ Phase 0   Setup layer                     ✅
           Seed script (spec 004)          🟡  roles + admin user ✅, baaki Phase 1 pe block
           Admin shell (login + sidebar)   ✅  ← 20 Aug
           Users screens                   ✅  ← 20 Aug
-          Users menu role-aware + Profile 🔴  ← AGLA KAAM (D-37)
-          Settings screens                🔴
+          Users menu role-aware + Profile ✅  ← 21 Aug (D-37)
+          Settings screens                🔴  ← AGLA KAAM
 Slice 0   Header + Footer end-to-end      🔴
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 184 tests passing · lint clean · admin build clean · asli Mongo pe
+**Health:** 207 tests passing · lint clean · admin build clean · asli Mongo pe
 end-to-end verify kiya (login → rotation → reuse detection → logout)
 
 `pnpm format:check` clean hai — pehle wali 9 prettier-dirty files theek ho chuki hain.
@@ -71,6 +71,7 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)           |
 | **Users ka menu**     | Role-aware — admin ko 3 item, baaki ko sirf Profile (D-37)             |
 | **Apna password**     | User Profile se khud badal sakta hai, current password ke saath (D-37) |
+| **Session ki umr**    | 24 ghante · "Remember me" pe 7 din · dono sliding (D-38)               |
 
 Specs 001–005: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved.
 
@@ -80,7 +81,8 @@ Specs 001–005: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved.
 
 ```
 access token   15 min   httpOnly cookie
-refresh token  7 din    rotation + reuse detection (refreshTokens collection)
+refresh token  24h/7d  rotation + reuse detection. 7d sirf "Remember me" pe (D-38)
+               SLIDING — ghadi inactivity pe chalti hai, login se nahi
 CSRF           double-submit, har non-GET pe
 permissions    roles collection se, 60s in-process cache
 ```
@@ -99,52 +101,65 @@ permissions    roles collection se, 60s in-process cache
 
 ---
 
-## Agla kaam — Users ka menu aur Profile screen (D-37)
+## 21 Aug ko kya bana (D-37)
 
-**21 Aug ko client ne Users section ka asli shape diya. Roles submenu ab nahi chahiye.**
+**Users ka menu ab role ke hisaab se badalta hai, aur Profile screen ban gayi.**
 
 ```
-Administrator                    Editor / Author / Contributor / Sales Agent
-Users                            Users
-├─ All Users                     └─ Profile
-├─ Add User
-└─ Profile
+apps/admin/src/lib/nav.js            nav registry — sidebar AUR route guard dono isse
+apps/admin/src/screens/Profile.jsx   naam + password
+apps/admin/src/screens/NoAccess.jsx  permission na ho to yahi
 ```
 
-Sidebar me `Users` abhi **flat link** hai (`{ id: users, to: /users }`) — use
-accordion group banana hai, jaise Settings hai.
+**Teen cheezein jo yaad rakhni hain:**
 
-**Profile pe kya:** naam editable · password editable (**current password zaroori**) ·
-username, email, role read-only. Avatar Phase 2 pe block.
+1. **`nav.js` ab ek contract hai, sirf ek list nahi** (R16). `NAV` sidebar deta hai,
+   `ROUTE_GUARDS` route ka permission. Naya section jodte waqt **wahi ek file** kholni
+   hai. Do jagah rakhne ka nateeja chup-chaap hota hai: item menu se gayab, par URL
+   type karne pe screen khul jaati hai.
+2. **`/profile` jaan-boojh kar `/users/` ke andar nahi hai.** Guard ka natural shape
+   `/users` pe `user.read` maangna hai; profile ko uske andar rakhne se ek exception
+   banana padta, aur wahi exception aage toot-ta.
+3. **Password badalne pe purane saare session marte hain par turant naya mil jaata
+   hai.** Pehle service sirf `revokeAllSessions()` chalati thi — us se user apna hi
+   password badal kar logout ho jaata. Iska test hai:
+   _"jis browser se badla wo chalta rehta hai"_.
 
-**Teen cheezein jo code me abhi ulti hain:**
+**Client ne test kiya aur ek asli bug pakda (D-38).** "Remember me" off hone ke bawajood
+password badalne ke baad browser band karke kholo to Dashboard khul jaata tha. Wajah:
+`setAuthCookies()` ko refresh aur change-password dono **hardcoded `persistent: true`**
+bhejte the. Ab `remember` `refreshTokens` record me hai aur rotation ke saath chalta hai.
+Saath me TTL 7d se **24h** hui, aur "Remember me" wale ko alag **7d** milta hai.
 
-1. `/api/auth/change-password` abhi `mustChangePassword` false hone pe **403** deta hai
-   (`apps/api/src/modules/auth/service.js`). Ye gate hatana hai — par
-   `mustChangePassword` wala **forced** flow (seed admin) waise hi rehna chahiye.
-   Current-password check add karna hai, aur password badalne pe **doosre** sessions
-   revoke — chalu wala nahi, warna user khud logout ho jaayega.
-2. `GET|PATCH /api/me` **bana hua hai**, uski koi UI nahi. Profile screen wahi use karegi.
-3. **Nav registry ek jagah chahiye** — `{ id, label, to, permission }`. Sidebar ka `MENU`
-   array abhi hardcoded hai aur kisi item pe `permission` nahi hai. Sidebar aur admin ka
-   route guard **dono wahi padhein**, warna "menu me chhupa hai par URL type karne pe
-   khul jaata hai" wala chup-chaap bug banta hai.
+> Ye bug D-37 se nahi aaya — refresh me pehle se tha, yaani "Remember me" pehle
+> auto-refresh ke baad hi bemaani ho jaata tha. Password wale raaste me wahi pattern
+> copy hua isliye dikh gaya.
 
-**Roles ka builder Phase 7 me hi rahega.** `roles/routes.js` me sirf `GET /api/roles`
-hai (read-only, user form ke dropdown ke liye) aur wo waise hi rahega — us file ka comment
-bhi yahi kehta hai.
+**`ChangePassword.jsx` (forced flow) bhi badla:** ab wo `logout()` nahi, `reload()`
+karta hai. Seed wala admin password badal kar seedha andar chala jaata hai.
 
-**Uske baad: Settings** — `settings` collection ka schema + migration, phir General.
+**Permission ke abhi bhi teen layer hain, par sirf Users pe:** baaki menu items pe
+`permission` jaan-boojh kar nahi lagayi — client ne abhi sirf Users ka shape maanga hai,
+aur design frozen hai (R15). Wo tab lagegi jab wo screens banengi.
+
+---
+
+## Agla kaam — Settings
+
+`settings` collection ka schema + migration, phir **General** screen.
+
+Ruka hua hissa: homepage dropdown (Phase 1 — entries chahiye), logo upload (Phase 2 —
+media chahiye). D-30 ka pattern — jagah abhi, data baad me.
 
 **Users me chhota-mota baaki:** bulk actions (isiliye list me checkbox column nahi
-hai), email badalna, avatar (Phase 2), column sorting (API taiyaar hai, UI nahi),
-aur **activity log** (conventions me hai, code me kahin nahi).
+hai), email badalna (SMTP), avatar (Phase 2), column sorting (API taiyaar hai, UI
+nahi), aur **activity log** (conventions me hai, code me kahin nahi).
 
 **Har section kitna ruka hua hai:**
 
 | Section    | Abhi kitna ban sakta hai | Kya rok raha hai                                          |
 | ---------- | ------------------------ | --------------------------------------------------------- |
-| Users      | ~90%                     | Posts/Enquiries count (Phase 1, 7b) · invite email (SMTP) |
+| Users      | ~95%                     | Posts/Enquiries count (Phase 1, 7b) · invite email (SMTP) |
 | Settings   | ~75%                     | Homepage dropdown (Phase 1) · logo upload (Phase 2)       |
 | Appearance | ~40%                     | Menu me Pages/Destinations chahiye (Phase 1 + 6)          |
 

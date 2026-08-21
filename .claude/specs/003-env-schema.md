@@ -56,7 +56,8 @@ Per-client alag DB name (D-01). Shared cluster, alag database.
 | `JWT_ACCESS_SECRET`  | string, min 32 | ✅       | **har client ka alag**                     |
 | `JWT_REFRESH_SECRET` | string, min 32 | ✅       | **har client ka alag**                     |
 | `ACCESS_TOKEN_TTL`   | string         | —        | default `15m`                              |
-| `REFRESH_TOKEN_TTL`  | string         | —        | default `7d`                               |
+| `REFRESH_TOKEN_TTL`  | string         | —        | default `24h` — bina "Remember me" (D-38)  |
+| `REFRESH_TOKEN_TTL_REMEMBER` | string | —      | default `7d` — "Remember me" tick hone pe   |
 | `COOKIE_SECURE`      | boolean        | —        | prod me `true` (`__Host-` ke liye zaroori) |
 | `COOKIE_DOMAIN`      | string         | —        | same-origin me usually khaali              |
 

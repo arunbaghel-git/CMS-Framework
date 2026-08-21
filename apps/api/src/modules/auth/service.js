@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import { USER_STATUS, toPublicUser } from '@cms/shared'
 
 import { logger } from '../../core/logger.js'
-import { forbidden, unauthorized, unprocessable } from '../../core/errors.js'
+import { unauthorized, unprocessable } from '../../core/errors.js'
 import {
   REFRESH_TTL_MS,
   newCsrfToken,
@@ -40,7 +40,7 @@ const BCRYPT_ROUNDS = process.env.NODE_ENV === 'test' ? 4 : 12
  * Login fail hone pe **hamesha yahi** error. "Email galat hai" aur "password galat
  * hai" alag batane se koi bhi email enumerate kar sakta hai ki kaunse accounts hain.
  */
-const loginFailed = () => unauthorized('Email ya password galat hai')
+const loginFailed = () => unauthorized('Email or password is incorrect')
 
 export function hashPassword(plain) {
   return bcrypt.hash(plain, BCRYPT_ROUNDS)
@@ -53,17 +53,21 @@ export function verifyPassword(plain, hash) {
 /**
  * Ek naya session banata hai (login) ya chalu session ko aage badhata hai (refresh).
  *
- * @param {{ user: any, familyId?: string, req?: any }} input
+ * `remember` yahan se **record me** jaata hai, taaki agli rotation use padh sake.
+ * Caller ko wo khud yaad rakhne ki zaroorat na pade (D-38).
+ *
+ * @param {{ user: any, familyId?: string, req?: any, remember?: boolean }} input
  */
-async function issueSession({ user, familyId = newFamilyId(), req }) {
+async function issueSession({ user, familyId = newFamilyId(), req, remember = false }) {
   const userId = String(user._id ?? user.id)
 
-  const refresh = signRefreshToken({ id: userId, familyId })
+  const refresh = signRefreshToken({ id: userId, familyId, remember })
 
   await RefreshToken.create({
     jti: refresh.jti,
     familyId,
     userId,
+    remember,
     expiresAt: refresh.expiresAt,
     userAgent: req?.get?.('user-agent') ?? null,
     ip: req?.ip ?? null,
@@ -73,6 +77,7 @@ async function issueSession({ user, familyId = newFamilyId(), req }) {
     accessToken: signAccessToken({ id: userId, role: user.role }),
     refreshToken: refresh.token,
     csrfToken: newCsrfToken(),
+    remember,
     expiresAt: refresh.expiresAt,
   }
 }
@@ -81,7 +86,7 @@ async function issueSession({ user, familyId = newFamilyId(), req }) {
  * @param {{ email: string, password: string }} credentials
  * @param {any} [req]
  */
-export async function login({ email, password }, req) {
+export async function login({ email, password, rememberMe = false }, req) {
   // passwordHash `select: false` hai — yahan explicitly maangna padta hai
   const user = await User.findOne({ email }).select('+passwordHash')
 
@@ -99,10 +104,10 @@ export async function login({ email, password }, req) {
   if (!ok) throw loginFailed()
 
   if (user.status === USER_STATUS.INACTIVE) {
-    throw unauthorized('Ye account band kar diya gaya hai. Administrator se baat karein.')
+    throw unauthorized('This account has been disabled. Contact your administrator.')
   }
 
-  const tokens = await issueSession({ user, req })
+  const tokens = await issueSession({ user, req, remember: rememberMe })
 
   // R1: ye service ka kaam hai, model hook ka nahi — `updateOne` hook chalata hi nahi
   await User.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } })
@@ -123,7 +128,7 @@ export async function login({ email, password }, req) {
  */
 export async function refresh(token, req) {
   const payload = verifyRefreshToken(token)
-  if (!payload?.jti) throw unauthorized('Session expire ho gaya. Dobara login karein.')
+  if (!payload?.jti) throw unauthorized('Your session has expired. Please sign in again.')
 
   const stored = await RefreshToken.findOne({ jti: payload.jti })
 
@@ -131,7 +136,7 @@ export async function refresh(token, req) {
    * Record hi nahi mila — token forge kiya gaya hai, ya TTL cleanup ke baad aaya hai.
    * Dono me session khatam.
    */
-  if (!stored) throw unauthorized('Session expire ho gaya. Dobara login karein.')
+  if (!stored) throw unauthorized('Your session has expired. Please sign in again.')
 
   /**
    * **Reuse detection.** Ye token pehle hi rotate/revoke ho chuka hai par phir bhi
@@ -145,22 +150,34 @@ export async function refresh(token, req) {
       { userId: String(stored.userId), familyId: stored.familyId },
       'Refresh token reuse pakda gaya — poori family revoke ki',
     )
-    throw unauthorized('Security ke liye session band kar diya gaya. Dobara login karein.')
+    throw unauthorized('This session was closed for security. Please sign in again.')
   }
 
   if (stored.expiresAt <= new Date()) {
-    throw unauthorized('Session expire ho gaya. Dobara login karein.')
+    throw unauthorized('Your session has expired. Please sign in again.')
   }
 
   const user = await User.findById(stored.userId)
   if (!user || user.status !== USER_STATUS.ACTIVE) {
     await revokeFamily(stored.familyId)
-    throw unauthorized('Ye account ab active nahi hai.')
+    throw unauthorized('This account is no longer active.')
   }
 
   // Naya token pehle banao, phir purana band karo — beech me fail hua to user ke paas
   // kaam karta hua purana token bacha rehta hai
-  const tokens = await issueSession({ user, familyId: stored.familyId, req })
+  /**
+   * `remember` **record se** aata hai, is request se nahi (D-38).
+   *
+   * Pehle refresh hamesha persistent cookie set kar deta tha. Nateeja: "Remember me"
+   * bina tick kiye login karo, 15 min baad ek auto-refresh chale, aur aapka session
+   * chup-chaap persistent ho jaata — browser band karne pe bhi logout na hota.
+   */
+  const tokens = await issueSession({
+    user,
+    familyId: stored.familyId,
+    req,
+    remember: Boolean(stored.remember),
+  })
 
   const next = verifyRefreshToken(tokens.refreshToken)
   stored.revokedAt = new Date()
@@ -195,6 +212,25 @@ export async function revokeFamily(familyId) {
 }
 
 /**
+ * Is session pe "Remember me" chuna gaya tha ya nahi.
+ *
+ * Cookie me ye likha hi nahi hota — sirf `refreshTokens` record jaanta hai (D-38).
+ * Token na mile ya na pehchana jaaye to `false`: default hamesha **kam** persistence
+ * ki taraf jhukna chahiye.
+ *
+ * @param {string} [token] cookie se aaya refresh token
+ */
+async function sessionRemember(token) {
+  if (!token) return false
+
+  const payload = verifyRefreshToken(token)
+  if (!payload?.jti) return false
+
+  const stored = await RefreshToken.findOne({ jti: payload.jti }).lean()
+  return Boolean(stored?.remember)
+}
+
+/**
  * User ke **saare** sessions band — password change aur deactivate pe zaroori.
  *
  * Password badalne pe purane sessions zinda rakhna sabse aam auth bug hai: user
@@ -210,33 +246,50 @@ export async function revokeAllSessions(userId) {
 }
 
 /**
- * Apna password badalna — **sirf jab gate laga ho** (D-35).
+ * Apna password badalna — **har user ke liye khula** (D-37).
  *
- * Normal user apna password nahi badal sakta; wo admin set karta hai. Ye raasta sirf
- * us ek case ke liye khula hai jahan gate laga hai — seed se bana admin, jiska
- * password `.env` file me plain text me padha hai.
+ * D-35 me ye raasta band tha: password sirf administrator set karta tha. Client ne wo
+ * palat diya — ab har user apni Profile screen se apna password badal sakta hai.
+ * Admin ka reset field bhi rehta hai (users service): SMTP na hone tak bhoole hue
+ * password ka ekmatra recovery wahi hai.
+ *
+ * **Current password kyun maanga jaata hai:** iske bina kisi ka khula chhoda hua
+ * session mil jaana seedha *account takeover* ban jaata — jise session mila wo password
+ * badal kar asli user ko hamesha ke liye bahar kar deta. Current password maangne se
+ * chura hua session sirf apne expire hone tak chalta hai.
+ *
+ * **Purane saare sessions marte hain, phir ek naya milta hai.** Pehla hissa isliye ki
+ * password aksar isiliye badla jaata hai ki kisi aur ke paas access aa gaya tha — us
+ * access ka zinda rehna poore kaam ko bekaar kar deta hai. Doosra hissa isliye ki
+ * warna user apna hi password badal kar khud logout ho jaata.
  *
  * @param {string} userId
  * @param {{ currentPassword: string, newPassword: string }} input
+ * @param {{ req?: any, currentRefreshToken?: string }} [options]
  */
-export async function changePassword(userId, { currentPassword, newPassword }) {
+export async function changePassword(userId, { currentPassword, newPassword }, options = {}) {
+  const { req, currentRefreshToken } = options
   const user = await User.findById(userId).select('+passwordHash')
   if (!user) throw unauthorized()
 
-  if (!user.mustChangePassword) {
-    throw forbidden('Password administrator set karta hai. Unse baat karein.')
-  }
-
   const ok = await verifyPassword(currentPassword, user.passwordHash)
-  if (!ok) throw unprocessable('Abhi ka password galat hai')
+  if (!ok) throw unprocessable('Current password is incorrect')
 
   user.passwordHash = await hashPassword(newPassword)
+  // Gate ab utar gaya — chahe wo seed wala forced flow ho ya normal profile change
   user.mustChangePassword = false
   await user.save()
 
-  await revokeAllSessions(userId)
+  // Purani choice revoke se pehle padh lo — naya session bhi wahi persistence rakhega
+  const remember = await sessionRemember(currentRefreshToken)
 
-  return { ok: true }
+  // Pehle sab band, **phir** naya. Ulta karne pe naya token bhi usi sweep me mar jaata
+  await revokeAllSessions(userId)
+  const tokens = await issueSession({ user, req, remember })
+
+  const permissions = await getRolePermissions(user.role)
+
+  return { user: toPublicUser(user, permissions), tokens }
 }
 
 /** Expire ho chuke records hatana. TTL index bhi yahi karta hai — ye manual backup hai. */

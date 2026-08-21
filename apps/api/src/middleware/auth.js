@@ -59,7 +59,7 @@ export function requirePermission(permission) {
   return function permissionGuard(req, _res, next) {
     if (!req.user) return next(unauthorized())
     if (!req.permissions?.includes(permission)) {
-      return next(forbidden(`Iski permission nahi hai: ${permission}`))
+      return next(forbidden(`Missing permission: ${permission}`))
     }
     next()
   }
@@ -75,7 +75,7 @@ export function requireAnyPermission(...permissions) {
   return function anyPermissionGuard(req, _res, next) {
     if (!req.user) return next(unauthorized())
     if (!permissions.some((p) => req.permissions?.includes(p))) {
-      return next(forbidden(`Iski permission nahi hai: ${permissions.join(' ya ')}`))
+      return next(forbidden(`Missing permission: ${permissions.join(' or ')}`))
     }
     next()
   }

@@ -34,6 +34,25 @@ export const ROLE = Object.freeze({
 export const ROLES = Object.freeze(Object.values(ROLE))
 
 /**
+ * Built-in roles ke labels — **UI me yahi dikhta hai, key kabhi nahi** (R4).
+ *
+ * Yahan isliye hain ki built-in roles **code-owned** hain (D-36): unka content code se
+ * aata hai aur har deploy pe DB me sync hota hai. Seed inhe likhta hai aur admin inhe
+ * padhta hai — do jagah rakhne se theek wahi drift hoti hai jo hui thi: DB me label
+ * "Administrator" tha, par Profile screen key se bana kar "Admin" dikha rahi thi.
+ *
+ * **Custom roles (Phase 7) yahan nahi honge** — unke labels admin khud banata hai aur wo
+ * sirf DB me rehte hain. Unke liye `GET /api/roles` hi source hai.
+ */
+export const ROLE_LABEL = Object.freeze({
+  [ROLE.ADMIN]: 'Administrator',
+  [ROLE.EDITOR]: 'Editor',
+  [ROLE.AUTHOR]: 'Author',
+  [ROLE.CONTRIBUTOR]: 'Contributor',
+  [ROLE.SALES_AGENT]: 'Sales Agent',
+})
+
+/**
  * User ka lifecycle. Users pe `deletedAt` nahi hai (D-25 content ke liye hai) —
  * user hataya nahi jaata, **deactivate** hota hai, taaki uska likha content aur
  * activity log orphan na ho jaaye.

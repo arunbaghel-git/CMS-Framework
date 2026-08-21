@@ -252,7 +252,7 @@ describe('PATCH /api/users/:id', () => {
     const res = await authed('patch', `/api/users/${adminId}`, adminJar).send({ role: 'editor' })
 
     expect(res.status).toBe(422)
-    expect(res.body.error.message).toContain('aakhri administrator')
+    expect(res.body.error.message).toContain('last administrator')
   })
 
   it('do admin hon to ek ka role badal sakta hai', async () => {

@@ -12,11 +12,14 @@ import './Login.css'
  * `.env` file me plain text me pada hai (spec 004), isliye pehle login pe ye screen
  * majboori hai, suggestion nahi.
  *
- * Password badalne pe server **saare** sessions revoke kar deta hai — is browser ka
- * bhi. Isliye ye screen ke baad seedha login pe wapas jaana padta hai.
+ * Password badalne pe server purane **saare** sessions revoke karta hai par is browser
+ * ko turant naya de deta hai (D-37) — isliye yahan logout nahi hota. Gate `reload()`
+ * se hatta hai: `mustChangePassword` ab false hai, to `RequireAuth` aage jaane deta hai.
+ *
+ * Profile screen se password badalna isse alag raasta hai, par endpoint wahi hai.
  */
 export default function ChangePassword({ forced = false }) {
-  const { logout } = useAuth()
+  const { reload } = useAuth()
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -38,10 +41,10 @@ export default function ChangePassword({ forced = false }) {
 
     try {
       await api.post('/auth/change-password', parsed.data)
-      // Server ne saare sessions kaat diye — local state bhi saaf karo
-      await logout()
+      // Naya session cookie me aa chuka hai — bas user dobara padho taaki gate hat jaaye
+      await reload()
     } catch (err) {
-      setError(errorMessage(err, 'Password badal nahi paaya.'))
+      setError(errorMessage(err, 'Could not change the password.'))
       setSubmitting(false)
     }
   }
@@ -53,8 +56,8 @@ export default function ChangePassword({ forced = false }) {
       <form className="login-card" onSubmit={handleSubmit} noValidate>
         {forced && (
           <div className="login-note">
-            Ye password setup ke waqt bana tha aur config file me plain text me pada hai. Aage
-            badhne se pehle ise badalna zaroori hai.
+            This password was created during setup and is stored in plain text in a config file. You
+            must change it before continuing.
           </div>
         )}
 
@@ -65,7 +68,7 @@ export default function ChangePassword({ forced = false }) {
         )}
 
         <div className="field">
-          <label htmlFor="cp-current">Abhi ka password</label>
+          <label htmlFor="cp-current">Current password</label>
           <input
             id="cp-current"
             className="inp"
@@ -78,7 +81,7 @@ export default function ChangePassword({ forced = false }) {
         </div>
 
         <div className="field">
-          <label htmlFor="cp-new">Naya password</label>
+          <label htmlFor="cp-new">New password</label>
           <input
             id="cp-new"
             className="inp"
@@ -87,15 +90,15 @@ export default function ChangePassword({ forced = false }) {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
-          <p className="hint">Kam se kam 10 characters. Ek lamba phrase sabse achha hai.</p>
+          <p className="hint">At least 10 characters. A long phrase works best.</p>
         </div>
 
         <div className="login-actions">
           <span className="hint" style={{ margin: 0 }}>
-            Baaki devices bhi logout honge
+            Other devices will be signed out — this browser stays signed in
           </span>
           <button className="btn btn-primary btn-lg" type="submit" disabled={submitting}>
-            {submitting ? 'Ho raha hai…' : 'Password badlo'}
+            {submitting ? 'Changing…' : 'Change password'}
           </button>
         </div>
       </form>

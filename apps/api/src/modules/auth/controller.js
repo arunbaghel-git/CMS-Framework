@@ -13,7 +13,8 @@ export async function login(req, res, next) {
     const input = loginSchema.parse(req.body)
     const { user, tokens } = await authService.login(input, req)
 
-    setAuthCookies(res, { ...tokens, persistent: input.rememberMe })
+    // `tokens.remember` service se aata hai (login pe `rememberMe`) — D-38
+    setAuthCookies(res, tokens)
 
     res.json({ data: { user, csrfToken: tokens.csrfToken } })
   } catch (err) {
@@ -24,16 +25,16 @@ export async function login(req, res, next) {
 export async function refresh(req, res, next) {
   try {
     const token = req.cookies?.[COOKIE.REFRESH]
-    if (!token) throw unauthorized('Session nahi mila. Dobara login karein.')
+    if (!token) throw unauthorized('No session found. Please sign in again.')
 
     const { user, tokens } = await authService.refresh(token, req)
 
     /**
-     * Refresh pe cookie hamesha persistent set hoti hai. "Remember me" off wale user
-     * ki refresh cookie session cookie thi — browser band hone pe wo chali gayi,
-     * isliye yahan tak pahunchne ka matlab hai session abhi chalu hai.
+     * Persistence **session ki apni** hai, is request ki nahi — `refreshTokens` record
+     * se aati hai (D-38). Pehle yahan `persistent: true` hardcoded tha, jisse "Remember
+     * me" pehle auto-refresh ke baad hi bemaani ho jaata tha.
      */
-    setAuthCookies(res, { ...tokens, persistent: true })
+    setAuthCookies(res, tokens)
 
     res.json({ data: { user, csrfToken: tokens.csrfToken } })
   } catch (err) {
@@ -57,12 +58,22 @@ export async function logout(req, res, next) {
 export async function changePassword(req, res, next) {
   try {
     const input = changePasswordSchema.parse(req.body)
-    await authService.changePassword(String(req.user._id), input)
+    const { user, tokens } = await authService.changePassword(String(req.user._id), input, {
+      req,
+      // Cookie padhna HTTP ki baat hai, service ki nahi — isliye lookup ke liye yahan se jaata hai
+      currentRefreshToken: req.cookies?.[COOKIE.REFRESH],
+    })
 
-    // Saare sessions revoke ho chuke — is browser ko bhi dobara login karna hoga
-    clearAuthCookies(res)
+    /**
+     * Service purane saare sessions maar chuki hai — is browser ko naya dena zaroori
+     * hai, warna user apna hi password badal kar logout ho jaata (D-37).
+     *
+     * Persistence wahi rehti hai jo login pe chuni thi (D-38): password badalna
+     * "Remember me" ka faisla badalne ki jagah nahi hai.
+     */
+    setAuthCookies(res, tokens)
 
-    res.json({ data: { ok: true, message: 'Password badal gaya. Dobara login karein.' } })
+    res.json({ data: { user, csrfToken: tokens.csrfToken } })
   } catch (err) {
     next(err)
   }

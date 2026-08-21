@@ -50,7 +50,7 @@ export default function Login() {
       await login(parsed.data)
       navigate(from, { replace: true })
     } catch (err) {
-      setError(errorMessage(err, 'Login nahi ho paaya. Dobara koshish karein.'))
+      setError(errorMessage(err, 'Sign in failed. Please try again.'))
     } finally {
       setSubmitting(false)
     }
@@ -104,14 +104,14 @@ export default function Login() {
           </label>
 
           <button className="btn btn-primary btn-lg" type="submit" disabled={submitting}>
-            {submitting ? 'Ho raha hai…' : 'Log In'}
+            {submitting ? 'Signing in…' : 'Log In'}
           </button>
         </div>
 
         <div className="login-links">
           {/* SMTP Phase 2 me aayega — tab tak ye link jaan-boojh kar dead hai (D-30) */}
-          <span className="disabled" title="Email setup Phase 2 me aayega">
-            Password bhool gaye?
+          <span className="disabled" title="Email setup comes in Phase 2">
+            Lost your password?
           </span>
         </div>
       </form>

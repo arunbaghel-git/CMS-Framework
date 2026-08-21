@@ -48,6 +48,10 @@ export function ttlToMs(ttl) {
 
 export const ACCESS_TTL_MS = ttlToMs(env.ACCESS_TOKEN_TTL)
 export const REFRESH_TTL_MS = ttlToMs(env.REFRESH_TOKEN_TTL)
+export const REFRESH_REMEMBER_TTL_MS = ttlToMs(env.REFRESH_TOKEN_TTL_REMEMBER)
+
+/** Is session ka refresh TTL — "Remember me" chuna tha ya nahi (D-38). */
+export const refreshTtlMs = (remember) => (remember ? REFRESH_REMEMBER_TTL_MS : REFRESH_TTL_MS)
 
 const baseCookie = {
   httpOnly: true,
@@ -76,14 +80,20 @@ export function signAccessToken(user) {
  * Refresh token. `jti` aur `familyId` iske andar hain — reuse detection inhi do se
  * chalti hai (`refreshTokens` collection).
  *
- * @param {{ id: string, familyId: string, jti?: string }} input
+ * `remember` sirf TTL chunta hai. Wo token ke **andar** nahi jaata — uski zaroorat hi
+ * nahi: har rotation pe wo `refreshTokens` record se padha jaata hai, aur DB ko koi
+ * client badal nahi sakta.
+ *
+ * @param {{ id: string, familyId: string, jti?: string, remember?: boolean }} input
  */
-export function signRefreshToken({ id, familyId, jti = randomUUID() }) {
+export function signRefreshToken({ id, familyId, jti = randomUUID(), remember = false }) {
+  const ttlMs = refreshTtlMs(remember)
+
   const token = jwt.sign({ sub: id, familyId, jti, typ: 'refresh' }, env.JWT_REFRESH_SECRET, {
-    expiresIn: env.REFRESH_TOKEN_TTL,
+    expiresIn: Math.floor(ttlMs / 1000),
   })
 
-  return { token, jti, familyId, expiresAt: new Date(Date.now() + REFRESH_TTL_MS) }
+  return { token, jti, familyId, remember, expiresAt: new Date(Date.now() + ttlMs) }
 }
 
 /**
@@ -138,34 +148,35 @@ export function safeEqual(a, b) {
 }
 
 /**
- * Login / refresh ke baad teenon cookies set karta hai.
+ * Login / refresh / password-change ke baad teenon cookies set karta hai.
+ *
+ * `remember` **is session ka** flag hai, is request ka nahi — wo login pe tay hua tha
+ * aur `refreshTokens` record me chalta rehta hai (D-38). Har jagah wahi bhejo, warna
+ * user ki choice chup-chaap badal jaati hai.
  *
  * @param {import('express').Response} res
- * @param {{ accessToken: string, refreshToken: string, csrfToken: string, persistent?: boolean }} tokens
+ * @param {{ accessToken: string, refreshToken: string, csrfToken: string, remember?: boolean }} tokens
  */
-export function setAuthCookies(res, { accessToken, refreshToken, csrfToken, persistent = false }) {
+export function setAuthCookies(res, { accessToken, refreshToken, csrfToken, remember = false }) {
   res.cookie(COOKIE.ACCESS, accessToken, { ...baseCookie, maxAge: ACCESS_TTL_MS })
 
   /**
    * "Remember me" off ho to refresh cookie **session cookie** banti hai — browser band
-   * hone pe chali jaati hai. JWT ki apni expiry phir bhi lagti hai; ye uske upar hai,
-   * uski jagah nahi.
+   * hone pe chali jaati hai, chahe uska token abhi valid ho.
+   *
+   * Do rok alag-alag hain aur dono lagti hain: cookie ki umr (browser band = gaya) aur
+   * token ki umr (24h / 7d inactivity). WordPress bhi dono saath lagata hai.
    */
-  res.cookie(COOKIE.REFRESH, refreshToken, {
-    ...baseCookie,
-    ...(persistent ? { maxAge: REFRESH_TTL_MS } : {}),
-  })
+  const lifetime = remember ? { maxAge: refreshTtlMs(true) } : {}
+
+  res.cookie(COOKIE.REFRESH, refreshToken, { ...baseCookie, ...lifetime })
 
   /**
    * CSRF cookie `httpOnly` **nahi** hai — double-submit pattern me JS ko ise padh ke
    * header me bhejna hota hai. Ye leak nahi hai: iski poori security is baat pe hai
    * ki dusra origin ise **padh nahi sakta** (same-origin policy), bhale bhej sakta ho.
    */
-  res.cookie(COOKIE.CSRF, csrfToken, {
-    ...baseCookie,
-    httpOnly: false,
-    ...(persistent ? { maxAge: REFRESH_TTL_MS } : {}),
-  })
+  res.cookie(COOKIE.CSRF, csrfToken, { ...baseCookie, httpOnly: false, ...lifetime })
 }
 
 /** Logout — teenon cookies wahi flags ke saath clear hoti hain jinse set hui thi. */

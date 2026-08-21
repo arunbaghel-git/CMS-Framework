@@ -22,12 +22,13 @@ export class AppError extends Error {
 }
 
 export const badRequest = (msg, details) => new AppError(400, 'BAD_REQUEST', msg, details)
-export const unauthorized = (msg = 'Login zaroori hai') => new AppError(401, 'UNAUTHORIZED', msg)
-export const forbidden = (msg = 'Iski permission nahi hai') => new AppError(403, 'FORBIDDEN', msg)
-export const notFound = (msg = 'Nahi mila') => new AppError(404, 'NOT_FOUND', msg)
+export const unauthorized = (msg = 'You need to sign in') => new AppError(401, 'UNAUTHORIZED', msg)
+export const forbidden = (msg = 'You do not have permission to do this') =>
+  new AppError(403, 'FORBIDDEN', msg)
+export const notFound = (msg = 'Not found') => new AppError(404, 'NOT_FOUND', msg)
 
 /** Optimistic concurrency — `version` mismatch. */
-export const conflict = (msg = 'Ye item beech me kisi aur ne badla hai', details) =>
+export const conflict = (msg = 'Someone else changed this while you were editing', details) =>
   new AppError(409, 'CONFLICT', msg, details)
 
 /** Business rule fail — reserved slug, circular parent, etc. */
@@ -49,7 +50,7 @@ export function errorHandler(err, req, res, _next) {
     return res.status(400).json({
       error: {
         code: 'VALIDATION_FAILED',
-        message: 'Bheja gaya data sahi nahi hai',
+        message: 'Some of the submitted data is not valid',
         details: {
           fields: err.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
         },
@@ -67,7 +68,7 @@ export function errorHandler(err, req, res, _next) {
    */
   if (err?.name === 'CastError') {
     return res.status(404).json({
-      error: { code: 'NOT_FOUND', message: 'Nahi mila' },
+      error: { code: 'NOT_FOUND', message: 'Not found' },
     })
   }
 
@@ -80,13 +81,13 @@ export function errorHandler(err, req, res, _next) {
   req.log?.error({ err }, 'Unhandled error')
 
   return res.status(500).json({
-    error: { code: 'INTERNAL', message: 'Kuch galat ho gaya. Dobara koshish karein.' },
+    error: { code: 'INTERNAL', message: 'Something went wrong. Please try again.' },
   })
 }
 
 /** 404 — koi route match nahi hua. */
 export function notFoundHandler(req, res) {
   res.status(404).json({
-    error: { code: 'NOT_FOUND', message: `Route nahi mila: ${req.method} ${req.path}` },
+    error: { code: 'NOT_FOUND', message: `Route not found: ${req.method} ${req.path}` },
   })
 }

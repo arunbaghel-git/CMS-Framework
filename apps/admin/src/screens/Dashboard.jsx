@@ -17,7 +17,7 @@ export default function Dashboard() {
         <h1>Dashboard</h1>
       </div>
 
-      <p className="subtitle">Namaste {user?.name?.split(' ')[0]}.</p>
+      <p className="subtitle">Welcome back, {user?.name?.split(' ')[0]}.</p>
 
       <div className="panel">
         <div className="panel-head">
@@ -28,7 +28,7 @@ export default function Dashboard() {
             <strong>{user?.email}</strong> — role <code>{user?.role}</code>
           </p>
           <p className="hint" style={{ marginBottom: 0 }}>
-            {user?.permissions?.length ?? 0} permissions is role ke saath aayi hain.
+            {user?.permissions?.length ?? 0} permissions come with this role.
           </p>
         </div>
       </div>

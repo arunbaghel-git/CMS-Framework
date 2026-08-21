@@ -15,7 +15,7 @@ Format:
 
 ---
 
-## 2026-08-21 — Users ka menu role-aware hua; Roles submenu drop; docs sync
+## 2026-08-21 — Users ka menu role-aware hua; Roles submenu drop; Profile screen bani
 
 **Kya hua**
 
@@ -26,7 +26,7 @@ Format:
   aur "GitHub repo khaali hai" — dono galat (origin/main `0e328cb` pe hai, 18 unpushed)
 - Client ne Users section ka **asli shape** diya. Kal wala "Users → Roles" submenu ka plan
   **drop** — uski jagah menu role ke hisaab se badlega (D-37)
-- **Koi code nahi likha** — sirf docs. Client ne yahi kaha tha
+- Pehle **sirf docs** — client ne yahi kaha tha. Baad me usi session me code bhi
 
 **Ek takraav pakda gaya (isiliye poochha)**
 
@@ -50,16 +50,162 @@ block kar raha tha. Role-edit ka koi UI hi nahi ban raha, to wo Phase 7 pe khisa
 (Users/Profile Phase 7 → Phase 0, custom-role builder Phase 7 me hi, `subscriber` wali
 purani line) · `09-OPEN-ITEMS` · `CLAUDE.md` · project-state.
 
-**Agla — code (abhi tak nahi likha)**
+**Phir code — D-37 poora laga**
 
-1. Nav registry `{ id, label, to, permission }` — Sidebar ka `MENU` abhi hardcoded hai aur
-   kisi item pe `permission` nahi. **Sidebar aur route guard dono wahi padhein**, warna
-   "menu me chhupa par URL type karne pe khul jaata hai" wala bug banega
-2. Sidebar me `Users` ko flat link se **accordion group** banao
-3. Profile screen — `GET|PATCH /api/me` bana hua hai, UI nahi
-4. `/api/auth/change-password` ka 403 gate hatao + current-password check + **doosre**
-   sessions revoke (chalu wala nahi). `mustChangePassword` wala forced flow waisa hi rahe
-5. Phir Settings
+```
+apps/admin/src/lib/nav.js            nav registry (NAV + ROUTE_GUARDS) + 11 test
+apps/admin/src/screens/Profile.jsx   naam + password, dono alag panel
+apps/admin/src/screens/NoAccess.jsx  permission na ho to yahi dikhta hai
+```
+
+Sidebar ab `nav.js` se render hoti hai, `App.jsx` me `RequirePermission` guard aaya, aur
+Users flat link se accordion group ban gaya. Backend me `changePassword()` ka 403 gate
+hata, aur wo ab purane saare sessions maar kar **turant naya issue** karta hai.
+
+**Chaar cheezein jo raaste me theek karni padin**
+
+1. **`revokeAllSessions()` chalu session bhi maar deta tha.** Sirf gate hata dena kaafi
+   nahi tha — user apna hi password badal kar logout ho jaata. Ab revoke ke baad
+   `issueSession()` chalta hai aur controller naye cookies set karta hai.
+2. **`Shell` pehle `RequirePermission` ke andar tha** — matlab access-nahi-hai wala page
+   bina sidebar ke, layout ke bahar render hota. Shell bahar kiya.
+3. **`forbidden` import orphan ho gaya tha** auth service me — lint ne pakda.
+4. **Sidebar ka accordion `/users` pe band rehta tha.** Pehle Users flat link tha to
+   dikkat nahi thi; group bante hi reload pe pata hi nahi chalta ki aap kahan khade ho.
+   Ab current page ka group apne aap khulta hai.
+
+**Ek cheez jaan-boojh kar nahi ki:** baaki menu items (Posts, Packages, Settings…) pe
+`permission` nahi lagayi. Client ne abhi sirf Users ka shape maanga hai aur design frozen
+hai (R15) — aaj hi sab pe laga dena us rule ko developer ki taraf se todna hota.
+
+**Naya rule:** `07-CONVENTIONS.md` **R16** — nav item aur route guard ek hi jagah se.
+
+**Tests:** 184 → **198**. Purana D-35 gate wala test (jo 403 expect karta tha) D-37 ke
+hisaab se badla, aur `nav.js` ke 11 naye test aaye. Lint clean, admin build clean.
+
+**Client ne test kiya aur ek asli bug nikaala (D-38)**
+
+Sawaal seedha tha: _"Profile se password badal kar browser band karun, phir kholun —
+Login aayega ya Dashboard?"_ Jawab tha **Dashboard, chahe "Remember me" tick kiya ho ya
+nahi** — jo galat hai.
+
+`setAuthCookies()` ka `persistent` flag refresh aur change-password dono me **hardcoded
+`true`** tha. Matlab session cookie pehle auto-refresh pe hi (login ke ~15 min baad)
+7-din wali persistent cookie ban jaati thi. **Checkbox practically bemaani tha.**
+Ye D-37 se nahi aaya — refresh me pehle se tha; password wale raaste me wahi pattern
+copy hua isliye dikh gaya.
+
+**Fix:** `remember` ab `refreshTokens` record me hai aur har rotation ke saath chalta
+hai. Login likhta hai, refresh aur change-password wahi padhte hain. Migration nahi
+chahiye — collection ephemeral hai aur uspe TTL index hai, purane records `false` padhte
+hain (safe direction).
+
+**Saath me TTL bhi badli** (client ka faisla, teen options me se): `REFRESH_TOKEN_TTL`
+7d se **24h**, aur naya `REFRESH_TOKEN_TTL_REMEMBER` = **7d**. Dono sliding hain —
+ghadi inactivity pe chalti hai, login se nahi. Reference ke liye WordPress dekha:
+wo 2 din / 14 din deta hai par **absolute**, sliding nahi.
+
+**Tests:** 198 → **204**. Chhe naye test sirf isi baat pe ki _login ke baad wali_
+request persistence badalti to nahi — kyunki bug wahin tha, login me nahi.
+
+**Ek manual step baaki:** `apps/api/.env.example` me naya var add karna hai (wo file
+mere permissions me nahi hai). Default code me hai, isliye kuch tootega nahi.
+
+**Poora admin English me convert hua (R17)**
+
+Client ne Profile pe read-only fields dekhe aur do cheezein kahin: (1) unhe `inp` jaisa
+dikhna chahiye, (2) _"hint Hindi me kyun aa raha hai?"_
+
+Doosre sawaal ka jawab check karne pe ye nikla: **language ka koi rule likha hi nahi
+tha.** Code din-1 se Hinglish me drift kar raha tha, jabki client ka design — jo FROZEN
+spec hai (R15) — **poora English me hai** (`URL-friendly, lowercase, hyphens only.`).
+Yaani design ke hisaab se UI kabhi English me honi chahiye thi.
+
+Client ne poora admin English karne ka faisla liya. **~107 strings** badle:
+
+```
+admin JSX          Profile · UserForm · UsersList · DeleteUser · Login
+                   ChangePassword · NoAccess · NotBuiltYet · Dashboard · AdminBar · App
+packages/shared    Zod ke validation messages
+apps/api           errors.js · auth aur users service ke saare messages
+                   middleware (auth, csrf) · rate limit
+```
+
+**Sirf JSX badalna aadha kaam hota.** API ke error messages aur Zod ke messages seedha
+admin ke notice me chhapte hain (`errorMessage()` unhe wahin se uthata hai) — wo na
+badalte to pehli hi failed login pe Hinglish dikh jaati.
+
+**Hinglish jaan-boojh kar bacha:** code comments, test ke naam, aur developer errors
+(`useAuth ko <AuthProvider> ke andar hi call karo`). Wo user kabhi nahi dekhta.
+
+Ek test bhi update hua — `users.test.js` message text pe assert kar raha tha.
+
+**Naya rule:** `07-CONVENTIONS.md` **R17** — user ko dikhne wala har text English me.
+Isme wo table bhi hai ki kya English aur kya Hinglish, taaki ye drift dobara na ho.
+
+**Profile ka read-only field** ab `<input className="inp" readOnly disabled />` hai —
+wahi pattern jo Edit User me username/email pe hai. `.profile-ro` CSS hat gayi.
+
+**Client ne ek aur bug pakda — stale form state**
+
+Edit user karke **Add User** dabao, to `/users/new` ka form **pichhle user ke data se
+bhara** khulta tha.
+
+**Wajah React Router ka documented behaviour hai:** `/users/:id` aur `/users/new` dono
+`<UserForm />` render karte hain, to route badalne pe React purana instance dobara use
+kar leta hai aur `useState` zinda reh jaati hai. `useEffect` bhi nahi bachata — usme
+`if (isNew) return` tha, jo form clear kiye bina nikal jaata tha.
+
+**Fix:** component ko `key={id ?? new}` ke saath wrap kiya — route badalte hi poora
+remount. Effect me manually reset karna bhi chalta, par phir har naya `useState` yaad
+rakhna padta.
+
+**`DeleteUser` me bhi wahi kiya** — client ne wo nahi bola, par wahan ye zyada khatarnaak
+tha: ek delete screen se doosri pe jaate waqt naya user load hone tak **pichhle user ka
+naam** dikhta rehta, aur wo screen permanent delete ka hai.
+
+`08-RISKS.md` ke traps me "Ek component, do route" add kiya, detail ke saath.
+
+> ⚠️ **Is bug ka koi automated test nahi hai.** Admin me component testing ka setup hi
+> nahi hai (na jsdom, na testing-library) — poore project me 204 test hain par ek bhi
+> React component test nahi. Ye bug us gap me se nikla. Stack add karna ek alag faisla
+> hai, client se poochha gaya hai.
+
+**Profile ke messages role-aware hue — aur ek label drift pakdi gayi**
+
+Client ne dekha ki administrator ko apni Profile pe likha aa raha tha _"Ask your
+administrator"_ aur _"Your administrator sets this"_ — jabki wo khud administrator hai.
+
+**Check karte waqt ek doosri cheez nikli:** `roles/service.js` me labels ka apna map tha
+jisme `admin: "Administrator"` likha hai, aur wahi DB me jaata hai. Par Profile screen
+label **key se bana rahi thi** (`admin` se "Admin"). Yaani mera camelCase formatter DB se
+diverge kar raha tha — aur wo comment maine khud likha tha ki "labels DB se aate hain".
+
+**Fix (dono ek saath):**
+
+1. `ROLE_LABEL` ab `packages/shared/src/constants` me hai. Seed aur admin **dono wahi**
+   padhte hain. `roles/service.js` ka local map hata diya. Ye D-36 ke saath consistent
+   hai — built-in roles code-owned hain. Custom roles (Phase 7) ke liye camelCase wala
+   fallback bacha hai, kyunki unke labels sirf DB me honge.
+2. Dono hints ab `can(user.update)` pe badalte hain — **role ka naam nahi dekha**
+   (spec 001). Sawaal capability ka hai: jo khud users manage karta hai, use "apne
+   administrator se poochhein" likhna bemaani hai.
+
+|       | Users manage karne wala                  | Baaki sab                                    |
+| ----- | ---------------------------------------- | -------------------------------------------- |
+| Email | _...not from the Users screen either._   | _...Ask your administrator if you need one._ |
+| Role  | _...another administrator has to do it._ | _Your administrator sets this..._            |
+
+Role wali baat code se verify ki: server apna role badalne se **rokta nahi** — sirf
+"last administrator" wala guard hai. To "koi doosra administrator badal sakta hai" sach
+hai. (Self-role ka guard sirf UI me hai, `disabled={isMe}` — API pe nahi. Alag baat hai,
+aaj chhui nahi.)
+
+**Tests:** 204 → **207**. Teen naye: har role ka label ho, `admin` ka label
+"Administrator" ho, aur seed DB me wahi labels likhe jo shared me hain — teenon isi drift
+ko dobara hone se rokte hain.
+
+**Agla:** Settings — `settings` collection ka schema + migration, phir General screen.
 
 ---
 

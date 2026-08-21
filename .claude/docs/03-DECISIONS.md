@@ -970,3 +970,86 @@ rahega — wo poori screen block karta hai aur alag cheez hai.
 **route guard** bhi padhega. Do jagah rakhoge to naya section jodte waqt ek jagah update
 karna bhoolna pakka hai — aur bhoolne ka nateeja "screen chhupi hui hai par URL type
 karke khul jaati hai" jaisa chup-chaap bug hota hai.
+
+---
+
+## D-38 · "Remember me" poore session tak chalta hai — aur do alag TTL
+
+**Context:** Client ne D-37 wala Profile password test kiya aur poochha: *"password badal
+kar browser band karun, phir kholun — Login aayega ya Dashboard?"*
+
+Jawab tha **Dashboard — chahe "Remember me" tick kiya ho ya nahi.** Ye galat tha.
+
+`setAuthCookies()` ka `persistent` flag teen jagah se aata tha, aur do jagah **hardcoded
+`true`** tha:
+
+| Kahan               | Kya bhejta tha       |
+| ------------------- | -------------------- |
+| Login               | `input.rememberMe` ✅ |
+| Refresh             | `true` ❌            |
+| Change password     | `true` ❌            |
+
+Matlab session cookie pehle auto-refresh pe hi (login ke ~15 min baad) 7-din wali
+persistent cookie ban jaati thi. **"Remember me" checkbox practically bemaani tha.**
+
+> Ye bug D-37 se nahi aaya — refresh me pehle se tha. Password wale raaste me wahi
+> pattern copy hua, isliye dikh gaya. Client ke testing ne pakda.
+
+### 1. `remember` ab session ke saath chalta hai
+
+`refreshTokens` record me ek `remember` field hai. Login use likhta hai; har rotation
+use aage carry karti hai; refresh aur change-password **wahi** padh kar cookie set karte
+hain.
+
+**Record me kyun, cookie ya JWT me kyun nahi:** cookie se ye padha hi nahi ja sakta
+(`httpOnly`), aur JWT me daalne se har rotation pe use dobara sign karna padta — wahi
+ek jagah jahan wo chhoot jaata. Record rotation ke aar-paar zinda rehta hai aur use koi
+client badal nahi sakta.
+
+**Migration nahi likhi.** `refreshTokens` ephemeral hai aur uspe TTL index hai — purane
+records apne aap chale jaate hain, aur tab tak `remember` unka `false` padha jaata hai.
+Ye **safe direction** hai: galti ho to session chhota hota hai, lamba nahi.
+
+### 2. Do TTL — 24 ghante, aur "Remember me" pe 7 din
+
+```
+REFRESH_TOKEN_TTL           24h    default
+REFRESH_TOKEN_TTL_REMEMBER  7d     checkbox tick hone pe
+```
+
+**Dono sliding hain** — har refresh pe ghadi reset. Matlab ye *"kitne din baad login"*
+nahi hai, *"kitne din **kaam na karne** pe login"* hai. Roz CMS kholne wale ko kabhi
+login nahi maangega.
+
+**Bina "Remember me" wale pe do rok saath lagti hain:** cookie session cookie hai
+(browser band = gaya) **aur** token 24 ghante me marta hai. WordPress bhi dono saath
+lagata hai.
+
+### 3. Reference: WordPress kya karta hai
+
+| | WordPress | Hum |
+| --- | --- | --- |
+| Remember me OFF | 2 din + session cookie | **24 ghante** + session cookie |
+| Remember me ON | 14 din | **7 din** |
+| Ghadi | **absolute** — login se fix | **sliding** — activity pe reset |
+
+Hum WordPress se sakht hain, par sliding hone ki wajah se kaam karne walon ko wo sakhti
+mehsoos nahi hoti.
+
+**Reject kiya:**
+
+- **Dono ke liye 24h.** Sabse sakht, par phir checkbox ka matlab sirf "browser band
+  karne pe logout na ho" reh jaata. Client ke users hafte me ek-do baar login karte
+  hain — wo har baar password dhoondhte, aur wahi "password bhool gaya" wali call aati
+  jiska abhi koi email-recovery raasta hai hi nahi.
+- **WordPress jaisi absolute expiry.** Roz kaam karne wale ko beech kaam me logout
+  karna — bina auto-save ke ye seedha content ka nuksaan hai (autosave Phase 1 me hai).
+- **`remember` JWT ke andar rakhna.** Signed hai isliye surakshit to hai, par har
+  rotation pe use dobara daalna yaad rakhna padta — wahi galti jo abhi hui.
+- **Absolute cap (30 din) bhi lagana.** 24h sliding ke saath chura hua token waise bhi
+  ek din se zyada nahi jeeta. Do ghadiyaan rakhne se debugging mushkil hoti hai.
+
+**Nateeja jo yaad rakhna hai:** ab **jahan bhi `setAuthCookies()` call ho, `remember`
+session se aana chahiye** — kabhi hardcoded nahi. Naya auth endpoint bane to `tokens`
+object seedha pass karo (`setAuthCookies(res, tokens)`); `issueSession()` usme
+`remember` pehle se bhar deta hai.

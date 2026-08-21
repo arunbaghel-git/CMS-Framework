@@ -109,6 +109,48 @@ Semantic markup badalna is rule ke **khilaaf nahi** hai — design me toggle `<a
 par wo navigate nahi karta, isliye code me `<button>` hai. Dikhne me kuch nahi badalta,
 sirf keyboard aur screen reader theek se chalte hain.
 
+### R16 · Nav item aur route guard ek hi jagah se aayein
+
+Admin ka menu aur uska route guard dono `apps/admin/src/lib/nav.js` se aate hain (D-37).
+Naya section jodte waqt **wahi ek file** kholni hai.
+
+| Theek hai                                        | Theek nahi hai                                     |
+| ------------------------------------------------ | -------------------------------------------------- |
+| `NAV` me item, `ROUTE_GUARDS` me uska permission | Sidebar me item, aur guard `App.jsx` me inline     |
+| Route khula rakhna ho to guard likho hi mat      | Guard likhna bhool jaana                           |
+
+**Bhoolne ka nateeja chup-chaap hota hai:** item menu se gayab ho jaata hai par URL type
+karne pe screen khul jaati hai. Koi error nahi dikhta — bas ek khaali toota hua page,
+jiski API 403 de rahi hoti hai.
+
+**Ye rok nahi hai, doosri deewar hai.** Asli rok server pe `requirePermission()` hai.
+`nav.js` se kuch hata dena kisi ko API se nahi rokta — ye sirf ye rokta hai ki bina
+permission wale user ko toota hua UI na dikhe.
+
+### R17 · User ko dikhne wala har text English me
+
+Admin ka design **poora English me hai** (`URL-friendly, lowercase, hyphens only.`,
+`Collapsed — click header to expand.`), aur design spec hai (R15). Isliye UI ka text bhi
+English me hi hoga.
+
+**Ye rule pehle likha hi nahi tha, aur code chup-chaap Hinglish me drift kar gaya tha.**
+21 Aug ko poora admin English me convert kiya gaya — client ne Profile screen dekh kar
+poochha tha.
+
+| English me (user dekhta hai)              | Hinglish me hi rahega (developer dekhta hai) |
+| ----------------------------------------- | --------------------------------------------- |
+| Labels, buttons, hints, placeholders      | Code comments                                 |
+| Notices, error aur empty states           | Test ke naam (`it(...)`)                      |
+| **API ke error messages**                 | Developer errors (`useAuth ko ... call karo`) |
+| **Zod validation messages** (`packages/shared`) | Docs, specs, decision records            |
+
+**API ke messages isme kyun hain:** wo seedha admin ke notice me chhapte hain
+(`errorMessage()` unhe wahin se uthata hai). Sirf JSX badalne se aadha UI English aur
+aadha Hinglish reh jaata — aur wo pehli hi failed login pe dikh jaata.
+
+**Bhasha badalni ho to wo bhi client se aayega** (R15 wahi rule). Aaj ke client ke users
+Hindi bolte hain, par unka design English me aaya — wahi spec hai.
+
 > Ye rule pehle sirf `CLAUDE.md` aur `project-state.md` me tha (galti se "rule 8"
 > bola jaata tha). Ab yahan hai.
 

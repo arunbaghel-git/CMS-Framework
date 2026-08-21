@@ -67,7 +67,9 @@ describe('defaults', () => {
 
     expect(env.PORT).toBe(4000)
     expect(env.ACCESS_TOKEN_TTL).toBe('15m')
-    expect(env.REFRESH_TOKEN_TTL).toBe('7d')
+    // Do TTL — "Remember me" ke saath aur uske bina (D-38)
+    expect(env.REFRESH_TOKEN_TTL).toBe('24h')
+    expect(env.REFRESH_TOKEN_TTL_REMEMBER).toBe('7d')
     expect(env.MAX_UPLOAD_MB).toBe(20)
   })
 

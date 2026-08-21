@@ -1,4 +1,4 @@
-import { ROLE_PERMISSIONS } from '@cms/shared'
+import { ROLE_LABEL, ROLE_PERMISSIONS } from '@cms/shared'
 
 import { Role } from './model.js'
 
@@ -68,14 +68,6 @@ export async function listRoles() {
  *   hai — permissions to waise bhi hamesha sync hoti hain.
  */
 export async function ensureDefaultRoles({ force = false } = {}) {
-  const labels = {
-    admin: 'Administrator',
-    editor: 'Editor',
-    author: 'Author',
-    contributor: 'Contributor',
-    salesAgent: 'Sales Agent',
-  }
-
   const descriptions = {
     admin: 'Sab kuch — settings, users aur permanent delete',
     editor: 'Saara content publish kar sakta hai. Trash me daal sakta hai, mita nahi sakta',
@@ -107,7 +99,7 @@ export async function ensureDefaultRoles({ force = false } = {}) {
 
       existing.permissions = [...permissions]
       if (force) {
-        existing.label = labels[key] ?? key
+        existing.label = ROLE_LABEL[key] ?? key
         existing.description = descriptions[key] ?? ''
       }
       await existing.save()
@@ -117,7 +109,7 @@ export async function ensureDefaultRoles({ force = false } = {}) {
 
     await Role.create({
       key,
-      label: labels[key] ?? key,
+      label: ROLE_LABEL[key] ?? key,
       description: descriptions[key] ?? '',
       permissions: [...permissions],
       isBuiltIn: true,

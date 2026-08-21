@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
+import { ROLE_LABEL } from '@cms/shared'
 
 import { createApp } from '../app.js'
 import { connectTestDb, disconnectTestDb } from './db.js'
@@ -86,7 +87,7 @@ beforeEach(async () => {
   invalidateRoleCache()
 
   await ensureDefaultRoles()
-  // `mustChangePassword: true` — warna change-password ka raasta hi band hai (D-35)
+  // `mustChangePassword: true` — taaki seed wale admin ka forced gate bhi test ho sake
   await createUser(
     { username: 'testadmin', name: 'Test Admin', email: EMAIL, role: 'admin', password: PASSWORD },
     { mustChangePassword: true },
@@ -329,14 +330,74 @@ describe('POST /api/auth/change-password', () => {
     expect((await login({ password: PASSWORD })).res.status).toBe(401)
   })
 
-  it('SAARE sessions revoke kar deta hai — dusre device ka bhi', async () => {
+  /**
+   * D-37 ka pehla hissa.
+   *
+   * Pehle (D-35) ye raasta band tha: `mustChangePassword` false hone pe 403 milta tha,
+   * kyunki password ka ekmatra source administrator tha. Client ne wo palat diya.
+   */
+  it('gate na laga ho tab bhi chalta hai — har user apna password khud badal sakta hai (D-37)', async () => {
+    await User.updateOne({ email: EMAIL }, { $set: { mustChangePassword: false } })
+    const { jar } = await login()
+
+    const res = await changePassword(jar, {
+      currentPassword: PASSWORD,
+      newPassword: NEW_PASSWORD,
+    })
+
+    expect(res.status).toBe(200)
+  })
+
+  it('gate laga ho to utar jaata hai — seed wala admin aage badh sakta hai', async () => {
+    const { res: loginRes, jar } = await login()
+    expect(loginRes.body.data.user.mustChangePassword).toBe(true)
+
+    const res = await changePassword(jar, {
+      currentPassword: PASSWORD,
+      newPassword: NEW_PASSWORD,
+    })
+
+    expect(res.body.data.user.mustChangePassword).toBe(false)
+  })
+
+  it('doosre devices logout ho jaate hain', async () => {
     const a = await login()
     const b = await login()
 
     await changePassword(a.jar, { currentPassword: PASSWORD, newPassword: NEW_PASSWORD })
 
-    const other = await refreshRequest(b.jar)
-    expect(other.status).toBe(401)
+    expect((await refreshRequest(b.jar)).status).toBe(401)
+  })
+
+  /**
+   * D-37 ka doosra hissa — aur sabse aasaani se toot-ne wala.
+   *
+   * Pehle service `revokeAllSessions()` chala kar chhod deti thi, to **is** browser ka
+   * session bhi usi sweep me mar jaata tha: user apna hi password badal kar logout ho
+   * jaata. Ab purane saare marte hain par turant ek naya session mil jaata hai.
+   */
+  it('jis browser se badla wo chalta rehta hai (D-37)', async () => {
+    const { jar } = await login()
+
+    const res = await changePassword(jar, {
+      currentPassword: PASSWORD,
+      newPassword: NEW_PASSWORD,
+    })
+
+    const next = cookieJar(res, jar)
+    expect(next[COOKIE.REFRESH]).toBeTruthy()
+    expect(next[COOKIE.REFRESH]).not.toBe(jar[COOKIE.REFRESH])
+
+    expect((await request(app).get('/api/me').set('Cookie', asHeader(next))).status).toBe(200)
+    expect((await refreshRequest(next)).status).toBe(200)
+  })
+
+  it('purana refresh token password badalne ke baad nahi chalta', async () => {
+    const { jar } = await login()
+
+    await changePassword(jar, { currentPassword: PASSWORD, newPassword: NEW_PASSWORD })
+
+    expect((await refreshRequest(jar)).status).toBe(401)
   })
 
   it('galat current password pe 422', async () => {
@@ -363,18 +424,93 @@ describe('POST /api/auth/change-password', () => {
 
     expect(res.status).toBe(401)
   })
+})
 
-  it('gate na laga ho to 403 — user apna password khud nahi badal sakta (D-35)', async () => {
-    await User.updateOne({ email: EMAIL }, { $set: { mustChangePassword: false } })
-    const { jar } = await login()
+/**
+ * D-38 — "Remember me" ka faisla **poore session** tak chalta hai.
+ *
+ * Ye tests ek asli bug se aaye hain jo testing me pakda gaya: login pe checkbox off
+ * hone ke bawajood, pehle auto-refresh (ya password change) ke baad cookie persistent
+ * ho jaati thi. Matlab browser band karne pe user logout hota hi nahi tha — jabki usne
+ * yahi maanga tha.
+ *
+ * Isiliye har test **login ke baad wali** request dekhta hai, login ko nahi.
+ */
+describe('"Remember me" poore session tak chalti hai (D-38)', () => {
+  const NEW_PASSWORD = 'bilkul-naya-passphrase'
 
-    const res = await changePassword(jar, {
-      currentPassword: PASSWORD,
-      newPassword: NEW_PASSWORD,
-    })
+  const refreshCookie = (res) =>
+    (res.headers['set-cookie'] ?? []).find((c) => c.startsWith(COOKIE.REFRESH))
 
-    expect(res.status).toBe(403)
-    expect(res.body.error.message).toContain('administrator')
+  async function changePassword(jar) {
+    return request(app)
+      .post('/api/auth/change-password')
+      .set('Cookie', asHeader(jar))
+      .set(CSRF_HEADER, jar[COOKIE.CSRF])
+      .send({ currentPassword: PASSWORD, newPassword: NEW_PASSWORD })
+  }
+
+  it('refresh ke baad bhi session cookie hi rehti hai — rememberMe false', async () => {
+    const { jar } = await login({ rememberMe: false })
+
+    const res = await refreshRequest(jar)
+
+    expect(res.status).toBe(200)
+    expect(refreshCookie(res)).not.toMatch(/Max-Age/i)
+  })
+
+  it('refresh ke baad bhi persistent rehti hai — rememberMe true', async () => {
+    const { jar } = await login({ rememberMe: true })
+
+    const res = await refreshRequest(jar)
+
+    expect(res.status).toBe(200)
+    expect(refreshCookie(res)).toMatch(/Max-Age/i)
+  })
+
+  it('password badalne se persistence nahi badalti — rememberMe false', async () => {
+    const { jar } = await login({ rememberMe: false })
+
+    const res = await changePassword(jar)
+
+    expect(res.status).toBe(200)
+    expect(refreshCookie(res)).not.toMatch(/Max-Age/i)
+  })
+
+  it('password badalne ke baad bhi persistent rehti hai — rememberMe true', async () => {
+    const { jar } = await login({ rememberMe: true })
+
+    const res = await changePassword(jar)
+
+    expect(res.status).toBe(200)
+    expect(refreshCookie(res)).toMatch(/Max-Age/i)
+  })
+
+  /**
+   * Cookie me `remember` likha hi nahi hota — wo sirf record me hai. Rotation pe naya
+   * record banta hai, aur usme purani choice aani chahiye.
+   */
+  it('rotation ke baad naye record me bhi remember zinda rehta hai', async () => {
+    const { jar } = await login({ rememberMe: true })
+    await refreshRequest(jar)
+
+    const tokens = await RefreshToken.find({}).lean()
+
+    expect(tokens).toHaveLength(2)
+    expect(tokens.every((t) => t.remember === true)).toBe(true)
+  })
+
+  it('TTL alag hoti hai — bina remember 24 ghante, remember pe 7 din', async () => {
+    await login({ rememberMe: false })
+    const short = await RefreshToken.findOne({ remember: false }).lean()
+
+    await login({ rememberMe: true })
+    const long = await RefreshToken.findOne({ remember: true }).lean()
+
+    const hours = (token) => Math.round((token.expiresAt - token.createdAt) / 3_600_000)
+
+    expect(hours(short)).toBe(24)
+    expect(hours(long)).toBe(24 * 7)
   })
 })
 
@@ -400,6 +536,14 @@ describe('roles seed', () => {
       'editor',
       'salesAgent',
     ])
+  })
+
+  /** Labels ab `@cms/shared` ke `ROLE_LABEL` se aate hain — seed aur admin dono wahi padhte hain. */
+  it('shared wale labels DB me likhta hai', async () => {
+    const roles = await Role.find().lean()
+    const byKey = Object.fromEntries(roles.map((r) => [r.key, r.label]))
+
+    expect(byKey).toEqual(ROLE_LABEL)
   })
 
   it('dobara chalne pe duplicate nahi banata', async () => {

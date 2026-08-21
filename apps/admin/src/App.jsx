@@ -4,10 +4,13 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import AdminBar from './components/admin/AdminBar.jsx'
 import Sidebar from './components/admin/Sidebar.jsx'
 import { useAuth } from './lib/auth.jsx'
+import { permissionForRoute } from './lib/nav.js'
 import ChangePassword from './screens/ChangePassword.jsx'
 import Dashboard from './screens/Dashboard.jsx'
 import Login from './screens/Login.jsx'
+import NoAccess from './screens/NoAccess.jsx'
 import NotBuiltYet from './screens/NotBuiltYet.jsx'
+import Profile from './screens/Profile.jsx'
 import DeleteUser from './screens/users/DeleteUser.jsx'
 import UserForm from './screens/users/UserForm.jsx'
 import UsersList from './screens/users/UsersList.jsx'
@@ -24,7 +27,7 @@ import UsersList from './screens/users/UsersList.jsx'
 function Booting() {
   return (
     <div className="main">
-      <p className="subtitle">Load ho raha hai…</p>
+      <p className="subtitle">Loading…</p>
     </div>
   )
 }
@@ -44,12 +47,31 @@ function RequireAuth({ children }) {
    * `mustChangePassword` ek **gate** hai, banner nahi.
    *
    * Ye sirf **seed se bane admin** pe lagta hai — uska password `.env` file me plain
-   * text me padha hai. Form se bane users pe koi gate nahi (D-35): unka password admin
-   * deta hai aur wahi chalta hai.
+   * text me padha hai. Form se bane users pe koi gate nahi: unka password admin deta
+   * hai aur wahi chalta hai (baad me wo Profile se khud badal sakte hain — D-37).
    *
    * Isliye ye screen kahin route pe nahi hai — sirf yahan se aati hai, aur ek hi baar.
    */
   if (user.mustChangePassword) return <ChangePassword forced />
+
+  return children
+}
+
+/**
+ * Permission ka **doosra** layer — screen render hi na ho (D-37).
+ *
+ * Asli rok server pe hai (`requirePermission()` har route pe). Ye uski jagah nahi
+ * leta; ye sirf wo case sambhalta hai jahan bina permission wala user URL seedha type
+ * kar deta hai. Bina iske screen render hoti, uski API call 403 khaati, aur user ko ek
+ * khaali toota hua page dikhta — usse lagta CMS kharab hai, jabki rok sahi lagi thi.
+ *
+ * Sidebar se item chhupa dena akela kaafi **nahi** hai: wo sirf link hatata hai, raasta
+ * nahi.
+ */
+function RequirePermission({ permission, children }) {
+  const { can } = useAuth()
+
+  if (permission && !can(permission)) return <NoAccess />
 
   return children
 }
@@ -76,6 +98,25 @@ function Shell({ children }) {
   )
 }
 
+/**
+ * Bani hui screens — path yahan, permission `lib/nav.js` me (D-37).
+ *
+ * Ye list data se isliye chalti hai ki path **ek hi baar** likha jaaye. Har route ko
+ * haath se `<Route>` likhne par permission wahin inline aa jaati, aur phir sidebar aur
+ * guard ke do alag sach ban jaate — theek wahi cheez jo D-37 rokta hai.
+ *
+ * `/profile` yahan hai par `ROUTE_GUARDS` me nahi — apni profile har role ki hai.
+ * Isiliye wo `/users` ke andar bhi nahi rakhi gayi: `/users/*` pe `user.read` ka guard
+ * lagta hai, aur profile ko usse chhoot deni padti — wo chhoot hi aage toot-ti.
+ */
+const APP_ROUTES = [
+  { path: '/users', element: <UsersList /> },
+  { path: '/users/new', element: <UserForm /> },
+  { path: '/users/:id', element: <UserForm /> },
+  { path: '/users/:id/delete', element: <DeleteUser /> },
+  { path: '/profile', element: <Profile /> },
+]
+
 /** Har wo route jo sidebar me hai par abhi bana nahi. */
 const PENDING_ROUTES = [
   { path: '/posts/*', title: 'Posts', phase: 'Phase 1' },
@@ -83,8 +124,8 @@ const PENDING_ROUTES = [
   { path: '/media/*', title: 'Media', phase: 'Phase 2' },
   { path: '/packages/*', title: 'Packages', phase: 'Phase 6' },
   { path: '/enquiries/*', title: 'Enquiries', phase: 'Phase 7b' },
-  { path: '/appearance/*', title: 'Appearance', phase: 'Slice 0 ke baad' },
-  { path: '/settings/*', title: 'Settings', phase: 'Phase 0 ke agle step' },
+  { path: '/appearance/*', title: 'Appearance', phase: 'after Slice 0' },
+  { path: '/settings/*', title: 'Settings', phase: 'the next Phase 0 step' },
 ]
 
 export default function App() {
@@ -103,50 +144,21 @@ export default function App() {
         }
       />
 
-      {/*
-        Users ke routes. Har screen ke andar bhi permission check hai (buttons/actions),
-        par asli rok server pe hai — `requirePermission()` har route pe.
-      */}
-      <Route
-        path="/users"
-        element={
-          <RequireAuth>
-            <Shell>
-              <UsersList />
-            </Shell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/users/new"
-        element={
-          <RequireAuth>
-            <Shell>
-              <UserForm />
-            </Shell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/users/:id"
-        element={
-          <RequireAuth>
-            <Shell>
-              <UserForm />
-            </Shell>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/users/:id/delete"
-        element={
-          <RequireAuth>
-            <Shell>
-              <DeleteUser />
-            </Shell>
-          </RequireAuth>
-        }
-      />
+      {APP_ROUTES.map(({ path, element }) => (
+        <Route
+          key={path}
+          path={path}
+          element={
+            <RequireAuth>
+              <Shell>
+                <RequirePermission permission={permissionForRoute(path)}>
+                  {element}
+                </RequirePermission>
+              </Shell>
+            </RequireAuth>
+          }
+        />
+      ))}
 
       {PENDING_ROUTES.map(({ path, title, phase }) => (
         <Route
@@ -167,7 +179,7 @@ export default function App() {
         element={
           <RequireAuth>
             <Shell>
-              <NotBuiltYet title="Page nahi mila" />
+              <NotBuiltYet title="Page not found" />
             </Shell>
           </RequireAuth>
         }

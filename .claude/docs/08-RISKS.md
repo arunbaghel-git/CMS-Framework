@@ -94,6 +94,37 @@ do block, ek template). Usse asli velocity pata chal jaayegi, aur do sabse risky
 | **Saara data ek page me**                   | Admin hang                                       | Server-side pagination day 1 se           | 1     |
 | **15 alag backup cron**                     | 15 silent failure modes                          | Central fleet ops                         | 8     |
 | **Untested backup**                         | Restore ke waqt pata chalta hai                  | Quarterly restore test                    | 8     |
+| **Ek component, do route**                  | Purana form data naye form me dikhta hai         | Route ke hisaab se `key` do               | 0     |
+
+### "Ek component, do route" thoda detail maangta hai
+
+Ye 21 Aug ko asli me hua: user ne `/users/:id` pe edit kiya, phir **Add User** dabaya,
+aur `/users/new` ka form **pichhle user ke data se bhara** khul gaya.
+
+**Wajah React Router ka documented behaviour hai.** `/users/:id` aur `/users/new` dono
+`<UserForm />` render karte hain. Route badalne pe React ko wahi component type usi
+jagah milta hai, isliye wo purana instance **dobara use** kar leta hai — aur `useState`
+zinda reh jaati hai. Koi error nahi aata; bas data purana hota hai.
+
+```jsx
+export default function UserForm() {
+  const { id } = useParams()
+  return <UserFormFields key={id ?? new} id={id} />
+}
+```
+
+`key` badalte hi React poora component naye sire se mount karta hai.
+
+**Effect me manually reset karna bhi chalta tha, par wo bura hal hai:** aaj form ki
+paanch state hain; kal koi chhathi jodega aur usse reset karna bhool jaayega. `key` har
+state ko ek saath sambhalta hai.
+
+**Ye sirf form ka issue nahi hai.** Delete-confirm screen pe wahi cheez zyada khatarnaak
+thi — ek delete screen se doosri pe jaane pe naya user load hone tak **pichhle user ka
+naam** dikhta rehta, aur wo screen permanent delete ka hai.
+
+**Jahan bhi dekhna hai:** koi bhi screen jo `useParams()` padhti ho aur ek se zyada route
+se khulti ho.
 
 ---
 

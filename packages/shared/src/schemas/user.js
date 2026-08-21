@@ -17,11 +17,11 @@ import { PERMISSIONS, ROLES, USER_STATUSES } from '../constants/index.js'
  */
 export const emailSchema = z
   .string()
-  .min(1, 'Email zaroori hai')
+  .min(1, 'Email is required')
   .max(254)
   .trim()
   .toLowerCase()
-  .email('Email sahi nahi lag raha')
+  .email('That does not look like a valid email')
 
 /**
  * Password policy — sirf **lambai**, koi "ek capital, ek symbol" wala rule nahi.
@@ -31,8 +31,8 @@ export const emailSchema = z
  */
 export const passwordSchema = z
   .string()
-  .min(10, 'Password kam se kam 10 characters ka ho')
-  .max(200, 'Password bahut lamba hai')
+  .min(10, 'Password must be at least 10 characters')
+  .max(200, 'Password is too long')
 
 /**
  * Login **email** se hota hai, username se nahi. Username display ke liye hai — aur
@@ -43,13 +43,13 @@ export const passwordSchema = z
  */
 export const usernameSchema = z
   .string()
-  .min(3, 'Username kam se kam 3 characters ka ho')
+  .min(3, 'Username must be at least 3 characters')
   .max(60)
   .trim()
   .toLowerCase()
   .regex(
     /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/,
-    'Username me sirf chhote letters, numbers, aur . _ - chalte hain',
+    'Username can only use lowercase letters, numbers, and . _ -',
   )
 
 /**
@@ -81,7 +81,7 @@ export const roleKeySchema = z
   .string()
   .min(1)
   .max(50)
-  .regex(/^[a-z][a-zA-Z0-9]*$/, 'Role key camelCase honi chahiye')
+  .regex(/^[a-z][a-zA-Z0-9]*$/, 'Role key must be camelCase')
 
 export const permissionSchema = z.enum(/** @type {[string, ...string[]]} */ (PERMISSIONS))
 
@@ -101,7 +101,7 @@ export const roleSchema = z.object({
 /** Stored shape — `users` collection. `passwordHash` yahan jaan-boojh kar nahi hai. */
 export const userSchema = z.object({
   username: usernameSchema,
-  name: z.string().min(1, 'Naam zaroori hai').max(120).trim(),
+  name: z.string().min(1, 'Name is required').max(120).trim(),
   email: emailSchema,
   role: roleKeySchema,
   status: z.enum(/** @type {[string, ...string[]]} */ (USER_STATUSES)).default('active'),
@@ -130,8 +130,11 @@ export const updateUserSchema = userSchema
   .partial()
   .extend({
     /**
-     * Admin yahan se user ka password reset karta hai (D-35) — user khud nahi badal
-     * sakta, isliye bhoole hue password ka ekmatra raasta yahi hai.
+     * Admin yahan se kisi bhi user ka password reset karta hai.
+     *
+     * User ab apna password khud bhi badal sakta hai (D-37, Profile screen se) — par ye
+     * raasta phir bhi zaroori hai: **bhoola hua** password sirf admin hi reset kar sakta
+     * hai, kyunki koi forgot-password email flow nahi hai (SMTP pending).
      */
     password: passwordSchema.optional(),
   })
@@ -142,18 +145,18 @@ export const loginSchema = z.object({
    * Login pe `passwordSchema` **nahi** lagta. Policy badalne pe purane (chhote)
    * password wale users apne hi account se bahar ho jaate. Yahan sirf "khaali nahi".
    */
-  password: z.string().min(1, 'Password zaroori hai'),
+  password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().default(false),
 })
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Abhi ka password zaroori hai'),
+    currentPassword: z.string().min(1, 'Current password is required'),
     newPassword: passwordSchema,
   })
   .refine((v) => v.currentPassword !== v.newPassword, {
     path: ['newPassword'],
-    message: 'Naya password purane se alag hona chahiye',
+    message: 'New password must be different from the current one',
   })
 
 export const updateMeSchema = userSchema.pick({ name: true, avatarMediaId: true }).partial()

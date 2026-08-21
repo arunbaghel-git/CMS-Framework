@@ -73,7 +73,14 @@ const envSchema = z
     JWT_ACCESS_SECRET: z.string().min(32),
     JWT_REFRESH_SECRET: z.string().min(32),
     ACCESS_TOKEN_TTL: z.string().default('15m'),
-    REFRESH_TOKEN_TTL: z.string().default('7d'),
+    /**
+     * Do TTL hain kyunki "Remember me" ka poora matlab hi yahi hai (D-38).
+     *
+     * Dono **sliding** hain — har refresh pe ghadi reset ho jaati hai. Matlab ye
+     * "kitne din baad login" nahi, "**kitne din kaam na karne pe** login" hai.
+     */
+    REFRESH_TOKEN_TTL: z.string().default('24h'),
+    REFRESH_TOKEN_TTL_REMEMBER: z.string().default('7d'),
     COOKIE_SECURE: envBoolean.default(false),
     COOKIE_DOMAIN: z.string().optional(),
 

@@ -1,6 +1,7 @@
 # 09 — Open Items
 
-**Status:** Phase 0 chal raha hai (~92%). Users screens land ho chuke — **184 tests passing**.
+**Status:** Phase 0 chal raha hai (~95%). Users ka role-aware menu + Profile screen land
+ho chuke (D-37) — **207 tests passing**. Sirf Settings screens baaki.
 **Last updated:** 21 Aug 2026
 
 ---
@@ -47,6 +48,8 @@
 | **Q-1 built-in role edit** | ✅ **Phase 7 pe khisak gaya** — koi role-edit UI hi nahi ban raha, to ab kuch block nahi karta |
 | **Profile pe password** | ✅ **User khud badal sakta hai**, current password ke saath. D-35 §1 superseded (D-37) |
 | **Admin ka reset field** | ✅ **Rahega** — koi forgot-password email flow nahi hai (SMTP pending), recovery ka ekmatra raasta |
+| **Session ki umr** | ✅ **24 ghante**, aur "Remember me" pe **7 din** — dono sliding (D-38) |
+| **"Remember me" ka bug** | ✅ Fix — choice ab `refreshTokens` record me, rotation ke saath chalti hai (D-38) |
 | **Profile pe email/avatar** | ✅ **Nahi** — email verification flow maangta hai (SMTP), avatar Phase 2 (Media) pe block |
 
 ---
@@ -87,8 +90,8 @@ Spec 005 me add karne honge.
 ## Ab ka order
 
 ```
-1. Users menu role-aware + Profile screen        ← ABHI YAHAN  (D-37)
-2. Phase 0 — Settings screens
+1. ✅ Users menu role-aware + Profile screen      (D-37 — 21 Aug)
+2. Phase 0 — Settings screens                    ← ABHI YAHAN
 3. C-2 — Payload spike (parallel me)             (2 din)
 4. Slice 0 — Header + Footer end-to-end          (1.5 hafte)
 5. Phase 1 — Content Core                        (3 hafte)
@@ -98,11 +101,11 @@ Spec 005 me add karne honge.
 CI, Express boilerplate, Zod contract, migration runner, CSS architecture,
 **auth + RBAC + admin shell** (login, protected routes, sidebar, `/api/me`).
 
-**Phase 0 me kya baaki:** Users ka role-aware menu + Profile screen (D-37), Settings
-screens, aur seed ka baaki hissa (settings/entries — wo Phase 1 pe block hai).
+**Phase 0 me kya baaki:** **sirf Settings screens**, aur seed ka baaki hissa
+(settings/entries — wo Phase 1 pe block hai).
 
-**Users me kya baaki:** bulk actions, email badalna, avatar. Posts/Enquiries counts
-Phase 1 aur 7b pe block hain.
+**Users me kya baaki:** bulk actions, email badalna, avatar, column sorting ka UI.
+Posts/Enquiries counts Phase 1 aur 7b pe block hain.
 
 ---
 
@@ -113,6 +116,9 @@ Phase 1 aur 7b pe block hain.
 - ⚠️ **18 commits unpushed** hain. `origin/main` `0e328cb` pe khada hai (19 Aug wala
   "Session state save karo") — repo khaali **nahi** hai, push pehle ho chuka tha.
   Aage bhi push **sirf permission pe**
+- ⚠️ **`apps/api/.env.example` me `REFRESH_TOKEN_TTL_REMEMBER=7d` add karna hai** aur
+  `REFRESH_TOKEN_TTL` ko `24h` karna hai. Var ka default code me hai isliye kuch tootega
+  nahi, par example file batati nahi
 - ⚠️ Repo ka naam **`crmmern`** hai par project **CMS** hai — rename karna ho to abhi sasta hai
 - ⚠️ `CLAUDE.md` `.claude/` ke andar hai. Load to ho rahi hai, par root pe rakhna
   zyada reliable hai

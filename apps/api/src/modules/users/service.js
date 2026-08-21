@@ -27,7 +27,7 @@ import { User } from './model.js'
  */
 async function assertRoleExists(key) {
   if (!(await Role.exists({ key }))) {
-    throw unprocessable(`Aisa koi role nahi hai: ${key}`)
+    throw unprocessable(`No such role: ${key}`)
   }
 }
 
@@ -87,7 +87,7 @@ export async function listUsers(query) {
 
 export async function getUser(id) {
   const user = await User.findById(id).lean()
-  if (!user) throw notFound('User nahi mila')
+  if (!user) throw notFound('User not found')
 
   return toPublicUser(user, await getRolePermissions(user.role))
 }
@@ -102,7 +102,7 @@ export async function updateMe(userId, input) {
     { $set: input },
     { new: true, runValidators: true },
   )
-  if (!user) throw notFound('User nahi mila')
+  if (!user) throw notFound('User not found')
 
   return toPublicUser(user, await getRolePermissions(user.role))
 }
@@ -119,7 +119,7 @@ async function resolveUsername(requested, email) {
 
   while (await User.exists({ username })) {
     // Admin ne khud username diya tha to chupchaap badalna galat hai — usse batao
-    if (requested) throw unprocessable(`Username "${requested}" pehle se liya hua hai`)
+    if (requested) throw unprocessable(`Username "${requested}" is already taken`)
     username = `${base}${n++}`
   }
 
@@ -138,7 +138,7 @@ export async function createUser(input, { mustChangePassword = false, status } =
   await assertRoleExists(input.role)
 
   if (await User.exists({ email: input.email })) {
-    throw unprocessable('Is email se ek user pehle se hai')
+    throw unprocessable('A user with this email already exists')
   }
 
   const user = await User.create({
@@ -170,7 +170,7 @@ export async function createUser(input, { mustChangePassword = false, status } =
  */
 export async function updateUser(userId, { password, ...input }, actor) {
   const user = await User.findById(userId)
-  if (!user) throw notFound('User nahi mila')
+  if (!user) throw notFound('User not found')
 
   if (input.role) await assertRoleExists(input.role)
 
@@ -183,7 +183,7 @@ export async function updateUser(userId, { password, ...input }, actor) {
    */
   if (user.role === ROLE.ADMIN && input.role && input.role !== ROLE.ADMIN) {
     if ((await countAdmins(user._id)) === 0) {
-      throw unprocessable('Ye aakhri administrator hai — iska role nahi badal sakte')
+      throw unprocessable('This is the last administrator — their role cannot be changed')
     }
   }
 
@@ -191,7 +191,7 @@ export async function updateUser(userId, { password, ...input }, actor) {
   const deactivating = input.status === USER_STATUS.INACTIVE && user.status !== USER_STATUS.INACTIVE
 
   if (deactivating && String(user._id) === String(actor?._id)) {
-    throw unprocessable('Apna hi account deactivate nahi kar sakte')
+    throw unprocessable('You cannot deactivate your own account')
   }
 
   Object.assign(user, input)
@@ -243,11 +243,11 @@ export async function reassignContent(_fromUserId, _toUserId) {
  */
 export async function deleteUser(userId, { reassignToId } = {}, actor) {
   const user = await User.findById(userId)
-  if (!user) throw notFound('User nahi mila')
+  if (!user) throw notFound('User not found')
 
   // 1. Apna hi account nahi
   if (String(user._id) === String(actor?._id)) {
-    throw forbidden('Apna hi account delete nahi kar sakte')
+    throw forbidden('You cannot delete your own account')
   }
 
   /**
@@ -258,18 +258,18 @@ export async function deleteUser(userId, { reassignToId } = {}, actor) {
    * jaan-boojh kar allowed hai, kyunki tab bhi site ke paas ek admin bacha rehta hai.
    */
   if (user.role === ROLE.ADMIN) {
-    throw forbidden('Administrator delete nahi ho sakta. Uski jagah Deactivate karein.')
+    throw forbidden('An administrator cannot be deleted. Deactivate them instead.')
   }
 
   let reassigned = { entries: 0 }
 
   if (reassignToId) {
     if (String(reassignToId) === String(userId)) {
-      throw unprocessable('Content usi user ko nahi de sakte jise delete kar rahe hain')
+      throw unprocessable('You cannot reassign content to the user being deleted')
     }
 
     const target = await User.findById(reassignToId).lean()
-    if (!target) throw unprocessable('Jise content dena hai wo user nahi mila')
+    if (!target) throw unprocessable('The user you want to reassign content to was not found')
 
     reassigned = await reassignContent(userId, reassignToId)
   }

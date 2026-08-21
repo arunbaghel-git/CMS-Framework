@@ -12,9 +12,19 @@ import './Users.css'
  * me liya jaata hai; poora screen ek thehraav deta hai.
  *
  * Design me ye screen nahi hai — bilkul waise hi jaise user form nahi hai.
+ *
+ * **`key` wahi wajah se hai jo `UserForm` me hai** — ek delete screen se doosri pe
+ * jaane pe React purana instance dobara use kar leta, aur naya user load hone tak
+ * **pichhle user ka naam** dikhta rehta. Delete permanent hai; is screen pe ek pal ke
+ * liye bhi galat naam dikhna theek nahi.
  */
 export default function DeleteUser() {
   const { id } = useParams()
+
+  return <DeleteUserConfirm key={id} id={id} />
+}
+
+function DeleteUserConfirm({ id }) {
   const navigate = useNavigate()
 
   const [user, setUser] = useState(null)
@@ -56,7 +66,7 @@ export default function DeleteUser() {
     )
   }
 
-  if (!user) return <p className="subtitle">Load ho raha hai…</p>
+  if (!user) return <p className="subtitle">Loading…</p>
 
   return (
     <>
@@ -72,8 +82,8 @@ export default function DeleteUser() {
 
       <div className="notice warn">
         <span>
-          Ye <strong>permanent</strong> hai. User Trash me nahi jaata — wapas laane ka koi raasta
-          nahi hai.
+          This is <strong>permanent</strong>. The user does not go to Trash — there is no way to
+          bring them back.
         </span>
       </div>
 
@@ -90,14 +100,14 @@ export default function DeleteUser() {
           </p>
 
           <div className="field">
-            <label htmlFor="reassign">Iska content kise dein?</label>
+            <label htmlFor="reassign">Reassign their content to</label>
             <select
               id="reassign"
               className="sel"
               value={reassignToId}
               onChange={(e) => setReassignToId(e.target.value)}
             >
-              <option value="">Kisi ko nahi</option>
+              <option value="">Nobody</option>
               {others.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.name} ({u.username})
@@ -110,8 +120,8 @@ export default function DeleteUser() {
               (D-30), isliye tab sirf ek service function bharna hoga.
             */}
             <p className="hint">
-              Abhi is site pe koi content hai hi nahi, isliye transfer karne ko kuch nahi hai. Ye
-              option content aane ke baad kaam karega.
+              There is no content on this site yet, so there is nothing to transfer. This option
+              starts working once content exists.
             </p>
           </div>
         </div>
@@ -121,7 +131,7 @@ export default function DeleteUser() {
             Cancel
           </Link>
           <button className="btn btn-danger" type="button" onClick={handleDelete} disabled={busy}>
-            {busy ? 'Ho raha hai…' : `${user.username} ko delete karo`}
+            {busy ? 'Deleting…' : `Delete ${user.username}`}
           </button>
         </div>
       </div>
