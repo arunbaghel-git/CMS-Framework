@@ -1053,3 +1053,72 @@ mehsoos nahi hoti.
 session se aana chahiye** — kabhi hardcoded nahi. Naya auth endpoint bane to `tokens`
 object seedha pass karo (`setAuthCookies(res, tokens)`); `issueSession()` usme
 `remember` pehle se bhar deta hai.
+
+---
+
+## D-39 · Role dene ke do guard — apna role, aur privilege escalation
+
+**Context:** Client ne poochha ki Edit User me "apna role nahi badal sakte" wali rok
+server pe bhi honi chahiye ya nahi. Jaanch me pata chala ki wo rok **sirf browser me**
+thi (`disabled={isMe}`), aur `PATCH /api/users/<apni-id>` se chal jaati thi.
+
+Uske saath ek badi cheez mili: `updateUser` me **role dene pe koi rok hai hi nahi**.
+Jiske paas `user.update` hai, wo kisi ko bhi koi bhi role de sakta hai — apne aap ko
+`admin` samet.
+
+**Aaj ye khatra nahi hai** — `user.update` aur `user.invite` sirf admin ke paas hain,
+aur admin already admin hai. **Par Phase 7 me custom roles aayenge**, aur tab:
+
+```
+admin ek role "Manager" banata hai, usme user.update de deta hai
+  -> Manager: PATCH /api/users/<apni-id> { role: "admin" }
+  -> Manager ab administrator hai
+```
+
+### 1. Apna role koi khud nahi badal sakta — administrator bhi nahi
+
+```js
+if (String(user._id) === String(actor?._id)) throw forbidden('You cannot change your own role')
+```
+
+**Ye guard akela kaafi nahi hai** — aur yahi is decision ka sabse zaroori hissa hai.
+Manager apne saathi ko admin bana dega, aur saathi Manager ko. Isliye doosra guard hi
+asli rok hai.
+
+### 2. Jo permission khud ke paas nahi, wo kisi ko de nahi sakte
+
+Actor sirf wahi role de sakta hai **jiski saari permissions uske apne paas hain**. Rule
+permissions pe hai, **role ke naam pe nahi** — isliye Phase 7 ke custom roles pe ye apne
+aap chalta hai aur koi list hardcode nahi karni padti (spec 001).
+
+Ye guard **create aur update dono** pe lagta hai. Sirf update pe lagana adhoora hota:
+naya admin bana lo, uska password bhi tum hi set kar rahe ho, phir usi se login kar lo.
+
+**Actor na ho to guard nahi lagta.** Seed ka koi actor hota hi nahi — wahan guard lagta
+to `pnpm seed` pehla admin bana hi nahi paata, aur wo chicken-and-egg har naye instance
+pe atakta.
+
+### 3. Guard ka order maayne rakhta hai
+
+```
+role ka wajood  ->  aakhri admin  ->  apna role  ->  assign kar sakte ho?
+```
+
+"Aakhri admin" **pehle** hai, jaan-boojh kar: use "site lock ho jaayegi" wala saaf
+message milna chahiye, general wala nahi. Isi order se D-34 ke purane tests bhi bina
+badle pass rehte hain.
+
+**Reject kiya:**
+
+- **Sirf pehla guard lagana** — upar wali wajah se. Wo UI ka jhooth theek karta hai,
+  escalation nahi rokta.
+- **Role ki "seniority" ka order banana** (admin > editor > author…) — custom roles is
+  line pe fit hi nahi hote. Permissions ka subset check khud ba khud sahi jawab deta hai.
+- **Phase 7 tak rukna** — tab ye yaad rakhna padta, aur yahi wo galti hai jo
+  `ensureDefaultRoles()` ke saath ho chuki hai (D-36). Aaj lagane me koi behaviour nahi
+  badalta, isliye aaj hi sasta hai.
+
+**Nateeja jo yaad rakhna hai:** ye guard **aaj kuch rokta nahi**. Uske test isliye service
+pe seedhe chalte hain (HTTP se ye raasta banaya hi nahi ja sakta) — aur wahi tests use
+Phase 7 tak zinda rakhenge. Bina test ke ye chup-chaap hat jaata aur kisi ko pata bhi
+nahi chalta.

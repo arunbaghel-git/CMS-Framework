@@ -127,15 +127,63 @@ async function resolveUsername(requested, email) {
 }
 
 /**
+ * Actor sirf wahi role de sakta hai **jiski saari permissions uske apne paas hain** (D-39).
+ *
+ * **Ye aaj kuch nahi rokta** — `user.invite`/`user.update` sirf admin ke paas hain, aur
+ * admin ke paas har permission hai. Ye Phase 7 ke liye hai, jab admin custom roles
+ * banayega. Bina iske wo raasta aisa dikhta hai:
+ *
+ *     admin ek role "Manager" banata hai aur usme `user.update` de deta hai
+ *       -> Manager khud ko `admin` bana leta hai
+ *       -> Manager ab administrator hai
+ *
+ * Sirf "apna role khud mat badlo" wala guard ise **nahi** rokta: Manager apne saathi ko
+ * admin bana dega, aur saathi Manager ko. Isliye asli rok yahi hai.
+ *
+ * Rule permissions pe hai, role ke naam pe nahi — isliye ye custom roles pe apne aap
+ * chalta hai, aur koi list hardcode nahi karni padti (spec 001).
+ *
+ * @param {string} roleKey jo role diya ja raha hai
+ * @param {any} [actor] jo de raha hai. Nahi hai matlab system ka raasta (seed) — wahan
+ *   koi escalation ho hi nahi sakti, kyunki koi user hi involve nahi hai.
+ */
+async function assertCanAssignRole(roleKey, actor) {
+  if (!actor) return
+
+  const [mine, theirs] = await Promise.all([
+    getRolePermissions(actor.role),
+    getRolePermissions(roleKey),
+  ])
+
+  const extra = theirs.filter((p) => !mine.includes(p))
+  if (extra.length === 0) return
+
+  // Kaunsi permission kam padi wo batana zaroori hai — warna "nahi de sakte" ek dead end hai
+  const shown = extra.slice(0, 3).join(', ')
+  throw forbidden(
+    `You cannot assign a role that has permissions you do not have yourself: ${shown}${
+      extra.length > 3 ? ` and ${extra.length - 3} more` : ''
+    }`,
+  )
+}
+
+/**
  * Naya user. Password hash **yahan** hota hai, model hook me nahi — `findOneAndUpdate`
  * hooks skip kar deta hai, aur ek din koi update path se password set karega to wo
  * plain text me DB me chala jaayega (R1).
  *
  * @param {{ username?: string, name: string, email: string, role: string, password: string }} input
- * @param {{ mustChangePassword?: boolean, status?: string }} [options]
+ * @param {{ mustChangePassword?: boolean, status?: string, actor?: any }} [options]
  */
-export async function createUser(input, { mustChangePassword = false, status } = {}) {
+export async function createUser(input, { mustChangePassword = false, status, actor } = {}) {
   await assertRoleExists(input.role)
+
+  /**
+   * Create pe bhi wahi guard jo update pe hai (D-39) — warna escalation ka raasta khula
+   * reh jaata: naya admin bana lo, uska password bhi tum hi set kar rahe ho, phir usi se
+   * login kar lo.
+   */
+  await assertCanAssignRole(input.role, actor)
 
   if (await User.exists({ email: input.email })) {
     throw unprocessable('A user with this email already exists')
@@ -185,6 +233,24 @@ export async function updateUser(userId, { password, ...input }, actor) {
     if ((await countAdmins(user._id)) === 0) {
       throw unprocessable('This is the last administrator — their role cannot be changed')
     }
+  }
+
+  if (input.role && input.role !== user.role) {
+    /**
+     * Apna role koi khud nahi badal sakta — administrator bhi nahi (D-39).
+     *
+     * UI me ye rok pehle se thi (Edit User me dropdown `disabled`), par **sirf browser
+     * me**. Server chup tha, to seedha API call se wo rok bemaani thi. UI ki rok asli
+     * rok kabhi nahi hoti.
+     *
+     * Ye "aakhri admin" wale guard ke **baad** hai, jaan-boojh kar: aakhri admin ko
+     * "site lock ho jaayegi" wala message milna chahiye, ye general wala nahi.
+     */
+    if (String(user._id) === String(actor?._id)) {
+      throw forbidden('You cannot change your own role')
+    }
+
+    await assertCanAssignRole(input.role, actor)
   }
 
   // Deactivate hote hi login band hona chahiye, 15 min baad nahi

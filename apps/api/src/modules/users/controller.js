@@ -51,7 +51,7 @@ export async function getOne(req, res, next) {
 export async function create(req, res, next) {
   try {
     const input = createUserSchema.parse(req.body)
-    const user = await usersService.createUser(input)
+    const user = await usersService.createUser(input, { actor: req.user })
     res.status(201).json({ data: { user } })
   } catch (err) {
     next(err)

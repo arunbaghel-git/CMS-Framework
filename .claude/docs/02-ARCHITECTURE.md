@@ -126,7 +126,7 @@ taxonomies     * siteId, type(category|tag), name, slug, parentId, isDefault, se
 redirects      * siteId, from, to, statusCode(301|302), hits, isAuto
 forms          * siteId, name, fields[], notifyEmails[], successMessage
 submissions      formId, data, ip, createdAt, expiresAt
-activityLog      userId, action, entityType, entityId, meta, createdAt
+activityLog      userId, action, entityType, entityId, meta, createdAt   (DEFER — Q-4)
 ```
 
 `users` / `roles` / `revisions` / `submissions` / `refreshTokens` / `activityLog` /
@@ -558,9 +558,16 @@ unhe DB me likhta hai aur admin unhe seedha padhta hai, taaki dono kabhi alag na
 | **Deactivate** | Login band, sessions turant revoke, record aur content bache rehte hain | **UI me nahi hai** (D-35) — API aur `status` field reserve hain |
 | **Delete** | Row DB se mit jaati hai. Pehle poochta hai "content kise dein" | Permanent. `user.delete` sirf admin ke paas |
 
-Teen guard service me hain, middleware me nahi (middleware ke paas document hota hi
-nahi): **administrator delete nahi hota** · **aakhri admin ka role nahi badalta** ·
-**koi apna account delete/deactivate nahi kar sakta**.
+**Paanch guard service me hain**, middleware me nahi — middleware ke paas document hota
+hi nahi, aur ye sab "kis PE kar sakte ho" wale sawaal hain:
+
+| Guard | Kyun |
+| --- | --- |
+| Administrator delete nahi hota | D-34 |
+| Aakhri admin ka role nahi badalta | Site lock ho jaayegi |
+| Koi apna account delete/deactivate nahi kar sakta | D-34 |
+| **Koi apna role khud nahi badal sakta** | D-39 — UI me rok thi, server pe nahi |
+| **Jo permission khud ke paas nahi, wo kisi ko de nahi sakte** | D-39 — Phase 7 ka escalation raasta |
 
 **Password badalne ke do raaste hain** (D-37, jo D-35 §1 ko supersede karta hai):
 

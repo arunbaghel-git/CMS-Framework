@@ -25,7 +25,7 @@ Slice 0   Header + Footer end-to-end      🔴
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 207 tests passing · lint clean · admin build clean · asli Mongo pe
+**Health:** 214 tests passing · lint clean · admin build clean · asli Mongo pe
 end-to-end verify kiya (login → rotation → reuse detection → logout)
 
 `pnpm format:check` clean hai — pehle wali 9 prettier-dirty files theek ho chuki hain.
@@ -51,27 +51,28 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 
 ## Faisle jo ho chuke hain
 
-| Faisla                | Nateeja                                                                |
-| --------------------- | ---------------------------------------------------------------------- |
-| Field DSL             | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)                   |
-| TypeScript            | **Nahi** — sab JavaScript (D-03)                                       |
-| Trash                 | **`deletedAt` field**, `status: 'trash'` nahi (D-25)                   |
-| Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)         |
-| Permanent delete      | **Sirf admin**                                                         |
-| Seed content          | **Khaali** Home + Blog                                                 |
-| Payload spike         | Approved — Phase 1 se pehle, abhi baaki                                |
-| Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                    |
-| **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28)  |
-| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                             |
-| **Login screen**      | Design me nahi tha → WordPress-style, design ke tokens se (D-31)       |
-| **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                       |
-| **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                 |
-| **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34) |
-| **Password**          | Sirf admin set karta hai; user khud nahi badal sakta (D-35)            |
-| **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)           |
-| **Users ka menu**     | Role-aware — admin ko 3 item, baaki ko sirf Profile (D-37)             |
-| **Apna password**     | User Profile se khud badal sakta hai, current password ke saath (D-37) |
-| **Session ki umr**    | 24 ghante · "Remember me" pe 7 din · dono sliding (D-38)               |
+| Faisla                | Nateeja                                                                   |
+| --------------------- | ------------------------------------------------------------------------- |
+| Field DSL             | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)                      |
+| TypeScript            | **Nahi** — sab JavaScript (D-03)                                          |
+| Trash                 | **`deletedAt` field**, `status: 'trash'` nahi (D-25)                      |
+| Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)            |
+| Permanent delete      | **Sirf admin**                                                            |
+| Seed content          | **Khaali** Home + Blog                                                    |
+| Payload spike         | Approved — Phase 1 se pehle, abhi baaki                                   |
+| Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                       |
+| **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28)     |
+| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                                |
+| **Login screen**      | Design me nahi tha → WordPress-style, design ke tokens se (D-31)          |
+| **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                          |
+| **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                    |
+| **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34)    |
+| **Password**          | Sirf admin set karta hai; user khud nahi badal sakta (D-35)               |
+| **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)              |
+| **Users ka menu**     | Role-aware — admin ko 3 item, baaki ko sirf Profile (D-37)                |
+| **Apna password**     | User Profile se khud badal sakta hai, current password ke saath (D-37)    |
+| **Session ki umr**    | 24 ghante · "Remember me" pe 7 din · dono sliding (D-38)                  |
+| **Role dena**         | Apna role khud nahi · apni permission se upar ka role kisi ko nahi (D-39) |
 
 Specs 001–005: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved.
 
@@ -153,7 +154,7 @@ media chahiye). D-30 ka pattern — jagah abhi, data baad me.
 
 **Users me chhota-mota baaki:** bulk actions (isiliye list me checkbox column nahi
 hai), email badalna (SMTP), avatar (Phase 2), column sorting (API taiyaar hai, UI
-nahi), aur **activity log** (conventions me hai, code me kahin nahi).
+nahi). **Activity log defer ho chuka hai** — client ke design me nahi hai (Q-4).
 
 **Har section kitna ruka hua hai:**
 

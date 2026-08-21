@@ -1,7 +1,7 @@
 # 09 — Open Items
 
 **Status:** Phase 0 chal raha hai (~95%). Users ka role-aware menu + Profile screen land
-ho chuke (D-37) — **207 tests passing**. Sirf Settings screens baaki.
+ho chuke (D-37) — **214 tests passing**. Sirf Settings screens baaki.
 **Last updated:** 21 Aug 2026
 
 ---
@@ -77,6 +77,20 @@ Result se D-01 se D-30 me se kuch badal sakti hain — isliye Phase 1 se pehle.
 
 **Deadline:** Phase 7 se pehle
 `salesAgent` role ke permissions bhi isi pe rukey hain (spec 001 me note hai).
+
+---
+
+### Q-4 · Activity log — banega ya nahi?
+
+**Deadline:** koi nahi — jab client maange
+**Kisi cheez ko block nahi karta**
+
+21 Aug ko **defer** kiya: client ke design me hai hi nahi, aur unhone maanga nahi
+(`05-BUILD-PLAN.md` Phase 0 → "Activity log kyun defer hua").
+
+Yahan sirf isliye likha hai ki ye **chup-chaap gayab na ho jaye**: iska itihaas backfill
+nahi ho sakta, to jis din client ye maange, us din unhe pata hona chahiye ki purana
+record kahin nahi hai.
 
 ---
 

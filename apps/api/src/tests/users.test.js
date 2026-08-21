@@ -9,7 +9,7 @@ import { RefreshToken } from '../modules/auth/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
 import { User } from '../modules/users/model.js'
-import { createUser } from '../modules/users/service.js'
+import { createUser, updateUser } from '../modules/users/service.js'
 
 /**
  * Users module ka integration test — asli Mongo pe.
@@ -466,5 +466,126 @@ describe('GET /api/roles', () => {
   it('editor ke paas role.read nahi hai — 403', async () => {
     const editorJar = await loginAs('ed@test.com')
     expect((await authed('get', '/api/roles', editorJar)).status).toBe(403)
+  })
+})
+
+/**
+ * D-39 — role dene ke do guard.
+ *
+ * Ye tests **service pe seedhe** chalte hain, HTTP se nahi. Wajah: `user.update` aur
+ * `user.invite` filhaal sirf admin ke paas hain, aur admin ke paas har permission hai —
+ * to escalation wala raasta HTTP se banaya hi nahi ja sakta.
+ *
+ * Guard aaj kuch rokta nahi; wo **Phase 7** ke liye hai, jab admin custom roles banayega
+ * aur kisi ko `user.update` de dega. Us din tak ye tests hi wo behaviour zinda rakhte
+ * hain — warna guard chup-chaap hat jaayega aur kisi ko pata bhi nahi chalega.
+ */
+describe('role dene ke guard (D-39)', () => {
+  it('apne se zyada permission wala role nahi de sakta', async () => {
+    const editor = await User.findById(editorId)
+    const target = await createUser({
+      username: 'auth0',
+      name: 'Author Zero',
+      email: 'author0@test.com',
+      role: 'author',
+      password: PASSWORD,
+    })
+
+    await expect(updateUser(String(target.id), { role: 'admin' }, editor)).rejects.toMatchObject({
+      status: 403,
+    })
+  })
+
+  it('error batata hai kaunsi permission kam padi', async () => {
+    const editor = await User.findById(editorId)
+    const author = await createUser({
+      username: 'auth1',
+      name: 'Author',
+      email: 'author@test.com',
+      role: 'author',
+      password: PASSWORD,
+    })
+
+    const err = await updateUser(String(author.id), { role: 'admin' }, editor).catch((e) => e)
+
+    expect(err.status).toBe(403)
+    // Editor ke paas `entry.purge` nahi hai — wahi sabse pehla farq hai
+    expect(err.message).toContain('entry.purge')
+  })
+
+  it('apne barabar ya usse kam wala role de sakta hai', async () => {
+    const editor = await User.findById(editorId)
+    const author = await createUser({
+      username: 'auth2',
+      name: 'Author Do',
+      email: 'author2@test.com',
+      role: 'author',
+      password: PASSWORD,
+    })
+
+    const updated = await updateUser(String(author.id), { role: 'contributor' }, editor)
+    expect(updated.role).toBe('contributor')
+  })
+
+  it('naya user banate waqt bhi wahi rok lagti hai', async () => {
+    const editor = await User.findById(editorId)
+
+    await expect(
+      createUser(
+        {
+          username: 'sneaky',
+          name: 'Sneaky',
+          email: 'sneaky@test.com',
+          role: 'admin',
+          password: PASSWORD,
+        },
+        { actor: editor },
+      ),
+    ).rejects.toMatchObject({ status: 403 })
+  })
+
+  /**
+   * Seed ka koi actor nahi hota. Guard wahan lagta to `pnpm seed` pehla admin bana hi
+   * nahi paata — aur wo chicken-and-egg har naye instance pe atak jaata.
+   */
+  it('bina actor ke (seed) guard nahi lagta', async () => {
+    const created = await createUser({
+      username: 'seeded',
+      name: 'Seeded Admin',
+      email: 'seeded@test.com',
+      role: 'admin',
+      password: PASSWORD,
+    })
+
+    expect(created.role).toBe('admin')
+  })
+
+  it('apna role khud nahi badal sakta — administrator bhi nahi', async () => {
+    // Doosra admin taaki "aakhri admin" wala guard pehle na fire ho jaye
+    await createUser({
+      username: 'admin2',
+      name: 'Admin Do',
+      email: 'admin2@test.com',
+      role: 'admin',
+      password: PASSWORD,
+    })
+
+    const res = await authed('patch', `/api/users/${adminId}`, adminJar).send({ role: 'editor' })
+
+    expect(res.status).toBe(403)
+    expect(res.body.error.message).toContain('your own role')
+  })
+
+  it('doosre admin ka role badal sakta hai — rok sirf apne aap pe hai', async () => {
+    const second = await createUser({
+      username: 'admin3',
+      name: 'Admin Teen',
+      email: 'admin3@test.com',
+      role: 'admin',
+      password: PASSWORD,
+    })
+
+    const res = await authed('patch', `/api/users/${second.id}`, adminJar).send({ role: 'editor' })
+    expect(res.status).toBe(200)
   })
 })

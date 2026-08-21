@@ -127,7 +127,9 @@ khula rehta hai. Wo D-07 ke mechanism (injected primitives) pe depend karta hai.
 - **Users ka role-aware menu + Profile screen** (D-37) — admin ko All Users · Add User ·
   Profile, baaki roles ko sirf Profile. Iske liye nav registry `{ id, label, to, permission }`
   chahiye jise **sidebar aur route guard dono** padhein
-- **Activity log ka write path** service layer me (screen Phase 7 me) — ye backfill nahi ho sakta
+- ~~**Activity log ka write path**~~ → **DEFER** (21 Aug). Client ke design me activity
+  log hai hi nahi; ye humare apne plan se aaya tha. Neeche "Activity log kyun defer hua"
+  padho — us faisle ki ek keemat hai jo likhi honi chahiye
 - **CI day 1 se** — lint + test on every commit
 - Docker compose: mongo + api + admin
 
@@ -136,6 +138,26 @@ restricted route pe 403 khaata hai **aur use sidebar me Users ke andar sirf Prof
 dikhta hai**; `pnpm cms migrate` chalta hai; CI green.
 
 > `subscriber` yahan likha tha — wo role banaya hi nahi gaya (D-26).
+
+### Activity log kyun defer hua
+
+Ye item **client se nahi aaya tha** — humare apne plan se aaya tha. Client ke design
+(`reference/admin-design.html`) me site-wide activity log **kahin nahi hai**. Usme jo
+"Activity & Notes" dikhta hai wo **Enquiry detail** ke andar ki timeline hai (Phase 7b) —
+bilkul alag cheez, aur `11-REFERENCE-ADMIN.md` §gap me wo pehle se noted hai.
+
+Write path har user/entry/media service me code jodta hai, hamesha ke liye. Jo feature
+maanga hi nahi gaya, uske liye wo cost aaj uthana galat hai (R15 ka wahi rule — scope
+client se aata hai, developer se nahi).
+
+**Is faisle ki keemat, saaf likhi hui:** activity log ka itihaas **backfill nahi ho
+sakta**. Jis din ye banega, us din se pehle ka record kahin nahi hoga. Agar kabhi client
+poochhe "ye user kisne delete kiya tha", to us tareekh se pehle ka jawab hamesha "pata
+nahi" rahega. Client ko ye bata diya gaya hai aur unhone ye maan kar defer kiya hai.
+
+`activity.read` permission `packages/shared` me rehne di gayi hai — spec 001 kehta hai
+permission strings sirf **add** hoti hain, hatti nahi. Wo abhi kisi cheez ko point nahi
+karti, aur yahi wo jagah hai jahan ye likha hua hai.
 
 ---
 
@@ -330,7 +352,9 @@ page pe "Services List" block se dikha de.
 - **Custom role builder** — role ki permissions edit karne ka UI. **Yahi Phase 7 me hai**
   (D-37); Phase 0 me sirf `GET /api/roles` read-only bana hai. Isi ke saath wo faisla bhi
   aayega: built-in role edit ho sake, ya sirf "Duplicate"? (D-36 ka takraav)
-- Activity log screen (write path Phase 0 se chalu hai)
+- Activity log — **screen aur write path dono**, agar tab tak client maange. Write path
+  Phase 0 me nahi bana (21 Aug ka faisla), isliye is screen ke pehle din se hi purana
+  itihaas khaali rahega
 - Settings screens: **General · Reading · Permalinks · Media · Scripts**
   - General: tagline, dateFormat
   - Reading: homepage/posts page, postsPerPage, searchEngineVisible

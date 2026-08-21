@@ -205,6 +205,44 @@ aaj chhui nahi.)
 "Administrator" ho, aur seed DB me wahi labels likhe jo shared me hain — teenon isi drift
 ko dobara hone se rokte hain.
 
+**Column sorting ka UI, aur role dene ke do guard (D-39)**
+
+Client ne poochha "Users complete hai?" — nahi tha. Uske baad teen faisle hue:
+
+1. **Activity log DEFER** — client ne poochha ki jab design me hai hi nahi aur unhone
+   maanga nahi, to kyun banaye. Design check kiya: **wo sahi the.** Design me jo
+   "Activity & Notes" hai wo Enquiry detail ki timeline hai (Phase 7b), site-wide audit
+   log nahi. Wo item humare apne plan se aaya tha. Docs update: Phase 0 se hataya,
+   `09-OPEN-ITEMS` me **Q-4** banaya taaki chup-chaap gayab na ho, aur **keemat likh di**
+   — iska itihaas backfill nahi ho sakta.
+2. **Column sorting ka UI** — backend pehle se taiyaar tha (`sort` + `order`), sirf UI
+   ka kaam tha. Name aur Last login sortable. Sort URL me rehta hai, header `<button>`
+   hai (keyboard ke liye), `aria-sort` bhi.
+3. **Do guard (D-39)** — asli baat yahi thi.
+
+**Guard wali baat sirf "UI aur API alag" nahi nikli**
+
+Client ne poochha tha ki server pe fix karne se safe ho jaayega kya. Jaanch me pata chala
+ki `updateUser` me **role dene pe koi rok hai hi nahi** — jiske paas `user.update` hai wo
+kisi ko bhi kuch bhi role de sakta hai, apne aap ko `admin` samet.
+
+Aaj khatra nahi hai (`user.update` sirf admin ke paas), **par Phase 7 me custom roles
+aate hi ye asli privilege escalation ban jaata**. Aur "apna role khud mat badlo" wala
+guard ise **rokta nahi** — Manager saathi ko admin banayega, saathi Manager ko.
+
+Isliye dono lagaye: apna role khud nahi, aur apni permission se upar ka role kisi ko
+nahi (subset check — role ke naam pe nahi, permissions pe, taaki custom roles pe apne aap
+chale). Create pe bhi lagta hai, warna naya admin bana kar uske password se login ka
+raasta khula rehta.
+
+**Guard ka order maayne rakha:** "aakhri admin" pehle, "apna role" baad me — taaki aakhri
+admin ko "site lock ho jaayegi" wala saaf message mile. Isi order se D-34 ke purane test
+bina badle pass rahe.
+
+**Tests:** 207 → **214**. Naye guard ke test **service pe seedhe** chalte hain, HTTP se
+nahi — kyunki ye raasta aaj HTTP se banaya hi nahi ja sakta. Wahi tests guard ko Phase 7
+tak zinda rakhenge; bina unke ye chup-chaap hat jaata.
+
 **Agla:** Settings — `settings` collection ka schema + migration, phir General screen.
 
 ---

@@ -35,3 +35,31 @@
   gap: 6px;
   font-weight: 400;
 }
+
+/* Sort ho sakne wala column header.
+
+   Button hai par header jaisa dikhna chahiye — isliye button ke apne
+   background/border/padding hata diye. Font parent (th) se hi aata hai. */
+.col-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.col-sort:hover {
+  color: var(--link);
+}
+
+/* Nishaan ki jagah hamesha ghiri rahe — warna sort badalne pe header ek pixel
+   khisakta hai aur poori table hilti hui lagti hai */
+.col-sort-ico {
+  width: 10px;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-muted);
+}

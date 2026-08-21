@@ -36,20 +36,51 @@ export default function UsersList() {
   const appliedSearch = params.get('search') ?? ''
   const [search, setSearch] = useState(appliedSearch)
 
+  /**
+   * Sort bhi URL me rehta hai, component state me nahi.
+   *
+   * Isse sorted list ka link share ho sakta hai, back button kaam karta hai, aur
+   * reload pe list wahi rehti hai. Default `createdAt desc` — wahi jo API ka default
+   * hai, taaki dono jagah alag na ho.
+   */
+  const sort = params.get('sort') ?? 'createdAt'
+  const order = params.get('order') ?? 'desc'
+
   // Object har render pe naya banta hai; useUsers uspe depend karta hai, isliye memo
   const query = useMemo(
     () => ({
       page,
       limit: 20,
+      sort,
+      order,
       ...(role ? { role } : {}),
       ...(appliedSearch ? { search: appliedSearch } : {}),
     }),
-    [page, role, appliedSearch],
+    [page, role, appliedSearch, sort, order],
   )
 
   const { data, meta, loading, error, reload } = useUsers(query)
 
   const roleLabel = (key) => roles.find((r) => r.key === key)?.label ?? key
+
+  /**
+   * Usi column pe dobara click = direction palat do, naye column pe = uska default.
+   *
+   * Naam ke liye default `asc` hai (A se Z padhne me natural lagta hai), par date ke
+   * liye `desc` — "sabse naya pehle" hi wo cheez hai jo koi dekhna chahta hai.
+   */
+  function toggleSort(column) {
+    const sameColumn = sort === column
+    const nextOrder = sameColumn
+      ? order === 'asc'
+        ? 'desc'
+        : 'asc'
+      : column === 'name'
+        ? 'asc'
+        : 'desc'
+
+    setFilter({ sort: column, order: nextOrder })
+  }
 
   function setFilter(next) {
     const merged = { ...Object.fromEntries(params), ...next }
@@ -131,12 +162,25 @@ export default function UsersList() {
         <thead>
           <tr>
             <th>Username</th>
-            <th>Name</th>
+            {/*
+              Sirf wahi columns sortable hain jinhe API sort kar sakti hai
+              (`listUsersQuerySchema` ka enum): `name` aur `lastLoginAt`.
+              Username/Email/Role ke liye pehle wo enum badalna padega — aur uske saath
+              index ka sawaal aata hai, isliye wo alag kaam hai.
+
+              Sortable header `<button>` hai, `<th onClick>` nahi — warna keyboard se
+              sort karna mumkin hi nahi hota.
+            */}
+            <SortableTh column="name" sort={sort} order={order} onSort={toggleSort}>
+              Name
+            </SortableTh>
             <th>Email</th>
             <th>Role</th>
             <th>Posts</th>
             <th>Enquiries</th>
-            <th>Last login</th>
+            <SortableTh column="lastLoginAt" sort={sort} order={order} onSort={toggleSort}>
+              Last login
+            </SortableTh>
           </tr>
         </thead>
         <tbody>
@@ -181,6 +225,27 @@ export default function UsersList() {
         </div>
       )}
     </>
+  )
+}
+
+/**
+ * Sort ho sakne wala column header.
+ *
+ * `aria-sort` isliye hai ki screen reader ko pata chale ki list kis hisaab se lagi hai —
+ * teer ka nishaan wo padh nahi sakta.
+ */
+function SortableTh({ column, sort, order, onSort, children }) {
+  const active = sort === column
+
+  return (
+    <th aria-sort={active ? (order === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <button className="col-sort" type="button" onClick={() => onSort(column)}>
+        {children}
+        <span className="col-sort-ico" aria-hidden>
+          {active ? (order === 'asc' ? '▲' : '▼') : '↕'}
+        </span>
+      </button>
+    </th>
   )
 }
 
