@@ -149,23 +149,69 @@ aur design frozen hai (R15). Wo tab lagegi jab wo screens banengi.
 
 ---
 
-## Agla kaam — Settings
+## Agla kaam — Media ki foundation (naya session)
 
-`settings` collection ka schema + migration, phir **General** screen.
+**Client ne kaha Media ka poora kaam ek hi session me hoga.** Ye session usi ke liye
+khaali chhoda gaya hai.
 
-Ruka hua hissa: homepage dropdown (Phase 1 — entries chahiye), logo upload (Phase 2 —
-media chahiye). D-30 ka pattern — jagah abhi, data baad me.
+### Poora Phase 2 Media **nahi** — sirf foundation
 
-**Users me chhota-mota baaki:** bulk actions (isiliye list me checkbox column nahi
-hai), email badalna (SMTP), avatar (Phase 2), column sorting (API taiyaar hai, UI
-nahi). **Activity log defer ho chuka hai** — client ke design me nahi hai (Q-4).
+```
+media collection + indexes (migration 006)
+storage driver abstraction     local abhi, s3 ka interface taiyaar
+upload hardening               magic-byte check · size cap · filename sanitize
+                               sharp pixel limit (decompression bomb)
+sharp variants + webp          "original kabhi serve mat karo"
+Settings me Logo/Favicon       drop zone ab bana hua hai, bas andar bharna hai
+```
+
+**Baad me (Phase 2 me hi):** library grid · folders · media trash · `mediaRefs` usage ·
+crop/rotate · replace · MediaPicker modal · S3 driver ka asli implementation.
+
+**Delete jaan-boojh kar nahi banana.** `mediaRefs` ke bina delete = live page pe toota
+hua image (08-RISKS ka documented trap). Delete hi na ho to wo trap lag hi nahi sakta.
+
+### Ye order kyun
+
+Logo **do jagah** ka blocker hai — General ka field, aur **Slice 0 ka header** (D-27 ke
+scope me "logo" likha hai). Isliye Media pehle.
+
+Aur Settings pe koi alag "logo upload" **mat banana**: usse do upload raaste ban jaate
+hain aur logo `media` collection se bahar reh jaata — na usage tracking, na variants,
+aur Phase 2 me use andar laane ke liye migration likhni padti. Foundation ke saath logo
+pehle din se `media` me hi rehta hai; picker aane pe Settings ka field sirf "upload" se
+"choose or upload" ban jaayega.
+
+### Ek faisla client se lena hai — **kaam shuru karne se pehle**
+
+**SVG allow karein ya nahi?** Logo aksar SVG hota hai, par SVG ke andar `<script>` chal
+jaata hai aur wo admin ke session me chalta hai (08-RISKS ka trap: "Sanitize ya
+disallow").
+
+| Option       | Matlab                                                                      |
+| ------------ | --------------------------------------------------------------------------- |
+| SVG block    | Sabse surakshit. Client apna asli SVG logo nahi de payega — PNG dena padega |
+| SVG sanitize | Client SVG de sakta hai. ~aadha din extra + sanitizer ki dependency         |
+
+Client ka logo kis format me hai — wo pata ho to faisla aasaan hai.
+
+### Uske baad
+
+Media foundation → General ka Logo/Favicon → **General poora done** → **Slice 0**
+(Header + Footer, D-27).
+
+---
+
+**Users me chhota-mota baaki:** bulk actions (isiliye list me checkbox column nahi hai),
+email badalna (SMTP), avatar (Phase 2). Column sorting **ban chuki** hai.
+**Activity log defer ho chuka hai** — client ke design me hai hi nahi (Q-4).
 
 **Har section kitna ruka hua hai:**
 
 | Section    | Abhi kitna ban sakta hai | Kya rok raha hai                                          |
 | ---------- | ------------------------ | --------------------------------------------------------- |
 | Users      | ~95%                     | Posts/Enquiries count (Phase 1, 7b) · invite email (SMTP) |
-| Settings   | ~75%                     | Homepage dropdown (Phase 1) · logo upload (Phase 2)       |
+| Settings   | ~90%                     | Logo/Favicon (Media) · Reading & Permalinks tab (Phase 1) |
 | Appearance | ~40%                     | Menu me Pages/Destinations chahiye (Phase 1 + 6)          |
 
 ---
@@ -207,14 +253,14 @@ Aur agar `pnpm seed` se admin banana ho to teen vars chahiye:
 branch : main
 remote : github.com/progryss/crmmern.git
 
-88ffdc2  Session wrap — Users poora, RBAC ka faisla pending
-35d4780  Built-in roles ab sync hote hain — D-36
-5e28af3  Users ke teen changes — D-35
-0826815  Users screens
-5ffc545  Users backend — D-34
+c48a556  Settings — model, migration, General screen (D-40)
+d9d4899  Column sorting · role dene ke do guard (D-39) · activity log defer
+7e248ba  Role-aware menu (D-37) · Remember me fix (D-38) · admin English (R17)
+53df920  D-37 ke docs
+88ffdc2  Session wrap — Users poora
 ```
 
-26 commits · working tree clean · **18 commits unpushed** (`origin/main` `0e328cb` pe hai).
+29 commits · working tree clean · **22 commits unpushed** (`origin/main` `0e328cb` pe hai).
 `apps/api/.env` ka backup: `apps/api/.env.bak-1787215917` (gitignored).
 
 ⚠️ **Push kabhi bhi bina permission ke nahi karna.**
