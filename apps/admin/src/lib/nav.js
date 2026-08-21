@@ -107,18 +107,39 @@ export const NAV = [
       { label: 'Profile', to: '/profile' },
     ],
   },
+  /**
+   * Settings ab `settings.read` ke peeche hai.
+   *
+   * Spec 001 ke hisaab se ye permission `admin` aur `editor` ke paas hai — baaki roles
+   * ko ye poora group dikhta hi nahi. Pehle sabko dikhta tha, par contributor click
+   * karta to API 403 deti aur use ek toota hua screen milta.
+   */
   {
     id: 'settings',
     icon: '⚙',
     label: 'Settings',
     children: [
-      { label: 'General', to: '/settings' },
-      { label: 'SEO & Schema', to: '/settings/seo' },
-      { label: 'Email / SMTP', to: '/settings/email' },
-      { label: 'Integrations', to: '/settings/integrations' },
+      { label: 'General', to: '/settings', permission: PERMISSION.SETTINGS_READ },
+      { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
+      { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
+      {
+        label: 'Integrations',
+        to: '/settings/integrations',
+        permission: PERMISSION.SETTINGS_READ,
+      },
     ],
   },
 ]
+
+/**
+ * Settings ke tabs — design ka `#settingsTabs`.
+ *
+ * Sidebar ke Settings group aur ye tab bar **ek hi list** se bante hain, warna wo do
+ * alag sach ban jaate: sidebar me "Email / SMTP" aur tab me kuch aur (R16).
+ */
+export const SETTINGS_TABS = NAV.find((item) => item.id === 'settings').children.map(
+  ({ label, to }) => ({ label, to }),
+)
 
 /**
  * Route → permission.
@@ -138,6 +159,12 @@ export const ROUTE_GUARDS = Object.freeze({
    */
   '/users/:id': PERMISSION.USER_UPDATE,
   '/users/:id/delete': PERMISSION.USER_DELETE,
+  /**
+   * Sirf `settings.read` — screen khud `settings.update` na hone pe form disable kar
+   * deti hai. Editor ko settings **dikhni** chahiye (date format, site title jaisi
+   * cheezein uske kaam ki hain), badalni nahi.
+   */
+  '/settings': PERMISSION.SETTINGS_READ,
 })
 
 /** @param {string} path route ka pattern, waisa hi jaisa `<Route path>` me hai */

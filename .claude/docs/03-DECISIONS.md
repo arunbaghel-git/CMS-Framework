@@ -1122,3 +1122,90 @@ badle pass rehte hain.
 pe seedhe chalte hain (HTTP se ye raasta banaya hi nahi ja sakta) — aur wahi tests use
 Phase 7 tak zinda rakhenge. Bina test ke ye chup-chaap hat jaata aur kisi ko pata bhi
 nahi chalta.
+
+---
+
+## D-40 · Settings — screens design se, aur Site URL admin ke haath me nahi
+
+**Context:** Phase 0 khatam karte waqt client ne poochha ki Settings Phase 0 ka hissa hai
+ya nahi. Jaanch me teen alag baatein nikli.
+
+### 1. Settings ki screens Phase 7 se aage khisak gayi
+
+Plan me `Settings` ka **model** Phase 0 me tha par **screens** Phase 7 me. Client ke
+design me Settings ka poora screen maujood hai, aur wo abhi chahiye.
+
+Ye wahi precedent hai jo **Users** ke saath laga tha (D-34): wo bhi plan me Phase 7 thi
+aur client ke kehne pe Phase 0 me aa gayi. "Plan me Phase 7 likha hai" apne aap me koi
+rok nahi hai — scope client se aata hai (R15).
+
+### 2. Sections plan se nahi, **design se**
+
+| Plan (Phase 7)                                     | Client ka design                             |
+| -------------------------------------------------- | -------------------------------------------- |
+| General · Reading · Permalinks · Media · Scripts   | General · SEO & Schema · Email/SMTP · Integrations |
+
+Design jeeta (R15). Dhyan dene layak: design ne **Reading ko General ke andar** rakh diya
+hai ("Homepage & Archives" ke roop me), aur Permalinks/Media/Scripts uske paas hain hi
+nahi. Wo jab aayenge tab client se aayenge.
+
+General screen ke section design se hi aate hain: Site Identity · Locale & Currency ·
+Contact & Social.
+
+**"Homepage & Archives" General me nahi hai — aur design me bhi kabhi tha hi nahi.**
+
+Client ne 21 Aug ko ise General se hatane ko kaha. Jaanch me pata chala ki wo sirf ek
+preference nahi thi — **galti humari taraf se hui thi.** Design me Settings ke **paanch
+tab** hain (General · Reading & Permalinks · SEO & Schema · Email/SMTP · Integrations),
+aur Homepage & Archives **"Reading & Permalinks" tab me** rehta hai. Pehle wo galti se
+General ke andar bana diya gaya tha.
+
+Ye khud-ba-khud sahi bhi nikla: us section ke teenon fields (Front page displays ·
+Homepage · Posts per page) ka koi asar hi nahi hai jab tak `entries` (Phase 1) na aayen —
+Homepage ka dropdown bharne ko koi page nahi, aur "Latest posts" chunne pe dikhane ko koi
+post nahi. Fields `settings` me maujood hain; UI "Reading & Permalinks" ke saath aayegi.
+
+**Tab bar ab bana hua hai** (`SettingsTabs.jsx`). Design me tabs ek hi screen ke andar
+pane badalte hain; hamare paas har tab ka apna route hai, isliye wo **asli link** hain.
+Dikhne me farq nahi padta, par back button, refresh aur link share teenon kaam karte hain.
+Labels aur order `lib/nav.js` se aate hain — wahi list jo sidebar padhta hai (R16).
+
+> Sidebar me abhi **chaar** item hain (design ke sidebar se) par tab bar me **paanch**
+> (design ke tab bar se). Ye takraav design ke apne andar hai. "Reading & Permalinks"
+> Phase 1 me banegi, tab ye apne aap sulajh jaayega.
+
+**Teen fields jaan-boojh kar disabled hain** — Logo, Favicon (Media, Phase 2) aur
+Homepage (`entries`, Phase 1). Field aur uska contract aaj maujood hain, data baad me
+(D-30). Hata dene se baad me poori screen dobara likhni padti.
+
+### 3. Site URL admin edit nahi kar sakta
+
+Design me "Site URL" ek input jaisa dikhta hai. Wo **read-only** banaya gaya hai, aur
+value `env.SITE_URL` se aati hai — settings document me wo field hai hi nahi.
+
+**Kyun:** usi value pe **CORS allowlist** aur canonical URLs khade hain (D-12). Use
+admin ke haath me dena ka matlab hota ki ek galat entry site ke saare links aur uski
+security allowlist — dono ek saath tod de. Ye deployment ki config hai, content ki nahi.
+Screen wajah bhi likhti hai, taaki wo "toota hua field" na lage.
+
+### 4. Ek document, aur wo migration se banta hai
+
+`settings` singleton hai: `{ siteId: 1 }` pe **unique index**. Iske bina do documents
+ban jaane pe `findOne()` "jo pehle mil jaaye" lautata hai, aur admin ke save random taur
+pe gayab hone lagte hain.
+
+Document **migration 005 me** banta hai, sirf seed me nahi — kyunki **seed sirf naye
+instance pe chalti hai**. D-36 ka wahi sabak: chalu instances tak pahunchne ka raasta
+`pnpm cms migrate` hai. Uske upar service ka read bhi self-healing hai (na mile to bana
+deta hai), taaki migration chhoot jaane pe bhi admin ko 404 na mile.
+
+**Reject kiya:**
+
+- **`siteUrl` ko settings field banana** — upar wali wajah se.
+- **Poore `social` object ko `$set` karna** — ek link badalne se baaki do ud jaate.
+  Service dot-notation use karti hai, aur `updateSettingsSchema` me `social` **nested
+  partial** hai. Ye dono ek saath chahiye: pehle sirf service theek ki thi, aur schema ke
+  defaults uski mehnat pehle hi bekaar kar dete the — test ne pakda.
+- **Saare planned fields (defaultSeo, titleTemplates, scripts) abhi jodna** — singleton
+  collection me field baad me jodna sasta hai (backfill karne ko ek hi row hai). Wo apne
+  screen ke saath aayenge.

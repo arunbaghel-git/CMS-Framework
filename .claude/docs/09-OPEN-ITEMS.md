@@ -1,7 +1,7 @@
 # 09 — Open Items
 
 **Status:** Phase 0 chal raha hai (~95%). Users ka role-aware menu + Profile screen land
-ho chuke (D-37) — **214 tests passing**. Sirf Settings screens baaki.
+ho chuke (D-37) — **231 tests passing**. Sirf Settings screens baaki.
 **Last updated:** 21 Aug 2026
 
 ---
@@ -105,18 +105,26 @@ Spec 005 me add karne honge.
 
 ```
 1. ✅ Users menu role-aware + Profile screen      (D-37 — 21 Aug)
-2. Phase 0 — Settings screens                    ← ABHI YAHAN
-3. C-2 — Payload spike (parallel me)             (2 din)
-4. Slice 0 — Header + Footer end-to-end          (1.5 hafte)
+2. ✅ Settings — model + migration + General      (D-40 — 21 Aug)
+3. Slice 0 — Header + Footer end-to-end          ← ABHI YAHAN   (1.5 hafte)
+4. C-2 — Payload spike (parallel me)             (2 din)
 5. Phase 1 — Content Core                        (3 hafte)
 ```
+
+**Phase 0 me kya bacha hai** (koi bhi kisi ko block nahi kar raha):
+
+| Item | Kab karein |
+| --- | --- |
+| Docker compose me `api` + `admin` service | Chhota kaam — abhi `pnpm dev` se chalta hai |
+| CSP policy (nonce-based) | Phase 4-5 — asli matlab page builder aur `settings.scripts` ke saath hai |
+| `forgot` / `reset` auth routes | **SMTP pe block** — Phase 2 |
 
 **Phase 0 me kya ho chuka:** monorepo + workspaces, docker-compose, ESLint/Prettier,
 CI, Express boilerplate, Zod contract, migration runner, CSS architecture,
 **auth + RBAC + admin shell** (login, protected routes, sidebar, `/api/me`).
 
-**Phase 0 me kya baaki:** **sirf Settings screens**, aur seed ka baaki hissa
-(settings/entries — wo Phase 1 pe block hai).
+**Phase 0 me kya baaki:** upar wali teen cheezein — teenon me se koi kuch block nahi
+kar rahi. Seed ka baaki hissa (content types, taxonomies, entries) Phase 1 pe hai.
 
 **Users me kya baaki:** bulk actions, email badalna, avatar, column sorting ka UI.
 Posts/Enquiries counts Phase 1 aur 7b pe block hain.

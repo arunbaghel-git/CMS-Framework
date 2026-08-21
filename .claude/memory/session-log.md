@@ -243,7 +243,77 @@ bina badle pass rahe.
 nahi — kyunki ye raasta aaj HTTP se banaya hi nahi ja sakta. Wahi tests guard ko Phase 7
 tak zinda rakhenge; bina unke ye chup-chaap hat jaata.
 
-**Agla:** Settings — `settings` collection ka schema + migration, phir General screen.
+**Settings ban gaya — model, migration, aur General screen (D-40)**
+
+Client ne poochha "Settings Phase 0 ka hissa hai?" — jawab **aadha haan** nikla. Plan me
+`Settings` ka **model** Phase 0 me tha par **screens Phase 7** me. Par status docs teenon
+jagah "Phase 0 — Settings screens" keh rahe the. Wo mismatch tha, aur maine bhi pichhle
+jawabon me wahi dohraya tha bina build plan padhe.
+
+Faisla (D-40): screens **aage khisak gayi**, wahi precedent jo Users ke saath laga tha —
+client ke design me Settings poora maujood hai. **Sections plan se nahi, design se**:
+General · SEO & Schema · Email/SMTP · Integrations. Design ne "Reading" ko General ke
+andar hi rakh diya hai, aur Permalinks/Scripts uske paas hain hi nahi.
+
+**Kya bana**
+
+```
+packages/shared/src/schemas/settings.js   Zod contract + defaults + toPublicSettings
+apps/api/src/modules/settings/            paanch file ka poora module
+migrations/005-settings.js                unique index + pehla document
+apps/admin/src/screens/settings/General   design ke chaar section
+```
+
+**Teen faisle jo code me dikhte hain**
+
+1. **Site URL read-only hai.** Design me input jaisa dikhta hai, par value `env.SITE_URL`
+   se aati hai aur settings document me wo field hai hi nahi. Usi value pe CORS allowlist
+   aur canonical URLs khade hain (D-12) — admin ke haath me dena matlab ek galat entry
+   site ke links aur security dono ek saath tod de. Screen wajah bhi likhti hai.
+2. **Document migration me banta hai, sirf seed me nahi** — D-36 ka wahi sabak: seed sirf
+   naye instance pe chalti hai. Upar se service ka read self-healing hai.
+3. **Logo, Favicon, Homepage disabled hain** (Media Phase 2, entries Phase 1) — D-30.
+
+**Ek asli bug test ne pakda**
+
+`social` nested hai. Service dot-notation theek use kar rahi thi, par
+`updateSettingsSchema` me har link pe `.default()` tha — to
+`{ social: { instagram: x } }` parse hote hi **facebook aur youtube `` ban jaate**.
+Yaani ek link badalne se baaki do chup-chaap ud jaate. Schema service ki mehnat pehle hi
+bekaar kar deta tha. Ab update wala social **nested partial** hai.
+
+**Tests:** 214 → **231** (17 naye). Lint, prettier, admin build clean.
+
+**⚠️ Ek blocker mila jo 20 Aug ka bacha hua hai**
+
+`pnpm cms migrate:status` kehta hai `004-sync-builtin-role-permissions.js` **modified**
+hai. File git me kabhi badli nahi — par migration **13:35** pe chali thi aur commit
+**19:07** pe hua, aur beech me `pnpm format` ne use reformat kar diya. DB me purana
+checksum pada hai.
+
+`migrate()` checksum mismatch pe **throw** karta hai, isliye **005 apply nahi ho sakti**
+jab tak ye theek na ho. 004 ka `up()` poori tarah idempotent hai (code se permissions
+`$set` karta hai), isliye ledger row hata kar dobara chalana surakshit hai — par wo
+client ke dev DB pe likhna hai, isliye poochha gaya hai.
+
+**General ka design theek kiya — aur ek galti pakdi gayi**
+
+Client ka faisla. Us section ke teenon fields (Front page displays · Homepage · Posts per
+page) ka koi asar hi nahi hai jab tak `entries` na aayen. Ek disabled field khaali dikhta
+hai; poora section jiske saare controls kuch karte hi nahi — wo **jhootha** lagta hai.
+Fields schema me maujood hain, sirf UI Phase 1 me aayegi. D-40 me likh diya.
+
+**Media ka faisla: alag session me**
+
+Logo/Favicon ke liye Media chahiye, aur Media Slice 0 ka bhi blocker hai (D-27 ke scope me
+"logo" likha hai). Recommendation di thi — **poora Phase 2 Media nahi, sirf uski
+foundation** (model · storage driver abstraction · upload hardening · sharp variants),
+kyunki Settings pe alag "logo upload" banane se do upload raaste ban jaate aur logo
+`media` collection se bahar reh jaata. Client ne kaha wo **naye session me** hoga taaki
+Media ka poora kaam ek hi session me rahe.
+
+**Agla:** Media foundation (naya session) → phir General ka Logo/Favicon → General poora.
+Uske baad Slice 0 — Header + Footer (D-27).
 
 ---
 

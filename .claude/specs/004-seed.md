@@ -112,14 +112,15 @@ Command: `pnpm seed` · reset (sirf dev): `pnpm seed --reset`
 
 ## Acceptance criteria
 
-- [~] `pnpm seed` chalti hai — **roles (5) + admin user** ban jaate hain. Settings,
-      content types, taxonomies, templates, menus, entries **Phase 1 me** (wo
+- [~] `pnpm seed` chalti hai — **roles (5) + admin user + settings** ban jaate hain.
+      Content types, taxonomies, templates, menus, entries **Phase 1 me** (wo
       collections abhi hain hi nahi)
 - [x] Dobara chale to koi duplicate na bane, koi error na aaye — verify kiya
 - [x] Admin user login kar paaye — verify kiya (asli Mongo pe end-to-end)
 - [ ] `/` request Home entry resolve kare — Phase 1
 - [ ] `/blog` request Blog entry resolve kare — Phase 1
-- [ ] `searchEngineVisible: false` + admin banner — Phase 1 (settings collection)
+- [~] `searchEngineVisible: false` — **field aa chuki hai** (D-40) aur default `false`
+      hai; admin banner Phase 4 (SEO screen) me
 - [ ] Built-in content types delete nahi ho paate (403) — Phase 1
 - [x] Test: roles seed + login ka integration test (`apps/api/src/tests/auth.test.js`)
 - [ ] Docs: `06-OPERATIONS.md` §6 launch checklist sync

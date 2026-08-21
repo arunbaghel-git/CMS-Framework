@@ -1,0 +1,71 @@
+/**
+ * Settings screens.
+ *
+ * Yahan sirf wo hai jo `primitives.css` me nahi mila. Panel, field, inp, sel, ta, btn
+ * aur notice sab design ke primitives se aate hain — unhe yahan dobara mat likho
+ * (02-ARCHITECTURE.md §11).
+ */
+
+/* ============================================================
+   SETTINGS  (screens/settings/*)
+   ============================================================ */
+
+/* `fieldset` sirf disabled state ke liye hai (settings.update na ho to poora form
+   band). Uska apna border aur padding hata do, warna wo panel ke upar ek doosra
+   box bana deta hai */
+form fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Social links — teen input ek doosre ke neeche, jaise design me hain */
+.social-inp {
+  margin-bottom: 6px;
+}
+
+/* ============================================================
+   SETTINGS TABS  (screens/settings/SettingsTabs.jsx)
+   Source: admin-design.html, #settingsTabs
+   ============================================================ */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.tabs a {
+  padding: 9px 15px;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  border-bottom: none;
+  font-size: 14px;
+  /* Border-bottom ke upar baithne ke liye — active tab usse juda hua dikhe */
+  margin-bottom: -1px;
+}
+.tabs a.on {
+  background: var(--surface);
+  border-color: var(--border-soft);
+  color: var(--text);
+  font-weight: 600;
+  border-radius: 3px 3px 0 0;
+  text-decoration: none;
+}
+
+/* Office Address — design me 70px min-height inline tha */
+.settings-address {
+  min-height: 70px;
+}
+
+/* Logo/Favicon ka drop zone jab tak Media nahi bani.
+   `.featured-drop` ka hover cursor pointer hai — yahan click ka koi matlab nahi,
+   isliye wo wapas normal kar diya. Dikhne me jagah wahi rehti hai (D-30). */
+.media-drop-pending {
+  height: 90px;
+  cursor: default;
+}
+.media-drop-pending:hover {
+  border-color: var(--border);
+  color: var(--text-muted);
+}

@@ -121,7 +121,10 @@ khula rehta hai. Wo D-07 ke mechanism (injected primitives) pe depend karta hai.
 - **NoSQL injection guard** — har query param pe strict Zod. `req.query`/`req.body`
   kabhi seedha Mongoose query me spread nahi
 - **CSP policy** likho (nonce-based) — helmet enable karna alag cheez hai
-- Seed script: pehla admin user + default roles + default settings
+- Seed script: pehla admin user + default roles + default settings ✅
+- **`Settings` model + migration 005 + General screen** (D-40) — screens plan me Phase 7
+  thi, client ke design me maujood hai isliye aage khisak gayi. Sections design se aate
+  hain, plan wali list se nahi
 - Admin shell: React + Vite + **plain CSS** (design se), sidebar, protected routes
 - **Users screens** (Phase 7 se aage khiske): list · add · edit · delete + reassign (D-34/D-35)
 - **Users ka role-aware menu + Profile screen** (D-37) — admin ko All Users · Add User ·
@@ -355,10 +358,12 @@ page pe "Services List" block se dikha de.
 - Activity log — **screen aur write path dono**, agar tab tak client maange. Write path
   Phase 0 me nahi bana (21 Aug ka faisla), isliye is screen ke pehle din se hi purana
   itihaas khaali rahega
-- Settings screens: **General · Reading · Permalinks · Media · Scripts**
-  - General: tagline, dateFormat
-  - Reading: homepage/posts page, postsPerPage, searchEngineVisible
-  - Permalinks: per-type urlPattern, category/tag base
+- ~~Settings screens~~ → **General Phase 0 me aa chuki** (D-40). Design ke hisaab se
+  baaki teen yahan/aage aayengi: **SEO & Schema · Email/SMTP · Integrations**
+  - Plan wali "Reading" alag screen nahi banegi — design ne use General ke andar
+    ("Homepage & Archives") rakh diya hai
+  - **Permalinks** aur **Scripts** design me hain hi nahi; wo tab aayenge jab client
+    maange (R15)
 - Dashboard widgets: recent edits, draft count, **pending review count**, submissions
 - Onboarding: setup wizard (site name, logo, colors, starter pages)
 - Cmd+K search — `searchText` index pe

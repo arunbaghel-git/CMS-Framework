@@ -5,10 +5,10 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0 chal raha hai — ~95%.** Setup layer, Zod contract, migration runner,
+**Status:** **Phase 0 lagbhag poora — ~97%.** Setup layer, Zod contract, migration runner,
 CSS architecture, **auth + RBAC + admin shell**, **Users screens** aur **role-aware nav +
-Profile** (D-37) ban chuke hain (**214 tests passing**).
-Agla kaam **Settings screens**.
+Profile** (D-37) ban chuke hain (**231 tests passing**).
+Agla kaam **Slice 0 — Header + Footer** (D-27).
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -18,7 +18,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 17 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-39                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-40                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |

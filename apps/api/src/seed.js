@@ -1,6 +1,7 @@
 import { connectDb, disconnectDb } from './core/db.js'
 import { logger } from './core/logger.js'
 import { ensureDefaultRoles } from './modules/roles/service.js'
+import { ensureSettings } from './modules/settings/service.js'
 import { ensureAdminUser } from './modules/users/service.js'
 import { createUserSchema } from './modules/users/validation.js'
 
@@ -11,16 +12,24 @@ import { createUserSchema } from './modules/users/validation.js'
  * destructive kabhi nahi. `--force` sirf built-in roles ki permissions reset karta hai.
  *
  * Abhi ye Phase 0 ka hissa seed karta hai:
- *   ✅ roles (5)              ✅ admin user (1)
- *   ⏳ settings · content types · taxonomies · templates · menus · entries
+ *   ✅ roles (5)              ✅ admin user (1)          ✅ settings (1)
+ *   ⏳ content types · taxonomies · templates · menus · entries
  *      — ye Phase 1 me aayenge, jab wo collections banengi
  */
 
 /** @param {{ force?: boolean }} [options] */
 export async function runSeed({ force = false } = {}) {
-  const summary = { roles: [], admin: null }
+  const summary = { roles: [], admin: null, settings: null }
 
   summary.roles = await ensureDefaultRoles({ force })
+
+  /**
+   * Settings ka document — idempotent. `--force` ise chhoota nahi: usme site ka naam,
+   * contact number aur social links hote hain jo admin ne haath se bhare hain, aur
+   * unhe reset karna seed ka kaam nahi.
+   */
+  const settings = await ensureSettings()
+  summary.settings = { siteName: settings.siteName }
 
   const { SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD, SEED_ADMIN_NAME } = process.env
 

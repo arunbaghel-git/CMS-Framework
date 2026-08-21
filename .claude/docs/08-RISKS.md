@@ -95,6 +95,7 @@ do block, ek template). Usse asli velocity pata chal jaayegi, aur do sabse risky
 | **15 alag backup cron**                     | 15 silent failure modes                          | Central fleet ops                         | 8     |
 | **Untested backup**                         | Restore ke waqt pata chalta hai                  | Quarterly restore test                    | 8     |
 | **Ek component, do route**                  | Purana form data naye form me dikhta hai         | Route ke hisaab se `key` do               | 0     |
+| **Applied migration ko prettier chhoo le**  | Checksum guard fire, saari migrations ruk jaati hain | Migration commit se pehle format karo | 0     |
 
 ### "Ek component, do route" thoda detail maangta hai
 
@@ -125,6 +126,34 @@ naam** dikhta rehta, aur wo screen permanent delete ka hai.
 
 **Jahan bhi dekhna hai:** koi bhi screen jo `useParams()` padhti ho aur ek se zyada route
 se khulti ho.
+
+### "Applied migration ko prettier chhoo le" — 21 Aug ko asli me hua
+
+`pnpm cms migrate:status` ne `004-sync-builtin-role-permissions.js` ko **modified**
+dikhaya, jabki wo file git me kabhi badli hi nahi thi.
+
+Timeline se pata chala: migration **20 Aug 13:35** pe chali (checksum tab record hua), aur
+commit **19:07** pe hua. Beech me `pnpm format` ne file reformat kar di. Content wahi tha,
+bytes alag — aur checksum bytes pe hai.
+
+**Ye rukawat bada hai, chhota nahi:** `migrate()` mismatch pe **throw** karta hai, isliye
+us din ke baad ki **saari** migrations ruk jaati hain. Settings ki `005` isi wajah se
+apply nahi ho paayi thi.
+
+**Hal (tool ke apne commands se, DB me haath daale bina):**
+
+```bash
+pnpm cms migrate:down   # aakhri migration rollback — ledger row hat jaati hai
+pnpm cms migrate        # dobara apply, ab sahi checksum ke saath + pending bhi
+```
+
+Ye tabhi surakshit hai jab us migration ka `down()` **sach me reversible ya no-op** ho.
+`004` ka `down()` jaan-boojh kar khaali hai aur `up()` idempotent hai, isliye yahan ye
+bilkul safe tha. Jiski `down()` data hataati ho, uspe ye **mat** karna.
+
+**Aage se:** migration file **commit se pehle** format karo — wo `pnpm cms migrate` chalane
+se pehle ho jaana chahiye. `rollback()` checksum check nahi karta, isliye raasta hamesha
+khula rehta hai — par uspe pahunchna hi na pade to behtar.
 
 ---
 

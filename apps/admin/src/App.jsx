@@ -11,6 +11,7 @@ import Login from './screens/Login.jsx'
 import NoAccess from './screens/NoAccess.jsx'
 import NotBuiltYet from './screens/NotBuiltYet.jsx'
 import Profile from './screens/Profile.jsx'
+import General from './screens/settings/General.jsx'
 import DeleteUser from './screens/users/DeleteUser.jsx'
 import UserForm from './screens/users/UserForm.jsx'
 import UsersList from './screens/users/UsersList.jsx'
@@ -115,6 +116,7 @@ const APP_ROUTES = [
   { path: '/users/:id', element: <UserForm /> },
   { path: '/users/:id/delete', element: <DeleteUser /> },
   { path: '/profile', element: <Profile /> },
+  { path: '/settings', element: <General /> },
 ]
 
 /** Har wo route jo sidebar me hai par abhi bana nahi. */
@@ -125,7 +127,14 @@ const PENDING_ROUTES = [
   { path: '/packages/*', title: 'Packages', phase: 'Phase 6' },
   { path: '/enquiries/*', title: 'Enquiries', phase: 'Phase 7b' },
   { path: '/appearance/*', title: 'Appearance', phase: 'after Slice 0' },
-  { path: '/settings/*', title: 'Settings', phase: 'the next Phase 0 step' },
+  /**
+   * `/settings` khud ab bana hua hai (upar `APP_ROUTES` me). Ye splat sirf uske andar
+   * ke baaki screens ke liye hai — SEO, Email/SMTP, Integrations.
+   *
+   * React Router exact match ko splat se **upar** rakhta hai, isliye `/settings`
+   * General pe hi jaata hai.
+   */
+  { path: '/settings/*', title: 'Settings', phase: 'a later phase' },
 ]
 
 export default function App() {

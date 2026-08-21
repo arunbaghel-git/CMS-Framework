@@ -16,6 +16,7 @@ import { csrfProtection } from './middleware/csrf.js'
 import { authRoutes } from './modules/auth/routes.js'
 import { meRoutes, userRoutes } from './modules/users/routes.js'
 import { roleRoutes } from './modules/roles/routes.js'
+import { settingsRoutes } from './modules/settings/routes.js'
 
 /**
  * Express app banata hai. Server start karna `index.js` ka kaam hai —
@@ -84,6 +85,7 @@ export function createApp() {
   app.use('/api/me', meRoutes)
   app.use('/api/users', userRoutes)
   app.use('/api/roles', roleRoutes)
+  app.use('/api/settings', settingsRoutes)
   // Aage: entries, media, menus, taxonomies, settings…
 
   app.use(notFoundHandler)

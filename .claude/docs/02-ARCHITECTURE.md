@@ -94,10 +94,14 @@ roles            _id, key(admin|editor|author|contributor), permissions[]
 refreshTokens    userId, jti, familyId, expiresAt, usedAt, revokedAt, ua, ip
 migrations       name, appliedAt, checksum
 
-settings       * siteId, siteName, tagline, logo, favicon, timezone, dateFormat,
-                 homepageEntryId, postsPageEntryId, postsPerPage,
-                 searchEngineVisible, socialLinks, defaultSeo, titleTemplates,
-                 privacyPolicyEntryId, scripts{head,bodyOpen,bodyClose}
+settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
+                 faviconMediaId, timezone, dateFormat, currency,
+                 phone, whatsapp, address, social{instagram,facebook,youtube},
+                 frontPageType, homepageEntryId, postsPageEntryId, postsPerPage,
+                 searchEngineVisible
+                 PLANNED: defaultSeo, titleTemplates, privacyPolicyEntryId,
+                          scripts{head,bodyOpen,bodyClose} — apne screen ke saath (D-40)
+                 NOTE: `siteUrl` yahan **nahi** hai — wo env se aata hai (D-40)
 
 contentTypes   * siteId, key(page|post|service…), label, labelPlural, icon,
                  fields[], hasBuilder, isBuiltIn, urlPattern, archiveBase,
@@ -159,6 +163,9 @@ bhooli = cross-site data leak, ye security bug class hai) · per-site permission
 ### 3.3 Indexes
 
 Compound indexes me `siteId` **sabse pehle**.
+
+`settings` pe `{ siteId: 1 }` **unique** — yahi "ek instance, ek settings document" ko
+sach me enforce karta hai (D-40, migration 005).
 
 ```
 entries:   { siteId: 1, locale: 1, path: 1 }               unique   ← routing
@@ -647,7 +654,8 @@ POST   /api/admin/media/:id/replace      file swap, URL + refs same
 GET    /api/admin/media/:id/usage        mediaRefs se
 
 CRUD   /api/admin/menus   ·   GET/PUT /api/admin/menu-locations
-GET/PUT /api/admin/settings
+GET/PATCH /api/settings                  ek document, isliye koi :id nahi (D-40)
+                                         read: settings.read · write: settings.update
 CRUD   /api/admin/templates | patterns | content-types | taxonomies | redirects | users
 GET    /api/admin/search?q=              Cmd+K, searchText pe
 GET    /api/admin/activity
