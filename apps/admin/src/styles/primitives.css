@@ -466,7 +466,7 @@ tr:hover .row-actions {
 .featured-drop {
   border: 1px dashed var(--border);
   border-radius: var(--radius);
-  height: 130px;
+  /* height: 130px; */
   display: grid;
   place-items: center;
   color: var(--text-muted);

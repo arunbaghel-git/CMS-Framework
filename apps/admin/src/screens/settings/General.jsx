@@ -33,13 +33,9 @@ const DATE_FORMAT_LABELS = {
 const TIMEZONE_LABELS = {
   'Asia/Kolkata': 'Asia/Kolkata (UTC+5:30)',
   UTC: 'UTC',
-  'Asia/Dubai': 'Asia/Dubai (UTC+4)',
-  'Asia/Singapore': 'Asia/Singapore (UTC+8)',
-  'Europe/London': 'Europe/London',
-  'America/New_York': 'America/New_York',
 }
 
-const CURRENCY_LABELS = { INR: 'INR (₹)', USD: 'USD ($)', EUR: 'EUR (€)', GBP: 'GBP (£)' }
+const CURRENCY_LABELS = { INR: 'INR (₹)', USD: 'USD ($)', }
 
 export default function General() {
   const { can } = useAuth()

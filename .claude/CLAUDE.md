@@ -6,9 +6,11 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0 lagbhag poora — ~97%.** Setup layer, Zod contract, migration runner,
-CSS architecture, **auth + RBAC + admin shell**, **Users screens** aur **role-aware nav +
-Profile** (D-37) ban chuke hain (**231 tests passing**).
-Agla kaam **Slice 0 — Header + Footer** (D-27).
+CSS architecture, **auth + RBAC + admin shell**, **Users screens**, **role-aware nav +
+Profile** (D-37) aur **Settings — model + migration 005 + General screen** (D-40) ban
+chuke hain (**231 tests passing**).
+Agla kaam **Media ki foundation** — Phase 2 se aage khisak kar, kyunki usi pe
+**Logo/Favicon** rukey hain. Uske baad **Slice 0 — Header + Footer** (D-27).
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -135,12 +137,14 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Phase 0 pe **kuch block nahi** — auth stack abhi bana sakte ho.
+Phase 0 pe **kuch block nahi** — Media ki foundation abhi shuru ho sakti hai.
 
-| #   | Kya                                   | Kab tak           |
-| --- | ------------------------------------- | ----------------- |
-| C-2 | Payload CMS spike (2 din)             | Phase 1 se pehle  |
-| Q-3 | Field DSL me `matrix` + `table` types | Phase 5c se pehle |
+| #   | Kya                                   | Kab tak                                     |
+| --- | ------------------------------------- | ------------------------------------------- |
+| Q-5 | SVG allow karein ya sanitize? (logo)  | Media se pehle — par kaam **rok nahi rahi** |
+| C-2 | Payload CMS spike (2 din)             | Phase 1 se pehle                            |
+| Q-2 | Enquiries — Phase 7b ya alag Phase 9? | Phase 7 se pehle                            |
+| Q-3 | Field DSL me `matrix` + `table` types | Phase 5c se pehle                           |
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

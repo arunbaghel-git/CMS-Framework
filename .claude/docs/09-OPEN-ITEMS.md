@@ -1,7 +1,8 @@
 # 09 — Open Items
 
-**Status:** Phase 0 chal raha hai (~95%). Users ka role-aware menu + Profile screen land
-ho chuke (D-37) — **231 tests passing**. Sirf Settings screens baaki.
+**Status:** Phase 0 lagbhag poora (~97%). Users ka role-aware menu + Profile (D-37) aur
+Settings — model + migration 005 + General screen (D-40) land ho chuke —
+**231 tests passing**. Phase 0 me sirf teen non-blocking item bache hain (neeche).
 **Last updated:** 21 Aug 2026
 
 ---
@@ -73,6 +74,47 @@ Result se D-01 se D-30 me se kuch badal sakti hain — isliye Phase 1 se pehle.
 
 ---
 
+### Q-5 · Media me SVG — allow karein ya sanitize?
+
+**Deadline:** Media ka upload path likhne se pehle
+**Kaam ko block NAHI karta** — neeche wajah
+
+Logo aksar SVG hota hai, par SVG ke andar `<script>` chal jaata hai aur wo **admin ke
+session me** chalta hai (`08-RISKS` ka documented trap: "Sanitize ya disallow").
+
+| Option       | Matlab                                                                      |
+| ------------ | --------------------------------------------------------------------------- |
+| SVG block    | Sabse surakshit. Client apna asli SVG logo nahi de payega — PNG dena padega |
+| SVG sanitize | Client SVG de sakta hai. ~aadha din extra + sanitizer ki dependency         |
+
+**Kaam kyun nahi rukta:** allowed-MIME list ek hi constant me rahegi (`packages/shared`),
+default me SVG **bahar**. Client ka jawab aaye to ek line badlegi.
+
+**Direction maayne rakhti hai:** block karke baad me allow karna kuch nahi todta; allow
+karke baad me block karna client ke **live logo** todta hai. Isliye default block.
+
+Client se poochhne wala sawaal: **unka logo kis format me hai?**
+
+---
+
+### Q-6 · Logo ka interim stub teen jagah teen tarah define hai
+
+**Deadline:** Media foundation ke saath khud khatam ho jaayega
+**Yahan sirf record ke liye** — ye faisla lene layak cheez nahi, batane layak hai
+
+```
+D-30 ki table                        →  "Field hai, abhi URL text box"
+apps/api/.../settings/model.js       →  logoMediaId (ek ID, URL nahi)
+apps/admin/.../settings/General.jsx  →  <MediaDrop> — disabled drop zone
+```
+
+**Kyun likha hai:** agar Media se pehle Slice 0 kiya jaata aur logo ko _kaam karta hua_
+chahiye hota, to `logoUrl` field add karni padti (migration 006) aur Phase 2 me hatani
+padti (migration 007) — **do migration, ek se bachne ke liye**. Yahi wajah hai ki Media
+Slice 0 se pehle aa rahi hai. Media land hote hi ye teenon apne aap ek ho jaate hain.
+
+---
+
 ### Q-2 · Enquiries — Phase 7b ya alag Phase 9?
 
 **Deadline:** Phase 7 se pehle
@@ -106,10 +148,49 @@ Spec 005 me add karne honge.
 ```
 1. ✅ Users menu role-aware + Profile screen      (D-37 — 21 Aug)
 2. ✅ Settings — model + migration + General      (D-40 — 21 Aug)
-3. Slice 0 — Header + Footer end-to-end          ← ABHI YAHAN   (1.5 hafte)
-4. C-2 — Payload spike (parallel me)             (2 din)
-5. Phase 1 — Content Core                        (3 hafte)
+3. Media ki foundation                           ← ABHI YAHAN   (~3-4 din)
+4. Settings ka Logo/Favicon live → General 100%  (chhota)
+5. Slice 0 — Header + Footer end-to-end          (1.5 hafte)
+6. C-2 — Payload spike (parallel me)             (2 din)
+7. Phase 1 — Content Core                        (3 hafte)
 ```
+
+### Media Phase 2 se aage kyun khisak rahi hai
+
+Plan me Media **Phase 2** hai (`05-BUILD-PLAN.md` §Phase 2, 1.5 hafte), aur wo Phase 1 ke
+baad aati hai. Aage isliye aa rahi hai ki **Logo/Favicon do jagah ke blocker hain** —
+General ka field, aur D-27 ke done-criteria ("Logo badlo, menu me item add karo, CTA ka
+text badlo"). Ye wahi precedent hai jo Users (D-34) aur Settings (D-40) pe laga: plan ka
+phase number apne aap koi rok nahi hai, scope client se aata hai (R15).
+
+**Poora Phase 2 nahi ban raha — sirf foundation (~40%):**
+
+```
+media collection + indexes (migration 006)
+storage driver abstraction     local abhi, s3 ka interface taiyaar
+upload hardening               magic-byte · size cap · filename sanitize · sharp pixel limit
+sharp variants + webp          "original kabhi serve mat karo"
+Settings me Logo/Favicon       drop zone bana hua hai, bas andar bharna hai
+```
+
+**Baad me (Phase 2 me hi):** library grid · folders · media trash · `mediaRefs` usage ·
+crop/rotate · replace · `<MediaPicker />` · S3 driver ka asli implementation.
+Yaani Phase 2 ka budget zyada nahi ghatta — sirf ~3-4 din aage khiskte hain.
+
+**Delete jaan-boojh kar nahi banega.** `mediaRefs` ke bina delete = live page pe toota
+hua image (`08-RISKS` ka documented trap). Delete hi na ho to wo trap lag hi nahi sakta.
+
+**Later phases se takrav nahi hoga, teen shart pe:**
+
+| Shart | Kyun |
+| --- | --- |
+| Collection ka shape `02-ARCHITECTURE.md` §3 se lo (`folderId`, `deletedAt` day-1 reserve) | Phase 2 me folders + trash ko migration nahi chahiye |
+| Index `{ siteId: 1, folderId: 1, createdAt: -1 }` abhi bana do | Wo pehle se documented hai (§3.2) |
+| Variant + URL scheme **aaj freeze** karo, `D-41` likh kar | Files us scheme pe upload ho gayin to badalna = stored URLs rewrite karna |
+
+`settings.logoMediaId` aur `faviconMediaId` **pehle se model me hain**, aur `/media` +
+`/uploads` pehle se reserved slugs hain — Settings ke schema ko haath lagane ki zaroorat
+nahi.
 
 **Phase 0 me kya bacha hai** (koi bhi kisi ko block nahi kar raha):
 
@@ -126,8 +207,8 @@ CI, Express boilerplate, Zod contract, migration runner, CSS architecture,
 **Phase 0 me kya baaki:** upar wali teen cheezein — teenon me se koi kuch block nahi
 kar rahi. Seed ka baaki hissa (content types, taxonomies, entries) Phase 1 pe hai.
 
-**Users me kya baaki:** bulk actions, email badalna, avatar, column sorting ka UI.
-Posts/Enquiries counts Phase 1 aur 7b pe block hain.
+**Users me kya baaki:** bulk actions, email badalna (SMTP), avatar (Media pe block).
+Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block hain.
 
 ---
 
@@ -135,7 +216,7 @@ Posts/Enquiries counts Phase 1 aur 7b pe block hain.
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **18 commits unpushed** hain. `origin/main` `0e328cb` pe khada hai (19 Aug wala
+- ⚠️ **23 commits unpushed** hain (total 31). `origin/main` `0e328cb` pe khada hai (19 Aug wala
   "Session state save karo") — repo khaali **nahi** hai, push pehle ho chuka tha.
   Aage bhi push **sirf permission pe**
 - ⚠️ **`apps/api/.env.example` me `REFRESH_TOKEN_TTL_REMEMBER=7d` add karna hai** aur

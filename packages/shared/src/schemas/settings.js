@@ -23,16 +23,12 @@ import { emailSchema } from './user.js'
 export const TIMEZONES = Object.freeze([
   'Asia/Kolkata',
   'UTC',
-  'Asia/Dubai',
-  'Asia/Singapore',
-  'Europe/London',
-  'America/New_York',
 ])
 
 /** Value wahi token hai jo formatting me jaata hai; label UI banata hai. */
 export const DATE_FORMATS = Object.freeze(['d MMM yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'])
 
-export const CURRENCIES = Object.freeze(['INR', 'USD', 'EUR', 'GBP'])
+export const CURRENCIES = Object.freeze(['INR', 'USD'])
 
 /** Homepage pe kya dikhe — static page ya latest posts. */
 export const FRONT_PAGE_TYPE = Object.freeze({ PAGE: 'page', POSTS: 'posts' })
