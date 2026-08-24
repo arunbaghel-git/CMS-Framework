@@ -34,7 +34,7 @@ const TIMEZONE_LABELS = {
   UTC: 'UTC',
 }
 
-const CURRENCY_LABELS = { INR: 'INR (₹)', USD: 'USD ($)', }
+const CURRENCY_LABELS = { INR: 'INR (₹)', USD: 'USD ($)' }
 
 export default function General() {
   const { can } = useAuth()
@@ -407,7 +407,8 @@ function Select({ id, label, value, options, labels, onChange }) {
  */
 function MediaDrop({ label, hint, media, uploading, onUpload, onClear }) {
   const inputRef = useRef(null)
-  const preview = media?.variants?.find((variant) => variant.key === 'thumb') ?? media?.variants?.[0]
+  const preview =
+    media?.variants?.find((variant) => variant.key === 'thumb') ?? media?.variants?.[0]
 
   return (
     <div className="field">

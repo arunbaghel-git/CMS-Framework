@@ -20,10 +20,7 @@ import { emailSchema } from './user.js'
  * nahi. Ye chhoti list dono jagah chalti hai — UI ka dropdown aur server ka validation.
  * Client ko aur chahiye to yahan add karo, do jagah nahi.
  */
-export const TIMEZONES = Object.freeze([
-  'Asia/Kolkata',
-  'UTC',
-])
+export const TIMEZONES = Object.freeze(['Asia/Kolkata', 'UTC'])
 
 /** Value wahi token hai jo formatting me jaata hai; label UI banata hai. */
 export const DATE_FORMATS = Object.freeze(['d MMM yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'])

@@ -53,9 +53,7 @@ describe('assertPixelLimit', () => {
   })
 
   it('missing dimensions reject karta hai', () => {
-    expect(() => assertPixelLimit({ width: 0, height: 100 }, 1_000_000)).toThrow(
-      /dimensions/,
-    )
+    expect(() => assertPixelLimit({ width: 0, height: 100 }, 1_000_000)).toThrow(/dimensions/)
   })
 })
 
@@ -97,10 +95,11 @@ describe('generateWebpVariants', () => {
   })
 
   it('pixel limit processing se pehle enforce karta hai', async () => {
-    await expect(generateWebpVariants(await image(120, 120, 'png'), { maxPixels: 10_000 })).rejects
-      .toMatchObject({
-        status: 400,
-        code: 'BAD_REQUEST',
-      })
+    await expect(
+      generateWebpVariants(await image(120, 120, 'png'), { maxPixels: 10_000 }),
+    ).rejects.toMatchObject({
+      status: 400,
+      code: 'BAD_REQUEST',
+    })
   })
 })

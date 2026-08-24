@@ -6,11 +6,11 @@ import * as controller from './controller.js'
 import { parseSingleMediaUpload } from './upload-middleware.js'
 
 /**
- * `/api/media` foundation.
+ * `/api/media` foundation — list, upload, ek item, aur metadata update.
  *
- * Upload, storage drivers, delete/trash/restore/purge, usage, folders, crop/rotate and
- * replace are intentionally not here yet (D-41). This route only exposes existing media
- * metadata once upload support starts creating records.
+ * Delete/trash/restore/purge, usage, folders, crop/rotate aur replace **jaan-boojh kar
+ * yahan nahi hain** (D-41 §7). Delete ka raasta `mediaRefs` ke bina live page pe toota
+ * hua image bana sakta hai, isliye wo route usage tracking ke saath hi khulega.
  */
 export const mediaRoutes = Router()
 
@@ -23,4 +23,9 @@ mediaRoutes.post(
   controller.create,
 )
 mediaRoutes.get('/:id', requireAuth, requirePermission(PERMISSION.MEDIA_READ), controller.getOne)
-mediaRoutes.patch('/:id', requireAuth, requirePermission(PERMISSION.MEDIA_UPDATE), controller.update)
+mediaRoutes.patch(
+  '/:id',
+  requireAuth,
+  requirePermission(PERMISSION.MEDIA_UPDATE),
+  controller.update,
+)

@@ -19,7 +19,10 @@ const MIME_EXTENSION = Object.freeze({
  */
 export function sanitizeFilename(filename) {
   const base = path.basename(String(filename || '').replaceAll('\\', '/'))
-  const ext = path.extname(base).toLowerCase().replace(/[^a-z0-9.]/g, '')
+  const ext = path
+    .extname(base)
+    .toLowerCase()
+    .replace(/[^a-z0-9.]/g, '')
   const rawName = base.slice(0, base.length - ext.length)
 
   const name = rawName

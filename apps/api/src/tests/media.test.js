@@ -174,9 +174,7 @@ describe('GET /api/media/:id', () => {
     expect(res.body.data.media).toMatchObject({
       id: String(media._id),
       alt: 'Beach view',
-      variants: expect.arrayContaining([
-        expect.objectContaining({ key: 'thumb', w: 300, h: 169 }),
-      ]),
+      variants: expect.arrayContaining([expect.objectContaining({ key: 'thumb', w: 300, h: 169 })]),
     })
   })
 

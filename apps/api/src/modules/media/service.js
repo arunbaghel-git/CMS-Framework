@@ -8,7 +8,8 @@ import { getStorageDriver } from './storage/index.js'
 import { validateUploadFile } from './upload-validation.js'
 
 /**
- * Public API shape for media metadata. Original files are not exposed (D-41).
+ * Media metadata ka public shape. Original file kabhi expose nahi hoti — bahar sirf
+ * variant URLs jaati hain (D-41 §1).
  *
  * @param {any} doc
  */
@@ -47,8 +48,14 @@ export function buildMediaVariantKey({ siteId, mediaId, date = new Date(), varia
 }
 
 /**
- * Upload orchestration service. HTTP multipart parsing is intentionally not here; future
- * route/middleware will pass bytes + declared metadata into this function.
+ * Upload ka orchestration — validate, variants banao, storage me likho, phir DB.
+ *
+ * Multipart parsing yahan **jaan-boojh kar nahi** hai; wo `upload-middleware.js` ka kaam
+ * hai. Service ko sirf bytes + declared metadata milte hain, taaki ye HTTP ke bina bhi
+ * test ho sake (R1).
+ *
+ * Koi variant likhne ke baad kuch fail ho to pehle likhi hui files wapas hata di jaati
+ * hain — warna storage me aisi files reh jaatin jinka koi DB record hi nahi.
  *
  * @param {{ filename: string, declaredMime: string, size: number, bytes: Buffer|Uint8Array, uploadedBy: string, alt?: string, title?: string, caption?: string }} input
  * @param {{ siteId?: string, storage?: any, maxUploadMb?: number, now?: Date }} [options]
@@ -165,7 +172,8 @@ export async function getMedia(id, siteId = DEFAULT_SITE_ID) {
 }
 
 /**
- * Metadata-only update. File changes belong to upload/replace/edit paths later.
+ * Sirf metadata update — alt, title, caption. File badalna replace/crop ka kaam hai, aur
+ * wo full Media phase me aayega (D-41 §7).
  *
  * @param {string} id
  * @param {{ alt?: string, title?: string, caption?: string }} input

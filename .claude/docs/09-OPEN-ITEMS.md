@@ -185,9 +185,12 @@ Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **23 commits unpushed** hain (total 31). `origin/main` `0e328cb` pe khada hai (19 Aug wala
-  "Session state save karo") — repo khaali **nahi** hai, push pehle ho chuka tha.
-  Aage bhi push **sirf permission pe**
+- ⚠️ **1 commit unpushed** hai (total 33). `origin/main` `a2b10ad` pe khada hai; local
+  HEAD `3c29b58` — Media foundation. Aage bhi push **sirf permission pe**
+- ⚠️ **CI ka pehla step `pnpm format:check` hai** (`.github/workflows/ci.yml`:
+  Format → Lint → Test → Build). `3c29b58` isi pe fail ho raha tha — 9 files prettier-dirty
+  thin, ab theek ho chuki hain. Push se pehle `pnpm format:check` **hamesha** chala lo,
+  warna CI pehle hi step pe red ho jaata hai
 - ⚠️ **`apps/api/.env.example` me `REFRESH_TOKEN_TTL_REMEMBER=7d` add karna hai** aur
   `REFRESH_TOKEN_TTL` ko `24h` karna hai. Var ka default code me hai isliye kuch tootega
   nahi, par example file batati nahi

@@ -4,11 +4,7 @@ import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { createStorageDriver } from './index.js'
-import {
-  assertSafeStorageKey,
-  createLocalStorageDriver,
-  resolveUploadDir,
-} from './local.js'
+import { assertSafeStorageKey, createLocalStorageDriver, resolveUploadDir } from './local.js'
 
 const TEST_ROOT = path.resolve(process.cwd(), 'apps/api/.test-uploads')
 

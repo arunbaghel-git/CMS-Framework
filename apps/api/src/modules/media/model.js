@@ -7,9 +7,8 @@ export const MEDIA_VARIANT_KEY = Object.freeze(['thumb', 'medium', 'large'])
 /**
  * `media` collection foundation (D-41).
  *
- * Upload/storage implementation abhi nahi hai. Ye model sirf metadata shape reserve
- * karta hai, taaki Logo/Favicon media IDs se wire ho sakein aur full Media phase me
- * folders/trash ke liye migration na chahiye.
+ * Shape aisa rakha hai ki full Media phase me folders aur trash ke liye migration na
+ * chahiye — `folderId` aur `deletedAt` day 1 se reserve hain, bhale unka UI abhi na ho.
  *
  * Indexes migration 006 me hain; production me Mongoose `autoIndex` off rahega.
  */

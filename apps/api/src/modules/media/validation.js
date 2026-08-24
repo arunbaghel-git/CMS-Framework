@@ -1,7 +1,8 @@
 import { z } from 'zod'
 
 /**
- * Query params validated before they reach Mongoose (R9).
+ * Har query param Mongoose tak pahunchne se **pehle** Zod se guzarta hai (R9) —
+ * `req.query` ko seedha query me spread karna NoSQL injection ka raasta hai.
  */
 export const listMediaQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

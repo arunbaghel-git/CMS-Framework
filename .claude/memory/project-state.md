@@ -213,11 +213,11 @@ email badalna (SMTP), avatar (Phase 2). Column sorting **ban chuki** hai.
 
 **Har section kitna ruka hua hai:**
 
-| Section    | Abhi kitna ban sakta hai | Kya rok raha hai                                          |
-| ---------- | ------------------------ | --------------------------------------------------------- |
-| Users      | ~95%                     | Posts/Enquiries count (Phase 1, 7b) · invite email (SMTP) |
+| Section    | Abhi kitna ban sakta hai | Kya rok raha hai                                                    |
+| ---------- | ------------------------ | ------------------------------------------------------------------- |
+| Users      | ~95%                     | Posts/Enquiries count (Phase 1, 7b) · invite email (SMTP)           |
 | Settings   | 100% current scope       | MediaPicker/fav icon dimensions later · Reading/Permalinks Phase 1+ |
-| Appearance | ~40%                     | Menu me Pages/Destinations chahiye (Phase 1 + 6)          |
+| Appearance | ~40%                     | Menu me Pages/Destinations chahiye (Phase 1 + 6)                    |
 
 ---
 
