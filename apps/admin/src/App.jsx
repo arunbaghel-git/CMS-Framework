@@ -11,6 +11,8 @@ import Login from './screens/Login.jsx'
 import NoAccess from './screens/NoAccess.jsx'
 import NotBuiltYet from './screens/NotBuiltYet.jsx'
 import Profile from './screens/Profile.jsx'
+import AppearanceFooter from './screens/appearance/Footer.jsx'
+import Menus from './screens/appearance/Menus.jsx'
 import General from './screens/settings/General.jsx'
 import DeleteUser from './screens/users/DeleteUser.jsx'
 import UserForm from './screens/users/UserForm.jsx'
@@ -117,6 +119,8 @@ const APP_ROUTES = [
   { path: '/users/:id/delete', element: <DeleteUser /> },
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
+  { path: '/appearance/menus', element: <Menus /> },
+  { path: '/appearance/footer', element: <AppearanceFooter /> },
 ]
 
 /** Har wo route jo sidebar me hai par abhi bana nahi. */
@@ -126,7 +130,12 @@ const PENDING_ROUTES = [
   { path: '/media/*', title: 'Media', phase: 'Phase 2' },
   { path: '/packages/*', title: 'Packages', phase: 'Phase 6' },
   { path: '/enquiries/*', title: 'Enquiries', phase: 'Phase 7b' },
-  { path: '/appearance/*', title: 'Appearance', phase: 'after Slice 0' },
+  /**
+   * Appearance ke bane hue do screens upar `APP_ROUTES` me hain. Ye splat sirf uske
+   * andar ke baaki raaston ke liye hai — Homepage Blocks aur Banners & Sliders, jo abhi
+   * sidebar me bhi nahi hain (`lib/nav.js`).
+   */
+  { path: '/appearance/*', title: 'Appearance', phase: 'Phase 5' },
   /**
    * `/settings` khud ab bana hua hai (upar `APP_ROUTES` me). Ye splat sirf uske andar
    * ke baaki screens ke liye hai — SEO, Email/SMTP, Integrations.

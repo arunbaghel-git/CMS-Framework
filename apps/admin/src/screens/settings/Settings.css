@@ -24,35 +24,6 @@ form fieldset {
   margin-bottom: 6px;
 }
 
-/* ============================================================
-   SETTINGS TABS  (screens/settings/SettingsTabs.jsx)
-   Source: admin-design.html, #settingsTabs
-   ============================================================ */
-.tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border-soft);
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.tabs a {
-  padding: 9px 15px;
-  color: var(--text-muted);
-  border: 1px solid transparent;
-  border-bottom: none;
-  font-size: 14px;
-  /* Border-bottom ke upar baithne ke liye — active tab usse juda hua dikhe */
-  margin-bottom: -1px;
-}
-.tabs a.on {
-  background: var(--surface);
-  border-color: var(--border-soft);
-  color: var(--text);
-  font-weight: 600;
-  border-radius: 3px 3px 0 0;
-  text-decoration: none;
-}
-
 /* Office Address — design me 70px min-height inline tha */
 .settings-address {
   min-height: 70px;

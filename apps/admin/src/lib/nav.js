@@ -76,14 +76,30 @@ export const NAV = [
     ],
   },
   { separator: true },
+  /**
+   * Appearance — Slice 0 ke liye **jaan-boojh kar chhota kiya gaya** (24 Aug, user ka
+   * instruction).
+   *
+   * Design ke tabs chaar hain — Menus · Homepage Blocks · Banners & Sliders · Footer.
+   * Abhi do hain: **Menus · Footer**.
+   *
+   * ⚠️ **Ye R15 se ek jaan-boojh kar liya gaya vichlan hai** — design se item hatana
+   * normally client ka faisla hai. Homepage Blocks aur Banners & Sliders isliye hataye
+   * gaye ki wo Phase 5/6 ki hain, aur unke `NotBuiltYet` links Appearance ko bhara hua
+   * dikha kar galat impression dete the. Wapas laana is array me do line jodna hai.
+   *
+   * **Ek teesra "Header" tab bhi tha — ab wo poora hat chuka hai** (24 Aug). Usme sirf
+   * header ka CTA button tha, aur wo ab **Appearance ▸ Menus ke left column me** hai.
+   * Wajah: Menus screen hi asal me header ki screen hai — Header location wahin assign
+   * hoti hai. Do field ke liye alag tab rakhna client ke liye ek aur jagah dhoondhna tha.
+   */
   {
     id: 'appearance',
     icon: '🎨',
     label: 'Appearance',
     children: [
-      { label: 'Menus', to: '/appearance/menus' },
-      { label: 'Homepage Blocks', to: '/appearance/homepage' },
-      { label: 'Banners & Sliders', to: '/appearance/banners' },
+      { label: 'Menus', to: '/appearance/menus', permission: PERMISSION.MENU_READ },
+      { label: 'Footer', to: '/appearance/footer', permission: PERMISSION.SETTINGS_READ },
     ],
   },
   /**
@@ -141,6 +157,11 @@ export const SETTINGS_TABS = NAV.find((item) => item.id === 'settings').children
   ({ label, to }) => ({ label, to }),
 )
 
+/** Appearance ke tabs — wahi ek list jo sidebar deti hai (R16). */
+export const APPEARANCE_TABS = NAV.find((item) => item.id === 'appearance').children.map(
+  ({ label, to }) => ({ label, to }),
+)
+
 /**
  * Route → permission.
  *
@@ -165,6 +186,13 @@ export const ROUTE_GUARDS = Object.freeze({
    * cheezein uske kaam ki hain), badalni nahi.
    */
   '/settings': PERMISSION.SETTINGS_READ,
+  /**
+   * Menus screen khud `menu.update` na hone pe form disable kar deti hai — `author` aur
+   * `contributor` menu **dekh** sakte hain (link banate waqt ye kaam ka hai), badal nahi.
+   */
+  '/appearance/menus': PERMISSION.MENU_READ,
+  /** Footer ke fields `settings` document me hain (spec 006 §7.2), isliye wahi permission. */
+  '/appearance/footer': PERMISSION.SETTINGS_READ,
 })
 
 /** @param {string} path route ka pattern, waisa hi jaisa `<Route path>` me hai */

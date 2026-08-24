@@ -1,0 +1,185 @@
+/* ============================================================
+   APPEARANCE  (screens/appearance/)
+   Source: admin-design.html, #s-appearance
+
+   Yahan sirf wahi hai jo **is screen ka** hai. `.tabs` aur `.day` shared primitives hain
+   aur `styles/primitives.css` me rehte hain — wahi sabak jo `.featured-drop` pe mila tha.
+   ============================================================ */
+
+/* ---------- grid ka rukh ulta hai ----------
+   `.edit-grid` primitive `minmax(0,1fr) 280px` hai — content baayen, sidebar daayen (wo
+   entry editor ka layout hai). Appearance me **ulta** chahiye: patla "Add Menu Items"
+   baayen, aur menu ki structure ko poori jagah.
+
+   Design isi ko inline style se karta hai (`admin-design.html:1095`
+   `style="grid-template-columns:300px minmax(0,1fr)"`).
+
+   ⚠️ Yahan **`.edit-grid.appearance-grid`** likhna zaroori hai, akela `.appearance-grid`
+   nahi. Dono ki specificity barabar hoti hai (0,1,0) aur phir jeet CSS ke load order se
+   tay hoti — jo component CSS ke saath bharosemand nahi hai. Pehle yahi hua tha: panel
+   ulte chaude ho gaye the.
+
+   Breakpoint bhi wahi 1100px rakha hai jo primitive ka hai — do alag breakpoint rakhne se
+   beech ki widths pe dono rules ladte. */
+.edit-grid.appearance-grid {
+  grid-template-columns: 300px minmax(0, 1fr);
+}
+
+@media (max-width: 1100px) {
+  .edit-grid.appearance-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Type badge ("Custom link", "Mega menu") do line me nahi tootni chahiye */
+.day-head .muted {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ---------- panel head me teen cheezein ----------
+   Design ke panel-head me do hi hote hain (title + menu picker). Yahan ek "Create menu"
+   button bhi hai, isliye ye rule yahan hai — shared primitive me nahi, warna har screen
+   ka head wrap karne lagta. */
+.appearance-grid .panel-head {
+  flex-wrap: wrap;
+}
+
+.appearance-grid .panel-head h2 {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* ---------- drag-drop se reorder ----------
+   Har level pe — items, columns, groups, links. Pehle ↑↓ buttons the (spec 006 Q-C);
+   client ne 24 Aug ko drag maanga. Data me kuch nahi badla: order array ki position hai. */
+
+/* Handle hi draggable hai, poori row nahi — warna rows ke andar wale inputs me text
+   select karna kai browsers me toot jaata hai. */
+.appearance-grid .grip {
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+  padding: 0 2px;
+  border-radius: 3px;
+}
+
+.appearance-grid .grip:active {
+  cursor: grabbing;
+}
+
+/* Handle keyboard se bhi chalta hai (↑/↓) — focus dikhna zaroori hai */
+.appearance-grid .grip:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* Jo row uth rahi hai */
+.appearance-grid [data-dragging] {
+  opacity: 0.45;
+}
+
+/* Jahan girne wali hai — ek line kaafi hai, poora box highlight karne se list kood-ti hai */
+.appearance-grid [data-dragover] {
+  box-shadow: inset 0 2px 0 0 var(--primary);
+}
+
+.mega-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.mega-actions .btn {
+  padding: 2px 7px;
+  line-height: 1.4;
+}
+
+/* ---------- ek link ki row ----------
+   Pehla track drag handle ka hai, aakhri remove button ka — beech me teen inputs. */
+.mega-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.2fr) minmax(0, 1.4fr) minmax(0, 0.8fr) auto;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+@media (max-width: 900px) {
+  .mega-link {
+    grid-template-columns: auto 1fr;
+  }
+
+  /* Chhoti screen pe inputs poori chaudai lein, handle apni line pe na chala jaye */
+  .mega-link .inp {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- dropdown ke sub items ----------
+   Indent design ke `margin-left:24px` se aata hai — wahi jo frozen design ke
+   "sub item" rows pe hai. Depth inline style se aati hai, kyunki wo data se banti hai. */
+.menu-child {
+  border-left: 2px solid var(--border-soft);
+  padding-left: 10px;
+  margin-bottom: 6px;
+}
+
+.menu-subadd {
+  margin-bottom: 8px;
+}
+
+/* ---------- mega builder ---------- */
+.mega-builder {
+  border-top: 1px solid var(--border-soft);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+/* ---------- header ke buttons ka repeater ----------
+   Panel patla hai (300px), isliye har button ki teen line: label+delete, URL, aur
+   class+target+toggle. Ek row me sab thoosne se har input 60px ka reh jaata. */
+.hdr-btn {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 8px;
+  margin-bottom: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.hdr-btn__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hdr-btn__row .inp,
+.hdr-btn__row .sel {
+  min-width: 0;
+  flex: 1;
+}
+
+.hdr-btn__row .inline-lbl {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ---------- "Add menu items" ke sources ----------
+   WordPress ke isi panel jaisa: har source ek collapsible row. Accordion wahi `.day`
+   primitive hai jo menu items use karte hain — koi naya visual nahi.
+
+   `.day` ka default `margin-bottom` yahan kam hai: WordPress me ye rows ek doosre se
+   chipki hui dikhti hain, aur is patle panel me 10px ka gap bahut lagta hai. */
+.menu-sources .day {
+  margin-bottom: 6px;
+}
+
+.menu-sources .day:last-child {
+  margin-bottom: 0;
+}
+
+/* Sources reorder nahi hote — inke head me grip nahi hai, sirf label aur caret */
+.menu-sources .day-head .dt {
+  font-weight: 600;
+}

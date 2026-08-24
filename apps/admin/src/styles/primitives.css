@@ -513,3 +513,77 @@ tr:hover .row-actions {
 .notice.err {
   border-left-color: var(--danger);
 }
+
+/* ============================================================
+   TABS
+   Source: admin-design.html, .tabs
+
+   Settings.css se yahan aayi kyunki ab Appearance bhi isse use karta hai — wahi wajah
+   jo `.featured-drop` pe thi: shared primitive kisi ek screen ki file me rakhna use
+   doosri screen se chhupa deta hai, aur phir wo dobara likhi jaati hai.
+   ============================================================ */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.tabs a {
+  padding: 9px 15px;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  border-bottom: none;
+  font-size: 14px;
+  /* Border-bottom ke upar baithne ke liye — active tab usse juda hua dikhe */
+  margin-bottom: -1px;
+}
+.tabs a.on {
+  background: var(--surface);
+  border-color: var(--border-soft);
+  color: var(--text);
+  font-weight: 600;
+  border-radius: 3px 3px 0 0;
+  text-decoration: none;
+}
+
+/* ============================================================
+   ACCORDION  (.day)
+   Source: admin-design.html — "accordions (itinerary / faq / menu items)"
+
+   Design ne khud ise **menu items** ke liye likha hai, isliye Appearance ▸ Menus isi
+   pe bani hai — koi naya visual invent nahi hua (D-43, spec 006 §6.1).
+   ============================================================ */
+.day {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  background: var(--surface);
+}
+.day-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: #f6f7f7;
+  border-bottom: 1px solid var(--border-soft);
+  cursor: pointer;
+}
+.day-head .grip {
+  color: #a7aaad;
+  cursor: grab;
+}
+.day-head .dt {
+  flex: 1;
+  font-weight: 600;
+}
+.day-body {
+  padding: 12px;
+}
+.day.closed .day-body {
+  display: none;
+}
+/* Band accordion ka head ab last element hai — uski border neeche nahi honi chahiye */
+.day.closed .day-head {
+  border-bottom: 0;
+}
