@@ -359,30 +359,50 @@ code nahi. Usme 3-4 choices client/user se poochhni padengi (footer columns kaha
 
 ---
 
-## ⚠️ Kal sabse pehle — do cheezein
+## ⚠️ Kal sabse pehle — ek hi kaam, teen step
 
-### 1. `apps/web/.next` corrupt hai (developer ki galti, 24 Aug)
-
-Chalte hue dev server ke saath `next build` chala diya gaya tha — dono wahi `.next` folder
-use karte hain. Uske baad ek doosra `next dev` bhi usi project pe chala. Nateeja: web 500
-aur phir 404 dene laga, CSS bina HTML aata raha.
+**Sab kuch commit ho chuka hai** (working tree clean, 14 commits unpushed). Bacha hua kaam
+sirf itna hai: `pnpm build` verify karo, phir push.
 
 ```bash
-# web dev server band karo (Ctrl+C), phir:
+# 1. web dev server band karo (Ctrl+C)
+
+# 2. corrupt build cache saaf karo — wajah neeche
 rm -rf apps/web/.next
-pnpm dev:web
+
+# 3. wahi chalao jo CI ka aakhri step hai, phir push
+pnpm build && git push
 ```
 
-`.next` sirf build cache hai — usme koi kaam nahi hai.
+### `.next` corrupt kyun hai — developer ki galti (24 Aug)
 
-**Rule aage ke liye:** jab tak user ke dev server chal rahe hon, `next build` mat chalao aur
-apna doosra dev server mat uthao. Verify karna ho to API/DB level pe karo.
+User ke chalte hue dev server ke saath `next build` chala diya gaya tha. `next build` aur
+`next dev` **wahi `.next` folder** use karte hain. Uske baad ek doosra `next dev` bhi usi
+project pe chala. Nateeja: web pe CSS bina HTML, phir 500, phir 404.
 
-### 2. Sab kuch uncommitted hai
+`.next` sirf build cache hai — usme koi kaam nahi hai, dobara ban jaayega.
 
-**40 files** (26 modified, 14 new) — poora Slice 0 aur uske saare iterations. Upar se **7
-purane commits bhi unpushed** hain. User ne commit ya push kabhi bola nahi, isliye kuch nahi
-kiya gaya. Ye ek asli risk hai — pehle isi ki baat karo.
+**Rule aage ke liye:** jab tak user ke dev server chal rahe hon, na `pnpm build` chalao na
+apna doosra dev server uthao. Verify karna ho to API/DB level pe karo — wo unke servers ko
+chhoota hi nahi.
+
+### `pnpm build` kya pakadta hai
+
+Sirf do workspace sach me build hote hain — `apps/admin` (`vite build`) aur `apps/web`
+(`next build`); baaki teen `echo "no build step"` hain. Ye wo compile errors pakadta hai jo
+tests nahi pakadte: JSX typo, galat import, undefined variable. Aur `next build` `/` ko
+prerender karta hai, yaani server components sach me chala kar dekhta hai.
+
+⚠️ `apps/admin/dist/` git me commit hota hai — build ke baad `git status` dekh lena, warna
+ek naya uncommitted change bacha reh jaayega.
+
+### Uske baad — Phase 1 se pehle
+
+1. **A-5** — `apps/web/.env` (`API_URL` + `REVALIDATE_SECRET`). Iske bina **production** me
+   cache kabhi saaf nahi hoga. Dev me farak nahi padta, isliye ye chup-chaap chhoot sakta hai.
+2. **Q-7** — client se poochho: logo na ho to header me kya dikhe?
+3. **spec 006 §11** — mere 6 resolved decisions ka review baaki hai.
+4. **C-2** — Payload spike (2 din), Phase 1 land hote hi window band.
 
 ---
 
