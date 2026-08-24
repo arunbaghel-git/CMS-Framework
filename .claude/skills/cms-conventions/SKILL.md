@@ -1,6 +1,6 @@
 ---
 name: cms-conventions
-description: Is MERN CMS project me koi bhi code likhne, edit karne ya review karne se pehle load karo. Isme 17 non-negotiable rules, module shape, naming conventions, aur wo galtiyaan hain jo is codebase me chup-chaap fail hoti hain. Trigger — koi bhi file banana/badalna apps/ ya packages/ me, PR review, ya "ye sahi tareeka hai?" jaisa sawaal.
+description: Is MERN CMS project me koi bhi code likhne, edit karne ya review karne se pehle load karo. Isme 18 non-negotiable rules, module shape, naming conventions, aur wo galtiyaan hain jo is codebase me chup-chaap fail hoti hain. Trigger — koi bhi file banana/badalna apps/ ya packages/ me, PR review, ya "ye sahi tareeka hai?" jaisa sawaal.
 ---
 
 # CMS Conventions

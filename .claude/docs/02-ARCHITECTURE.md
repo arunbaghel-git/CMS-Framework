@@ -121,8 +121,17 @@ media          * siteId, filename, mime, size, width, height, folderId, deletedA
                  variants[{ key, url, w, h }], alt, title, caption, uploadedBy
 mediaRefs      * siteId, mediaId, entityType(entry|settings|menu), entityId, field
 mediaFolders   * siteId, name, parentId
-menus          * siteId, key, name, items[]
-menuLocations  * siteId, location(header|footer|…), menuId
+menus          * siteId, locale, key, name, version, deletedAt,
+                 items[{ id, label, link, className, menuType,
+                         children[],                      menuType=dropdown, max depth 3
+                         mega{ layout, columns, className,
+                               columns[{ className, groups[{ heading, link,
+                                                             className, links[] }] }],
+                               cta{ text, buttonLabel, buttonUrl, className } } }]
+                 poora contract → specs/006-menu-contract.md (D-43)
+menuLocations  * siteId, locale, location, menuId
+                 location theme declare karta hai, core enum nahi (D-17).
+                 Slice 0: header · footerColumn1..4. `mobile` NAHI (D-43)
 templates      * siteId, name, type(page|post|archive|single|404|search),
                  regions{header,footer}, layout, isDefault
 patterns       * siteId, name, kind(pattern|synced), blocks[], category
@@ -177,7 +186,9 @@ entries:   { searchText: "text" }                          ← ek hi text index 
 media:     { siteId: 1, folderId: 1, createdAt: -1 }
 mediaRefs: { siteId: 1, mediaId: 1 }
 redirects: { siteId: 1, from: 1 }                          unique
-menus:     { siteId: 1, key: 1 }                           unique
+menus:         { siteId: 1, locale: 1, key: 1 }            unique   ← locale D-43 me juda
+menus:         { siteId: 1, deletedAt: 1, updatedAt: -1 }
+menuLocations: { siteId: 1, locale: 1, location: 1 }       unique
 revisions: { entryId: 1, createdAt: -1 }
 refreshTokens: { jti: 1 } unique · { userId: 1 } · { expiresAt: 1 } TTL
 submissions:   { expiresAt: 1 } TTL

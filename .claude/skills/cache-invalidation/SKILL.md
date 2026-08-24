@@ -64,7 +64,13 @@ const INVALIDATION_MAP = {
   'entry.trash': (entry) => [
     /* same as publish */
   ],
-  'menu.update': (menu) => [`menu:${menu.location}`],
+  // Location menu pe NAHI hai — wo `menuLocations` ka assignment hai, aur ek menu KAI
+  // locations pe ho sakta hai. Sirf ek tag saaf karne ka nateeja: footer badla, header
+  // purana dikhta raha (D-43).
+  'menu.update': (menu) => locationsOf(menu.id).map((l) => `menu:${l}`),
+  'menu.delete': (menu) => locationsOf(menu.id).map((l) => `menu:${l}`),
+  // Assignment badle to PURANI aur NAYI dono stale hoti hain
+  'location.update': (prev, next) => [`menu:${prev}`, `menu:${next}`],
   'settings.update': () => ['settings', 'sitemap', 'feed'],
   'taxonomy.update': (tax) => [`tax:${tax._id}`, `type:${tax.appliesTo}`],
   'template.update': (tpl) => [`template:${tpl._id}`, `type:${tpl.type}`],

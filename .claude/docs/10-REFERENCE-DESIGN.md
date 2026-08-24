@@ -116,8 +116,18 @@ Ye ek **simple nested tree** hai. Isse mega-menu nahi banta, kyunki:
 `linkType: "none"` se group headings ban jaayenge, aur `menuType` se theme decide
 karega ki simple dropdown render kare ya mega panel.
 
-> **Ye Slice 0 ka faisla hai** — menu model wahin ban raha hai. Baad me badalna
-> matlab menu data migrate karna.
+> ⚠️ **Ye suggested fix SUPERSEDED hai — [`specs/006-menu-contract.md`](../specs/006-menu-contract.md) + D-43 dekho.**
+>
+> Client ke asli behaviour reference (`home-nav-v3.html`) ke against ye kaafi nahi nikla:
+>
+> 1. **Ek column me kai groups** — flat `children[]` me ye sirf depth-convention se banta,
+>    aur tab "ek group wala column" aur "plain dropdown" ek jaise dikhte.
+> 2. **Group ki heading clickable hai** — `linkType: "none"` ka matlab hi "link nahi" hai,
+>    wo case ban hi nahi sakta tha.
+> 3. **Width aur column count do alag axes hain** — yahan sirf ek `columns` number tha.
+>
+> Asli shape: `mega{ layout, columnCount, columns[] → groups[] → links[], cta? }`.
+> `linkType: "none"` ki zaroorat khatam ho gayi.
 
 ---
 
@@ -202,14 +212,18 @@ akela 8 sections cover kar leta hai.
 
 | # | Kya | Kahan | Kab |
 |---|---|---|---|
-| 1 | Menu model me `menuType` + `linkType: "none"` + `columns` | `02-ARCHITECTURE.md` §3 | **Slice 0 se pehle** |
+| 1 | ✅ **Ho gaya** — menu ka poora typed contract (spec 006, D-43). Suggested fix superseded, §3 dekho | `02-ARCHITECTURE.md` §3 | Slice 0 |
 | 2 | Header settings: CTA button, badge, support line | Slice 0 scope | Slice 0 |
 | 3 | Sticky mobile CTA bar (phone, WhatsApp, quote) | Slice 0 scope | Slice 0 |
 | 4 | `postList` block ko Phase 5b me laao (Phase 6 se pehle) | `05-BUILD-PLAN.md` | Phase 5 |
 | 5 | Phase 5b ki block list update — upar wali list se | `05-BUILD-PLAN.md` | Phase 5 |
 | 6 | `hasArchive: false` wale content types support karo | Phase 6 | Phase 6 |
 
-Point 1 sabse urgent hai — menu model Slice 0 me hi ban raha hai.
+Point 1 **poora ho chuka hai** — menu ka contract spec 006 me freeze hai aur D-43 me record.
+
+**Point 2 aur 3 (header ka awards badge, support line, sticky mobile CTA bar) Slice 0 me
+JAAN-BOOJH KAR nahi hain.** Ye is doc ke *proposals* hain, koi approved decision nahi, aur
+teenon Andaman-specific hain. Client maange to alag decision se aayenge.
 
 ---
 

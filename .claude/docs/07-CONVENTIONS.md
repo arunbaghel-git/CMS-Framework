@@ -357,3 +357,33 @@ Code badle to doc bhi badle — **usi PR me**:
 9. **CSS plain rahegi** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28).
    Shared styles `styles/` me, component ki apni CSS uske saath. Har component ka
    class prefix zaroori (`ab-`, `menu-`, `blk-`) kyunki classes global hain.
+
+### R18 · `className` sirf presentation hai — behaviour kabhi nahi
+
+Menu, block ya kisi bhi structured record pe custom CSS class **rakhi ja sakti hai**, par
+usse **kabhi** ye decide nahi hoga ki cheez render kaise ho.
+
+```js
+// ❌ kabhi nahi
+if (item.className.includes('mega-wide')) renderMega(6)
+const cols = item.className.match(/menu-(\d)-columns/)?.[1]
+
+// ✅ hamesha
+if (item.menuType === 'mega') renderMega(item.mega.layout, item.mega.columns)
+```
+
+**Kyun ye rule likhna pada:** client ke behaviour reference me `.mega--gl2` purely
+presentational hai, par `.mega--full` **do kaam** kar rahi hai — width aur ek `:has()`
+positioning hook. Ek class ka structural kaam karna wahi jagah hai jahan se "class parse
+karke behaviour nikaalo" shuru hota hai. Uske baad client ek class rename karta hai aur
+site chup-chaap toot jaati hai — koi error nahi, sirf galat layout.
+
+**Rule ka poora shape:**
+
+| Kya | Kahan se |
+| --- | --- |
+| Behaviour, layout, structure | **Structured field** — `menuType`, `layout`, `columns`, `target` |
+| Rang, spacing, font, hover, ek-off tweak | `className` |
+
+Iska ek test hona chahiye jo assert kare ki `className` badalne se render **nahi** badalta
+(D-43, spec 006 §10).

@@ -324,6 +324,11 @@ warna admin ek click me 400 entries ka data uda dega.
 **Decision:** **Nahi.** Jitne chaho menus banao; theme `location` declare kare
 (`header`, `footer`, `mobile`); assignment alag `menuLocations` collection me.
 
+> ⚠️ **Superseded in part by D-43** — `mobile` ab ek assignable location **nahi** hai.
+> Mobile wahi menu render karta hai jo `header` pe assigned hai; do alag content sets
+> hamesha drift karte hain. D-17 ka baaki hissa — menus aur locations alag, jitne chaho
+> menus, aur item pe `target`/`cssClass` — waisa hi hai.
+
 **Kyun:** Fixed keys ka matlab tha ki client ko doosra footer menu chahiye to **code
 change** karna padega — aur ye framework ke apne "no code per client" rule ko hi tod
 deta hai.
@@ -1458,3 +1463,88 @@ MediaPicker aane pe ye poora raasta phenkna padta.
   Settings ke har read pe join laata, jabki 99% baar sirf id chahiye.
 - **Replace pe purana media turant delete** — bina `mediaRefs` ke ye maan lena hai ki wo
   media kahin aur use nahi ho rahi. Wahi assumption Phase 5 me blocks ke saath tootegi.
+
+---
+
+## D-43 · Menu ka data contract — Columns → Groups → Links, aur className kabhi behaviour nahi
+
+**Context:** Slice 0 (D-27) ka pehla kaam menu model hai. `02-ARCHITECTURE.md` §3 me
+`menus` ek line thi — `siteId, key, name, items[]` — aur **`items[]` ka andar ka shape
+kahin define nahi tha**. `10-REFERENCE-DESIGN.md` §3 ne ek fix suggest kiya tha (flat
+`children[]` + `menuType` + `linkType: "none"` + `columns`). Client ne ek asli behaviour
+reference diya (`home-nav-v3.html`) jisme wo suggested fix **kaafi nahi nikla**.
+
+**Decision:** Poora typed menu contract — **[`specs/006-menu-contract.md`](../specs/006-menu-contract.md)**.
+Mukhya baatein:
+
+```
+item        menuType: 'link' | 'dropdown' | 'mega'      ← discriminated, ek menu me mixed
+dropdown    children[], max depth 3 (top → child → grandchild)
+mega        layout (sm|md|wide|full)  +  columns (2..6)     ← DO ALAG properties
+            columns[] → column → groups[] → group → links[]
+            group.heading? + group.link?  → heading clickable ho sakti hai
+            cta? { text, buttonLabel, buttonUrl, className? }   ← optional
+className   item · link · mega · column · group — SIRF presentation (R18)
+```
+
+**Kyun suggested fix kaafi nahi tha** (teenon behaviour reference se pakde gaye):
+
+1. **Ek column me kai groups.** Reference ke Travel Guide ka column 4 me do groups hain
+   ("Honeymoon & Weddings" aur "Group & Corporate"), Activities ke har column me 2-3.
+   Flat `children[]` me ye sirf depth-convention se banta — aur tab "ek group wala column"
+   aur "plain dropdown" bilkul ek jaise dikhte, renderer ko **guess** karna padta.
+2. **Group ki heading clickable hai.** Reference me har heading `<a class="gl" href>` hai.
+   `linkType: "none"` ka matlab hi hai "link nahi" — wo case ban hi nahi sakta tha.
+3. **Width aur column count do alag axes hain.** Reference me `.mega--full/--wide/--md/--sm`
+   positioning+width karti hain aur `.mega__cols--2/--3/--4/--6` grid count. Suggested fix
+   me sirf ek `columns` number tha.
+
+**Nateeja — jo aur tay hua:**
+
+| # | Faisla |
+| --- | --- |
+| **Mixed types** | Ek hi menu me `link` · `dropdown` · `mega` saath rah sakte hain |
+| **Dropdown depth** | Max 3. **Imaandari se: iska evidence kisi reference me nahi hai** — frozen design ek indent level dikhata hai, behaviour reference me dropdown hai hi nahi. Ye naya faisla hai |
+| **Grandchild ka visual** | Desktop pe right-side flyout, mobile pe nested accordion. Pure CSS/JSX — badla to data change zero |
+| **Columns 2-6** | `5` bhi, chahe behaviour reference ki CSS me `--5` na ho. **Theme ko 2 se 6 sab ship karni hogi** |
+| **layout × columns** | Compatibility **validation** hai, hint nahi — `MIN_COLUMN_WIDTH = 160px` se derived. `sm`→2 · `md`→2,3,4 · `full`/`wide`→2..6. CMS admin se jaan-boojh kar toota layout nahi banwata |
+| **Order** | Array ki position hi order hai — **koi `order` field nahi**. Isliye baad me nested drag-drop pure UI change hoga, migration zero |
+| **Mobile** | Wahi menu data, wahi endpoint. **Koi separate mobile menu nahi** |
+| **Mega ka CTA mobile pe** | Us item ke accordion ke bottom pe **dikhega**. Behaviour reference isko mobile me drop karta hai — ye jaan-boojh kar liya gaya divergence hai |
+| **Footer** | Wahi generic menu system (D-17). Footer column ki heading `menus.name` se aati hai — koi naya field nahi |
+| **Locations** | `header` · `footerColumn1..4`. Generic naam — `footerExplore` jaise content-specific naam ek travel site ke hain, framework ke nahi |
+
+**D-17 partially superseded:** D-17 `mobile` ko ek assignable location batata hai. Ab wo
+nahi hai — do content sets hamesha drift karte hain. D-17 ka baaki hissa (menus aur
+locations alag, jitne chaho menus) **jaisa tha waisa hai**.
+
+**D-14 ka Slice 0 exception:** D-14 kehta hai tag taxonomy Phase 3 me design hogi. Slice 0
+ko `menu:{location}` **abhi** chahiye. Saath me `cache-invalidation` skill ke dependency
+map me ek bug bhi theek hua — wo `menu.location` padhta tha, par location menu pe hai hi
+nahi, wo `menuLocations` ka assignment hai aur ek menu **kai** locations pe ho sakta hai.
+
+**D-27 ka scope badha:** mega builder ke saath Slice 0 ~1.5 hafte se **~2.5 hafte** ho
+jaata hai. Ye chhupaya nahi ja raha — `05-BUILD-PLAN.md` me revise ho chuka hai. Wajah:
+client ka behaviour reference mega-menu heavy hai, aur data model aaj freeze karna hi
+sasta hai (baad me = 15 instances pe menu data migrate).
+
+**`locale` ek correction hai:** `02-ARCHITECTURE.md` §3.3 me `menus: { siteId, key } unique`
+likha tha. §3.1 khud `locale` ko day-1 reserve batata hai, aur `schema-change` skill isi
+exact case ko naam se bulaati hai. Sahi index `{ siteId, locale, key }` hai.
+
+**Reject kiya:**
+
+- **Flat `children[]` + `linkType: "none"`** — upar wali teen wajah.
+- **Uniform tree with `nodeType`** (`item|column|group|link`) — frozen design ke single
+  drag-list se behtar match karta, par invalid states representable rehte (mega ke bahar
+  column, depth-4 link). Storage typed hai aur editor phir bhi indented list — dono mil gaye.
+- **`className` se behaviour infer karna** (`mega-menu menu-6-columns mega-wide`) — R18.
+  Reference khud proof hai: `mega--gl2` purely presentational hai, aur `mega--full` do kaam
+  kar rahi hai (positioning hook + width). Parse karne wala implementation dono ko structure
+  samajh baithta.
+- **Alag mobile menu / `mobile` location** — do content sets hamesha drift karte hain.
+- **Mega builder ek modal me** — frozen design me modal/drawer primitive hai hi nahi;
+  banana R15 todna hota.
+- **Footer ke liye alag data model** — menus + locations pehle se generic hain (D-17).
+- **`social` ke liye naya repeatable field** — `settings.social` pehle se hai
+  (`SOCIAL_KEYS` frozen). Naya banane se do social sources ban jaate.

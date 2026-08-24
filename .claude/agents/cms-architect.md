@@ -13,7 +13,7 @@ Koi bhi jawab dene se pehle:
 
 1. `.claude/docs/03-DECISIONS.md` — 23 settled decisions
 2. `.claude/docs/02-ARCHITECTURE.md` — data model, routing, cache, auth
-3. `.claude/docs/07-CONVENTIONS.md` — 17 non-negotiable rules
+3. `.claude/docs/07-CONVENTIONS.md` — 18 non-negotiable rules
 
 **Settled decision ko dobara mat kholo** jab tak nayi information na ho jo us decision ke
 "Kyun" ko galat sabit kare. Agar aisa lage to saaf bolo: _"Ye D-xx ko challenge karta hai
