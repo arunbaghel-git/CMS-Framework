@@ -45,7 +45,7 @@ permission string list ✅ · env schema ✅ · seed definition ✅ ·
 
 ---
 
-## Slice 0 — Header + Footer, end-to-end (~1.5 hafte)
+## Slice 0 — Header + Footer, end-to-end (~2.5 hafte)
 
 **Phase 0 ke baad, Phase 1 se pehle.** Ye ek patli vertical slice hai jo poora pipeline
 ek baar verify karti hai — admin se lekar live site tak. Page builder isme **nahi** banega.
@@ -61,9 +61,11 @@ asli API data se, dummy se nahi"_.
 **Admin me (minimal config screens)**
 
 - Logo upload + site name
-- Navigation — menu items add/reorder/nest (drag-drop)
+- Navigation — menu items add/reorder/nest (drag-drop), aur **mega-menu builder**
+  (Columns → Groups → Links + CTA) — D-43, spec 006
 - Header CTA button (label + link)
-- Footer columns — links
+- Footer columns — **menus hi hain** (D-43), Appearance ▸ Menus se; Appearance ▸ Footer me
+  sirf social links + copyright
 - Social links
 - Copyright text
 - Save aur publish
@@ -71,7 +73,7 @@ asli API data se, dummy se nahi"_.
 **API**
 
 - `settings` — admin write + public read
-- `menus` + `menuLocations` — admin write + public read
+- `menus` + `menuLocations` — admin write + public read (typed contract, spec 006)
 - Revalidate webhook (shared secret ke saath)
 
 **Public site**

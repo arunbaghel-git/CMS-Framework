@@ -233,6 +233,87 @@ doosra footer menu chahiye to code change karna pade.
 
 **CSS class per item** — nav me "Book Now" button isi se banta hai.
 
+> ⚠️ **Upar wale wireframe ka "Link type [Entry ▾]" abhi UI me nahi hai** (24 Aug).
+>
+> Data ka field `link.type` maujood hai (`'entry' | 'url' | 'taxonomy'`) aur server
+> abhi sirf `url` accept karta hai — `entries` module Phase 1 me aayega. Tab tak wo
+> dropdown hamesha-disabled rehta aur kisi state se bind nahi tha, isliye hata diya gaya:
+> client use click karta aur kuch na hota.
+>
+> Phase 1 me yahan **asli** control banega, jo `item.link.type` se bind hoga aur entry/
+> taxonomy picker kholega. Tab ye wireframe sach ho jaayega.
+**Par CSS class se behaviour kabhi tay nahi hota (R18)** — layout, columns aur menu type
+sab structured fields hain.
+
+### 6.1 Menu item ke teen type (D-43, spec 006)
+
+Har top-level item pe `menuType` hai — **ek hi menu me teenon mix ho sakte hain**:
+
+```
+Simple link   label + URL, bas
+Dropdown      + sub items, max depth 3 (top → child → grandchild)
+Mega menu     + layout (sm|md|wide|full) + columnCount (2..6)
+              + Columns → Groups → Links   (ek column me kai groups)
+              + optional CTA row
+```
+
+Item ka `.day-body` khulne pe **progressive** hota hai: Simple pe do field, Dropdown pe
+sub items ki list, Mega pe inline builder. Non-technical client ko mega ki complexity
+tabhi dikhti hai jab wo mega chune.
+
+**Mega builder modal nahi hai** — frozen design me modal/drawer primitive hai hi nahi.
+Wo mega item ke apne `.day-body` ke andar nested `.day` accordions se banta hai (wahi
+primitive jise design khud "menu items" ke liye likhta hai).
+
+**Reorder:** **har level pe drag-drop**, design ke `.grip` handle se — top-level items,
+mega ke columns, groups aur links sab. Handle focus karke ↑/↓ se bhi hota hai (drag-drop
+akela keyboard se chalta hi nahi). Order data me array ki position
+hai, isliye wo pure UI change hoga.
+
+### 6.2 Theme locations
+
+```
+Header · Footer Column 1..4        ← theme declare karta hai, core enum nahi (D-17)
+```
+
+Naam **generic** hain — `footerExplore` jaise content-specific naam ek travel site ke
+hain, framework ke nahi. Unassigned ek valid state hai aur wo kuch render nahi karta.
+
+⚠️ **`mobile` location nahi hai** — mobile wahi menu render karta hai jo Header pe hai
+(D-43 ne D-17 ka ye hissa supersede kiya).
+
+### 6.3 Appearance ▸ Footer ka rishta
+
+Footer ke **columns menus hi hain** — Appearance ▸ Footer me unki nakal nahi hai. Wahan
+sirf non-navigation footer settings hain: **social links** aur **copyright text**. Column
+ki heading `menus.name` se aati hai, koi alag field nahi.
+
+> `05-BUILD-PLAN.md` pehle "Footer columns — links" ko settings ke saath likhta tha aur ye
+> doc unhe locations ke saath — wo takraav D-43 me resolve ho gaya: **columns = menus**,
+> **footer chrome = Appearance ▸ Footer**.
+
+⚠️ Abhi Appearance me sirf **Menus** aur **Footer** dikhte hain. Design ke baaki do tab
+(Homepage Blocks, Banners & Sliders) tab wapas aayenge jab wo screens banengi.
+
+### 6.4 Header ka CTA button
+
+D-27 ke scope me "CTA button" hai. Wo **Appearance ▸ Menus ke left column me** baithta
+hai (Theme Locations ke neeche), kisi alag "Header" tab me nahi — kyunki Menus screen hi
+asal me header ki screen hai.
+
+Ye ek **menu item jaan-boojh kar nahi** hai. Client ke behaviour reference me CTA
+`<nav>` ke bahar `.hdr__r` me baithta hai aur mobile pe **dikhta rehta hai**, jabki menu
+items drawer me chale jaate hain. Use `menuType` banane se wo drawer me chala jaata — ek
+conversion button ke liye ye ulta padta. Aur `menuType` ek **structural** discriminator
+hai ("andar kya hai, kaise khulta hai"), look ka nahi.
+
+Jise nav ke **andar** button chahiye — wo kisi bhi item pe `className: nav-cta` laga
+sakta hai. D-17 exactly yahi kehta hai: _"nav me 'Book Now' button isi se banta hai"_.
+
+⚠️ CTA `settings` document me hai, menu me nahi — isliye uski permission `settings.update`
+hai, `menu.update` nahi. `author`/`contributor` ko (jinke paas `menu.read` hai par
+`settings.read` nahi) ye panel dikhta hi nahi, aur screen ka baaki hissa normal chalta hai.
+
 ---
 
 ## 7. Settings → Reading

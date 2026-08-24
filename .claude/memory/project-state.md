@@ -28,11 +28,17 @@ Phase 0   Setup layer                     ✅
           Docker compose (api + admin)    🟡  deferred, chhota, kuch block nahi
           CSP policy (nonce-based)        🟡  deferred to Phase 4-5
           forgot / reset                  🟡  deferred, SMTP pe block (Phase 2)
-Slice 0   Header + Footer end-to-end      🔴
+Slice 0   Menu contract (spec 006, D-43)    ✅  ← 24 Aug
+          menus + menuLocations API         ✅  public read + cache tags
+          Appearance: Menus + Footer        ✅  mega builder ke saath
+          Public header + footer render     ✅  desktop + mobile, ek hi data
+          Revalidate webhook                🟡  code ready, apps/web ki .env baaki (A-5)
+          Admin UX iterations (24 Aug)      ✅  drag-drop · accordions · header buttons
+          Q-7 (logo fallback)               🔴  client ka faisla
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 288 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 348 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -84,8 +90,11 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Settings**          | Screens design se (Phase 7 se aage khiskin) · Site URL env se, editable nahi (D-40)               |
 | **Media**             | Foundation Phase 2 se aage khiski · variant + storage contract frozen · SVG blocked (D-41)        |
 | **Logo ka reference** | Media id write pe validate hoti hai · broken `<img>` kabhi nahi · orphan media abhi accept (D-42) |
+| **Menu ka contract**  | Typed · mega = Columns→Groups→Links · layout aur columnCount alag · mobile wahi data (D-43)       |
+| **className**         | Sirf presentation — behaviour kabhi nahi (R18, D-43)                                              |
 
-Specs 001–005: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved.
+Specs 001–006: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,
+**006 ✅ implemented** (menu contract).
 
 **Ek khula sawaal jo Slice 0 ke header ko rokta hai:** logo na mile to uski jagah **kya**
 dikhe — `09-OPEN-ITEMS.md` **Q-7**. Wo client ka faisla hai (R15), developer ka nahi.
@@ -209,7 +218,8 @@ depend on it.
 
 ### Ab official next task
 
-**Slice 0 — Header + Footer end-to-end (D-27).** Ye abhi unimplemented hai.
+**Slice 0 — Header + Footer end-to-end (D-27).** 24 Aug ko bana — spec 006 + D-43 ke
+hisaab se. Neeche "24 Aug ko kya bana" dekho.
 
 ---
 
@@ -224,6 +234,92 @@ email badalna (SMTP), avatar (Phase 2). Column sorting **ban chuki** hai.
 | Users      | ~95%                     | Posts/Enquiries count (Phase 1, 7b) · invite email (SMTP)           |
 | Settings   | 100% current scope       | MediaPicker/fav icon dimensions later · Reading/Permalinks Phase 1+ |
 | Appearance | ~40%                     | Menu me Pages/Destinations chahiye (Phase 1 + 6)                    |
+
+---
+
+## 24 Aug ko kya bana — Slice 0 (D-43, spec 006)
+
+**Menu ka contract pehle freeze hua, phir code.** D-41 wala sabak yahi tha.
+
+```
+packages/shared/src/schemas/menu.js                poora typed contract + toPublicMenu
+packages/shared/src/constants/theme-locations.js   theme ki declared locations
+migrations/007-menus.js                            menus + menuLocations + indexes
+apps/api/src/modules/menus/                        5-file module (dono collections)
+apps/api/src/modules/public/                       /api/public/settings + /menus/:location
+apps/api/src/core/revalidate.js                    tag-based invalidation (D-14)
+apps/admin/src/screens/appearance/                 Menus (mega builder + header CTA) · Footer
+apps/web/components/                               SiteHeader · SiteFooter · MobileNav
+apps/web/app/api/revalidate/route.js               webhook, shared secret ke saath
+```
+
+**Chhe cheezein jo yaad rakhni hain:**
+
+1. **`mega.columnCount` (number) aur `mega.columns[]` do alag fields hain.** Spec me
+   dono ko `columns` likha tha — padhne me ambiguous tha. Validator dono ka barabar hona
+   enforce karta hai, aur admin ka builder bhi wahi karta hai.
+2. **`layout` × `columnCount` ek validation hai, hint nahi.** `MIN_COLUMN_WIDTH = 160px`
+   se derived: `sm`→2 · `md`→2,3,4 · `full`/`wide`→2..6. **Ek hi function**
+   (`allowedColumnCounts`) server aur builder dono use karte hain — do jagah rakhne se wo
+   ek din alag ho jaate.
+3. **`leafItemSchema` pe `.strict()` zaroori tha.** Zod default me anjaan keys chup-chaap
+   **hata deta hai** — uske bina depth-4 ka `children` bina error ke gaayab ho jaata: admin
+   Save karta, "ho gaya" dikhta, aur uske items kahin nahi hote. Test ne pakda.
+4. **Cache invalidation menu se nahi, uske assignments se hoti hai.**
+   `cache-invalidation` skill `menu.location` padh rahi thi — par location menu pe hai hi
+   nahi, aur ek menu **kai** locations pe ho sakta hai. Skill ka map bhi theek kiya.
+5. **`entries` module hai hi nahi**, isliye menu item abhi sirf **custom URL** ho sakta hai.
+   `entry`/`taxonomy` schema me hain par write pe reject hote hain — Phase 1 me
+   `SUPPORTED_LINK_TYPES` ki ek line badlegi, schema nahi (D-30).
+
+\
+6. **`apps/web` ko `/uploads/*` ka rewrite chahiye tha.** `media.variants[].url` relative
+hoti hai (`/uploads/...`) — jaan-boojh kar, taaki dev hostname DB me na baithe. Par
+Next uske liye koi proxy nahi rakhta tha, to header ka logo browser me **404** deta tha.
+Admin me yahi kaam Vite ka dev proxy karta hai. **Sabak:** D-42 §2 ka "toota `<img>` kabhi
+nahi" sirf data ka invariant nahi hai — wo delivery layer pe bhi toot sakta hai, aur
+payload dekh kar wo pata nahi chalta.
+
+**Uske baad client ke saath 8 iterations hue (usi din):**
+
+1. **Appearance sirf Menus + Footer** — Homepage Blocks aur Banners & Sliders hataye (R15 se
+   jaan-boojh kar vichlan, `nav.js` me likha hai). Ek "Header" tab maine bina poochhe banaya
+   tha — wo ab **poora delete** ho chuka hai.
+2. **Logo header me nahi aa raha tha** — `apps/web/next.config.js` me `/uploads/*` ka rewrite
+   chhoot gaya tha. Media URLs relative hoti hain (D-41), to serve karne ka kaam web ka tha.
+   **Sabak:** D-42 §2 ka "toota `<img>` kabhi nahi" **delivery layer pe bhi** toot sakta hai —
+   payload bilkul sahi tha.
+3. **`wide`/`full` mega dikhte hi nahi the** — `.hdr__top` pe `position: relative` chhoot gaya tha.
+   Un layouts me `<li>` `static` hota hai, to panel initial containing block pe gir jaata aur
+   `top: 100%` ka matlab "poori viewport height" ban jaata. `sm`/`md` isse bach gaye the.
+4. **Admin ke columns ulte chaude the** — `.appearance-grid` ki specificity `.edit-grid` ke
+   barabar thi, to jeet CSS load order se tay ho rahi thi. Ab `.edit-grid.appearance-grid`.
+5. **↑↓ buttons → drag-drop har level pe** (Q-C revised). Native HTML5 DnD, koi library nahi;
+   handle pe ↑/↓ keyboard bhi. Saath me `blank*()` helpers ab client-side `id` dete hain —
+   index-key + drag milkar collapse state galat row pe chipka dete the.
+6. **Columns aur groups ab collapsible** — default band, naya bana hua khud khulta hai.
+7. **"Link type" dropdown hataya** — wo hamesha disabled tha aur kisi state se bind nahi tha.
+   Data ka `link.type` field **zinda hai**; Phase 1 me wahan asli control banega.
+8. **Header CTA → `headerButtons[]`** (max 4, per-button `enabled` toggle, drag-drop).
+   `headerCtaLabel`/`headerCtaUrl` hata diye — **koi migration nahi lagi**, kyunki wo fields
+   kabhi commit hi nahi hue the. Wahi aakhri free moment tha.
+9. **"Add Menu Items" ab WordPress jaisa** — har source ek `.day` accordion (Pages band,
+   Custom Links khula).
+
+**`menuType: 'button'` jaan-boojh kar NAHI joda.** CTA reference me `<nav>` ke bahar baithta hai
+aur mobile pe dikhta rehta hai; menu item banane se wo drawer me chala jaata. Aur `menuType`
+ek **structural** discriminator hai, look ka nahi. Nav ke andar button chahiye to D-17 ka
+`className: nav-cta` raasta khula hai. Poora tark `04-ADMIN-UX.md` §6.4 me.
+
+**Live verify kiya:** menu + locations DB me daal kar chalti hui API se
+`/api/public/menus/header` padha — mixed types, ek column me 2 groups, clickable aur
+non-clickable dono headings, CTA, `href` resolved, aur koi `version`/`deletedAt` nahi.
+Phir Next dev se rendered HTML me header, footer aur mobile drawer teenon confirm kiye.
+Uske baad smoke data hata diya.
+
+⚠️ **Revalidate abhi end-to-end nahi chal raha** — `apps/web` ki `.env` nahi hai, isliye
+webhook **503** (fail-closed) deta hai. Steps `06-OPERATIONS.md` §4.1 me hain. Ye ek manual
+step hai: `.env` files is environment me permission se likhi nahi ja saktin.
 
 ---
 
@@ -260,6 +356,33 @@ code nahi. Usme 3-4 choices client/user se poochhni padengi (footer columns kaha
 > code se pehle freeze kiya — implementation ek baar me saaf utri. Logo ka reference bina
 > soche ban gaya tha — uske liye baad me D-42 likhni padi aur ek test ulta assert kar raha
 > tha.
+
+---
+
+## ⚠️ Kal sabse pehle — do cheezein
+
+### 1. `apps/web/.next` corrupt hai (developer ki galti, 24 Aug)
+
+Chalte hue dev server ke saath `next build` chala diya gaya tha — dono wahi `.next` folder
+use karte hain. Uske baad ek doosra `next dev` bhi usi project pe chala. Nateeja: web 500
+aur phir 404 dene laga, CSS bina HTML aata raha.
+
+```bash
+# web dev server band karo (Ctrl+C), phir:
+rm -rf apps/web/.next
+pnpm dev:web
+```
+
+`.next` sirf build cache hai — usme koi kaam nahi hai.
+
+**Rule aage ke liye:** jab tak user ke dev server chal rahe hon, `next build` mat chalao aur
+apna doosra dev server mat uthao. Verify karna ho to API/DB level pe karo.
+
+### 2. Sab kuch uncommitted hai
+
+**40 files** (26 modified, 14 new) — poora Slice 0 aur uske saare iterations. Upar se **7
+purane commits bhi unpushed** hain. User ne commit ya push kabhi bola nahi, isliye kuch nahi
+kiya gaya. Ye ek asli risk hai — pehle isi ki baat karo.
 
 ---
 
@@ -312,7 +435,8 @@ Aur agar `pnpm seed` se admin banana ho to teen vars chahiye:
 branch : main
 remote : github.com/progryss/crmmern.git
 
-bb5844e  .featured-drop ki height wapas — shared primitive thi (24 Aug)
+50d8fac  Session wrap — handoff doc sach bolta hai ab (24 Aug)
+bb5844e  .featured-drop ki height wapas — shared primitive thi
 9e0c3a0  Docs sync — 288 tests, D-42/Q-7
 446528d  Settings sirf maujood media ki id leti hai (D-42 §1)
 0e85662  D-42 approved, Q-7 alag kiya
@@ -321,7 +445,7 @@ bb5844e  .featured-drop ki height wapas — shared primitive thi (24 Aug)
 a2b10ad  ← origin/main yahin khada hai
 ```
 
-38 commits · working tree clean · **6 commits unpushed** (`origin/main` `a2b10ad` pe hai).
+39 commits · working tree clean · **7 commits unpushed** (`origin/main` `a2b10ad` pe hai).
 `apps/api/.env` ka backup: `apps/api/.env.bak-1787215917` (gitignored).
 
 ⚠️ **Push kabhi bhi bina permission ke nahi karna.**

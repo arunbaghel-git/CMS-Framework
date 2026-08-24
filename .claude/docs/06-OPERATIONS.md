@@ -169,6 +169,30 @@ LOG_LEVEL
 > Ye list abhi **draft** hai — Phase −1 me isse finalize karna hai
 > ([`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)).
 
+### 4.1 ⚠️ `apps/web` ki apni `.env` chahiye (Slice 0 se)
+
+Ab tak saari env `apps/api/.env` me thi. Slice 0 ke baad **`apps/web` ko bhi do vars
+chahiye**, warna public site ka cache kabhi saaf nahi hoga:
+
+```bash
+# apps/web/.env
+API_URL=http://localhost:4000     # server components isse SEEDHA call karte hain;
+                                  # next.config.js ka /api rewrite sirf browser ke liye hai
+REVALIDATE_SECRET=<same as api>   # min 32 chars
+```
+
+**`REVALIDATE_SECRET` dono jagah bilkul same hona chahiye.** Do alag failure modes hain
+aur dono chup-chaap hote hain:
+
+| Kya | Nateeja |
+| --- | --- |
+| `apps/web` me set hi nahi | `/api/revalidate` **503** (fail-closed). Cache kabhi saaf nahi hota |
+| Dono me alag | API ko **401** milta hai. `revalidateTags()` fail-soft hai, isliye admin ka Save theek dikhta hai par site purani rehti hai |
+
+Dono ka lakshan ek hi hai — _"publish kiya par site update nahi hui"_ — aur koi error
+screen pe nahi aata. API ke logs me `Revalidate request rejected/failed` warning milegi;
+wahi pehli jagah hai jahan dekhna chahiye.
+
 ---
 
 ## 5. Deployment topology

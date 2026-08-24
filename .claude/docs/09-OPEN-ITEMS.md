@@ -1,9 +1,9 @@
 # 09 — Open Items
 
-**Status:** Phase 0 ka approved execution scope poora. Users ka role-aware menu + Profile
-(D-37), Settings — model + migration 005 + General screen (D-40), Media foundation
-(D-41), aur Settings Logo/Favicon current scope me live hain — **288 tests passing**.
-Original Phase 0 ke teen items deferred/non-blocking hain (neeche).
+**Status:** Phase 0 poora, aur **Slice 0 (Header + Footer) bhi ban chuka** — D-43 /
+spec 006. 345 tests passing.
+
+Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neeche).
 **Last updated:** 24 Aug 2026
 
 ---
@@ -64,7 +64,7 @@ Original Phase 0 ke teen items deferred/non-blocking hain (neeche).
 
 ### Q-7 · Logo na mile to header me uski jagah **kya** dikhe?
 
-**Deadline:** Slice 0 ka header ka kaam shuru hone se pehle
+**Deadline:** ab bhi khula — header ban chuka hai aur interim par chal raha hai (neeche)
 **Client ka faisla hai, developer ka nahi (R15)**
 
 Do case hain jinme header ko logo nahi milega:
@@ -76,6 +76,12 @@ Do case hain jinme header ko logo nahi milega:
 wala `src`, na khaali `src`, na alt-text ka toota box. Ye ek constraint hai.
 
 **Jo tay NAHI hua:** us jagah kya dikhe.
+
+**Abhi ka interim (24 Aug):** logo na mile to header me **kuch bhi render nahi hota** —
+nav left shift ho jaati hai. Ye ek jagah rakha gaya faisla nahi, sirf D-42 §2 ka palan
+hai jab tak jawab na aaye. Code me `Q-7 INTERIM` comment hai
+(`apps/web/components/SiteHeader.jsx`). Jawab aane pe **sirf ek JSX branch** badlegi —
+menu ya settings ka data bilkul nahi.
 
 | Option | Matlab |
 | --- | --- |
@@ -89,6 +95,30 @@ dikhta hai — missing state kahin defined nahi. Pehle draft me ye chup-chaap "s
 text" maan liya gaya tha; wo developer ka faisla ban raha tha, isliye alag kar diya gaya.
 
 Client se poochhne wala sawaal: **logo na ho to header me uski jagah kya dikhna chahiye?**
+
+---
+
+### A-5 · `apps/web` ki `.env` — revalidate abhi chal nahi raha
+
+**Deadline:** Slice 0 ko "done" kehne se pehle
+**Ye ek manual step hai** — `.env` files is environment se likhi nahi ja saktin
+
+Slice 0 ka revalidate webhook code taiyaar hai (`apps/web/app/api/revalidate/route.js`
++ `apps/api/src/core/revalidate.js`), par `apps/web` ke paas `REVALIDATE_SECRET` nahi
+hai — isliye endpoint **503** deta hai aur cache kabhi saaf nahi hota.
+
+```bash
+# apps/web/.env
+API_URL=http://localhost:4000
+REVALIDATE_SECRET=<apps/api/.env se BILKUL same>
+```
+
+⚠️ Secret alag hua to API ko **401** milega. `revalidateTags()` fail-soft hai, isliye
+admin ka Save theek dikhega par site purani rahegi — aur koi error screen pe nahi aayega.
+Dono cases ka lakshan ek hi hai: _"publish kiya par site update nahi hui"_. API ke logs me
+`Revalidate request rejected/failed` warning milegi.
+
+Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
 
 ---
 
@@ -144,7 +174,7 @@ Spec 005 me add karne honge.
 2. ✅ Settings — model + migration + General      (D-40 — 21 Aug)
 3. ✅ Media ki foundation                         (D-41 — pulled forward)
 4. ✅ Settings ka Logo/Favicon live → General 100% current scope
-5. Slice 0 — Header + Footer end-to-end          ← OFFICIAL NEXT (1.5 hafte)
+5. ✅ Slice 0 — Header + Footer end-to-end        (D-43, 24 Aug)
 6. C-2 — Payload spike (parallel me)             (2 din)
 7. Phase 1 — Content Core                        (3 hafte)
 ```
@@ -215,8 +245,8 @@ Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **1 commit unpushed** hai (total 33). `origin/main` `a2b10ad` pe khada hai; local
-  HEAD `3c29b58` — Media foundation. Aage bhi push **sirf permission pe**
+- ⚠️ **7 commits unpushed** hain (total 39). `origin/main` `a2b10ad` pe khada hai; local
+  HEAD `50d8fac` — session wrap. Aage bhi push **sirf permission pe**
 - ⚠️ **CI ka pehla step `pnpm format:check` hai** (`.github/workflows/ci.yml`:
   Format → Lint → Test → Build). `3c29b58` isi pe fail ho raha tha — 9 files prettier-dirty
   thin, ab theek ho chuki hain. Push se pehle `pnpm format:check` **hamesha** chala lo,
