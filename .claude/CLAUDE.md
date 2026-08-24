@@ -5,13 +5,22 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0 ka approved scope poora.** Setup layer, Zod contract, migration
-runner, CSS architecture, **auth + RBAC + admin shell**, **Users screens**, **role-aware
-nav + Profile** (D-37), **Settings — model + migration 005 + General screen** (D-40) aur
-**Media foundation + Logo/Favicon** (D-41) ban chuke hain (**288 tests passing**).
+**Status:** **Phase 0 + Slice 0 dono ban chuke hain** (**348 tests passing**).
+
+Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
+admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
+**Media foundation + Logo/Favicon** (D-41).
+
+**Slice 0 — Header + Footer end-to-end** (D-27, 24 Aug): menu ka typed contract (spec 006,
+D-43), `menus` + `menuLocations` module, public read API, Appearance ▸ Menus (mega builder
+ke saath) + Footer, aur public site ka header/footer — asli API data se, desktop aur mobile
+ek hi payload se.
+
 Teen item jaan-boojh kar deferred hain: docker compose me `api`+`admin`, CSP policy
 (Phase 4-5), aur forgot/reset (SMTP pe block).
-Agla kaam **Slice 0 — Header + Footer** (D-27).
+
+Agla kaam **Phase 1 — Content Core** (aur uske saath **C-2** Payload spike, jo Phase 1 se
+pehle hona hai).
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -78,6 +87,10 @@ apps/api/src/modules/<name>/
 └─ validation.js    Zod schemas
 ```
 
+`menus` module me **do collections** hain (`menus` + `menuLocations`) — assignment menu ke
+bina bemaani hai, isliye wo alag module nahi hai. `public` module ka apna koi collection
+nahi; wo doosre modules ka **public projection** hai (02-ARCHITECTURE §10).
+
 `roles` module isme apwaad hai — uske paas `validation.js` nahi hai, aur uska
 `routes.js` me sirf **ek read-only route** hai (`GET /api/roles`, user form ke role
 dropdown ke liye). Role ki permissions **edit** karne ka koi route jaan-boojh kar nahi
@@ -138,19 +151,24 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Media foundation land ho chuki (D-41). Agla kaam **Slice 0 — Header + Footer**.
+Slice 0 land ho chuki (D-43). Agla kaam **Phase 1 — Content Core**.
 
-| #   | Kya                                   | Kab tak                                                 |
-| --- | ------------------------------------- | ------------------------------------------------------- |
-| Q-7 | Logo na mile to header me kya dikhe?  | **Slice 0 ke header se pehle** — client ka faisla (R15) |
-| C-2 | Payload CMS spike (2 din)             | Phase 1 se pehle                                        |
-| Q-2 | Enquiries — Phase 7b ya alag Phase 9? | Phase 7 se pehle                                        |
-| Q-3 | Field DSL me `matrix` + `table` types | Phase 5c se pehle                                       |
+| #   | Kya                                                    | Kab tak                                      |
+| --- | ------------------------------------------------------ | -------------------------------------------- |
+| A-5 | `apps/web` ki `.env` — `REVALIDATE_SECRET` + `API_URL` | Ab — iske bina prod me cache saaf nahi hoga  |
+| Q-7 | Logo na mile to header me kya dikhe?                   | Client ka faisla (R15) — abhi interim pe hai |
+| C-2 | Payload CMS spike (2 din)                              | **Phase 1 se pehle** — window band ho rahi   |
+| Q-2 | Enquiries — Phase 7b ya alag Phase 9?                  | Phase 7 se pehle                             |
+| Q-3 | Field DSL me `matrix` + `table` types                  | Phase 5c se pehle                            |
 
-**D-42 approved** (24 Aug) — logo/favicon media ID ki existence write pe validate hoti hai;
-orphan media abhi accept hain (Phase 2 me sweep). D-42 §2 ka "broken `<img>` kabhi nahi"
-ek **locked invariant** hai — public header abhi hai hi nahi, isliye wo Slice 0 ke usi PR
-me enforce hoga jisme logo pehli baar render hoga.
+**Q-7 ka interim:** logo na mile to header me **kuch render nahi hota** (nav left shift).
+Ye D-42 §2 ka palan hai, koi faisla nahi. Code me `Q-7 INTERIM` comment hai
+(`apps/web/components/SiteHeader.jsx`) — jawab aane pe sirf ek JSX branch badlegi.
+
+**D-42 §2 ka invariant ab sach me enforce hai** — public API media resolve na hone pe `null`
+bhejti hai, isliye toota `<img>` banta hi nahi. ⚠️ Aur ek sabak: wo invariant **delivery
+layer pe bhi** toot sakta hai — `apps/web` me `/uploads/*` ka rewrite chhoot gaya tha aur
+payload sahi hone ke bawajood logo 404 de raha tha.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

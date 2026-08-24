@@ -445,7 +445,8 @@ bb5844e  .featured-drop ki height wapas — shared primitive thi
 a2b10ad  ← origin/main yahin khada hai
 ```
 
-39 commits · working tree clean · **7 commits unpushed** (`origin/main` `a2b10ad` pe hai).
+45 commits · working tree clean · **13 commits unpushed** (`origin/main` `a2b10ad` pe hai).
+Aaj ke 6 commits: contract freeze → shared+migration → API → admin → web → docs sync.
 `apps/api/.env` ka backup: `apps/api/.env.bak-1787215917` (gitignored).
 
 ⚠️ **Push kabhi bhi bina permission ke nahi karna.**

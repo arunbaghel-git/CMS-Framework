@@ -45,7 +45,7 @@ permission string list ✅ · env schema ✅ · seed definition ✅ ·
 
 ---
 
-## Slice 0 — Header + Footer, end-to-end (~2.5 hafte)
+## Slice 0 — Header + Footer, end-to-end ✅ (24 Aug, ~2.5 hafte ka estimate tha)
 
 **Phase 0 ke baad, Phase 1 se pehle.** Ye ek patli vertical slice hai jo poora pipeline
 ek baar verify karti hai — admin se lekar live site tak. Page builder isme **nahi** banega.

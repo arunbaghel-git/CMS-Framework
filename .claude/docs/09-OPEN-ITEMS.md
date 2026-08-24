@@ -1,7 +1,7 @@
 # 09 — Open Items
 
 **Status:** Phase 0 poora, aur **Slice 0 (Header + Footer) bhi ban chuka** — D-43 /
-spec 006. 345 tests passing.
+spec 006. 348 tests passing.
 
 Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neeche).
 **Last updated:** 24 Aug 2026
@@ -245,8 +245,8 @@ Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **7 commits unpushed** hain (total 39). `origin/main` `a2b10ad` pe khada hai; local
-  HEAD `50d8fac` — session wrap. Aage bhi push **sirf permission pe**
+- ⚠️ **13 commits unpushed** hain (total 45). `origin/main` `a2b10ad` pe khada hai; local
+  HEAD `d517c84` — Slice 0 ka docs sync. Aage bhi push **sirf permission pe**
 - ⚠️ **CI ka pehla step `pnpm format:check` hai** (`.github/workflows/ci.yml`:
   Format → Lint → Test → Build). `3c29b58` isi pe fail ho raha tha — 9 files prettier-dirty
   thin, ab theek ho chuki hain. Push se pehle `pnpm format:check` **hamesha** chala lo,
