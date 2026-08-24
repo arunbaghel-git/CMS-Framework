@@ -1349,3 +1349,112 @@ nahi hoga.
   media local disk pe chali jaati hai.
 - **Migration 006 me `mediaRefs` banana** — usage model full Media phase ka hai; aadha
   collection/index abhi lock karna unnecessary hai.
+
+---
+
+## D-42 · Logo/Favicon ka reference toota ho to kya ho, aur orphan media ka kya
+
+> **Status: APPROVED — 24 Aug 2026.**
+> D-41 media foundation land karne ke baad do gap khule reh gaye the. Dono Slice 0 ke
+> header render path pe aate hain, isliye Slice 0 se **pehle** tay kiye gaye.
+>
+> Pehle draft me §2 ke andar ek **presentation choice** bhi ghusi hui thi ("logo ki jagah
+> site name text"). Wo yahan se nikaal di gayi — ye decision sirf internal integrity tay
+> karta hai. "Kya dikhe" ab **Q-7** hai, aur wo client ka faisla hai (R15).
+
+**Context:** `settings.logoMediaId` aur `faviconMediaId` sirf strings hain
+(`packages/shared/src/schemas/settings.js`). Settings service `Media` ko chhoo tak nahi
+rahi — yaani koi bhi value save ho sakti hai, chahe us id ka media maujood ho ya nahi.
+
+Ye sirf theory nahi hai; ye abhi **test me expected behaviour ke roop me likha hua** hai
+(`apps/api/src/tests/settings.test.js` → _"logo aur favicon media IDs persist karta hai"_,
+jo `64f000000000000000000001` bhejta hai — aisi id jo `media` me hai hi nahi).
+
+---
+
+### 1. Write pe validate — bogus id pehle hi ruke
+
+**Decision:** `PATCH /api/settings` pe `logoMediaId` / `faviconMediaId` non-null aaye to
+service check karegi ki us site ka wo media maujood hai (aur `deletedAt: null` hai). Na
+mile to **400**, save nahi hoga. `null` hamesha valid hai — wo "logo hata do" hai.
+
+**Kyun:** ye galti aaj chup-chaap DB me baith jaati hai aur Slice 0 me header pe phootti
+hai — upload ke hafton baad, jahan wajah dhoondhna mushkil hai. Check ek `findOne` hai.
+
+**Nateeja jo saaf likha hona chahiye:** upar wala maujooda test **fail karega**, kyunki wo
+abhi ulta behaviour assert karta hai. Use asli media id se replace karna hoga, aur ek naya
+test add hoga: _"anjaan media id 400 deti hai"_.
+
+### 2. Read pe — broken `<img>` kabhi nahi
+
+**Decision:** header render karte waqt `logoMediaId` resolve na ho (Phase 2 me delete aa
+jaane ke baad ye ho sakta hai) to **toota hua `<img>` kabhi render nahi hoga** — na 404
+wala `src`, na khaali `src`, na alt-text ka toota hua box.
+
+Ye ek **constraint** hai, presentation nahi. Point 1 galti ko andar aane se rokta hai;
+point 2 us case ko sambhalta hai jahan reference **baad me** toota. Dono chahiye —
+sirf write-validation kaafi nahi, kyunki media baad me delete ho sakti hai.
+
+**Kyun:** **D-30 ka principle** — _"khaali cheez khaali dikhni chahiye, tooti hui nahi."_
+
+**Jo is decision me jaan-boojh kar NAHI hai:** us jagah **kya dikhe** — site name text,
+kuch bhi nahi, ya koi placeholder. Wo ek **visible design choice** hai, aur R15 ke hisaab
+se wo client se aati hai, developer se nahi. D-27 is pe chup hai, aur public design
+reference (`10-REFERENCE-DESIGN.md`) me header ka sirf `[logo]` state hai — missing state
+kahin defined nahi.
+
+Wo faisla alag se hoga → `09-OPEN-ITEMS.md` **Q-7**, Slice 0 ke header ka kaam shuru hone
+se pehle. Tab tak sirf upar wala constraint binding hai.
+
+**Implementation status:** ye §2 aaj **code me nahi utra hai**, aur jaan-boojh kar. Public
+header ka render path abhi maujood hi nahi — `apps/web` me sirf `layout.jsx` aur ek
+placeholder `page.jsx` hain, koi header component nahi. Yaani aaj tod-ne ko kuch hai hi
+nahi.
+
+Isliye ye ek **locked invariant** hai jo Slice 0 pe binding rahega: **jis PR me public
+header ka logo render pehli baar aayega, usi PR me ye invariant honour hoga aur uska test
+hoga.** §1 (write validation) aaj ban raha hai; §2 ka enforcement Slice 0 ke saath.
+
+### 3. Orphan media — abhi accept, Phase 2 me sweep
+
+**Context:** admin me file choose karte hi upload ho jaata hai (`General.jsx` ka notice:
+_"Logo uploaded. Save changes to apply it."_), Save alag step hai. Do raaste orphan bante
+hain:
+
+- upload karke Save na kare → media record + 3 webp files pade reh gaye
+- logo replace kare → purana media kisi ka reference nahi raha
+
+Aur delete ka koi route hai hi nahi (D-41 §7).
+
+**Decision:** orphans **abhi accept honge**. Foundation me na koi auto-delete, na cleanup
+job.
+
+**Kyun:** `mediaRefs` ke bina "ye media kahin use to nahi ho rahi" ka jawab hai hi nahi.
+Us jawab ke bina delete karna theek wahi trap hai jisse D-41 §7 bachna chahta tha — live
+page pe toota hua image. Kuch orphan files ki keemat us risk se bahut kam hai.
+
+**Keemat, saaf likhi hui:** jab tak Phase 2 nahi aata, har replace ek dead media record
+aur teen webp files chhodta jaayega. Chhoti site pe ye kuch MB hai, par ye **apne aap
+saaf nahi hoga**.
+
+**Phase 2 me kya banega:** `mediaRefs` aane ke baad ek "unreferenced media" sweep — pehle
+sirf **dikhaye**, delete admin ke confirm pe. Ye Phase 2 ke scope me likha jaana chahiye.
+
+### 4. Upload-on-save nahi
+
+**Reject kiya:** logo ko Save tak buffer me rakhna aur tabhi upload karna.
+
+**Kyun:** isse Settings ke paas media banane ka apna alag raasta ban jaata — theek wahi do
+upload-path wali samasya jisse bachne ke liye Media pehle banayi gayi thi. Aur Phase 2 me
+MediaPicker aane pe ye poora raasta phenkna padta.
+
+---
+
+**Reject kiya (aur kyun):**
+
+- **Sirf read-side fallback, write pe koi check nahi** — galat id DB me baithi rehti hai
+  aur har jagah dobara handle karni padti. Galti ko entry point pe rokna sasta hai.
+- **`logoMediaId` pe Mongoose `ref` + populate** — cross-module coupling badhata hai aur
+  Settings ke har read pe join laata, jabki 99% baar sirf id chahiye.
+- **Replace pe purana media turant delete** — bina `mediaRefs` ke ye maan lena hai ki wo
+  media kahin aur use nahi ho rahi. Wahi assumption Phase 5 me blocks ke saath tootegi.

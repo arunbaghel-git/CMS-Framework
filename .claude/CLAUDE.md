@@ -5,12 +5,13 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0 lagbhag poora — ~97%.** Setup layer, Zod contract, migration runner,
-CSS architecture, **auth + RBAC + admin shell**, **Users screens**, **role-aware nav +
-Profile** (D-37) aur **Settings — model + migration 005 + General screen** (D-40) ban
-chuke hain (**231 tests passing**).
-Agla kaam **Media ki foundation** — Phase 2 se aage khisak kar, kyunki usi pe
-**Logo/Favicon** rukey hain. Uske baad **Slice 0 — Header + Footer** (D-27).
+**Status:** **Phase 0 ka approved scope poora.** Setup layer, Zod contract, migration
+runner, CSS architecture, **auth + RBAC + admin shell**, **Users screens**, **role-aware
+nav + Profile** (D-37), **Settings — model + migration 005 + General screen** (D-40) aur
+**Media foundation + Logo/Favicon** (D-41) ban chuke hain (**279 tests passing**).
+Teen item jaan-boojh kar deferred hain: docker compose me `api`+`admin`, CSP policy
+(Phase 4-5), aur forgot/reset (SMTP pe block).
+Agla kaam **Slice 0 — Header + Footer** (D-27).
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -137,14 +138,19 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Phase 0 pe **kuch block nahi** — Media ki foundation abhi shuru ho sakti hai.
+Media foundation land ho chuki (D-41). Agla kaam **Slice 0 — Header + Footer**.
 
-| #   | Kya                                   | Kab tak                                     |
-| --- | ------------------------------------- | ------------------------------------------- |
-| Q-5 | SVG allow karein ya sanitize? (logo)  | Media se pehle — par kaam **rok nahi rahi** |
-| C-2 | Payload CMS spike (2 din)             | Phase 1 se pehle                            |
-| Q-2 | Enquiries — Phase 7b ya alag Phase 9? | Phase 7 se pehle                            |
-| Q-3 | Field DSL me `matrix` + `table` types | Phase 5c se pehle                           |
+| #   | Kya                                   | Kab tak                                                 |
+| --- | ------------------------------------- | ------------------------------------------------------- |
+| Q-7 | Logo na mile to header me kya dikhe?  | **Slice 0 ke header se pehle** — client ka faisla (R15) |
+| C-2 | Payload CMS spike (2 din)             | Phase 1 se pehle                                        |
+| Q-2 | Enquiries — Phase 7b ya alag Phase 9? | Phase 7 se pehle                                        |
+| Q-3 | Field DSL me `matrix` + `table` types | Phase 5c se pehle                                       |
+
+**D-42 approved** (24 Aug) — logo/favicon media ID ki existence write pe validate hoti hai;
+orphan media abhi accept hain (Phase 2 me sweep). D-42 §2 ka "broken `<img>` kabhi nahi"
+ek **locked invariant** hai — public header abhi hai hi nahi, isliye wo Slice 0 ke usi PR
+me enforce hoga jisme logo pehli baar render hoga.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

@@ -62,6 +62,36 @@ Original Phase 0 ke teen items deferred/non-blocking hain (neeche).
 
 ## 🔴 Ab bhi baaki
 
+### Q-7 · Logo na mile to header me uski jagah **kya** dikhe?
+
+**Deadline:** Slice 0 ka header ka kaam shuru hone se pehle
+**Client ka faisla hai, developer ka nahi (R15)**
+
+Do case hain jinme header ko logo nahi milega:
+
+- `logoMediaId` set hi nahi hai (naya instance, ya admin ne hata diya)
+- id set hai par media resolve nahi hoti (Phase 2 me delete aane ke baad)
+
+**Jo tay ho chuka hai (D-42 §2):** toota hua `<img>` **kabhi** render nahi hoga — na 404
+wala `src`, na khaali `src`, na alt-text ka toota box. Ye ek constraint hai.
+
+**Jo tay NAHI hua:** us jagah kya dikhe.
+
+| Option | Matlab |
+| --- | --- |
+| Site name text | `settings.siteName` wordmark ki tarah. Header kabhi khaali nahi lagta |
+| Kuch bhi nahi | Logo ki jagah khaali. Nav left shift ho jaayegi |
+| Placeholder | Neutral box. Live site pe "unfinished" lagta hai |
+
+**Kyun ye khula chhoda gaya:** ye ek **visible design choice** hai. D-27 is pe chup hai,
+aur public design reference (`10-REFERENCE-DESIGN.md` §4) me header ka sirf `[logo]` state
+dikhta hai — missing state kahin defined nahi. Pehle draft me ye chup-chaap "site name
+text" maan liya gaya tha; wo developer ka faisla ban raha tha, isliye alag kar diya gaya.
+
+Client se poochhne wala sawaal: **logo na ho to header me uski jagah kya dikhna chahiye?**
+
+---
+
 ### C-2 · Payload CMS ka 2-din spike
 
 **Deadline:** Phase 1 se pehle (Phase 1 land hote hi window band)
