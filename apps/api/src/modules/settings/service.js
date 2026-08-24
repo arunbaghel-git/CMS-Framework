@@ -1,6 +1,7 @@
 import { DEFAULT_SITE_ID, defaultSettings, toPublicSettings } from '@cms/shared'
 
 import { badRequest } from '../../core/errors.js'
+import { revalidateTags } from '../../core/revalidate.js'
 import { mediaExists } from '../media/service.js'
 import { Settings } from './model.js'
 
@@ -90,6 +91,12 @@ export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
   }
 
   const updated = await Settings.findOneAndUpdate({ siteId }, { $set }, { new: true })
+
+  /**
+   * Settings har page pe hai — logo, site name, footer copyright sab header/footer me
+   * chhapte hain. Isliye ek hi `settings` tag, aur wo har save pe (D-14).
+   */
+  await revalidateTags(['settings'])
 
   return toPublicSettings(updated)
 }

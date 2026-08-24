@@ -36,6 +36,31 @@ const settingsSchema = new mongoose.Schema(
       youtube: { type: String, default: '' },
     },
 
+    /**
+     * Header ke buttons — D-27 ka "CTA button", ab ek list (max 4).
+     *
+     * `_id: false` — ye plain rows hain, unka apna identity nahi hai. Bina iske Mongoose
+     * har row me ek `_id` ghusa deta aur wo public payload tak pahunch jaata.
+     */
+    headerButtons: {
+      type: [
+        new mongoose.Schema(
+          {
+            label: { type: String, default: '' },
+            url: { type: String, default: '' },
+            target: { type: String, default: '_self' },
+            className: { type: String, default: '' },
+            enabled: { type: Boolean, default: true },
+          },
+          { _id: false },
+        ),
+      ],
+      default: () => [],
+    },
+
+    /** Appearance ▸ Footer — spec 006 §7.2. `{year}` theme replace karta hai. */
+    footerCopyright: { type: String, default: '' },
+
     frontPageType: { type: String, default: 'page' },
     homepageEntryId: { type: String, default: null },
     postsPageEntryId: { type: String, default: null },
