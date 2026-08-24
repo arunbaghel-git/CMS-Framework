@@ -227,13 +227,59 @@ email badalna (SMTP), avatar (Phase 2). Column sorting **ban chuki** hai.
 
 ---
 
+## Agla kaam — Slice 0, aur uska pehla kadam **spec 006**
+
+Phase 0 ke done-criteria poore ho chuke. Agla milestone **Slice 0 — Header + Footer
+end-to-end** (D-27).
+
+**Seedha code mat likhna.** Slice 0 ka data model abhi define hi nahi hai, aur wo saara
+**schema** hai — baad me badla to migration:
+
+| Kya                                                            | Abhi                              | Kahan likha hai                                                                      |
+| -------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
+| `menus.items[]` me `menuType` · `linkType: "none"` · `columns` | sirf `siteId, key, name, items[]` | `10-REFERENCE-DESIGN.md` §6 **item #1** — _"Slice 0 se pehle"_, _"sabse urgent"_     |
+| Header ka CTA · awards badge · support line                    | settings schema me **0 fields**   | §6 item #2 — "Slice 0 scope"                                                         |
+| Sticky mobile CTA bar (phone · WhatsApp · toggle)              | kuch nahi                         | §6 item #3 — plan me kabhi tha hi nahi                                               |
+| Footer columns · copyright · disclaimer                        | kuch nahi                         | **`04-ADMIN-UX.md` menu locations bolta hai, `05-BUILD-PLAN.md` settings** — takraav |
+| Public read ka projection                                      | koi public endpoint nahi          | `adminEmail` / `searchEngineVisible` bahar nahi jaane chahiye                        |
+| `settings` + `menus` ke cache tags                             | kuch nahi                         | D-14 kehta hai "Phase 3 me" — par Slice 0 ko **abhi** chahiye                        |
+
+`REVALIDATE_SECRET` `env.js` me pehle se hai (min 32) — wo ek cheez ready hai.
+
+**Pehla kadam:** `/spec` se **spec 006 — Slice 0 ka data contract**. Sirf shape freeze ho,
+code nahi. Usme 3-4 choices client/user se poochhni padengi (footer columns kahan,
+`linkType` ka set, public projection ki hadd). Phir `02-ARCHITECTURE.md` §3 +
+`05-BUILD-PLAN.md` update, aur ek naya `D-43`.
+
+**Uske baad code:** `/new-module menus` → public read routes → `apps/web` ka header/footer
+→ cache invalidation verify.
+
+**C-2 (Payload spike, 2 din)** parallel me chal sakta hai — Phase 1 se pehle hona hai.
+
+> **Kyun spec pehle:** isi session me dono raaste dikh gaye. D-41 ne media ka contract
+> code se pehle freeze kiya — implementation ek baar me saaf utri. Logo ka reference bina
+> soche ban gaya tha — uske liye baad me D-42 likhni padi aur ek test ulta assert kar raha
+> tha.
+
+---
+
 ## Khule sawaal
 
-| #   | Sawaal                                               | Kab tak           |
-| --- | ---------------------------------------------------- | ----------------- |
-| 1   | Enquiries — Phase 7b banayein ya alag Phase 9?       | Phase 7 se pehle  |
-| 2   | Field DSL me `matrix` + `table` types add karne hain | Phase 5c se pehle |
-| 3   | Payload CMS spike (2 din)                            | Phase 1 se pehle  |
+| #   | Sawaal                                                  | Kab tak                        |
+| --- | ------------------------------------------------------- | ------------------------------ |
+| Q-7 | **Logo na mile to header me kya dikhe?** (client se)    | **Slice 0 ke header se pehle** |
+| —   | `.panel-foot` ka `flex-wrap: wrap` rakhein ya hatayein? | jab Settings ka footer chhuo   |
+| 1   | Enquiries — Phase 7b banayein ya alag Phase 9?          | Phase 7 se pehle               |
+| 2   | Field DSL me `matrix` + `table` types add karne hain    | Phase 5c se pehle              |
+| 3   | Payload CMS spike (2 din)                               | Phase 1 se pehle               |
+
+**Q-7 sirf header ka logo render rokta hai** — Slice 0 ka baaki sab (menus module, public
+API, footer, cache tags) uske bina chal sakta hai. Poora item `09-OPEN-ITEMS.md` me.
+
+**`flex-wrap` wali baat:** `3c29b58` me `primitives.css` ke `.panel-foot` me
+`flex-wrap: wrap` add hua. Design spec (`admin-design.html:112`) me wo nahi hai. Nuksaan
+koi nahi dikha, isliye **jaan-boojh kar chhoda gaya** — ye design ka call hai (R15), khud
+nahi badalna.
 
 **Jo band ho gaya:** "built-in role (`salesAgent`) edit ho sake ya Duplicate?" — ye RBAC
 ko block kar raha tha. D-37 ke baad **role-edit ka koi UI hi nahi ban raha**, isliye ye
@@ -241,9 +287,11 @@ sawaal Phase 7 (custom-role builder) pe khisak gaya. D-36 ka takraav tab dekha j
 
 ---
 
-## ⚠️ `apps/api/.env` me do cheezein theek karni hain
+## `apps/api/.env` — do cheezein jo naye machine pe dekhni hain
 
-`.env` git me nahi hai, isliye ye code se theek nahi ho saktin:
+> **`09-OPEN-ITEMS.md` ke hisaab se ye 20 Aug ko theek ho chuki hain** (backup:
+> `apps/api/.env.bak-1787215917`). Ye section ab **pending kaam nahi** — naya setup karte
+> waqt check-list hai. `.env` git me nahi hai, isliye code se verify nahi hota.
 
 ```diff
 - COOKIE_SECURE=true            # local HTTP pe browser cookie store hi nahi karega
@@ -264,14 +312,16 @@ Aur agar `pnpm seed` se admin banana ho to teen vars chahiye:
 branch : main
 remote : github.com/progryss/crmmern.git
 
-c48a556  Settings — model, migration, General screen (D-40)
-d9d4899  Column sorting · role dene ke do guard (D-39) · activity log defer
-7e248ba  Role-aware menu (D-37) · Remember me fix (D-38) · admin English (R17)
-53df920  D-37 ke docs
-88ffdc2  Session wrap — Users poora
+bb5844e  .featured-drop ki height wapas — shared primitive thi (24 Aug)
+9e0c3a0  Docs sync — 288 tests, D-42/Q-7
+446528d  Settings sirf maujood media ki id leti hai (D-42 §1)
+0e85662  D-42 approved, Q-7 alag kiya
+731a462  Media foundation ke baad ki safai — prettier, stale comments
+3c29b58  Media foundation + Settings logo upload (Codex)
+a2b10ad  ← origin/main yahin khada hai
 ```
 
-29 commits · working tree clean · **22 commits unpushed** (`origin/main` `0e328cb` pe hai).
+38 commits · working tree clean · **6 commits unpushed** (`origin/main` `a2b10ad` pe hai).
 `apps/api/.env` ka backup: `apps/api/.env.bak-1787215917` (gitignored).
 
 ⚠️ **Push kabhi bhi bina permission ke nahi karna.**
