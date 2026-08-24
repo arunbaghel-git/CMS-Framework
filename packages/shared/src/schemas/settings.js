@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { DEFAULT_SITE_ID } from '../constants/index.js'
+import { LINK_TARGETS, classNameSchema, menuUrlSchema } from './menu.js'
 import { emailSchema } from './user.js'
 
 /**
@@ -62,6 +63,26 @@ const socialSchema = z.object(socialShape(socialUrl.default('')))
  */
 const socialUpdateSchema = z.object(socialShape(socialUrl.optional()))
 
+/**
+ * Header ka ek button.
+ *
+ * `label`/`url` **required nahi** hain — admin type karte waqt aadhi row bacha kar Save
+ * kar sakta hai, aur usse block karna badtameezi hoti. Adhoora button public payload me
+ * jaata hi nahi (`getPublicSettings`), isliye site pe kabhi toota link nahi banta.
+ *
+ * `enabled` ek asli field hai, "dono khaali kar do" ka substitute nahi: seasonal button ko
+ * uska poora config bachaate hue ek mahine ke liye band kiya ja sake.
+ */
+const headerButtonSchema = z.object({
+  label: z.string().trim().max(60).default(''),
+  // Khaali chalega; bhara ho to menu wale hi rules (relative, anchor, https, mailto, tel)
+  url: z.union([z.literal(''), menuUrlSchema]).default(''),
+  target: z.enum(/** @type {[string, ...string[]]} */ (LINK_TARGETS)).default('_self'),
+  /** Theme primary vs outline banata hai — sirf presentation (R18). */
+  className: classNameSchema,
+  enabled: z.boolean().default(true),
+})
+
 export const settingsSchema = z.object({
   siteId: z.string().default(DEFAULT_SITE_ID),
 
@@ -87,6 +108,40 @@ export const settingsSchema = z.object({
   whatsapp: optionalText(40),
   address: optionalText(500),
   social: socialSchema.default({}),
+
+  // ── Header ──────────────────────────────────────────────────────────────────
+  /**
+   * Header ke buttons — D-27 ke Slice 0 scope me "CTA button" hai.
+   *
+   * **List hai, ek field nahi.** Client ke behaviour reference me header ke daayen do
+   * cheezein hain (ek badge, ek "Get quote"), aur ye generic bhi hai — dental clinic ko
+   * "Book appointment" + "Call us" chahiye hoga.
+   *
+   * Cap **4** pe hai: header me isse zyada physically fit nahi hota, aur bina limit ke
+   * koi 10 daal kar layout tod dega.
+   *
+   * Ye buttons **menu items nahi hain, aur jaan-boojh kar nahi hain.** Reference me ye
+   * `<nav>` ke bahar baithte hain aur mobile pe **dikhte rehte hain**, jabki menu items
+   * drawer me chale jaate hain. Inhe `menuType` banane se ye drawer me chale jaate — ek
+   * conversion button ke liye ulta. Jise nav ke **andar** button chahiye wo kisi bhi menu
+   * item pe `className: nav-cta` laga sakta hai (D-17).
+   *
+   * `10-REFERENCE-DESIGN.md` ka awards badge, support line aur sticky mobile CTA bar
+   * yahan **nahi** hain: wo us doc ke proposals hain, koi approved decision nahi.
+   */
+  headerButtons: z.array(headerButtonSchema).max(4).default([]),
+
+  // ── Footer ──────────────────────────────────────────────────────────────────
+  /**
+   * Appearance ▸ Footer ka **ekmatra naya field** (D-43, spec 006 §7.2).
+   *
+   * Footer ke links menu system se aate hain aur social links `social` me pehle se hain —
+   * isliye Slice 0 me footer ki non-navigation settings me bas yahi bachta hai.
+   *
+   * `{year}` placeholder theme replace karta hai, taaki har 1 January ko client ko
+   * copyright line haath se badalni na pade.
+   */
+  footerCopyright: optionalText(300),
 
   // ── Homepage & archives ─────────────────────────────────────────────────────
   frontPageType: z

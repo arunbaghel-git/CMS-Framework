@@ -3,6 +3,7 @@
  */
 
 export * from './permissions.js'
+export * from './theme-locations.js'
 
 export const DEFAULT_SITE_ID = 'default'
 export const DEFAULT_LOCALE = 'en'
