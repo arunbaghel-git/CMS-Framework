@@ -1,5 +1,7 @@
 import { DEFAULT_SITE_ID, defaultSettings, toPublicSettings } from '@cms/shared'
 
+import { badRequest } from '../../core/errors.js'
+import { mediaExists } from '../media/service.js'
 import { Settings } from './model.js'
 
 /**
@@ -32,6 +34,38 @@ export async function getSettings(siteId = DEFAULT_SITE_ID) {
 }
 
 /**
+ * Media ki id store karne wale fields, aur unka user-facing naam (R17 — message English).
+ */
+const MEDIA_ID_FIELDS = Object.freeze({
+  logoMediaId: 'logo',
+  faviconMediaId: 'favicon',
+})
+
+/**
+ * Media ki id save hone se **pehle** check karo ki wo media asli me hai (D-42 §1).
+ *
+ * Bina iske koi bhi string `logoMediaId` me baith jaati hai, aur wo galti chup-chaap DB
+ * me pahunch kar Slice 0 me header pe phootti — upload ke hafton baad, jahan wajah
+ * dhoondhna mushkil hai. Ek `exists()` se wo entry point pe hi ruk jaati hai.
+ *
+ * `null` (aur khaali string) hamesha valid hai — wo "logo hata do" hai, na ki koi
+ * reference.
+ *
+ * @param {object} input
+ * @param {string} siteId
+ */
+async function assertMediaRefsExist(input, siteId) {
+  for (const [field, label] of Object.entries(MEDIA_ID_FIELDS)) {
+    const id = input[field]
+    if (id === undefined || id === null || id === '') continue
+
+    if (!(await mediaExists(id, siteId))) {
+      throw badRequest(`The selected ${label} could not be found. Upload it again.`)
+    }
+  }
+}
+
+/**
  * Sirf wahi fields likhta hai jo `updateSettingsSchema` se pass hui hain.
  *
  * `$set` ke saath **dot-notation** use hoti hai nested `social` ke liye — poora object
@@ -43,6 +77,7 @@ export async function getSettings(siteId = DEFAULT_SITE_ID) {
  * @param {string} [siteId]
  */
 export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
+  await assertMediaRefsExist(input, siteId)
   await ensureSettings(siteId)
 
   const $set = {}

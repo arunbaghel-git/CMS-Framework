@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import { DEFAULT_SITE_ID } from '@cms/shared'
 
 import { env } from '../../core/env.js'
@@ -158,6 +159,25 @@ export async function listMedia(query, siteId = DEFAULT_SITE_ID) {
     data: docs.map(toPublicMedia),
     meta: { page, limit, total, pages: Math.ceil(total / limit) || 1 },
   }
+}
+
+/**
+ * "Is id ka media maujood hai?" — sirf haan/naa, throw nahi karta.
+ *
+ * Ye doosre modules ke liye hai jo media ki id **store** karte hain (aaj
+ * `settings.logoMediaId` / `faviconMediaId`, D-42 §1). Wo Mongoose ke `Media` model ko
+ * seedha import na karein — media ka data access media module ke andar hi rehna chahiye.
+ *
+ * Bekaar id (jo ObjectId hai hi nahi) pe `false` milta hai, CastError nahi — caller ke
+ * liye "nahi mila" aur "galat shape" ka nateeja ek hi hai.
+ *
+ * @param {string} id
+ * @param {string} [siteId]
+ */
+export async function mediaExists(id, siteId = DEFAULT_SITE_ID) {
+  if (!mongoose.isValidObjectId(id)) return false
+
+  return Boolean(await Media.exists({ _id: id, siteId, deletedAt: null }))
 }
 
 /**

@@ -8,6 +8,7 @@ import { CSRF_HEADER } from '../middleware/csrf.js'
 import { RefreshToken } from '../modules/auth/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
+import { Media } from '../modules/media/model.js'
 import { Settings } from '../modules/settings/model.js'
 import { User } from '../modules/users/model.js'
 import { createUser } from '../modules/users/service.js'
@@ -63,12 +64,34 @@ afterAll(async () => {
   await disconnectTestDb()
 })
 
+/**
+ * Asli media record — D-42 §1 ke baad settings sirf **maujood** media ki id leti hai,
+ * isliye logo/favicon wale test ko sach me ek media chahiye.
+ */
+async function makeMedia(input = {}) {
+  const uploader = await User.findOne({ email: 'admin@test.com' }).lean()
+
+  return Media.create({
+    filename: 'logo.png',
+    mime: 'image/png',
+    size: 4096,
+    width: 512,
+    height: 512,
+    variants: [
+      { key: 'thumb', url: '/uploads/sites/default/media/2026/08/x/thumb.webp', w: 300, h: 300 },
+    ],
+    uploadedBy: uploader._id,
+    ...input,
+  })
+}
+
 beforeEach(async () => {
   await Promise.all([
     User.deleteMany({}),
     Role.deleteMany({}),
     RefreshToken.deleteMany({}),
     Settings.deleteMany({}),
+    Media.deleteMany({}),
   ])
   invalidateRoleCache()
   await ensureDefaultRoles()
@@ -164,20 +187,70 @@ describe('PATCH /api/settings', () => {
   })
 
   it('logo aur favicon media IDs persist karta hai', async () => {
+    const logo = await makeMedia({ filename: 'logo.png' })
+    const favicon = await makeMedia({ filename: 'favicon.png' })
+
     const res = await authed('patch', '/api/settings', adminJar).send({
-      logoMediaId: '64f000000000000000000001',
-      faviconMediaId: '64f000000000000000000002',
+      logoMediaId: String(logo._id),
+      faviconMediaId: String(favicon._id),
     })
 
     expect(res.status).toBe(200)
     expect(res.body.data.settings).toMatchObject({
-      logoMediaId: '64f000000000000000000001',
-      faviconMediaId: '64f000000000000000000002',
+      logoMediaId: String(logo._id),
+      faviconMediaId: String(favicon._id),
     })
 
     const stored = await Settings.findOne({ siteId: 'default' }).lean()
-    expect(stored.logoMediaId).toBe('64f000000000000000000001')
-    expect(stored.faviconMediaId).toBe('64f000000000000000000002')
+    expect(stored.logoMediaId).toBe(String(logo._id))
+    expect(stored.faviconMediaId).toBe(String(favicon._id))
+  })
+
+  /**
+   * D-42 §1 — ye wahi test hai jo pehle **ulta** assert karta tha: ek aisi ObjectId
+   * bhejta tha jo `media` me hai hi nahi, aur ummeed karta tha ki wo save ho jaayegi.
+   * Us gap ka nateeja Slice 0 me header pe dikhta — upload ke hafton baad.
+   */
+  it('anjaan media id 400 deti hai aur kuch save nahi hota (D-42 §1)', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      siteName: 'Should Not Save',
+      logoMediaId: '64f000000000000000000001',
+    })
+
+    expect(res.status).toBe(400)
+
+    // Poori request rukni chahiye — siteName bhi nahi jaana chahiye
+    const stored = await Settings.findOne({ siteId: 'default' }).lean()
+    expect(stored?.logoMediaId ?? null).toBeNull()
+    expect(stored?.siteName).not.toBe('Should Not Save')
+  })
+
+  it('bekaar media id 400 deti hai, 500 nahi (D-42 §1)', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      faviconMediaId: 'not-an-object-id',
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('trash me padi media ki id bhi reject hoti hai (D-42 §1)', async () => {
+    const deleted = await makeMedia({ deletedAt: new Date() })
+
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      logoMediaId: String(deleted._id),
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('null bhejna hamesha chalta hai — wo "logo hata do" hai (D-42 §1)', async () => {
+    const logo = await makeMedia()
+    await authed('patch', '/api/settings', adminJar).send({ logoMediaId: String(logo._id) })
+
+    const res = await authed('patch', '/api/settings', adminJar).send({ logoMediaId: null })
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.settings.logoMediaId).toBeNull()
   })
 
   /**

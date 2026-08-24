@@ -8,7 +8,7 @@ import { User } from '../users/model.js'
 import { createUser } from '../users/service.js'
 import { connectTestDb, disconnectTestDb } from '../../tests/db.js'
 import { Media } from './model.js'
-import { buildMediaVariantKey, createMediaFromUpload } from './service.js'
+import { buildMediaVariantKey, createMediaFromUpload, mediaExists } from './service.js'
 
 const PASSWORD = 'ek-lamba-sa-passphrase'
 
@@ -178,5 +178,52 @@ describe('createMediaFromUpload', () => {
     expect(storage.writes).toHaveLength(3)
     expect(storage.deletes).toEqual(storage.writes.map((write) => write.key))
     expect(await Media.countDocuments()).toBe(0)
+  })
+})
+
+/**
+ * `mediaExists` doosre modules ke liye hai (aaj settings, D-42 §1). Isliye iske
+ * contract ka apna test hai: **kabhi throw nahi karta**, sirf haan/naa deta hai.
+ */
+describe('mediaExists', () => {
+  async function seed() {
+    const uploader = await User.findOne({ email: 'admin@test.com' }).lean()
+
+    return Media.create({
+      filename: 'logo.png',
+      mime: 'image/png',
+      size: 2048,
+      width: 512,
+      height: 512,
+      variants: [],
+      uploadedBy: uploader._id,
+    })
+  }
+
+  it('maujood media pe true', async () => {
+    const media = await seed()
+    expect(await mediaExists(String(media._id))).toBe(true)
+  })
+
+  it('anjaan ObjectId pe false', async () => {
+    expect(await mediaExists('64f000000000000000000001')).toBe(false)
+  })
+
+  it('bekaar id pe false — CastError throw nahi karta', async () => {
+    expect(await mediaExists('not-an-object-id')).toBe(false)
+    expect(await mediaExists('')).toBe(false)
+    expect(await mediaExists(null)).toBe(false)
+  })
+
+  it('trash me padi media pe false', async () => {
+    const media = await seed()
+    await Media.updateOne({ _id: media._id }, { $set: { deletedAt: new Date() } })
+
+    expect(await mediaExists(String(media._id))).toBe(false)
+  })
+
+  it('doosre site ki media pe false', async () => {
+    const media = await seed()
+    expect(await mediaExists(String(media._id), 'doosri-site')).toBe(false)
   })
 })
