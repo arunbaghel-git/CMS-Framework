@@ -1,0 +1,553 @@
+/* ============================================================
+   Public site — Slice 0 (header + footer)
+
+   Plain CSS (D-28). Sab kuch tokens se chalta hai taaki client ka theme inhe override
+   kar sake — yahi blocks ka theming contract bhi hai (02-ARCHITECTURE §6.4).
+
+   ⚠️ **Yahan koi class behaviour decide nahi karti (R18).** `mega--wide` sirf width
+   deti hai; kitne columns hain wo `--mega-cols` se aata hai, jo server ke structured
+   `columnCount` se set hota hai.
+   ============================================================ */
+
+:root {
+  --ink: #0f172a;
+  --body: #334155;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --line-2: #f1f5f9;
+  --surface: #fff;
+  --accent: #2563eb;
+
+  --wrap: 1280px;
+  --pad: 20px;
+
+  /* Mega ke layout widths — spec 006 §2.1. Inhi se allowed column counts nikalte hain. */
+  --mega-sm: 420px;
+  --mega-md: 780px;
+  --mega-wide: 1700px;
+
+  --mega-pad-x: 24px;
+  --mega-gap: 20px;
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--body);
+  background: var(--surface);
+}
+
+body.noscroll {
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.wrap {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding-inline: var(--pad);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.hdr {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.hdr__top {
+  /*
+   * `wide` aur `full` mega ka containing block YAHI hai — aur ye line zaroori hai.
+   *
+   * Un dono layouts me `.nav__i` ko `position: static` karna padta hai, taaki panel apne
+   * nav item ki width se bahar nikal sake. Par uske baad panel ko koi positioned ancestor
+   * chahiye; na mile to wo initial containing block pe gir jaata hai, aur `top: 100%` ka
+   * matlab "viewport ki poori height" ban jaata hai — panel fold ke bahut neeche chala
+   * jaata hai aur dikhta hi nahi.
+   *
+   * `sm`/`md` isse bach jaate hain kyunki unka `<li>` `relative` hi rehta hai — isliye
+   * bug sirf `wide` aur `full` pe dikha tha.
+   */
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 64px;
+}
+
+.brand__img {
+  display: block;
+  max-height: 44px;
+  width: auto;
+}
+
+.nav {
+  margin-left: auto;
+  min-width: 0;
+}
+
+.nav__list {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav__i {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.nav__l {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 20px 11px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+}
+
+.nav__i:hover > .nav__l {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.nav__caret {
+  width: 0;
+  height: 0;
+  border-inline: 4px solid transparent;
+  border-top: 4px solid currentColor;
+  opacity: 0.5;
+}
+
+/* ---------- normal dropdown ---------- */
+.drop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 12px 28px rgb(15 23 42 / 12%);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.15s;
+  z-index: 90;
+}
+
+.nav__i:hover > .drop {
+  opacity: 1;
+  visibility: visible;
+}
+
+.drop li {
+  position: relative;
+}
+
+.drop a {
+  display: block;
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
+.drop a:hover {
+  color: var(--accent);
+  background: var(--line-2);
+}
+
+/* Grandchild — right-side flyout (spec 006 Q-A) */
+.drop--fly {
+  top: 0;
+  left: 100%;
+  border-radius: 8px;
+}
+
+.drop li:hover > .drop--fly {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ============================================================
+   MEGA
+   Width `layout` se, grid `--mega-cols` se — do alag axes (D-43).
+   ============================================================ */
+.mega {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding: 20px var(--mega-pad-x);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 16px 40px rgb(15 23 42 / 14%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition: 0.18s;
+  z-index: 99;
+}
+
+.nav__i:hover > .mega {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/*
+ * Centred under its own item. `wide` aur `full` ko container se bahar nikalna hota hai,
+ * isliye unke `<li>` ka position static ho jaata hai.
+ */
+.mega--sm {
+  width: min(var(--mega-sm), calc(100vw - 2 * var(--pad)));
+}
+
+.mega--md {
+  left: 50%;
+  width: min(var(--mega-md), calc(100vw - 2 * var(--pad)));
+  margin-left: calc(min(var(--mega-md), 100vw - 2 * var(--pad)) / -2);
+}
+
+.nav__i--full,
+.nav__i--wide {
+  position: static;
+}
+
+.mega--full {
+  left: var(--pad);
+  right: var(--pad);
+  width: auto;
+}
+
+.mega--wide {
+  left: 50%;
+  width: min(var(--mega-wide), calc(100vw - 28px));
+  margin-left: calc(min(var(--mega-wide), 100vw - 28px) / -2);
+}
+
+/*
+ * `--mega-cols` server ke `columnCount` se aata hai.
+ *
+ * Isi liye 2 se 6 tak har count bina nayi CSS ke chalta hai — `columns: 5` bhi, jo
+ * client ke behaviour reference me tha hi nahi (D-43/D4).
+ */
+.mega__cols {
+  display: grid;
+  grid-template-columns: repeat(var(--mega-cols, 4), minmax(0, 1fr));
+  gap: 8px var(--mega-gap);
+}
+
+.mega__group + .mega__group {
+  margin-top: 16px;
+}
+
+.mega__gl {
+  display: block;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+a.mega__gl:hover {
+  color: var(--accent);
+}
+
+.mega__group a:not(.mega__gl) {
+  display: block;
+  padding: 5px 0;
+  font-size: 12.5px;
+}
+
+.mega__group a:not(.mega__gl):hover {
+  color: var(--accent);
+}
+
+/* CTA columns ke neeche full-width row — reference ka `grid-column: 1/-1` */
+.mega__cta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-2);
+}
+
+.mega__cta span {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+.burger {
+  display: none;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.mscrim {
+  position: fixed;
+  inset: 0;
+  background: rgb(15 23 42 / 45%);
+  z-index: 100;
+}
+
+.mdrawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(360px, 88vw);
+  background: var(--surface);
+  transform: translateX(100%);
+  transition: transform 0.22s;
+  overflow-y: auto;
+  z-index: 101;
+}
+
+.mdrawer.on {
+  transform: translateX(0);
+}
+
+.mdrawer__head {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mdrawer .burger {
+  display: flex;
+}
+
+.mnav {
+  padding: 8px 0 32px;
+}
+
+.mnav__flat,
+.mnav__acc > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  list-style: none;
+}
+
+.mnav__acc > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mnav__acc > summary::after {
+  content: '▾';
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+.mnav__acc[open] > summary::after {
+  content: '▴';
+}
+
+.mnav__sub {
+  padding: 6px 18px 14px;
+}
+
+.mnav__sub a {
+  display: block;
+  padding: 7px 0;
+  font-size: 13px;
+}
+
+.mnav__acc--sub > summary {
+  padding-inline: 0;
+  border-bottom: 0;
+  font-size: 13px;
+}
+
+/* Group heading mobile pe bhi heading hi rehti hai — flatten hone par bhi structure dikhe */
+.mnav__gl {
+  display: block;
+  margin-top: 12px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line-2);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.mnav__group:first-child .mnav__gl {
+  margin-top: 0;
+}
+
+/* CTA us item ke section ke bottom pe (D-43/D10) */
+.mnav__cta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-2);
+}
+
+.mnav__cta span {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+@media (max-width: 1040px) {
+  .nav {
+    display: none;
+  }
+
+  .burger {
+    display: flex;
+    margin-left: auto;
+  }
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.ft {
+  margin-top: 64px;
+  padding: 48px 0 28px;
+  border-top: 1px solid var(--line);
+  background: var(--line-2);
+}
+
+.ft__g {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 28px;
+}
+
+.ft__col h2 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.ft__col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ft__col a {
+  display: block;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.ft__col a:hover {
+  color: var(--accent);
+}
+
+.ft__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 32px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.ft__copy {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.ft__social {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+}
+
+.ft__social a:hover {
+  color: var(--accent);
+}
+
+/* Header ke buttons — nav ke baad, burger se pehle */
+.hdr__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1040px) {
+  /* Chhoti screen pe buttons bache rehte hain — wo conversion element hain, nav nahi */
+  .hdr__actions {
+    order: 2;
+    margin-left: auto;
+  }
+
+  .burger {
+    order: 3;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Sabse chhoti screen pe do se zyada button ki jagah nahi bachti */
+  .hdr__actions .btn:nth-child(n + 3) {
+    display: none;
+  }
+}
