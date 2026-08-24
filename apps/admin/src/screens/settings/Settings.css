@@ -59,8 +59,16 @@ form fieldset {
 }
 
 /* Logo/Favicon media upload. `.featured-drop` design se aata hai; yahan sirf screen
-   specific sizing aur preview layout hai. */
-.media-drop {
+   specific sizing aur preview layout hai.
+
+   Selector me **dono class** jaan-boojh kar hain. Component ki CSS bundle me
+   `primitives.css` se PEHLE aati hai, isliye akela `.media-drop` (ek class) `.featured-drop`
+   ki height se haar jaata — bhale wo yahan baad me likha ho. Do class = zyada specificity,
+   aur nateeja load order pe depend nahi karta.
+
+   Design me bhi Settings ka logo drop chhota hai: wahan `.featured-drop` pe inline
+   `style="height:90px"` laga hai (`admin-design.html`), base 130px rehte hue. */
+.featured-drop.media-drop {
   height: 90px;
   padding: 0;
   overflow: hidden;

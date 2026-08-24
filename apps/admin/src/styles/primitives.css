@@ -464,10 +464,19 @@ tr:hover .row-actions {
   padding: 10px 12px;
   background: #f6f7f7;
 }
+/**
+ * Design spec ka `.featured-drop` — height 130px wahin se hai.
+ *
+ * Settings ka Logo/Favicon isse 90px pe override karta hai (`.media-drop`,
+ * `Settings.css`). Wo override kaam karta hai kyunki component ki CSS
+ * `primitives.css` ke **baad** load hoti hai — isliye yahan se height hatane ki
+ * zaroorat nahi hai, aur hatane se design ke baaki `.featured-drop` (entry editor ka
+ * "Set featured image", SEO tab ka "OG Image") collapse ho jaate hain.
+ */
 .featured-drop {
   border: 1px dashed var(--border);
   border-radius: var(--radius);
-  /* height: 130px; */
+  height: 130px;
   display: grid;
   place-items: center;
   color: var(--text-muted);
