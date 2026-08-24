@@ -2,9 +2,9 @@
 
 **Status:** Phase 0 ka approved execution scope poora. Users ka role-aware menu + Profile
 (D-37), Settings — model + migration 005 + General screen (D-40), Media foundation
-(D-41), aur Settings Logo/Favicon current scope me live hain — **279 tests passing**.
+(D-41), aur Settings Logo/Favicon current scope me live hain — **288 tests passing**.
 Original Phase 0 ke teen items deferred/non-blocking hain (neeche).
-**Last updated:** 21 Aug 2026
+**Last updated:** 24 Aug 2026
 
 ---
 

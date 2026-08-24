@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 21 Aug 2026
+> **Last updated:** 24 Aug 2026
 
 ---
 
@@ -32,7 +32,7 @@ Slice 0   Header + Footer end-to-end      🔴
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 279 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 288 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -59,31 +59,37 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 
 ## Faisle jo ho chuke hain
 
-| Faisla                | Nateeja                                                                             |
-| --------------------- | ----------------------------------------------------------------------------------- |
-| Field DSL             | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)                                |
-| TypeScript            | **Nahi** — sab JavaScript (D-03)                                                    |
-| Trash                 | **`deletedAt` field**, `status: 'trash'` nahi (D-25)                                |
-| Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)                      |
-| Permanent delete      | **Sirf admin**                                                                      |
-| Seed content          | **Khaali** Home + Blog                                                              |
-| Payload spike         | Approved — Phase 1 se pehle, abhi baaki                                             |
-| Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                                 |
-| **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28)               |
-| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                                          |
-| **Login screen**      | Design me nahi tha → WordPress-style, design ke tokens se (D-31)                    |
-| **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                                    |
-| **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                              |
-| **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34)              |
-| **Password**          | Sirf admin set karta hai; user khud nahi badal sakta (D-35)                         |
-| **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)                        |
-| **Users ka menu**     | Role-aware — admin ko 3 item, baaki ko sirf Profile (D-37)                          |
-| **Apna password**     | User Profile se khud badal sakta hai, current password ke saath (D-37)              |
-| **Session ki umr**    | 24 ghante · "Remember me" pe 7 din · dono sliding (D-38)                            |
-| **Role dena**         | Apna role khud nahi · apni permission se upar ka role kisi ko nahi (D-39)           |
-| **Settings**          | Screens design se (Phase 7 se aage khiskin) · Site URL env se, editable nahi (D-40) |
+| Faisla                | Nateeja                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| Field DSL             | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)                                              |
+| TypeScript            | **Nahi** — sab JavaScript (D-03)                                                                  |
+| Trash                 | **`deletedAt` field**, `status: 'trash'` nahi (D-25)                                              |
+| Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)                                    |
+| Permanent delete      | **Sirf admin**                                                                                    |
+| Seed content          | **Khaali** Home + Blog                                                                            |
+| Payload spike         | Approved — Phase 1 se pehle, abhi baaki                                                           |
+| Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                                               |
+| **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28)                             |
+| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                                                        |
+| **Login screen**      | Design me nahi tha → WordPress-style, design ke tokens se (D-31)                                  |
+| **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                                                  |
+| **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                                            |
+| **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34)                            |
+| **Password**          | Sirf admin set karta hai; user khud nahi badal sakta (D-35)                                       |
+| **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)                                      |
+| **Users ka menu**     | Role-aware — admin ko 3 item, baaki ko sirf Profile (D-37)                                        |
+| **Apna password**     | User Profile se khud badal sakta hai, current password ke saath (D-37)                            |
+| **Session ki umr**    | 24 ghante · "Remember me" pe 7 din · dono sliding (D-38)                                          |
+| **Role dena**         | Apna role khud nahi · apni permission se upar ka role kisi ko nahi (D-39)                         |
+| **Settings**          | Screens design se (Phase 7 se aage khiskin) · Site URL env se, editable nahi (D-40)               |
+| **Media**             | Foundation Phase 2 se aage khiski · variant + storage contract frozen · SVG blocked (D-41)        |
+| **Logo ka reference** | Media id write pe validate hoti hai · broken `<img>` kabhi nahi · orphan media abhi accept (D-42) |
 
 Specs 001–005: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved.
+
+**Ek khula sawaal jo Slice 0 ke header ko rokta hai:** logo na mile to uski jagah **kya**
+dikhe — `09-OPEN-ITEMS.md` **Q-7**. Wo client ka faisla hai (R15), developer ka nahi.
+D-42 sirf itna tay karta hai ki toota hua `<img>` kabhi render nahi hoga.
 
 ---
 

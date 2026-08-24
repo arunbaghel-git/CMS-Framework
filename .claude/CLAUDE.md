@@ -8,7 +8,7 @@ Target user: **non-technical client**, jo admin panel se poori website chalaye.
 **Status:** **Phase 0 ka approved scope poora.** Setup layer, Zod contract, migration
 runner, CSS architecture, **auth + RBAC + admin shell**, **Users screens**, **role-aware
 nav + Profile** (D-37), **Settings — model + migration 005 + General screen** (D-40) aur
-**Media foundation + Logo/Favicon** (D-41) ban chuke hain (**279 tests passing**).
+**Media foundation + Logo/Favicon** (D-41) ban chuke hain (**288 tests passing**).
 Teen item jaan-boojh kar deferred hain: docker compose me `api`+`admin`, CSP policy
 (Phase 4-5), aur forgot/reset (SMTP pe block).
 Agla kaam **Slice 0 — Header + Footer** (D-27).
