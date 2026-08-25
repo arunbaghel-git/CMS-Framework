@@ -367,10 +367,12 @@ hai; hamare paas structured payload hai, isliye hum dono ko usi data se render k
 **Column flatten natural hai** kyunki column ek **pure layout wrapper** hai — usme koi
 content nahi hota, sirf groups hote hain. Yahi is shape ka sabse bada practical fayda hai.
 
-⚠️ **CTA mobile pe us item ke accordion section ke bottom pe aayega (D10).** Behaviour
-reference isko mobile me **drop** karta hai (`:not(.mega__cta)`). Ye **jaan-boojh kar
-liya gaya divergence** hai — yahan isliye likha hai ki koi baad me isse "reference se
-match karne" ke naam pe hata na de.
+⚠️ **CTA mobile pe NAHI dikhta** — D10 revised (25 Aug), reference jaisa hi
+(`:not(.mega__cta)`).
+
+Pehle ulta tay hua tha. Wajah ye thi ki drawer me CTA ka koi doosra thikana nahi tha — par
+ab drawer ke bottom me header ke CTA buttons hain, to mega ka apna CTA unhi ke upar dohra
+padta hai. Desktop pe CTA jaisa tha waisa hai.
 
 ---
 

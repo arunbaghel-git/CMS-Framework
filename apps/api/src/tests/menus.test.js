@@ -383,7 +383,15 @@ describe('GET /api/public/settings', () => {
     const { headerButtons } = (await request(app).get('/api/public/settings')).body.data.settings
 
     expect(headerButtons).toEqual([
-      { label: 'Get a quote', url: '/contact', target: '_self', className: 'primary' },
+      {
+        label: 'Get a quote',
+        url: '/contact',
+        target: '_self',
+        variant: 'outline',
+        className: 'primary',
+        icon: 'none',
+        iconOnlyOnMobile: false,
+      },
     ])
     // `enabled` theme tak nahi jaata — use sirf wahi milte hain jo dikhne hain
     expect(headerButtons[0]).not.toHaveProperty('enabled')
@@ -392,6 +400,32 @@ describe('GET /api/public/settings', () => {
   it('chaar se zyada header buttons 400 dete hain', async () => {
     const res = await authed('patch', '/api/settings', adminJar).send({
       headerButtons: Array.from({ length: 5 }, (_, i) => ({ label: `B${i}`, url: '/x' })),
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('button ka icon public payload me jaata hai', async () => {
+    await authed('patch', '/api/settings', adminJar).send({
+      headerButtons: [{ label: 'Awards', url: '/awards', icon: 'award', variant: 'primary' }],
+    })
+
+    const { headerButtons } = (await request(app).get('/api/public/settings')).body.data.settings
+
+    expect(headerButtons[0]).toEqual({
+      label: 'Awards',
+      url: '/awards',
+      target: '_self',
+      variant: 'primary',
+      className: '',
+      icon: 'award',
+      iconOnlyOnMobile: false,
+    })
+  })
+
+  it('anjaan icon 400 deta hai — value hi contract hai', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      headerButtons: [{ label: 'X', url: '/x', icon: 'rocket' }],
     })
 
     expect(res.status).toBe(400)

@@ -73,13 +73,61 @@ const socialUpdateSchema = z.object(socialShape(socialUrl.optional()))
  * `enabled` ek asli field hai, "dono khaali kar do" ka substitute nahi: seasonal button ko
  * uska poora config bachaate hue ek mahine ke liye band kiya ja sake.
  */
+/**
+ * Button ke icons — **ek chhoti curated list**, koi khula media field nahi.
+ *
+ * Icons framework ki furniture hain, client ka content nahi. Media se pick karwane ka
+ * matlab hota ki har button ke liye client ko ek file upload karni pade, aur hume upload
+ * + validation + resolve ki poori machinery — jabki asal me sabko wahi 6-7 icons chahiye.
+ *
+ * Naya icon jodna **do line** hai: yahan ek value, aur theme me ek SVG path.
+ *
+ * Value hi contract hai — theme isi se SVG chunti hai. Naam badalna DB me stored data
+ * badalna hai, isliye inhe rename mat karo (wahi rule jo block `type` pe hai, R4).
+ */
+export const BUTTON_ICONS = Object.freeze([
+  'none',
+  'award',
+  'phone',
+  'mail',
+  'chat',
+  'calendar',
+  'star',
+])
+
+/**
+ * Button ka look — **structured field, className nahi.**
+ *
+ * Pehle ye `className: 'btn-primary'` type karke hota tha. Wo galat tha: non-technical
+ * client se magic class ka naam yaad karwana wahi bojh hai jise ye CMS hataane ke liye
+ * bana hai — aur kahin likha bhi nahi tha ki kaunse naam chalte hain.
+ *
+ * Ab dropdown hai. `className` bacha hua hai, par uska kaam ab wahi hai jo hona chahiye:
+ * **extra** styling (R18) — wo ye tay nahi karta ki button dikhega kaisa.
+ */
+export const BUTTON_VARIANTS = Object.freeze(['outline', 'primary', 'accent'])
+
 const headerButtonSchema = z.object({
   label: z.string().trim().max(60).default(''),
   // Khaali chalega; bhara ho to menu wale hi rules (relative, anchor, https, mailto, tel)
   url: z.union([z.literal(''), menuUrlSchema]).default(''),
   target: z.enum(/** @type {[string, ...string[]]} */ (LINK_TARGETS)).default('_self'),
-  /** Theme primary vs outline banata hai — sirf presentation (R18). */
+  variant: z.enum(/** @type {[string, ...string[]]} */ (BUTTON_VARIANTS)).default('outline'),
+  /**
+   * Chhoti screen pe sirf icon dikhe, label nahi.
+   *
+   * Client ke design me "Awards" mobile pe yahi banta hai — neela square, sirf trophy.
+   * "Get quote" poora label ke saath rehta hai.
+   *
+   * Pehle ye teen-value ka enum tha (`show`/`icon`/`hide`). `hide` hata diya gaya (25 Aug) —
+   * ek boolean padhne me saaf hai, aur "mobile pe bilkul mat dikhao" ki zaroorat abhi tak
+   * asli use case me nahi aayi. Zaroorat pade to wapas enum banaya ja sakta hai.
+   */
+  iconOnlyOnMobile: z.boolean().default(false),
+  /** Sirf **extra** styling ke liye — look `variant` se aata hai (R18). */
   className: classNameSchema,
+  /** Label ke pehle dikhne wala icon. `none` = koi icon nahi. */
+  icon: z.enum(/** @type {[string, ...string[]]} */ (BUTTON_ICONS)).default('none'),
   enabled: z.boolean().default(true),
 })
 

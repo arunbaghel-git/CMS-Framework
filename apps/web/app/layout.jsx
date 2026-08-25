@@ -1,7 +1,27 @@
+import { Inter } from 'next/font/google'
+
 import SiteFooter from '../components/SiteFooter.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { getSettings } from '../lib/cms.js'
 import './globals.css'
+
+/**
+ * Inter — reference ka font.
+ *
+ * `next/font/google` build ke waqt font download kar ke **self-host** karta hai: runtime
+ * pe Google ko koi request nahi jaati, layout shift nahi hota, aur CSP me ek aur origin
+ * kholni nahi padti (wo Phase 4-5 me aayegi).
+ *
+ * ⚠️ Iska matlab hai ki **build ke waqt internet chahiye**. Offline build karna ho to ye
+ * font locally rakhna padega (`next/font/local`).
+ */
+const inter = Inter({
+  subsets: ['latin'],
+  // Reference me 400 se 900 tak use hote hain — 800 group headings pe lagta hai
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-inter',
+  display: 'swap',
+})
 
 /**
  * Root layout — header aur footer **har page pe**, asli API data se (D-27).
@@ -31,7 +51,7 @@ export async function generateMetadata() {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <body>
         <SiteHeader />
         {children}

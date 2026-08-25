@@ -1,5 +1,6 @@
 import { HEADER_MENU_LOCATION_ID } from '@cms/shared'
 
+import ButtonIcon from './ButtonIcon.jsx'
 import { getMenu, getSettings } from '../lib/cms.js'
 import MobileNav from './MobileNav.jsx'
 
@@ -30,6 +31,34 @@ function TopLevelItem({ item }) {
   )
 }
 
+function Caret() {
+  /**
+   * SVG, CSS ka rotated box nahi.
+   *
+   * Pehle `border-right` + `border-bottom` wala square 45° ghumaya tha. Uska **layout
+   * box** 7×7 rehta hai par dikhne wali "V" transform ke baad us box se bahar nikal jaati
+   * hai — isliye flex ka `align-items: center` use text ke saath align nahi kar paata,
+   * aur caret upar uth jaata hai. SVG me path viewBox ke beech me hota hai, to centering
+   * apne aap sahi baithti hai.
+   */
+  return (
+    <svg
+      className="nav__caret"
+      width="10"
+      height="10"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
 function DropdownItem({ item }) {
   const children = item.children ?? []
 
@@ -37,7 +66,7 @@ function DropdownItem({ item }) {
     <li className={`nav__i nav__i--drop ${item.className}`.trim()}>
       <a className="nav__l" href={item.href ?? '#'} target={item.target}>
         {item.label}
-        <span className="nav__caret" aria-hidden="true" />
+        <Caret />
       </a>
 
       {children.length > 0 && (
@@ -75,7 +104,7 @@ function MegaItem({ item }) {
     <li className={`nav__i nav__i--mega nav__i--${layout} ${item.className}`.trim()}>
       <a className="nav__l" href={item.href ?? '#'} target={item.target}>
         {item.label}
-        <span className="nav__caret" aria-hidden="true" />
+        <Caret />
       </a>
 
       {/*
@@ -181,18 +210,25 @@ export default async function SiteHeader() {
             {settings.headerButtons.map((button, i) => (
               <a
                 key={i}
-                className={`btn ${button.className}`.trim()}
+                className={`btn btn--${button.variant} ${button.iconOnlyOnMobile ? 'btn--m-icon' : ''} ${button.className}`.trim()}
                 href={button.url}
                 target={button.target}
               >
-                {button.label}
+                <ButtonIcon name={button.icon} />
+                <span className="btn__label">{button.label}</span>
               </a>
             ))}
           </div>
         )}
 
         {/* Wahi items, wahi data — koi alag mobile menu nahi (D-43/D9) */}
-        <MobileNav items={items} />
+        <MobileNav
+          items={items}
+          logo={settings?.logo}
+          siteName={settings?.siteName}
+          buttons={settings?.headerButtons ?? []}
+          phone={settings?.phone}
+        />
       </div>
     </header>
   )

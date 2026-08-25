@@ -95,7 +95,21 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
      */
     headerButtons: (settings.headerButtons ?? [])
       .filter((b) => b.enabled && b.label && b.url)
-      .map(({ label, url, target, className }) => ({ label, url, target, className })),
+      .map(({ label, url, target, variant, className, icon, iconOnlyOnMobile }) => ({
+        label,
+        url,
+        target,
+        variant,
+        className,
+        icon,
+        /**
+         * Icon-only bina icon ke bemaani hai — button poori tarah khaali ho jaata.
+         *
+         * Ye guard yahan hai, theme me nahi: admin checkbox tick kar ke icon `none` chhod
+         * sakta hai, aur us combination ko har theme me alag se sambhalna padta.
+         */
+        iconOnlyOnMobile: Boolean(iconOnlyOnMobile) && Boolean(icon) && icon !== 'none',
+      })),
 
     footerCopyright: settings.footerCopyright,
 

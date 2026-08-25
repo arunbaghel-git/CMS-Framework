@@ -1510,7 +1510,7 @@ className   item · link · mega · column · group — SIRF presentation (R18)
 | **layout × columns** | Compatibility **validation** hai, hint nahi — `MIN_COLUMN_WIDTH = 160px` se derived. `sm`→2 · `md`→2,3,4 · `full`/`wide`→2..6. CMS admin se jaan-boojh kar toota layout nahi banwata |
 | **Order** | Array ki position hi order hai — **koi `order` field nahi**. Isliye baad me nested drag-drop pure UI change hoga, migration zero |
 | **Mobile** | Wahi menu data, wahi endpoint. **Koi separate mobile menu nahi** |
-| **Mega ka CTA mobile pe** | Us item ke accordion ke bottom pe **dikhega**. Behaviour reference isko mobile me drop karta hai — ye jaan-boojh kar liya gaya divergence hai |
+| **Mega ka CTA mobile pe** | ⚠️ **Revised 25 Aug — ab mobile pe NAHI dikhta** (reference jaisa hi). Detail neeche |
 | **Footer** | Wahi generic menu system (D-17). Footer column ki heading `menus.name` se aati hai — koi naya field nahi |
 | **Locations** | `header` · `footerColumn1..4`. Generic naam — `footerExplore` jaise content-specific naam ek travel site ke hain, framework ke nahi |
 
@@ -1531,6 +1531,22 @@ sasta hai (baad me = 15 instances pe menu data migrate).
 **`locale` ek correction hai:** `02-ARCHITECTURE.md` §3.3 me `menus: { siteId, key } unique`
 likha tha. §3.1 khud `locale` ko day-1 reserve batata hai, aur `schema-change` skill isi
 exact case ko naam se bulaati hai. Sahi index `{ siteId, locale, key }` hai.
+
+### D10 ka revision — 25 Aug
+
+Pehle tay hua tha ki mega ka CTA **mobile drawer me bhi dikhega**, aur wo behaviour
+reference se jaan-boojh kar hatna tha. Us waqt wo sahi tha: drawer me CTA ka koi
+doosra thikana tha hi nahi.
+
+Uske baad drawer me **header ke CTA buttons** jud gaye (`mdrawer__foot`). Ab har mega ka
+apna CTA unhi ke upar dohra padta hai, aur lambe accordion ke aakhir me dab bhi jaata
+hai. Isliye ab wo mobile pe nahi dikhta — reference jaisa hi.
+
+**Desktop pe CTA jaisa tha waisa hai** — columns ke neeche full-width row.
+
+Sabak: "reference se hatna" apne aap galat nahi tha; galat ye tha ki us hatne ki wajah
+ek aisi kami thi jo baad me bhar gayi. Divergence ke saath uski **wajah** likhi thi,
+isiliye wajah khatam hote hi wo dikh gaya.
 
 **Reject kiya:**
 

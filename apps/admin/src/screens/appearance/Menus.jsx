@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LINK_TARGETS, MENU_TYPES } from '@cms/shared'
+import { BUTTON_ICONS, BUTTON_VARIANTS, LINK_TARGETS, MENU_TYPES } from '@cms/shared'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
@@ -40,6 +40,20 @@ import './Appearance.css'
 const MENU_TYPE_LABELS = { link: 'Simple link', dropdown: 'Dropdown', mega: 'Mega menu' }
 
 const TARGET_LABELS = { _self: 'Same tab', _blank: 'New tab' }
+
+/** Button ke look ke labels — value hi contract hai, ye sirf UI ka naam hai (R11/R17). */
+const VARIANT_LABELS = { outline: 'Outline', primary: 'Primary', accent: 'Accent' }
+
+/** Icon ke labels — value hi contract hai, ye sirf UI ka naam hai (R11/R17). */
+const ICON_LABELS = {
+  none: 'No icon',
+  award: 'Award',
+  phone: 'Phone',
+  mail: 'Email',
+  chat: 'Chat',
+  calendar: 'Calendar',
+  star: 'Star',
+}
 
 /** Server bhi yahi cap lagata hai (`settingsSchema.headerButtons`) — do jagah ek hi number. */
 const MAX_HEADER_BUTTONS = 4
@@ -367,7 +381,15 @@ export default function Menus() {
   const addButton = () =>
     setButtons((list) => [
       ...list,
-      { label: '', url: '', target: '_self', className: '', enabled: true },
+      {
+        label: '',
+        url: '',
+        target: '_self',
+        variant: 'outline',
+        className: '',
+        icon: 'none',
+        enabled: true,
+      },
     ])
 
   /** Buttons ka apna drag context — menu ki kisi list se ye mix nahi hoti. */
@@ -659,13 +681,43 @@ export default function Menus() {
                     />
 
                     <div className="hdr-btn__row">
-                      <input
-                        className="inp"
-                        value={button.className}
-                        placeholder="CSS class"
+                      {/*
+                        Look ab **structured field** se aata hai, className se nahi (R18).
+                        Pehle client ko `btn-primary` type karna padta tha — magic naam,
+                        kahin likha hua nahi. Ab dropdown hai.
+                      */}
+                      <select
+                        className="sel"
+                        value={button.variant ?? 'outline'}
                         disabled={!canEditSettings}
-                        onChange={(e) => setButton(i, { className: e.target.value })}
-                      />
+                        onChange={(e) => setButton(i, { variant: e.target.value })}
+                      >
+                        {BUTTON_VARIANTS.map((v) => (
+                          <option key={v} value={v}>
+                            {VARIANT_LABELS[v] ?? v}
+                          </option>
+                        ))}
+                      </select>
+                      {/*
+                        Icon ek **structured field** hai, className nahi (R18) — theme isi
+                        value se SVG chunti hai. Naya icon jodna do line hai: shared ke
+                        `BUTTON_ICONS` me ek value, aur theme me ek path.
+                      */}
+                      <select
+                        className="sel"
+                        value={button.icon ?? 'none'}
+                        disabled={!canEditSettings}
+                        onChange={(e) => setButton(i, { icon: e.target.value })}
+                      >
+                        {BUTTON_ICONS.map((name) => (
+                          <option key={name} value={name}>
+                            {ICON_LABELS[name] ?? name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="hdr-btn__row">
                       <select
                         className="sel"
                         value={button.target}
@@ -678,6 +730,14 @@ export default function Menus() {
                           </option>
                         ))}
                       </select>
+                      {/* Sirf extra styling — look upar wale Style dropdown se aata hai */}
+                      <input
+                        className="inp"
+                        value={button.className}
+                        placeholder="Extra CSS class"
+                        disabled={!canEditSettings}
+                        onChange={(e) => setButton(i, { className: e.target.value })}
+                      />
                       {/* Band karne se config bacha rehta hai — fields khaali karne se nahi */}
                       <label className="inline-lbl" title="Show this button">
                         <input
@@ -687,6 +747,23 @@ export default function Menus() {
                           onChange={(e) => setButton(i, { enabled: e.target.checked })}
                         />{' '}
                         Show
+                      </label>
+                    </div>
+
+                    <div className="hdr-btn__row">
+                      {/*
+                        Chhoti screen pe sirf icon — design me "Awards" yahi banta hai.
+                        Pehle theme CSS tay karti thi ki kaunsa button mobile pe kaisa
+                        dikhega (`nth-child(n+3)` chhupa do); wo faisla client ka hai.
+                      */}
+                      <label className="inline-lbl" title="Show only the icon on small screens">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(button.iconOnlyOnMobile)}
+                          disabled={!canEditSettings}
+                          onChange={(e) => setButton(i, { iconOnlyOnMobile: e.target.checked })}
+                        />{' '}
+                        Icon only on mobile
                       </label>
                     </div>
                   </div>

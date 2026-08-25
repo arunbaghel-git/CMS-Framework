@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+import ButtonIcon from './ButtonIcon.jsx'
+
 /**
  * Mobile drawer — **wahi menu data jo desktop use karta hai** (D-43/D9).
  *
@@ -19,24 +21,48 @@ import { useEffect, useState } from 'react'
  * wrapper** hai — usme content nahi hota, sirf groups hote hain.
  */
 
+/**
+ * Mega ka ek group — mobile pe apna **accordion**.
+ *
+ * Desktop pe columns saath-saath dikhte hain, to sab kuch ek nazar me aa jaata hai. Mobile
+ * pe sab ek dusre ke neeche aata hai: "Packages" akela 23 links khol deta tha aur drawer
+ * scroll karte-karte khatam nahi hota tha. Isliye har group band milta hai.
+ *
+ * Bina heading wala group flat rehta hai — click karne ko kuch hai hi nahi.
+ *
+ * **Clickable heading ka handling:** summary poori row hai aur wo toggle karti hai (mobile
+ * pe chhota caret bahut patla tap target hota). Isliye heading ka link **andar pehli entry**
+ * ban jaata hai — kuch khota nahi, aur "kya hoga" ka koi bharam nahi rehta.
+ */
 function GroupBlock({ group }) {
+  if (!group.heading) {
+    return (
+      <div className="mnav__group">
+        {group.links.map((link) => (
+          <a key={link.id} href={link.href ?? '#'} target={link.target} className={link.className}>
+            {link.label}
+          </a>
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <div className="mnav__group">
-      {group.heading &&
-        (group.href ? (
-          <a className="mnav__gl" href={group.href} target={group.target}>
+    <details className="mnav__acc mnav__acc--sub">
+      <summary>{group.heading}</summary>
+      <div className="mnav__sub">
+        {group.href && (
+          <a href={group.href} target={group.target}>
             {group.heading}
           </a>
-        ) : (
-          <span className="mnav__gl">{group.heading}</span>
+        )}
+        {group.links.map((link) => (
+          <a key={link.id} href={link.href ?? '#'} target={link.target} className={link.className}>
+            {link.label}
+          </a>
         ))}
-
-      {group.links.map((link) => (
-        <a key={link.id} href={link.href ?? '#'} target={link.target} className={link.className}>
-          {link.label}
-        </a>
-      ))}
-    </div>
+      </div>
+    </details>
   )
 }
 
@@ -80,25 +106,35 @@ function Item({ item }) {
           )}
 
         {/*
-          CTA mobile pe us item ke section ke **bottom** pe (D-43/D10).
-          Behaviour reference isko mobile me drop karta hai — ye jaan-boojh kar liya gaya
-          divergence hai, "reference se match" ke naam pe hataana mat.
+          **Mega ka CTA mobile pe nahi dikhta** — D10 revised, 25 Aug.
+          Behaviour reference bhi yahi karta hai (`:not(.mega__cta)`).
+
+          Pehle D10 me ulta tay hua tha: CTA drawer me bhi dikhega. Us waqt wo theek tha,
+          kyunki drawer me CTA ka koi doosra thikana nahi tha. Ab drawer ke **bottom me
+          header ke CTA buttons** hain — to har mega ka apna CTA usi ke upar dohra pad
+          jaata, aur lambe accordion ke aakhir me dab bhi jaata.
+
+          Desktop pe CTA jaisa tha waisa hai (`SiteHeader.jsx`) — wahan columns ke neeche
+          full-width row banti hai aur wo dikhti bhi hai.
         */}
-        {item.menuType === 'mega' && item.mega.cta && (
-          <div className={`mnav__cta ${item.mega.cta.className}`.trim()}>
-            <span>{item.mega.cta.text}</span>
-            <a className="btn" href={item.mega.cta.buttonUrl}>
-              {item.mega.cta.buttonLabel}
-            </a>
-          </div>
-        )}
       </div>
     </details>
   )
 }
 
-export default function MobileNav({ items }) {
+/**
+ * `tel:` href ke liye number saaf karta hai.
+ *
+ * Admin me phone padhne ke liye likha jaata hai ("+91 98100 66496"), aur wo waise ka waisa
+ * `tel:` me daalne pe kai dialer usse theek se nahi kholte. Label me original hi dikhta
+ * hai — sirf href saaf hota hai.
+ */
+const telHref = (phone) => 'tel:' + String(phone).replace(/[^\d+]/g, '')
+
+export default function MobileNav({ items, logo, siteName, buttons = [], phone }) {
   const [open, setOpen] = useState(false)
+  /** Icon-only buttons header bar me hi rehte hain — wajah drawer ke footer pe likhi hai. */
+  const drawerButtons = buttons.filter((b) => !b.iconOnlyOnMobile)
 
   /** Drawer khula ho to page scroll band — warna peeche ka page drawer ke neeche khisakta hai. */
   useEffect(() => {
@@ -131,6 +167,15 @@ export default function MobileNav({ items }) {
 
       <div className={`mdrawer${open ? ' on' : ''}`} aria-hidden={!open}>
         <div className="mdrawer__head">
+          {/* Wahi Q-7 INTERIM — logo na mile to kuch render nahi hota (D-42 §2) */}
+          {logo ? (
+            <a href="/">
+              <img className="mdrawer__logo" src={logo.url} alt={logo.alt || siteName || ''} />
+            </a>
+          ) : (
+            <span />
+          )}
+
           <button
             type="button"
             className="burger"
@@ -147,6 +192,48 @@ export default function MobileNav({ items }) {
             <Item key={item.id} item={item} />
           ))}
         </nav>
+
+        {/*
+          CTA drawer ke **bottom** me, full width — client ke design me yahi hai.
+
+          **"Icon only on mobile" wale yahan nahi aate.** Design me bhi Awards (icon-only)
+          drawer me nahi hai, sirf "Get quote" hai — aur uske peeche tark saaf hai: icon-only
+          ka matlab hi hai "ye chhota rehna chahiye". Wo header bar me pehle se maujood hai;
+          use drawer me ek poori-chaudai wali row dena uske apne hi faisle ke khilaf hai.
+
+          Isliye koi naya field nahi chahiye — jo field pehle se hai wahi ye bhi bata deta hai.
+        */}
+        {(drawerButtons.length > 0 || phone) && (
+          <div className="mdrawer__foot" onClick={() => setOpen(false)}>
+            {drawerButtons.map((button, i) => (
+              <a
+                key={i}
+                className={`btn btn--${button.variant} ${button.className}`.trim()}
+                href={button.url}
+                target={button.target}
+              >
+                <ButtonIcon name={button.icon} />
+                {button.label}
+              </a>
+            ))}
+
+            {/*
+              Call button — number `settings.phone` se aata hai (Settings ▸ General ▸
+              Contact & Social). Yahan koi naya field nahi banaya: phone pehle se maujood
+              hai aur public payload me bhi jaata hai, to uske liye ek aur header button
+              banwana client se wahi cheez do baar bharwana hota.
+
+              Sirf drawer me hai — header bar me itni jagah nahi bachti, aur phone pe
+              tap-to-call ka asli matlab wahin hai.
+            */}
+            {phone && (
+              <a className="btn btn--outline" href={telHref(phone)}>
+                <ButtonIcon name="phone" />
+                Call {phone}
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </>
   )

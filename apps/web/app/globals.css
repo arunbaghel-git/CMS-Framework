@@ -10,13 +10,32 @@
    ============================================================ */
 
 :root {
-  --ink: #0f172a;
-  --body: #334155;
-  --muted: #64748b;
-  --line: #e2e8f0;
-  --line-2: #f1f5f9;
+  /* Rang aur font dono client ke behaviour reference se hi liye gaye hain — pehle ye
+     andaaze se rakhe the (slate palette) aur isliye design se thoda alag lagte the. */
+  --ink: #111d2b;
+  --ink-2: #243447;
+  --body: #4a5a6d;
+  --muted: #7b8a9c;
+  --faint: #9fadbc;
+  --line: #e2e8ef;
+  --line-2: #eef2f6;
+  --blue-50: #f2f8fd;
   --surface: #fff;
-  --accent: #2563eb;
+  --accent: #1668ae;
+
+  /* Button variants ke rang — reference ke tokens se hi */
+  --blue-500: #2a86d4;
+  --blue-600: #1668ae;
+  --blue-700: #12558f;
+  --orange-500: #f4701c;
+  --orange-600: #d95a12;
+
+  /* Radius aur shadow bhi reference se — pehle andaaze ke 6/8/10px the */
+  --r1: 6px;
+  --r2: 10px;
+  --r3: 14px;
+  --sh-1: 0 1px 2px rgb(17 29 43 / 5%);
+  --sh-3: 0 8px 28px -8px rgb(17 29 43 / 22%);
 
   --wrap: 1280px;
   --pad: 20px;
@@ -27,9 +46,20 @@
   --mega-wide: 1700px;
 
   --mega-pad-x: 24px;
-  --mega-gap: 20px;
+  --mega-gap: 26px;
 
-  --font: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /**
+   * Inter — reference wahi use karta hai (weights 400-900).
+   *
+   * Pehle yahan sirf `system-ui` tha, jo Windows pe Segoe UI ban jaata hai. Segoe ke
+   * letterforms aur weight steps Inter se alag hain, isliye same font-size/weight pe bhi
+   * text halka aur kam saaf lagta tha — design se milta hi nahi tha.
+   *
+   * Font `next/font/google` se aata hai (`app/layout.jsx`) — wo build pe download kar ke
+   * **self-host** karta hai, isliye runtime pe Google ko koi request nahi jaati aur layout
+   * shift bhi nahi hota.
+   */
+  --font: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 * {
@@ -58,23 +88,90 @@ a {
   padding-inline: var(--pad);
 }
 
+/* ---------- buttons ----------
+   Base sirf shape deta hai. Rang **variant** se aata hai, jo ek structured field hai
+   (`headerButtons[].variant`) aur admin me dropdown se chunta hai — magic class ka naam
+   yaad rakhne ki zaroorat nahi. `className` sirf EXTRA styling ke liye bacha hai (R18).
+
+   Rang, radius aur shadow client ke behaviour reference se hain (.b / .b-o / .b-b / .b-l).
+   **Padding aur font-size client ne khud tune kiye hain** — reference ka `.b` 11px 20px /
+   14px pe hai; ye usse thode compact hain. Jaan-boojh kar aise hain, reference se wapas
+   milane ki koshish mat karo. */
 .btn {
   display: inline-flex;
   align-items: center;
-  padding: 8px 14px;
-  border: 1px solid var(--accent);
-  border-radius: 6px;
-  color: var(--accent);
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: var(--r2);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background 0.16s,
+    color 0.16s,
+    border-color 0.16s,
+    box-shadow 0.16s;
+}
+
+/* Reference ka .b-l — safed, patli border. Ye default variant hai. */
+.btn--outline {
+  background: var(--surface);
+  color: var(--blue-700);
+  border: 1.5px solid var(--line);
+}
+
+.btn--outline:hover {
+  border-color: var(--blue-500);
+  background: var(--blue-50);
+}
+
+/* Neela bhara — reference ka .b-b. Neeche 2px ka thos shadow, halka uthaav deta hai. */
+.btn--primary {
+  background: var(--blue-600);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 2px 0 var(--blue-700);
+}
+
+.btn--primary:hover {
+  background: var(--blue-700);
+  border-color: transparent;
+}
+
+/* Orange bhara — reference ka .b-o. Sabse zyada dhyaan kheenchne wale CTA ke liye. */
+.btn--accent {
+  background: var(--orange-500);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 2px 0 var(--orange-600);
+}
+
+.btn--accent:hover {
+  background: var(--orange-600);
+  border-color: transparent;
+  box-shadow: 0 2px 0 #b8480a;
 }
 
 /* ============================================================
    HEADER
    ============================================================ */
+/* Reference me header **sticky** hai aur border ki jagah ek halki shadow hai —
+   scroll karte waqt nav upar chipki rehti hai. */
 .hdr {
-  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 100;
   background: var(--surface);
+  box-shadow: var(--sh-1);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .hdr__top {
@@ -99,39 +196,65 @@ a {
 
 .brand__img {
   display: block;
-  max-height: 44px;
+  /* Fixed height, max-height nahi — reference bhi 42px pe pin karta hai, taaki alag-alag
+     aspect ratio wale logo header ki height na badlein */
+  height: 42px;
   width: auto;
+  flex-shrink: 0;
 }
 
+/* Nav bachi hui jagah leti hai aur items beech me — reference ka .mnav.
+   Pehle `margin-left: auto` tha, jo nav ko buttons se chipka deta tha.
+
+   ⚠️ `align-self: stretch` **zaroori hai, cosmetic nahi.** Nav link ki apni height 58px
+   hai par header 64px ka hai. `full`/`wide` mega ke liye `<li>` ko `position: static`
+   karna padta hai (taaki panel container se bahar nikal sake), aur tab `top: 100%`
+   **header** se naapta hai — 64px. Link 61px pe khatam hota tha, yaani beech me **3px ka
+   khaali gap**. Mouse neeche le jaate hi `:hover` toot jaata aur panel band ho jaata —
+   panel poori tarah sahi hote hue bhi khulta hi nahi dikhta tha.
+
+   `sm`/`md` isse bach jaate hain kyunki unka `<li>` `relative` rehta hai, to `top: 100%`
+   link ke bilkul neeche padta hai. Isiliye bug sirf `full`/`wide` pe dikha.
+
+   Stretch karne se link header ki poori height leta hai, gap khatam, aur hover target
+   bada bhi ho jaata hai. */
 .nav {
-  margin-left: auto;
+  flex: 1;
   min-width: 0;
+  margin-inline: 8px;
+  align-self: stretch;
 }
 
 .nav__list {
   display: flex;
-  align-items: center;
-  gap: 2px;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1px;
   margin: 0;
   padding: 0;
+  height: 100%;
   list-style: none;
 }
 
 .nav__i {
   position: relative;
   flex-shrink: 0;
+  display: flex;
 }
 
 .nav__l {
   display: flex;
   align-items: center;
+  /* Poori height le — warna `full`/`wide` panel aur link ke beech gap reh jaata hai */
+  height: 100%;
   gap: 5px;
-  padding: 20px 11px;
+  padding: 0 11px;
   font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
+  /* 700, 600 nahi — reference isi weight pe hai aur nav uske bina halki lagti hai */
+  font-weight: 700;
+  color: var(--ink-2);
   white-space: nowrap;
-  border-bottom: 2px solid transparent;
+  border-bottom: 2.5px solid transparent;
 }
 
 .nav__i:hover > .nav__l {
@@ -139,12 +262,12 @@ a {
   border-bottom-color: var(--accent);
 }
 
+/* Chevron ab SVG hai (dekho `SiteHeader.jsx` ka `<Caret />`) — CSS ka rotated box text
+   ke saath align hi nahi hota tha. Yahan sirf uska halkapan bacha hai. */
 .nav__caret {
-  width: 0;
-  height: 0;
-  border-inline: 4px solid transparent;
-  border-top: 4px solid currentColor;
-  opacity: 0.5;
+  height: 100%;
+  flex-shrink: 0;
+  opacity: 0.45;
 }
 
 /* ---------- normal dropdown ---------- */
@@ -158,8 +281,8 @@ a {
   list-style: none;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 12px 28px rgb(15 23 42 / 12%);
+  border-radius: 0 0 var(--r3) var(--r3);
+  box-shadow: var(--sh-3);
   opacity: 0;
   visibility: hidden;
   transition: 0.15s;
@@ -179,6 +302,8 @@ a {
   display: block;
   padding: 7px 14px;
   font-size: 13px;
+  font-weight: 500;
+  color: var(--body);
 }
 
 .drop a:hover {
@@ -190,7 +315,7 @@ a {
 .drop--fly {
   top: 0;
   left: 100%;
-  border-radius: 8px;
+  border-radius: var(--r3);
 }
 
 .drop li:hover > .drop--fly {
@@ -210,8 +335,8 @@ a {
   background: var(--surface);
   border: 1px solid var(--line);
   border-top: 0;
-  border-radius: 0 0 10px 10px;
-  box-shadow: 0 16px 40px rgb(15 23 42 / 14%);
+  border-radius: 0 0 var(--r3) var(--r3);
+  box-shadow: var(--sh-3);
   opacity: 0;
   visibility: hidden;
   transform: translateY(6px);
@@ -278,7 +403,7 @@ a {
   padding-bottom: 6px;
   border-bottom: 1px solid var(--line-2);
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--ink);
 }
 
@@ -286,10 +411,13 @@ a.mega__gl:hover {
   color: var(--accent);
 }
 
+/* Weight yahan bhi chhoot gaya tha — reference 500 pe hai, browser default 400 deta hai */
 .mega__group a:not(.mega__gl) {
   display: block;
   padding: 5px 0;
-  font-size: 12.5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--body);
 }
 
 .mega__group a:not(.mega__gl):hover {
@@ -320,12 +448,12 @@ a.mega__gl:hover {
    ============================================================ */
 .burger {
   display: none;
-  width: 38px;
-  height: 38px;
+  width: 33px;
+  height: 33px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r2);
   background: none;
   font-size: 16px;
   cursor: pointer;
@@ -357,8 +485,10 @@ a.mega__gl:hover {
 
 .mdrawer__head {
   display: flex;
-  justify-content: flex-end;
-  padding: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -375,13 +505,19 @@ a.mega__gl:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 18px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--line-2);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 14.5px;
+  font-weight: 700;
   color: var(--ink);
   cursor: pointer;
   list-style: none;
+}
+
+/* Khula item neela ho jaata hai — desktop pe hover ka wahi ishaara.
+   Drawer me hover hota hi nahi (touch), isliye wahan "khula hona" hi active state hai. */
+.mnav__acc[open] > summary {
+  color: var(--accent);
 }
 
 .mnav__acc > summary::-webkit-details-marker {
@@ -399,23 +535,52 @@ a.mega__gl:hover {
 }
 
 .mnav__sub {
-  padding: 6px 18px 14px;
+  padding: 8px 18px 14px;
+  border-bottom: 1px solid var(--line-2);
 }
 
+/* Weight yahan pehle likha hi nahi tha — links browser ke default 400 pe reh jaate the
+   aur baaki text ke saath mel nahi khaate the. Reference 500 pe hai. */
 .mnav__sub a {
   display: block;
   padding: 7px 0;
-  font-size: 13px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--body);
+}
+
+/* Nested accordion — mega ka group, aur dropdown ka child jiske andar grandchild hon.
+   Group heading yahan bhi heading jaisi hi dikhti hai (bold + neeche ek patli line),
+   bas ab wo click karne laayak hai. */
+/* Group ko apna halka background — drawer me nested accordions ki teen layer ho jaati
+   hain (item → group → links) aur bina kisi alag rang ke wo ek lambi flat list lagti hai. */
+.mnav__acc--sub {
+  background: var(--blue-50);
+  border-radius: var(--r1);
+  margin-bottom: 6px;
 }
 
 .mnav__acc--sub > summary {
-  padding-inline: 0;
+  padding: 10px 12px;
   border-bottom: 0;
-  font-size: 13px;
+  font-size: 13.5px;
+  /* 800 — group heading baaki headings se bhi bhaari hai (reference ka .gl) */
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.mnav__acc--sub[open] > summary {
+  color: var(--accent);
+  border-bottom: 1px solid var(--line-2);
+}
+
+.mnav__acc--sub > .mnav__sub {
+  padding: 4px 12px 8px;
 }
 
 /* Group heading mobile pe bhi heading hi rehti hai — flatten hone par bhi structure dikhe */
 .mnav__gl {
+  font-weight: 800;
   display: block;
   margin-top: 12px;
   padding-bottom: 5px;
@@ -427,21 +592,6 @@ a.mega__gl:hover {
 
 .mnav__group:first-child .mnav__gl {
   margin-top: 0;
-}
-
-/* CTA us item ke section ke bottom pe (D-43/D10) */
-.mnav__cta {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line-2);
-}
-
-.mnav__cta span {
-  font-size: 12.5px;
-  color: var(--muted);
 }
 
 @media (max-width: 1040px) {
@@ -488,6 +638,8 @@ a.mega__gl:hover {
   display: block;
   padding: 4px 0;
   font-size: 13px;
+  font-weight: 500;
+  color: var(--body);
 }
 
 .ft__col a:hover {
@@ -528,7 +680,7 @@ a.mega__gl:hover {
 .hdr__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
@@ -538,6 +690,12 @@ a.mega__gl:hover {
     order: 2;
     margin-left: auto;
   }
+  button[aria-label='Close menu'] {
+    span {
+      font-weight: 700;
+      font-size: 14px;
+    }
+  }
 
   .burger {
     order: 3;
@@ -545,9 +703,89 @@ a.mega__gl:hover {
   }
 }
 
-@media (max-width: 600px) {
-  /* Sabse chhoti screen pe do se zyada button ki jagah nahi bachti */
-  .hdr__actions .btn:nth-child(n + 3) {
+/* ---------- chhoti screen pe buttons ----------
+   Pehle yahan `nth-child(n + 3)` tha — yaani **theme tay karti thi** ki client ka kaunsa
+   button gayab hoga. Wo faisla client ka hai. Ab har button pe `iconOnlyOnMobile` hai aur
+   admin use checkbox se chunta hai.
+
+   Breakpoint wahi 1040px hai jahan nav chhup kar burger banta hai — do alag breakpoint
+   rakhne se beech ki widths pe ajeeb halat banti. */
+@media (max-width: 1040px) {
+  /* Chhoti screen pe header thoda sikud jaata hai — reference ke exact numbers */
+  .hdr__top {
+    gap: 8px;
+  }
+
+  .hdr__actions {
+    gap: 6px;
+  }
+
+  .hdr__actions .btn {
+    padding: 8px 11px;
+    font-size: 12.5px;
+  }
+
+  /* Sirf icon — reference me "Awards" mobile pe yahi banta hai */
+  .btn--m-icon .btn__label {
     display: none;
   }
+
+  .btn--m-icon {
+    padding-inline: 10px;
+    gap: 0;
+  }
+}
+
+/* Logo sirf **750px se neeche** chhota hota hai, 1040 se nahi.
+   1040 wo jagah hai jahan nav chhup kar burger banta hai — us waqt logo ke paas jagah kam
+   nahi hoti, ulta zyada ho jaati hai. Wo asli tangi tab aati hai jab phone ki chaudai pe
+   logo + do button + burger ek line me aate hain. */
+@media (max-width: 750px) {
+  .brand__img {
+    height: 34px;
+  }
+}
+
+/* Button ka icon — label se pehle, currentColor pe (har variant me sahi rang) */
+.btn__icon {
+  flex-shrink: 0;
+}
+
+/* ---------- drawer ka head aur foot ----------
+   Design me drawer khulne pe upar logo hota hai aur neeche CTA — dono full width. */
+.mdrawer {
+  display: flex;
+  flex-direction: column;
+}
+
+.mdrawer__head {
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.mdrawer__logo {
+  display: block;
+  height: 34px;
+  width: auto;
+}
+
+/* Nav bachi hui jagah leti hai taaki foot hamesha neeche chipka rahe */
+.mdrawer .mnav {
+  flex: 1;
+}
+
+.mdrawer__foot {
+  flex-shrink: 0;
+  display: grid;
+  gap: 8px;
+  padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+/* Drawer me buttons poori chaudai lete hain — header bar wali tangi yahan nahi hai */
+.mdrawer__foot .btn {
+  width: 100%;
+  padding-block: 12px;
+  font-size: 14px;
 }
