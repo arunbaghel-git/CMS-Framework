@@ -1483,7 +1483,7 @@ dropdown    children[], max depth 3 (top → child → grandchild)
 mega        layout (sm|md|wide|full)  +  columns (2..6)     ← DO ALAG properties
             columns[] → column → groups[] → group → links[]
             group.heading? + group.link?  → heading clickable ho sakti hai
-            cta? { text, buttonLabel, buttonUrl, className? }   ← optional
+            cta? { text, buttonLabel, buttonUrl, variant, className? }  ← optional
 className   item · link · mega · column · group — SIRF presentation (R18)
 ```
 
@@ -1564,3 +1564,245 @@ isiliye wajah khatam hote hi wo dikh gaya.
 - **Footer ke liye alag data model** — menus + locations pehle se generic hain (D-17).
 - **`social` ke liye naya repeatable field** — `settings.social` pehle se hai
   (`SOCIAL_KEYS` frozen). Naya banane se do social sources ban jaate.
+
+### Amendment · 25 Aug — `cta.variant`, aur `BUTTON_VARIANTS` ki jagah
+
+Mega ka CTA `className="btn"` pe render ho raha tha aur **plain text jaisa dikhta tha.**
+Wajah mera hi purana refactor tha: `.btn` base ab **sirf shape** deta hai (`border: 0`,
+koi background nahi) aur rang `btn--outline` / `btn--primary` / `btn--accent` se aata hai.
+Header ke buttons pe wo variant tha, mega ke CTA pe nahi — is liye wo naked reh gaya.
+
+Do tarah se theek ho sakta tha. **`className` me `btn--accent` likhwana R18 todta** —
+class presentation ka *extra* hai, look ka faisla nahi; aur non-technical client se magic
+naam yaad karwana wahi bojh hai jise ye CMS hataata hai. Isliye structured field:
+
+```
+cta.variant : outline | primary | accent     default = accent
+```
+
+Default `accent` hai kyunki CTA hota hi dhyaan kheenchne ko hai (reference me bhi bhara
+hua hai). Public payload me `variant` **hamesha** jaata hai — theme ko fallback ka faisla
+nahi karna padta.
+
+**`BUTTON_VARIANTS` `settings.js` se `menu.js` me chala gaya.** Ab uske do consumer hain:
+header buttons (settings) aur mega CTA (menu). `settings.js` pehle se `menu.js` se
+import karti hai, to ulta import **cycle** banata. Do jagah list rakhna vichaar tha aur
+chhod diya — is codebase me wo pehle ho chuka hai aur ek din chup-chaap alag ho jaata hai.
+
+Spec 006 §1.3.2 me poora shape hai.
+
+---
+
+## D-44 · Footer ek composed region hai, menu locations ka set nahi
+
+**Context:** D-43 me footer ke chaar columns **theme locations** the — `footerColumn1..4`,
+`menuLocations` collection me assign hote the, aur column ki heading `menus.name` se
+render hoti thi. 25 Aug ko client ne teen cheezein maangin, aur teenon usi ek model se
+takraa gayin:
+
+1. **Columns ki ginti client chune** — pehle "kitne columns" ka koi concept hi nahi tha;
+   theme ne chaar declare kar rakhe the, bas.
+2. **Har column me menu, text, ya dono ho sake** — client ke apne footer reference me
+   column 1 (support/email/timing) aur column 4 (office addresses) **menu hain hi nahi**,
+   wo text blocks hain. D-43 ne yahi maan kar chhoda tha ki wo "Andaman-specific content"
+   hai aur framework ke scope me nahi — par client ne wahi maanga.
+3. **Footer ka apna logo** — footer gehre background pe hai, wahan aksar inverted logo
+   chahiye hota hai.
+
+Saath me client ne ek doosri baat pakdi: social links **do jagah** editable the — Settings
+▸ General me aur Appearance ▸ Footer me — jabki data ek hi tha (`settings.social`).
+
+**Decision:** Footer ka poora structure `settings.footerColumns[]` me aata hai. Menu
+locations me sirf `header` bachta hai.
+
+```
+settings.footerColumns[]   max 6
+  id          client-side id (drag-drop ki React key)
+  heading     apni field — ab menu ke naam se nahi aati
+  type        'menu' | 'text' | 'both'
+  width       'normal' | 'wide'      kitna chauda wo THEME tay karti hai (aaj 1.5x)
+  menuId      kaunsa menu — pehle ye menuLocations ka kaam tha
+  textBlocks[]  max 6 — { id, icon, label, text }
+
+settings.footerLogoMediaId   footer + mobile drawer ka logo
+settings.footerNote          bottom bar ke beech ki line (memberships/registrations)
+settings.footerDisclaimer    sabse neeche ki fine print
+```
+
+**Kyun locations nahi rahe:** jis pal ek column **text-only** ho sakta hai, wo "menu
+location" rehta hi nahi. Ek theme location ka poora matlab hi ye hai ki "yahan ek menu
+lagta hai" — usme heading, text blocks, width aur *ginti* express karne ki koi jagah nahi.
+Do jagah rakhne (locations me menu, settings me baaki) ka nateeja aur bura hota: har
+column do documents me aadha-aadha padta.
+
+### 1. Ginti = array ki length, koi `columnCount` field nahi
+
+Admin ka "Number of columns" dropdown `footerColumns` array ko grow/shrink karta hai aur
+apni koi state nahi rakhta.
+
+Ye D-43 §1 ka seedha sabak hai: wahan `mega.columnCount` (number) aur `mega.columns[]`
+**do alag fields** hain, aur unhe barabar rakhne ke liye ek validation likhni padi.
+Yahan wo problem banne hi nahi di gayi.
+
+### 2. `type` structural discriminator hai, aur reference mitta nahi
+
+`type: 'text'` chunne se `menuId` **DB me bacha rehta hai** — bas public payload me nahi
+jaata. Client bina data khoye aage-peeche switch kar sakta hai. Wahi soch `headerButtons`
+ke `enabled` flag ke peeche hai (D-43), aur wahi `menuType` pe bhi.
+
+Filter **server pe** lagta hai, theme me nahi (`getPublicFooterColumn`) — `type` khud
+public payload me jaata hi nahi. Theme ko ye pata hona chahiye ki uske paas kya hai, ye
+nahi ki admin ne kya chuna tha.
+
+### 3. Heading apni field hai
+
+D-43 me column ki heading `menus.name` se aati thi. Text-only column me koi menu hai hi
+nahi, to naam kahan se aata. Migration 008 purane columns ki heading me menu ka naam bhar
+deti hai, isliye kisi chalte hue site ka footer heading khoye bina waisa ka waisa rehta
+hai.
+
+### 4. Footer logo — fallback API me hai, theme me nahi
+
+`footerLogoMediaId` khaali ho to public payload ka `footerLogo` **header wale logo se**
+bhar jaata hai. Do logo tabhi chahiye jab wo sach me alag hon.
+
+Fallback theme me rakhne ka nateeja: ek din footer ne fallback kiya aur drawer ne nahi,
+aur wo bug payload dekh kar samajh hi nahi aata. D-42 §2 waise ka waisa hai — dono na
+mile to `null`, aur toota `<img>` phir bhi kabhi render nahi hota.
+
+**Mobile drawer bhi yahi logo use karta hai** (client ka faisla). ⚠️ Drawer ka background
+**safed** hai, footer ka gehra — to inverted logo dono jagah theek nahi dikhega. Ye ek
+khula design point hai, technical dikkat nahi.
+
+### 5. Cache — footer ka tag `settings` hai, `menu:*` nahi
+
+Footer ka data ab `/api/public/settings` se jaata hai, isliye **footer me use ho rahe menu
+ko badalne pe `settings` tag stale hota hai**. `invalidateMenu()` ab wo bhi check karta
+hai.
+
+Ye D-43 §4 wali galti ka agla roop hai: tag wahan se lo jahan assignment **sach me** rehti
+hai, wahan se nahi jahan pehle rehti thi.
+
+### 6. Social links sirf Settings ▸ General me — aur ab `x` bhi
+
+Field `settings.social` hi rehta hai. Sirf **duplicate UI** hataya gaya; footer unhe
+render karta rehta hai.
+
+Do cheezein saath me theek huin:
+
+- **`x` juda** (reference ke footer me hai). Settings singleton hai (D-01) aur default
+  `''` schema se aata hai — **koi migration nahi**.
+- **`SOCIAL_KEYS` ka order ab contract ka hissa hai** (f · instagram · youtube · X).
+  Theme pehle `Object.entries(social)` pe ghoomti thi — wo Mongo document ki key order
+  pe chalta hai, yaani icons ka order ek din chup-chaap badal sakta tha. Admin ke inputs
+  bhi ab isi list pe map hote hain, hardcoded nahi — `x` add karte waqt theek wahi jagah
+  chhoot rahi thi.
+
+**Brand marks `ICONS` registry me NAHI hain** — alag `SocialIcon.jsx` hai. `ICONS` UI ki
+furniture hai jo client kisi bhi text block pe chun sakta hai; brand mark aisa nahi hai,
+uska set `SOCIAL_KEYS` se bandha hai. Rendering bhi alag: UI icons stroke-based hain,
+brand marks **filled**.
+
+### 7. Bottom bar ke do naye text fields
+
+Reference ke footer me copyright ke alawa **do aur** text hain, aur dono ka apna kaam hai:
+
+| Field | Kahan | Kyun alag field |
+| --- | --- | --- |
+| `footerNote` | bar ke **beech** me | Membership/registration text. Copyright ke saath ek hi field me daalne se client ko layout line breaks se banana padta |
+| `footerDisclaimer` | bar ke **neeche**, poori chaudai | Pricing/availability ki fine print — rang aur size dono alag |
+
+Bar ab **grid** hai, flex nahi: flex me beech wala hissa apni content width se khisak jaata
+hai aur copyright lamba hote hi centre se hat jaata.
+
+Dono generic hain, Andaman-specific nahi — har industry me kuch aisa hota hai (travel me
+pricing, clinic me medical advice, finance me risk).
+
+### Naya farz jo is faisle ke saath aaya
+
+Menu delete hone pe uska reference **footer columns se bhi** saaf hona chahiye — pehle wo
+sirf `menuLocations` se hota tha. Column **delete nahi hota**, sirf uska `menuId` `null`
+hota hai: heading aur text blocks client ka content hain.
+
+Isse `menus` ↔ `settings` ke beech ek circular import banta hai. Wo jaan-boojh kar hai aur
+chalta hai — dono taraf sirf hoisted function declarations hain aur koi module load ke
+waqt doosre ko call nahi karta. Ek event bus is ek jodi ke liye zyada hai.
+
+### 8. Footer ka column ek FLAT list hai
+
+Theme sirf menu ke **top-level `items[]`** render karti hai. Dropdown/mega ke sub-items
+hover pe khulte hain, aur footer me hover jaisi koi cheez hai hi nahi.
+
+Yaani footer ke menu me har item **Simple link** hona chahiye. Ye ek chup-chaap hone wali
+galti hai — admin mega menu chunta hai, Save theek hota hai, aur site pe uske aadhe links
+kahin nahi hote, bina kisi error ke. Isliye Appearance ▸ Footer me column ka Menu chunne
+pe **ginti ke saath warning** dikhti hai ("2 items in this menu are a dropdown or mega
+menu…"). Khaali cheez khaali dikhni chahiye, tooti hui nahi (D-30).
+
+Footer ko nested render **karwana** ek option tha — reject kiya: reference ka footer flat
+hai, aur nested footer ka matlab hota ek naya collapse/expand behaviour banana jo design
+me hai hi nahi (R15).
+
+### 9. Mobile pe columns collapse hote hain — desktop pe nahi
+
+Phone pe chaar column ek ke neeche ek 40+ links ka lamba scroll ban jaate hain, aur uske
+neeche ka copyright/disclaimer kabhi dikhta hi nahi. Isliye ≤760px pe **heading hi toggle
+hai** aur column band khulta hai.
+
+Teen cheezein jaan-boojh kar aisi hain:
+
+1. **Collapse sirf "Menu only" column ka hota hai** (client ka faisla). Text wale column
+   khule rehte hain: unme phone, email aur pata hote hain, aur unhe dekhne ke liye tap
+   maangna ulta padta. Ek lambi link list chhupane me kuch nahi jaata; contact detail
+   chhupane me jaata hai.
+
+   **Shart content se nikalti hai, `type` se nahi** — public payload me `type` jaata hi
+   nahi (§2), aur theme ko ye pata hona chahiye ki uske paas **kya hai**, ye nahi ki admin
+   ne dropdown me kya chuna tha. Column collapse hota hai jab: heading ho, menu ke items
+   hon, aur text block ek bhi na ho. Nateeja wahi hai, aur ek adhoora "Text + Menu" column
+   (jisme abhi tak koi text block bhara hi nahi) bhi theek se handle ho jaata hai.
+
+   Heading zaroori hai kyunki **heading hi toggle hai** — bina uske tap karne ko kuch
+   bachta hi nahi.
+2. **Logo collapse hone wale hisse ke bahar hai** (`brand` prop, `children` nahi).
+   Aaj logo wala column text wala hai, to wo waise bhi collapse nahi hota — par ye alag
+   rakhna sasta hai aur ek din client logo ko menu column pe le jaaye to bhi wo nahi
+   chhupta.
+3. **State `false` se shuru hoti hai, aur desktop CSS use dekhti hi nahi.** `matchMedia`
+   padh kar initial state banane se server aur client ka pehla render alag ho jaata hai
+   (hydration warning). Desktop pe `.ft__body` ka koi `display` rule hai hi nahi, to wo
+   block rehta hai chahe state kuch bhi ho — aur JS na chale to mobile pe bhi sab khula
+   rehta hai, chhupa hua nahi.
+
+### Text blocks rich text NAHI hain
+
+`text` plain hai — koi HTML, koi markup. Line breaks preserve hote hain (`pre-line`), bas.
+Rich text Phase 1 ke `richText` block ke saath aayega; usko yahan aadha-adhoora banane ka
+matlab hota **do editor** maintain karna, aur admin se aayi HTML ko render karna stored
+XSS ka seedha raasta hai.
+
+### Icons ab ek shared registry me
+
+`BUTTON_ICONS` (settings schema ke andar) ab `constants/icons.js` ki `ICONS` list hai, aur
+footer ke text blocks wahi list use karte hain. Teen naye icons: `clock`, `mapPin`,
+`building` — teenon reference ke footer se. Koi naam **rename nahi hua**, isliye stored
+data pe asar nahi (R4).
+
+**Migration:** `008-footer-columns.js` — purane `footerColumn1..4` assignments
+`settings.footerColumns[]` me, phir wo location rows delete. Idempotent (`footerColumns`
+pehle se bhari ho to haath nahi lagti) aur `down()` menu wale columns wapas locations me
+daal deti hai.
+
+**Supersedes:** D-43 ka footer wala hissa (locations me `footerColumn1..4`), aur D-17 ki
+location list ka footer hissa. Baaki D-43 (menu ka typed contract, mega, className) waise
+ka waisa hai.
+
+**Jo NAHI kiya:**
+
+- **Per-column background/colour** — footer ka look theme ka kaam hai, content ka nahi
+  (R18 ka wahi tark jo `className` pe hai).
+- **Text me rich formatting** — upar wali wajah.
+- **Social links ka naya repeatable field** — `settings.social` pehle se hai; naya banane
+  se do social sources ban jaate (D-43 me bhi yahi reject hua tha).
+- **Column ke liye alag collection** — settings singleton hai (D-01), naya field jodna
+  sasta hai aur backfill ek hi row pe hota hai.

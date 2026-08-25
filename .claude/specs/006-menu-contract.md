@@ -154,7 +154,8 @@ cta
 ├─ text          "Not sure where to start?"
 ├─ buttonLabel   "Talk to an island expert"
 ├─ buttonUrl
-└─ className     optional — reference me button ki class alag-alag hai (b-o vs b-l)
+├─ variant       outline | primary | accent  — default `accent`
+└─ className     optional — **extra** styling, look ka faisla nahi (R18)
 ```
 
 Reference me paanchon mega pe CTA hai aur wo `grid-column: 1/-1` se columns ke **neeche
@@ -162,7 +163,20 @@ full-width row** banta hai. Par structurally **optional** hai (D6) — koi bhi m
 CTA ke valid hai.
 
 `cta` hai to `text` · `buttonLabel` · `buttonUrl` **teenon** required (all-or-nothing).
-`className` optional.
+`variant` aur `className` optional.
+
+**`variant` (25 Aug me juda).** Ye wahi enum hai jo header buttons ka hai
+(`BUTTON_VARIANTS`), aur wo ab `packages/shared/src/schemas/menu.js` me rehta hai —
+`settings.js` pehle se `menu.js` se import karti hai, isliye ulta import cycle banata.
+
+Iske bina CTA sirf `.btn` pe render hota tha. `.btn` base ab **sirf shape** deta hai
+(rang variant se aata hai), to nateeja ye tha ki mega ka CTA **plain text jaisa** dikhta
+tha — 25 Aug ko live pakda gaya. Default `accent` hai, `outline` nahi: CTA hota hi
+isliye hai ki wo dhyaan kheenche, aur reference me bhi wo bhara hua hai.
+
+Ye class se **nahi** aata — R18: `className` presentation ka **extra** hai, wo ye tay
+nahi karta ki button dikhega kaisa. Non-technical client se `b-o` jaise magic naam yaad
+karwana wahi bojh hai jise ye CMS hataane ke liye bana hai.
 
 ### 1.4 `dropdown` ki depth — max 3 (Q-A / D2)
 
@@ -260,10 +274,12 @@ bhi `header` kehta hai. Isliye `headerPrimary` ki jagah **`header`**:
 | Location id | Label (UI, English) |
 | --- | --- |
 | `header` | Header |
-| `footerColumn1` | Footer Column 1 |
-| `footerColumn2` | Footer Column 2 |
-| `footerColumn3` | Footer Column 3 |
-| `footerColumn4` | Footer Column 4 |
+| ~~`footerColumn1..4`~~ | **Superseded by D-44** — §7.3 dekho |
+
+> ⚠️ **25 Aug (D-44):** footer ke chaar locations hata di gayin. Footer ka column ab sirf
+> menu nahi hota — usme text blocks, apni heading aur width bhi hoti hai, aur unki ginti
+> client chunta hai. Wo poora structure ab `settings.footerColumns[]` me hai. Migration
+> 008 purane assignments wahan le jaati hai. Ab **sirf `header`** ek theme location hai.
 
 Naam **generic** hain, content-specific nahi — `footerExplore` / `footerPackages` jaise
 naam ek travel site ke hain, framework ke nahi.
@@ -458,32 +474,51 @@ Sab kuch existing primitives se — **koi naya visual nahi**.
 Isliye (aapke instruction ke hisaab se) **WordPress sirf UX reference** hai — ek simple
 settings panel jisme repeatable rows hon. Architecture copy nahi.
 
-### 7.2 Slice 0 me sirf non-navigation footer settings
+### 7.2 Footer ka poora structure `settings` me hai (D-44)
 
-D-27 kehta hai: _"footer columns, social links, copyright"_. Footer columns menu system se
-aate hain (§3.2), to Footer tab me sirf do cheezein bachti hain:
+> **25 Aug ko badla.** Pehle yahan likha tha: _"footer columns menu system se aate hain,
+> to Footer tab me sirf social links aur copyright bachte hain"_. Client ne teen cheezein
+> maangin jo us model me fit hi nahi hotin — columns ki ginti chunna, column me text
+> rakhna, aur footer ka apna logo. Poora tark **D-44** me hai.
 
 | Field | Status |
 | --- | --- |
-| Social links | ✅ **`settings.social` pehle se maujood hai** — `instagram`, `facebook`, `youtube` (`settings/model.js`, `SOCIAL_KEYS` frozen). Koi naya field nahi |
-| Copyright text | 🆕 `settings.footerCopyright` — **ekmatra naya field** |
+| `footerColumns[]` | 🆕 max 6 — `{ id, heading, type, width, menuId, textBlocks[] }` |
+| `footerLogoMediaId` | 🆕 footer + mobile drawer ka logo; khaali ho to header wale pe fallback |
+| `footerCopyright` | ✅ `{year}` placeholder ke saath |
+| `footerNote` | 🆕 bottom bar ke beech ki line — memberships / registrations |
+| `footerDisclaimer` | 🆕 sabse neeche ki fine print — poori chaudai, halka rang |
+| Social links | ✅ `settings.social` — **Settings ▸ General me hi edit hote hain**. Footer screen se duplicate UI hata di gayi (D-44 §6). `x` 25 Aug me juda; order ab `SOCIAL_KEYS` se aata hai |
+
+`type` ki teen value: `menu` · `text` · `both`. `text` chunne pe `menuId` **mitta
+nahi** — bas public payload me nahi jaata, taaki client wapas switch kar sake.
+
+`width`: `normal` ya `wide` (grid me do share). Default sab `normal` — yaani
+out-of-the-box wahi barabar layout jo pehle tha.
+
+Ek text block: `{ id, icon, label, text }` — teenon hisse optional. `text` **plain** hai,
+line breaks preserve hote hain. Rich text nahi (D-44).
 
 Screen Appearance ▸ Footer ke neeche hai, par likhta `settings` document me hai
 (`PATCH /api/settings`, permission `settings.update`). **UI ki jagah ≠ storage ki jagah** —
 naya collection ya nayi permission ki zaroorat nahi.
 
-### 7.3 Footer column ka heading
+### 7.3 Footer column ka heading — apni field hai (D-44)
 
-Behaviour reference ke footer me har menu column pe `<h4>` hai — "Explore", "Packages".
-Wo **`menus.name` se aayega**, koi naya field nahi. `GET /api/public/menus/:location`
-`menu.name` pehle se de raha hai (§4.1).
+> **Pehle yahan likha tha:** heading `menus.name` se aayegi, koi naya field nahi.
+> Text-only column me koi menu hai hi nahi, to naam kahan se aata — isliye ab
+> `footerColumns[].heading` apni field hai. Migration 008 purane columns ki heading me
+> menu ka naam bhar deti hai.
 
-### 7.4 Jo Slice 0 me NAHI hai
+### 7.4 Jo ab bhi footer me NAHI hai
 
-Behaviour reference ke footer ka column 1 (logo + customer support + email + timing) aur
-column 4 (office addresses) **menu hain hi nahi** — wo Andaman-specific content blocks
-hain. Aapke Q-B instruction ke hisaab se ye Slice 0 se bahar hain. Slice 0 ka footer =
-**up to 4 menu columns + social + copyright**, bas.
+- **Rich text** — `text` plain rehta hai; `richText` block Phase 1 me aayega
+- **Per-column background/colour** — look theme ka kaam hai, content ka nahi (R18)
+- **Social ka naya repeatable field** — `settings.social` pehle se hai
+
+Reference ke footer ka column 1 (logo + support + email + timing) aur column 4 (office
+addresses) **ab ban sakte hain** — text blocks se. Pehle ye "Andaman-specific content"
+keh kar scope se bahar the (Q-B); D-44 ne wo faisla palta.
 
 ---
 
@@ -575,6 +610,8 @@ nahi aata. Field reserve hai, screen Phase 2 ke Trash work ke saath aayegi.
 - [ ] `columns[].length ≠ columnCount` pe `400`
 - [ ] Depth-4 dropdown pe `400`; depth-3 accept
 - [ ] `cta` optional hai; adhoora `cta` `400` deta hai
+- [ ] `cta.variant` default `accent`; public payload me hamesha jaata hai; theme use
+      `btn btn--<variant>` pe render karta hai
 - [ ] `GET /api/public/menus/:location` har item pe **resolved `href`** deta hai, `entryId` nahi
 - [ ] Public payload me koi admin-only field nahi
 - [ ] Mobile aur desktop **ek hi** endpoint se render hote hain — koi doosra menu source nahi
@@ -596,7 +633,7 @@ hai** — sab engineering calls hain, aur teenon reversible hain. **Review chahi
 
 | # | Sawaal | Faisla | Palatna kitna mehnga |
 | --- | --- | --- | --- |
-| **O-1** | Footer me kitni column locations? | **4** — reference ka footer 4-col grid hai, `10-REFERENCE-DESIGN.md` bhi "4 columns" kehta hai | Theme registry ki ek line. Koi migration nahi |
+| **O-1** | Footer me kitni column locations? | ~~**4** theme locations~~ → **Superseded by D-44**: columns ab `settings.footerColumns[]` me hain, ginti client chunta hai (0–4) | Migration 008 |
 | **O-2** | Theme location registry kahan? | **`packages/shared/src/constants/theme-locations.js`** — admin aur web dono padhte hain | Ek file move. Koi migration nahi |
 | **O-3** | `columns` explicit ya derived? | **Explicit** (D3/D4 ke hisaab se), `columns[].length === columnCount` validator ke saath | Field hatana = migration. Isliye explicit rakha — badhna sasta hai, hatana mehnga |
 | **O-4** | `version` Slice 0 me enforce? | **Haan** — `409` deta hai jab do admin ek saath save karein | Sirf service ka ek check |

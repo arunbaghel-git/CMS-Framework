@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { CURRENCIES, DATE_FORMATS, TIMEZONES, updateSettingsSchema } from '@cms/shared'
+import { useEffect, useState } from 'react'
+import { CURRENCIES, DATE_FORMATS, SOCIAL_KEYS, TIMEZONES, updateSettingsSchema } from '@cms/shared'
 
+import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import SettingsTabs from './SettingsTabs.jsx'
@@ -35,6 +36,14 @@ const TIMEZONE_LABELS = {
 }
 
 const CURRENCY_LABELS = { INR: 'INR (₹)', USD: 'USD ($)' }
+
+/** Value hi contract hai, ye sirf UI ka naam hai (R11/R17). */
+const SOCIAL_LABELS = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  youtube: 'YouTube',
+  x: 'X',
+}
 
 export default function General() {
   const { can } = useAuth()
@@ -346,29 +355,24 @@ export default function General() {
                 />
               </div>
 
+              {/*
+                Inputs ab `SOCIAL_KEYS` pe map hote hain, hardcoded nahi.
+                Pehle teenon alag likhe the aur `x` add karte waqt yahi jagah chhoot
+                rahi thi — list badle to UI apne aap badalna chahiye.
+              */}
               <div className="field">
-                <label htmlFor="s-instagram">Social Links</label>
-                <input
-                  id="s-instagram"
-                  className="inp social-inp"
-                  placeholder="Instagram URL"
-                  value={settings.social.instagram}
-                  onChange={setSocial('instagram')}
-                />
-                <input
-                  className="inp social-inp"
-                  placeholder="Facebook URL"
-                  aria-label="Facebook URL"
-                  value={settings.social.facebook}
-                  onChange={setSocial('facebook')}
-                />
-                <input
-                  className="inp"
-                  placeholder="YouTube URL"
-                  aria-label="YouTube URL"
-                  value={settings.social.youtube}
-                  onChange={setSocial('youtube')}
-                />
+                <label htmlFor={`s-social-${SOCIAL_KEYS[0]}`}>Social Links</label>
+                {SOCIAL_KEYS.map((key) => (
+                  <input
+                    key={key}
+                    id={`s-social-${key}`}
+                    className="inp social-inp"
+                    placeholder={`${SOCIAL_LABELS[key] ?? key} URL`}
+                    aria-label={`${SOCIAL_LABELS[key] ?? key} URL`}
+                    value={settings.social?.[key] ?? ''}
+                    onChange={setSocial(key)}
+                  />
+                ))}
               </div>
             </div>
 
@@ -398,60 +402,6 @@ function Select({ id, label, value, options, labels, onChange }) {
           </option>
         ))}
       </select>
-    </div>
-  )
-}
-
-/**
- * Logo / Favicon ka drop zone — design ka `.featured-drop`.
- */
-function MediaDrop({ label, hint, media, uploading, onUpload, onClear }) {
-  const inputRef = useRef(null)
-  const preview =
-    media?.variants?.find((variant) => variant.key === 'thumb') ?? media?.variants?.[0]
-
-  return (
-    <div className="field">
-      <label>{label}</label>
-      <div
-        className="featured-drop media-drop"
-        role="button"
-        tabIndex={0}
-        onClick={() => inputRef.current?.click()}
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter' && event.key !== ' ') return
-          event.preventDefault()
-          inputRef.current?.click()
-        }}
-      >
-        {preview ? (
-          <img src={preview.url} alt="" className="media-drop-preview" />
-        ) : (
-          <span>
-            {uploading ? 'Uploading...' : hint}
-            <br />
-            <span className="muted">{media?.filename ?? 'No file selected'}</span>
-          </span>
-        )}
-      </div>
-      <div className="media-drop-actions">
-        <input
-          ref={inputRef}
-          className="media-drop-input"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          onChange={(event) => {
-            onUpload(event.target.files?.[0])
-            event.target.value = ''
-          }}
-        />
-        {media && (
-          <button className="btn btn-plain" type="button" onClick={onClear}>
-            Remove
-          </button>
-        )}
-        {media?.filename && <span className="muted media-drop-name">{media.filename}</span>}
-      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BUTTON_ICONS, BUTTON_VARIANTS, LINK_TARGETS, MENU_TYPES } from '@cms/shared'
+import { BUTTON_VARIANTS, ICONS, ICON_LABELS, LINK_TARGETS, MENU_TYPES } from '@cms/shared'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
@@ -43,17 +43,6 @@ const TARGET_LABELS = { _self: 'Same tab', _blank: 'New tab' }
 
 /** Button ke look ke labels — value hi contract hai, ye sirf UI ka naam hai (R11/R17). */
 const VARIANT_LABELS = { outline: 'Outline', primary: 'Primary', accent: 'Accent' }
-
-/** Icon ke labels — value hi contract hai, ye sirf UI ka naam hai (R11/R17). */
-const ICON_LABELS = {
-  none: 'No icon',
-  award: 'Award',
-  phone: 'Phone',
-  mail: 'Email',
-  chat: 'Chat',
-  calendar: 'Calendar',
-  star: 'Star',
-}
 
 /** Server bhi yahi cap lagata hai (`settingsSchema.headerButtons`) — do jagah ek hi number. */
 const MAX_HEADER_BUTTONS = 4
@@ -701,7 +690,7 @@ export default function Menus() {
                       {/*
                         Icon ek **structured field** hai, className nahi (R18) — theme isi
                         value se SVG chunti hai. Naya icon jodna do line hai: shared ke
-                        `BUTTON_ICONS` me ek value, aur theme me ek path.
+                        `ICONS` me ek value, aur theme me ek path.
                       */}
                       <select
                         className="sel"
@@ -709,7 +698,7 @@ export default function Menus() {
                         disabled={!canEditSettings}
                         onChange={(e) => setButton(i, { icon: e.target.value })}
                       >
-                        {BUTTON_ICONS.map((name) => (
+                        {ICONS.map((name) => (
                           <option key={name} value={name}>
                             {ICON_LABELS[name] ?? name}
                           </option>

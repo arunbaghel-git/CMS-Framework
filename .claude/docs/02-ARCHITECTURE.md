@@ -96,7 +96,13 @@ migrations       name, appliedAt, checksum
 
 settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  faviconMediaId, timezone, dateFormat, currency,
-                 phone, whatsapp, address, social{instagram,facebook,youtube},
+                 phone, whatsapp, address, social{facebook,instagram,youtube,x},
+                 headerButtons[{ label, url, target, variant, icon,
+                                 iconOnlyOnMobile, className, enabled }]   max 4
+                 footerLogoMediaId, footerCopyright, footerNote, footerDisclaimer,
+                 footerColumns[{ id, heading, type(menu|text|both),         max 6
+                                 width(normal|wide), menuId,
+                                 textBlocks[{ id, icon, label, text }] }]   max 6 blocks
                  frontPageType, homepageEntryId, postsPageEntryId, postsPerPage,
                  searchEngineVisible
                  PLANNED: defaultSeo, titleTemplates, privacyPolicyEntryId,
@@ -127,11 +133,14 @@ menus          * siteId, locale, key, name, version, deletedAt,
                          mega{ layout, columns, className,
                                columns[{ className, groups[{ heading, link,
                                                              className, links[] }] }],
-                               cta{ text, buttonLabel, buttonUrl, className } } }]
+                               cta{ text, buttonLabel, buttonUrl, variant, className } } }]
                  poora contract → specs/006-menu-contract.md (D-43)
 menuLocations  * siteId, locale, location, menuId
                  location theme declare karta hai, core enum nahi (D-17).
-                 Slice 0: header · footerColumn1..4. `mobile` NAHI (D-43)
+                 Ab sirf `header`. `mobile` NAHI (D-43); footerColumn1..4 bhi
+                 NAHI — wo `settings.footerColumns[]` me chale gaye (D-44),
+                 kyunki column me text bhi ho sakta hai aur uski ginti
+                 client chunta hai. Migration 008.
 templates      * siteId, name, type(page|post|archive|single|404|search),
                  regions{header,footer}, layout, isDefault
 patterns       * siteId, name, kind(pattern|synced), blocks[], category

@@ -34,11 +34,16 @@ Slice 0   Menu contract (spec 006, D-43)    ✅  ← 24 Aug
           Public header + footer render     ✅  desktop + mobile, ek hi data
           Revalidate webhook                🟡  code ready, apps/web ki .env baaki (A-5)
           Admin UX iterations (24 Aug)      ✅  drag-drop · accordions · header buttons
+          Header design match (25 Aug)      ✅  buttons · drawer · Inter · sticky
+          Footer ka naya model (D-44)       ✅  25 Aug — migration 008
+          Footer design + responsive        ✅  reference ke values · mobile toggle
+          Mega CTA ka variant               ✅  CTA plain text jaisa dikh raha tha
           Q-7 (logo fallback)               🔴  client ka faisla
+          Q-8 (drawer vs footer logo)       🔴  client ka faisla, kuch block nahi
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 355 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 370 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -92,6 +97,7 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Logo ka reference** | Media id write pe validate hoti hai · broken `<img>` kabhi nahi · orphan media abhi accept (D-42) |
 | **Menu ka contract**  | Typed · mega = Columns→Groups→Links · layout aur columnCount alag · mobile wahi data (D-43)       |
 | **className**         | Sirf presentation — behaviour kabhi nahi (R18, D-43)                                              |
+| **Footer ka model**   | `settings.footerColumns[]` — ginti client chunta hai · menu/text/dono · apna logo (D-44)          |
 
 Specs 001–006: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,
 **006 ✅ implemented** (menu contract).
@@ -253,7 +259,7 @@ apps/web/components/                               SiteHeader · SiteFooter · M
 apps/web/app/api/revalidate/route.js               webhook, shared secret ke saath
 ```
 
-**Chhe cheezein jo yaad rakhni hain:**
+**Saat cheezein jo yaad rakhni hain:**
 
 1. **`mega.columnCount` (number) aur `mega.columns[]` do alag fields hain.** Spec me
    dono ko `columns` likha tha — padhne me ambiguous tha. Validator dono ka barabar hona
@@ -391,6 +397,87 @@ Sizing           radius/shadow tokens, sticky header, reference ke mobile overri
    jaan-boojh kar. Comment me likha hai. **Reference se "match" karne ke naam pe wapas mat badalna.**
 6. **D10 palta** — mega ka CTA ab mobile pe nahi dikhta. Wajah D-43 me likhi hai: jis kami ki
    wajah se D10 liya gaya tha (drawer me CTA ka thikana na hona), wo kami bhar gayi.
+7. **Mega ka CTA plain text jaisa render ho raha tha.** `.btn` base ab sirf shape deta hai
+   (rang variant se aata hai) aur `SiteHeader` CTA ko naked `className="btn"` pe render kar
+   raha tha. Ab `cta.variant` ek **structured field** hai (Outline/Primary/Accent, default
+   Accent) — class me `btn--accent` likhwana R18 todta. Saath me `BUTTON_VARIANTS`
+   `settings.js` se `menu.js` me shift hua, kyunki uske ab do consumer hain aur ulta import
+   cycle banata. D-43 ka amendment + spec 006 §1.3.2 dekho.
+
+---
+
+## 25 Aug — footer ka data model badla (D-44)
+
+Client ne teen cheezein maangin, aur teenon D-43 wale model me fit hi nahi hoti thin:
+columns ki **ginti** chunna, column me **text** rakhna, aur footer ka **apna logo**.
+
+```
+settings.footerColumns[]   max 4 — { id, heading, type, width, menuId, textBlocks[] }
+settings.footerLogoMediaId footer + mobile drawer
+migrations/008             purane footerColumn1..4 assignments settings me
+THEME_MENU_LOCATIONS       ab sirf { header }
+packages/shared/constants/icons.js   ICONS + ICON_LABELS — buttons AUR footer dono
+apps/web/components/Icon.jsx         ButtonIcon se generalize hua (+clock, mapPin, building)
+apps/admin/components/admin/MediaDrop.jsx   General se nikal kar shared hua
+```
+
+**Chhe cheezein jo yaad rakhni hain:**
+
+1. **"Number of columns" ki apni state nahi hai** — wo array ko grow/shrink karta hai.
+   D-43 §1 me `mega.columnCount` × `mega.columns[]` pe wahi do-source wali dikkat aa
+   chuki thi; yahan wo banne hi nahi di gayi.
+2. **`type: 'text'` pe `menuId` mit-ta nahi** — bas public payload me nahi jaata. Client
+   wapas 'both' kar de to menu turant laut aata hai. Filter **server pe** hai, theme me
+   nahi; `type` khud bahar jaata hi nahi.
+3. **Footer ka cache tag `settings` hai, `menu:*` nahi.** Footer ka data ab
+   `/api/public/settings` se jaata hai, isliye footer me use ho rahe menu ko badalne pe
+   `settings` stale hoti hai. `invalidateMenu()` ab wo check karta hai — ye D-43 §4 wali
+   galti ka hi agla roop tha.
+4. **Menu delete ab footer ka reference bhi saaf karta hai.** Column **delete nahi hota**,
+   sirf `menuId` `null` — heading aur text blocks client ka content hain. Isse
+   `menus` ↔ `settings` ka circular import banta hai; wo jaan-boojh kar hai aur chalta
+   hai (dono taraf hoisted functions, koi top-level call nahi).
+5. **Media resolve na ho to id bhi saaf karni padti hai, sirf preview nahi.** Warna server
+   D-42 §1 pe har Save 400 deta aur client uske paas se nikal bhi nahi sakta (Remove button
+   tabhi dikhta hai jab preview mila ho). ⚠️ Settings ▸ General me abhi bhi wahi shape hai —
+   aaj pahunch me nahi (Media delete bana hi nahi), par Phase 2 me wahan bhi karna hoga.
+6. **Ek-class wale CSS override is codebase me bharose ke laayak nahi hain.** Footer ke
+   text block ka icon dropdown `.ftr-block-icon { width: 130px }` se fix karna chaha —
+   par `primitives.css` ka `.sel { width: 100% }` **barabar specificity** rakhta hai, aur
+   component ki CSS bundle me primitives se pehle aati hai. Nateeja: select poori row kha
+   gaya aur **Label ka input ek 20px ke dabbe me nichud gaya** — client ko dikha hi nahi
+   ki wahan koi field hai. Ab `.ftr-block-head .sel.ftr-block-icon`. Ye theek wahi bug hai
+   jo D-43 ke iterations me `.edit-grid` × `.appearance-grid` pe hua tha — **doosri baar**.
+7. **CSS variable missing hone pe browser chup rehta hai.** `--blue-900` add karna chhoot
+   gaya tha (mera guard `var(--blue-900)` ke usage se match ho gaya), aur
+   `background: var(--blue-900)` chup-chaap **transparent** ban gaya — poora footer grey
+   dikhne laga. Koi error, koi warning nahi. Naya token add karo to ek baar aankh se dekho.
+8. **Text plain hai, rich text nahi.** Line breaks `pre-line` se preserve hote hain.
+   Admin se aayi HTML render karna stored XSS ka seedha raasta hai.
+
+**Uske baad footer design ke hisaab se poora hua (usi din):**
+
+```
+--blue-900 token         footer ka background transparent ban raha tha (neeche #7)
+Social                   asli brand SVG (SocialIcon.jsx) · 'x' juda · order SOCIAL_KEYS se
+footerNote               bottom bar ke beech ki line (memberships)
+footerDisclaimer         sabse neeche ki fine print
+Wide column              2x se 1.5x — reference ka `1.5fr 1fr 1fr 1fr`
+Breakpoints              1024 → 2 col, 760 → 1 col (reference ke apne)
+--pad                    26 / 23 / 20 — desktop / tablet / mobile
+Columns ka cap           4 se 6 (min-width 180 → 140, warna 6 wrap ho jaate)
+FooterColumn.jsx         mobile pe collapse — sirf MENU-ONLY column
+```
+
+**Mobile ka toggle content se decide hota hai, `type` se nahi** — public payload me
+`type` jaata hi nahi (D-44 §2). Column collapse hota hai jab heading ho, menu ke items
+hon, aur text block ek bhi na ho. Text wale column khule rehte hain kyunki unme phone,
+email aur pata hote hain (D-44 §9).
+
+**Migration 008 idempotent hai aur asli DB pe verify ki gayi:** `footerColumns` pehle se
+bhari ho to haath nahi lagti (dev DB pe wahi hua — tumhara naya footer data bacha raha),
+aur footer wali `menuLocations` rows delete ho gayin. `down()` menu wale columns wapas
+locations me daal deti hai.
 
 ---
 
@@ -406,9 +493,37 @@ pnpm dev            # api :4000 · admin :5173 · web :3000
 ⚠️ Agar login fail ho ya data gayab lage — `/api/health` me `migrations.pending` dekho. 0 na ho
 to API galat Mongo pe hai (upar point 1).
 
+### 1b. ⚠️ Working tree me **bina commit** ka kaam hai (25 Aug shaam)
+
+Us waqt **do session** saath chal rahi thin — ek footer (D-44) pe, ek mega CTA ke variant pe.
+Isliye ye paanch files tree me hain aur **abhi tak commit nahi hui**:
+
+| File                                                | Kya                                                             |
+| --------------------------------------------------- | --------------------------------------------------------------- |
+| `packages/shared/src/schemas/menu.js`               | `BUTTON_VARIANTS` + `megaCtaSchema.variant` + public payload    |
+| `packages/shared/src/schemas/settings.js`           | apna duplicate `BUTTON_VARIANTS` hataya, ab `menu.js` se import |
+| `apps/web/components/SiteHeader.jsx`                | `btn btn--${cta.variant}`                                       |
+| `apps/admin/src/screens/appearance/MegaBuilder.jsx` | "Button style" dropdown                                         |
+| `apps/admin/src/screens/appearance/menu-tree.js`    | `blankCta()` me `variant: 'accent'`                             |
+
+⚠️ **`menu.js` aur `settings.js` ek saath hi commit hone chahiye.** Akele `menu.js` commit
+karne pe dono files `BUTTON_VARIANTS` export karengi, `schemas/index.js` ka `export *`
+ambiguous ho jaayega aur admin ka import chup-chaap toot jaayega — wo commit build hi nahi hoga.
+
+Alag commit karne ki koshish ki thi, par `settings.js` me dono sessions ke edit **ek hi hunk
+me** guthhe hain (unka `ICONS`/`BUTTON_ICONS`, mera `BUTTON_VARIANTS`) — hunk-level pe alag
+nahi ho sakte. Isliye ye kaam poore footer ke saath ek hi commit me jaana hai.
+
+Us waqt sab green tha: lint clean, format clean, admin build clean, tests pass.
+
+⚠️ **Par `cta.variant` ka koi test nahi hai.** Is project me contract test se bandhta hai
+(spec 006 §10), aur ye ek contract change hai — do case chhoote hue hain: `variant` diye
+bina CTA banane pe default `accent` aana chahiye, aur anjaan variant pe `400`. Commit se
+pehle `apps/api/src/tests/menus.test.js` me daal do.
+
 ### 2. Push baaki hai
 
-**3 commits unpushed.** Push se pehle `pnpm build` chalana hai — wo CI ka aakhri step hai aur
+**4 commits unpushed.** Push se pehle `pnpm build` chalana hai — wo CI ka aakhri step hai aur
 local pe kabhi chala hi nahi, kyunki web ka dev server `.next` hold kiye rehta hai:
 
 ```bash
@@ -417,19 +532,24 @@ rm -rf apps/web/.next
 pnpm build && git push
 ```
 
-### 3. Agla kaam — Footer
+### 3. Agla kaam
 
-**Footer bana hua hai** (menu columns `footerColumn1..4`, social links, copyright) — wo Slice 0
-me hi ban gaya tha. Par usse **design ke hisaab se polish nahi kiya**: jo header pe hua
-(typography, spacing, sizing, mobile behaviour), footer pe wo baaki hai.
+**Footer poora ho chuka hai** — data model, admin screen, aur design/responsive teenon.
+Chaar chhoti cheezein khuli hain, koi bhi bada kaam nahi rok rahi:
 
-Reference ka footer: `~/Desktop/andaman/home-nav-v3.html` me `<footer class="ft">`. Usme 4-column
-grid hai, par **column 1 (logo + support/email/timing) aur column 4 (office addresses) menu
-hain hi nahi** — wo Andaman-specific content blocks hain aur Slice 0 ke scope me nahi.
+| #   | Kya                                                                                                                                                                                                            | Kitna            |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| —   | `pnpm build` **kabhi chala hi nahi** — CI ka aakhri step. Web dev band karke `rm -rf apps/web/.next && pnpm build`                                                                                             | 5 min            |
+| A-5 | `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET`. Sirf prod ke cache pe asar                                                                                                                                  | manual step      |
+| Q-8 | Drawer safed, footer gehra — ek hi logo dono me?                                                                                                                                                               | client ka faisla |
+| —   | Footer ke phone/email **clickable nahi** hain (reference me `tel:`/`mailto:` hain). Do raaste: text me auto-detect (magic, kabhi galat pakdega) ya text block me ek optional Link field (saaf, ek field zyada) | client ka faisla |
+
+Uske baad **C-2 (Payload spike, 2 din — Phase 1 se pehle)**, phir **Phase 1 — Content Core**.
 
 ### 4. Khule items
 
 - **Q-7** — logo na mile to kya dikhe (client ka faisla). Header aur drawer dono interim pe hain
+- **Q-8** — drawer safed, footer gehra; ek hi logo dono me? (client ka faisla, D-44 §4)
 - **A-5** — `apps/web/.env` (`REVALIDATE_SECRET` + `API_URL`). Sirf **production** ke cache pe asar
 - **C-2** — Payload spike, Phase 1 se pehle
 - **spec 006 §11** — mere 6 resolved decisions ka review baaki
@@ -493,18 +613,16 @@ Aur agar `pnpm seed` se admin banana ho to teen vars chahiye:
 branch : main
 remote : github.com/progryss/crmmern.git
 
-50d8fac  Session wrap — handoff doc sach bolta hai ab (24 Aug)
-bb5844e  .featured-drop ki height wapas — shared primitive thi
-9e0c3a0  Docs sync — 288 tests, D-42/Q-7
-446528d  Settings sirf maujood media ki id leti hai (D-42 §1)
-0e85662  D-42 approved, Q-7 alag kiya
-731a462  Media foundation ke baad ki safai — prettier, stale comments
-3c29b58  Media foundation + Settings logo upload (Codex)
-a2b10ad  ← origin/main yahin khada hai
+HEAD     Footer ab client chalata hai — columns, text, logo (D-44)
+513a120  Session handoff — 25 Aug ka header work aur naye session ka plan
+ef62308  Header design ke hisaab se poora — buttons, drawer, typography
+f5432f2  Adhoori menu rows ab save hoti hain — aur error batata hai kahan
+17f3f94  Upload directory missing ho to boot pe bolo, chup mat raho
+0cfe50b  ← origin/main yahin khada hai (Kal ka plan — pnpm build verify)
 ```
 
-45 commits · working tree clean · **13 commits unpushed** (`origin/main` `a2b10ad` pe hai).
-Aaj ke 6 commits: contract freeze → shared+migration → API → admin → web → docs sync.
+52 commits · working tree clean · **5 commits unpushed** (`origin/main` `0cfe50b` pe hai).
+25 Aug ke 5 commits: upload-dir warning → menu rows fix → header design → handoff → footer.
 `apps/api/.env` ka backup: `apps/api/.env.bak-1787215917` (gitignored).
 
 ⚠️ **Push kabhi bhi bina permission ke nahi karna.**

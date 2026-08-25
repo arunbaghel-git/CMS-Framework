@@ -1,10 +1,11 @@
 # 09 — Open Items
 
 **Status:** Phase 0 poora, aur **Slice 0 (Header + Footer) bhi ban chuka** — D-43 /
-spec 006. 348 tests passing.
+spec 006. **Header aur footer dono client ke reference se match kar diye gaye** (25 Aug)
+— footer ka data model **D-44** me badla. 367 tests passing.
 
 Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neeche).
-**Last updated:** 24 Aug 2026
+**Last updated:** 25 Aug 2026
 
 ---
 
@@ -57,6 +58,35 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 | **Q-5 SVG upload** | ✅ Current policy: SVG blocked by default. Sanitized SVG support can be revisited later, but it is not a blocker |
 | **Q-6 Logo stub mismatch** | ✅ Resolved by using `logoMediaId` / `faviconMediaId` and the Media upload path in Settings |
 | **Settings Logo/Favicon** | ✅ Current approved scope complete: clickable drop upload, saved preview, replace/remove, IDs persisted on Save |
+
+### 24 Aug 2026 — Slice 0 land ho gaya
+
+| Item | Faisla |
+| --- | --- |
+| **Menu ka data contract** | ✅ **Frozen** — spec 006 + D-43. Typed items · mega = Columns→Groups→Links · `columnCount` aur `columns[]` alag fields |
+| **Footer ka data kahan** | ✅ **Menu locations** (`footerColumn1..4`) — `04-ADMIN-UX.md` jeeta, `05-BUILD-PLAN.md` wali "settings me" wali line galat thi |
+| **Public projection ki hadd** | ✅ `/api/public/settings` + `/api/public/menus/:location` — `adminEmail`/`searchEngineVisible` bahar nahi jaate, `href` resolved jaata hai (R10) |
+| **Appearance ka scope** | ✅ Sirf **Menus + Footer** — Homepage Blocks aur Banners & Sliders hataye. Ek "Header" tab bina poochhe bana tha, wo **poora delete** ho chuka |
+| **Header ka CTA** | ✅ `headerButtons[]` (max 4, per-button `enabled`) — `headerCtaLabel`/`headerCtaUrl` hataye. Migration nahi lagi, wo fields kabhi commit hi nahi hue the |
+| **`menuType: 'button'`** | ✅ **Nahi joda** — CTA `<nav>` ke bahar baithta hai; `menuType` structural discriminator hai, look ka nahi. Nav me button chahiye to D-17 ka `className` raasta hai (`04-ADMIN-UX.md` §6.4) |
+| **Q-C ordering UI** | ✅ ↑↓ buttons ki jagah **drag-drop har level pe** — native HTML5 DnD, koi library nahi; handle pe keyboard ↑/↓ bhi |
+
+### 25 Aug 2026 — header design ke hisaab se poora
+
+| Item | Faisla |
+| --- | --- |
+| **Header buttons ka shape** | ✅ `variant` (Outline/Primary/Accent) · `icon` (7 SVG) · `iconOnlyOnMobile` — client ke reference se |
+| **Drawer ka layout** | ✅ Logo upar · groups apne accordion me · neeche CTA + "Call <phone>" |
+| **Typography** | ✅ Inter (`next/font/google`) — `system-ui` Windows pe Segoe UI banta tha, yahi sabse bada visual farak tha |
+| **D10 palta** | ✅ Mega ka CTA ab **mobile pe nahi** dikhta — jis kami se D10 liya gaya tha (drawer me CTA ka thikana na hona) wo bhar gayi. Wajah D-43 me likhi hai |
+| **`.btn` ka padding/font-size** | ✅ Client ne **khud tune** kiya hai, reference se jaan-boojh kar alag. Comment code me hai — "match" karne ke naam pe wapas mat badalna |
+| **Adhoori menu rows** | ✅ Ab save hoti hain, aur error batata hai **kahan** hai (`f5432f2`) |
+| **Upload dir missing** | ✅ Boot pe resolved path log hota hai, folder na ho to warn (`17f3f94`) — `apps/api/uploads` gayab tha aur saari media 404 de rahi thi |
+| **Footer ka data model** | ✅ **D-44** — `settings.footerColumns[]`; ginti client chunta hai (0–4), column me menu/text/dono, apni heading + width. Migration 008 |
+| **Footer ke theme locations** | ✅ **Hata diye** — `footerColumn1..4` ab locations nahi. Panel me sirf `header` bacha (D-44) |
+| **Social links do jagah the** | ✅ Duplicate UI Footer screen se hat gayi — Settings ▸ General hi single source (D-44 §6) |
+| **Footer logo** | ✅ `settings.footerLogoMediaId` — footer + mobile drawer; khaali ho to header wale pe fallback (D-44 §4) |
+| **Footer ka look** | ✅ Reference ke tokens pe — gehra neela, uppercase headings, icon wale text blocks, circular social |
 
 ---
 
@@ -160,6 +190,39 @@ record kahin nahi hai.
 
 ---
 
+### Q-8 · Drawer safed hai, footer gehra — ek hi logo dono me theek hai?
+
+**Deadline:** koi nahi — aaj kuch tootta nahi
+**Client ka faisla hai, developer ka nahi (R15)**
+
+D-44 me client ne kaha: footer ka logo **mobile drawer** bhi use kare. Wo laga diya gaya
+hai. Par reference me drawer ka background **safed** hai (`home-nav-v3.html` ka
+`.mdrawer{background:#fff}`) aur footer ka **gehra neela** — yaani jo logo footer ke liye
+inverted (safed) hoga, wo drawer me gayab dikhega.
+
+**Aaj kuch toota nahi hai:** `footerLogoMediaId` khaali ho to dono jagah header wala hi
+logo aata hai (D-44 §4 ka fallback), yaani jab tak client alag logo upload na kare tab tak
+behaviour bilkul pehle jaisa hai.
+
+| Option | Matlab |
+| --- | --- |
+| Waise hi rehne do | Client aisa logo chune jo dono background pe padha jaaye |
+| Drawer wapas header ke logo pe | `SiteHeader.jsx` me ek prop badalti hai |
+| Drawer ka background gehra karo | Reference se vichlan — wo R15 ka call hai |
+
+---
+
+### spec 006 §11 · 6 resolved decisions ka review
+
+**Deadline:** Phase 1 se pehle
+**Kuch block nahi karta** — code un decisions pe already chal raha hai
+
+Spec 006 likhte waqt 6 sawaal khud resolve kiye gaye the (client se poochhe bina), aur
+wo §11 me alag list hain. Code unke hisaab se ban chuka hai; ye sirf ek **confirm** step
+hai — agar koi ulta nikla to abhi badalna sasta hai, Phase 1 ke baad nahi.
+
+---
+
 ### Q-3 · Field DSL me `matrix` + `table` types
 
 **Deadline:** Phase 5c se pehle
@@ -175,8 +238,10 @@ Spec 005 me add karne honge.
 3. ✅ Media ki foundation                         (D-41 — pulled forward)
 4. ✅ Settings ka Logo/Favicon live → General 100% current scope
 5. ✅ Slice 0 — Header + Footer end-to-end        (D-43, 24 Aug)
-6. C-2 — Payload spike (parallel me)             (2 din)
-7. Phase 1 — Content Core                        (3 hafte)
+6. ✅ Header design ke hisaab se poora            (25 Aug — buttons, drawer, Inter)
+7. ✅ Footer ka naya data model + design          (D-44, 25 Aug — migration 008)
+8. C-2 — Payload spike (parallel me)             (2 din)
+9. Phase 1 — Content Core                        (3 hafte)
 ```
 
 ### Media Phase 2 se aage kyun khisak rahi hai
@@ -245,8 +310,8 @@ Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **13 commits unpushed** hain (total 45). `origin/main` `a2b10ad` pe khada hai; local
-  HEAD `d517c84` — Slice 0 ka docs sync. Aage bhi push **sirf permission pe**
+- ⚠️ **4 commits unpushed** hain (total 51). `origin/main` `0cfe50b` pe khada hai; local
+  HEAD `513a120` — 25 Aug ka header work. Aage bhi push **sirf permission pe**
 - ⚠️ **CI ka pehla step `pnpm format:check` hai** (`.github/workflows/ci.yml`:
   Format → Lint → Test → Build). `3c29b58` isi pe fail ho raha tha — 9 files prettier-dirty
   thin, ab theek ho chuki hain. Push se pehle `pnpm format:check` **hamesha** chala lo,

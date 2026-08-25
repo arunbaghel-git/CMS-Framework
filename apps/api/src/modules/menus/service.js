@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto'
 
+import mongoose from 'mongoose'
+
 import {
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
@@ -11,6 +13,19 @@ import {
 
 import { badRequest, conflict, notFound } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
+/**
+ * ⚠️ **Ye import circular hai** — `settings/service.js` yahan se `menuExists` leti hai.
+ *
+ * Ye jaan-boojh kar hai aur chalta hai: dono taraf sirf `export async function`
+ * declarations hain, jo ESM me hoist hoti hain, aur koi bhi module load ke waqt doosre ko
+ * **call** nahi karta — sirf request handle karte waqt. Cycle tab toot-ti hai jab koi
+ * top-level pe doosre ka export use kare; yahan wo kahin nahi hota.
+ *
+ * Wajah ye rakhne ki: menu delete hone pe uska footer reference saaf karna **menus ka
+ * farz** hai (wahi jagah jahan location assignments clear hoti hain), aur footer columns
+ * ka data **settings ka** hai. Ek chhota event bus is ek jodi ke liye zyada hai.
+ */
+import { clearFooterMenuReferences, isMenuUsedInFooter } from '../settings/service.js'
 import { Menu, MenuLocation } from './model.js'
 
 /**
@@ -76,8 +91,37 @@ function withIds(items = []) {
  */
 async function invalidateMenu(menuId, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
   const assignments = await MenuLocation.find({ ...scope(siteId, locale), menuId }).lean()
+  const tags = assignments.map((a) => `menu:${a.location}`)
 
-  await revalidateTags(assignments.map((a) => `menu:${a.location}`))
+  /**
+   * Footer ke columns ab locations nahi hain (D-44) — wo `settings.footerColumns[]` me
+   * hain, aur unka data `/api/public/settings` se jaata hai. Isliye ek footer menu
+   * badalne pe stale hone wala tag `menu:*` nahi, **`settings`** hai.
+   *
+   * Ye bilkul wahi galti ka agla roop hai jo D-43 §4 me pakdi gayi thi: tag wahan se
+   * lena chahiye jahan assignment sach me rehti hai, wahan se nahi jahan pehle rehti thi.
+   */
+  if (await isMenuUsedInFooter(menuId, siteId)) tags.push('settings')
+
+  await revalidateTags(tags)
+}
+
+/**
+ * Menu maujood hai ya nahi — `mediaExists` ka menu wala bhai.
+ *
+ * Settings service isse tab bulati hai jab admin footer column me menu chunta hai
+ * (D-44): reference save hone se **pehle** check hoti hai, taaki footer chup-chaap
+ * khaali column render na kare.
+ *
+ * Bekaar id (jo ObjectId hai hi nahi) pe `false` milta hai, CastError nahi.
+ *
+ * @param {string} id
+ * @param {string} [siteId]
+ */
+export async function menuExists(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  if (!mongoose.isValidObjectId(id)) return false
+
+  return Boolean(await Menu.exists({ _id: id, ...scope(siteId, locale), deletedAt: null }))
 }
 
 // ── menus ────────────────────────────────────────────────────────────────────
@@ -193,6 +237,15 @@ export async function deleteMenu(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_
     { $set: { menuId: null } },
   )
 
+  /**
+   * Footer ke columns bhi is menu ko point kar rahe ho sakte hain (D-44).
+   *
+   * Column **delete nahi hota**, sirf uska `menuId` `null` hota hai — heading aur text
+   * blocks client ka content hain. Ye wahi invariant hai jo locations pe upar chal raha
+   * hai: koi reference kisi marey hue menu pe na bachi rahe.
+   */
+  await clearFooterMenuReferences(id, siteId)
+
   return { id }
 }
 
@@ -277,4 +330,29 @@ export async function getPublicMenu(location, siteId = DEFAULT_SITE_ID, locale =
   const publicMenu = toPublicMenu(menu)
 
   return { location, menu: { key: publicMenu.key, name: publicMenu.name }, items: publicMenu.items }
+}
+
+/**
+ * Public read — **id se** menu, location se nahi.
+ *
+ * Footer ke columns D-44 me `settings.footerColumns[].menuId` pe chale gaye, isliye
+ * unhe location wale raaste se nahi padha ja sakta. Baaki sab `getPublicMenu` jaisa hi
+ * hai: deleted ya na-mile menu pe **404 nahi**, `null`.
+ *
+ * `null` isliye (khaali object nahi) ki caller ko farq karna padta hai — column me menu
+ * assign hi nahi tha, aur menu assign tha par mit gaya, dono ka nateeja ek hai: us column
+ * me koi list render nahi hoti.
+ *
+ * @param {string | null} menuId
+ * @returns {Promise<{ key: string, name: string, items: any[] } | null>}
+ */
+export async function getPublicMenuById(menuId, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  if (!menuId || !mongoose.isValidObjectId(menuId)) return null
+
+  const menu = await Menu.findOne({ _id: menuId, ...scope(siteId, locale), deletedAt: null }).lean()
+  if (!menu) return null
+
+  const publicMenu = toPublicMenu(menu)
+
+  return { key: publicMenu.key, name: publicMenu.name, items: publicMenu.items }
 }

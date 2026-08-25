@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-import ButtonIcon from './ButtonIcon.jsx'
+import Icon from './Icon.jsx'
 
 /**
  * Mobile drawer — **wahi menu data jo desktop use karta hai** (D-43/D9).
@@ -131,6 +131,11 @@ function Item({ item }) {
  */
 const telHref = (phone) => 'tel:' + String(phone).replace(/[^\d+]/g, '')
 
+/**
+ * @param {object} props
+ * @param {any} [props.logo] Drawer ka logo — `settings.footerLogo` se aata hai (D-44),
+ *   jo footer ka apna logo hai aur na ho to header wale pe fallback kar chuka hota hai.
+ */
 export default function MobileNav({ items, logo, siteName, buttons = [], phone }) {
   const [open, setOpen] = useState(false)
   /** Icon-only buttons header bar me hi rehte hain — wajah drawer ke footer pe likhi hai. */
@@ -212,7 +217,7 @@ export default function MobileNav({ items, logo, siteName, buttons = [], phone }
                 href={button.url}
                 target={button.target}
               >
-                <ButtonIcon name={button.icon} />
+                <Icon name={button.icon} className="btn__icon" size={15} />
                 {button.label}
               </a>
             ))}
@@ -228,7 +233,7 @@ export default function MobileNav({ items, logo, siteName, buttons = [], phone }
             */}
             {phone && (
               <a className="btn btn--outline" href={telHref(phone)}>
-                <ButtonIcon name="phone" />
+                <Icon name="phone" className="btn__icon" size={15} />
                 Call {phone}
               </a>
             )}

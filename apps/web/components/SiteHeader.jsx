@@ -1,6 +1,6 @@
 import { HEADER_MENU_LOCATION_ID } from '@cms/shared'
 
-import ButtonIcon from './ButtonIcon.jsx'
+import Icon from './Icon.jsx'
 import { getMenu, getSettings } from '../lib/cms.js'
 import MobileNav from './MobileNav.jsx'
 
@@ -146,7 +146,7 @@ function MegaItem({ item }) {
           {cta && (
             <div className={`mega__cta ${cta.className}`.trim()}>
               <span>{cta.text}</span>
-              <a className="btn" href={cta.buttonUrl}>
+              <a className={`btn btn--${cta.variant}`} href={cta.buttonUrl}>
                 {cta.buttonLabel}
               </a>
             </div>
@@ -214,7 +214,7 @@ export default async function SiteHeader() {
                 href={button.url}
                 target={button.target}
               >
-                <ButtonIcon name={button.icon} />
+                <Icon name={button.icon} className="btn__icon" size={15} />
                 <span className="btn__label">{button.label}</span>
               </a>
             ))}
@@ -224,7 +224,14 @@ export default async function SiteHeader() {
         {/* Wahi items, wahi data — koi alag mobile menu nahi (D-43/D9) */}
         <MobileNav
           items={items}
-          logo={settings?.logo}
+          /**
+           * Drawer **footer wala logo** dikhata hai, header wala nahi — D-44.
+           *
+           * Fallback API me ho chuka hai: `footerLogo` khaali ho to wahan se header ka
+           * hi logo aata hai, isliye jis client ne alag logo diya hi nahi uske liye kuch
+           * nahi badla.
+           */
+          logo={settings?.footerLogo}
           siteName={settings?.siteName}
           buttons={settings?.headerButtons ?? []}
           phone={settings?.phone}

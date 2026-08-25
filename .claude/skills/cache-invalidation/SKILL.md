@@ -39,7 +39,7 @@ Har public fetch pe tags lagao:
 | `type:{type}`     | Kisi type ki list | Us type ki koi bhi entry publish/unpublish ho          |
 | `tax:{id}`        | Taxonomy archive  | Wo taxonomy change ho, ya koi entry usme add/remove ho |
 | `menu:{location}` | Menu fetch        | Wo menu ya uska assignment badle                       |
-| `settings`        | Settings fetch    | Settings update ho                                     |
+| `settings`        | Settings fetch    | Settings update ho — **aur footer ka koi bhi menu**    |
 | `template:{id}`   | Template fetch    | Template ya uske parts badlein                         |
 | `sitemap`         | sitemap.xml       | Koi bhi entry publish/unpublish/trash ho               |
 | `feed`            | RSS               | Koi post publish/unpublish ho                          |
@@ -67,8 +67,20 @@ const INVALIDATION_MAP = {
   // Location menu pe NAHI hai — wo `menuLocations` ka assignment hai, aur ek menu KAI
   // locations pe ho sakta hai. Sirf ek tag saaf karne ka nateeja: footer badla, header
   // purana dikhta raha (D-43).
-  'menu.update': (menu) => locationsOf(menu.id).map((l) => `menu:${l}`),
-  'menu.delete': (menu) => locationsOf(menu.id).map((l) => `menu:${l}`),
+  //
+  // ⚠️ **Footer ke columns ab locations nahi hain (D-44)** — wo `settings.footerColumns[]`
+  // me hain aur unka data `/api/public/settings` se jaata hai. Isliye footer me use ho
+  // rahe menu ka stale tag `menu:*` nahi, **`settings`** hai. Ye D-43 wali galti ka hi
+  // agla roop hai: tag wahan se lo jahan assignment SACH ME rehti hai.
+  'menu.update': (menu) => [
+    ...locationsOf(menu.id).map((l) => `menu:${l}`),
+    ...(usedInFooter(menu.id) ? ['settings'] : []),
+  ],
+  'menu.delete': (menu) => [
+    ...locationsOf(menu.id).map((l) => `menu:${l}`),
+    // Delete footer ka reference bhi saaf karti hai, to `settings` hamesha stale hoti hai
+    ...(usedInFooter(menu.id) ? ['settings'] : []),
+  ],
   // Assignment badle to PURANI aur NAYI dono stale hoti hain
   'location.update': (prev, next) => [`menu:${prev}`, `menu:${next}`],
   'settings.update': () => ['settings', 'sitemap', 'feed'],

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MEGA_COLUMN_COUNTS, MEGA_LAYOUTS, allowedColumnCounts } from '@cms/shared'
+import { BUTTON_VARIANTS, MEGA_COLUMN_COUNTS, MEGA_LAYOUTS, allowedColumnCounts } from '@cms/shared'
 
 import { useListDrag } from './drag-list.js'
 import {
@@ -27,6 +27,9 @@ import {
  */
 
 const LAYOUT_LABELS = { sm: 'Small', md: 'Medium', wide: 'Wide', full: 'Full width' }
+
+/** Wahi labels jo Header Buttons pe hain — do jagah do naam client ko confuse karte. */
+const VARIANT_LABELS = { outline: 'Outline', primary: 'Primary', accent: 'Accent' }
 
 /** Har row pe wahi handle — `.day-head` ke `.grip` se dikhne me ek jaisa. */
 function Grip({ handle }) {
@@ -400,6 +403,25 @@ export default function MegaBuilder({ mega, onChange, disabled }) {
                 onChange({ ...mega, cta: { ...mega.cta, buttonUrl: e.target.value } })
               }
             />
+          </div>
+          <div className="field">
+            {/*
+              Wahi `variant` jo header ke buttons pe hai — do alag mechanism rakhne se
+              client ko do jagah do tarah se seekhna padta.
+            */}
+            <label>Button style</label>
+            <select
+              className="sel"
+              value={mega.cta.variant ?? 'accent'}
+              disabled={disabled}
+              onChange={(e) => onChange({ ...mega, cta: { ...mega.cta, variant: e.target.value } })}
+            >
+              {BUTTON_VARIANTS.map((v) => (
+                <option key={v} value={v}>
+                  {VARIANT_LABELS[v] ?? v}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       )}

@@ -1,0 +1,44 @@
+/* Media upload ka drop zone. `.featured-drop` design se aata hai; yahan sirf is field ka
+   sizing aur preview layout hai.
+
+   Ye pehle `screens/settings/Settings.css` me tha. D-44 me Appearance ▸ Footer ko bhi
+   yahi field chahiye thi, aur Vite me CSS us module ke saath load hoti hai jo use import
+   kare — yaani Settings.css me chhodne ka matlab hota ki Footer screen pe ye rules tabhi
+   aayein jab user Settings bhi khol chuka ho. Component ke saath rakhne se wo sawaal hi
+   nahi uthta.
+
+   Selector me **dono class** jaan-boojh kar hain. Component ki CSS bundle me
+   `primitives.css` se PEHLE aati hai, isliye akela `.media-drop` (ek class) `.featured-drop`
+   ki height se haar jaata — bhale wo yahan baad me likha ho. Do class = zyada specificity,
+   aur nateeja load order pe depend nahi karta.
+
+   Design me bhi Settings ka logo drop chhota hai: wahan `.featured-drop` pe inline
+   `style="height:90px"` laga hai (`admin-design.html`), base 130px rehte hue. */
+.featured-drop.media-drop {
+  height: 90px;
+  padding: 0;
+  overflow: hidden;
+}
+.media-drop-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #f6f7f7;
+}
+.media-drop-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  min-height: 30px;
+}
+.media-drop-input {
+  display: none;
+}
+.media-drop-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -31,9 +31,11 @@ const settingsSchema = new mongoose.Schema(
     whatsapp: { type: String, default: '' },
     address: { type: String, default: '' },
     social: {
-      instagram: { type: String, default: '' },
       facebook: { type: String, default: '' },
+      instagram: { type: String, default: '' },
       youtube: { type: String, default: '' },
+      /** 25 Aug me juda — reference ke footer me hai. Default se aata hai, migration nahi. */
+      x: { type: String, default: '' },
     },
 
     /**
@@ -61,8 +63,55 @@ const settingsSchema = new mongoose.Schema(
       default: () => [],
     },
 
+    /**
+     * Footer ke columns — D-44, spec 006 §7.3.
+     *
+     * `_id: false` **do** level pe hai: na column ka apna Mongo `_id` chahiye, na block
+     * ka. Dono ke paas apni `id` hai jo admin banata hai (drag-drop ki React key), aur
+     * Mongoose ka `_id` uske upar ek doosri identity ban kar public payload tak pahunch
+     * jaata.
+     */
+    footerColumns: {
+      type: [
+        new mongoose.Schema(
+          {
+            id: { type: String, required: true },
+            heading: { type: String, default: '' },
+            type: { type: String, default: 'menu' },
+            width: { type: String, default: 'normal' },
+            menuId: { type: String, default: null },
+            textBlocks: {
+              type: [
+                new mongoose.Schema(
+                  {
+                    id: { type: String, required: true },
+                    icon: { type: String, default: 'none' },
+                    label: { type: String, default: '' },
+                    text: { type: String, default: '' },
+                  },
+                  { _id: false },
+                ),
+              ],
+              default: () => [],
+            },
+          },
+          { _id: false },
+        ),
+      ],
+      default: () => [],
+    },
+
+    /** Footer aur mobile drawer ka logo — khaali ho to theme `logoMediaId` pe girti hai (D-44). */
+    footerLogoMediaId: { type: String, default: null },
+
     /** Appearance ▸ Footer — spec 006 §7.2. `{year}` theme replace karta hai. */
     footerCopyright: { type: String, default: '' },
+
+    /** Bottom bar ke beech ki line (membership / registration text) — D-44. */
+    footerNote: { type: String, default: '' },
+
+    /** Sabse neeche ki fine print (pricing / disclaimer) — D-44. */
+    footerDisclaimer: { type: String, default: '' },
 
     frontPageType: { type: String, default: 'page' },
     homepageEntryId: { type: String, default: null },

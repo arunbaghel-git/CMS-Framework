@@ -233,14 +233,22 @@ describe('menu locations', () => {
   it('theme ki poori list deta hai, chahe DB me koi assignment na ho', async () => {
     const res = await authed('get', '/api/menu-locations', adminJar)
 
-    expect(res.body.data.locations.map((l) => l.location)).toEqual([
-      'header',
-      'footerColumn1',
-      'footerColumn2',
-      'footerColumn3',
-      'footerColumn4',
-    ])
+    expect(res.body.data.locations.map((l) => l.location)).toEqual(['header'])
     expect(res.body.data.locations.every((l) => l.menuId === null)).toBe(true)
+  })
+
+  /**
+   * D-44: footer ke columns ab theme locations **nahi** hain — wo
+   * `settings.footerColumns[]` me hain. Ye test isliye hai ki koi wapas se
+   * `footerColumn1` ko location banane ki koshish kare to yahan pakda jaaye, na ki
+   * production me jahan do jagah footer ka data ho jaayega.
+   */
+  it('footer ke columns ab locations nahi hain (D-44 — D-43 superseded)', async () => {
+    const res = await authed('put', '/api/menu-locations', adminJar).send({
+      locations: [{ location: 'footerColumn1', menuId: null }],
+    })
+
+    expect(res.status).toBe(400)
   })
 
   it('anjaan location 400 deti hai', async () => {
@@ -302,7 +310,8 @@ describe('GET /api/public/menus/:location', () => {
   })
 
   it('unassigned location pe khaali menu, 404 nahi (D-30)', async () => {
-    const res = await request(app).get('/api/public/menus/footerColumn3')
+    // `header` hi ekmatra theme location hai (D-44) — aur yahan wo assign nahi hui
+    const res = await request(app).get('/api/public/menus/header')
 
     expect(res.status).toBe(200)
     expect(res.body.data.items).toEqual([])
@@ -445,5 +454,229 @@ describe('GET /api/public/settings', () => {
     const res = await request(app).get('/api/public/settings')
 
     expect(res.body.data.settings.footerCopyright).toBe('© {year} Acme')
+  })
+})
+
+/**
+ * Footer ke columns — D-44.
+ *
+ * Yahan ka sabse zaroori assertion wo **nahi** hai jo dikh raha hai (columns aa gaye),
+ * balki wo hai jo chup-chaap toot sakta tha: `type` ka filter server pe lagta hai, aur
+ * menu delete hone pe reference saaf hota hai. Dono ke bina site pe kuch "kaam karta
+ * hua" dikhta rehta hai jabki data galat hota hai.
+ */
+describe('footer columns (D-44)', () => {
+  const column = (over = {}) => ({
+    id: 'c1',
+    heading: 'Explore',
+    type: 'menu',
+    width: 'normal',
+    menuId: null,
+    textBlocks: [],
+    ...over,
+  })
+
+  async function makeMenu(key = 'explore') {
+    const res = await createMenu(adminJar, { key, name: `Menu ${key}`, items: simpleItems })
+    return res.body.data.menu.id
+  }
+
+  const publicSettings = async () =>
+    (await request(app).get('/api/public/settings')).body.data.settings
+
+  it('column ka menu resolve ho kar public payload me aata hai', async () => {
+    const menuId = await makeMenu()
+
+    const saved = await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: [column({ menuId })],
+    })
+    expect(saved.status).toBe(200)
+
+    const { footerColumns } = await publicSettings()
+
+    expect(footerColumns).toHaveLength(1)
+    expect(footerColumns[0].heading).toBe('Explore')
+    expect(footerColumns[0].width).toBe('normal')
+    expect(footerColumns[0].menu.name).toBe('Menu explore')
+    expect(footerColumns[0].menu.items[0].href).toBe('/')
+    // `type` admin ka choice hai, theme ka nahi — wo bahar nahi jaata
+    expect(footerColumns[0]).not.toHaveProperty('type')
+  })
+
+  it("type 'text' pe menu public payload me nahi jaata, par DB me bacha rehta hai", async () => {
+    const menuId = await makeMenu()
+
+    await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: [
+        column({
+          type: 'text',
+          menuId,
+          textBlocks: [{ id: 'b1', icon: 'phone', label: 'SUPPORT', text: '+91 98100 66496' }],
+        }),
+      ],
+    })
+
+    const { footerColumns } = await publicSettings()
+
+    expect(footerColumns[0].menu).toBeNull()
+    expect(footerColumns[0].textBlocks).toEqual([
+      { id: 'b1', icon: 'phone', label: 'SUPPORT', text: '+91 98100 66496' },
+    ])
+
+    // Reference mit-ta nahi — client wapas 'both' kar de to menu turant laut aata hai
+    const stored = await Settings.findOne({}).lean()
+    expect(stored.footerColumns[0].menuId).toBe(menuId)
+  })
+
+  it("type 'menu' pe text blocks public payload me nahi jaate", async () => {
+    const menuId = await makeMenu()
+
+    await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: [
+        column({ menuId, textBlocks: [{ id: 'b1', icon: 'none', label: 'X', text: 'Y' }] }),
+      ],
+    })
+
+    expect((await publicSettings()).footerColumns[0].textBlocks).toEqual([])
+  })
+
+  it('adhoora text block (na label na text) chhant jaata hai', async () => {
+    await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: [
+        column({
+          type: 'text',
+          textBlocks: [
+            { id: 'b1', icon: 'clock', label: '', text: '' },
+            { id: 'b2', icon: 'clock', label: 'TIMING', text: 'Mon–Sat' },
+          ],
+        }),
+      ],
+    })
+
+    const { footerColumns } = await publicSettings()
+
+    expect(footerColumns[0].textBlocks.map((b) => b.id)).toEqual(['b2'])
+  })
+
+  it('poora khaali column public payload me jaata hi nahi — grid me khaali khaana nahi banta', async () => {
+    await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: [column({ heading: '', menuId: null })],
+    })
+
+    expect((await publicSettings()).footerColumns).toEqual([])
+  })
+
+  it('menu delete hone pe column ka reference saaf hota hai, column nahi', async () => {
+    const menuId = await makeMenu()
+    await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: [column({ menuId, type: 'both', textBlocks: [] })],
+    })
+
+    await authed('delete', `/api/menus/${menuId}`, adminJar)
+
+    const stored = await Settings.findOne({}).lean()
+
+    expect(stored.footerColumns).toHaveLength(1)
+    expect(stored.footerColumns[0].menuId).toBeNull()
+    // Heading client ka content hai — menu ke saath nahi udti
+    expect(stored.footerColumns[0].heading).toBe('Explore')
+  })
+
+  it('anjaan menuId 400 deti hai — footer chup-chaap khaali nahi rehta', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: [column({ menuId: '507f1f77bcf86cd799439011' })],
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('chhe columns tak chalte hain', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: Array.from({ length: 6 }, (_, i) =>
+        column({ id: `c${i}`, heading: `Column ${i}` }),
+      ),
+    })
+
+    expect(res.status).toBe(200)
+    expect((await publicSettings()).footerColumns).toHaveLength(6)
+  })
+
+  it('chhe se zyada columns 400 dete hain', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: Array.from({ length: 7 }, (_, i) => column({ id: `c${i}` })),
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  /**
+   * D-43 §3 wali galti ka footer wala roop. `.strict()` ke bina Zod anjaan key
+   * **chup-chaap hata deta** — admin Save karta, "ho gaya" dikhta, aur field kahin nahi
+   * hoti.
+   */
+  it('column me anjaan key 400 deti hai, chup-chaap nahi hatti', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      footerColumns: [{ ...column(), extraField: 'kuch' }],
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('footer logo na ho to header wale pe fallback hota hai (D-44 §4)', async () => {
+    const admin = await User.findOne({ email: 'admin@test.com' }).lean()
+    const media = await Media.create({
+      siteId: 'default',
+      uploadedBy: admin._id,
+      filename: 'logo.png',
+      mime: 'image/png',
+      size: 100,
+      width: 400,
+      height: 120,
+      variants: [{ key: 'medium', url: '/uploads/logo-medium.webp', w: 400, h: 120 }],
+    })
+
+    await authed('patch', '/api/settings', adminJar).send({ logoMediaId: String(media._id) })
+
+    const settings = await publicSettings()
+
+    expect(settings.footerLogo.url).toBe('/uploads/logo-medium.webp')
+    expect(settings.footerLogo).toEqual(settings.logo)
+  })
+
+  it('dono logo na hon to footerLogo null hai — kabhi toota src nahi (D-42 §2)', async () => {
+    expect((await publicSettings()).footerLogo).toBeNull()
+  })
+
+  it('bottom bar ka note aur disclaimer public payload me jaate hain', async () => {
+    await authed('patch', '/api/settings', adminJar).send({
+      footerNote: 'Member IATO, TAAI',
+      footerDisclaimer: 'Prices are indicative.',
+    })
+
+    const settings = await publicSettings()
+
+    expect(settings.footerNote).toBe('Member IATO, TAAI')
+    expect(settings.footerDisclaimer).toBe('Prices are indicative.')
+  })
+
+  /**
+   * `x` 25 Aug me juda. Ye test isliye hai ki naye key ka default **chup-chaap** na
+   * chhoot jaaye: `socialUpdateSchema` me har link optional hai, aur ek link bhejne pe
+   * baaki teen ud jaana wahi bug tha jo pehle pakda gaya tha.
+   */
+  it('social me x bhi hai, aur ek link badalne se baaki nahi udte', async () => {
+    await authed('patch', '/api/settings', adminJar).send({
+      social: { facebook: 'https://facebook.com/a', x: 'https://x.com/a' },
+    })
+    await authed('patch', '/api/settings', adminJar).send({
+      social: { youtube: 'https://youtube.com/a' },
+    })
+
+    expect((await publicSettings()).social).toEqual({
+      facebook: 'https://facebook.com/a',
+      instagram: '',
+      youtube: 'https://youtube.com/a',
+      x: 'https://x.com/a',
+    })
   })
 })

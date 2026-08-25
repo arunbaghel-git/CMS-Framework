@@ -274,6 +274,8 @@ describe('PATCH /api/settings', () => {
       instagram: 'https://instagram.com/naya',
       facebook: 'https://facebook.com/wanderly',
       youtube: 'https://youtube.com/@wanderly',
+      // 25 Aug me juda — set kiya hi nahi tha, isliye default khaali
+      x: '',
     })
   })
 

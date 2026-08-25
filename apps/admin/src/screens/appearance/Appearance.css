@@ -183,3 +183,78 @@
 .menu-sources .day-head .dt {
   font-weight: 600;
 }
+
+/* ---------- Footer ke columns (D-44) ----------
+   Column ka card wahi `.day` accordion hai jo menu items aur sources use karte hain —
+   koi naya visual nahi. Yahan sirf wo bits hain jo footer ke apne hain. */
+
+/* "Number of columns" ek chhota select hai, poori width ka nahi — wo ek ginti hai,
+   koi text field nahi. Bina width ke ye panel ki poori chaudai le leta hai aur
+   uske aage ka khaali space usko ek input jaisa dikha deta hai. */
+.ftr-count .sel {
+  max-width: 180px;
+}
+
+/* Text block ki row. `.day-body` ke andar hai, isliye border halka rakha hai —
+   nested card ka border card jitna gehra ho to do box ek doosre se ladte dikhte hain. */
+.ftr-block {
+  border: 1px solid var(--bd, #dcdcde);
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+
+.ftr-block[data-dragging] {
+  opacity: 0.5;
+}
+
+.ftr-block[data-dragover] {
+  border-color: var(--acc, #2271b1);
+}
+
+.ftr-block-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Icon dropdown ki chaudai FIX hai — warna wo har icon naam pe badalti rehti.
+
+   ⚠️ Selector me **do class** jaan-boojh kar hain (`.sel.ftr-block-icon`). `primitives.css`
+   ka `.sel` `width: 100%` deta hai aur uski specificity bhi (0,1,0) hai — barabar hone pe
+   jeet **load order** se tay hoti hai, aur component ki CSS bundle me primitives se PEHLE
+   aati hai. Nateeja: select poori row kha jaata tha aur Label ka input ek 20px ke dabbe me
+   nichud jaata — wo dikhta hi nahi tha ki wahan koi field hai.
+
+   Ye theek wahi bug hai jo D-43 ke admin iterations me `.edit-grid` × `.appearance-grid`
+   pe hua tha. Ek class wale override is codebase me bharose ke laayak nahi hain. */
+.ftr-block-head .sel.ftr-block-icon {
+  flex: 0 0 150px;
+  width: 150px;
+}
+
+.ftr-block-head .inp {
+  min-width: 0;
+  flex: 1;
+}
+
+/* Textarea `.inp` hi hai, bas do line lambi. `resize: vertical` isliye ki lamba pata
+   likhte waqt client ko box bada karna aata hai — horizontal resize layout tod deta. */
+.ftr-block-text {
+  margin-top: 6px;
+  min-height: 58px;
+  resize: vertical;
+}
+
+/* Bottom bar ke note aur disclaimer — do line dikhe, resize vertical hi rahe */
+.ftr-note {
+  min-height: 60px;
+  resize: vertical;
+}
+
+/* Footer column ka warning — hint hi hai, par dikhna chahiye. `.hint` ka muted rang
+   is line pe galat hai: ye batati hai ki client ka kuch content site pe nahi dikhega. */
+.hint.ftr-warn {
+  color: #8a6116;
+}

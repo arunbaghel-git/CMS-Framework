@@ -47,7 +47,14 @@ export const blankGroup = () => ({
 
 export const blankColumn = () => ({ id: newId(), className: '', groups: [] })
 
-export const blankCta = () => ({ text: '', buttonLabel: '', buttonUrl: '', className: '' })
+/** `accent` default — CTA hota hi isliye hai ki wo dhyaan kheenche (schema me bhi wahi). */
+export const blankCta = () => ({
+  text: '',
+  buttonLabel: '',
+  buttonUrl: '',
+  variant: 'accent',
+  className: '',
+})
 
 /**
  * `menuType` badalne pe us type ke liye zaroori fields bana deta hai.

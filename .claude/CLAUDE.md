@@ -5,7 +5,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0 + Slice 0 dono ban chuke hain** (**348 tests passing**).
+**Status:** **Phase 0 + Slice 0 dono ban chuke hain** (**367 tests passing**).
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
@@ -15,6 +15,15 @@ admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Setting
 D-43), `menus` + `menuLocations` module, public read API, Appearance ▸ Menus (mega builder
 ke saath) + Footer, aur public site ka header/footer — asli API data se, desktop aur mobile
 ek hi payload se.
+
+**25 Aug — header:** client ke reference se match — header buttons ka
+`variant`/`icon`/`iconOnlyOnMobile`, naya drawer (logo + accordion groups + CTA), Inter
+typography, sticky header.
+
+**25 Aug — footer (D-44):** footer ka poora structure ab `settings.footerColumns[]` me hai.
+Client columns ki **ginti** chunta hai (0–4), har column me **menu, text, ya dono**, apni
+heading aur width. Footer ka **apna logo** (drawer bhi wahi use karta hai). Theme locations
+me sirf `header` bacha; social links ki duplicate UI Footer screen se hat gayi. Migration 008.
 
 Teen item jaan-boojh kar deferred hain: docker compose me `api`+`admin`, CSP policy
 (Phase 4-5), aur forgot/reset (SMTP pe block).
@@ -157,6 +166,7 @@ Slice 0 land ho chuki (D-43). Agla kaam **Phase 1 — Content Core**.
 | --- | ------------------------------------------------------ | -------------------------------------------- |
 | A-5 | `apps/web` ki `.env` — `REVALIDATE_SECRET` + `API_URL` | Ab — iske bina prod me cache saaf nahi hoga  |
 | Q-7 | Logo na mile to header me kya dikhe?                   | Client ka faisla (R15) — abhi interim pe hai |
+| Q-8 | Drawer safed, footer gehra — ek hi logo dono me?       | Client ka faisla (R15) — D-44 §4             |
 | C-2 | Payload CMS spike (2 din)                              | **Phase 1 se pehle** — window band ho rahi   |
 | Q-2 | Enquiries — Phase 7b ya alag Phase 9?                  | Phase 7 se pehle                             |
 | Q-3 | Field DSL me `matrix` + `table` types                  | Phase 5c se pehle                            |

@@ -56,6 +56,16 @@ export const SUPPORTED_LINK_TYPES = Object.freeze([LINK_TYPE.URL])
 
 export const LINK_TARGETS = Object.freeze(['_self', '_blank'])
 
+/**
+ * Button ka look — **structured field, className nahi** (R18).
+ *
+ * Ye yahan hai, `settings.js` me nahi, kyunki iske do use hain: header ke buttons
+ * (settings) **aur** mega menu ka CTA (yahi file). `settings.js` pehle se `menu.js` se
+ * import karti hai, to ulta import karne pe cycle ban jaata. Do jagah list rakhne ka
+ * nateeja wahi hota jo is codebase me pehle dekha ja chuka hai — ek din wo alag ho jaati.
+ */
+export const BUTTON_VARIANTS = Object.freeze(['outline', 'primary', 'accent'])
+
 export const MEGA_LAYOUTS = Object.freeze(['sm', 'md', 'wide', 'full'])
 
 export const MEGA_COLUMN_COUNTS = Object.freeze([2, 3, 4, 5, 6])
@@ -243,6 +253,17 @@ export const megaCtaSchema = z.object({
   text: z.string().trim().min(1, 'CTA text is required').max(300),
   buttonLabel: z.string().trim().min(1, 'Button label is required').max(80),
   buttonUrl: menuUrlSchema,
+  /**
+   * Header ke buttons wala hi field.
+   *
+   * Iske bina CTA sirf `.btn` pe render hota tha, aur `.btn` base ab **sirf shape** deta
+   * hai (rang variant se aata hai) — nateeja: button plain text jaisa dikhta tha. Wahi
+   * bug 25 Aug ko live pakda gaya.
+   *
+   * Default `accent` hai, `outline` nahi: CTA hota hi isliye hai ki wo dhyaan kheenche,
+   * aur reference me bhi wo orange bhara hua hai.
+   */
+  variant: z.enum(/** @type {[string, ...string[]]} */ (BUTTON_VARIANTS)).default('accent'),
   className: classNameSchema,
 })
 
@@ -443,6 +464,7 @@ export function toPublicMenu(menu) {
                     text: mega.cta.text,
                     buttonLabel: mega.cta.buttonLabel,
                     buttonUrl: mega.cta.buttonUrl,
+                    variant: mega.cta.variant || 'accent',
                     className: mega.cta.className || '',
                   }
                 : null,

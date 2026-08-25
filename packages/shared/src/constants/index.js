@@ -2,6 +2,7 @@
  * Shared constants. Admin aur API dono yahan se import karte hain.
  */
 
+export * from './icons.js'
 export * from './permissions.js'
 export * from './theme-locations.js'
 

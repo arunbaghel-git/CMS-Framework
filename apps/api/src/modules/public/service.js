@@ -2,6 +2,7 @@ import { DEFAULT_SITE_ID } from '@cms/shared'
 
 import { Media } from '../media/model.js'
 import { toPublicMedia } from '../media/service.js'
+import { getPublicMenuById } from '../menus/service.js'
 import { getSettings } from '../settings/service.js'
 
 /**
@@ -55,6 +56,46 @@ async function toDisplayImage(mediaId, preferredVariant = 'medium', siteId = DEF
 }
 
 /**
+ * Ek footer column ko **render karne laayak** shape me badlo — D-44.
+ *
+ * Do kaam yahan hote hain, theme me nahi (wahi soch jo `headerButtons` pe hai):
+ *
+ * 1. **`type` ka filter yahin lagta hai.** `type: 'text'` wale column ka `menuId` DB me
+ *    bacha rehta hai (taaki client switch kar ke wapas aa sake), par public payload me
+ *    wo menu jaata hi nahi. `type` khud bhi bahar nahi jaata — theme ko sirf ye pata
+ *    hona chahiye ki uske paas kya hai, ye nahi ki admin ne kya chuna tha.
+ * 2. **Adhoore text blocks chhant-te hain.** Jis block me na label hai na text, wo ek
+ *    khaali `<li>` ban kar footer me bemaani gap banata.
+ *
+ * @param {any} column
+ * @param {string} siteId
+ */
+async function toPublicFooterColumn(column, siteId) {
+  const showsMenu = column.type === 'menu' || column.type === 'both'
+  const showsText = column.type === 'text' || column.type === 'both'
+
+  const menu = showsMenu ? await getPublicMenuById(column.menuId, siteId) : null
+
+  const textBlocks = showsText
+    ? (column.textBlocks ?? [])
+        .filter((b) => b.label || b.text)
+        .map(({ id, icon, label, text }) => ({ id, icon, label, text }))
+    : []
+
+  return {
+    id: column.id,
+    heading: column.heading,
+    width: column.width,
+    textBlocks,
+    /** Menu ka `key` bahar nahi jaata — wo admin ka identifier hai, content nahi. */
+    menu: menu ? { name: menu.name, items: menu.items } : null,
+  }
+}
+
+/** Column jo kuch bhi render nahi karega, wo grid me ek khaali khaana ban jaata hai. */
+const columnHasContent = (c) => Boolean(c.heading || c.textBlocks.length || c.menu?.items?.length)
+
+/**
  * Public site ko jaane wali settings.
  *
  * **Allowlist hai, blocklist nahi** — `toPublicSettings` poora document deta hai aur usme
@@ -66,10 +107,26 @@ async function toDisplayImage(mediaId, preferredVariant = 'medium', siteId = DEF
 export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
   const settings = await getSettings(siteId)
 
-  const [logo, favicon] = await Promise.all([
+  const [logo, favicon, footerLogo] = await Promise.all([
     toDisplayImage(settings.logoMediaId, 'medium', siteId),
     toDisplayImage(settings.faviconMediaId, 'thumb', siteId),
+    /**
+     * **Fallback yahan hai, theme me nahi** (D-44 §4).
+     *
+     * Footer aur drawer gehre background pe hain, jahan aksar inverted logo chahiye hota
+     * hai — par har client ke paas do logo nahi hote. Khaali chhoda to header wala hi
+     * chalta hai.
+     *
+     * Ye theme me rakhna ek din do jagah alag ho jaata (footer ne fallback kiya, drawer
+     * ne nahi), aur wahi bug payload dekh kar samajh nahi aata. Yahan ek hi jagah tay
+     * hota hai, aur D-42 §2 waise ka waisa rehta hai: dono na mile to `null`.
+     */
+    toDisplayImage(settings.footerLogoMediaId ?? settings.logoMediaId, 'medium', siteId),
   ])
+
+  const footerColumns = (
+    await Promise.all((settings.footerColumns ?? []).map((c) => toPublicFooterColumn(c, siteId)))
+  ).filter(columnHasContent)
 
   return {
     siteName: settings.siteName,
@@ -111,7 +168,22 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
         iconOnlyOnMobile: Boolean(iconOnlyOnMobile) && Boolean(icon) && icon !== 'none',
       })),
 
+    /**
+     * Footer ka poora structure — columns, unke text blocks aur unke menu items.
+     *
+     * Ye `/api/public/menus/:location` se **alag** raasta hai, aur jaan-boojh kar: ek
+     * column me text aur menu dono ho sakte hain, to unhe do request me todne ka matlab
+     * hota theme me unhe wapas jodna — us jodne me hi column ka order ya width galat
+     * hone ki gunjaish banti.
+     *
+     * Header aur footer dono har page pe hain, isliye ek hi request dono ko serve karti
+     * hai — aur cache me ek hi `settings` tag rakhti hai (D-44 §5).
+     */
+    footerColumns,
+    footerLogo,
     footerCopyright: settings.footerCopyright,
+    footerNote: settings.footerNote,
+    footerDisclaimer: settings.footerDisclaimer,
 
     timezone: settings.timezone,
     dateFormat: settings.dateFormat,

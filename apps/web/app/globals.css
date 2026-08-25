@@ -24,6 +24,11 @@
   --accent: #1668ae;
 
   /* Button variants ke rang — reference ke tokens se hi */
+  /* Footer ka background. Ye token add karna chhoot gaya tha aur `var(--blue-900)`
+     chup-chaap **transparent** ban raha tha — footer gehre neele ki jagah page ka
+     background dikha raha tha. CSS variable missing hone pe koi error nahi aata,
+     isliye ye sirf aankh se pakda jaata hai. */
+  --blue-900: #0b2b4a;
   --blue-500: #2a86d4;
   --blue-600: #1668ae;
   --blue-700: #12558f;
@@ -38,7 +43,18 @@
   --sh-3: 0 8px 28px -8px rgb(17 29 43 / 22%);
 
   --wrap: 1280px;
-  --pad: 20px;
+  /**
+   * Page ka horizontal padding — **screen ke saath badalta hai** (neeche do media query).
+   *
+   * Ye desktop ki value hai. Tablet aur phone apni value neeche lete hain, kyunki 26px
+   * chhoti screen pe content ki jagah kha jaata hai: 390px ke phone pe 52px sirf hashiye
+   * me chala jaata.
+   *
+   * ⚠️ Value badalni ho to **teenon** jagah dekho. Ye ek token hai jo `.wrap` ke saath
+   * mega panel ki width bhi tay karta hai (`calc(100vw - 2 * var(--pad))`) — sirf ek
+   * jagah badalne se panel aur page ke kinare alag ho jaate hain.
+   */
+  --pad: 26px;
 
   /* Mega ke layout widths — spec 006 §2.1. Inhi se allowed column counts nikalte hain. */
   --mega-sm: 420px;
@@ -80,12 +96,34 @@ body.noscroll {
 a {
   color: inherit;
   text-decoration: none;
+  line-height: 1.55;
 }
 
 .wrap {
   max-width: var(--wrap);
   margin: 0 auto;
   padding-inline: var(--pad);
+}
+
+/* Tablet aur phone ka `--pad`.
+
+   Yahan `clamp()` **nahi** hai, jaan-boojh kar: wo teen alag value ki jagah ek smooth
+   curve deta hai, aur phir "tablet pe kitna hai?" ka jawab naapne se hi milta hai.
+   Discrete value client ke maange hue teen number hi rakhti hai.
+
+   Breakpoints wahi hain jo footer ke grid ke hain (1024 / 760) — do alag set rakhne se
+   ek screen width aisi ban jaati hai jahan padding badal chuka hota hai par layout nahi,
+   aur wo ek page pe tedhi lagti hai. */
+@media (max-width: 1024px) {
+  :root {
+    --pad: 23px;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --pad: 20px;
+  }
 }
 
 /* ---------- buttons ----------
@@ -102,7 +140,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 10px 13px;
+  padding: 8px 14px;
   border: 0;
   border-radius: var(--r2);
   font-size: 13px;
@@ -417,6 +455,7 @@ a.mega__gl:hover {
   padding: 5px 0;
   font-size: 12px;
   font-weight: 500;
+  line-height: 1.55;
   color: var(--body);
 }
 
@@ -606,26 +645,56 @@ a.mega__gl:hover {
 }
 
 /* ============================================================
-   FOOTER
+   FOOTER  (D-44)
+
+   Har value client ke behaviour reference (`home-nav-v3.html` ka `<footer class="ft">`)
+   se hai — rang, size, spacing aur teenon breakpoints.
+
+   ⚠️ **Yahan koi class behaviour decide nahi karti (R18).** Column kitna chauda hai wo
+   `--span` se aata hai, jo server ke structured `width` field se set hota hai — kisi
+   `ft__col--wide` jaisi class se nahi.
    ============================================================ */
 .ft {
   margin-top: 64px;
-  padding: 48px 0 28px;
-  border-top: 1px solid var(--line);
-  background: var(--line-2);
+  padding-top: clamp(30px, 4vw, 48px);
+  /* Fine print na ho to bhi footer ka neecha saans le — `.ft__fine` apna
+     `padding-bottom` khud laata hai, par wo optional field hai */
+  padding-bottom: 20px;
+  background: var(--blue-900);
+  color: rgb(255 255 255 / 62%);
+  font-size: 13px;
 }
 
+/* Reference me ye `grid-template-columns: 1.5fr 1fr 1fr 1fr` hai. Yahan **flex** hai,
+   aur wo jaan-boojh kar: track list pehle se banani padti hai, par columns ki ginti aur
+   unki width dono client ke data se aati hain. Flex me har column apna share khud
+   maangta hai (`flex: var(--span)`), aur basis 0 hone se ratio bilkul wahi banta hai
+   jo reference ka hai — wide = 1.5, normal = 1. */
 .ft__g {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 3vw, 40px);
+  padding-bottom: 32px;
+}
+
+.ft__col {
+  flex: var(--span, 1) 1 0;
+
+  /* Bina iske lambe words wale column shrink hone se mana kar dete hain.
+
+     140px isliye, 180px nahi: client 6 tak column bana sakta hai (`MAX_FOOTER_COLUMNS`),
+     aur 1280px ke wrap me chhe column ko ~172px hi milte hain. 180px pe wo apne aap wrap
+     ho kar 5 + 1 ki tedhi row bana dete — koi error nahi, bas layout galat. */
+  min-width: 140px;
 }
 
 .ft__col h2 {
-  margin: 0 0 12px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
+  margin: 0 0 15px;
+  font-size: 11.5px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
 }
 
 .ft__col ul {
@@ -634,46 +703,243 @@ a.mega__gl:hover {
   list-style: none;
 }
 
-.ft__col a {
-  display: block;
-  padding: 4px 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--body);
+.ft__col li {
+  margin-bottom: 8px;
 }
 
+/* Text blocks ke baad menu aaye to usse saans chahiye — reference me col 4 pe
+   `<ul style="margin-top:14px">` inline laga hai */
+.ft__sup + ul {
+  margin-top: 14px;
+}
+
+/* Reference me footer ke links ka apna koi `font-weight` nahi hai — global
+   `a{color:inherit}` se wo `.ft` ka rang aur 400 weight lete hain. 500 dene se wo
+   headings ke barabar bhaari lagne lagte hain. */
 .ft__col a:hover {
-  color: var(--accent);
+  color: #7cc7ff;
 }
 
-.ft__bottom {
+/* Logo reference me ek **safed card** pe baithta hai, kyunki zyadatar logo gehre
+   background ke liye nahi bane hote. Client footer ka apna (inverted) logo de de tab
+   bhi ye card nuksaan nahi karta. */
+.ft__brand {
+  display: inline-flex;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.ft__brand img {
+  display: block;
+  height: 42px;
+  width: auto;
+}
+
+/* Text block — icon baayen, label + text daayen. Har block ke neeche ek halki line,
+   aakhri ke neeche nahi. */
+.ft__sup {
   display: flex;
-  align-items: center;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.ft__sup:last-child {
+  border-bottom: 0;
+}
+
+.ft__sup svg {
+  color: #7cc7ff;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ft__sup b {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 45%);
+  margin-bottom: 3px;
+  line-height: 1.55;
+}
+
+/* `pre-line` isliye ki text ke line breaks **stored data** hain (D-44) — client ne jahan
+   Enter dabaya hai, wahan line toot-ni chahiye. `pre-wrap` nahi: wo leading spaces bhi
+   rakh leta, aur textarea me galti se pade spaces footer me dikhne lagte. */
+.ft__sup span {
+  display: block;
+  white-space: pre-line;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ---------- mobile ka accordion ----------
+   Toggle **sirf mobile pe** hai. Desktop pe heading ek plain heading hai: button apne
+   saare button-pan (padding, background, cursor) chhod deta hai aur caret gayab hota
+   hai. Isliye `.ft__body` yahan koi `display` rule leta hi nahi — wo default block
+   rehta hai, chahe React ki state kuch bhi ho. */
+.ft__toggle {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  /* Desktop pe ye ek heading hai, button nahi — pointer dikhana jhooth hota, wahan
+     click karne ko kuch hai hi nahi */
+  cursor: default;
+}
+
+.ft__caret {
+  display: none;
+}
+
+.ft__bar {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  margin-top: 32px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
+  padding-block: 16px;
+  border-top: 1px solid rgb(255 255 255 / 11%);
+  font-size: 12.5px;
 }
 
 .ft__copy {
   margin: 0;
-  font-size: 12.5px;
-  color: var(--muted);
 }
 
-.ft__social {
+.ft__note {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgb(255 255 255 / 45%);
+}
+
+/* Fine print bar ke neeche, poori chaudai me — aur bar se bhi halka */
+.ft__fine {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgb(255 255 255 / 38%);
+}
+
+.soc {
   display: flex;
-  gap: 14px;
+  gap: 7px;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 12.5px;
 }
 
-.ft__social a:hover {
-  color: var(--accent);
+.soc a {
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 9%);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  transition: 0.16s;
+}
+
+.soc a:hover {
+  background: var(--orange-500);
+  color: #fff;
+}
+
+/* Brand marks **filled** hote hain (UI icons stroke-based) — `currentColor` se wo
+   circle ke hover rang ke saath apne aap badalte hain */
+.soc svg {
+  display: block;
+}
+
+/* Reference ke apne breakpoints — 4 se 2, phir 1.
+
+   `--span` yahan **reset** hota hai: do column wali layout me "wide" ka matlab hi nahi
+   bachta, aur usse ek row 1.5 + 1 ho kar tedhi dikhti. */
+@media (max-width: 1024px) {
+  .ft__col {
+    --span: 1;
+
+    flex-basis: 40%;
+  }
+}
+
+@media (max-width: 760px) {
+  .ft__col {
+    flex-basis: 100%;
+  }
+
+  /* Ek column me ab har heading ek accordion ki row hai — beech me lakeer chahiye,
+     warna teen collapsed headings ek doosre se chipki hui dikhti hain */
+  .ft__col[data-collapsible] {
+    border-top: 1px solid rgb(255 255 255 / 10%);
+    padding-top: 4px;
+  }
+
+  .ft__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    /* Tap target 44px ka — heading ki apni height 11.5px hai, uspe ungli nahi padti */
+    padding-block: 13px;
+    cursor: pointer;
+  }
+
+  .ft__col[data-collapsible] h2 {
+    margin: 0;
+  }
+
+  .ft__caret {
+    display: block;
+    flex-shrink: 0;
+    transition: transform 0.18s;
+  }
+
+  .ft__col[data-open='true'] .ft__caret {
+    transform: rotate(180deg);
+  }
+
+  /* Band karna sirf tab jab component client pe zinda ho — JS na chale to sab khula
+     rehta hai, chhupa hua nahi */
+  .ft__col[data-open='false'] .ft__body {
+    display: none;
+  }
+
+  .ft__col[data-open='true'] .ft__body {
+    padding-bottom: 14px;
+  }
+
+  .ft__bar {
+    /* Phone pe teen hisse ek line me nichud jaate hain — copyright aur note poori
+       chaudai lete hain, social apni row me */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .ft__note {
+    max-width: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .ft__brand img {
+    height: 34px;
+  }
 }
 
 /* Header ke buttons — nav ke baad, burger se pehle */

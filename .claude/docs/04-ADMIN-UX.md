@@ -257,6 +257,13 @@ Mega menu     + layout (sm|md|wide|full) + columnCount (2..6)
               + optional CTA row
 ```
 
+CTA row me chaar field hain: **Text**, **Button label**, **Button URL**, aur
+**Button style** — wahi teen choice jo header ke buttons pe hai (Outline / Primary /
+Accent), default **Accent**. Style dropdown hai, CSS class nahi: R18 kehta hai class
+sirf *extra* styling hai, aur client se `btn--accent` yaad karwana is CMS ke maqsad ke
+khilaaf hai. (Ye 25 Aug me juda — pehle CTA plain text jaisa render ho raha tha; D-43 ka
+amendment dekho.)
+
 Item ka `.day-body` khulne pe **progressive** hota hai: Simple pe do field, Dropdown pe
 sub items ki list, Mega pe inline builder. Non-technical client ko mega ki complexity
 tabhi dikhti hai jab wo mega chune.
@@ -273,7 +280,7 @@ hai, isliye wo pure UI change hoga.
 ### 6.2 Theme locations
 
 ```
-Header · Footer Column 1..4        ← theme declare karta hai, core enum nahi (D-17)
+Header                             ← theme declare karta hai, core enum nahi (D-17)
 ```
 
 Naam **generic** hain — `footerExplore` jaise content-specific naam ek travel site ke
@@ -282,15 +289,49 @@ hain, framework ke nahi. Unassigned ek valid state hai aur wo kuch render nahi k
 ⚠️ **`mobile` location nahi hai** — mobile wahi menu render karta hai jo Header pe hai
 (D-43 ne D-17 ka ye hissa supersede kiya).
 
-### 6.3 Appearance ▸ Footer ka rishta
+⚠️ **Footer Column 1..4 bhi ab locations nahi hain** — D-44. Wo poora structure
+Appearance ▸ Footer me chala gaya (§6.3). Panel me ab **sirf Header** dikhta hai.
 
-Footer ke **columns menus hi hain** — Appearance ▸ Footer me unki nakal nahi hai. Wahan
-sirf non-navigation footer settings hain: **social links** aur **copyright text**. Column
-ki heading `menus.name` se aati hai, koi alag field nahi.
+### 6.3 Appearance ▸ Footer — footer ka poora structure yahin hai (D-44)
+
+> **Pehle yahan likha tha:** _"footer ke columns menus hi hain; Footer tab me sirf social
+> links aur copyright hain"_. 25 Aug ko client ne teen cheezein maangin jo us model me
+> fit hi nahi hotin — columns ki **ginti** chunna, column me **text** rakhna, aur footer
+> ka **apna logo**. Poora tark D-44 me hai.
+
+Screen pe teen panel:
+
+| Panel | Kya |
+| --- | --- |
+| **Footer Logo** | Ek image field. Khaali chhoda to Settings ▸ General wala logo chalta hai. Mobile drawer bhi yahi logo dikhata hai |
+| **Footer Columns** | "Number of columns" (0–4), phir har column ka apna card — drag se reorder |
+| **Copyright** | `{year}` placeholder ke saath. Save isi panel ke `panel-foot` me |
+
+Ek column ke card me: **Heading** · **Shows** (Menu only / Text only / Text + Menu) ·
+**Width** (Normal / Wide) · **Text blocks** (icon + label + textarea, drag se reorder) ·
+**Menu** (Appearance ▸ Menus me bane menus ka dropdown).
+
+**Social links yahan se hata diye gaye** — wo Settings ▸ General me pehle se the aur data
+ek hi hai (`settings.social`). Do jagah ek hi field rakhne ka nateeja: client ek jagah
+badalta hai aur doosri jagah purana dekh kar confuse hota hai. Footer unhe render karta
+rehta hai.
+
+**Column ki heading ab apni field hai**, `menus.name` se nahi aati — text-only column me
+koi menu hai hi nahi (D-44 §3).
+
+Public site pe: **≤1024px pe 2 column, ≤760px pe 1 column** (reference ke apne
+breakpoints). Mobile pe **sirf "Menu only" column collapsible** hote hain (heading hi
+toggle hai) — text wale column khule rehte hain, kyunki unme contact detail hoti hai
+(D-44 §9).
+
+⚠️ **Footer ka column flat list hai** — menu ke sirf top-level items dikhte hain. Dropdown/
+mega ke sub-items hover pe khulte hain aur footer me hover hai hi nahi. Screen ismein
+warning deti hai jab chune hue menu me aise item hon (D-44 §8).
 
 > `05-BUILD-PLAN.md` pehle "Footer columns — links" ko settings ke saath likhta tha aur ye
-> doc unhe locations ke saath — wo takraav D-43 me resolve ho gaya: **columns = menus**,
-> **footer chrome = Appearance ▸ Footer**.
+> doc unhe locations ke saath. D-43 me faisla "columns = menus" hua tha; **D-44 me wo palat
+> gaya** — ab footer ka poora structure settings me hai, yaani build-plan wali line hi
+> sahi nikli.
 
 ⚠️ Abhi Appearance me sirf **Menus** aur **Footer** dikhte hain. Design ke baaki do tab
 (Homepage Blocks, Banners & Sliders) tab wapas aayenge jab wo screens banengi.
