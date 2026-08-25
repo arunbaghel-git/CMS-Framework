@@ -74,7 +74,9 @@ export const MAX_MENU_DEPTH = 3
 export const MEGA_LAYOUT_WIDTH = Object.freeze({ sm: 420, md: 780, full: 1280, wide: 1700 })
 
 export const MEGA_PADDING_X = 48
-export const MEGA_COLUMN_GAP = 20
+// Reference ka `.mega__cols{gap:8px 26px}`. Ye number CSS aur allowedColumnCounts()
+// **dono** chalata hai — badalna ho to dono jagah nahi, sirf yahan.
+export const MEGA_COLUMN_GAP = 26
 export const MIN_COLUMN_WIDTH = 160
 
 /** @param {string} layout @param {number} columns */
@@ -149,6 +151,18 @@ export const menuLinkSchema = z
       return
     }
 
+    /**
+     * **Khaali URL allowed hai.**
+     *
+     * Menu ek bada tree hai. "+ Add link" dabate hi row khaali URL ke saath banti hai —
+     * aur agar Save uspe fail kare to **poora menu** reject ho jaata hai, sirf wo ek row
+     * nahi. 50 links bhar kar ek chhoot jaaye to saara kaam gaya. Wo bilkul galat trade hai.
+     *
+     * Adhoori row store hoti hai par `toPublicMenu` use bahar hi nahi jaane deta — yaani
+     * live site pe kabhi toota link nahi banta. Wahi rule `headerButtons` pe bhi hai.
+     */
+    if (link.url === '') return
+
     const parsed = menuUrlSchema.safeParse(link.url)
     if (!parsed.success) {
       ctx.addIssue({
@@ -159,7 +173,14 @@ export const menuLinkSchema = z
     }
   })
 
-const labelSchema = z.string().trim().min(1, 'Label is required').max(160)
+/**
+ * Label bhi **khaali ho sakta hai** — wahi wajah jo URL pe hai (upar).
+ *
+ * Naya item `label: 'New item'` se banta hai, par user use khaali kar ke aage badh sakta
+ * hai. Us par poora save girana bemaani hai. Bina label wali row public payload me nahi
+ * jaati (`toPublicMenu`) — usme dikhane ko kuch hai hi nahi.
+ */
+const labelSchema = z.string().trim().max(160).default('')
 
 /**
  * Sabse chhota node — mega ke andar ka link, aur dropdown ka grandchild.
@@ -343,6 +364,20 @@ export function resolveHref(link) {
   return null
 }
 
+/**
+ * Adhoori rows public payload me nahi jaatin.
+ *
+ * Schema unhe **store** hone deta hai (menu ek bada tree hai; ek khaali row pe poora
+ * save girana galat hai) — par live site pe wo kabhi nahi dikhtin. Filter yahan hai,
+ * theme me nahi: har theme ko yaad rakhna padta to ek din koi bhool jaata.
+ *
+ * **Leaf ko href chahiye** — bina destination ke link bemaani hai. **Parent ko nahi** —
+ * dropdown/mega ka top item sirf panel kholne ka trigger ho sakta hai.
+ */
+const hasLabel = (node) => Boolean(node?.label)
+
+const isRenderableLeaf = (node) => hasLabel(node) && Boolean(resolveHref(node.link))
+
 const publicLink = (node) => ({
   label: node.label,
   href: resolveHref(node.link),
@@ -367,51 +402,72 @@ export function toPublicMenu(menu) {
   return {
     key: plain.key,
     name: plain.name,
-    items: (plain.items ?? []).map((item) => {
-      const base = { id: item.id, menuType: item.menuType, ...publicLink(item) }
+    items: (plain.items ?? [])
+      // Bina label ke item pe dikhane ko kuch hai hi nahi; simple link ko destination bhi chahiye
+      .filter(
+        (item) => hasLabel(item) && (item.menuType !== MENU_TYPE.LINK || isRenderableLeaf(item)),
+      )
+      .map((item) => {
+        const base = { id: item.id, menuType: item.menuType, ...publicLink(item) }
 
-      if (item.menuType === MENU_TYPE.DROPDOWN) {
-        return {
-          ...base,
-          children: (item.children ?? []).map((child) => ({
-            id: child.id,
-            ...publicLink(child),
-            children: (child.children ?? []).map((g) => ({ id: g.id, ...publicLink(g) })),
-          })),
-        }
-      }
-
-      if (item.menuType === MENU_TYPE.MEGA) {
-        const mega = item.mega ?? {}
-        return {
-          ...base,
-          mega: {
-            layout: mega.layout,
-            columnCount: mega.columnCount,
-            className: mega.className || '',
-            cta: mega.cta
-              ? {
-                  text: mega.cta.text,
-                  buttonLabel: mega.cta.buttonLabel,
-                  buttonUrl: mega.cta.buttonUrl,
-                  className: mega.cta.className || '',
-                }
-              : null,
-            columns: (mega.columns ?? []).map((col) => ({
-              className: col.className || '',
-              groups: (col.groups ?? []).map((group) => ({
-                heading: group.heading || '',
-                href: group.link ? resolveHref(group.link) : null,
-                target: group.link?.target ?? '_self',
-                className: group.className || '',
-                links: (group.links ?? []).map((l) => ({ id: l.id, ...publicLink(l) })),
+        if (item.menuType === MENU_TYPE.DROPDOWN) {
+          return {
+            ...base,
+            children: (item.children ?? [])
+              // Child ka apna href ho, ya uske andar dikhne laayak grandchild hon
+              .filter(
+                (c) =>
+                  hasLabel(c) && (isRenderableLeaf(c) || (c.children ?? []).some(isRenderableLeaf)),
+              )
+              .map((child) => ({
+                id: child.id,
+                ...publicLink(child),
+                children: (child.children ?? []).filter(isRenderableLeaf).map((g) => ({
+                  id: g.id,
+                  ...publicLink(g),
+                })),
               })),
-            })),
-          },
+          }
         }
-      }
 
-      return base
-    }),
+        if (item.menuType === MENU_TYPE.MEGA) {
+          const mega = item.mega ?? {}
+          return {
+            ...base,
+            mega: {
+              layout: mega.layout,
+              columnCount: mega.columnCount,
+              className: mega.className || '',
+              cta: mega.cta
+                ? {
+                    text: mega.cta.text,
+                    buttonLabel: mega.cta.buttonLabel,
+                    buttonUrl: mega.cta.buttonUrl,
+                    className: mega.cta.className || '',
+                  }
+                : null,
+              columns: (mega.columns ?? []).map((col) => ({
+                className: col.className || '',
+                groups: (col.groups ?? [])
+                  .map((group) => ({
+                    ...group,
+                    links: (group.links ?? []).filter(isRenderableLeaf),
+                  }))
+                  // Na heading, na koi link — us group ka koi wajood nahi
+                  .filter((group) => group.heading || group.links.length > 0)
+                  .map((group) => ({
+                    heading: group.heading || '',
+                    href: group.link ? resolveHref(group.link) : null,
+                    target: group.link?.target ?? '_self',
+                    className: group.className || '',
+                    links: group.links.map((l) => ({ id: l.id, ...publicLink(l) })),
+                  })),
+              })),
+            },
+          }
+        }
+
+        return base
+      }),
   }
 }

@@ -181,6 +181,86 @@ describe('link', () => {
   })
 })
 
+describe('adhoori rows — save chalti hai, public payload me nahi jaatin', () => {
+  it('khaali URL aur khaali label save ho jaate hain', () => {
+    // "+ Add link" dabate hi row aisi hi banti hai. Ispe poora save girana galat hoga.
+    expect(() =>
+      menuItemSchema.parse({ label: '', link: { type: 'url', url: '' }, menuType: MENU_TYPE.LINK }),
+    ).not.toThrow()
+  })
+
+  it('galat URL phir bhi reject hota hai — khaali aur galat me farak hai', () => {
+    expect(() =>
+      menuItemSchema.parse({
+        label: 'X',
+        link: { type: 'url', url: 'example.com' },
+        menuType: MENU_TYPE.LINK,
+      }),
+    ).toThrow()
+  })
+
+  it('bina label ya bina href wala simple link public payload me nahi jaata', () => {
+    const items = [
+      menuItemSchema.parse({ label: 'Home', link: link('/'), menuType: MENU_TYPE.LINK }),
+      menuItemSchema.parse({ label: '', link: link('/x'), menuType: MENU_TYPE.LINK }),
+      menuItemSchema.parse({
+        label: 'Adhoora',
+        link: { type: 'url', url: '' },
+        menuType: MENU_TYPE.LINK,
+      }),
+    ]
+
+    const out = toPublicMenu({ key: 'h', name: 'H', items })
+
+    expect(out.items.map((i) => i.label)).toEqual(['Home'])
+  })
+
+  it('mega ke adhoore links chhant jaate hain, aur khaali group bhi', () => {
+    const item = menuItemSchema.parse(
+      mega({
+        columnCount: 2,
+        columns: [
+          {
+            groups: [
+              {
+                heading: 'Ferry',
+                links: [
+                  { label: 'Nautika', link: link('/n') },
+                  { label: 'Adhoora', link: { type: 'url', url: '' } },
+                ],
+              },
+              // Na heading, na koi chalta link — poora group gayab hona chahiye
+              { heading: '', links: [{ label: 'X', link: { type: 'url', url: '' } }] },
+            ],
+          },
+          { groups: [] },
+        ],
+      }),
+    )
+
+    const out = toPublicMenu({ key: 'h', name: 'H', items: [item] })
+    const groups = out.items[0].mega.columns[0].groups
+
+    expect(groups).toHaveLength(1)
+    expect(groups[0].links.map((l) => l.label)).toEqual(['Nautika'])
+  })
+
+  it('mega/dropdown ka parent bina href ke bhi rehta hai — wo sirf trigger hai', () => {
+    const item = menuItemSchema.parse({
+      label: 'Travel Guide',
+      link: { type: 'url', url: '' },
+      menuType: MENU_TYPE.DROPDOWN,
+      children: [{ label: 'Map', link: link('/map') }],
+    })
+
+    const out = toPublicMenu({ key: 'h', name: 'H', items: [item] })
+
+    expect(out.items[0].label).toBe('Travel Guide')
+    expect(out.items[0].href).toBeNull()
+    expect(out.items[0].children).toHaveLength(1)
+  })
+})
+
 describe('className — R18', () => {
   it('className badalne se parse ka structure nahi badalta', () => {
     const base = mega({ columnCount: 2, columns: [column(), column()] })

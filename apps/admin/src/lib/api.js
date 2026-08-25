@@ -113,5 +113,39 @@ export function errorMessage(error, fallback = 'Something went wrong. Please try
   if (!payload) return error?.message ?? fallback
 
   const firstField = payload.details?.fields?.[0]
-  return firstField?.message ?? payload.message ?? fallback
+  if (!firstField?.message) return payload.message ?? fallback
+
+  const where = fieldPathLabel(firstField.path)
+  return where ? `${where}: ${firstField.message}` : firstField.message
+}
+
+/**
+ * Zod ke field path ko padhne laayak jagah me badalta hai.
+ *
+ *   items.1.mega.columns.0.groups.2.links.3.link.url
+ *   → "Item 2 → Column 1 → Group 3 → Link 4"
+ *
+ * **Sirf message dikhana kaafi nahi tha.** Menu ek bada tree hai; "Enter a path starting
+ * with /" padh kar user ko ye pata hi nahi chalta ki **kaunsi** row me. 50 links me se ek
+ * dhoondhna padta tha.
+ *
+ * Anjaan segments chhod diye jaate hain — ye ek madad hai, poora path dump nahi.
+ *
+ * @param {string} [path] dot-separated, jaisa API bhejti hai
+ */
+function fieldPathLabel(path) {
+  if (!path) return ''
+
+  const NAMES = { items: 'Item', columns: 'Column', groups: 'Group', links: 'Link' }
+  const parts = path.split('.')
+  const out = []
+
+  for (let i = 0; i < parts.length - 1; i++) {
+    const name = NAMES[parts[i]]
+    const index = Number(parts[i + 1])
+    // 1-based, kyunki user ko screen pe "Column 1" dikhta hai, "Column 0" nahi
+    if (name && Number.isInteger(index)) out.push(`${name} ${index + 1}`)
+  }
+
+  return out.join(' → ')
 }
