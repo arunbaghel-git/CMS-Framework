@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 24 Aug 2026
+> **Last updated:** 25 Aug 2026
 
 ---
 
@@ -38,7 +38,7 @@ Slice 0   Menu contract (spec 006, D-43)    ✅  ← 24 Aug
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 348 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 355 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -359,50 +359,88 @@ code nahi. Usme 3-4 choices client/user se poochhni padengi (footer columns kaha
 
 ---
 
-## ⚠️ Kal sabse pehle — ek hi kaam, teen step
+## 25 Aug — header design ke hisaab se poora
 
-**Sab kuch commit ho chuka hai** (working tree clean, 14 commits unpushed). Bacha hua kaam
-sirf itna hai: `pnpm build` verify karo, phir push.
+Slice 0 ka header ab client ke reference (`~/Desktop/andaman/home-nav-v3.html`) se match
+karta hai. Din bhar client ke saath iterations chale.
+
+```
+Header buttons   variant (Outline/Primary/Accent) · icon (7 SVG) · iconOnlyOnMobile
+Drawer           logo upar · groups apne accordion me · neeche CTA + "Call <phone>"
+Typography       Inter (next/font/google) · reference ke asli colour tokens
+Sizing           radius/shadow tokens, sticky header, reference ke mobile overrides
+```
+
+**Chhe cheezein jo yaad rakhni hain:**
+
+1. **Do MongoDB ek hi port pe the** — Docker ka container aur Windows ka `MongoDB` service,
+   dono 27017 pe. Windows pe `127.0.0.1` wali specific binding Docker ki `0.0.0.0` se **jeet**
+   jaati hai, isliye API khaali DB pe chali gayi aur login fail hone laga. `/api/health` phir
+   bhi `db: "connected"` bolti rahi — asli surag `migrations.pending: 7` tha. Windows service
+   band ki. Machine restart pe wapas chalu ho jaayegi: `sc.exe config MongoDB start= disabled`.
+2. **`apps/api/uploads` gayab tha** aur saari media 404 de rahi thi. Ab boot pe resolved path
+   log hota hai aur folder na ho to warn. **Purani media wapas nahi aayi** — jo images kahin
+   use ho rahi thin, wo dobara upload karni padengi.
+3. **`system-ui` vs Inter hi sabse bada visual farak tha.** Windows pe wo Segoe UI banta hai;
+   same size/weight pe bhi text halka lagta hai. Saath me kai jagah font-weight likha hi nahi
+   tha (drawer/mega/dropdown/footer ke links) — browser 400 laga raha tha, reference 500 pe hai.
+4. **`wide`/`full` mega me 3px ka hover gap tha.** Un layouts me `<li>` `position: static` hota
+   hai, to `top: 100%` header se naapta hai (64px) jabki link 61px pe khatam hota tha. Nav items
+   ab header ki poori height lete hain.
+5. **`.btn` ka padding/font-size client ne khud tune kiya hai** — reference se alag hai,
+   jaan-boojh kar. Comment me likha hai. **Reference se "match" karne ke naam pe wapas mat badalna.**
+6. **D10 palta** — mega ka CTA ab mobile pe nahi dikhta. Wajah D-43 me likhi hai: jis kami ki
+   wajah se D10 liya gaya tha (drawer me CTA ka thikana na hona), wo kami bhar gayi.
+
+---
+
+## ⚠️ Naya session shuru karte waqt
+
+### 1. Servers
 
 ```bash
-# 1. web dev server band karo (Ctrl+C)
+docker compose up -d mongo
+pnpm dev            # api :4000 · admin :5173 · web :3000
+```
 
-# 2. corrupt build cache saaf karo — wajah neeche
+⚠️ Agar login fail ho ya data gayab lage — `/api/health` me `migrations.pending` dekho. 0 na ho
+to API galat Mongo pe hai (upar point 1).
+
+### 2. Push baaki hai
+
+**3 commits unpushed.** Push se pehle `pnpm build` chalana hai — wo CI ka aakhri step hai aur
+local pe kabhi chala hi nahi, kyunki web ka dev server `.next` hold kiye rehta hai:
+
+```bash
+# web dev server band karo (Ctrl+C), phir
 rm -rf apps/web/.next
-
-# 3. wahi chalao jo CI ka aakhri step hai, phir push
 pnpm build && git push
 ```
 
-### `.next` corrupt kyun hai — developer ki galti (24 Aug)
+### 3. Agla kaam — Footer
 
-User ke chalte hue dev server ke saath `next build` chala diya gaya tha. `next build` aur
-`next dev` **wahi `.next` folder** use karte hain. Uske baad ek doosra `next dev` bhi usi
-project pe chala. Nateeja: web pe CSS bina HTML, phir 500, phir 404.
+**Footer bana hua hai** (menu columns `footerColumn1..4`, social links, copyright) — wo Slice 0
+me hi ban gaya tha. Par usse **design ke hisaab se polish nahi kiya**: jo header pe hua
+(typography, spacing, sizing, mobile behaviour), footer pe wo baaki hai.
 
-`.next` sirf build cache hai — usme koi kaam nahi hai, dobara ban jaayega.
+Reference ka footer: `~/Desktop/andaman/home-nav-v3.html` me `<footer class="ft">`. Usme 4-column
+grid hai, par **column 1 (logo + support/email/timing) aur column 4 (office addresses) menu
+hain hi nahi** — wo Andaman-specific content blocks hain aur Slice 0 ke scope me nahi.
 
-**Rule aage ke liye:** jab tak user ke dev server chal rahe hon, na `pnpm build` chalao na
-apna doosra dev server uthao. Verify karna ho to API/DB level pe karo — wo unke servers ko
-chhoota hi nahi.
+### 4. Khule items
 
-### `pnpm build` kya pakadta hai
+- **Q-7** — logo na mile to kya dikhe (client ka faisla). Header aur drawer dono interim pe hain
+- **A-5** — `apps/web/.env` (`REVALIDATE_SECRET` + `API_URL`). Sirf **production** ke cache pe asar
+- **C-2** — Payload spike, Phase 1 se pehle
+- **spec 006 §11** — mere 6 resolved decisions ka review baaki
 
-Sirf do workspace sach me build hote hain — `apps/admin` (`vite build`) aur `apps/web`
-(`next build`); baaki teen `echo "no build step"` hain. Ye wo compile errors pakadta hai jo
-tests nahi pakadte: JSX typo, galat import, undefined variable. Aur `next build` `/` ko
-prerender karta hai, yaani server components sach me chala kar dekhta hai.
+### 5. Ek chhoti gandagi
 
-⚠️ `apps/admin/dist/` git me commit hota hai — build ke baad `git status` dekh lena, warna
-ek naya uncommitted change bacha reh jaayega.
-
-### Uske baad — Phase 1 se pehle
-
-1. **A-5** — `apps/web/.env` (`API_URL` + `REVALIDATE_SECRET`). Iske bina **production** me
-   cache kabhi saaf nahi hoga. Dev me farak nahi padta, isliye ye chup-chaap chhoot sakta hai.
-2. **Q-7** — client se poochho: logo na ho to header me kya dikhe?
-3. **spec 006 §11** — mere 6 resolved decisions ka review baaki hai.
-4. **C-2** — Payload spike (2 din), Phase 1 land hote hi window band.
+**Test suite kabhi-kabhi flaky hai** — aaj teen baar `2 failed`/`3 failed` aaya aur turant dobara
+chalane pe 355/355 pass. Code ka bug nahi lagta: saare integration test ek hi Mongo pe chalte
+hain aur `beforeEach` me wahi collections wipe karte hain, jabki vitest files ko **parallel**
+chalata hai. Ye ek asli race hai. Theek karna chahiye — warna kisi din CI bina wajah red hoga
+aur log usse "ignore karo, flaky hai" maanne lagenge.
 
 ---
 
