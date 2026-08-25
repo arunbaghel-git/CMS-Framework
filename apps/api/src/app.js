@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+
 import express from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
@@ -42,6 +44,31 @@ export function createApp() {
   app.use(compression())
 
   if (storage.kind === 'local') {
+    /**
+     * Upload directory ka resolved path **boot pe log hota hai**, aur na hone pe warn.
+     *
+     * Bina iske ye failure poori tarah chup thi: `UPLOAD_DIR` ki jagah folder gayab ho
+     * (ya path galat resolve ho) to `express.static` bas `fallthrough` kar deta hai, har
+     * file **404**, aur API `/api/health` pe theek-thaak "ok" bolti rehti hai. Lakshan
+     * kahin aur dikhta hai — public site pe logo gayab — aur wahan se yahan tak pahunchne
+     * me kaafi der lagti hai.
+     *
+     * Ye wahi sabak hai jo migration runner pe pehle mil chuka tha: missing directory pe
+     * chup-chaap khaali lautana debugging ka sabse mehnga tareeka hai.
+     *
+     * Driver upload ke waqt `mkdir(recursive)` karta hai, isliye yahan banane ki zaroorat
+     * nahi — par batana zaroori hai.
+     */
+    if (existsSync(storage.root)) {
+      logger.info({ uploadDir: storage.root }, 'Media: local storage ready')
+    } else {
+      logger.warn(
+        { uploadDir: storage.root },
+        'Media: upload directory maujood nahi hai — pehle upload pe ban jaayegi, par ' +
+          'purani media ki saari files 404 dengi. UPLOAD_DIR sahi hai?',
+      )
+    }
+
     app.use(
       '/uploads',
       express.static(storage.root, {
