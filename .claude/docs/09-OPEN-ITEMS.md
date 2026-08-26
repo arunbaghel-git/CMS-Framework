@@ -20,7 +20,7 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 | A-4 Seed definition         | ✅ [`specs/004`](../specs/004-seed.md) **approved** — khaali Home + Blog                 |
 | B-1 Field DSL               | ✅ **Ek DSL** — [`specs/005`](../specs/005-field-dsl.md), D-24                           |
 | C-1 TypeScript for packages | ✅ **Nahi** — sab JavaScript. D-03 waise hi                                              |
-| C-2 Payload spike           | ✅ **Approved** (karna abhi baaki — neeche dekho)                                        |
+| C-2 Payload spike           | ✅ Approved tha — **26 Aug ko band** (D-45), neeche dekho                               |
 | D-1 Vertical slice          | ✅ **Haan** — aur wo **Header + Footer** hoga. D-27                                      |
 | Trash mechanism             | ✅ **`deletedAt` field**, `status: 'trash'` nahi. D-25                                   |
 | `subscriber` role           | ✅ **Nahi banega**. D-26                                                                 |
@@ -94,6 +94,7 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 | --- | --- |
 | **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
+| **C-2 Payload spike** | ✅ **Band — Payload nahi (D-45)**. 19 Aug ko repo khaali tha, tab sawaal sasta tha. Aaj auth/RBAC/media/settings/admin shell sab chal rahe hain (383 test), aur Payload apna admin panel laata hai — jo client ke **frozen design** (R15) se takrata hai. Uske **ideas** Phase 5 se pehle dekhenge, framework nahi lenge |
 
 ---
 
@@ -159,23 +160,6 @@ Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
 
 ---
 
-### C-2 · Payload CMS ka 2-din spike
-
-**Deadline:** Phase 1 se pehle (Phase 1 land hote hi window band)
-**Phase 0 ko block nahi karta** — auth ke saath parallel me ho sakta hai
-
-Approve ho chuka hai, karna baaki hai. Kya check karna:
-
-1. MongoDB adapter kaisa hai
-2. Blocks field se page builder ban sakta hai kya
-3. Admin UI kitna customize hota hai
-4. Multi-instance model fit hota hai
-5. Visual builder banane ki jagah milti hai ya nahi
-
-Result se D-01 se D-30 me se kuch badal sakti hain — isliye Phase 1 se pehle.
-
----
-
 ### Q-2 · Enquiries — Phase 7b ya alag Phase 9?
 
 **Deadline:** Phase 7 se pehle
@@ -225,7 +209,7 @@ Spec 005 me add karne honge.
 5. ✅ Slice 0 — Header + Footer end-to-end        (D-43, 24 Aug)
 6. ✅ Header design ke hisaab se poora            (25 Aug — buttons, drawer, Inter)
 7. ✅ Footer ka naya data model + design          (D-44, 25 Aug — migration 008)
-8. C-2 — Payload spike (parallel me)             (2 din)
+8. ✅ C-2 — Payload spike **band** (D-45, 26 Aug)  apna stack hi chalega
 9. Phase 1 — Content Core                        (3 hafte)
 ```
 

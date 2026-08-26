@@ -28,8 +28,8 @@ me sirf `header` bacha; social links ki duplicate UI Footer screen se hat gayi. 
 Teen item jaan-boojh kar deferred hain: docker compose me `api`+`admin`, CSP policy
 (Phase 4-5), aur forgot/reset (SMTP pe block).
 
-Agla kaam **Phase 1 — Content Core** (aur uske saath **C-2** Payload spike, jo Phase 1 se
-pehle hona hai).
+Agla kaam **Phase 1 — Content Core**. **C-2 (Payload spike) band ho chuka hai** — D-45:
+apna stack hi chalega.
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -166,7 +166,6 @@ Slice 0 land ho chuki (D-43). Agla kaam **Phase 1 — Content Core**.
 | --- | ------------------------------------------------------ | -------------------------------------------- |
 | A-5 | `apps/web` ki `.env` — `REVALIDATE_SECRET` + `API_URL` | Ab — iske bina prod me cache saaf nahi hoga  |
 | Q-7 | Logo na mile to header me kya dikhe?                   | Client ka faisla (R15) — abhi interim pe hai |
-| C-2 | Payload CMS spike (2 din)                              | **Phase 1 se pehle** — window band ho rahi   |
 | Q-2 | Enquiries — Phase 7b ya alag Phase 9?                  | Phase 7 se pehle                             |
 | Q-3 | Field DSL me `matrix` + `table` types                  | Phase 5c se pehle                            |
 

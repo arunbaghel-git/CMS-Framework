@@ -1847,3 +1847,77 @@ ka waisa hai.
   se do social sources ban jaate (D-43 me bhi yahi reject hua tha).
 - **Column ke liye alag collection** — settings singleton hai (D-01), naya field jodna
   sasta hai aur backfill ek hi row pe hota hai.
+
+---
+
+## D-45 · Payload CMS nahi — apna stack hi chalega (C-2 band)
+
+**Context:** 19 Aug ko C-2 approve hua tha — Payload CMS ka 2-din spike, ye dekhne ke liye
+ki apna `entries` engine likhne ki jagah usko base banaya ja sakta hai. Us din repo
+**khaali** tha, isliye sawaal sasta tha: "2 hafte ka kaam bach jaayega?"
+
+26 Aug tak haalat badal chuki hai. Auth, RBAC, media + variants, settings, admin shell,
+Users screens, menus, aur poora public header/footer **ban chuke hain aur chal rahe hain**
+— 383 test ke saath. Payload apne saath apna data layer, apna auth aur apna admin panel
+laata hai; use "sirf entries ke liye" nahi lagaya ja sakta. Yaani ab uska matlab hai wo
+saara chalta hua code **phenkna**.
+
+**Decision:** **Payload nahi.** C-2 band. Apna stack hi aage chalega.
+
+### 1. Sabse bhaari wajah — client ka frozen design
+
+`admin-design.html` **spec hai** (R15), aur design client se aata hai, developer se nahi.
+Payload ka admin panel Payload ka hai: usme field-level components badle ja sakte hain
+aur custom views jode ja sakte hain, par **shell uska apna hai** — nav, list view, document
+edit ka layout.
+
+Yaani har screen pe Payload ko us design me dhakelna padta. Wo shell hum **pehle se bana
+chuke hain**, aur wo design se match karta hai. Payload lene ka matlab hota: sabse mehnga
+hissa dobara, aur framework ke khilaaf.
+
+### 2. Hamara model "add" ka nahi, "add aur remove" ka hai
+
+Ye project client ke approve kiye hue **tukdon** se banta hai — koi fixed roadmap nahi
+hai jisme "pehle ye, phir ye" likha ho. Client tay karta hai kya andar hai aur **kya
+bahar**.
+
+Framework me jodna sasta hota hai; **hatana aur badalna** mehnga. Do asli misaal isi repo
+se:
+
+- **Users ki list me checkbox column hai hi nahi** — bulk actions scope me nahi the, to
+  banaya hi nahi gaya. Payload ki list view apni banti hai; usme se cheez nikalna override
+  likhna hai.
+- **Appearance ke "Homepage Blocks" aur "Banners & Sliders" tab hata diye gaye** (24 Aug),
+  aur ek "Header" tab jo bina poochhe ban gaya tha wo **poora delete** hua. Hamare stack
+  me wo `nav.js` ki ek line thi.
+
+Removal-heavy model me framework ka default hamesha saamne khada milta hai.
+
+### 3. Jo Payload muft deta, wo ban chuka hai
+
+Payload se asal me sirf teen cheezein milengi jo abhi nahi hain: `entries` ka CRUD,
+drafts/versions, aur blocks field. Wo asli fayda hai — par uske badle auth, RBAC, media,
+settings aur poora admin shell dobara likhna padega. Ye ab wo sauda nahi raha jo 19 Aug
+ko tha.
+
+### 4. Multi-instance koi wajah nahi banti
+
+Har client ka apna DB, apna domain, core code versioned `@cms/*` se (D-01) — ye Payload pe
+depend hi nahi karta. Dono taraf barabar.
+
+### Jo hum Payload se phir bhi lenge — uske **ideas**, framework nahi
+
+Blocks field ka shape aur drafts/versions ka model dekhne layak hain, khaas kar Phase 5
+(page builder) se pehle — wahi sabse bada bacha hua risk hai. Do sabak pehle se laagu
+hain: `content: { version, blocks[] }` ka shape day-1 se (Phase 1 ka documented trap), aur
+block ka `type` string kabhi rename na karna (R4).
+
+**Prior art dekhte raho, framework mat lo.**
+
+### Ye faisla kab dobara khulega
+
+Agar client **design se peeche hat jaaye** (yaani admin ka look framework pe chhod diya
+jaaye), to sabse bhaari wajah gir jaati hai aur Payload phir se dekhne laayak ho jaata
+hai. Aaj wo sooratehaal nahi hai.
+
+**Supersedes:** C-2 (19 Aug ka approved spike) — wo ab band hai, kiya nahi jaayega.

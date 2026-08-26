@@ -78,7 +78,7 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)                                    |
 | Permanent delete      | **Sirf admin**                                                                                    |
 | Seed content          | **Khaali** Home + Blog                                                                            |
-| Payload spike         | Approved — Phase 1 se pehle, abhi baaki                                                           |
+| Payload spike         | **Band — Payload nahi** (D-45). Client ka frozen design + 2 hafte ka chalta hua code              |
 | Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                                               |
 | **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28)                             |
 | **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                                                        |
@@ -356,7 +356,7 @@ code nahi. Usme 3-4 choices client/user se poochhni padengi (footer columns kaha
 **Uske baad code:** `/new-module menus` → public read routes → `apps/web` ka header/footer
 → cache invalidation verify.
 
-**C-2 (Payload spike, 2 din)** parallel me chal sakta hai — Phase 1 se pehle hona hai.
+**C-2 (Payload spike)** ab band hai — D-45 (26 Aug). Apna stack hi chalega.
 
 > **Kyun spec pehle:** isi session me dono raaste dikh gaye. D-41 ne media ka contract
 > code se pehle freeze kiya — implementation ek baar me saaf utri. Logo ka reference bina
@@ -543,13 +543,14 @@ Chaar chhoti cheezein khuli hain, koi bhi bada kaam nahi rok rahi:
 | —   | `pnpm build` **kabhi chala hi nahi** — CI ka aakhri step. Web dev band karke `rm -rf apps/web/.next && pnpm build` | 5 min       |
 | A-5 | `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET`. Sirf prod ke cache pe asar                                      | manual step |
 
-Uske baad **C-2 (Payload spike, 2 din — Phase 1 se pehle)**, phir **Phase 1 — Content Core**.
+C-2 band ho chuka hai (D-45), to agla bada kaam **Phase 1 — Content Core** hai — ya jo bhi
+client agla approve kare (D-45 §2: is project ka order client se aata hai, kisi fixed
+roadmap se nahi).
 
 ### 4. Khule items
 
 - **Q-7** — logo na mile to kya dikhe (client ka faisla). Header aur drawer dono interim pe hain
 - **A-5** — `apps/web/.env` (`REVALIDATE_SECRET` + `API_URL`). Sirf **production** ke cache pe asar
-- **C-2** — Payload spike, Phase 1 se pehle
 - **spec 006 §11** — mere 6 resolved decisions ka review baaki
 
 ### 5. Ek chhoti gandagi
