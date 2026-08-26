@@ -15,6 +15,7 @@ Spec likhne se wo decision implementation se pehle saamne aa jaata hai, baad me 
 | [004](004-seed.md)             | Seed definition                         | 🟢 **Approved** — khaali Home + Blog        | —             |
 | [005](005-field-dsl.md)        | Field DSL                               | 🟢 **Approved** — Option A (ek DSL)         | —             |
 | [006](006-menu-contract.md)    | Menu data contract (Slice 0)            | 🟢 **Approved** — D-43, mega Columns→Groups | Slice 0       |
+| [007](007-packages.md)         | Packages — content core + 10 submenus   | 🟡 **Draft** — client ke saath 26 Aug       | Packages      |
 
 🔴 Pending · 🟡 Draft · 🟢 Approved · ✅ Implemented
 
