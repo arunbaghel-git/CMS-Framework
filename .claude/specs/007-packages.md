@@ -1,6 +1,7 @@
 # 007 — Packages
 
-**Status:** 🟡 Draft — client ke saath 26 Aug ko discuss hua, kuch item abhi khule hain
+**Status:** 🟡 Draft — client ke saath 26 Aug ko discuss hua; usi din design ke against
+review karke chhe gaps jode gaye. Kuch item abhi khule hain (§9).
 **Phase:** Phase 1 — Content Core, par **client ke order se** (D-45 §2)
 **Blocks:** Packages ka poora feature; iske baad Pages/Posts lagbhag muft
 **Related:** D-25 (trash), D-30 (ruki hui cheezein), D-45 (apna stack), spec 002 (content
@@ -77,7 +78,9 @@ Posts sirf apne field set ki baat hain — engine dobara nahi likhna padta.
 - **Page builder / blocks** — package ka content rich text hai, blocks nahi (Phase 5)
 - **Booking ka asli flow** — page pe form hai, par wo submit hone ke baad ka kaam Enquiries
   ke saath aayega
-- **Rating aur reviews** — page pe `4.9 ★ · 412 traveller reviews` hai, source tay nahi ❓
+- **Asli review system** — verified booking se juda hua, submission aur moderation wala
+  reviews ka feature. Rating aur review ke **fields** scope me hain (§2.2) taaki page render
+  ho sake, par unhe bharne ka koi automatic raasta abhi nahi banega
 
 ---
 
@@ -145,6 +148,11 @@ name · price · where
 — Day 3` likha hai, par `— Day 3` us package ka hai; global list me wo nahi jaa sakta.
 Master list me sirf jagah rahegi.
 
+⚠️ **Add-ons har package pe CHUNE jaate hain, poori list nahi chhapti.** Ye What's Included
+se alag hai — wo global hai, ye nahi. Wajah seedhi hai: jo package Havelock jaata hi nahi,
+uspe "Elephant Beach snorkelling" dikhana galat hai. Editor me checkbox list hogi, aur
+package sirf apne chune hue add-ons render karega (`fields.addOns[]`, §2).
+
 ### 1.5 What's Included — ek **global** list
 
 Public page ka `What's included` block — do column, INCLUDED aur NOT INCLUDED.
@@ -205,6 +213,32 @@ chunega. ISR waise ka waisa rehta hai.
 
 ---
 
+### 1.8 packageDefaults — Packages ke apne globals
+
+Kuch cheezein har package pe **bilkul same** chhapti hain. Wo kisi ek package ka data nahi
+hain, par site ki setting bhi nahi hain — wo **Packages ke domain ki globals** hain.
+
+```
+packageDefaults          ek document (wahi pattern jo settings ka hai, D-01)
+  whatsIncluded
+    included[]           §1.5
+    excluded[]           §1.5
+  itineraryImages[]      §1.7 — media ids ka pool
+  bookingSteps[]         title + text — page ka "How booking works" (§6)
+  cancellationText       "Cancellations more than 30 days before travel…"
+```
+
+**Ye `settings` me kyun nahi daala:** technically wahan daalna sasta tha (singleton hai,
+naya field bhaari nahi padta). Par `settings` **site** ki settings hai — site ka naam,
+logo, timezone, footer. Usme package ka maal daalne ka matlab hai ki kal Pages aur Posts
+aayenge to unka maal bhi wahin jaayega, aur ek din `settings` ek kachra-peti ban jaayegi
+jise koi khol kar nahi padh sakta.
+
+Alag global rakhna aaj bhi utna hi sasta hai, aur naam se hi pata chalta hai ki andar kya
+hai.
+
+---
+
 ## 2. Package ka apna data
 
 Jo master list se nahi aata, wo `entries.fields` me:
@@ -223,12 +257,21 @@ packageTypes[]        Package Type se
 
 itinerary[]           din-wise — §3
 pricing{}             §4
-addOns[]              Add Ons se chune hue
+addOns[]              Add Ons se CHUNE hue (§1.4) — poori list nahi chhapti
 hotels[]              Hotels se chune hue — §4.2
-faqs[]                question · answer
+faqs[]                question · answer — page ka "Questions about this package"
+goodToKnow[]          heading + rich text — §2.1
+ratingValue           4.9   ratingCount           412   / teen jagah dikhta hai — §2.2
+reviews[]             §2.2
+seoSchema             boolean — design ke SEO panel ka "Emit Product + Trip schema"
 availability          `open` | `soldOut`   ❓ status hai ya alag field
 featured              boolean
 ```
+
+**`Visibility` ka koi naya field nahi hai.** Admin design ke Publish panel me
+`Visibility: Public` likha hai — wo `status: 'private'` hi hai, jo spec 002 me pehle se
+maujood hai. Ye yahan isliye likha hua hai taaki koi `visibility` naam ka doosra field na
+bana de, aur phir do jagah se ek hi cheez tay hone lage.
 
 **Ye admin design me the, par client ne hata diye (26 Aug):**
 
@@ -241,6 +284,59 @@ Inclusions & Exclusions panel
 
 > ⚠️ **Package Code hata diya, par All Packages list me `Code` column hai.** Column bhi
 > hatana hoga, ya code kahin aur se aayega. ❓
+
+### 2.1 "Good to know before you book"
+
+Page pe ye ek poora `<h2>` section hai, aur usme **do alag kism ka content** mila hua hai:
+
+```
+Good to know before you book
+  h3  The ferries decide this itinerary      ← IS package ke baare me
+  h3  What the days actually feel like       ← IS package ke baare me
+  h3  Booking & cancellation
+      ol.steps  Tell us your dates → Get the day-by-day plan
+                → Confirm with 25% → Travel with a local on call
+      p         cancellation policy
+```
+
+Pehle do package ke apne hain — har itinerary ki ferry wali majboori alag hoti hai. Aakhri
+wala **har package pe bilkul same** hai; booking ka tareeka package se nahi badalta.
+
+Isliye do jagah:
+
+| Hissa | Kahan |
+| --- | --- |
+| `goodToKnow[]` — heading + rich text, repeatable | package me (§2) |
+| `bookingSteps[]` + `cancellationText` | `packageDefaults` me (§1.8) |
+
+Theme dono ko ek hi section me jod kar dikhati hai.
+
+### 2.2 Rating aur reviews
+
+Rating page pe **teen jagah** hai — header me (`4.9 ★ · 412 traveller reviews`), aur
+"Similar itineraries" ke har card pe. Yaani ye package ka apna data hai, kisi ek jagah ka
+text nahi.
+
+Uske alawa page pe **review cards** bhi hain. Design me wo placeholder hain, par shape saaf
+hai:
+
+```
+★★★★★   Month 2026
+"Placeholder review text — swap in a verified guest review…"
+Guest name
+Travelled 5N / 6D · verified booking
+
+reviews[]
+  stars · date · text · guestName · tripLine
+```
+
+⚠️ **Ye asli review system NAHI hai.** Verified booking se juda hua, moderation wala reviews
+ka feature apna alag kaam hai — usme submission, spam aur "verified" ka matlab tay karna
+padta hai. Abhi sirf **fields** rakhe ja rahe hain taaki page render ho sake aur client
+haath se review daal sake.
+
+> ❓ `ratingValue`/`ratingCount` haath se bharenge, ya `reviews[]` se apne aap gine
+> jaayein — tay nahi.
 
 ---
 
@@ -343,6 +439,26 @@ hotels[]
 | Transfer | naya | chhoti list |
 | Itinerary Images | naya | media grid, multi-upload |
 
+### 5.1 Admin design ke dason panel kahan gaye
+
+Ye table isliye hai ki koi bhi ek nazar me check kar sake ki design ka koi panel chhoot to
+nahi gaya:
+
+| Design ka panel | Spec me |
+| --- | --- |
+| Title · Permalink · Overview | §2 — `title`, `slug`, `overview` |
+| Itinerary Builder | §3 |
+| Inclusions & Exclusions | **hataya** — ab global (§1.5) |
+| Pricing & Departures | §4 — Fixed Departures aur Occupancy Slabs hataye |
+| FAQs & Policies | §2 `faqs[]` + §2.1 `goodToKnow[]` |
+| Publish (Status · Visibility · Availability) | §2 — `status` · `private` · `availability` ❓ |
+| Package Details | §2 — `nights`, `days`, `bestSeason`, `featured`; baaki 5 hataye |
+| Destinations | §1.1 |
+| Travel Themes | **badla** → Package Type (§1.2) |
+| Gallery | §2 `bannerImage` — grid hataya, ek banner bacha |
+| SEO | §2 — `seo` + `seoSchema` |
+| Enquiries (sidebar) | scope se bahar — Q-2 |
+
 **`s-packages` me teen cheezein chhupi hain:**
 
 1. **`Sold Out` ek tab hai** — hamare statuses me wo nahi hai (D-25). Edit screen ke sidebar
@@ -360,7 +476,7 @@ hotels[]
 | --- | --- |
 | Breadcrumb | `entries.path` + Destinations |
 | Gallery strip + `+18 photos` | **Itinerary Images** (global pool, client-side shuffle) |
-| Title · `4.9 ★ · 412 reviews` | title · ❓ |
+| Title · `4.9 ★ · 412 reviews` | title · ratingValue + ratingCount (§2.2) |
 | `Port Blair · Havelock · Neil` | destinations[] |
 | `5 nights / 6 days` | nights, days |
 | `₹31,999 → ₹24,999 per person · twin sharing` | pricing — sabse sasti category |
@@ -368,14 +484,44 @@ hotels[]
 | About this itinerary | overview (rich text) |
 | Route strip | **itinerary se derived** (§3.1) |
 | At a glance — Duration · Ferries · Hotels · Best season | derived · ferriesNote ❓ · category · bestSeason |
-| Day-by-day | itinerary[] |
+| Day-by-day itinerary | itinerary[] |
 | Din ki chips | `Stay:` overnightStay · transfer · meals · note |
 | Hotel category tabs + tables | categoryPricing[] + hotels[] |
-| Popular add-ons | **Add Ons** (global) |
-| What's included | **What's Included** (global) |
-| FAQ | faqs[] |
-| Booking form | pricing + settings (phone/email) |
-| Related packages | ❓ manual ya apne aap |
+| Popular add-ons | **Add Ons** — package me chune hue (§1.4) |
+| What's included | **What's Included** — global, `packageDefaults` (§1.5, §1.8) |
+| Good to know before you book | goodToKnow[] + `packageDefaults` ke bookingSteps/cancellation (§2.1) |
+| Questions about this package | faqs[] |
+| Reviews ke cards | reviews[] (§2.2) |
+| Similar itineraries | **derived** (§6.1) |
+| Want this trip on your dates? | booking form — pricing + settings (phone/email) |
+| Booking form ka Hotel category | categoryPricing[] ke chaar |
+| Publish panel ka `Visibility` | `status: 'private'` — naya field nahi (§2) |
+
+**Page ke nau `<h2>` — sab is table me hain:** About this itinerary · Day-by-day
+itinerary · Hotels on this package · Popular add-ons · What's included · Good to know
+before you book · Questions about this package · Similar itineraries · Want this trip on
+your dates?
+
+### 6.1 "Similar itineraries" — sab kuch pehle se maujood data se banta hai
+
+Card ka shape:
+
+```
+HONEYMOON                          ← packageTypes[]
+Andaman Honeymoon Delights         ← title
+Port Blair → Havelock → Neil       ← route — itinerary se derived (§3.1)
+4N / 5D · Ferry · Breakfast        ← nights/days · transfer · meals — sab derived
+₹…                4.9 ★           ← pricing · ratingValue
+```
+
+**Koi naya field nahi chahiye.** Sirf ye tay karna hai ki packages chune kaise jaayein:
+
+- **Apne aap** — same Destination ya same Package Type wale, price ke aas-paas
+- **Haath se** — client har package pe 3 related chune
+
+**Salah: apne aap.** Haath se chunne ka matlab hai ki 60 packages me har ek pe 3 chunna, aur
+naya package aane pe purane 60 kabhi update nahi honge. Manual override baad me juda ja
+sakta hai — wo ek field ka kaam hai. ❓
 
 ---
 
@@ -389,8 +535,9 @@ SLICE 1   entries + contentTypes engine
           + `package` type register
           → abhi kuch dikhta nahi, par sab isi pe khada hai
 
-SLICE 2   Master lists (chhoti screens, ek jaisi)
-          Destinations · Package Type · Transfer · Add Ons · What's Included · Hotels
+SLICE 2   Master lists (chhoti screens, ek jaisi) + packageDefaults
+          Destinations · Package Type · Transfer · Add Ons · Hotels
+          packageDefaults — What's Included · booking steps · cancellation
           → client apni vocabulary bhar sakta hai
 
 SLICE 3   All Packages list + Add New (basic)
@@ -408,9 +555,10 @@ SLICE 5   Pricing + Hotels
           → daam aur hotel table live
 
 SLICE 6   Itinerary Images pool + gallery
-          + FAQ
+          + FAQ · goodToKnow[] · reviews[] + rating
 
 SLICE 7   Public package page — poora render
+          + Similar itineraries (§6.1 — derived)
           (ya har slice ke saath thoda-thoda, agar client jaldi dekhna chahe)
 ```
 
@@ -428,7 +576,8 @@ SLICE 7   Public package page — poora render
 | `hotels` | **nayi** | `siteId` | haan |
 | `addOns` | **nayi** | `siteId` | haan |
 | `transfers` | **nayi** | `siteId` | haan |
-| `settings` | `whatsIncluded{included[],excluded[]}` · `itineraryImages[]` | — | nahi (singleton, D-01) |
+| `packageDefaults` | **naya global** — `whatsIncluded{included[],excluded[]}` · `itineraryImages[]` · `bookingSteps[]` · `cancellationText` | `siteId` | haan — ek document seed |
+| `settings` | kuch nahi badalta — package ka maal wahan **nahi** jaayega (§1.8) | — | nahi |
 
 **Indexes** — `siteId` hamesha pehle (schema-change skill §5):
 
@@ -439,6 +588,7 @@ entries    { siteId, locale, path }           unique    ← routing ka primary p
            { siteId, publishAt }                        ← scheduled publish (D-11)
 taxonomies { siteId, type, slug }             unique
 hotels     { siteId, destinationId, category }
+packageDefaults { siteId }                    unique    ← singleton, wahi pattern jo settings ka
 ```
 
 > ⚠️ **Text index sirf ek** ho sakta hai (schema-change §5) — isliye `searchText`
@@ -460,14 +610,15 @@ buniyaadi hai.
 | 5 | Package Type flat ya hierarchical? | Slice 2 |
 | 6 | List ka `Code` column — hataayein? | Slice 3 |
 | 7 | `Best For` me kya bharega? | Slice 3 |
-| 8 | Rating (`4.9 ★ · 412`) kahan se? | Slice 3 |
+| 8 | `ratingValue`/`ratingCount` haath se, ya `reviews[]` se gine jaayein? §2.2 | Slice 6 |
 | 9 | `Sold Out` — status hai ya `availability` field? | Slice 3 |
 | 10 | Din ka `note` field (`Approx. 4 hrs sightseeing`)? | Slice 4 |
 | 11 | Per-day `Hotel Category` dropdown hatana hai? | Slice 4 |
 | 12 | Category ka `note` field? | Slice 5 |
 | 13 | `Ferries: 3 legs` — apne aap gine ya likha jaaye? | Slice 5 |
-| 14 | Related packages — manual ya apne aap? | Slice 7 |
-| 15 | Enquiries (Q-2) — `Enq.` column aur booking form iska intezaar kar rahe hain | baad me |
+| 14 | `packageDefaults` naam theek hai, ya kuch aur? §1.8 | Slice 2 |
+| 15 | Similar itineraries — apne aap (salah) ya haath se? §6.1 | Slice 7 |
+| 16 | Enquiries (Q-2) — `Enq.` column aur booking form iska intezaar kar rahe hain | baad me |
 
 ---
 
