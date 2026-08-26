@@ -36,6 +36,7 @@ Har public fetch pe tags lagao:
 | Tag               | Kab lagta hai     | Kab invalidate hota hai                                |
 | ----------------- | ----------------- | ------------------------------------------------------ |
 | `entry:{id}`      | Ek entry fetch    | Wo entry change/publish/trash ho                       |
+| `path:{path}`     | `/public/resolve` | Wo entry change ho — **aur uska PURANA path bhi** jab slug badle (D-52 §2). Iske bina public page kabhi saaf hi nahi hota: fetch se pehle entry ki id pata hi nahi hoti, aur 404 wale raaste pe to hoti hi nahi |
 | `type:{type}`     | Kisi type ki list | Us type ki koi bhi entry publish/unpublish ho          |
 | `tax:{id}`        | Taxonomy archive  | Wo taxonomy change ho, ya koi entry usme add/remove ho |
 | `menu:{location}` | Menu fetch        | Wo menu ya uska assignment badle                       |

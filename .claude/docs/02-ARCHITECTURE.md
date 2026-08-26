@@ -537,7 +537,7 @@ har category/tag archive jisme wo hai · har page jisme "Post List" block hai ·
 menu (agar link hua) · sitemap.xml · RSS feed
 ```
 
-Isliye **tag-based invalidation**: har fetch pe tags (`entry:{id}`, `type:post`,
+Isliye **tag-based invalidation**: har fetch pe tags (`entry:{id}`, `path:{path}`, `type:post`,
 `tax:{id}`, `menu:{location}`, `settings`), aur publish service ek explicit dependency
 map se `revalidateTag()` maare. Ye map Phase 3 me design hoga, Phase 8 me retrofit nahi.
 
@@ -768,7 +768,11 @@ GET    /api/admin/search?q=              Cmd+K, searchText pe
 GET    /api/admin/activity
 POST   /api/admin/tools/export | import
 
-GET    /api/public/resolve?path=/about   entry | taxonomy | archive | redirect | 404
+GET    /api/public/resolve?path=/about   ✅ Slice 7 ki shuruaat — entry | redirect | 404
+                                         taxonomy aur archive abhi nahi (Phase 3)
+                                         redirect pe 200 + payload jaata hai, HTTP 301
+                                         nahi — wo apps/web ka kaam hai (D-52 §1)
+GET    /api/public/package-defaults      ✅ alag endpoint, alag cache tag (type:package)
 GET    /api/public/entries?type=post&page=1&limit=10&category=news
 GET    /api/public/search?q=
 GET    /api/public/menus/:location

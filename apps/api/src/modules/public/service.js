@@ -1,9 +1,20 @@
-import { DEFAULT_SITE_ID } from '@cms/shared'
+import {
+  DEFAULT_LOCALE,
+  DEFAULT_SITE_ID,
+  isPubliclyVisible,
+  normalizePath,
+  routeStrip,
+} from '@cms/shared'
 
+import { Entry } from '../entries/model.js'
+import { Transfer } from '../master-lists/model.js'
 import { Media } from '../media/model.js'
 import { toPublicMedia } from '../media/service.js'
 import { getPublicMenuById } from '../menus/service.js'
+import { ensurePackageDefaults } from '../package-defaults/service.js'
+import { findRedirect } from '../redirects/service.js'
 import { getSettings } from '../settings/service.js'
+import { Taxonomy } from '../taxonomies/model.js'
 
 /**
  * Public read ka business logic — R1.
@@ -27,7 +38,11 @@ import { getSettings } from '../settings/service.js'
  * @param {string | null} mediaId
  * @param {string} [preferredVariant]
  */
-async function toDisplayImage(mediaId, preferredVariant = 'medium', siteId = DEFAULT_SITE_ID) {
+export async function toDisplayImage(
+  mediaId,
+  preferredVariant = 'medium',
+  siteId = DEFAULT_SITE_ID,
+) {
   if (!mediaId) return null
 
   // `findOne` bina ObjectId cast ke throw karti hai agar id ka shape galat ho — aur
@@ -195,5 +210,182 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
      * waise bhi dikh jaata hai, isliye chhupane se kuch milta nahi aur SSR toot-ta hai.
      */
     searchEngineVisible: settings.searchEngineVisible,
+  }
+}
+
+// ── resolve ──────────────────────────────────────────────────────────────────
+
+/**
+ * Ek path pe kya hai — **poore public site ka ekmatra entry point** (D-09, R10).
+ *
+ * `apps/web` me sirf ek catch-all route hai; wo har URL ke liye yahi poochta hai. Koi
+ * per-type hardcoded route nahi hai, kyunki `urlPattern` client badal sakta hai
+ * (`contentTypes`) — aur us din hardcoded route jhooth bol raha hota.
+ *
+ * Teen jawab ho sakte hain:
+ *
+ * | `kind` | Kab | Web kya kare |
+ * | --- | --- | --- |
+ * | `redirect` | slug badal chuka hai (D-49) | `301` |
+ * | `entry` | page maujood aur publicly visible hai | render |
+ * | `null` | kuch nahi | `404` |
+ *
+ * **Redirect entry se PEHLE dekha jaata hai.** Ulta karne ka matlab hota ki purana path
+ * pehle 404 khaaye aur redirect kabhi chale hi na — aur wo tabhi pata chalta jab kisi ka
+ * share kiya hua link toota mile.
+ */
+export async function resolvePublicPath(
+  rawPath,
+  siteId = DEFAULT_SITE_ID,
+  locale = DEFAULT_LOCALE,
+) {
+  const path = normalizePath(rawPath)
+
+  const redirect = await findRedirect(path, siteId, locale)
+  if (redirect) {
+    return { kind: 'redirect', to: redirect.to, statusCode: redirect.statusCode }
+  }
+
+  const entry = await Entry.findOne({ siteId, locale, path }).lean()
+
+  /**
+   * `isPubliclyVisible` `scheduled && publishAt <= now` ko bhi published maanti hai —
+   * isse cron band ho jaaye to bhi site sahi rehti hai (R2, self-healing).
+   *
+   * `private` yahan **nahi** dikhta: wo published hai par sirf logged-in user ke liye
+   * (02-ARCHITECTURE §5), aur ye endpoint bina auth ke hai.
+   */
+  if (!isPubliclyVisible(entry)) return null
+
+  return { kind: 'entry', entry: await toPublicEntry(entry, siteId, locale) }
+}
+
+/** Taxonomy ids → `{ id, name, slug }` — ek query me, ek-ek karke nahi. */
+async function resolveTaxonomies(ids, siteId, locale) {
+  const unique = [...new Set((ids ?? []).filter(Boolean))]
+  if (unique.length === 0) return []
+
+  const docs = await Taxonomy.find({ _id: { $in: unique }, siteId, locale })
+    .select('name slug type')
+    .lean()
+    .catch(() => [])
+
+  const byId = new Map(docs.map((d) => [String(d._id), d]))
+
+  // Order wahi rakho jo entry me tha — client ne unhe us kram me chuna hai
+  return unique
+    .map((id) => byId.get(id))
+    .filter(Boolean)
+    .map((d) => ({ id: String(d._id), name: d.name, slug: d.slug }))
+}
+
+/**
+ * Public entry payload — **admin ka shape nahi** (02-ARCHITECTURE §10).
+ *
+ * Yahan se `version`, `deletedAt`, `searchText`, `authorId` aur `templateId` bahar nahi
+ * jaate. Ye sirf safai nahi hai: `searchText` me poora page ka flattened text hota hai,
+ * yaani wo payload ko lagbhag do guna kar deta hai aur render me kabhi use nahi hota.
+ *
+ * **References resolve ho kar jaate hain** (R10) — theme ko kabhi id se naam dhoondhne
+ * ki zaroorat nahi padni chahiye, warna har theme apna lookup likhta hai.
+ */
+async function toPublicEntry(doc, siteId, locale) {
+  const fields = doc.fields ?? {}
+  const days = Array.isArray(fields.itinerary) ? fields.itinerary : []
+
+  const [destinations, packageTypes, banner, transfers] = await Promise.all([
+    resolveTaxonomies(doc.taxonomies?.destinations, siteId, locale),
+    resolveTaxonomies(doc.taxonomies?.packageTypes, siteId, locale),
+    toDisplayImage(fields.bannerImage, 'large', siteId),
+    Transfer.find({ siteId })
+      .select('name icon')
+      .lean()
+      .catch(() => []),
+  ])
+
+  const stayIds = days.map((d) => d.overnightStayId)
+  const stays = await resolveTaxonomies(stayIds, siteId, locale)
+  const stayById = new Map(stays.map((s) => [s.id, s]))
+  const transferById = new Map(
+    transfers.map((t) => [String(t._id), { id: String(t._id), name: t.name, icon: t.icon }]),
+  )
+
+  return {
+    id: String(doc._id),
+    type: doc.type,
+    title: doc.title,
+    slug: doc.slug,
+    path: doc.path,
+    availability: doc.availability ?? 'open',
+    excerpt: doc.excerpt ?? '',
+    content: doc.content ?? { version: 1, blocks: [] },
+    seo: doc.seo ?? {},
+    updatedAt: doc.updatedAt ?? null,
+
+    banner,
+    destinations,
+    packageTypes,
+
+    fields: {
+      shortDescription: fields.shortDescription ?? '',
+      nights: fields.nights ?? null,
+      days: fields.days ?? null,
+      bestSeason: fields.bestSeason ?? '',
+      bestFor: fields.bestFor ?? [],
+      featured: Boolean(fields.featured),
+      seoSchema: Boolean(fields.seoSchema),
+    },
+
+    /** Har din ke references resolve ho kar jaate hain — theme ko lookup nahi karna padta. */
+    itinerary: days.map((day) => ({
+      id: day.id,
+      title: day.title,
+      description: day.description ?? '',
+      highlights: day.highlights ?? [],
+      meals: day.meals ?? [],
+      dayTag: day.dayTag ?? '',
+      note: day.note ?? '',
+      transferNote: day.transferNote ?? '',
+      stay: stayById.get(day.overnightStayId) ?? null,
+      transfer: transferById.get(day.transferId) ?? null,
+    })),
+
+    /**
+     * Route strip **server pe** banti hai, theme me nahi.
+     *
+     * `routeStrip()` `packages/shared` me hai aur admin ka preview bhi wahi chalata hai —
+     * do jagah rakhne ka matlab hota ki admin kuch aur dikhaye aur live page kuch aur
+     * (D-43 §2, D-51).
+     */
+    routeStrip: routeStrip(days).map((leg) => ({
+      ...leg,
+      stay: stayById.get(leg.stayId) ?? null,
+    })),
+  }
+}
+
+/**
+ * Packages ke globals — har package page pe wahi (spec 007 §1.8).
+ *
+ * Alag call isliye nahi ki ye entry ke saath hi chahiye — par iska **cache tag alag** hai
+ * (`type:package`, kisi ek entry ka nahi). Ise entry ke payload me ghusa dene ka matlab
+ * hota ki ek package ka `entry:{id}` tag saaf karne pe ye stale hi rehta.
+ */
+export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
+  const doc = await ensurePackageDefaults(siteId)
+
+  const images = await Promise.all(
+    (doc.itineraryImages ?? []).map((id) => toDisplayImage(id, 'medium', siteId)),
+  )
+
+  return {
+    whatsIncluded: {
+      included: doc.whatsIncluded?.included ?? [],
+      excluded: doc.whatsIncluded?.excluded ?? [],
+    },
+    bookingSteps: doc.bookingSteps ?? [],
+    cancellationText: doc.cancellationText ?? '',
+    /** Jo media resolve na ho wo gir jaati hai — toota hua `<img>` kabhi nahi (D-42 §2). */
+    itineraryImages: images.filter(Boolean),
   }
 }

@@ -473,6 +473,19 @@ function tagsFor(entry) {
     `entry:${entry._id ?? entry.id}`,
     `type:${entry.type}`,
     /**
+     * **Path ka apna tag** — bina iske public page kabhi saaf hi nahi hota.
+     *
+     * `apps/web` ka resolve fetch `path:` se tag hota hai, kyunki fetch se **pehle** id
+     * pata hi nahi hoti (aur 404 wale raaste pe to hoti hi nahi). Sirf `entry:{id}`
+     * bhejne ka matlab tha ki wo tag kisi fetch pe laga hi nahi hai — yaani publish ke
+     * baad bhi purana page cache me baitha rehta.
+     *
+     * Ye theek wahi failure hai jiski chetavni `cache-invalidation` skill deti hai:
+     * "publish kiya par site update nahi hui". Aur uska hi sabak: tag wahan se lo jahan
+     * fetch sach me hota hai.
+     */
+    entry.path ? `path:${entry.path}` : null,
+    /**
      * **Har** taxonomy key, sirf categories/tags nahi (A-7, D-49).
      *
      * Pehle ye do keys hardcoded thin. Destinations `fields` me chali jaatin to ye tag
@@ -780,6 +793,18 @@ export async function updateEntry(
      * galat ho sakti hai. Ek bekaar redirect ki keemat ek toote hue link se kam hai.
      */
     await recordAutoRedirect(current.path, resolved.path, siteId, locale)
+
+    /**
+     * **Purana path bhi stale hai** — ab wahan 301 lagna chahiye, aur uska pehle wala
+     * (200 wala) jawab cache me pada hai. Naye path ka tag `invalidate()` khud laga deta
+     * hai; purana yahan se jaata hai, kyunki uske baad wo entry pe bacha hi nahi.
+     *
+     * Descendants ke purane paths bhi — unke bhi redirect bane hain.
+     */
+    await revalidateTags([
+      `path:${current.path}`,
+      ...descendants.map((child) => `path:${child.oldPath}`),
+    ])
   } else if (parentChanged) {
     $set.parentId = input.parentId
   }

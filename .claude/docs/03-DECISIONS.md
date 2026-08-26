@@ -2444,3 +2444,89 @@ ka nateeja ek galat dikhta hua field hai, tooti hui page nahi.
 overwrite nahi hoti; wo reorder ke aar-paar stable rehni chahiye (D-43 §5).
 
 **Nateeja:** 538 tests. spec 007 §9 me ab **9 sawaal** bache.
+
+---
+
+## D-52 · Public page slice ke saath badhega — aur `path:` cache tag
+
+**Context:** spec 007 §7 me public page **Slice 7** hai, par wahin ek bracket bhi likha
+hai — _"ya har slice ke saath thoda-thoda, agar client jaldi dekhna chahe"_. 26 Aug ko
+client ne wahi chuna.
+
+**Decision:** public package page **abhi** shuru, aur har slice ke saath badhega.
+
+**Kyun:** Slice 4 tak sab kuch sirf admin me dikhta tha. Client form bharta raha aur output
+kahin nahi dikha — yaani har galti Slice 7 me ek saath milti, jab use theek karna sabse
+mehnga hota. Slice 0 me header ke saath yahi hua tha aur wo faayde ka nikla: asli page pe
+data dekhte hi aath iterations ek din me ho gaye the (D-43).
+
+**Nateeja ye hai ki page adhoora dikhega, aur wo theek hai.** Jo sections abhi nahi bane
+(pricing, FAQs, reviews) wo **render hi nahi hote** — ek khaali section "abhi nahi bana"
+nahi lagta, "toota hua" lagta hai.
+
+### 1. Ek hi route — `app/[[...slug]]/page.jsx`
+
+Poore site ka ek hi route hai, aur wo har URL ke liye `GET /api/public/resolve?path=…`
+poochta hai. Koi `app/packages/[slug]` jaisa per-type route **nahi**.
+
+**Kyun:** kis type ka URL kaisa dikhta hai wo `contentTypes.urlPattern` se aata hai aur
+client use badal sakta hai. Hardcoded route us din jhooth bol raha hota — aur ye D-09 ka
+hi rule hai, sirf ab wo sach me chal raha hai.
+
+`resolve` teen me se ek jawab deta hai: **redirect** (slug badal chuka hai), **entry**, ya
+**kuch nahi**. Redirect entry se **pehle** dekha jaata hai — ulta karne ka matlab hota ki
+purana path pehle 404 khaaye aur redirect kabhi chale hi na.
+
+**Redirect pe API 200 + payload bhejti hai, HTTP 301 nahi.** Wo `apps/web` ka kaam hai:
+server-side `fetch` redirect ko chup-chaap follow kar leta hai, aur tab web ko pata hi na
+chalta ki browser ko 301 bhejna tha.
+
+### 2. `path:{path}` — ek cache tag jiske bina kuch kaam hi na karta
+
+Ye likhte waqt pakda gaya, aur ye theek wahi failure hai jiski chetavni
+`cache-invalidation` skill deti hai.
+
+`apps/web` ka resolve fetch **`path:` se tag hota hai** — kyunki fetch se *pehle* entry ki
+id pata hi nahi hoti, aur 404 wale raaste pe to hoti hi nahi. Par API अब तक sirf
+`entry:{id}` aur `type:{type}` bhejti thi. Yaani `entry:{id}` kisi bhi fetch pe laga hi
+nahi tha:
+
+```
+publish  →  revalidateTag('entry:abc')  →  kisi fetch pe wo tag hai hi nahi
+         →  page cache me waisa ka waisa
+```
+
+Lakshan: _"publish kiya par site update nahi hui"_ — bina kisi error ke.
+
+**Fix:** `tagsFor()` ab `path:{entry.path}` bhi bhejta hai. Aur path badalne pe **purane
+path ka tag bhi** — warna purana URL apna 200 wala jawab cache me pakde rehta aur uspe naya
+301 kabhi lagta hi nahi. Descendants ke purane paths bhi (D-49 ka cascade).
+
+### 3. References server pe resolve hote hain, theme me nahi
+
+Public payload me destination aur transfer ki **ids nahi, unke naam** jaate hain; route
+strip bhi server pe banti hai (`routeStrip()`, D-51).
+
+**Kyun:** theme ko id se naam dhoondhna padta to har theme apna lookup likhta — aur ek din
+admin ka preview kuch aur dikhata aur live page kuch aur. `routeStrip()` `packages/shared`
+me hai aur admin ka builder bhi wahi chalata hai, isliye dono **ek hi** jawab dete hain.
+
+Aur payload se `version`, `deletedAt`, `searchText`, `authorId`, `templateId` bahar nahi
+jaate (R10). `searchText` sirf safai ki baat nahi — usme poora flattened text hota hai, wo
+payload lagbhag do guna kar deta hai, aur render me kabhi use nahi hota.
+
+### 4. Rich text node-by-node render hota hai, `dangerouslySetInnerHTML` se nahi
+
+Rich text **client** likhta hai. Use HTML ki tarah chalane ka matlab hai ki admin ka likha
+`<script>` har visitor ke browser me chale (architecture §8.2). TipTap ka doc ek JSON tree
+hai, isliye node-by-node render karna sirf safe nahi — wahi sahi tareeka hai.
+
+Link ke `href` pe ek doosri deewar hai (`http`, `https`, `mailto`, `tel`, ya relative hi
+chalte hain): TipTap write pe bhi rok-ta hai, par purana data aur import kiya hua content
+dono us raaste se aa sakte hain.
+
+Jo node ya mark handle nahi hai wo **text ki tarah girta hai, gayab nahi hota** — ek anjaan
+formatting ki wajah se paragraph ka poora text kho jaana sabse bura nateeja hai.
+
+**Nateeja:** 547 tests. `app/page.jsx` ka placeholder hat gaya — optional catch-all `/` bhi
+sambhaalta hai, aur do route ek hi path pe rakhna Next me error hai.

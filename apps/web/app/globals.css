@@ -1066,3 +1066,361 @@ a.mega__gl:hover {
   padding-block: 12px;
   font-size: 14px;
 }
+
+/* ==================================================================
+   PACKAGE PAGE (components/package/)
+   Reference: docs/reference/itinerary-v3.html
+
+   Ye page slice ke saath badh raha hai — pricing, FAQs aur reviews ke
+   styles tab judenge jab wo sections banenge. Aaj yahan sirf utna hai
+   jitna render hota hai.
+   ================================================================== */
+
+.pkg {
+  padding-bottom: 64px;
+}
+
+.pkg__hero {
+  padding: 32px 0 8px;
+}
+
+.pmeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted, #64748b);
+  margin-bottom: 10px;
+}
+
+.pmeta__d {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.pkg__sold {
+  font-weight: 700;
+  color: #b91c1c;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+}
+
+.pkg h1 {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.15;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+
+.pintro {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--muted, #475569);
+  max-width: 68ch;
+  margin: 0 0 20px;
+}
+
+/* Banner ka aspect reference ka hai (1600x900). `height:auto` isliye ki `width`/`height`
+   attributes sirf layout shift rokne ke liye hain — asli size CSS tay karta hai. */
+.pkg__banner {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
+
+.pkg__bestfor {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+.pkg__bestfor span {
+  color: var(--muted, #64748b);
+}
+
+.pkg__bestfor b {
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-weight: 600;
+}
+
+/* Gallery strip — pool se aati hai (spec 007 §1.7). */
+.pkg__gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 24px auto 8px;
+  align-items: center;
+}
+
+.pkg__gallery img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.pkg__more {
+  font-size: 13px;
+  color: var(--muted, #64748b);
+  text-align: center;
+}
+
+.pkg__body {
+  padding-top: 16px;
+}
+
+.blk {
+  padding: 32px 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.blk h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 0 0 14px;
+}
+
+.rt p {
+  line-height: 1.75;
+  margin: 0 0 14px;
+}
+
+.rt ul,
+.rt ol {
+  line-height: 1.75;
+  padding-left: 20px;
+  margin: 0 0 14px;
+}
+
+/* Route strip — poori tarah derived (spec 007 §3.1). */
+.route {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 20px 0;
+}
+
+.route__leg {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.route__s {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+}
+
+.route__s span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted, #64748b);
+}
+
+.route__s b {
+  font-weight: 700;
+}
+
+.route__a {
+  width: 18px;
+  height: 1px;
+  background: #cbd5e1;
+  flex: none;
+}
+
+/* At-a-glance grid. Cells slice ke saath badhte hain — isliye auto-fit. */
+.atg {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.atg > div {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.atg span {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted, #64748b);
+  margin-bottom: 2px;
+}
+
+/* Day-by-day */
+.dnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 20px;
+}
+
+.dnav a {
+  font-size: 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 5px 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.itin {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 22px;
+}
+
+.itin__d {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 18px;
+  scroll-margin-top: 90px;
+}
+
+.itin__k {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itin__k b {
+  font-weight: 800;
+}
+
+.itin__k span {
+  font-size: 13px;
+  color: var(--muted, #64748b);
+}
+
+.itin__k em {
+  font-style: normal;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted, #94a3b8);
+}
+
+.itin__c h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.itin__c p {
+  line-height: 1.7;
+  margin: 0 0 10px;
+}
+
+.itin__l {
+  padding-left: 18px;
+  line-height: 1.7;
+  margin: 0 0 10px;
+}
+
+.itin__m {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted, #64748b);
+}
+
+.itin__m span {
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+/* What's included */
+.incl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.incl h3 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted, #64748b);
+  margin: 0 0 8px;
+}
+
+.incl ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 7px;
+  line-height: 1.6;
+}
+
+.incl__y li::before {
+  content: '✓ ';
+  color: #059669;
+  font-weight: 700;
+}
+
+.incl__n li::before {
+  content: '✕ ';
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+/* Booking steps */
+.steps {
+  display: grid;
+  gap: 10px;
+  padding-left: 20px;
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.steps b {
+  display: block;
+  font-weight: 700;
+}
+
+.steps span {
+  color: var(--muted, #64748b);
+}
+
+@media (max-width: 760px) {
+  .itin__d {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .itin__k {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+}

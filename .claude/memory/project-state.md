@@ -37,8 +37,13 @@ hota hi nahi.
 **Slice 4 bhi ban chuki (26 Aug)** — Itinerary Builder, aur uske saath **route strip ka
 live preview** jo poori tarah derived hai (§3.1). Teen sawaal band — D-51.
 
-**Agla kaam: Slice 5 — Pricing + Hotels** (spec 007 §4). Usme ek sawaal khula hai — §9 #12
-(hotel category ka `note` field) aur #13 (`Ferries: 3 legs` apne aap gine ya likha jaaye).
+**Public package page shuru ho gaya (D-52)** — client ka faisla: page Slice 7 ka intezaar
+nahi karega, har slice ke saath badhega. Abhi live: hero, overview, route strip, day-by-day
+itinerary, What is included, booking steps, gallery.
+
+**Agla kaam: Slice 5 — Pricing + Hotels** (spec 007 §4) — ab **admin aur public page dono**
+ek saath. Usme teen sawaal khule hain: §9 #12 (category ka `note`), #13 (`Ferries: 3 legs`
+derive ho ya likha jaaye), aur #3 (`Room` hotel ke record pe ya package me).
 
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
@@ -83,12 +88,13 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Slice 2  ki saat screens           ✅  26 Aug — taxonomy + master lists
           A-8      Overview ka TipTap        ✅  26 Aug — bold/italic/list/link
           Slice 4  Itinerary Builder         ✅  26 Aug — D-51, route strip live
-          Slice 5  Pricing + Hotels           🔴  ← agla kaam
+          Public package page        🟡  26 Aug — D-52, slice ke saath badhega
+          Slice 5  Pricing + Hotels           🔴  ← agla kaam (admin + page dono)
           Slice 4-7                          🔴  specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 538 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 547 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 

@@ -572,7 +572,8 @@ SLICE 5   Pricing + Hotels
 SLICE 6   Itinerary Images pool + gallery
           + FAQ · goodToKnow[] · reviews[] + rating
 
-SLICE 7   Public package page — poora render
+SLICE 7   Public package page — poora render                        🟡 shuru ho chuka
+          Client ne 26 Aug ko "har slice ke saath thoda-thoda" chuna (D-52)
           + Similar itineraries (§6.1 — derived)
           (ya har slice ke saath thoda-thoda, agar client jaldi dekhna chahe)
 ```

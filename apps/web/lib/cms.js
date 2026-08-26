@@ -44,3 +44,33 @@ export async function getMenu(location) {
 
   return data ?? { location, menu: null, items: [] }
 }
+
+/**
+ * Ek path pe kya hai — entry, redirect, ya kuch nahi (D-09, R10).
+ *
+ * **Cache tags do hain:** `path:{path}` aur `entry:{id}`.
+ *
+ * `path:` isliye zaroori hai ki jab tak fetch na ho jaaye, hume entry ki id pata hi nahi
+ * hoti — aur 404 wale raaste pe to id hoti hi nahi. Bina uske ek naya page publish hone pe
+ * uska pehle se cache hua 404 kabhi saaf hi na hota.
+ *
+ * Isliye API bhi har entry ke saath **`path:{path}` bhejti hai** (`tagsFor()`), aur path
+ * badalne pe purane path ka tag bhi — warna purana URL apna 200 wala jawab cache me pakde
+ * rehta aur uspe naya 301 kabhi lagta hi nahi.
+ *
+ * @param {string} path
+ */
+export async function resolvePath(path) {
+  const data = await getJson(`/public/resolve?path=${encodeURIComponent(path)}`, [`path:${path}`])
+
+  if (!data) return null
+
+  return data
+}
+
+/** Packages ke globals — har package page pe wahi (spec 007 §1.8). */
+export async function getPackageDefaults() {
+  const data = await getJson('/public/package-defaults', ['type:package'])
+
+  return data?.packageDefaults ?? null
+}

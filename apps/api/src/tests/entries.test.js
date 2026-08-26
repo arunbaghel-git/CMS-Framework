@@ -1377,3 +1377,149 @@ describe('itinerary', () => {
     expect(res.body.data.entry.fields.itinerary).toBe('kuch bhi')
   })
 })
+
+// ── public resolve (Slice 7 ki shuruaat) ─────────────────────────────────────
+
+describe('GET /api/public/resolve', () => {
+  const resolve = (path) => request(app).get(`/api/public/resolve?path=${encodeURIComponent(path)}`)
+
+  async function publishedPackage(overrides = {}) {
+    const created = await createEntry(adminJar, { title: 'Andaman 5 Nights', ...overrides })
+    const { id } = created.body.data.entry
+
+    await authed('post', `/api/entries/${id}/publish`, adminJar).send({})
+
+    return id
+  }
+
+  it('published package bina auth ke resolve hota hai', async () => {
+    await publishedPackage()
+
+    const res = await resolve('/packages/andaman-5-nights')
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.kind).toBe('entry')
+    expect(res.body.data.entry.title).toBe('Andaman 5 Nights')
+  })
+
+  it('admin-only fields public payload me kabhi nahi jaate (R10)', async () => {
+    await publishedPackage()
+
+    const { entry } = (await resolve('/packages/andaman-5-nights')).body.data
+
+    // `searchText` sirf safai ki baat nahi — usme poora flattened text hota hai aur wo
+    // payload ko lagbhag do guna kar deta hai, jabki render me kabhi use nahi hota
+    for (const key of ['version', 'deletedAt', 'searchText', 'authorId', 'templateId']) {
+      expect(entry[key]).toBeUndefined()
+    }
+  })
+
+  it('draft resolve nahi hota — 404', async () => {
+    await createEntry(adminJar, { title: 'Chhupa Hua' })
+
+    expect((await resolve('/packages/chhupa-hua')).status).toBe(404)
+  })
+
+  it('private published hone ke baawajood public pe nahi dikhta', async () => {
+    // `private` = published, par sirf logged-in user ko (02-ARCHITECTURE §5). Ye endpoint
+    // bina auth ke hai
+    const created = await createEntry(adminJar, { title: 'Staging Package' })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({
+      visibility: 'private',
+    })
+
+    expect((await resolve('/packages/staging-package')).status).toBe(404)
+  })
+
+  it('scheduled jiska waqt aa gaya wo dikhta hai — cron band ho to bhi', async () => {
+    // Self-healing (R2): `isPubliclyVisible` khud `scheduled && publishAt <= now` ko
+    // published maanti hai
+    const created = await createEntry(adminJar, { title: 'Due Package' })
+    await Entry.updateOne(
+      { _id: created.body.data.entry.id },
+      { $set: { status: 'scheduled', publishAt: new Date(Date.now() - 1000) } },
+    )
+
+    expect((await resolve('/packages/due-package')).status).toBe(200)
+  })
+
+  it('slug badal jaaye to purana path redirect deta hai, 404 nahi', async () => {
+    const id = await publishedPackage()
+    const current = await Entry.findById(id).lean()
+
+    await authed('patch', `/api/entries/${id}`, adminJar).send({
+      version: current.version,
+      slug: 'andaman-5n',
+    })
+
+    const res = await resolve('/packages/andaman-5-nights')
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.kind).toBe('redirect')
+    expect(res.body.data.to).toBe('/packages/andaman-5n')
+    expect(res.body.data.statusCode).toBe(301)
+  })
+
+  it('references resolve ho kar jaate hain — theme ko id se naam nahi dhoondhna padta', async () => {
+    const goa = (
+      await authed('post', '/api/taxonomies', adminJar).send({ type: 'destination', name: 'Goa' })
+    ).body.data.taxonomy
+
+    const ferry = (
+      await authed('post', '/api/transfers', adminJar).send({ name: 'Ferry', icon: 'ferry' })
+    ).body.data.item
+
+    await publishedPackage({
+      taxonomies: { destinations: [goa.id] },
+      fields: {
+        itinerary: [
+          { title: 'Day 1', overnightStayId: goa.id, transferId: ferry.id, transferNote: '90 min' },
+        ],
+      },
+    })
+
+    const { entry } = (await resolve('/packages/andaman-5-nights')).body.data
+
+    expect(entry.destinations).toEqual([{ id: goa.id, name: 'Goa', slug: 'goa' }])
+    expect(entry.itinerary[0].stay.name).toBe('Goa')
+    expect(entry.itinerary[0].transfer).toMatchObject({ name: 'Ferry', icon: 'ferry' })
+    expect(entry.itinerary[0].transferNote).toBe('90 min')
+  })
+
+  it('route strip server pe banti hai — theme use derive nahi karta', async () => {
+    const [pb, hv] = await Promise.all(
+      ['Port Blair', 'Havelock'].map(async (name) => {
+        const res = await authed('post', '/api/taxonomies', adminJar).send({
+          type: 'destination',
+          name,
+        })
+        return res.body.data.taxonomy
+      }),
+    )
+
+    await publishedPackage({
+      taxonomies: { destinations: [pb.id, hv.id] },
+      fields: {
+        itinerary: [
+          { title: 'Day 1', overnightStayId: pb.id },
+          { title: 'Day 2', overnightStayId: hv.id },
+          { title: 'Day 3', overnightStayId: hv.id },
+          { title: 'Day 4' },
+        ],
+      },
+    })
+
+    const { entry } = (await resolve('/packages/andaman-5-nights')).body.data
+
+    expect(entry.routeStrip).toHaveLength(2)
+    expect(entry.routeStrip[0]).toMatchObject({ from: 1, to: 1, nights: 1 })
+    expect(entry.routeStrip[0].stay.name).toBe('Port Blair')
+    expect(entry.routeStrip[1]).toMatchObject({ from: 2, to: 3, nights: 2 })
+    expect(entry.routeStrip[1].stay.name).toBe('Havelock')
+  })
+
+  it('anjaan path pe 404, aur bina path ke 400', async () => {
+    expect((await resolve('/kuch-bhi')).status).toBe(404)
+    expect((await request(app).get('/api/public/resolve')).status).toBe(400)
+  })
+})
