@@ -27,9 +27,13 @@ Teen faisle **D-48** me.
 `availability` (`Sold Out` ab status nahi, alag field hai), aur `taxonomyTypes` ka gate.
 Field DSL me ek naya type juda — `tags` (chips).
 
-**Agla kaam: Slice 3 ki admin screens** — `s-packages` (list) aur `s-package-edit`.
-**Design frozen hai (R15)** — `docs/reference/admin-design.html` ke hisaab se hi banega,
-aur kuch theek na lage to pehle poochho.
+**Slice 3 poori ho chuki (26 Aug)** — API aur screens dono. Saath me Slice 2 ki saat
+screens bhi ban gayin (Destinations · Package Type · Hotels · Add Ons · Transfer ·
+What's Included · Itinerary Images), kyunki unke bina package editor me chunne ko kuch
+hota hi nahi.
+
+**Agla kaam: Slice 4 — Itinerary Builder** (spec 007 §3). Uske saath **A-8** (Overview ka
+TipTap) bhi kar lena theek rahega — dono ek hi editor screen pe hain.
 
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
@@ -70,12 +74,15 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Slice 2  master lists + defaults   ✅  26 Aug — D-48, migration 010
           A-6 + A-7 (Slice 3 ke blocker)   ✅  26 Aug — D-49, migration 011
           Slice 3  API (field set etc.)      ✅  26 Aug — D-50, migration 012
-          Slice 3  admin ki screens          🔴  ← agla kaam (design frozen, R15)
+          Slice 3  admin ki screens          ✅  26 Aug — list + editor
+          Slice 2  ki saat screens           ✅  26 Aug — taxonomy + master lists
+          A-8      Overview ka TipTap        🟡  abhi textarea hai
+          Slice 4  Itinerary Builder         🔴  ← agla kaam
           Slice 4-7                          🔴  specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 504 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 518 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 

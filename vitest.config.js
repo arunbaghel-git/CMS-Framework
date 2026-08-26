@@ -5,6 +5,26 @@ export default defineConfig({
     include: ['**/*.test.{js,jsx}'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
 
+    /**
+     * Vitest ka default 5s/10s hai — hamare integration tests ke liye wo kam pad gaya.
+     *
+     * Wajah koi bug nahi, **asli kaam** hai: har `beforeEach` collections saaf karti hai,
+     * roles aur content types seed karti hai, aur 3-4 users banati hai. Password hashing
+     * `bcryptjs` cost 12 pe hai (D-32) — ek hash ~200-300ms, aur har file me 4 hash + 4
+     * compare hote hain. Vitest files ko parallel chalata hai, to ek hi Mongo pe kai worker
+     * ye sab ek saath karte hain.
+     *
+     * Lakshan bilkul dhokha dene wala tha: pehla `beforeEach` timeout hota tha, uski
+     * cleanup adhoori reh jaati thi, aur uske baad ke tests "A user with this email already
+     * exists" pe girte the — jaise koi asli bug ho. Har file **akele chalane pe pass** hoti
+     * thi, aur yahi is failure ka sabse bada surag tha.
+     *
+     * Cost ghatana galat fix hota: wo production ka security parameter hai (D-32), test ki
+     * sahulat ke liye badalne ki cheez nahi.
+     */
+    hookTimeout: 30_000,
+    testTimeout: 30_000,
+
     // Env validation boot pe chalti hai (spec 003) — test me valid values chahiye,
     // warna app import karte hi process.exit(1) ho jaayega.
     env: {

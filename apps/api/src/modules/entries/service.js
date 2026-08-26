@@ -212,6 +212,43 @@ export async function countEntriesUsingTaxonomy(taxonomyId, siteId = DEFAULT_SIT
   })
 }
 
+/**
+ * Kai taxonomies ka usage ek saath — `{ [taxonomyId]: count }`.
+ *
+ * Taxonomy list screen har row pe "Packages" ka number dikhati hai. Har row ke liye alag
+ * query karna N+1 hai: 40 destinations ki list = 41 requests. Ek aggregate me poori page
+ * ka jawab aa jaata hai.
+ *
+ * Trashed entries yahan **nahi** gini jaatin — ye number client ko dikhta hai ("is
+ * destination pe 12 packages hain"), aur trash me padi cheez uske liye maujood nahi hai.
+ * Delete ka guard iske alawa hai aur wo trash ko bhi ginta hai (`countEntriesUsingTaxonomy`).
+ *
+ * @param {string[]} ids
+ * @param {string} refKey `destinations` jaisi key
+ */
+export async function countEntriesByTaxonomy(ids, refKey, siteId = DEFAULT_SITE_ID) {
+  if (!ids?.length || !TAXONOMY_REF_KEYS.includes(refKey)) return {}
+
+  const field = `taxonomies.${refKey}`
+  /**
+   * Aggregate me field ka reference "$" se shuru hota hai (`$taxonomies.destinations`),
+   * jabki `$match` ki key bina "$" ke hoti hai. Ye do alag cheezein hain aur inhe ek hi
+   * template me likhna aasaan galti hai — Mongo ka message tab bilkul saaf hota hai
+   * ("path option to $unwind stage should be prefixed with a $"), par sirf tab jab wo
+   * chal jaaye.
+   */
+  const fieldRef = '$' + field
+
+  const rows = await Entry.aggregate([
+    { $match: { siteId, deletedAt: null, [field]: { $in: ids } } },
+    { $unwind: fieldRef },
+    { $match: { [field]: { $in: ids } } },
+    { $group: { _id: fieldRef, count: { $sum: 1 } } },
+  ])
+
+  return Object.fromEntries(rows.map((r) => [String(r._id), r.count]))
+}
+
 // ── slug + path ──────────────────────────────────────────────────────────────
 
 /**
@@ -513,6 +550,34 @@ export async function listEntries(query, siteId = DEFAULT_SITE_ID, locale = DEFA
   return { entries: docs.map(toApi), meta: { page, limit, total } }
 }
 
+/**
+ * List screen ke tabs ke counts — All · Published · Drafts · Sold Out · Trash.
+ *
+ * **Ek call me sab**, paanch alag requests se nahi: tabs ek saath render hote hain, aur
+ * paanch requests ka matlab hai paanch alag waqt ke jawab — ek tab 58 dikhata aur doosra
+ * 57, aur wo farq kabhi samajh nahi aata.
+ *
+ * `all` me trash **nahi** hai. WordPress se yahi ummeed hai, aur "All (64)" ke baad
+ * "Trash (1)" dikhna hi tab wo 64 ko 65 nahi banata.
+ */
+export async function entryCounts(type, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const base = { ...scope(siteId, locale), type }
+  const live = { ...base, deletedAt: null }
+
+  const [all, published, draft, pending, scheduled, isPrivate, soldOut, trash] = await Promise.all([
+    Entry.countDocuments(live),
+    Entry.countDocuments({ ...live, status: ENTRY_STATUS.PUBLISHED }),
+    Entry.countDocuments({ ...live, status: ENTRY_STATUS.DRAFT }),
+    Entry.countDocuments({ ...live, status: ENTRY_STATUS.PENDING }),
+    Entry.countDocuments({ ...live, status: ENTRY_STATUS.SCHEDULED }),
+    Entry.countDocuments({ ...live, status: ENTRY_STATUS.PRIVATE }),
+    Entry.countDocuments({ ...live, availability: AVAILABILITY.SOLD_OUT }),
+    Entry.countDocuments({ ...base, deletedAt: { $ne: null } }),
+  ])
+
+  return { all, published, draft, pending, scheduled, private: isPrivate, soldOut, trash }
+}
+
 /** Ek entry — trash me padi ho to bhi milti hai, taaki Trash screen use dikha sake. */
 export async function getEntry(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
   const doc = await Entry.findOne({ _id: id, ...scope(siteId, locale) }).lean()
@@ -716,11 +781,21 @@ export async function publishEntry(
   const publishAt = input.publishAt ? new Date(input.publishAt) : null
   const isFuture = publishAt && publishAt.getTime() > Date.now()
 
+  /**
+   * `private` = published, par sirf logged-in user ko dikhta hai (02-ARCHITECTURE §5).
+   *
+   * Scheduled + private ek saath ka koi matlab nahi banta: schedule ka poora point hai
+   * "us waqt public ho jaana". Isliye future `publishAt` ke saath visibility ignore hoti
+   * hai — wo schedule ke din ki baat hai.
+   */
+  const publishedStatus =
+    input.visibility === 'private' ? ENTRY_STATUS.PRIVATE : ENTRY_STATUS.PUBLISHED
+
   const updated = await Entry.findOneAndUpdate(
     { _id: id },
     {
       $set: {
-        status: isFuture ? ENTRY_STATUS.SCHEDULED : ENTRY_STATUS.PUBLISHED,
+        status: isFuture ? ENTRY_STATUS.SCHEDULED : publishedStatus,
         publishAt: publishAt ?? new Date(),
         version: current.version + 1,
       },
@@ -936,6 +1011,71 @@ export async function purgeEntry(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_
   await invalidate(current)
 
   return { id: String(id) }
+}
+
+// ── bulk ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Bulk action — list screen ke checkbox se chuni hui rows pe.
+ *
+ * **Fail-soft, per-row.** Ek row ka fail hona baaki 49 ko nahi rokta: jawab me
+ * `{ updated, failed[] }` jaata hai aur screen batati hai ki kaunsi row kyun rahi.
+ * All-or-nothing rakhne ka matlab hota ki ek bachche wale page ki wajah se poora bulk
+ * trash chup-chaap kuch na kare.
+ *
+ * Har row pe wahi guard chalti hai jo single action pe chalti hai — bulk permission ka
+ * shortcut nahi hai. `.own` wala check bhi har row pe alag lagta hai, isliye ek author
+ * apne aur doosron ke items ek saath chun le to sirf apne wale badalte hain.
+ */
+export async function bulkEntries(input, actor, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const { ids, action } = input
+  const failed = []
+  let updated = 0
+
+  for (const id of ids) {
+    try {
+      if (action === 'trash') {
+        await trashEntry(id, actor, siteId, locale)
+      } else if (action === 'restore') {
+        await restoreEntry(id, siteId, locale)
+      } else {
+        const current = await Entry.findOne({
+          _id: id,
+          ...scope(siteId, locale),
+          deletedAt: null,
+        }).lean()
+
+        if (!current) throw notFound('Item not found')
+
+        assertCan(actor, current, PERMISSION.ENTRY_UPDATE, PERMISSION.ENTRY_UPDATE_OWN)
+
+        const contentType = await requireContentType(current.type, siteId)
+        const $set = { version: current.version + 1 }
+
+        if (action === 'feature' || action === 'unfeature') {
+          $set.fields = { ...(current.fields ?? {}), featured: action === 'feature' }
+        } else {
+          $set.availability = availabilityFor(
+            action === 'soldOut' ? AVAILABILITY.SOLD_OUT : AVAILABILITY.OPEN,
+            contentType,
+          )
+        }
+
+        const doc = await Entry.findOneAndUpdate({ _id: id }, { $set }, { new: true })
+        await invalidate(doc)
+      }
+
+      updated += 1
+    } catch (err) {
+      /**
+       * Sirf wo error jo hum khud phenkte hain (`AppError`) user ko dikhane laayak hai.
+       * Baaki kuch bhi ho to ek generic line — stack trace kabhi client tak nahi jaata.
+       */
+      failed.push({ id: String(id), message: err?.status ? err.message : 'Could not update' })
+    }
+  }
+
+  return { updated, failed }
 }
 
 // ── duplicate ────────────────────────────────────────────────────────────────

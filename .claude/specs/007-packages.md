@@ -544,15 +544,18 @@ SLICE 2   Master lists (chhoti screens, ek jaisi) + packageDefaults   ✅ 26 Aug
           Destinations · Package Type · Transfer · Add Ons · Hotels
           packageDefaults — What's Included · booking steps · cancellation
           → client apni vocabulary bhar sakta hai
-          API taiyaar · 30 naye test · migration 010 · D-48
-          Screens abhi nahi bani — wo admin ka kaam hai (§5)
+          ✅ API — 30 test · migration 010 · D-48
+          ✅ Screens — Destinations · Package Type · Hotels · Add Ons ·
+             Transfer · What's Included · Itinerary Images (26 Aug)
 
 SLICE 3   All Packages list + Add New (basic)                        🟡 API poora
           title · slug · shortDescription · overview · nights/days · banner
           destinations · packageTypes · status
           → client package bana kar publish kar sakta hai
           ✅ 26 Aug — field set, availability, taxonomyTypes ka gate (D-50)
-          🔴 bacha: admin ki screens (s-packages + s-package-edit)
+          ✅ 26 Aug — All Packages list + Add New/Edit screens
+             tabs (counts ek call me) · filters · bulk actions · row actions
+          🔴 bacha: Overview ka WYSIWYG (abhi textarea) — TipTap agla kadam
 
 SLICE 4   Itinerary Builder
           din · overnight stay · description · highlights · meals · transfer

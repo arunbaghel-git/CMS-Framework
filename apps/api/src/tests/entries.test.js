@@ -855,9 +855,11 @@ describe('package content type ka shape', () => {
     const pkg = await typeByKey('package')
     const keys = pkg.fields.map((f) => f.key)
 
+    // `overview` yahan JAAN-BOOJH KAR nahi hai — wo entry ka `content` hai, ek richText
+    // block ke andar (D-46 §3). Use ek alag field banana matlab ek hi cheez do jagah:
+    // `content` versioned hai, revisions me jaata hai aur searchText bharta hai
     expect(keys).toEqual([
       'shortDescription',
-      'overview',
       'nights',
       'days',
       'bannerImage',
@@ -866,6 +868,7 @@ describe('package content type ka shape', () => {
       'featured',
       'seoSchema',
     ])
+    expect(keys).not.toContain('overview')
   })
 
   it('bestFor chips hai — tags field type (spec 007 §9 #7)', async () => {
@@ -1011,5 +1014,235 @@ describe('package ke custom fields', () => {
     // searchText custom fields ka text bhi uthata hai — admin apne likhe shabd dhoondh sake
     const found = await authed('get', '/api/entries?q=First-timers', adminJar)
     expect(found.body.data.entries).toHaveLength(1)
+  })
+})
+
+// ── list ke tabs ke counts (Slice 3) ─────────────────────────────────────────
+
+describe('GET /api/entries/counts', () => {
+  it('paanchon tab ke number ek hi call me deta hai', async () => {
+    // Paanch alag requests ka matlab hota paanch alag waqt ke jawab: ek tab 58 dikhata
+    // aur doosra 57, aur wo farq kabhi samajh nahi aata
+    const a = (await createEntry(adminJar, { title: 'Published One' })).body.data.entry
+    const b = (await createEntry(adminJar, { title: 'Sold One' })).body.data.entry
+    const c = (await createEntry(adminJar, { title: 'Trashed One' })).body.data.entry
+    await createEntry(adminJar, { title: 'Draft One' })
+
+    await authed('post', `/api/entries/${a.id}/publish`, adminJar).send({})
+    await authed('patch', `/api/entries/${b.id}`, adminJar).send({
+      version: 0,
+      availability: 'soldOut',
+    })
+    await authed('post', `/api/entries/${c.id}/trash`, adminJar).send({})
+
+    const res = await authed('get', '/api/entries/counts?type=package', adminJar)
+    const { counts } = res.body.data
+
+    // all me trash NAHI hai — "All (64)" ke baad "Trash (1)" 64 ko 65 nahi banata
+    expect(counts.all).toBe(3)
+    expect(counts.published).toBe(1)
+    expect(counts.draft).toBe(2)
+    expect(counts.soldOut).toBe(1)
+    expect(counts.trash).toBe(1)
+  })
+
+  it('counts sirf maange gaye type ke hote hain', async () => {
+    await createEntry(adminJar, { title: 'Package' })
+    await createPage(adminJar, { title: 'Page' })
+
+    const res = await authed('get', '/api/entries/counts?type=package', adminJar)
+
+    expect(res.body.data.counts.all).toBe(1)
+  })
+
+  it('type ke bina 400', async () => {
+    expect((await authed('get', '/api/entries/counts', adminJar)).status).toBe(400)
+  })
+})
+
+// ── bulk actions (Slice 3) ───────────────────────────────────────────────────
+
+describe('POST /api/entries/bulk', () => {
+  it('chuni hui rows ko sold out kar deta hai', async () => {
+    const a = (await createEntry(adminJar, { title: 'One' })).body.data.entry
+    const b = (await createEntry(adminJar, { title: 'Two' })).body.data.entry
+
+    const res = await authed('post', '/api/entries/bulk', adminJar).send({
+      ids: [a.id, b.id],
+      action: 'soldOut',
+    })
+
+    expect(res.body.data.updated).toBe(2)
+    expect((await Entry.findById(a.id).lean()).availability).toBe('soldOut')
+    expect((await Entry.findById(b.id).lean()).availability).toBe('soldOut')
+  })
+
+  it('featured set aur remove dono karta hai', async () => {
+    const a = (await createEntry(adminJar, { title: 'One' })).body.data.entry
+
+    await authed('post', '/api/entries/bulk', adminJar).send({ ids: [a.id], action: 'feature' })
+    expect((await Entry.findById(a.id).lean()).fields.featured).toBe(true)
+
+    await authed('post', '/api/entries/bulk', adminJar).send({ ids: [a.id], action: 'unfeature' })
+    expect((await Entry.findById(a.id).lean()).fields.featured).toBe(false)
+  })
+
+  it('fail-soft hai — ek row ka fail hona baaki ko nahi rokta', async () => {
+    // Bachche wale page ka trash rukta hai (D-47 §5). All-or-nothing rakhne ka matlab
+    // hota ki uski wajah se poora bulk chup-chaap kuch na kare
+    const about = (await createPage(adminJar, { title: 'About' })).body.data.entry
+    await createPage(adminJar, { title: 'Team', parentId: about.id })
+    const solo = (await createPage(adminJar, { title: 'Contact' })).body.data.entry
+
+    const res = await authed('post', '/api/entries/bulk', adminJar).send({
+      ids: [about.id, solo.id],
+      action: 'trash',
+    })
+
+    expect(res.body.data.updated).toBe(1)
+    expect(res.body.data.failed).toHaveLength(1)
+    expect(res.body.data.failed[0].id).toBe(String(about.id))
+    expect((await Entry.findById(solo.id).lean()).deletedAt).toBeTruthy()
+    expect((await Entry.findById(about.id).lean()).deletedAt).toBeNull()
+  })
+
+  it('bulk permission ka shortcut nahi hai — author sirf apne items badal paata hai', async () => {
+    const mine = (await createEntry(authorJar, { title: 'Mera' })).body.data.entry
+    const theirs = (await createEntry(adminJar, { title: 'Unka' })).body.data.entry
+
+    const res = await authed('post', '/api/entries/bulk', authorJar).send({
+      ids: [mine.id, theirs.id],
+      action: 'soldOut',
+    })
+
+    expect(res.body.data.updated).toBe(1)
+    expect(res.body.data.failed).toHaveLength(1)
+    expect((await Entry.findById(theirs.id).lean()).availability).toBe('open')
+  })
+
+  it('trash se restore bhi bulk hota hai', async () => {
+    const a = (await createEntry(adminJar, { title: 'One' })).body.data.entry
+    await authed('post', `/api/entries/${a.id}/trash`, adminJar).send({})
+
+    const res = await authed('post', '/api/entries/bulk', adminJar).send({
+      ids: [a.id],
+      action: 'restore',
+    })
+
+    expect(res.body.data.updated).toBe(1)
+    expect((await Entry.findById(a.id).lean()).deletedAt).toBeNull()
+  })
+
+  it('purge bulk se nahi hota — permanent delete ek-ek karke hi', async () => {
+    // 50 rows ek click me hamesha ke liye mitane ka koi undo nahi hai
+    const a = (await createEntry(adminJar, { title: 'One' })).body.data.entry
+
+    const res = await authed('post', '/api/entries/bulk', adminJar).send({
+      ids: [a.id],
+      action: 'purge',
+    })
+
+    expect(res.status).toBe(400)
+  })
+})
+
+// ── visibility (design ka Publish panel) ─────────────────────────────────────
+
+describe('visibility', () => {
+  it('private publish karne pe status private hota hai — koi naya field nahi', async () => {
+    // spec 007 §2: "Visibility ka koi naya field nahi hai" — wo status: 'private' hi hai
+    const created = await createEntry(adminJar, { title: 'Staging Package' })
+
+    const res = await authed(
+      'post',
+      `/api/entries/${created.body.data.entry.id}/publish`,
+      adminJar,
+    ).send({ visibility: 'private' })
+
+    expect(res.body.data.entry.status).toBe('private')
+  })
+
+  it('public par wapas laaya ja sakta hai', async () => {
+    const created = await createEntry(adminJar, { title: 'Staging Package' })
+    const { id } = created.body.data.entry
+
+    await authed('post', `/api/entries/${id}/publish`, adminJar).send({ visibility: 'private' })
+    const res = await authed('post', `/api/entries/${id}/publish`, adminJar).send({
+      visibility: 'public',
+    })
+
+    expect(res.body.data.entry.status).toBe('published')
+  })
+
+  it('future publishAt ke saath visibility ignore hoti hai — scheduled hi rehta hai', async () => {
+    // Schedule ka poora point hai "us waqt public ho jaana"; private + scheduled ka koi
+    // matlab nahi banta
+    const created = await createEntry(adminJar, { title: 'Later' })
+
+    const res = await authed(
+      'post',
+      `/api/entries/${created.body.data.entry.id}/publish`,
+      adminJar,
+    ).send({
+      publishAt: new Date(Date.now() + 3600_000).toISOString(),
+      visibility: 'private',
+    })
+
+    expect(res.body.data.entry.status).toBe('scheduled')
+  })
+})
+
+// ── taxonomy list ka usage count (Slice 2 ki screen ke liye) ─────────────────
+
+describe('taxonomy list ka usageCount', () => {
+  it('har row pe batata hai kitni entries use kar rahi hain', async () => {
+    // Ye aggregate pe chalta hai, N+1 queries pe nahi. Pehli baar likhte waqt `$unwind`
+    // ka field reference bina `$` ke chala gaya tha aur poori list 500 deti thi — is
+    // test ke bina wo sirf screen kholne pe pakda jaata
+    const goa = (
+      await authed('post', '/api/taxonomies', adminJar).send({
+        type: 'destination',
+        name: 'Goa',
+      })
+    ).body.data.taxonomy
+
+    const kerala = (
+      await authed('post', '/api/taxonomies', adminJar).send({
+        type: 'destination',
+        name: 'Kerala',
+      })
+    ).body.data.taxonomy
+
+    await createEntry(adminJar, { title: 'Goa One', taxonomies: { destinations: [goa.id] } })
+    await createEntry(adminJar, { title: 'Goa Two', taxonomies: { destinations: [goa.id] } })
+
+    const res = await authed('get', '/api/taxonomies?type=destination', adminJar)
+    const byId = Object.fromEntries(res.body.data.taxonomies.map((t) => [t.id, t.usageCount]))
+
+    expect(res.status).toBe(200)
+    expect(byId[goa.id]).toBe(2)
+    expect(byId[kerala.id]).toBe(0)
+  })
+
+  it('trash me padi entry usageCount me nahi ginti', async () => {
+    // Ye number client ko dikhta hai ("is destination pe 2 packages hain") — trash me
+    // padi cheez uske liye maujood nahi hai. Delete ka guard alag hai aur wo trash bhi
+    // ginta hai
+    const goa = (
+      await authed('post', '/api/taxonomies', adminJar).send({
+        type: 'destination',
+        name: 'Goa',
+      })
+    ).body.data.taxonomy
+
+    const entry = (
+      await createEntry(adminJar, { title: 'Goa One', taxonomies: { destinations: [goa.id] } })
+    ).body.data.entry
+
+    await authed('post', `/api/entries/${entry.id}/trash`, adminJar).send({})
+
+    const res = await authed('get', '/api/taxonomies?type=destination', adminJar)
+
+    expect(res.body.data.taxonomies[0].usageCount).toBe(0)
   })
 })

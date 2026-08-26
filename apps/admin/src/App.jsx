@@ -13,6 +13,11 @@ import NotBuiltYet from './screens/NotBuiltYet.jsx'
 import Profile from './screens/Profile.jsx'
 import AppearanceFooter from './screens/appearance/Footer.jsx'
 import Menus from './screens/appearance/Menus.jsx'
+import MasterListScreen from './screens/packages/MasterListScreen.jsx'
+import PackageDefaults from './screens/packages/PackageDefaults.jsx'
+import PackageEdit from './screens/packages/PackageEdit.jsx'
+import TaxonomyScreen from './screens/packages/TaxonomyScreen.jsx'
+import PackagesList from './screens/packages/PackagesList.jsx'
 import General from './screens/settings/General.jsx'
 import DeleteUser from './screens/users/DeleteUser.jsx'
 import UserForm from './screens/users/UserForm.jsx'
@@ -113,6 +118,47 @@ function Shell({ children }) {
  * lagta hai, aur profile ko usse chhoot deni padti — wo chhoot hi aage toot-ti.
  */
 const APP_ROUTES = [
+  { path: '/packages', element: <PackagesList /> },
+  /**
+   * `/packages/new` `/packages/:id` se **pehle** hai.
+   *
+   * React Router ka ranking waise bhi static segment ko dynamic se upar rakhta hai, par
+   * order yahan bhi wahi rakha gaya hai — list padhne wale ko ye sochna na pade ki "new"
+   * kahin ek id ki tarah to nahi padha ja raha.
+   */
+  { path: '/packages/new', element: <PackageEdit /> },
+  {
+    path: '/packages/destinations',
+    element: (
+      <TaxonomyScreen
+        type="destination"
+        title="Destination"
+        subtitle="Hierarchical taxonomy shared by Posts and Packages."
+        hierarchical
+        hasBanner
+      />
+    ),
+  },
+  {
+    path: '/packages/types',
+    element: (
+      <TaxonomyScreen
+        type="packageType"
+        title="Package Type"
+        subtitle="Flat list — Honeymoon, Adventure, Family. List me iska column 'Theme' hai."
+      />
+    ),
+  },
+  { path: '/packages/hotels', element: <MasterListScreen list="hotels" /> },
+  { path: '/packages/add-ons', element: <MasterListScreen list="addOns" /> },
+  { path: '/packages/transfers', element: <MasterListScreen list="transfers" /> },
+  { path: '/packages/whats-included', element: <PackageDefaults section="whatsIncluded" /> },
+  { path: '/packages/itinerary-images', element: <PackageDefaults section="itineraryImages" /> },
+  /**
+   * `/packages/:id` sabse **aakhir** me — warna wo `destinations`, `hotels` jaise har
+   * static segment ko ek entry id ki tarah padh leta.
+   */
+  { path: '/packages/:id', element: <PackageEdit /> },
   { path: '/users', element: <UsersList /> },
   { path: '/users/new', element: <UserForm /> },
   { path: '/users/:id', element: <UserForm /> },
@@ -128,7 +174,13 @@ const PENDING_ROUTES = [
   { path: '/posts/*', title: 'Posts', phase: 'Phase 1' },
   { path: '/pages/*', title: 'Pages', phase: 'Phase 1' },
   { path: '/media/*', title: 'Media', phase: 'Phase 2' },
-  { path: '/packages/*', title: 'Packages', phase: 'Phase 6' },
+  /**
+   * Packages ke bane hue teen screens upar `APP_ROUTES` me hain. Ye splat sirf uske andar
+   * ke baaki raaston ke liye hai — Destinations, Package Type, Hotels, Add Ons, Transfer,
+   * What's Included aur Itinerary Images. Unka **API ban chuka hai** (Slice 2); sirf screens
+   * baaki hain.
+   */
+  { path: '/packages/*', title: 'Packages', phase: 'Slice 2 ki screens' },
   { path: '/enquiries/*', title: 'Enquiries', phase: 'Phase 7b' },
   /**
    * Appearance ke bane hue do screens upar `APP_ROUTES` me hain. Ye splat sirf uske

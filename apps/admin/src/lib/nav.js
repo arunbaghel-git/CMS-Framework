@@ -53,16 +53,47 @@ export const NAV = [
     ],
   },
   { separator: true },
+  /**
+   * Packages — submenu **client ki 26 Aug wali list se** hai (spec 007 "Scope me kya hai"),
+   * design ke purane paanch item se nahi. Ye R15 ke against nahi hai: badlaav client se
+   * hi aaya hai.
+   *
+   * Teen farq:
+   *
+   * - **"Travel Themes" ab "Package Type" hai** (spec 007 §1.2). Editor ka free-tag input
+   *   bhi hat gaya — ab wo ek managed list hai.
+   * - **"Departures & Pricing" hat gaya** — Fixed Departures aur Occupancy Slabs client ne
+   *   hata diye (§5.1), aur baaki pricing package ke apne editor me hai (§4).
+   * - **Paanch nayi lists judi** — Hotels · Add Ons · What's Included · Itinerary Images ·
+   *   Transfer.
+   *
+   * **"Inclusion/Exclusion" jaan-boojh kar nahi hai.** Client ne wo naam bhi bataya tha, par
+   * dono ka target ek hi block hai (§1.5) — do menu item ek hi screen pe le jaate to wo
+   * "do alag cheezein hain" ka jhootha ishaara deta. Agar wo sach me alag nikle to yahan ek
+   * line judegi (spec 007 §9 #2 abhi khula hai).
+   */
   {
     id: 'packages',
     icon: '🧳',
     label: 'Packages',
     children: [
-      { label: 'All Packages', to: '/packages' },
-      { label: 'Add New', to: '/packages/new' },
-      { label: 'Destinations', to: '/packages/destinations' },
-      { label: 'Travel Themes', to: '/packages/themes' },
-      { label: 'Departures & Pricing', to: '/packages/departures' },
+      { label: 'All Packages', to: '/packages', permission: PERMISSION.ENTRY_READ },
+      { label: 'Add New', to: '/packages/new', permission: PERMISSION.ENTRY_CREATE },
+      { label: 'Destinations', to: '/packages/destinations', permission: PERMISSION.TAXONOMY_READ },
+      { label: 'Package Type', to: '/packages/types', permission: PERMISSION.TAXONOMY_READ },
+      { label: 'Hotels', to: '/packages/hotels', permission: PERMISSION.HOTEL_READ },
+      { label: 'Add Ons', to: '/packages/add-ons', permission: PERMISSION.ADD_ON_READ },
+      { label: 'Transfer', to: '/packages/transfers', permission: PERMISSION.TRANSFER_READ },
+      {
+        label: "What's Included",
+        to: '/packages/whats-included',
+        permission: PERMISSION.PACKAGE_DEFAULTS_READ,
+      },
+      {
+        label: 'Itinerary Images',
+        to: '/packages/itinerary-images',
+        permission: PERMISSION.PACKAGE_DEFAULTS_READ,
+      },
     ],
   },
   {
@@ -172,6 +203,24 @@ export const APPEARANCE_TABS = NAV.find((item) => item.id === 'appearance').chil
  * Jo path yahan nahi hai wo har logged-in user ke liye khula hai (jaise `/profile`).
  */
 export const ROUTE_GUARDS = Object.freeze({
+  /**
+   * Packages — list `entry.read` pe, editor `entry.update` **ya** uska `.own` pe.
+   *
+   * Editor pe sirf `entry.read` maangna galat hota: screen kholte hi save ka raasta khul
+   * jaata hai. Wahi tark jo `/users/:id` pe likha hua hai. Asli `.own` check phir bhi
+   * server pe hai — yahan sirf "andar aane do" wala layer hai (D-37).
+   */
+  '/packages': PERMISSION.ENTRY_READ,
+  '/packages/new': PERMISSION.ENTRY_CREATE,
+  '/packages/:id': PERMISSION.ENTRY_READ,
+  '/packages/destinations': PERMISSION.TAXONOMY_READ,
+  '/packages/types': PERMISSION.TAXONOMY_READ,
+  '/packages/hotels': PERMISSION.HOTEL_READ,
+  '/packages/add-ons': PERMISSION.ADD_ON_READ,
+  '/packages/transfers': PERMISSION.TRANSFER_READ,
+  '/packages/whats-included': PERMISSION.PACKAGE_DEFAULTS_READ,
+  '/packages/itinerary-images': PERMISSION.PACKAGE_DEFAULTS_READ,
+
   '/users': PERMISSION.USER_READ,
   '/users/new': PERMISSION.USER_INVITE,
   /**

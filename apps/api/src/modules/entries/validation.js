@@ -21,10 +21,38 @@ export { entryCreateSchema, entryListQuerySchema, entryUpdateSchema }
 export const publishEntrySchema = z
   .object({
     publishAt: z.coerce.date().nullable().optional(),
+    /**
+     * `public` | `private` — design ke Publish panel ka "Visibility".
+     *
+     * Ye koi naya field **nahi** hai: `private` spec 002 se hi ek status hai (published,
+     * par sirf logged-in user ko dikhta hai). Ise yahan rakha gaya hai kyunki visibility
+     * publish ka hi ek hissa hai — alag endpoint banane ka matlab hota do jagah se ek hi
+     * field likhna, aur ek din wo do alag ho jaate.
+     */
+    visibility: z.enum(['public', 'private']).optional(),
     /** Optimistic concurrency yahan bhi — publish ek write hai (R7). */
     version: z.number().int().nonnegative().optional(),
   })
   .strict()
+
+/**
+ * Bulk action — list screen ke "Bulk actions" dropdown se (design ka `s-packages`).
+ *
+ * `purge` yahan **nahi** hai. Permanent delete ek-ek karke hi hota hai, Trash screen ke
+ * andar se (R12) — 50 rows ek click me hamesha ke liye mitane ka koi undo nahi hai, aur is
+ * CMS ka target user non-technical hai.
+ */
+export const bulkEntrySchema = z
+  .object({
+    ids: z.array(z.string().min(1)).min(1).max(100),
+    action: z.enum(['trash', 'restore', 'feature', 'unfeature', 'soldOut', 'open']),
+  })
+  .strict()
+
+/** Counts ki query — sirf type, kyunki tabs ek hi type ke andar hote hain. */
+export const entryCountsQuerySchema = z.object({
+  type: z.string().min(1),
+})
 
 /** Har query param Zod se (R9) — `req.query` kabhi seedha Mongoose tak nahi jaata. */
 export const revisionListQuerySchema = z.object({

@@ -40,6 +40,62 @@ export function contentFromRichText(doc, id = 'rt1') {
 }
 
 /**
+ * Plain text (har line ek paragraph) → `content` shape.
+ *
+ * Doc **TipTap ke shape me** banta hai (`{ type: 'doc', content: [paragraph…] }`) bhale hi
+ * abhi editor ek saada textarea ho. Wajah seedhi hai: agar aaj yahan ek plain string
+ * store kar di jaaye, to TipTap aane ke din har entry pe ek migration likhni padegi —
+ * aur wo Phase 1 ka documented trap hai (05-BUILD-PLAN).
+ *
+ * @param {string} text
+ * @param {string} [id]
+ */
+export function richTextFromPlain(text, id = 'rt1') {
+  const paragraphs = String(text ?? '')
+    .split(/\n{2,}|\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => ({ type: 'paragraph', content: [{ type: 'text', text: line }] }))
+
+  return contentFromRichText({ type: 'doc', content: paragraphs }, id)
+}
+
+/**
+ * `content` se wapas plain text — editor me dikhane ke liye.
+ *
+ * Sirf `text` nodes uthata hai, isliye TipTap ka bold/italic/link markup gir jaata hai.
+ * Ye jaan-boojh kar hai: jab tak editor plain textarea hai, use wo markup dikhana bhi
+ * nahi chahiye aur save pe wo waise bhi kho jaata. **TipTap aane pe ye function editor
+ * ke raaste se hat jaayega** — doc seedha usme jaayega.
+ *
+ * @param {import('../types.js').Content} content
+ * @returns {string}
+ */
+export function plainFromRichText(content) {
+  const block = (content?.blocks ?? []).find((b) => b.type === 'richText')
+  const doc = block?.props?.doc
+
+  if (typeof doc === 'string') return doc
+
+  const lines = []
+  const walk = (nodes) => {
+    for (const node of nodes ?? []) {
+      if (node.type === 'text' && node.text) lines.push(node.text)
+      if (node.content) walk(node.content)
+    }
+  }
+
+  for (const node of doc?.content ?? []) {
+    const before = lines.length
+    walk([node])
+    // Har top-level paragraph apni line pe — warna poora doc ek lambi line ban jaata hai
+    if (lines.length > before) lines.push('\n')
+  }
+
+  return lines.join('').trim()
+}
+
+/**
  * Tree me duplicate block ids dhoondhta hai.
  *
  * Duplicate ids se builder ke tree operations (move/duplicate/delete) chup-chaap galat

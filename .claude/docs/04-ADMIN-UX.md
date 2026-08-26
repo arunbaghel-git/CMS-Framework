@@ -438,3 +438,51 @@ raha hai, isliye wahin add karna sasta hai.
 | Error message me **kya hua + ab kya karein**    | "Something went wrong" bekaar hai                 |
 | Save ke baad **toast** with clear wording       | "Published" — action ka echo                      |
 | Pre-publish panel me SEO checklist              | Tab me dabaa hua checklist koi nahi dekhta        |
+
+
+---
+
+## Packages ki screens — 26 Aug (Slice 2 + Slice 3)
+
+> Ye section `admin-design.html` ke `#s-packages`, `#s-package-edit` aur `#s-taxonomy` se
+> aata hai. Design **spec** hai (R15); neeche sirf wo farq likhe hain jo **client ke
+> faisle se** aaye, aur wo teenon `03-DECISIONS.md` me hain.
+
+| Screen | File | Aadhaar |
+| --- | --- | --- |
+| All Packages | `screens/packages/PackagesList.jsx` | `#s-packages` |
+| Add New / Edit | `screens/packages/PackageEdit.jsx` | `#s-package-edit` |
+| Destinations · Package Type | `screens/packages/TaxonomyScreen.jsx` | `#s-taxonomy` |
+| Hotels · Add Ons · Transfer | `screens/packages/MasterListScreen.jsx` | naya, `#s-taxonomy` ka layout |
+| What's Included · Itinerary Images | `screens/packages/PackageDefaults.jsx` | naya |
+
+### Ek screen, kai lists
+
+`TaxonomyScreen` aur `MasterListScreen` dono **config se** chalti hain. Wahi wajah jo API
+pe hai (D-48 §1, D-49): jo cheezein ek jaisi hain unhe do jagah likhne ka nateeja is repo
+me do baar dekha ja chuka hai — wo do jagah ek din alag ho jaati hain.
+
+### Design se jo alag hai, aur kyun
+
+| Kya | Kyun |
+| --- | --- |
+| `Code` column nahi hai | Package Code field client ne hata diya (D-50 §2) |
+| `Sold Out` tab `availability` pe filter karta hai | Wo status nahi hai (D-50 §1) |
+| `From price` aur `Enq.` `—` dikhate hain | Pricing Slice 5, Enquiries Phase 7b (D-30) |
+| Editor ki WYSIWYG toolbar nahi hai | Ek toolbar jo kuch kare hi na, wo "toota hua" lagta hai. Wahi tark jisse Slice 0 me "Link type" dropdown hataya gaya tha. **TipTap agla kadam** — data ka shape uske liye pehle se sahi hai |
+| Itinerary · Pricing · FAQs ke panels nahi hain | Slice 4-6. Khaali panel dikhana "abhi nahi bana" nahi, "toota hua" lagta hai |
+| Inclusions & Exclusions ka panel nahi hai | Wo ab **global** hai (spec 007 §1.5) |
+| Package Details me paanch field kam hain | Client ne hataye — Package Code, Difficulty, Group Size, Trending ribbon, Enable enquiry form |
+| "Travel Themes" ab **Package Type** hai | Free-tag input ki jagah managed list (spec 007 §1.2) |
+| Taxonomy list me checkbox column nahi | Bulk actions in chhoti liston pe bane hi nahi — wahi precedent jo `UsersList` pe hai |
+
+### Sidebar ka Packages submenu
+
+Client ki 26 Aug wali list se (spec 007 "Scope me kya hai") — design ke purane paanch item
+se nahi. "Departures & Pricing" hat gaya, "Travel Themes" → "Package Type", aur paanch nayi
+lists judin.
+
+**"Inclusion/Exclusion" jaan-boojh kar nahi hai** — client ne wo naam bhi bataya tha, par
+dono ka target ek hi block hai (§1.5). Do menu item ek hi screen pe le jaate to wo "do alag
+cheezein hain" ka jhootha ishaara deta. spec 007 §9 #2 abhi khula hai; wo sach me alag
+nikla to yahan ek line judegi.

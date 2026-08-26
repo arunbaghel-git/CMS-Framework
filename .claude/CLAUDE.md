@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1 + Slice 2 ban chuki hain**
-(**504 tests passing**).
+(**518 tests passing**).
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
@@ -173,11 +173,16 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Slice 1, Slice 2, aur Slice 3 ka **API hissa** land ho chuka hai (D-47 se D-50).
+Slice 1, 2 aur 3 poori ho chuki hain (D-47 se D-50) — API aur screens dono.
 
-Agla kaam **Slice 3 ki admin screens** — `s-packages` (list) aur `s-package-edit`.
+Agla kaam **Slice 4 — Itinerary Builder** (spec 007 §3). Uske saath **A-8** bhi:
+Overview ka editor abhi ek textarea hai, TipTap baaki hai (data ka shape uske liye pehle se
+sahi hai, isliye migration nahi lagegi).
+
 **Design frozen hai (R15)**: `docs/reference/admin-design.html` ke hisaab se hi banega, aur
-build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**.
+build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**. Jo farq abhi liye
+gaye hain wo sab client ke faislon se hain aur `04-ADMIN-UX.md` ke aakhri section me
+table me likhe hain.
 spec 007 §9 ke **15 sawaal** abhi khule hain, par koi bhi plan nahi rokta — har ek apne
 slice pe tay hoga (`09-OPEN-ITEMS.md`).
 

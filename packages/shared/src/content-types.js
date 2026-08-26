@@ -27,6 +27,11 @@ const S = ENTRY_SUPPORT
  *
  * `destinations` aur `packageTypes` yahan **nahi** hain — wo `entry.taxonomies` me hain
  * (D-49), aur kaunsi taxonomies chalti hain wo `taxonomyTypes` batata hai.
+ *
+ * **`overview` bhi yahan nahi hai** — wo entry ka `content` hai, ek `richText` block ke
+ * andar. D-46 §3 me yahi likha tha; use ek alag field banane ka matlab hota ek hi cheez
+ * do jagah: `content` versioned hai, revisions me jaata hai aur `searchText` bharta hai,
+ * aur `fields.overview` inme se kuch nahi karta.
  */
 const PACKAGE_FIELDS = [
   {
@@ -34,12 +39,6 @@ const PACKAGE_FIELDS = [
     type: 'textarea',
     label: 'Short description',
     help: 'Ek line jo title ke neeche dikhti hai',
-  },
-  {
-    key: 'overview',
-    type: 'richText',
-    label: 'Overview',
-    help: 'Page ka "About this itinerary"',
   },
   { key: 'nights', type: 'number', label: 'Nights' },
   { key: 'days', type: 'number', label: 'Days' },

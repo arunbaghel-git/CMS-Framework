@@ -21,6 +21,12 @@ export const entryRoutes = Router()
 entryRoutes.get('/', requireAuth, requirePermission(PERMISSION.ENTRY_READ), controller.list)
 
 /**
+ * `/counts` `/:id` se **pehle** hai — warna Express `counts` ko ek entry id ki tarah
+ * padhta aur har list screen 404 khaati.
+ */
+entryRoutes.get('/counts', requireAuth, requirePermission(PERMISSION.ENTRY_READ), controller.counts)
+
+/**
  * Revisions ki list `/:id` se **pehle** hai — warna Express `/:id` ko pehle match kar
  * leta aur `revisions` ek entry id ki tarah padha jaata.
  */
@@ -34,6 +40,20 @@ entryRoutes.get(
 entryRoutes.get('/:id', requireAuth, requirePermission(PERMISSION.ENTRY_READ), controller.get)
 
 entryRoutes.post('/', requireAuth, requirePermission(PERMISSION.ENTRY_CREATE), controller.create)
+
+/**
+ * Bulk — `/:id` wale raaston se **pehle**, warna `bulk` ek id ban jaata hai.
+ *
+ * Middleware yahan sabse dheeli permission maangta hai (`entry.update` **ya** uska
+ * `.own`), aur asli faisla har row pe service me hota hai — trash wali rows pe
+ * `entry.delete`, restore wali pe `entry.restore`. Bulk permission ka shortcut nahi hai.
+ */
+entryRoutes.post(
+  '/bulk',
+  requireAuth,
+  requireAnyPermission(PERMISSION.ENTRY_UPDATE, PERMISSION.ENTRY_UPDATE_OWN),
+  controller.bulk,
+)
 
 entryRoutes.patch(
   '/:id',

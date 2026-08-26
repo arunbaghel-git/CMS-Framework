@@ -1,0 +1,97 @@
+/* PACKAGES (screens/packages/) */
+
+/*
+ * Yahan **bahut kam** hai — jaan-boojh kar.
+ *
+ * Design ka lagbhag saara shape pehle se `styles/primitives.css` me hai: `.subsubsub`,
+ * `.tablenav`, `.list`, `.badge`, `.panel`, `.edit-grid`, `.checklist`, `.chips`,
+ * `.editor-box`, `.pub-row`, `.featured-drop` — sab. Unhe yahan dobara likhna wahi galti
+ * hoti jo `04-ADMIN-UX` §11.4 mana karta hai: `.btn` das jagah duplicate ho jaata hai aur
+ * ek din wo das alag ho jaate hain.
+ *
+ * Isliye is file me sirf wo hai jo **is screen ka apna** hai.
+ */
+
+/*
+ * Overview ka editor abhi ek `<textarea>` hai, contenteditable `<div>` nahi.
+ *
+ * `.editor-area` uske liye hi likha gaya tha, isliye textarea ko wo look dene ke liye teen
+ * cheezein chahiye: browser ka apna border/background hataana, font inherit karana (warna
+ * textarea monospace pe chala jaata hai), aur vertical resize khula rakhna.
+ *
+ * ⚠️ Ye TipTap aane tak ka hissa hai. Us din ye rule hat jaayega — component badlega,
+ * data ka shape nahi (`richTextFromPlain()` pehle se TipTap ka doc banata hai).
+ */
+.pkg-editor {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  resize: vertical;
+}
+
+.pkg-editor:focus {
+  outline: none;
+}
+
+/*
+ * Sidebar ke panels me checklist lambi ho sakti hai (India → Kerala → Munnar → …).
+ *
+ * Scroll isliye hai ki 40 destinations wala panel poore page ko neeche na dhakel de —
+ * uske neeche Package Type, Gallery aur SEO bhi hain, aur wo screen se bahar chale jaate.
+ */
+.checklist {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/*
+ * Row me badge title ke saath baithti hai (`Featured`, `Sold Out`) — design me wo `.row-title`
+ * ke turant baad hai. Do badge ek saath hon to unke beech saans chahiye.
+ */
+.list .badge + .badge {
+  margin-left: 4px;
+}
+
+/*
+ * Taxonomy aur master-list screens ka do-column layout — design ke `#s-taxonomy` se
+ * (`grid-template-columns:320px minmax(0,1fr)`).
+ *
+ * `.edit-grid` ka apna default package editor ke liye hai (bada left column, patla
+ * sidebar); yahan ulta chahiye — patla form, chaudi list. Specificity `.edit-grid` ke
+ * barabar rakhi gayi hai **jaan-boojh kar** dono class ke saath (`.edit-grid.tax-grid`),
+ * kyunki barabar specificity pe jeet CSS load order se tay hoti hai — aur wahi bug
+ * Slice 0 me `.appearance-grid` pe pakda gaya tha.
+ */
+.edit-grid.tax-grid {
+  grid-template-columns: 320px minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .edit-grid.tax-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Itinerary Images ka pool — chhote thumbs, har ek pe Remove. */
+.pkg-image-grid {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  margin-top: 12px;
+}
+
+.pkg-image-grid .media-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.pkg-image-grid img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 2px;
+}

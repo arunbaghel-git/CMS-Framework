@@ -1,5 +1,7 @@
 import * as entryService from './service.js'
 import {
+  bulkEntrySchema,
+  entryCountsQuerySchema,
   entryCreateSchema,
   entryListQuerySchema,
   entryUpdateSchema,
@@ -23,6 +25,26 @@ export async function list(req, res, next) {
     const { entries, meta } = await entryService.listEntries(query)
 
     res.json({ data: { entries }, meta })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function counts(req, res, next) {
+  try {
+    const { type } = entryCountsQuerySchema.parse(req.query)
+
+    res.json({ data: { counts: await entryService.entryCounts(type) } })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function bulk(req, res, next) {
+  try {
+    const input = bulkEntrySchema.parse(req.body)
+
+    res.json({ data: await entryService.bulkEntries(input, actorOf(req)) })
   } catch (err) {
     next(err)
   }

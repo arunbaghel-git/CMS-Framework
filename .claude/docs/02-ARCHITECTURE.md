@@ -719,9 +719,16 @@ POST   /api/entries                                          ✅
 GET    /api/entries/:id                                      ✅
 PATCH  /api/entries/:id                  version bhejo → mismatch pe 409   ✅
 POST   /api/entries/:id/publish | unpublish | duplicate | submit-review    ✅
+                                         publish { publishAt?, visibility? } —
+                                         visibility: 'private' = status 'private'
+                                         (koi naya field nahi, spec 007 §2)
 POST   /api/entries/:id/trash | restore                      ✅
 DELETE /api/entries/:id                  permanent, sirf Trash ke andar se ✅
-POST   /api/entries/bulk                 { ids[], action }   — Slice 3 (admin list)
+GET    /api/entries/counts?type=         tabs ke counts, ek hi call me  ✅ Slice 3
+POST   /api/entries/bulk                 { ids[], action }             ✅ Slice 3
+                                         trash · restore · feature · unfeature ·
+                                         soldOut · open. **purge yahan nahi** —
+                                         permanent delete ek-ek karke hi (R12)
 GET    /api/entries/:id/revisions                            ✅
 GET    /api/entries/:id/revisions/:rid/diff                  — Phase 1 baad me
 POST   /api/entries/:id/revisions/:rid/restore               ✅
@@ -732,6 +739,8 @@ CRUD   /api/content-types                                    ✅ Slice 1 (write 
 GET    /api/taxonomies?type=destination&q=&parentId=         ✅ Slice 2
 CRUD   /api/taxonomies                   type QUERY me zaroori hai — ek collection
                                          ka matlab ek list hona nahi hai
+                                         list har row pe usageCount deti hai (ek
+                                         aggregate, N+1 nahi)
 CRUD   /api/hotels | /api/add-ons | /api/transfers           ✅ Slice 2
                                          teenon ek hi module se, par alag routes
                                          aur alag permissions (D-48)

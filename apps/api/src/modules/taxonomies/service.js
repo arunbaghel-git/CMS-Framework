@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import {
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
+  TAXONOMY_REF_KEY,
   TAXONOMY_TYPE,
   isHierarchicalTaxonomy,
   slugify,
@@ -22,7 +23,7 @@ import { revalidateTags } from '../../core/revalidate.js'
  * Do sawaal, dono apne ghar me: "ye destination sach hai?" sirf yahan pata hai, aur
  * "is destination pe kitne hotel hain?" sirf wahan.
  */
-import { countEntriesUsingTaxonomy } from '../entries/service.js'
+import { countEntriesByTaxonomy, countEntriesUsingTaxonomy } from '../entries/service.js'
 import { countHotelsForDestination } from '../master-lists/service.js'
 import { Taxonomy } from './model.js'
 
@@ -161,7 +162,21 @@ export async function listTaxonomies(query, siteId = DEFAULT_SITE_ID, locale = D
     Taxonomy.countDocuments(filter),
   ])
 
-  return { taxonomies: docs.map(toApi), meta: { page, limit, total } }
+  /**
+   * Har row ka usage count — list screen ka "Packages" column.
+   *
+   * Ek aggregate, N+1 nahi: 40 destinations ki list ke liye 41 request bhejna wahi galti
+   * hai jo har admin panel ko dheema karti hai (R14 ki hi soch).
+   */
+  const usage = await countEntriesByTaxonomy(
+    docs.map((d) => String(d._id)),
+    TAXONOMY_REF_KEY[type],
+    siteId,
+  )
+
+  const taxonomies = docs.map((doc) => ({ ...toApi(doc), usageCount: usage[String(doc._id)] ?? 0 }))
+
+  return { taxonomies, meta: { page, limit, total } }
 }
 
 export async function getTaxonomy(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
