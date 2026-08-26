@@ -32,8 +32,11 @@ screens bhi ban gayin (Destinations · Package Type · Hotels · Add Ons · Tran
 What's Included · Itinerary Images), kyunki unke bina package editor me chunne ko kuch
 hota hi nahi.
 
-**Agla kaam: Slice 4 — Itinerary Builder** (spec 007 §3). Uske saath **A-8** (Overview ka
-TipTap) bhi kar lena theek rahega — dono ek hi editor screen pe hain.
+**A-8 bhi band ho gaya** — Overview ab TipTap pe hai.
+
+**Agla kaam: Slice 4 — Itinerary Builder** (spec 007 §3). Usme do sawaal khule hain jo
+uska shape tay karte hain — §9 #10 (din ka `note` field) aur #11 (per-day Hotel Category
+dropdown hatana hai ya nahi).
 
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
@@ -76,7 +79,7 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Slice 3  API (field set etc.)      ✅  26 Aug — D-50, migration 012
           Slice 3  admin ki screens          ✅  26 Aug — list + editor
           Slice 2  ki saat screens           ✅  26 Aug — taxonomy + master lists
-          A-8      Overview ka TipTap        🟡  abhi textarea hai
+          A-8      Overview ka TipTap        ✅  26 Aug — bold/italic/list/link
           Slice 4  Itinerary Builder         🔴  ← agla kaam
           Slice 4-7                          🔴  specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴

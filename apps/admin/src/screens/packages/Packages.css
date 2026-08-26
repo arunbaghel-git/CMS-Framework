@@ -13,27 +13,36 @@
  */
 
 /*
- * Overview ka editor abhi ek `<textarea>` hai, contenteditable `<div>` nahi.
+ * TipTap ka editable area (A-8).
  *
- * `.editor-area` uske liye hi likha gaya tha, isliye textarea ko wo look dene ke liye teen
- * cheezein chahiye: browser ka apna border/background hataana, font inherit karana (warna
- * textarea monospace pe chala jaata hai), aur vertical resize khula rakhna.
- *
- * ⚠️ Ye TipTap aane tak ka hissa hai. Us din ye rule hat jaayega — component badlega,
- * data ka shape nahi (`richTextFromPlain()` pehle se TipTap ka doc banata hai).
+ * `.editor-area` design se aata hai aur wo bahar wale wrapper pe lagta hai; TipTap uske
+ * andar apna `.ProseMirror` div banata hai. Height aur focus outline usi andar wale div pe
+ * lagni chahiye — bahar lagane se click karne pe cursor kabhi kabhi lagta hi nahi (padding
+ * wale hisse pe click editor tak pahunchta hi nahi).
  */
-.pkg-editor {
-  display: block;
-  width: 100%;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  color: inherit;
-  resize: vertical;
+.pkg-editor-rich .ProseMirror {
+  min-height: 220px;
+  outline: none;
 }
 
-.pkg-editor:focus {
-  outline: none;
+.pkg-editor-rich .ProseMirror p {
+  margin: 0 0 12px;
+}
+
+.pkg-editor-rich .ProseMirror > *:last-child {
+  margin-bottom: 0;
+}
+
+/*
+ * Khaali editor pe placeholder ki jagah kuch nahi dikhta — TipTap ka Placeholder extension
+ * alag package hai aur sirf ek hint ke liye wo bhaari hai. Iski jagah pehla paragraph
+ * khaali dikhta hai, jo ek khaali textarea jaisa hi lagta hai.
+ */
+
+/* Toolbar ka on state — design ke `.editor-tools i` pe. */
+.editor-tools i.on {
+  background: var(--bg-soft, #f0f0f1);
+  border-radius: 2px;
 }
 
 /*

@@ -175,9 +175,9 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 Slice 1, 2 aur 3 poori ho chuki hain (D-47 se D-50) — API aur screens dono.
 
-Agla kaam **Slice 4 — Itinerary Builder** (spec 007 §3). Uske saath **A-8** bhi:
-Overview ka editor abhi ek textarea hai, TipTap baaki hai (data ka shape uske liye pehle se
-sahi hai, isliye migration nahi lagegi).
+Agla kaam **Slice 4 — Itinerary Builder** (spec 007 §3). Usme spec 007 §9 ke do sawaal
+khule hain jo uska shape tay karte hain — **#10** (din ka `note` field) aur **#11**
+(per-day Hotel Category dropdown hatana hai ya nahi).
 
 **Design frozen hai (R15)**: `docs/reference/admin-design.html` ke hisaab se hi banega, aur
 build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**. Jo farq abhi liye

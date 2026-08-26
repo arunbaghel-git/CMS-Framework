@@ -100,6 +100,7 @@ blocker band ho gaye** (A-6, A-7 → **D-49**) — 491 tests passing.
 | **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
 | **spec 007 §9 #1 — Package = `entries` ka type?** | ✅ **Haan (D-46)** — client ka faisla. `packages` collection nahi banegi; engine ek hi rahega. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi apni collection me — unka apna URL aur publish lifecycle nahi hai. **spec 007 ab 🟢 approved** |
+| **A-8 — Overview ka editor** | ✅ **TipTap lag gaya** — Bold · Italic · H2 · dono lists · Link. `getJSON()` seedha `content.blocks[0].props.doc` me jaata hai, isliye **koi migration nahi lagi**: interim textarea bhi yahi doc banata tha. Image button jaan-boojh kar nahi — uske liye MediaPicker chahiye (Phase 2) |
 | **Slice 3 ki screens** | ✅ **Ban gayin** — All Packages (tabs · filters · bulk actions · row actions) aur Add New/Edit. Saath me Slice 2 ki saat screens bhi: Destinations · Package Type · Hotels · Add Ons · Transfer · What's Included · Itinerary Images. Design se jo farq hain wo `04-ADMIN-UX.md` ke aakhri section me table me hain |
 | **spec 007 §9 #6, #7, #9** | ✅ **Teenon band (D-50)** — `Code` column **hat gaya** (field hi nahi hai) · `Best For` **chips ki list** (field DSL me naya `tags` type) · `Sold Out` ek **alag `availability` field** hai, status nahi — sold-out package ka page live rehta hai, sirf badge lagta hai. Migration 012 |
 | **A-7 — package taxonomy ka reference** | ✅ **`entry.taxonomies` generalize hua** (D-49) — ab `{categories, tags, destinations, packageTypes}`. Isse `tax:{id}` cache tag, archive aur delete guard **har type pe ek jaise** kaam karte hain. spec 002 ka contract ek baar badla, us waqt `entries` me koi asli data nahi tha |
@@ -170,26 +171,6 @@ Dono cases ka lakshan ek hi hai: _"publish kiya par site update nahi hui"_. API 
 `Revalidate request rejected/failed` warning milegi.
 
 Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
-
----
-
-### A-8 · Overview ka editor abhi textarea hai — TipTap baaki
-
-**Deadline:** Slice 4 ke saath ya usse pehle
-**Kuch tootа nahi hai** — data ka shape TipTap ke liye pehle se sahi hai
-
-Design me Overview ke liye WYSIWYG toolbar hai (`＋ B I ≡ 🔗 🖼`). Abhi wahan ek saada
-`<textarea>` hai. Toolbar jaan-boojh kar nahi banayi: ek aisi toolbar jo kuch kare hi na,
-wo "abhi nahi bana" nahi lagti — "toota hua" lagti hai. Wahi tark jisse Slice 0 me
-"Link type" dropdown hataya gaya tha.
-
-**Migration nahi lagegi:** `richTextFromPlain()` **TipTap ka hi doc** banata hai
-(`{ type: 'doc', content: [paragraph…] }`), isliye us din sirf component badlega. Agar aaj
-yahan plain string store ki hoti to har entry pe ek migration likhni padti — ye Phase 1 ka
-documented trap hai.
-
-Kaam: `@tiptap/react` + starter kit jodna, aur `PackageEdit` ke textarea ki jagah editor
-lagana. `plainFromRichText()` us din editor ke raaste se hat jaayega.
 
 ---
 
@@ -273,7 +254,7 @@ Spec 005 me add karne honge.
 13. ✅ Slice 3 — API aur screens dono              (D-50, 26 Aug — 518 tests)
     ✅ field set · availability · taxonomyTypes ka gate
     ✅ All Packages + Add New/Edit + Slice 2 ki saat screens
-    🟡 A-8 — Overview ka WYSIWYG (TipTap) baaki
+    ✅ A-8 — Overview ka WYSIWYG (TipTap)
 14. Slice 4 — Itinerary Builder                   ← agla kaam
 15. Slice 5-7 → specs/007-packages.md §7
 ```

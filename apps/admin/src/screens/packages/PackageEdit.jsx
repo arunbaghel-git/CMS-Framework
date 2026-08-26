@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-import { plainFromRichText, richTextFromPlain } from '@cms/shared'
+import { contentFromRichText, emptyContent } from '@cms/shared'
 
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
+import RichTextEditor from './RichTextEditor.jsx'
 import TagsInput from './TagsInput.jsx'
 import { PACKAGE_TYPE, useMediaById, usePackage, useTaxonomyList } from './usePackages.js'
 import './Packages.css'
@@ -30,11 +31,10 @@ import './Packages.css'
  * Jo panels abhi nahi hain wo **khaali dikhaye bhi nahi jaate**. Ek panel jisme kuch na
  * ho, wo "abhi nahi bana" nahi lagta — wo "toota hua" lagta hai (D-30 ka ulta).
  *
- * ⚠️ **Overview ka editor abhi ek saada textarea hai.** Design me WYSIWYG toolbar hai, par
- * ek aisi toolbar jo kuch karti hi na ho — wo wahi galti hai jo Slice 0 me "Link type"
- * dropdown pe pakdi gayi thi (hamesha disabled, kisi state se bind nahi). TipTap agla
- * kadam hai; **data ka shape uske liye pehle se sahi hai** — `richTextFromPlain()` TipTap
- * ka hi doc banata hai, isliye us din koi migration nahi lagegi.
+ * Overview ka editor **TipTap** hai (A-8). Uska `getJSON()` seedha `content.blocks[0]
+ * .props.doc` me jaata hai — wahi shape jo spec 002 ka `richText` block rakhta hai. Jab
+ * editor ek saada textarea tha tab bhi yahi doc banta tha, isliye is switch pe **koi
+ * migration nahi lagi**.
  */
 
 const STATUS_OPTIONS = [
@@ -97,7 +97,8 @@ export default function PackageEdit() {
     setForm({
       title: entry?.title ?? '',
       slug: entry?.slug ?? '',
-      overview: entry ? plainFromRichText(entry.content) : '',
+      /** TipTap ka doc — `content.blocks[0].props.doc`. */
+      doc: entry?.content?.blocks?.find((b) => b.type === 'richText')?.props?.doc ?? null,
       status: entry?.status === 'private' ? 'published' : (entry?.status ?? 'draft'),
       visibility: entry?.status === 'private' ? 'private' : 'public',
       availability: entry?.availability ?? 'open',
@@ -166,7 +167,7 @@ export default function PackageEdit() {
 
     const payload = {
       title: form.title,
-      content: richTextFromPlain(form.overview),
+      content: form.doc ? contentFromRichText(form.doc) : emptyContent(),
       fields: form.fields,
       taxonomies: form.taxonomies,
       seo: form.seo,
@@ -287,18 +288,7 @@ export default function PackageEdit() {
             )}
           </div>
 
-          <div className="editor-box">
-            <div className="editor-tabs">
-              <span className="on">Overview</span>
-            </div>
-            <textarea
-              className="editor-area pkg-editor"
-              placeholder="About this itinerary…"
-              value={form.overview}
-              onChange={(e) => set({ overview: e.target.value })}
-              disabled={readOnly}
-            />
-          </div>
+          <RichTextEditor doc={form.doc} onChange={(doc) => set({ doc })} disabled={readOnly} />
         </div>
 
         <aside>
