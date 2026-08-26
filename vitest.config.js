@@ -8,19 +8,19 @@ export default defineConfig({
     /**
      * Vitest ka default 5s/10s hai — hamare integration tests ke liye wo kam pad gaya.
      *
-     * Wajah koi bug nahi, **asli kaam** hai: har `beforeEach` collections saaf karti hai,
-     * roles aur content types seed karti hai, aur 3-4 users banati hai. Password hashing
-     * `bcryptjs` cost 12 pe hai (D-32) — ek hash ~200-300ms, aur har file me 4 hash + 4
-     * compare hote hain. Vitest files ko parallel chalata hai, to ek hi Mongo pe kai worker
-     * ye sab ek saath karte hain.
+     * ⚠️ Pehle yahan likha tha ki wajah `bcryptjs` cost 12 hai. **Wo galat tha** —
+     * `auth/service.js` test me pehle se cost **4** use karta hai. Asli wajah Mongo pe
+     * contention hai: har `beforeEach` aath collections saaf karti hai, roles aur content
+     * types seed karti hai, aur 3-4 users banati hai — aur vitest kai files parallel
+     * chalata hai, sab ek hi local Mongo pe.
      *
-     * Lakshan bilkul dhokha dene wala tha: pehla `beforeEach` timeout hota tha, uski
-     * cleanup adhoori reh jaati thi, aur uske baad ke tests "A user with this email already
-     * exists" pe girte the — jaise koi asli bug ho. Har file **akele chalane pe pass** hoti
-     * thi, aur yahi is failure ka sabse bada surag tha.
+     * Lakshan dhokha dene wala hai: pehla `beforeEach` timeout hota hai, uski cleanup
+     * adhoori reh jaati hai, aur uske baad ke tests "A user with this email already
+     * exists" pe girte hain — jaise koi asli bug ho. Har file **akele chalane pe pass**
+     * hoti hai, aur yahi sabse bada surag hai.
      *
-     * Cost ghatana galat fix hota: wo production ka security parameter hai (D-32), test ki
-     * sahulat ke liye badalne ki cheez nahi.
+     * 30s ke baad bhi ye kabhi-kabhi phat-ti hai (`09-OPEN-ITEMS.md` **A-11**). Asli fix
+     * `beforeEach` ke round trips ghatana hai, timeout aur badhana nahi.
      */
     hookTimeout: 30_000,
     testTimeout: 30_000,

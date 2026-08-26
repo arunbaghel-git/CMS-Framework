@@ -41,6 +41,10 @@ live preview** jo poori tarah derived hai (§3.1). Teen sawaal band — D-51.
 nahi karega, har slice ke saath badhega. Abhi live: hero, overview, route strip, day-by-day
 itinerary, What is included, booking steps, gallery.
 
+**Ek gap jiska record ab hai — A-9:** Pages aur Posts ki screens abhi bhi "abhi nahi
+bana" pe hain, jabki engine (D-46) unhe support karta hai aur seed me dono types register
+hain. Kaam Packages wali screens ka doosra roop hai.
+
 **Agla kaam: Slice 5 — Pricing + Hotels** (spec 007 §4) — ab **admin aur public page dono**
 ek saath. Usme teen sawaal khule hain: §9 #12 (category ka `note`), #13 (`Ferries: 3 legs`
 derive ho ya likha jaaye), aur #3 (`Room` hotel ke record pe ya package me).
@@ -94,7 +98,7 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 547 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 541 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -154,7 +158,7 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Master lists**      | Teenon ek module me, par teen alag routes aur alag permissions. `locale` sirf taxonomies pe (D-48) |
 | **Taxonomy ka ref**   | `entry.taxonomies` me, har type ki apni key — `fields` me nahi (D-49). spec 002 ek baar badla      |
 | **Slug badalna**      | Auto-301 + chain flatten + loop se bachav; descendants pe bhi (D-49)                               |
-| **Sold Out**          | `availability` field — `status` se alag. Page live rehta hai, sirf badge (D-50)                    |
+| **Sold Out**          | ~~`availability` field~~ — **hata diya** (D-54); client ko wo feature chahiye hi nahi              |
 | **Route strip**       | Derived — lagatar same stay wale din judte hain. `nightsByStay()` alag hai (D-51)                  |
 
 Specs 001–007: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,

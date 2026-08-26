@@ -626,9 +626,9 @@ hue — **D-50**. Slice 4 ke #4, #10, #11 bhi band — **D-51**. Bacha: **9**.
 | ~~4~~ | ~~Transfer record me icon? Duration per-day?~~ ✅ icon **record pe** (Slice 2) · duration **din pe** — D-51 §2 | ~~Slice 2~~ |
 | 5 | Package Type flat ya hierarchical? | Slice 2 |
 | ~~6~~ | ~~List ka `Code` column — hataayein?~~ ✅ **haan, hat gaya** — 26 Aug, **D-50 §2** | ~~Slice 3~~ |
-| ~~7~~ | ~~`Best For` me kya bharega?~~ ✅ **chhoti chips ki list** (`tags` field type) — **D-50 §3** | ~~Slice 3~~ |
+| ~~7~~ | ~~`Best For` me kya bharega?~~ ✅ **ek line**, listing card pe — **D-55** (D-50 §3 superseded) | ~~Slice 3~~ |
 | 8 | `ratingValue`/`ratingCount` haath se, ya `reviews[]` se gine jaayein? §2.2 | Slice 6 |
-| ~~9~~ | ~~`Sold Out` — status hai ya `availability` field?~~ ✅ **alag `availability` field** — **D-50 §1** | ~~Slice 3~~ |
+| ~~9~~ | ~~`Sold Out` — status hai ya `availability` field?~~ ✅ **banaya, phir hata diya** — client ko wo feature chahiye hi nahi (**D-54**, D-50 §1 superseded) | ~~Slice 3~~ |
 | ~~10~~ | ~~Din ka `note` field?~~ ✅ **haan** — ek free line, fixed icon. D-51 §1 | ~~Slice 4~~ |
 | ~~11~~ | ~~Per-day `Hotel Category` dropdown hatana hai?~~ ✅ **nahi, rahegi** — D-51 §3 | ~~Slice 4~~ |
 | 12 | Category ka `note` field? | Slice 5 |

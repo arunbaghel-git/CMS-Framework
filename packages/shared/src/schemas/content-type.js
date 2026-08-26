@@ -29,12 +29,6 @@ export const ENTRY_SUPPORT = Object.freeze({
   /** Manual ordering — nested pages aur menu-jaisi liston ke liye. */
   ORDER: 'order',
   AUTHOR: 'author',
-  /**
-   * `open` | `soldOut` ka toggle — spec 007 §9 #9, D-50.
-   *
-   * Sirf un types pe jinke liye "bikri" ka koi matlab hai. Page aur Post pe nahi.
-   */
-  AVAILABILITY: 'availability',
 })
 
 /**

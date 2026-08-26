@@ -2262,7 +2262,12 @@ dono ka guard test ke saath hai.
 sawaal khule the, aur teenon list screen ya field set ka shape tay karte the. Client ne
 26 Aug ko teenon ka jawab diya.
 
-### 1. `Sold Out` ek **alag field** hai, status nahi (§9 #9)
+### 1. ~~`Sold Out` ek **alag field** hai, status nahi~~ — **Superseded by D-54**
+
+> ⚠️ **Ye hissa ab laagu nahi hai.** Client ne 26 Aug ko hi, live page dekhne ke baad,
+> `availability` poora hata diya — unhe wo feature chahiye hi nahi. Neeche wala tark us waqt
+> sahi tha aur ab bhi padhne laayak hai (ek din wapas maanga jaaye to), par **code me ab
+> `availability` kahin nahi hai**. D-54 dekho.
 
 ```
 status:        published    ← page live hai
@@ -2301,7 +2306,11 @@ bina wajah jagah leta hai. Baad me zaroorat padi to column wapas laana ek line h
 dene ke liye — par wo ek naya field, uska unique counter aur ek naya sawaal hai
 ("delete hone pe number dobara use ho?"). Client ne maanga nahi.
 
-### 3. `Best For` chhoti chips ki list hai (§9 #7)
+### 3. ~~`Best For` chhoti chips ki list hai~~ — **Superseded by D-55**
+
+> ⚠️ **Ye hissa ab laagu nahi hai.** Client ne usi din asli page dikhaya — `bestFor` ek
+> **line** hai aur wo **listing card** pe hai, package page pe nahi. `tags` field type bhi
+> hata diya gaya. D-55 dekho.
 
 `fields.bestFor: string[]` — `Couples`, `First-timers`, `5–7 days`.
 
@@ -2530,3 +2539,118 @@ formatting ki wajah se paragraph ka poora text kho jaana sabse bura nateeja hai.
 
 **Nateeja:** 547 tests. `app/page.jsx` ka placeholder hat gaya — optional catch-all `/` bhi
 sambhaalta hai, aur do route ek hi path pe rakhna Next me error hai.
+
+---
+
+## D-54 · `availability` hata diya gaya — client ko wo feature chahiye hi nahi
+
+**Supersedes:** D-50 §1
+
+**Context:** D-50 §1 me `availability` (`open` | `soldOut`) joda gaya tha, aur wo faisla
+client ne hi liya tha (26 Aug, spec 007 §9 #9). Tark ye tha: sold-out ho jaana **bikri** ki
+baat hai, publishing ki nahi — `status` me `soldOut` jodne se season khatam hote hi package
+ka page hi gayab ho jaata aur agle season me ranking dobara banani padti.
+
+Us din tak ye sirf design ke `s-packages` me ek tab tha. **Live page dekhne ke baad client
+ne kaha ki ye feature chahiye hi nahi** — aur wo unka call hai.
+
+**Decision:** `availability` poori tarah hata diya gaya.
+
+### Kya-kya gaya
+
+```
+packages/shared   AVAILABILITY constants · entry schema ka field aur list query param
+                  ENTRY_SUPPORT.AVAILABILITY · package ke supports se
+apps/api          model ka field · availabilityFor() · counts.soldOut
+                  bulk actions `soldOut`/`open` · list ka filter · public payload
+apps/admin        editor ka Availability dropdown · list ka "Sold Out" tab
+                  bulk dropdown ke do option · row ka badge
+apps/web          hero ka "Sold out" badge aur uski CSS
+```
+
+### Migration 012 **delete nahi ki gayi**
+
+Ye is faisle ka sabse zaroori hissa hai. 012 (`availability` ka index) apply ho chuki thi.
+Applied migration ki file hata dene ka matlab hai ki `migrations` collection me ek record
+bacha rahe **jiski file hi na ho** — runner use "missing" report karta hai, aur wo har boot
+pe ek jhoothi chetavni banti hai (`index.js` uske liye `logger.error` karta hai).
+
+Isliye 012 waise ki waisi hai, aur **013** uska ulta karti hai: index drop.
+
+Likhte waqt pehle 012 `git rm` kar di gayi thi — wo galti thi aur usi waqt palat di gayi.
+
+### Field collection se nahi hataya, sirf index
+
+- Mongo me ek bacha hua field muft hai — ab koi query use padhti hi nahi
+- `entries` me abhi asli data nahi hai, par 15 instances pe `$unset` ka batch chalana ek
+  risk hai jiska koi fayda nahi
+
+**Index zaroor gaya:** wo har write pe maintain hota hai, aur ab uspe koi query nahi chalti.
+
+### Jo D-50 se bacha hua hai
+
+D-50 ke baaki teen hisse **waise ke waise** hain — `Code` column ka hatna (§2), `Best For`
+ka chips wala shape (§3), aur `taxonomyTypes[]` (§4). Sirf §1 palta hai.
+
+**Ek sabak jo yahan bhi dikha:** D-45 §2 me likha tha ki is project ka model "add aur
+remove" ka hai, sirf add ka nahi — client tay karta hai kya andar hai **aur kya bahar**.
+`availability` hatana apne stack me chhe file ka kaam tha. Ek framework ke default me se
+ise nikalna override likhna hota.
+
+**Nateeja:** 541 tests. spec 007 §9 #9 ab "banaya, phir hata diya" ke roop me band hai.
+
+---
+
+## D-55 · `bestFor` ek line hai, chips nahi — aur wo listing card ka field hai
+
+**Supersedes:** D-50 §3
+
+**Context:** D-50 §3 me `bestFor` ko **chips ki list** (`string[]`) banaya gaya tha, aur uske
+liye field DSL me ek naya type bhi joda gaya tha — `tags`. Us waqt sirf spec §2 ki ek line
+thi (`bestFor ❓ client ne add karne ko kaha, content tay nahi`), aur maine maan liya ki wo
+package page ke hero me chips ki patti banega.
+
+Client ne 26 Aug ko **asli page dikhaya** — `tour-v3.html`, yaani package **listing** page:
+
+```
+Emerald Andaman Tour
+📍 Port Blair → Havelock
+Best for  first-timers on a short break        ← ek line
+[2N / 3D] [Ferry] [Breakfast] [Private cab]    ← ye chips ALAG hain
+```
+
+**Decision:** `bestFor` ek **plain text line** hai, aur wo **listing card** pe render hota
+hai — package page pe nahi.
+
+### Do cheezein jo mai galat samajh baitha tha
+
+1. **Chips ki patti card pe hai, par wo `bestFor` nahi hai.** `2N / 3D`, `Ferry`,
+   `Breakfast`, `Private cab` — ye sab **derived** hain: nights/days se, itinerary ke
+   transfers se, aur meals se. Chips dekh kar maine maan liya ki `bestFor` unme se hai.
+2. **`bestFor` package page pe hai hi nahi.** spec §6 ki mapping table (jo har section ka
+   source likhti hai) me wo kahin nahi tha — aur mujhe wahi surag pehle dekh lena chahiye
+   tha. Maine use hero me chips ki patti bana kar laga diya tha.
+
+### `tags` field type hata diya gaya
+
+Wo type **sirf** `bestFor` ke liye joda gaya tha (D-50 §3), is umeed ke saath ki Slice 4 me
+har din ke `highlights` bhi wahi shape lenge. Slice 4 me `highlights` ek **textarea** bana
+(ek line = ek item), isliye `tags` ka koi caller nahi bacha.
+
+Ek DSL type jiska koi user na ho, wo sirf sadta hai — aur Phase 6 ka content-type builder
+use ek asli option ki tarah offer karne lagta. `TagsInput.jsx` bhi uske saath gaya.
+
+Wahi tark jo `richTextFromPlain()` pe laga tha (D-52 ke saath): interim scaffolding ka koi
+caller na bache to use rakhna "baad me kaam aayega" ka bahana hai.
+
+### Ye field abhi kahin render nahi hota — aur wo theek hai
+
+Package **listing** page (`/packages` archive) abhi bana hi nahi — wo Phase 3 ka kaam hai.
+To `bestFor` aaj bharaa to ja sakta hai par dikhta kahin nahi.
+
+Ise "isliye abhi mat banao" ka tark nahi banaya gaya: field **code-owned** hai (D-46), aur
+listing card banate waqt uska data pehle se maujood hona hi behtar hai — warna client ko
+poori list dobara bharni padti.
+
+**Nateeja:** 541 tests. Admin ke **Info** panel me ab `Best for` ek saada text input hai,
+`Ferries` ke saath.

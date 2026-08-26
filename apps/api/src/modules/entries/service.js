@@ -3,17 +3,14 @@ import { randomUUID } from 'node:crypto'
 import mongoose from 'mongoose'
 
 import {
-  AVAILABILITY,
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   ENTRY_STATUS,
-  ENTRY_SUPPORT,
   PERMISSION,
   TAXONOMY_REF_KEYS,
   TAXONOMY_TYPE_BY_REF_KEY,
   extractBlockText,
   itinerarySchema,
-  typeSupports,
   isReservedSlug,
   rebasePath,
   resolvePath,
@@ -172,24 +169,6 @@ function normalizeFields(fields, contentType) {
     ...fields,
     itinerary: days.map((day) => ({ ...day, id: day.id || randomUUID() })),
   }
-}
-
-// ── availability ─────────────────────────────────────────────────────────────
-
-/**
- * `availability` sirf un types pe likhi jaati hai jo use support karte hain (D-50).
- *
- * Baaki types pe chup-chaap `open` rehti hai — error nahi, kyunki ye client ki galti nahi
- * hai: admin ka form us type pe wo control dikhata hi nahi, aur ek purana client jo field
- * bhej de use rokne ka koi fayda nahi. Galat data phir bhi nahi banta.
- *
- * @param {string|undefined} requested
- * @param {{ supports?: string[] }} contentType
- */
-function availabilityFor(requested, contentType) {
-  if (!typeSupports(contentType, ENTRY_SUPPORT.AVAILABILITY)) return AVAILABILITY.OPEN
-
-  return requested ?? AVAILABILITY.OPEN
 }
 
 // ── taxonomy refs ────────────────────────────────────────────────────────────
@@ -568,7 +547,7 @@ export async function listEntries(query, siteId = DEFAULT_SITE_ID, locale = DEFA
     deletedAt: trashed ? { $ne: null } : null,
   }
 
-  for (const key of ['type', 'status', 'availability', 'authorId', 'parentId']) {
+  for (const key of ['type', 'status', 'authorId', 'parentId']) {
     if (filters[key] !== undefined) filter[key] = filters[key]
   }
   /**
@@ -615,18 +594,17 @@ export async function entryCounts(type, siteId = DEFAULT_SITE_ID, locale = DEFAU
   const base = { ...scope(siteId, locale), type }
   const live = { ...base, deletedAt: null }
 
-  const [all, published, draft, pending, scheduled, isPrivate, soldOut, trash] = await Promise.all([
+  const [all, published, draft, pending, scheduled, isPrivate, trash] = await Promise.all([
     Entry.countDocuments(live),
     Entry.countDocuments({ ...live, status: ENTRY_STATUS.PUBLISHED }),
     Entry.countDocuments({ ...live, status: ENTRY_STATUS.DRAFT }),
     Entry.countDocuments({ ...live, status: ENTRY_STATUS.PENDING }),
     Entry.countDocuments({ ...live, status: ENTRY_STATUS.SCHEDULED }),
     Entry.countDocuments({ ...live, status: ENTRY_STATUS.PRIVATE }),
-    Entry.countDocuments({ ...live, availability: AVAILABILITY.SOLD_OUT }),
     Entry.countDocuments({ ...base, deletedAt: { $ne: null } }),
   ])
 
-  return { all, published, draft, pending, scheduled, private: isPrivate, soldOut, trash }
+  return { all, published, draft, pending, scheduled, private: isPrivate, trash }
 }
 
 /** Ek entry — trash me padi ho to bhi milti hai, taaki Trash screen use dikha sake. */
@@ -672,7 +650,6 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
     path,
     status,
     fields: normalizeFields(input.fields, contentType) ?? {},
-    availability: availabilityFor(input.availability, contentType),
     publishAt: null,
     authorId: actor?.user?._id ? String(actor.user._id) : null,
     version: 0,
@@ -729,10 +706,6 @@ export async function updateEntry(
   }
 
   if (input.fields !== undefined) $set.fields = normalizeFields(input.fields, contentType)
-
-  if (input.availability !== undefined) {
-    $set.availability = availabilityFor(input.availability, contentType)
-  }
 
   /**
    * `type` badalna allowed nahi.
@@ -1115,17 +1088,9 @@ export async function bulkEntries(input, actor, siteId = DEFAULT_SITE_ID, locale
 
         assertCan(actor, current, PERMISSION.ENTRY_UPDATE, PERMISSION.ENTRY_UPDATE_OWN)
 
-        const contentType = await requireContentType(current.type, siteId)
         const $set = { version: current.version + 1 }
 
-        if (action === 'feature' || action === 'unfeature') {
-          $set.fields = { ...(current.fields ?? {}), featured: action === 'feature' }
-        } else {
-          $set.availability = availabilityFor(
-            action === 'soldOut' ? AVAILABILITY.SOLD_OUT : AVAILABILITY.OPEN,
-            contentType,
-          )
-        }
+        $set.fields = { ...(current.fields ?? {}), featured: action === 'feature' }
 
         const doc = await Entry.findOneAndUpdate({ _id: id }, { $set }, { new: true })
         await invalidate(doc)

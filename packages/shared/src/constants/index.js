@@ -23,28 +23,6 @@ export const ENTRY_STATUS = Object.freeze({
 
 export const ENTRY_STATUSES = Object.freeze(Object.values(ENTRY_STATUS))
 
-/**
- * Bikri khuli hai ya band — `status` se **bilkul alag** (spec 007 §9 #9, D-50).
- *
- * Sold-out package ka page **live rehta hai**: URL zinda, SEO zinda, sirf ek badge lagta
- * hai. Ise `status` me jodne ka matlab hota ki season khatam hote hi page hi gayab, aur
- * agle season me ranking dobara banani padti.
- *
- * Ye sirf un types pe dikhta hai jinke `supports` me `availability` hai — Pages aur Posts
- * pe iska koi matlab nahi.
- */
-export const AVAILABILITY = Object.freeze({
-  OPEN: 'open',
-  SOLD_OUT: 'soldOut',
-})
-
-export const AVAILABILITIES = Object.freeze(Object.values(AVAILABILITY))
-
-export const AVAILABILITY_LABEL = Object.freeze({
-  [AVAILABILITY.OPEN]: 'Open',
-  [AVAILABILITY.SOLD_OUT]: 'Sold Out',
-})
-
 /** Paanch roles — `subscriber` nahi (D-26), `salesAgent` add hua (D-29). */
 export const ROLE = Object.freeze({
   ADMIN: 'admin',

@@ -76,13 +76,15 @@ export default async function CatchAllPage({ params }) {
 
   if (entry.type === 'package') {
     /**
-     * `packageDefaults` alag fetch hai — uska cache tag `type:package` hai, kisi ek entry
-     * ka nahi. Ise entry ke payload me ghusa dene ka matlab hota ki "What's included"
-     * badalne pe har package ka `entry:{id}` alag-alag saaf karna padta.
+     * Teen alag fetch, teen alag cache tag — `path:` (entry), `type:package` (defaults)
+     * aur `settings`.
+     *
+     * Inhe ek payload me mila dene ka matlab hota ki "What is included" badalne pe har
+     * package ka apna tag alag-alag saaf karna padta, aur phone number badalne pe bhi.
      */
-    const defaults = await getPackageDefaults()
+    const [defaults, settings] = await Promise.all([getPackageDefaults(), getSettings()])
 
-    return <PackagePage entry={entry} defaults={defaults} />
+    return <PackagePage entry={entry} defaults={defaults} settings={settings} />
   }
 
   /**

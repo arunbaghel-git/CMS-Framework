@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1 + Slice 2 ban chuki hain**
-(**547 tests passing**).
+(**541 tests passing**).
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),

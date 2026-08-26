@@ -179,7 +179,7 @@ export default function PackageDefaults({ section }) {
             {images.length === 0 ? (
               <p className="muted">No images yet.</p>
             ) : (
-              <div className="media-grid pkg-image-grid">
+              <div className="pkg-image-grid">
                 {images.map((id) => {
                   const doc = media[id]
                   const preview =

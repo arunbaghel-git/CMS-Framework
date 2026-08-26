@@ -45,7 +45,7 @@ export const publishEntrySchema = z
 export const bulkEntrySchema = z
   .object({
     ids: z.array(z.string().min(1)).min(1).max(100),
-    action: z.enum(['trash', 'restore', 'feature', 'unfeature', 'soldOut', 'open']),
+    action: z.enum(['trash', 'restore', 'feature', 'unfeature']),
   })
   .strict()
 

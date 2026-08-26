@@ -1081,7 +1081,7 @@ a.mega__gl:hover {
 }
 
 .pkg__hero {
-  padding: 32px 0 8px;
+  padding: 20px 0 8px;
 }
 
 .pmeta {
@@ -1102,14 +1102,6 @@ a.mega__gl:hover {
   opacity: 0.5;
 }
 
-.pkg__sold {
-  font-weight: 700;
-  color: #b91c1c;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 12px;
-}
-
 .pkg h1 {
   font-size: clamp(28px, 4vw, 40px);
   line-height: 1.15;
@@ -1123,17 +1115,6 @@ a.mega__gl:hover {
   color: var(--muted, #475569);
   max-width: 68ch;
   margin: 0 0 20px;
-}
-
-/* Banner ka aspect reference ka hai (1600x900). `height:auto` isliye ki `width`/`height`
-   attributes sirf layout shift rokne ke liye hain — asli size CSS tay karta hai. */
-.pkg__banner {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 10px;
-  display: block;
 }
 
 .pkg__bestfor {
@@ -1156,36 +1137,119 @@ a.mega__gl:hover {
   font-weight: 600;
 }
 
-/* Gallery strip — pool se aati hai (spec 007 §1.7). */
-.pkg__gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
-  margin: 24px auto 8px;
-  align-items: center;
+/*
+ * Gallery mosaic — page ka hero. Reference ke `.gal` se bilkul waisa hi.
+ *
+ * Grid `2fr 1fr 1fr` × 2 rows hai: pehla image dono row leta hai (bada, left me), baaki
+ * chaar chhote. Corners sirf bahar wale tiles pe round hote hain, taaki poora block ek hi
+ * card lage.
+ */
+.pkg__gal {
+  padding-top: 20px;
 }
 
-.pkg__gallery img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 8px;
+.gal {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px;
+  height: clamp(260px, 30vw, 420px);
+}
+
+.gal a {
+  position: relative;
+  overflow: hidden;
+  background: #e2e8f0;
   display: block;
 }
 
-.pkg__more {
+.gal a:first-child {
+  grid-row: 1 / 3;
+  border-radius: 10px 0 0 10px;
+}
+
+.gal a:nth-child(3) {
+  border-radius: 0 10px 0 0;
+}
+
+.gal a:last-child {
+  border-radius: 0 0 10px 0;
+}
+
+.gal img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.gal a:hover img {
+  transform: scale(1.05);
+}
+
+.gal__more {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(11, 43, 74, 0.55);
+  color: #fff;
   font-size: 13px;
-  color: var(--muted, #64748b);
-  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
-.pkg__body {
-  padding-top: 16px;
+/*
+ * Paanch se kam images ho to mosaic ka grid tootta hai — us case me ek saada strip.
+ * Client ke pool me 20 images hone chahiye (§1.7), par naya instance khaali hota hai.
+ */
+.gal:has(a:nth-child(-n + 4):last-child) {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-rows: 1fr;
+  height: clamp(200px, 22vw, 300px);
 }
 
+.gal:has(a:nth-child(-n + 4):last-child) a {
+  grid-row: auto;
+  border-radius: 10px;
+}
+
+@media (max-width: 760px) {
+  .gal {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(2, 1fr);
+    height: 320px;
+  }
+
+  /* Mobile pe pehla image poori chaudai le — chhote tiles usse neeche */
+  .gal a:first-child {
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+    border-radius: 10px 10px 0 0;
+  }
+
+  .gal a:nth-child(3),
+  .gal a:last-child {
+    border-radius: 0;
+  }
+
+  /* Do se zyada chhote tiles mobile pe bheed karte hain */
+  .gal a:nth-child(n + 4) {
+    display: none;
+  }
+}
+
+/*
+ * Har section ek SAFED CARD hai — reference ka `.blk`.
+ *
+ * Pehle ye sirf `border-top` tha, yaani sections ek doosre se ek lakeer se alag hote the
+ * aur poora page flat lagta tha. Screenshot me farq turant dikha.
+ */
 .blk {
-  padding: 32px 0;
-  border-top: 1px solid #e2e8f0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: clamp(18px, 2.2vw, 28px);
 }
 
 .blk h2 {
@@ -1422,5 +1486,191 @@ a.mega__gl:hover {
     flex-direction: row;
     align-items: baseline;
     gap: 8px;
+  }
+}
+
+/* ==================================================================
+   PACKAGE PAGE — SHELL
+   Reference: itinerary-v3.html — `.vcrumb` `.ptitle` `.pgl` `.blk` `.wdg`
+
+   Ye teen cheezein screenshot dekhne pe pakdi gayin; HTML padh kar itni
+   saaf nahi thi:
+     1. body do column ka hai — content + sticky sidebar
+     2. har section ek SAFED CARD hai, border-separated block nahi
+     3. page ka background halka tinted hai, safed nahi
+   ================================================================== */
+
+/*
+ * Page ka background. Cards safed hain, isliye unke neeche kuch halka chahiye — warna
+ * card aur page ek hi rang ke ho jaate hain aur poora page flat lagta hai.
+ */
+.pkg {
+  background: #f4f7fb;
+}
+
+/* Breadcrumb. Reference me ye dark hero pe safed hai; yahan page tinted hai, isliye ink. */
+.vcrumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  padding-top: 16px;
+}
+
+.vcrumb a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.vcrumb a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.vcrumb i {
+  font-style: normal;
+  opacity: 0.4;
+}
+
+.vcrumb b {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/*
+ * Title row do column ka hai — left me title/meta/intro, right me price.
+ *
+ * `auto` isliye ki price ka column apni chaudai leta hai; jab tak wo bana nahi (Slice 5),
+ * `auto` shrink ho kar 0 ho jaata hai aur title poori jagah le leta hai. Yaani grid abhi
+ * se sahi hai, sirf khaali hai.
+ */
+.ptitle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(20px, 3vw, 44px);
+  align-items: end;
+}
+
+/*
+ * Content left, sidebar right.
+ *
+ * `minmax(0, 1fr)` **zaroori** hai, `1fr` nahi: grid items ka default `min-width: auto`
+ * hota hai, aur uske bina chaudi tables (hotels, add-ons) column ko viewport se bahar
+ * dhakel deti hain. Reference me bhi thik yahi likha hai, usi comment ke saath.
+ */
+.pgl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 322px;
+  gap: clamp(18px, 2.4vw, 32px);
+  align-items: start;
+  padding: clamp(18px, 2.4vw, 28px) 0 64px;
+}
+
+.pgl__main {
+  min-width: 0;
+  display: grid;
+  gap: clamp(22px, 2.8vw, 38px);
+}
+
+.pgl__main > * {
+  min-width: 0;
+}
+
+/*
+ * Sidebar poori lambai chipka rehta hai.
+ *
+ * `top` header ki height se thoda neeche — header khud sticky hai (`.hdr`), aur uske bina
+ * sidebar uske peeche chala jaata hai.
+ */
+.pgl__side {
+  position: sticky;
+  top: 78px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+/* Sidebar widget — reference ka `.wdg`. */
+.wdg {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.wdg__h {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #64748b;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.wdgc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+}
+
+.wdgc + .wdgc {
+  border-top: 1px solid #f1f5f9;
+}
+
+.wdgc__i {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #eef4ff;
+  color: #2563eb;
+  flex: none;
+}
+
+.wdgc__i--wa {
+  background: #e7faee;
+  color: #25a55a;
+}
+
+.wdgc span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wdgc b {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.wdgc a {
+  font-weight: 700;
+  color: #0f172a;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1000px) {
+  /* Sidebar content ke neeche chala jaata hai — sticky ka koi matlab nahi bachta */
+  .pgl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pgl__side {
+    position: static;
+  }
+
+  .ptitle {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

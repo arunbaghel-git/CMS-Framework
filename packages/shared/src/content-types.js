@@ -58,10 +58,31 @@ const PACKAGE_FIELDS = [
   },
   { key: 'bestSeason', type: 'text', label: 'Best season', help: 'Jaise: Oct – May' },
   {
+    /**
+     * `first-timers on a short break` — **ek line**, chips nahi (client, 26 Aug, D-55).
+     *
+     * Ye **listing card** pe dikhta hai (`tour-v3.html`), package page pe nahi:
+     * `Best for <b>first-timers on a short break</b>`. Card ke chips (`2N / 3D`, `Ferry`,
+     * `Breakfast`) isse alag hain — wo nights/days, transfers aur meals se derive hote hain.
+     */
     key: 'bestFor',
-    type: 'tags',
+    type: 'text',
     label: 'Best for',
-    help: 'Chhoti chips — Couples, First-timers, 5–7 days',
+    help: 'Ek line — jaise: first-timers on a short break',
+  },
+  {
+    /**
+     * `3 legs, included` — At-a-glance ka Ferries cell (spec 007 §9 #13, D-53).
+     *
+     * **Client khud likhta hai, derive nahi hota.** Ginti itinerary ke ferry wale dino se
+     * nikaali ja sakti thi, par do dikkat thi: Transfer ek free list hai (client `Ferry`,
+     * `Catamaran`, `Cruise` kuch bhi likh sakta hai) to "ye ferry hai" pehchanna bharosemand
+     * nahi tha; aur "included" jaisi baat ginti se aa hi nahi sakti.
+     */
+    key: 'ferriesNote',
+    type: 'text',
+    label: 'Ferries',
+    help: 'Jaise: 3 legs, included',
   },
   {
     key: 'featured',
@@ -98,16 +119,7 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     archiveBase: 'packages',
     hasArchive: true,
 
-    supports: [
-      S.TITLE,
-      S.EDITOR,
-      S.EXCERPT,
-      S.FEATURED_IMAGE,
-      S.SEO,
-      S.REVISIONS,
-      /** Sold Out ek availability hai, status nahi (D-50). */
-      S.AVAILABILITY,
-    ],
+    supports: [S.TITLE, S.EDITOR, S.EXCERPT, S.FEATURED_IMAGE, S.SEO, S.REVISIONS],
 
     /** Destinations + Package Type — dono `taxonomies` collection me hain (spec 007 §1). */
     taxonomyTypes: ['destination', 'packageType'],

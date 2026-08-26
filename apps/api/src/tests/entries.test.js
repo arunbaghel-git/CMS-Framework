@@ -866,87 +866,25 @@ describe('package content type ka shape', () => {
       'itinerary',
       'bestSeason',
       'bestFor',
+      'ferriesNote',
       'featured',
       'seoSchema',
     ])
     expect(keys).not.toContain('overview')
   })
 
-  it('bestFor chips hai — tags field type (spec 007 §9 #7)', async () => {
+  it('bestFor ek line hai — chips nahi (D-55)', async () => {
+    // Listing card pe wo `Best for <b>first-timers on a short break</b>` ki tarah dikhta
+    // hai — ek line, chips nahi
     const pkg = await typeByKey('package')
-    const bestFor = pkg.fields.find((f) => f.key === 'bestFor')
 
-    expect(bestFor.type).toBe('tags')
+    expect(pkg.fields.find((f) => f.key === 'bestFor').type).toBe('text')
   })
 
   it('package Destinations aur Package Type use karta hai, Pages koi nahi', async () => {
     expect((await typeByKey('package')).taxonomyTypes).toEqual(['destination', 'packageType'])
     expect((await typeByKey('post')).taxonomyTypes).toEqual(['category', 'tag'])
     expect((await typeByKey('page')).taxonomyTypes).toEqual([])
-  })
-
-  it('availability sirf package pe hai, Page aur Post pe nahi', async () => {
-    expect((await typeByKey('package')).supports).toContain('availability')
-    expect((await typeByKey('page')).supports).not.toContain('availability')
-    expect((await typeByKey('post')).supports).not.toContain('availability')
-  })
-})
-
-describe('availability (D-50)', () => {
-  it('sold out package published hi rehta hai — page live rehta hai', async () => {
-    // Isse status me jodne ka matlab hota ki season khatam hote hi page hi gayab,
-    // aur agle season me ranking dobara banani padti
-    const created = await createEntry(adminJar, { title: 'Andaman' })
-    const { id } = created.body.data.entry
-
-    await authed('post', `/api/entries/${id}/publish`, adminJar).send({})
-    const current = await Entry.findById(id).lean()
-
-    const res = await authed('patch', `/api/entries/${id}`, adminJar).send({
-      version: current.version,
-      availability: 'soldOut',
-    })
-
-    expect(res.body.data.entry.availability).toBe('soldOut')
-    expect(res.body.data.entry.status).toBe('published')
-    expect(res.body.data.entry.path).toBe('/packages/andaman')
-  })
-
-  it('naya package default open hota hai', async () => {
-    const res = await createEntry(adminJar, { title: 'Andaman' })
-
-    expect(res.body.data.entry.availability).toBe('open')
-  })
-
-  it('jo type support nahi karta wahan chup-chaap open rehti hai', async () => {
-    // Error nahi — admin ka form Page pe wo control dikhata hi nahi, aur ek purana
-    // client jo field bhej de use rokne ka koi fayda nahi. Galat data phir bhi nahi banta
-    const res = await createPage(adminJar, { title: 'About', availability: 'soldOut' })
-
-    expect(res.status).toBe(201)
-    expect(res.body.data.entry.availability).toBe('open')
-  })
-
-  it('list "Sold Out" tab availability pe filter karti hai', async () => {
-    const open = (await createEntry(adminJar, { title: 'Open Trip' })).body.data.entry
-    const sold = (await createEntry(adminJar, { title: 'Sold Trip' })).body.data.entry
-
-    await authed('patch', `/api/entries/${sold.id}`, adminJar).send({
-      version: 0,
-      availability: 'soldOut',
-    })
-
-    const res = await authed('get', '/api/entries?type=package&availability=soldOut', adminJar)
-
-    expect(res.body.data.entries).toHaveLength(1)
-    expect(res.body.data.entries[0].id).toBe(sold.id)
-    expect(res.body.data.entries[0].id).not.toBe(open.id)
-  })
-
-  it('availability ke bahar ki value 400 deti hai', async () => {
-    const res = await createEntry(adminJar, { title: 'X', availability: 'maybe' })
-
-    expect(res.status).toBe(400)
   })
 })
 
@@ -997,7 +935,7 @@ describe('taxonomyTypes ka gate (D-49)', () => {
 })
 
 describe('package ke custom fields', () => {
-  it('bestFor ek list ki tarah save hota hai aur search me aata hai', async () => {
+  it('bestFor save hota hai aur search me aata hai', async () => {
     const res = await createEntry(adminJar, {
       title: 'Andaman',
       fields: {
@@ -1005,15 +943,15 @@ describe('package ke custom fields', () => {
         nights: 5,
         days: 6,
         bestSeason: 'Oct – May',
-        bestFor: ['Couples', 'First-timers'],
+        bestFor: 'first-timers on a short break',
       },
     })
 
     expect(res.status).toBe(201)
-    expect(res.body.data.entry.fields.bestFor).toEqual(['Couples', 'First-timers'])
+    expect(res.body.data.entry.fields.bestFor).toBe('first-timers on a short break')
 
     // searchText custom fields ka text bhi uthata hai — admin apne likhe shabd dhoondh sake
-    const found = await authed('get', '/api/entries?q=First-timers', adminJar)
+    const found = await authed('get', '/api/entries?q=first-timers', adminJar)
     expect(found.body.data.entries).toHaveLength(1)
   })
 })
@@ -1021,29 +959,23 @@ describe('package ke custom fields', () => {
 // ── list ke tabs ke counts (Slice 3) ─────────────────────────────────────────
 
 describe('GET /api/entries/counts', () => {
-  it('paanchon tab ke number ek hi call me deta hai', async () => {
-    // Paanch alag requests ka matlab hota paanch alag waqt ke jawab: ek tab 58 dikhata
-    // aur doosra 57, aur wo farq kabhi samajh nahi aata
+  it('chaaron tab ke number ek hi call me deta hai', async () => {
+    // Alag-alag requests ka matlab hota alag-alag waqt ke jawab: ek tab 58 dikhata aur
+    // doosra 57, aur wo farq kabhi samajh nahi aata
     const a = (await createEntry(adminJar, { title: 'Published One' })).body.data.entry
-    const b = (await createEntry(adminJar, { title: 'Sold One' })).body.data.entry
     const c = (await createEntry(adminJar, { title: 'Trashed One' })).body.data.entry
     await createEntry(adminJar, { title: 'Draft One' })
 
     await authed('post', `/api/entries/${a.id}/publish`, adminJar).send({})
-    await authed('patch', `/api/entries/${b.id}`, adminJar).send({
-      version: 0,
-      availability: 'soldOut',
-    })
     await authed('post', `/api/entries/${c.id}/trash`, adminJar).send({})
 
     const res = await authed('get', '/api/entries/counts?type=package', adminJar)
     const { counts } = res.body.data
 
     // all me trash NAHI hai — "All (64)" ke baad "Trash (1)" 64 ko 65 nahi banata
-    expect(counts.all).toBe(3)
+    expect(counts.all).toBe(2)
     expect(counts.published).toBe(1)
-    expect(counts.draft).toBe(2)
-    expect(counts.soldOut).toBe(1)
+    expect(counts.draft).toBe(1)
     expect(counts.trash).toBe(1)
   })
 
@@ -1064,18 +996,18 @@ describe('GET /api/entries/counts', () => {
 // ── bulk actions (Slice 3) ───────────────────────────────────────────────────
 
 describe('POST /api/entries/bulk', () => {
-  it('chuni hui rows ko sold out kar deta hai', async () => {
+  it('chuni hui saari rows pe chalta hai', async () => {
     const a = (await createEntry(adminJar, { title: 'One' })).body.data.entry
     const b = (await createEntry(adminJar, { title: 'Two' })).body.data.entry
 
     const res = await authed('post', '/api/entries/bulk', adminJar).send({
       ids: [a.id, b.id],
-      action: 'soldOut',
+      action: 'feature',
     })
 
     expect(res.body.data.updated).toBe(2)
-    expect((await Entry.findById(a.id).lean()).availability).toBe('soldOut')
-    expect((await Entry.findById(b.id).lean()).availability).toBe('soldOut')
+    expect((await Entry.findById(a.id).lean()).fields.featured).toBe(true)
+    expect((await Entry.findById(b.id).lean()).fields.featured).toBe(true)
   })
 
   it('featured set aur remove dono karta hai', async () => {
@@ -1113,12 +1045,12 @@ describe('POST /api/entries/bulk', () => {
 
     const res = await authed('post', '/api/entries/bulk', authorJar).send({
       ids: [mine.id, theirs.id],
-      action: 'soldOut',
+      action: 'feature',
     })
 
     expect(res.body.data.updated).toBe(1)
     expect(res.body.data.failed).toHaveLength(1)
-    expect((await Entry.findById(theirs.id).lean()).availability).toBe('open')
+    expect((await Entry.findById(theirs.id).lean()).fields?.featured).toBeFalsy()
   })
 
   it('trash se restore bhi bulk hota hai', async () => {

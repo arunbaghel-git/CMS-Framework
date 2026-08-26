@@ -4,11 +4,11 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { contentFromRichText, emptyContent } from '@cms/shared'
 
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
+import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import ItineraryBuilder from './ItineraryBuilder.jsx'
 import RichTextEditor from './RichTextEditor.jsx'
-import TagsInput from './TagsInput.jsx'
 import {
   PACKAGE_TYPE,
   useMediaById,
@@ -27,7 +27,7 @@ import './Packages.css'
  * | --- | --- |
  * | Title · Permalink · Overview | ✅ |
  * | Publish (Status · Visibility · Availability) | ✅ |
- * | Package Details | ✅ par **paanch field hataye** — Package Code, Difficulty, Group Size, Trending ribbon, Enable enquiry form (client, 26 Aug) |
+ * | Package Details | ✅ par **sidebar se main column me** — client, 26 Aug. Paanch field bhi hataye: Package Code, Difficulty, Group Size, Trending ribbon, Enable enquiry form |
  * | Destinations | ✅ |
  * | Travel Themes | ✅ par ab wo **Package Type** hai — free-tag input ki jagah managed list (spec 007 §1.2) |
  * | Gallery | ✅ sirf **banner** — media grid hata diya gaya (§5.1) |
@@ -38,6 +38,16 @@ import './Packages.css'
  *
  * Jo panels abhi nahi hain wo **khaali dikhaye bhi nahi jaate**. Ek panel jisme kuch na
  * ho, wo "abhi nahi bana" nahi lagta — wo "toota hua" lagta hai (D-30 ka ulta).
+ *
+ * ⚠️ **`shortDescription` main column me hai, sidebar me nahi** — client ka faisla (26 Aug).
+ * Wo public page ka `pintro` hai, yaani page ka content. Baaki Package Details (nights/days,
+ * best season, featured) sidebar me hi hain, design ke hisaab se.
+ *
+ * `bestFor` aur `ferriesNote` ek **Info** panel me hain — dono is package ke *baare me*
+ * hain, uske structure ka hissa nahi (D-55).
+ *
+ * **Sidebar ke panels collapsible hain** — design me har panel ke head me `▾` hai (40
+ * jagah), wo pehle chhoot gaya tha.
  *
  * Overview ka editor **TipTap** hai (A-8). Uska `getJSON()` seedha `content.blocks[0]
  * .props.doc` me jaata hai — wahi shape jo spec 002 ka `richText` block rakhta hai. Jab
@@ -110,7 +120,6 @@ export default function PackageEdit() {
       doc: entry?.content?.blocks?.find((b) => b.type === 'richText')?.props?.doc ?? null,
       status: entry?.status === 'private' ? 'published' : (entry?.status ?? 'draft'),
       visibility: entry?.status === 'private' ? 'private' : 'public',
-      availability: entry?.availability ?? 'open',
       fields: entry?.fields ?? {},
       taxonomies: {
         destinations: entry?.taxonomies?.destinations ?? [],
@@ -180,7 +189,6 @@ export default function PackageEdit() {
       fields: form.fields,
       taxonomies: form.taxonomies,
       seo: form.seo,
-      availability: form.availability,
       ...(form.slug ? { slug: form.slug } : {}),
     }
 
@@ -299,6 +307,64 @@ export default function PackageEdit() {
 
           <RichTextEditor doc={form.doc} onChange={(doc) => set({ doc })} disabled={readOnly} />
 
+          {/*
+           * Ek field — koi panel nahi, koi heading nahi (client, 26 Aug).
+           *
+           * `shortDescription` public page ka `pintro` hai — title ke turant neeche wali
+           * line. Isliye wo editor ke saath baithta hai, sidebar ke meta boxes me nahi.
+           */}
+          <div className="field">
+            <label>Short description</label>
+            <textarea
+              className="ta"
+              value={form.fields.shortDescription ?? ''}
+              onChange={(e) => setField('shortDescription', e.target.value)}
+              disabled={readOnly}
+            />
+          </div>
+
+          {/*
+           * "Info" — page ke At-a-glance wale hisse ke fields (client, 26 Aug).
+           *
+           * Ye Package Details se alag hain: nights/days/best season **package ka structure**
+           * batate hain, jabki ye do us structure ke **baare me** hain — kiske liye theek
+           * hai, aur ferries ka kya hisaab. Isliye ye main column me itinerary ke paas hain,
+           * sidebar ke meta boxes me nahi.
+           */}
+          <Panel title="Info">
+            <div className="panel-body">
+              <div className="field">
+                <label>Best for</label>
+                <input
+                  className="inp"
+                  placeholder="first-timers on a short break"
+                  value={form.fields.bestFor ?? ''}
+                  onChange={(e) => setField('bestFor', e.target.value)}
+                  disabled={readOnly}
+                />
+                <div className="hint">
+                  Listing card pe dikhta hai — <b>Best for</b> ke baad ye line. Package page pe
+                  nahi.
+                </div>
+              </div>
+
+              <div className="field">
+                <label>Ferries</label>
+                <input
+                  className="inp"
+                  placeholder="3 legs, included"
+                  value={form.fields.ferriesNote ?? ''}
+                  onChange={(e) => setField('ferriesNote', e.target.value)}
+                  disabled={readOnly}
+                />
+                <div className="hint">
+                  Page ke &quot;At a glance&quot; me dikhta hai. Ginti apne aap nahi hoti —
+                  &quot;included&quot; jaisi baat itinerary se nikal hi nahi sakti.
+                </div>
+              </div>
+            </div>
+          </Panel>
+
           <ItineraryBuilder
             days={form.fields.itinerary ?? []}
             onChange={(itinerary) => setField('itinerary', itinerary)}
@@ -309,10 +375,26 @@ export default function PackageEdit() {
         </div>
 
         <aside>
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Publish</h2>
-            </div>
+          <Panel
+            title="Publish"
+            footer={
+              <div className="pub-actions">
+                {id && can('entry.delete') && (
+                  <button className="btn btn-danger btn-sm" type="button" onClick={trash}>
+                    Trash
+                  </button>
+                )}
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={save}
+                  disabled={saving || readOnly || !form.title.trim()}
+                >
+                  {saving ? 'Saving…' : id ? 'Update' : 'Save'}
+                </button>
+              </div>
+            }
+          >
             <div className="panel-body">
               <div className="field">
                 <label>Status</label>
@@ -343,19 +425,6 @@ export default function PackageEdit() {
                 </select>
               </div>
 
-              <div className="field">
-                <label>Availability</label>
-                <select
-                  className="sel"
-                  value={form.availability}
-                  onChange={(e) => set({ availability: e.target.value })}
-                  disabled={readOnly}
-                >
-                  <option value="open">Open</option>
-                  <option value="soldOut">Sold Out</option>
-                </select>
-              </div>
-
               <div className="pub-row">
                 <span className="k">Last updated:</span>
                 <span className="muted">
@@ -363,28 +432,9 @@ export default function PackageEdit() {
                 </span>
               </div>
             </div>
+          </Panel>
 
-            <div className="pub-actions">
-              {id && can('entry.delete') && (
-                <button className="btn btn-danger btn-sm" type="button" onClick={trash}>
-                  Trash
-                </button>
-              )}
-              <button
-                className="btn btn-primary"
-                type="button"
-                onClick={save}
-                disabled={saving || readOnly || !form.title.trim()}
-              >
-                {saving ? 'Saving…' : id ? 'Update' : 'Save'}
-              </button>
-            </div>
-          </div>
-
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Package Details</h2>
-            </div>
+          <Panel title="Package Details">
             <div className="panel-body">
               <div className="row2">
                 <div className="field">
@@ -414,16 +464,6 @@ export default function PackageEdit() {
               </div>
 
               <div className="field">
-                <label>Short description</label>
-                <textarea
-                  className="ta"
-                  value={form.fields.shortDescription ?? ''}
-                  onChange={(e) => setField('shortDescription', e.target.value)}
-                  disabled={readOnly}
-                />
-              </div>
-
-              <div className="field">
                 <label>Best Season</label>
                 <input
                   className="inp"
@@ -433,14 +473,6 @@ export default function PackageEdit() {
                   disabled={readOnly}
                 />
               </div>
-
-              <TagsInput
-                label="Best for"
-                hint="Couples, First-timers, 5–7 days"
-                value={form.fields.bestFor ?? []}
-                onChange={(next) => setField('bestFor', next)}
-                disabled={readOnly}
-              />
 
               <label className="inline-lbl">
                 <input
@@ -452,12 +484,9 @@ export default function PackageEdit() {
                 Featured on homepage
               </label>
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Destinations</h2>
-            </div>
+          <Panel title="Destinations">
             <div className="panel-body">
               <TaxonomyChecklist
                 items={destinations}
@@ -466,12 +495,9 @@ export default function PackageEdit() {
                 disabled={readOnly}
               />
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Package Type</h2>
-            </div>
+          <Panel title="Package Type">
             <div className="panel-body">
               <TaxonomyChecklist
                 items={packageTypes}
@@ -480,12 +506,9 @@ export default function PackageEdit() {
                 disabled={readOnly}
               />
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Gallery</h2>
-            </div>
+          <Panel title="Gallery">
             <div className="panel-body">
               <MediaDrop
                 label="Banner image"
@@ -496,12 +519,9 @@ export default function PackageEdit() {
                 onClear={() => setField('bannerImage', null)}
               />
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>SEO</h2>
-            </div>
+          <Panel title="SEO">
             <div className="panel-body">
               <div className="field">
                 <label>SEO Title</label>
@@ -531,7 +551,7 @@ export default function PackageEdit() {
                 Emit Product + Trip schema
               </label>
             </div>
-          </div>
+          </Panel>
         </aside>
       </div>
     </>

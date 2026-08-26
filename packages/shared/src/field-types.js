@@ -39,16 +39,6 @@ export const FIELD_TYPES = Object.freeze({
 
   // Sirf content — entry ke custom fields
   richText: { component: 'RichTextField', contexts: [CONTENT] },
-  /**
-   * Chhoti strings ki list — `Couples`, `First-timers`, `5–7 days` (spec 007 §9 #7).
-   *
-   * `repeater` se alag isliye ki repeater ka har item ek **object** hota hai
-   * (`[{ value: 'Couples' }]`), aur uske liye poora sub-form banta hai. Yahan value
-   * seedha `string[]` hai, aur UI ek chips input hai.
-   *
-   * Ye Slice 4 me dobara chahiye hoga — har din ke `highlights` bhi yahi shape hain.
-   */
-  tags: { component: 'TagsField', contexts: [CONTENT] },
   date: { component: 'DateField', contexts: [CONTENT] },
   relation: { component: 'RelationField', contexts: [CONTENT] },
   repeater: { component: 'RepeaterField', contexts: [CONTENT] },

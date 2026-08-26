@@ -85,9 +85,25 @@
   }
 }
 
-/* Itinerary Images ka pool — chhote thumbs, har ek pe Remove. */
+/*
+ * Itinerary Images ka pool — thumbs, har ek pe Remove.
+ *
+ * ⚠️ **`display: grid` yahan zaroori hai.** Pehle ye rule maan kar chal raha tha ki
+ * `.media-grid` (design ke HTML se) grid bana dega — par wo class admin ke kisi CSS me
+ * define hi nahi hai; wo Media library ki screen ke saath Phase 2 me aayegi. Nateeja ye
+ * tha ki `grid-template-columns` ek non-grid element pe lag raha tha aur kuch kar hi
+ * nahi raha tha — images bas ek ke neeche ek thi.
+ *
+ * Isiliye JSX se wo `media-grid` class **hata di gayi** hai: ek class jo aaj kuch nahi
+ * karti par Phase 2 me achanak asar daalne lagegi, wo baad me chaukane wali hoti hai.
+ *
+ * Column ki chaudai aur gap **client ne tune kiye hain** — inhe "reference se match"
+ * karne ke naam pe wapas mat badalna.
+ */
 .pkg-image-grid {
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
   margin-top: 12px;
 }
 
@@ -99,12 +115,14 @@
 }
 
 .pkg-image-grid img {
-  width: 100%;
-  height: 90px;
+  width: auto;
+  height: 100%;
   object-fit: cover;
   border-radius: 2px;
 }
-
+.pkg-image-grid .media-item .btn-sm {
+  width: fit-content;
+}
 /*
  * Itinerary Builder — design ke `.day` accordion pe khada hai, jo `primitives.css` me
  * pehle se hai (menus builder bhi wahi use karta hai). Yahan sirf is panel ka apna hissa.

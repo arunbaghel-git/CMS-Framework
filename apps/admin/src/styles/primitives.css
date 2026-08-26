@@ -587,3 +587,24 @@ tr:hover .row-actions {
 .day.closed .day-head {
   border-bottom: 0;
 }
+
+/*
+ * Collapsible panel — `components/admin/Panel.jsx`.
+ *
+ * `.panel-head` ka `border-bottom` tabhi maayne rakhta hai jab uske neeche kuch ho. Band
+ * panel me wo ek lakeer bana kar chhod deta hai jo kisi cheez ko alag nahi kar rahi.
+ */
+.panel--closed > .panel-head {
+  border-bottom: 0;
+}
+
+/* Head ab click hota hai — cursor wahi batata hai. Text select karne se toggle chidhta hai. */
+.panel-head[role='button'] {
+  cursor: pointer;
+  user-select: none;
+}
+
+.panel-head[role='button']:focus-visible {
+  outline: 2px solid var(--accent, #2271b1);
+  outline-offset: -2px;
+}

@@ -13,9 +13,7 @@ import './Packages.css'
  *
  * 1. **`Code` column nahi hai** — Package Code field client ne 26 Aug ko hata diya tha
  *    (D-50 §2). Column rakh kar khaali chhodna user ko har baar confuse karta hai.
- * 2. **`Sold Out` tab `availability` pe filter karta hai, `status` pe nahi** (D-50 §1).
- *    Sold-out package published hi rehta hai — uska page live rehta hai.
- * 3. **`From price` aur `Enq.` columns `—` dikhate hain** — pricing Slice 5 me hai aur
+ * 2. **`From price` aur `Enq.` columns `—` dikhate hain** — pricing Slice 5 me hai aur
  *    Enquiries Phase 7b me. Design khud Users screen pe yahi karta hai (D-30: khaali
  *    cheez khaali dikhe, tooti hui nahi).
  *
@@ -96,7 +94,6 @@ export default function PackagesList() {
   /** Tab → query. Trash ek alag view hai, status ka filter nahi (R12). */
   const tabQuery = useMemo(() => {
     if (tab === 'trash') return { trashed: true }
-    if (tab === 'soldOut') return { availability: 'soldOut' }
     if (tab === 'published') return { status: 'published' }
     if (tab === 'draft') return { status: 'draft' }
     return {}
@@ -194,7 +191,6 @@ export default function PackagesList() {
     { id: 'all', label: 'All', count: counts?.all },
     { id: 'published', label: 'Published', count: counts?.published },
     { id: 'draft', label: 'Drafts', count: counts?.draft },
-    { id: 'soldOut', label: 'Sold Out', count: counts?.soldOut },
     { id: 'trash', label: 'Trash', count: counts?.trash },
   ]
 
@@ -260,8 +256,6 @@ export default function PackagesList() {
                 <>
                   <option value="feature">Set Featured</option>
                   <option value="unfeature">Remove Featured</option>
-                  <option value="soldOut">Mark Sold Out</option>
-                  <option value="open">Mark Open</option>
                   <option value="trash">Move to Trash</option>
                 </>
               )}
@@ -411,9 +405,6 @@ export default function PackagesList() {
                   {entry.title}
                 </Link>{' '}
                 {entry.fields?.featured && <span className="badge b-hot">Featured</span>}
-                {entry.availability === 'soldOut' && (
-                  <span className="badge b-close">Sold Out</span>
-                )}
                 <div className="row-actions">
                   {tab === 'trash' ? (
                     <span>

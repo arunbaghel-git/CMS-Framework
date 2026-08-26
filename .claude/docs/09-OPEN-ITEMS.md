@@ -101,6 +101,8 @@ blocker band ho gaye** (A-6, A-7 → **D-49**) — 491 tests passing.
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
 | **spec 007 §9 #1 — Package = `entries` ka type?** | ✅ **Haan (D-46)** — client ka faisla. `packages` collection nahi banegi; engine ek hi rahega. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi apni collection me — unka apna URL aur publish lifecycle nahi hai. **spec 007 ab 🟢 approved** |
 | **Public package page** | ✅ **Shuru ho gaya (D-52)** — client ne 26 Aug ko chuna ki page slice ke saath badhe, Slice 7 ka intezaar na kare. Ek hi catch-all route, `GET /api/public/resolve`, aur naya `path:` cache tag — **jiske bina publish karne pe page saaf hi nahi hota tha**. Auto-301 ab sach me chalta hai |
+| **`bestFor` ka shape** | ✅ **Ek line, chips nahi (D-55)** — client ne asli listing page dikhaya: `Best for <b>first-timers on a short break</b>`. Card ke baaki chips (`2N / 3D`, `Ferry`) **derived** hain, `bestFor` nahi. Field DSL ka `tags` type bhi hata diya — uska koi caller nahi bacha. D-50 §3 superseded |
+| **`availability` (Sold Out)** | ✅ **Banaya, phir hata diya (D-54)** — client ne live page dekhne ke baad kaha ki ye feature chahiye hi nahi. D-50 §1 superseded. Migration 012 **delete nahi ki**: wo apply ho chuki thi, aur file hatane se runner use "missing" report karta — 013 sirf uska index drop karti hai. Field Mongo me chhod diya (koi query use padhti hi nahi) |
 | **Slice 4 — Itinerary Builder** | ✅ **Ban gaya** — din-wise builder (drag-reorder, accordion), aur **route strip ka live preview** jo poori tarah derived hai. spec 007 §9 ke teen sawaal band (**D-51**): `note` ek free line hai · `transferNote` **din pe** hai (ek hi Ferry teen duration pe chalti hai) · per-day Hotel Category **rahegi**. `fields.itinerary` ab write pe validate hoti hai |
 | **A-8 — Overview ka editor** | ✅ **TipTap lag gaya** — Bold · Italic · H2 · dono lists · Link. `getJSON()` seedha `content.blocks[0].props.doc` me jaata hai, isliye **koi migration nahi lagi**: interim textarea bhi yahi doc banata tha. Image button jaan-boojh kar nahi — uske liye MediaPicker chahiye (Phase 2) |
 | **Slice 3 ki screens** | ✅ **Ban gayin** — All Packages (tabs · filters · bulk actions · row actions) aur Add New/Edit. Saath me Slice 2 ki saat screens bhi: Destinations · Package Type · Hotels · Add Ons · Transfer · What's Included · Itinerary Images. Design se jo farq hain wo `04-ADMIN-UX.md` ke aakhri section me table me hain |
@@ -173,6 +175,128 @@ Dono cases ka lakshan ek hi hai: _"publish kiya par site update nahi hui"_. API 
 `Revalidate request rejected/failed` warning milegi.
 
 Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
+
+---
+
+### A-11 · Test suite kabhi-kabhi phat-ti hai — Mongo contention
+
+**Deadline:** koi nahi — par har baar shak paida karti hai
+**Koi asli bug nahi hai** — teen me se ek run me kuch files fail hoti hain, dobara chalane
+pe pass
+
+Lakshan dhokha dene wala hai: ek `beforeEach` **hook timeout** khaati hai, uski cleanup
+adhoori reh jaati hai, aur uske baad ke tests _"A user with this email already exists"_ pe
+girte hain — jaise koi asli bug ho. **Har file akele chalane pe pass hoti hai**, aur yahi
+sabse bada surag hai.
+
+Wajah: har `beforeEach` aath collections saaf karti hai, roles aur content types seed karti
+hai, aur 3-4 users banati hai. Vitest kai files parallel chalata hai, sab ek hi local Mongo
+pe.
+
+⚠️ **Pehle iski wajah `bcryptjs` cost 12 likhi gayi thi — wo galat tha.**
+`auth/service.js` test me pehle se cost **4** use karta hai; D-32 wala 12 sirf production
+me lagta hai. `vitest.config.js` ka comment theek kar diya gaya hai.
+
+`hookTimeout` 10s se 30s kiya gaya tha; usse kam hua par khatam nahi hua. **Timeout aur
+badhana fix nahi hai** — wo sirf failure ko der se laata hai.
+
+Teen asli raaste:
+
+| Raasta | Keemat |
+| --- | --- |
+| `beforeEach` ke round trips ghatao — roles/contentTypes `beforeAll` me ek baar | Sabse saaf. Par tests ko ek doosre se alag rakhna padega: aaj har test maan kar chalta hai ki DB khaali hai |
+| Vitest ki parallelism cap karo (`maxThreads`) | Ek line ka kaam, par poori suite dheemi ho jaati hai |
+| Har file ka apna Mongo (in-memory server) | Contention poori tarah khatam, par ek nayi dependency (R3) |
+
+---
+
+### A-10 · Hero ka shape — client ki do baatein (26 Aug)
+
+**Deadline:** koi nahi — aaj jo hai wo design ke hisaab se sahi hai
+**Client ne dekh kar bola**, isliye ye developer ka andaaza nahi hai (R15)
+
+Client ne live page dekhne ke baad do cheezein kahin. Dono **aaj se alag** hain, isliye
+inhe likha ja raha hai — chupke se badla nahi gaya.
+
+#### 1. Aage chal kar hero me **ek hi image** ho sakti hai, paanch nahi
+
+Aaj `.gal` reference ka paanch-tile mosaic hai (ek bada + chaar chhote), aur wahi
+`itinerary-v3.html` me hai. Client ne kaha: _"in future may be only one image ho, not 5."_
+
+#### 2. ✅ **Ho gaya** — bada image bhi refresh pe badalta hai
+
+Aaj bada tile **pin** hai — wo package ka apna `bannerImage` hai aur shuffle nahi hota.
+Sirf chaar chhote tiles pool se aate hain aur wahi badalte hain.
+
+Wajah jo pehle lagayi gayi thi: banner is package ki **pehchaan** hai; use har refresh pe
+badalna matlab pehchaan hi badalna. Client ne ulta chaha — unke hisaab se **main image hi**
+wo cheez hai jo badalni chahiye. Client ki baat maani gayi.
+
+Ab banner aur pool **ek hi list** hain, poori list shuffle hoti hai, aur pehle paanch tiles
+bharte hain. Banner list me sabse aage rehta hai, isliye chhote pool me (5 se kam images) wo
+hamesha dikhta hai; bade pool me wo baaki jaisa hi ek hai.
+
+#### Aage kya bacha — hero me ek hi image
+
+```
+aaj                              client ki disha
+┌────────┬──┬──┐                 ┌──────────────┐
+│ banner │P │P │                 │  pool se ek  │  ← har refresh pe naya
+│ (pin)  ├──┼──┤                 │   bada image │
+│        │P │P │                 └──────────────┘
+└────────┴──┴──┘
+```
+
+Us soorat me `bannerImage` page ke hero se poori tarah nikal jaata hai aur sirf **listing
+card** ka image bacha rehta hai (Similar itineraries, package archive — spec 007 §6.1).
+
+**Jab ye tay ho:**
+
+- `Gallery.jsx` me `banner` wala pin hat jaayega; shuffle poore pool pe chalega
+- `.gal` ka grid ek tile ka ho jaayega (CSS me pehle se ek fallback hai jo 5 se kam images
+  pe strip bana deta hai — wo iska aadha kaam pehle se karta hai)
+- `bannerImage` ka field **rahega** — wo card ke liye chahiye hi
+- Shuffle client-side hi rahega (spec §1.7, D-52): ISR pe server-side shuffle ka koi matlab
+  nahi, wo sabko ek hi image dikhata rehta
+
+**Kyun abhi nahi badla:** client ne kaha _"abhi ke liye sahi aa raha hai, jaisa design me
+hai"_. Design (`itinerary-v3.html`) me paanch-tile mosaic hi hai, aur R15 kehta hai design
+jeetega jab tak client saaf na kahe.
+
+---
+
+### A-9 · Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe hain
+
+**Deadline:** koi sakht nahi — par ye **engine ka bacha hua kaam** hai, naya feature nahi
+**Kuch toota nahi hai** — sirf ek gap hai jiska kahin record nahi tha
+
+D-46 ke baad `entries` + `contentTypes` ka engine chal raha hai, aur `page` aur `post`
+dono types **seed me register bhi ho chuke hain**. Docs kai jagah kehte hain ki _"uske baad
+Pages aur Posts sirf apne field set ki baat hain"_ (`05-BUILD-PLAN.md`, D-46).
+
+**Par unki screens bani nahi hain.** `apps/admin/src/lib/nav.js` me unke links maujood hain
+aur wo `NotBuiltYet` pe jaate hain:
+
+```
+/posts   /posts/new   /posts/categories   /posts/tags
+/pages   /pages/new
+```
+
+Yaani API se aaj bhi ek Page ya Post banaya ja sakta hai, par admin me uska koi raasta
+nahi hai.
+
+**Kaam kitna hai:** Packages ki screens (`PackagesList` + `PackageEdit`) ka hi doosra roop —
+dono `type` se chalti hain, hardcoded `package` unme kam jagah hai. Categories aur Tags ke
+liye `TaxonomyScreen` pehle se bana hua hai (wo `type` prop leta hai), sirf do route jodne
+hain.
+
+⚠️ **Ek cheez jo Packages se alag hai:** Pages **hierarchical** hain (D-09) — unke editor me
+ek "Parent" dropdown chahiye, aur list me indent. Package editor me wo hai hi nahi, kyunki
+packages flat hain. Ye copy-paste se nahi aayega.
+
+**Ye yahan isliye likha hai ki ye chup-chaap gayab ho raha tha.** Slice 1 se Slice 4 tak ka
+poora kaam Packages pe kendrit raha, aur is gap ka kisi list me zikr nahi tha — wo sirf tab
+dikhta jab koi sidebar me Posts pe click karta.
 
 ---
 
