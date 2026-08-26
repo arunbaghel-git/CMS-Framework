@@ -91,6 +91,22 @@
  */
 
 /**
+ * Ek content type ka code-owned seed — `BUILT_IN_CONTENT_TYPES` ka element (D-46).
+ * @typedef {Object} ContentTypeSeed
+ * @property {string} key             `entries.type` me stored. Rename = har entry pe migration
+ * @property {string} label
+ * @property {string} labelPlural
+ * @property {string} icon
+ * @property {boolean} hasBuilder     builder ya classic editor — dono ek hi content shape likhte hain
+ * @property {boolean} hierarchical   path parent chain se banega ya urlPattern se (D-09)
+ * @property {string} urlPattern      `{slug}` hona zaroori hai
+ * @property {string|null} archiveBase
+ * @property {boolean} hasArchive
+ * @property {string[]} supports
+ * @property {BlockSchemaField[]} fields
+ */
+
+/**
  * Block registry entry — framework ka extension point. Naya block = ek file.
  * @typedef {Object} BlockDefinition
  * @property {string} type

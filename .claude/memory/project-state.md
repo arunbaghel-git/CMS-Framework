@@ -7,6 +7,12 @@
 
 ## Abhi kahan hain
 
+**Slice 1 ban chuki hai (26 Aug).** `entries` + `contentTypes` engine chal raha hai —
+migration 009, 64 naye test, **447 total passing**. Paanch guard **D-47** me likhe hain.
+
+**Agla kaam: Slice 2 — master lists + `packageDefaults`** (spec 007 §1). Slice 3 se
+**pehle A-6 tay karna hai** — slug badalne pe purana URL abhi 301 nahi hota.
+
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
 Original Phase 0 ke teen backlog items abhi bhi deferred/non-blocking hain (neeche).
@@ -40,10 +46,16 @@ Slice 0   Menu contract (spec 006, D-43)    ✅  ← 24 Aug
           Mega CTA ka variant               ✅  CTA plain text jaisa dikh raha tha
           Q-7 (logo fallback)               🔴  client ka faisla
           Q-8 (drawer vs footer logo)       ✅  26 Aug — ek hi logo dono me theek hai
-Phase 1+  Content core aur aage           🔴
+Phase 1   Content Core — Packages ke order se (spec 007, D-46)
+          spec 007 — Packages               ✅  🟢 approved, 26 Aug
+          Slice 1  entries + contentTypes    ✅  26 Aug — D-47, migration 009
+          Slice 2  master lists + defaults   🔴  ← agla kaam
+          Slice 3  list + Add New            🔴  A-6 (301) isse pehle tay ho
+          Slice 4-7                          🔴  specs/007-packages.md §7
+Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 383 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 447 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -98,9 +110,11 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Menu ka contract**  | Typed · mega = Columns→Groups→Links · layout aur columnCount alag · mobile wahi data (D-43)       |
 | **className**         | Sirf presentation — behaviour kabhi nahi (R18, D-43)                                              |
 | **Footer ka model**   | `settings.footerColumns[]` — ginti client chunta hai · menu/text/dono · apna logo (D-44)          |
+| **Package kya hai**   | `entries` ka ek **type** — apni collection nahi (D-46). Master lists apni collection me           |
+| **Engine ke guard**   | Create se publish nahi · published ka title URL nahi badalta · revision poora snapshot (D-47)     |
 
-Specs 001–006: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,
-**006 ✅ implemented** (menu contract).
+Specs 001–007: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,
+**006 ✅ implemented** (menu contract), **007 🟢 approved** (Packages — D-46).
 
 **Ek khula sawaal jo Slice 0 ke header ko rokta hai:** logo na mile to uski jagah **kya**
 dikhe — `09-OPEN-ITEMS.md` **Q-7**. Wo client ka faisla hai (R15), developer ka nahi.

@@ -21,6 +21,8 @@ import { roleRoutes } from './modules/roles/routes.js'
 import { settingsRoutes } from './modules/settings/routes.js'
 import { mediaRoutes } from './modules/media/routes.js'
 import { menuLocationRoutes, menuRoutes } from './modules/menus/routes.js'
+import { contentTypeRoutes } from './modules/content-types/routes.js'
+import { entryRoutes } from './modules/entries/routes.js'
 import { publicRoutes } from './modules/public/routes.js'
 import { getStorageDriver } from './modules/media/storage/index.js'
 
@@ -135,10 +137,12 @@ export function createApp() {
   app.use('/api/media', mediaRoutes)
   app.use('/api/menus', menuRoutes)
   app.use('/api/menu-locations', menuLocationRoutes)
+  app.use('/api/content-types', contentTypeRoutes)
+  app.use('/api/entries', entryRoutes)
 
   // Public — read-only, bina auth ke (02-ARCHITECTURE §10)
   app.use('/api/public', publicRoutes)
-  // Aage: entries, taxonomies…
+  // Aage: taxonomies, aur `/api/public/resolve` (Slice 7 / Phase 3)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

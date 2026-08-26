@@ -3,6 +3,7 @@ import { env } from './core/env.js'
 import { logger } from './core/logger.js'
 import { connectDb, disconnectDb } from './core/db.js'
 import { checkPending } from './core/migrations/runner.js'
+import { publishDueEntries } from './modules/entries/service.js'
 
 await connectDb()
 
@@ -38,9 +39,41 @@ const server = app.listen(env.PORT, () => {
   logger.info({ port: env.PORT, env: env.NODE_ENV }, 'API ready')
 })
 
+/**
+ * Scheduled publish ka cron — har minute (R2, D-11).
+ *
+ * **Per-entry `setTimeout` kabhi nahi.** Wo process restart pe gayab ho jaata hai aur us
+ * page ka publish hamesha ke liye ruk jaata hai, bina kisi error ke — ye is project ka
+ * documented trap hai. Yahan timer sirf "ab dekh lo" bolta hai; faisla poora DB se hota
+ * hai (`status: scheduled` + indexed `publishAt`).
+ *
+ * Multi-instance safe hai: claim `findOneAndUpdate` se hoti hai, to do instance ek hi
+ * entry nahi utha sakte. Aur cron poori tarah band ho jaaye tab bhi site sahi rehti hai —
+ * public read query khud `scheduled && publishAt <= now` ko published maanti hai
+ * (`isPubliclyVisible`). Cron sirf cache invalidate karne aur admin me sahi status
+ * dikhane ke liye hai.
+ *
+ * Ye `app.js` me nahi hai, `index.js` me hai — warna har test file apna timer chalu kar
+ * deti aur vitest process kabhi khatam hi na hota.
+ */
+const scheduledPublishTimer = setInterval(async () => {
+  try {
+    const { published } = await publishDueEntries()
+    if (published.length > 0) {
+      logger.info({ count: published.length }, 'Scheduled items published')
+    }
+  } catch (err) {
+    // Fail-soft: ek tick fail hone se server nahi girna chahiye — agla tick 60s me hai
+    logger.error({ err }, 'Scheduled publish tick fail hua')
+  }
+}, 60_000)
+
+scheduledPublishTimer.unref()
+
 /** Graceful shutdown — chalti hui requests poori hone do. */
 async function shutdown(signal) {
   logger.info({ signal }, 'Shutting down')
+  clearInterval(scheduledPublishTimer)
   server.close(async () => {
     await disconnectDb()
     process.exit(0)

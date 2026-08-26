@@ -1921,3 +1921,145 @@ jaaye), to sabse bhaari wajah gir jaati hai aur Payload phir se dekhne laayak ho
 hai. Aaj wo sooratehaal nahi hai.
 
 **Supersedes:** C-2 (19 Aug ka approved spike) — wo ab band hai, kiya nahi jaayega.
+
+---
+
+## D-46 · Package `entries` ka ek content type hai — apni collection nahi
+
+**Context:** Client ko tour packages bechne hain (spec 007). Package koi saada page nahi
+hai — usme din-wise itinerary hai, chaar hotel category ke alag daam hain, add-ons hain,
+aur kai dohrayi jaane wali listein hain. Sawaal: iske liye apni `packages` collection bane,
+ya ye `entries` ka ek `type` ho? Spec 007 ne ye §9 #1 pe **client ke liye khula** chhoda
+tha, kyunki iske badalne se poora plan badal jaata hai — baaki kisi item ke badalne se nahi.
+
+**Decision (client, 26 Aug):** **Package `entries` ka content type hai.**
+`packages` naam ki alag collection **nahi** banegi.
+
+```
+entries        type: 'package' | 'page' | 'post'
+               title, slug, path, status, publishAt, deletedAt, version, seo
+               content{}    spec 002 ka envelope
+               fields{}     package ka saara type-specific maal
+
+contentTypes   key: 'package', urlPattern: '/packages/{slug}', hasArchive: true
+```
+
+**Kyun:** Status, slug, permalink, trash, revisions, scheduled publish, optimistic
+concurrency aur SEO — ye **wahi** cheezein hain jo Pages aur Posts me bhi chahiye. Alag
+collection ka matlab hai yahi poora engine dobara likhna, aur phir Pages/Posts ke liye
+teesri baar.
+
+Ye repo ye galti **do baar** dekh chuka hai: D-43 §4 ka cache tag (menu pe location padhi
+ja rahi thi jabki location assignments pe thi), aur D-44 §5 me wahi bug dobara. Dono baar
+wajah ek hi thi — ek cheez ka sach do jagah rakha hua tha.
+
+Ye faisla `02-ARCHITECTURE.md` §3 ke "Sab kuch content hai" principle ka hi palan hai; wo
+principle Phase −1 se likha hua hai, par aaj tak uspe koi asli type nahi utra tha.
+
+**Reject kiya:** Alag `packages` collection. Wo pehle mahine tez lagti — package ke fields
+seedhe top-level pe, koi `contentTypes` indirection nahi. Par uske baad har engine-level
+feature (trash, revisions, scheduled publish, path cascade + 301) do jagah likhni padti,
+aur jis din wo do jagah alag ho jaatin, us din bug chup-chaap aata: admin "ho gaya" bolta
+aur live page purana rehta.
+
+**Jo phir bhi apni collection me rahenge:** master lists — `hotels`, `addOns`, `transfers`,
+aur singleton `packageDefaults`. Ye **content nahi hain** — inka apna URL nahi hai, ye
+publish nahi hoti, inka trash/revision/SEO ka koi matlab nahi. `entries` me daalna unpe wo
+poora engine thopna hota jiski unhe zaroorat hi nahi. Destinations aur Package Type
+`taxonomies` me jaate hain (spec 007 §1) — wo classification hain, content nahi.
+
+Yaani lakeer **"iska apna URL aur publish lifecycle hai?"** pe hai, "ye package se juda hai?"
+pe nahi.
+
+**Nateeja:**
+
+1. **Slice 1 asal me Content Core hai.** Packages banate-banate `entries` + `contentTypes`
+   ka engine ban jaata hai; uske baad Pages aur Posts sirf apne field set ki baat hain —
+   engine dobara nahi likhna padta. Isliye Phase 1 ka scope ghata nahi, sirf uska **order**
+   client ke hisaab se badla (D-45 §2).
+2. **`fields{}` ka contract spec 005 (field DSL) pe khada hai** — package ke fields
+   `contentTypes.fields[]` me declare honge, hardcode nahi.
+3. **`content` day 1 se `{ version: 1, blocks: [] }` shape me** — package ka overview rich
+   text ek `richText` block ke andar. Ye Phase 1 ka documented trap hai (05-BUILD-PLAN);
+   isse Phase 5 me migration nahi likhni padegi.
+4. **spec 007 ab 🟢 approved hai.** Uske baaki 15 sawaal (§9 #2–#16) build ke waqt tay ho
+   sakte hain — koi plan nahi rokta.
+
+---
+
+## D-47 · Content Core ke paanch guard — Slice 1 ka engine
+
+**Context:** D-46 ne tay kiya ki Package `entries` ka type hai. Uske baad engine likhte
+waqt paanch aise sawaal aaye jinka jawab spec me nahi tha, aur jinme se har ek ka "aasaan"
+jawab chup-chaap tootne wala tha. Ye paanchon ek saath yahan hain kyunki inka source ek hi
+hai — **is CMS ka user non-technical hai, aur uski galti wapas nahi ho sakti.**
+
+### 1. `POST /api/entries` se publish nahi hota
+
+Create hamesha `draft` (ya `pending`) pe utarta hai, chahe client `status: 'published'`
+bheje.
+
+**Kyun:** live karne ka ek hi raasta hona chahiye — `POST /:id/publish` — kyunki wahi
+jagah hai jahan `entry.publish` / `entry.publish.own` ka check aur publish-revision dono
+hain. Create pe status maan lene ka matlab tha ki `contributor` pehle hi request me poora
+publish flow bypass kar leta: na permission check hoti, na revision banti, na cache
+invalidate hoti. Test: _"create se publish nahi ho sakta"_.
+
+### 2. Published item ka title badalne se URL nahi badalta
+
+Draft pe title badle to slug bhi badalta hai (jab tak slug auto-generated ho). Publish
+hone ke baad **nahi**.
+
+**Kyun:** URL badalna ek publishing faisla hai, editing ka side-effect nahi. Client apne
+page ka title theek karne jaata hai aur uska live link chup-chaap mar jaata — aur ye
+mahino baad pata chalta hai, jab traffic gir chuka hota hai. Slug badalna phir bhi mumkin
+hai, par **jaan-boojh kar** — slug field khud edit karke.
+
+### 3. `urlPattern` tabhi badal sakta hai jab us type ki ek bhi entry na ho
+
+**Kyun:** `/packages/{slug}` ko `/tours/{slug}` karne ka matlab hai har entry ka stored
+`path` dobara likhna **aur** har purane URL pe 301. Doosra hissa `redirects` collection
+maangta hai, jo Phase 4 me hai. Aadha kiya gaya rename hi wo case hai jisme saare link
+chup-chaap 404 dene lagte hain — isliye jab tak doosra hissa nahi hai, raasta band hai.
+
+**Reject kiya:** "badalne do, path baad me theek kar lenge." Us beech me site live hoti
+hai.
+
+### 4. Revision **poora snapshot** hai, diff nahi — aur restore `path` wapas nahi laata
+
+**Kyun snapshot:** diff store karne ka matlab hai ki purani revision restore karne ke liye
+saari beech waali revisions replay karni padein. Retention cap (30) beech se ek revision
+hata de, aur poori chain toot jaati hai — yaani jo history dikh rahi hai wo restore ho hi
+nahi sakti.
+
+**Kyun `path`/`slug`/`version`/`deletedAt` restore nahi hote:** wo entry ki **abhi ki
+pehchaan** hain, uske content ka hissa nahi. Purana path wapas laane ka matlab hota ki
+content restore karne se live URL badal jaaye — yaani #2 wali galti, pichhle darwaaze se.
+
+**Aur restore khud ek revision banata hai.** Bina uske restore destructive hoti: jo abhi
+live tha wo kahin bacha hi nahi rehta, aur galti se restore karne ka koi undo nahi hota.
+
+### 5. Bachche wale item ko trash me nahi daala ja sakta
+
+**Kyun:** bachchon ka `path` ek aise parent ko point karta rehta jo list me hai hi nahi.
+Wo tab tak nahi dikhta jab tak koi unhe khole — aur jab dikhta hai to samajh nahi aata ki
+kya hua.
+
+**Reject kiya:** bachchon ko chup-chaap saath me trash karna. Ek click se paanch page
+gayab ho jaana non-technical user ke liye sabse darawni cheez hai, aur restore ek-ek karke
+karna padta.
+
+**Reject kiya:** bachchon ko chup-chaap root pe khiskana. Wahi cheez **restore pe** hoti
+hai (parent trash me ho to bachcha root pe wapas aata) — par wahan wo malbe se bachne ka
+raasta hai; yahan wo user ki jaankari ke bina structure badal dena hota.
+
+### Nateeja
+
+Paanchon guard **service layer me** hain, model ke hook me nahi (R1) — is module ka
+lagbhag har write `findOneAndUpdate` se hota hai, aur wo `save` hooks chalata hi nahi.
+Hook me rakhi hui koi bhi line yahan chup-chaap kabhi na chalne wali line hoti.
+
+**Ek cheez jaan-boojh kar baaki hai:** slug badalne pe purane path ka **301 redirect**
+abhi nahi banta (cascade banta hai). Slice 1 me kuch publish hua hi nahi, isliye koi live
+URL nahi toot raha — par **Slice 3 (publish) se pehle ye zaroori ho jaayega**.
+`09-OPEN-ITEMS.md` me tracked hai.

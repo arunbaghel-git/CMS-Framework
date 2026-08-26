@@ -1,5 +1,6 @@
 import { connectDb, disconnectDb } from './core/db.js'
 import { logger } from './core/logger.js'
+import { ensureBuiltInContentTypes } from './modules/content-types/service.js'
 import { ensureDefaultRoles } from './modules/roles/service.js'
 import { ensureSettings } from './modules/settings/service.js'
 import { ensureAdminUser } from './modules/users/service.js'
@@ -13,15 +14,22 @@ import { createUserSchema } from './modules/users/validation.js'
  *
  * Abhi ye Phase 0 ka hissa seed karta hai:
  *   ✅ roles (5)              ✅ admin user (1)          ✅ settings (1)
- *   ⏳ content types · taxonomies · templates · menus · entries
- *      — ye Phase 1 me aayenge, jab wo collections banengi
+ *   ✅ content types (3)      — package · page · post (D-46)
+ *   ⏳ taxonomies · templates · menus · entries
+ *      — ye Phase 1 ki aage waali slices me aayenge
  */
 
 /** @param {{ force?: boolean }} [options] */
 export async function runSeed({ force = false } = {}) {
-  const summary = { roles: [], admin: null, settings: null }
+  const summary = { roles: [], contentTypes: [], admin: null, settings: null }
 
   summary.roles = await ensureDefaultRoles({ force })
+
+  /**
+   * Built-in content types — roles wala hi model (D-36, D-46). Har deploy pe sync hote
+   * hain, isliye code me joda gaya naya field kisi chalu instance pe chhoot nahi jaata.
+   */
+  summary.contentTypes = await ensureBuiltInContentTypes({ force })
 
   /**
    * Settings ka document — idempotent. `--force` ise chhoota nahi: usme site ka naam,
@@ -69,6 +77,14 @@ export async function main(argv = process.argv.slice(2)) {
       if (r.removed?.length) detail.removed = r.removed
 
       logger.info({ role: r.key, ...detail }, `Role ${r.action}`)
+    }
+
+    for (const t of summary.contentTypes) {
+      const detail = {}
+      if (t.changed?.length) detail.changed = t.changed
+      if (t.reason) detail.reason = t.reason
+
+      logger.info({ contentType: t.key, ...detail }, `Content type ${t.action}`)
     }
 
     if (summary.admin) {

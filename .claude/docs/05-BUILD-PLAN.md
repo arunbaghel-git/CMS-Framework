@@ -168,6 +168,22 @@ karti, aur yahi wo jagah hai jahan ye likha hua hai.
 
 ## Phase 1 — Content Core (3 hafte)
 
+> **Order client se aa raha hai — Packages pehle** (D-45 §2, D-46). Neeche ki list Phase 1
+> ka **scope** hai, uska order nahi. Pehla type jo utrega wo `page`/`post` nahi,
+> **`package`** hai — poora plan [`specs/007-packages.md`](../specs/007-packages.md) §7 me,
+> 7 slices me toota hua.
+>
+> Scope ghata nahi hai: Package `entries` ka ek type hai (D-46), isliye Slice 1 asal me
+> yahi engine hai. Uske baad Pages aur Posts sirf apne field set ki baat hain.
+>
+> | Slice | Kya | Phase 1 ka kaunsa hissa |
+> | --- | --- | --- |
+> | 1 ✅ | `entries` + `contentTypes` engine (26 Aug) | neeche ke pehle 11 bullet — poore |
+> | 2 | Master lists + `packageDefaults` | taxonomies ka bullet + spec 007 §1 ki nayi collections |
+> | 3 | All Packages list + Add New | admin list + editor wale bullet |
+> | 4–6 | Itinerary · Pricing · Gallery/FAQ | spec 007 ka apna, Phase 1 me nahi tha |
+> | 7 | Public package page | Phase 3 ka hissa, jaldi khinch kar |
+
 - `entries` model + service (type/slug/**path**/status/publishAt/seo/fields/content)
 - **`resolvePath()` ek hi jagah** — parent slug badle to descendants cascade + har ek pe 301
 - Slug auto-generate, uniqueness per type, manual override, collision suffix `-2`
@@ -191,6 +207,15 @@ karti, aur yahi wo jagah hai jahan ye likha hua hai.
 
 **Done kab:** admin 10 pages aur 10 posts bana, edit, publish/unpublish, trash se
 restore, aur purani revision restore kar sakta hai.
+
+**Slice 1 land ho chuki (26 Aug).** Engine chal raha hai — `entries` + `contentTypes`,
+paanchon guard D-47 me. Jo abhi bhi baaki hai: **admin ki screens** (Slice 3), **bulk
+actions**, **autosave recovery**, **revision diff**, aur **slug change pe 301** (Slice 3
+se pehle zaroori — `redirects` module Phase 4 me hai).
+
+**Par pehla asli done-criteria `package` pe hoga** (client ka order): wahi das kaam
+Packages pe ho jaayein. Engine ek hi hai, isliye Pages/Posts uske turant baad khud aa
+jaate hain — unki **screens** hi bacha hua kaam hain (spec 007 "Scope me kya NAHI hai").
 
 **Trap:** `content` ko abhi se `{ version: 1, blocks: [] }` shape me rakho — rich text
 ko ek `richText` block ke andar. Phase 5 me migration nahi likhni padegi.

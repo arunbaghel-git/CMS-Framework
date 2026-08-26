@@ -5,7 +5,8 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0 + Slice 0 dono ban chuke hain** (**367 tests passing**).
+**Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1 ban chuki hain**
+(**447 tests passing**).
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
@@ -28,8 +29,11 @@ me sirf `header` bacha; social links ki duplicate UI Footer screen se hat gayi. 
 Teen item jaan-boojh kar deferred hain: docker compose me `api`+`admin`, CSP policy
 (Phase 4-5), aur forgot/reset (SMTP pe block).
 
-Agla kaam **Phase 1 — Content Core**. **C-2 (Payload spike) band ho chuka hai** — D-45:
-apna stack hi chalega.
+**26 Aug — Slice 1 (Content Core ka engine):** `entries` + `contentTypes` module,
+migration 009, aur `resolvePath()`/`slugify()` `packages/shared` me. Path cascade, trash,
+publish, scheduled publish, revisions aur optimistic concurrency sab chal rahe hain.
+Engine ke paanch guard **D-47** me. Agla kaam **Slice 2 — master lists** (spec 007 §1).
+**C-2 (Payload spike) band ho chuka hai** — D-45: apna stack hi chalega.
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
@@ -160,7 +164,14 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Slice 0 land ho chuki (D-43). Agla kaam **Phase 1 — Content Core**.
+Slice 1 land ho chuki (D-47). Agla kaam **Slice 2 — master lists + `packageDefaults`**
+(spec 007 §1).
+
+⚠️ **A-6 — Slice 3 se pehle:** slug badalne pe path ka cascade banta hai, par purane URL pe
+**301 nahi**. Abhi kuch publish hua hi nahi isliye kuch toota nahi; pehle publish ke baad
+ye asli bug hai.
+spec 007 §9 ke **15 sawaal** abhi khule hain, par koi bhi plan nahi rokta — har ek apne
+slice pe tay hoga (`09-OPEN-ITEMS.md`).
 
 | #   | Kya                                                    | Kab tak                                      |
 | --- | ------------------------------------------------------ | -------------------------------------------- |

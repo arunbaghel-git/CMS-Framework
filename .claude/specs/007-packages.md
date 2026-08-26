@@ -1,11 +1,12 @@
 # 007 — Packages
 
-**Status:** 🟡 Draft — client ke saath 26 Aug ko discuss hua; usi din design ke against
-review karke chhe gaps jode gaye. Kuch item abhi khule hain (§9).
+**Status:** 🟢 Approved — 26 Aug. Buniyaadi faisla (Package = `entries` ka type) client
+ne confirm kar diya → **D-46**. Baaki 15 sawaal (§9) build ke waqt tay honge, koi plan nahi
+rokte.
 **Phase:** Phase 1 — Content Core, par **client ke order se** (D-45 §2)
 **Blocks:** Packages ka poora feature; iske baad Pages/Posts lagbhag muft
-**Related:** D-25 (trash), D-30 (ruki hui cheezein), D-45 (apna stack), spec 002 (content
-contract), spec 005 (field DSL), `docs/reference/admin-design.html`,
+**Related:** D-46 (package = entries ka type), D-25 (trash), D-30 (ruki hui cheezein),
+D-45 (apna stack), spec 002 (content contract), spec 005 (field DSL), `docs/reference/admin-design.html`,
 `docs/reference/itinerary-v3.html`
 
 ---
@@ -54,8 +55,10 @@ contentTypes     har type ka apna field set (spec 005 ka DSL)
 **Nateeja:** Packages banane me Content Core ka kaam bhi ho jaata hai. Uske baad Pages aur
 Posts sirf apne field set ki baat hain — engine dobara nahi likhna padta.
 
-> ❓ **Ye faisla client ko confirm karna hai.** Iske badalne se poora plan badal jaata hai,
-> baaki kisi bhi item ke badalne se nahi.
+> ✅ **Client ne 26 Aug ko confirm kar diya** — poora tark aur reject kiya hua raasta
+> **D-46** me. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi
+> apni collection me rehti hain: unka apna URL aur publish lifecycle nahi hai. Lakeer wahi
+> hai — "iska apna URL aur publish lifecycle hai?", "ye package se juda hai?" nahi.
 
 ---
 
@@ -530,10 +533,12 @@ sakta hai — wo ek field ka kaam hai. ❓
 Har slice ke baad kuch **chalta hua** hona chahiye — client dekh sake.
 
 ```
-SLICE 1   entries + contentTypes engine
+SLICE 1   entries + contentTypes engine                      ✅ 26 Aug
           status · slug · path · trash · publish · revisions · optimistic concurrency
           + `package` type register
           → abhi kuch dikhta nahi, par sab isi pe khada hai
+          64 naye test · migration 009 · D-47 (paanch guard)
+          ⚠️ slug badalne pe purane path ka 301 abhi nahi banta — Slice 3 se pehle
 
 SLICE 2   Master lists (chhoti screens, ek jaisi) + packageDefaults
           Destinations · Package Type · Transfer · Add Ons · Hotels
@@ -598,12 +603,12 @@ packageDefaults { siteId }                    unique    ← singleton, wahi patt
 
 ## 9. Khule sawaal
 
-Inme se koi bhi **plan ko nahi rokta** — build ke waqt tay ho sakte hain. Sirf pehla
-buniyaadi hai.
+Inme se koi bhi **plan ko nahi rokta** — build ke waqt tay ho sakte hain. Jo ek buniyaadi
+tha (#1), wo 26 Aug ko band ho gaya (D-46).
 
 | # | Sawaal | Kab chahiye |
 | --- | --- | --- |
-| **1** | **Package = `entries` ka type?** (upar wala faisla) | Slice 1 se pehle |
+| ~~1~~ | ~~Package = `entries` ka type?~~ ✅ **haan** — 26 Aug, **D-46** | ~~Slice 1 se pehle~~ |
 | 2 | `What's Included` aur `Inclusion/Exclusion` — ek hi hain? | Slice 2 |
 | 3 | `Room` hotel ke record me ya package me? | Slice 2 |
 | 4 | Transfer record me icon? Duration per-day? | Slice 2 |

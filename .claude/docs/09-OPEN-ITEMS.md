@@ -5,6 +5,10 @@ spec 006. **Header aur footer dono client ke reference se match kar diye gaye** 
 — footer ka data model **D-44** me badla. 383 tests passing.
 
 Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neeche).
+
+**Agla milestone: Packages (spec 007 — 🟢 approved).** Uska buniyaadi faisla
+26 Aug ko band ho gaya — Package `entries` ka ek type hai, **D-46**.
+**Slice 1 (engine) ban chuki hai** — 447 tests passing, D-47.
 **Last updated:** 26 Aug 2026
 
 ---
@@ -94,6 +98,9 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 | --- | --- |
 | **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
+| **spec 007 §9 #1 — Package = `entries` ka type?** | ✅ **Haan (D-46)** — client ka faisla. `packages` collection nahi banegi; engine ek hi rahega. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi apni collection me — unka apna URL aur publish lifecycle nahi hai. **spec 007 ab 🟢 approved** |
+| **Slice 1 — Content Core engine** | ✅ **Ban gaya** — `entries` + `contentTypes`, migration 009, 64 naye test. Paanch guard **D-47** me: create se publish nahi · published ka title badalne se URL nahi badalta · `urlPattern` entries hone ke baad lock · revision poora snapshot (path restore nahi hota) · bachche wale item trash nahi hote |
+| **Route ka prefix** | ✅ `/api/<resource>`, `/api/admin/<resource>` nahi. Doc `/api/admin/*` likhta tha par code Phase 0 se hi `/api/users` pe chal raha tha — 02-ARCHITECTURE §9 ab code ke hisaab se theek hai |
 | **C-2 Payload spike** | ✅ **Band — Payload nahi (D-45)**. 19 Aug ko repo khaali tha, tab sawaal sasta tha. Aaj auth/RBAC/media/settings/admin shell sab chal rahe hain (383 test), aur Payload apna admin panel laata hai — jo client ke **frozen design** (R15) se takrata hai. Uske **ideas** Phase 5 se pehle dekhenge, framework nahi lenge |
 
 ---
@@ -160,6 +167,59 @@ Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
 
 ---
 
+### A-6 · Slug badalne pe purana URL 301 nahi hota — **Slice 3 se pehle zaroori**
+
+**Deadline:** Slice 3 (publish + All Packages list) se **pehle**
+**Abhi kuch nahi tootа** — Slice 1 me kuch publish hua hi nahi
+
+Slice 1 me path ka **cascade** ban chuka hai: parent ka slug badle to saare descendants ka
+`path` rebase hota hai (test ke saath). Par purane path pe **301 redirect** nahi banta —
+wo `redirects` collection maangta hai, jiska module Phase 4 (SEO) me hai.
+
+```
+banta hai    ✅  /about → /company, aur /about/team → /company/team
+nahi banta   ❌  /about pe 301 → /company
+```
+
+Abhi ye khatarnak nahi hai kyunki koi entry publish hui hi nahi — koi live URL hai hi
+nahi jo toote. **Jis din pehla package publish hoga, us din se ye ek asli bug hai:** client
+apna slug theek karega aur uska share kiya hua link chup-chaap 404 dene lagega, bina kisi
+error ke.
+
+Do raaste hain, faisla Slice 3 ke waqt:
+
+| Option | Matlab |
+| --- | --- |
+| `redirects` collection abhi bana lo (chhota hissa) | `entries` service auto-301 likhti rahe; manager UI Phase 4 me hi rahe |
+| Slug edit **published item pe band** kar do | Chhota kaam, par client ka haath bandhta hai |
+
+Poora sandarbh: **D-47** ka aakhri paragraph, aur `cache-invalidation` skill ka
+"Slug change ka special case".
+
+---
+
+### spec 007 §9 · Packages ke 15 baaki sawaal
+
+**Deadline:** har sawaal ka apna slice — spec me likha hai
+**Koi bhi plan ko nahi rokta.** Jo ek buniyaadi tha (#1), wo D-46 me band ho gaya.
+
+Ye yahan isliye likhe hain ki spec ke andar rehne se `/status` jaise kisi bhi check se
+chhoot jaate the — 26 Aug ko yahi hua.
+
+| Slice | Sawaal |
+| --- | --- |
+| 2 | #2 What's Included aur Inclusion/Exclusion ek hi hain? · #3 `Room` hotel me ya package me? · #4 Transfer me icon? duration per-day? · #5 Package Type flat ya hierarchical? · #14 `packageDefaults` naam theek hai? |
+| 3 | #6 list ka `Code` column hataayein? · #7 `Best For` me kya bharega? · #9 `Sold Out` status hai ya `availability` field? |
+| 4 | #10 din ka `note` field? · #11 per-day Hotel Category dropdown hatana hai? |
+| 5 | #12 category ka `note` field? · #13 `Ferries: 3 legs` gine ya likha jaaye? |
+| 6 | #8 `ratingValue`/`ratingCount` haath se ya `reviews[]` se? |
+| 7 | #15 similar itineraries — apne aap ya haath se? |
+| baad me | #16 Enquiries (Q-2) — `Enq.` column aur booking form iska intezaar kar rahe hain |
+
+Poora sandarbh: [`specs/007-packages.md`](../specs/007-packages.md) §9
+
+---
+
 ### Q-2 · Enquiries — Phase 7b ya alag Phase 9?
 
 **Deadline:** Phase 7 se pehle
@@ -210,7 +270,12 @@ Spec 005 me add karne honge.
 6. ✅ Header design ke hisaab se poora            (25 Aug — buttons, drawer, Inter)
 7. ✅ Footer ka naya data model + design          (D-44, 25 Aug — migration 008)
 8. ✅ C-2 — Payload spike **band** (D-45, 26 Aug)  apna stack hi chalega
-9. Phase 1 — Content Core                        (3 hafte)
+9. ✅ spec 007 — Packages 🟢 approved (D-46, 26 Aug)  Package = entries ka type
+10. ✅ Slice 1 — entries + contentTypes engine    (D-47, 26 Aug — 447 tests)
+11. Phase 1 ka baaki — Packages ke order se       (3 hafte)
+    Slice 2  master lists + packageDefaults        ← agla kaam
+    Slice 3  All Packages list + Add New           (A-6 isse pehle tay karna hai)
+    Slice 4-7 → specs/007-packages.md §7
 ```
 
 ### Media Phase 2 se aage kyun khisak rahi hai
@@ -279,8 +344,9 @@ Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **4 commits unpushed** hain (total 51). `origin/main` `0cfe50b` pe khada hai; local
-  HEAD `513a120` — 25 Aug ka header work. Aage bhi push **sirf permission pe**
+- ⚠️ **6 commits unpushed** hain (total 58). `origin/main` `096b182` pe khada hai; local
+  HEAD `ff6e192` — 26 Aug ka D-45 / Q-8 / linkify / spec 007 ka kaam. Aage bhi push
+  **sirf permission pe**
 - ⚠️ **CI ka pehla step `pnpm format:check` hai** (`.github/workflows/ci.yml`:
   Format → Lint → Test → Build). `3c29b58` isi pe fail ho raha tha — 9 files prettier-dirty
   thin, ab theek ho chuki hain. Push se pehle `pnpm format:check` **hamesha** chala lo,

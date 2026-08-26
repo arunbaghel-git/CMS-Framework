@@ -109,11 +109,21 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                           scripts{head,bodyOpen,bodyClose} — apne screen ke saath (D-40)
                  NOTE: `siteUrl` yahan **nahi** hai — wo env se aata hai (D-40)
 
-contentTypes   * siteId, key(page|post|service…), label, labelPlural, icon,
-                 fields[], hasBuilder, isBuiltIn, urlPattern, archiveBase,
-                 hasArchive, supports[]
+contentTypes   * siteId, key(package|page|post|service…), label, labelPlural, icon,
+                 fields[], hasBuilder, hierarchical, isBuiltIn, urlPattern,
+                 archiveBase, hasArchive, supports[]
+                 hierarchical: path parent chain se banega ya urlPattern se.
+                 Iske bina resolvePath() ko type ka NAAM dekhna padta
+                 (type === 'page') — wahi hardcoding jise D-09 ne mana kiya
+                 tha. Client ka custom type bhi nested ho sakta hai.
+                 locale yahan NAHI hai — type site ka structure hai, uska
+                 content nahi. Translate label hoti hai, key nahi (D-46)
+                 package | page | post CODE-OWNED hain, seed sync karta hai
+                 (D-46, wahi model jo built-in roles pe hai — D-36)
 
 entries        * siteId, locale, type, title, slug, path, status, publishAt,
+                 type: package | page | post — package pehla asli type hai (D-46),
+                 uska maal fields{} me, contentTypes.fields[] se declared
                  authorId, templateId, version, deletedAt,
                  content { version, blocks: [...] },     page builder tree
                  fields  { ...customFields },            contentType ke fields
@@ -144,7 +154,21 @@ menuLocations  * siteId, locale, location, menuId
 templates      * siteId, name, type(page|post|archive|single|404|search),
                  regions{header,footer}, layout, isDefault
 patterns       * siteId, name, kind(pattern|synced), blocks[], category
-taxonomies     * siteId, type(category|tag), name, slug, parentId, isDefault, seo
+taxonomies     * siteId, type(category|tag|destination|packageType), name, slug,
+                 parentId, isDefault, seo, description, bannerMediaId
+                 destination hierarchical (India → Kerala → Munnar), packageType flat
+                 → specs/007-packages.md §1.1, §1.2
+
+hotels         * siteId, destinationId, category(standard|deluxe|premium|luxury),
+                 name, room
+                 category ki ginti fix 4 hai — code me constant, master list nahi (§1.3)
+addOns         * siteId, name, price, where
+                 price FREE TEXT hai, number nahi — "₹3,500 – ₹4,500 pp" (§1.4)
+transfers      * siteId, name, icon
+packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
+                 itineraryImages[], bookingSteps[{title,text}], cancellationText
+                 singleton — wahi pattern jo settings ka hai. Package ke domain ki
+                 globals; settings me jaan-boojh kar NAHI (D-46, §1.8)
 redirects      * siteId, from, to, statusCode(301|302), hits, isAuto
 forms          * siteId, name, fields[], notifyEmails[], successMessage
 submissions      formId, data, ip, createdAt, expiresAt
@@ -195,10 +219,14 @@ entries:   { searchText: "text" }                          ← ek hi text index 
 media:     { siteId: 1, folderId: 1, createdAt: -1 }
 mediaRefs: { siteId: 1, mediaId: 1 }
 redirects: { siteId: 1, from: 1 }                          unique
+taxonomies:    { siteId: 1, type: 1, slug: 1 }             unique
+hotels:        { siteId: 1, destinationId: 1, category: 1 }
+packageDefaults: { siteId: 1 }                             unique   ← singleton
 menus:         { siteId: 1, locale: 1, key: 1 }            unique   ← locale D-43 me juda
 menus:         { siteId: 1, deletedAt: 1, updatedAt: -1 }
 menuLocations: { siteId: 1, locale: 1, location: 1 }       unique
-revisions: { entryId: 1, createdAt: -1 }
+contentTypes:  { siteId: 1, key: 1 }                       unique   ← migration 009
+revisions: { entryId: 1, createdAt: -1 }                              ← migration 009
 refreshTokens: { jti: 1 } unique · { userId: 1 } · { expiresAt: 1 } TTL
 submissions:   { expiresAt: 1 } TTL
 ```
@@ -654,18 +682,20 @@ role read-only hain. Avatar Phase 2 (Media) pe block hai.
 POST   /api/auth/login | logout | refresh | forgot | reset
 GET/PATCH /api/me                        apni profile + password change
 
-GET    /api/admin/entries?type=page&status=&q=&page=&trashed=
-POST   /api/admin/entries
-GET    /api/admin/entries/:id
-PATCH  /api/admin/entries/:id            version bhejo → mismatch pe 409
-POST   /api/admin/entries/:id/publish | unpublish | duplicate | submit-review
-POST   /api/admin/entries/:id/trash | restore
-DELETE /api/admin/entries/:id            permanent, sirf Trash ke andar se
-POST   /api/admin/entries/bulk           { ids[], action }
-GET    /api/admin/entries/:id/revisions
-GET    /api/admin/entries/:id/revisions/:rid/diff
-POST   /api/admin/entries/:id/revisions/:rid/restore
-GET    /api/admin/entries/:id/autosave   crash recovery
+GET    /api/entries?type=page&status=&q=&page=&trashed=      ✅ Slice 1
+POST   /api/entries                                          ✅
+GET    /api/entries/:id                                      ✅
+PATCH  /api/entries/:id                  version bhejo → mismatch pe 409   ✅
+POST   /api/entries/:id/publish | unpublish | duplicate | submit-review    ✅
+POST   /api/entries/:id/trash | restore                      ✅
+DELETE /api/entries/:id                  permanent, sirf Trash ke andar se ✅
+POST   /api/entries/bulk                 { ids[], action }   — Slice 3 (admin list)
+GET    /api/entries/:id/revisions                            ✅
+GET    /api/entries/:id/revisions/:rid/diff                  — Phase 1 baad me
+POST   /api/entries/:id/revisions/:rid/restore               ✅
+GET    /api/entries/:id/autosave         crash recovery      — Slice 3
+
+CRUD   /api/content-types                                    ✅ Slice 1 (write sirf admin)
 
 POST   /api/admin/media (multipart)   GET /api/admin/media
 POST   /api/admin/media/:id/trash | restore
@@ -673,10 +703,10 @@ POST   /api/admin/media/:id/edit         crop / rotate / scale
 POST   /api/admin/media/:id/replace      file swap, URL + refs same
 GET    /api/admin/media/:id/usage        mediaRefs se
 
-CRUD   /api/admin/menus   ·   GET/PUT /api/admin/menu-locations
+CRUD   /api/menus   ·   GET/PUT /api/menu-locations
 GET/PATCH /api/settings                  ek document, isliye koi :id nahi (D-40)
                                          read: settings.read · write: settings.update
-CRUD   /api/admin/templates | patterns | content-types | taxonomies | redirects | users
+CRUD   /api/templates | patterns | taxonomies | redirects | users
 GET    /api/admin/search?q=              Cmd+K, searchText pe
 GET    /api/admin/activity
 POST   /api/admin/tools/export | import
@@ -690,6 +720,12 @@ GET    /api/public/sitemap  ·  /api/public/feed
 ```
 
 Admin aur public routes alag: public read-only, admin authed.
+
+> **Prefix `/api/<resource>` hai, `/api/admin/<resource>` nahi.** Ye doc pehle
+> `/api/admin/*` likhta tha, par code Phase 0 se hi `/api/users`, `/api/settings`,
+> `/api/menus` pe chal raha hai. Alag prefix ka koi fayda nahi tha — auth cookie se aati
+> hai, path se nahi — aur do naam rakhne se doc code se alag hota chala gaya. Slice 1 me
+> doc ko code ke hisaab se theek kar diya gaya.
 
 > `by-path` ki jagah `resolve` isliye ki ek hi endpoint entry, taxonomy archive, custom
 > archive, redirect aur 404 — sabka jawab de. Next ka catch-all ek hi call me decide
