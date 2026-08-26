@@ -103,6 +103,7 @@
  * @property {string|null} archiveBase
  * @property {boolean} hasArchive
  * @property {string[]} supports
+ * @property {string[]} taxonomyTypes   kaunsi taxonomies is type pe chalti hain (D-49)
  * @property {BlockSchemaField[]} fields
  */
 

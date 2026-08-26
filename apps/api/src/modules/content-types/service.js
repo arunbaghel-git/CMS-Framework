@@ -45,8 +45,8 @@ function toApi(doc) {
  *
  * **Sab kuch sync nahi hota** — teen alag darje hain:
  *
- * - `fields` `supports` `hasBuilder` `hierarchical` → **hamesha**. Ye engine ka
- *   behaviour hai aur code-owned hai (D-46).
+ * - `fields` `supports` `taxonomyTypes` `hasBuilder` `hierarchical` → **hamesha**. Ye
+ *   engine ka behaviour hai aur code-owned hai (D-46).
  * - `label` `labelPlural` `icon` → **sirf `force` pe**. Client "Packages" ko "Tours"
  *   keh sakta hai; wo uska display faisla hai (R11), code ka nahi.
  * - `urlPattern` `archiveBase` `hasArchive` → **sirf create pe**. Inhe badalna matlab
@@ -78,7 +78,7 @@ export async function ensureBuiltInContentTypes({ force = false, siteId = DEFAUL
     }
 
     const changes = {}
-    for (const field of ['fields', 'supports', 'hasBuilder', 'hierarchical']) {
+    for (const field of ['fields', 'supports', 'taxonomyTypes', 'hasBuilder', 'hierarchical']) {
       if (JSON.stringify(existing[field]) !== JSON.stringify(definition[field])) {
         changes[field] = definition[field]
       }
@@ -171,10 +171,13 @@ export async function createContentType(input, siteId = DEFAULT_SITE_ID) {
  * Update — `key` yahan aata hi nahi (schema me omit hai, kyunki wo `entries.type` me
  * stored hai).
  *
- * `urlPattern` sirf tab badal sakta hai jab is type ki **ek bhi entry na ho**. Uske baad
- * badalne ka matlab hai har entry ka `path` dobara likhna aur purane har URL pe 301 —
- * wo `redirects` module ke saath aayega (Phase 4). Us tak wo raasta band hai, kyunki
- * aadha kiya gaya rename hi wo case hai jisme link chup-chaap 404 hone lagte hain.
+ * `urlPattern` sirf tab badal sakta hai jab is type ki **ek bhi entry na ho**.
+ *
+ * `redirects` ab maujood hain (D-49), par wo **path badalne pe** banti hain — yahan path
+ * badalta hi nahi, sirf uska pattern. Har entry ka `path` dobara likhna ek alag, bulk
+ * operation hai ("convert URL pattern"), aur wo abhi nahi bana. Us tak ye raasta band
+ * hai, kyunki aadha kiya gaya rename hi wo case hai jisme link chup-chaap 404 hone lagte
+ * hain.
  */
 export async function updateContentType(id, input, siteId = DEFAULT_SITE_ID) {
   const current = await ContentType.findOne({ _id: id, ...scope(siteId) })

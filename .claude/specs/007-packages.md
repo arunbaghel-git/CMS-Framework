@@ -547,10 +547,12 @@ SLICE 2   Master lists (chhoti screens, ek jaisi) + packageDefaults   ✅ 26 Aug
           API taiyaar · 30 naye test · migration 010 · D-48
           Screens abhi nahi bani — wo admin ka kaam hai (§5)
 
-SLICE 3   All Packages list + Add New (basic)
+SLICE 3   All Packages list + Add New (basic)                        🟡 API poora
           title · slug · shortDescription · overview · nights/days · banner
           destinations · packageTypes · status
           → client package bana kar publish kar sakta hai
+          ✅ 26 Aug — field set, availability, taxonomyTypes ka gate (D-50)
+          🔴 bacha: admin ki screens (s-packages + s-package-edit)
 
 SLICE 4   Itinerary Builder
           din · overnight stay · description · highlights · meals · transfer
@@ -606,7 +608,8 @@ packageDefaults { siteId }                    unique    ← singleton, wahi patt
 ## 9. Khule sawaal
 
 Inme se koi bhi **plan ko nahi rokta** — build ke waqt tay ho sakte hain. Jo ek buniyaadi
-tha (#1), wo 26 Aug ko band ho gaya (D-46).
+tha (#1), wo 26 Aug ko band ho gaya (D-46). Slice 3 ke teen (#6, #7, #9) bhi usi din band
+hue — **D-50**. Bacha: **12**.
 
 | # | Sawaal | Kab chahiye |
 | --- | --- | --- |
@@ -615,10 +618,10 @@ tha (#1), wo 26 Aug ko band ho gaya (D-46).
 | 3 | `Room` hotel ke record me ya package me? | Slice 2 |
 | 4 | Transfer record me icon? Duration per-day? | Slice 2 |
 | 5 | Package Type flat ya hierarchical? | Slice 2 |
-| 6 | List ka `Code` column — hataayein? | Slice 3 |
-| 7 | `Best For` me kya bharega? | Slice 3 |
+| ~~6~~ | ~~List ka `Code` column — hataayein?~~ ✅ **haan, hat gaya** — 26 Aug, **D-50 §2** | ~~Slice 3~~ |
+| ~~7~~ | ~~`Best For` me kya bharega?~~ ✅ **chhoti chips ki list** (`tags` field type) — **D-50 §3** | ~~Slice 3~~ |
 | 8 | `ratingValue`/`ratingCount` haath se, ya `reviews[]` se gine jaayein? §2.2 | Slice 6 |
-| 9 | `Sold Out` — status hai ya `availability` field? | Slice 3 |
+| ~~9~~ | ~~`Sold Out` — status hai ya `availability` field?~~ ✅ **alag `availability` field** — **D-50 §1** | ~~Slice 3~~ |
 | 10 | Din ka `note` field (`Approx. 4 hrs sightseeing`)? | Slice 4 |
 | 11 | Per-day `Hotel Category` dropdown hatana hai? | Slice 4 |
 | 12 | Category ka `note` field? | Slice 5 |

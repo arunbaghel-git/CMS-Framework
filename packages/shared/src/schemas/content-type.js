@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DEFAULT_SITE_ID } from '../constants/index.js'
+import { DEFAULT_SITE_ID, TAXONOMY_TYPES } from '../constants/index.js'
 
 /**
  * `contentTypes` ka contract — spec 007 / D-46.
@@ -26,11 +26,25 @@ export const ENTRY_SUPPORT = Object.freeze({
   FEATURED_IMAGE: 'featuredImage',
   SEO: 'seo',
   REVISIONS: 'revisions',
-  TAXONOMIES: 'taxonomies',
   /** Manual ordering — nested pages aur menu-jaisi liston ke liye. */
   ORDER: 'order',
   AUTHOR: 'author',
+  /**
+   * `open` | `soldOut` ka toggle — spec 007 §9 #9, D-50.
+   *
+   * Sirf un types pe jinke liye "bikri" ka koi matlab hai. Page aur Post pe nahi.
+   */
+  AVAILABILITY: 'availability',
 })
+
+/**
+ * ⚠️ `taxonomies` **support nahi hai** — wo `taxonomyTypes[]` hai (neeche).
+ *
+ * Pehle yahan ek `taxonomies` flag tha. Uske saath `taxonomyTypes` rakhne ka matlab hota
+ * ek hi baat do jagah: "kya ye type taxonomies use karta hai" aur "kaunsi". Wo do jagah ek
+ * din alag ho jaatin — khaali `taxonomyTypes` ke saath `supports: ['taxonomies']`, aur
+ * admin ek khaali section dikhata rehta.
+ */
 
 export const ENTRY_SUPPORTS = Object.freeze(Object.values(ENTRY_SUPPORT))
 
@@ -118,6 +132,16 @@ export const contentTypeSchema = z.object({
   hasArchive: z.boolean().default(false),
 
   supports: z.array(z.enum(ENTRY_SUPPORTS)).default([]),
+
+  /**
+   * Ye type kaunsi taxonomies use karta hai — `['destination', 'packageType']`.
+   *
+   * Khaali array = koi nahi. Ye do kaam karta hai: admin ko batata hai kaunse picker
+   * dikhane hain, aur server ko batata hai ki entry pe **kaunsi** taxonomy keys allowed
+   * hain. Bina iske ek Post pe destinations set ki ja sakti thin — save ho jaatin, aur
+   * galti kisi archive pe pakdi jaati.
+   */
+  taxonomyTypes: z.array(z.enum(TAXONOMY_TYPES)).default([]),
 
   /**
    * Built-in types **code-owned** hain — wahi model jo built-in roles pe hai (D-36).

@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1 + Slice 2 ban chuki hain**
-(**491 tests passing**).
+(**504 tests passing**).
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
@@ -173,9 +173,11 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Slice 1, Slice 2, aur Slice 3 ki neev land ho chuki hain (D-47, D-48, D-49).
-Agla kaam **Slice 3 — All Packages list + Add New**: `package` type ka field set
-(`contentTypes.fields[]`) aur admin ki screens.
+Slice 1, Slice 2, aur Slice 3 ka **API hissa** land ho chuka hai (D-47 se D-50).
+
+Agla kaam **Slice 3 ki admin screens** — `s-packages` (list) aur `s-package-edit`.
+**Design frozen hai (R15)**: `docs/reference/admin-design.html` ke hisaab se hi banega, aur
+build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**.
 spec 007 §9 ke **15 sawaal** abhi khule hain, par koi bhi plan nahi rokta — har ek apne
 slice pe tay hoga (`09-OPEN-ITEMS.md`).
 

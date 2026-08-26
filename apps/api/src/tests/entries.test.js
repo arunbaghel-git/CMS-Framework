@@ -845,3 +845,171 @@ describe('auto redirects', () => {
     expect(await Redirect.countDocuments({})).toBe(0)
   })
 })
+
+// ── package ka field set + availability (Slice 3, D-50) ──────────────────────
+
+describe('package content type ka shape', () => {
+  const typeByKey = async (key) => ContentType.findOne({ key }).lean()
+
+  it('Slice 3 ke fields register ho chuke hain', async () => {
+    const pkg = await typeByKey('package')
+    const keys = pkg.fields.map((f) => f.key)
+
+    expect(keys).toEqual([
+      'shortDescription',
+      'overview',
+      'nights',
+      'days',
+      'bannerImage',
+      'bestSeason',
+      'bestFor',
+      'featured',
+      'seoSchema',
+    ])
+  })
+
+  it('bestFor chips hai — tags field type (spec 007 §9 #7)', async () => {
+    const pkg = await typeByKey('package')
+    const bestFor = pkg.fields.find((f) => f.key === 'bestFor')
+
+    expect(bestFor.type).toBe('tags')
+  })
+
+  it('package Destinations aur Package Type use karta hai, Pages koi nahi', async () => {
+    expect((await typeByKey('package')).taxonomyTypes).toEqual(['destination', 'packageType'])
+    expect((await typeByKey('post')).taxonomyTypes).toEqual(['category', 'tag'])
+    expect((await typeByKey('page')).taxonomyTypes).toEqual([])
+  })
+
+  it('availability sirf package pe hai, Page aur Post pe nahi', async () => {
+    expect((await typeByKey('package')).supports).toContain('availability')
+    expect((await typeByKey('page')).supports).not.toContain('availability')
+    expect((await typeByKey('post')).supports).not.toContain('availability')
+  })
+})
+
+describe('availability (D-50)', () => {
+  it('sold out package published hi rehta hai — page live rehta hai', async () => {
+    // Isse status me jodne ka matlab hota ki season khatam hote hi page hi gayab,
+    // aur agle season me ranking dobara banani padti
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+    const { id } = created.body.data.entry
+
+    await authed('post', `/api/entries/${id}/publish`, adminJar).send({})
+    const current = await Entry.findById(id).lean()
+
+    const res = await authed('patch', `/api/entries/${id}`, adminJar).send({
+      version: current.version,
+      availability: 'soldOut',
+    })
+
+    expect(res.body.data.entry.availability).toBe('soldOut')
+    expect(res.body.data.entry.status).toBe('published')
+    expect(res.body.data.entry.path).toBe('/packages/andaman')
+  })
+
+  it('naya package default open hota hai', async () => {
+    const res = await createEntry(adminJar, { title: 'Andaman' })
+
+    expect(res.body.data.entry.availability).toBe('open')
+  })
+
+  it('jo type support nahi karta wahan chup-chaap open rehti hai', async () => {
+    // Error nahi — admin ka form Page pe wo control dikhata hi nahi, aur ek purana
+    // client jo field bhej de use rokne ka koi fayda nahi. Galat data phir bhi nahi banta
+    const res = await createPage(adminJar, { title: 'About', availability: 'soldOut' })
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.entry.availability).toBe('open')
+  })
+
+  it('list "Sold Out" tab availability pe filter karti hai', async () => {
+    const open = (await createEntry(adminJar, { title: 'Open Trip' })).body.data.entry
+    const sold = (await createEntry(adminJar, { title: 'Sold Trip' })).body.data.entry
+
+    await authed('patch', `/api/entries/${sold.id}`, adminJar).send({
+      version: 0,
+      availability: 'soldOut',
+    })
+
+    const res = await authed('get', '/api/entries?type=package&availability=soldOut', adminJar)
+
+    expect(res.body.data.entries).toHaveLength(1)
+    expect(res.body.data.entries[0].id).toBe(sold.id)
+    expect(res.body.data.entries[0].id).not.toBe(open.id)
+  })
+
+  it('availability ke bahar ki value 400 deti hai', async () => {
+    const res = await createEntry(adminJar, { title: 'X', availability: 'maybe' })
+
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('taxonomyTypes ka gate (D-49)', () => {
+  async function createTaxonomy(type, name) {
+    const res = await authed('post', '/api/taxonomies', adminJar).send({ type, name })
+    return res.body.data.taxonomy
+  }
+
+  it('post pe destinations nahi lag sakti — wo us type ki vocabulary nahi hai', async () => {
+    // Bina is gate ke wo save ho jaati, list me kuch galat nahi dikhta, aur galti tab
+    // pakdi jaati jab destination delete karne pe ek aisi Post use rok deti hai jiska
+    // usse koi lena-dena hi nahi tha
+    const goa = await createTaxonomy('destination', 'Goa')
+
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'post',
+      title: 'Blog post',
+      taxonomies: { destinations: [goa.id] },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('package pe categories nahi lag sakti', async () => {
+    const news = await createTaxonomy('category', 'News')
+
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      taxonomies: { categories: [news.id] },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('post pe categories lag sakti hain', async () => {
+    const news = await createTaxonomy('category', 'News')
+
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'post',
+      title: 'Blog post',
+      taxonomies: { categories: [news.id] },
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.entry.taxonomies.categories).toEqual([news.id])
+  })
+})
+
+describe('package ke custom fields', () => {
+  it('bestFor ek list ki tarah save hota hai aur search me aata hai', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        shortDescription: 'Beaches aur ferries',
+        nights: 5,
+        days: 6,
+        bestSeason: 'Oct – May',
+        bestFor: ['Couples', 'First-timers'],
+      },
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.entry.fields.bestFor).toEqual(['Couples', 'First-timers'])
+
+    // searchText custom fields ka text bhi uthata hai — admin apne likhe shabd dhoondh sake
+    const found = await authed('get', '/api/entries?q=First-timers', adminJar)
+    expect(found.body.data.entries).toHaveLength(1)
+  })
+})

@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import {
+  AVAILABILITIES,
+  AVAILABILITY,
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   ENTRY_STATUSES,
@@ -92,6 +94,18 @@ export const entrySchema = z.object({
   path: pathSchema,
 
   status: z.enum(ENTRY_STATUSES).default('draft'),
+
+  /**
+   * Bikri khuli hai ya band — `status` se **alag** (D-50).
+   *
+   * Top-level hai, `fields` me nahi: ye publishing lifecycle ki cheez hai (design ke
+   * Publish panel me `status` ke bagal me baithti hai), content ka data nahi. Aur
+   * `fields` `Mixed` hai — wahan ise typed enum nahi mil sakta, aur list ka "Sold Out"
+   * tab ek unvalidated field pe filter karta.
+   *
+   * Jin types ke `supports` me `availability` nahi hai, unpe ye hamesha `open` rehta hai.
+   */
+  availability: z.enum(AVAILABILITIES).default(AVAILABILITY.OPEN),
   /** `scheduled` status ke saath zaroori. Cron atomic claim isi index pe chalti hai. */
   publishAt: z.coerce.date().nullable().default(null),
 
@@ -159,6 +173,8 @@ export const entryUpdateSchema = entrySchema
 export const entryListQuerySchema = z.object({
   type: z.string().optional(),
   status: z.enum(ENTRY_STATUSES).optional(),
+  /** List ka "Sold Out" tab isi pe filter karta hai (D-50). */
+  availability: z.enum(AVAILABILITIES).optional(),
   q: z.string().max(200).optional(),
   authorId: z.string().optional(),
   /**

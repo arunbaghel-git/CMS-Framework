@@ -2253,3 +2253,102 @@ wahi kaam do baar.
 
 **Nateeja:** 491 tests. Slice 3 ke aage ka raasta ab khula hai — dono blocker band, aur
 dono ka guard test ke saath hai.
+
+---
+
+## D-50 · `availability` `status` se alag — aur package ka pehla field set
+
+**Context:** Slice 3 (All Packages list + Add New) shuru karne se pehle spec 007 §9 ke teen
+sawaal khule the, aur teenon list screen ya field set ka shape tay karte the. Client ne
+26 Aug ko teenon ka jawab diya.
+
+### 1. `Sold Out` ek **alag field** hai, status nahi (§9 #9)
+
+```
+status:        published    ← page live hai
+availability:  soldOut      ← sirf ek badge
+```
+
+**Kyun:** sold-out ho jaana ek **bikri** ki baat hai, publishing ki nahi. `status` me
+`soldOut` jodne ka matlab hota ki season khatam hote hi package ka page hi gayab — URL
+404 ya draft — aur agle season me use wapas open karne pe SEO ranking dobara banani padti.
+Ek travel site pe yahi wo galti hai jo saal me do baar traffic girati.
+
+List ka **"Sold Out" tab** ab `availability` pe filter hai, `status` pe nahi. Design me wo
+tab status tabs ke saath dikhta tha — isiliye ye sawaal khula chhoda gaya tha.
+
+**Top-level field hai, `fields` me nahi.** Do wajah: ye publishing lifecycle ki cheez hai
+(design ke Publish panel me `status` ke bagal me baithti hai), aur `fields` `Mixed` hai —
+wahan ise typed enum nahi mil sakta, aur list ka tab ek unvalidated field pe filter karta.
+
+**Har type pe nahi dikhta:** `supports` me `availability` chahiye. Jo type use support nahi
+karta, wahan wo chup-chaap `open` rehti hai — **error nahi**, kyunki ye client ki galti
+nahi hai: admin ka form us type pe wo control dikhata hi nahi. Galat data phir bhi nahi
+banta.
+
+Index migration 012 me — `{siteId, type, availability}`.
+
+### 2. `Code` column hat gaya (§9 #6)
+
+Client ne 26 Aug ko **Package Code field** hata diya tha, par admin design ki list me `Code`
+column bacha hua tha. **Column bhi hat gaya.**
+
+**Kyun:** field hi nahi hai to column ka koi content nahi. Column rakh kar khaali chhodna
+non-technical user ko har baar confuse karta hai ("ye kyun khaali hai?"), aur mobile pe
+bina wajah jagah leta hai. Baad me zaroorat padi to column wapas laana ek line hai.
+
+**Reject kiya:** code auto-generate karna (`PKG-0042`). Kaam ka hota — phone pe reference
+dene ke liye — par wo ek naya field, uska unique counter aur ek naya sawaal hai
+("delete hone pe number dobara use ho?"). Client ne maanga nahi.
+
+### 3. `Best For` chhoti chips ki list hai (§9 #7)
+
+`fields.bestFor: string[]` — `Couples`, `First-timers`, `5–7 days`.
+
+**Iske liye field DSL me ek naya type juda: `tags`** (spec 005). `repeater` se kaam chal
+sakta tha, par uska har item ek **object** hota hai (`[{ value: 'Couples' }]`) aur uske liye
+poora sub-form banta hai — ek chhoti si chips ki list ke liye wo bhaari hai.
+
+Ye type Slice 4 me dobara chahiye hoga: har din ke `highlights` bhi yahi shape hain.
+
+**Reject kiya:** Package Type se derive karna. Ek kam field bharna padta, par client
+`First-timers` ya `5–7 days` jaisi baat kahin keh hi nahi paata — aur wahi baatein us
+section ka matlab hain.
+
+### 4. `taxonomyTypes[]` — aur `supports: taxonomies` hat gaya
+
+Content type ab batata hai ki wo **kaunsi** taxonomies use karta hai:
+
+```
+package  → ['destination', 'packageType']
+post     → ['category', 'tag']
+page     → []
+```
+
+Pehle `supports` me ek `taxonomies` flag tha. Uske saath `taxonomyTypes` rakhne ka matlab
+hota **ek hi baat do jagah** — "kya ye type taxonomies use karta hai" aur "kaunsi" — aur wo
+do jagah ek din alag ho jaatin: khaali `taxonomyTypes` ke saath `supports: ['taxonomies']`,
+aur admin ek khaali section dikhata rehta. Isliye flag hata diya gaya; khaali array hi
+"koi nahi" hai.
+
+**Ye ek asli guard bhi ban gaya:** ab ek Post pe `destinations` set nahi ki ja sakti. Bina
+iske wo save ho jaati, list me kuch galat nahi dikhta, aur galti tab pakdi jaati jab
+destination delete karne pe ek aisi Post use rok deti jiska usse koi lena-dena hi nahi tha.
+
+### Package ka field set — jo abhi bana
+
+```
+shortDescription · overview · nights · days · bannerImage
+bestSeason · bestFor · featured · seoSchema
+```
+
+**Yahan sirf Slice 3 ka hissa hai.** Itinerary (§3), pricing (§4), hotels, FAQs, goodToKnow
+aur reviews Slice 4-6 me judenge — unme se kai spec 007 §9 ke baaki khule sawaalon pe ruke
+hue hain, aur unhe abhi likhna un sawaalon ka jawab maan lena hota. Yahi tark tha jisse
+Slice 1 me field set jaan-boojh kar khaali chhoda gaya tha.
+
+`destinations` aur `packageTypes` is list me **nahi** hain — wo `entry.taxonomies` me hain
+(D-49).
+
+**Nateeja:** 504 tests. Slice 3 ka API hissa poora; bacha hua kaam admin ki **screens** hai
+(`s-packages` + `s-package-edit`), aur wo frozen design ke hisaab se banegi (R15).

@@ -1,6 +1,8 @@
 import mongoose from 'mongoose'
 
 import {
+  AVAILABILITIES,
+  AVAILABILITY,
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   ENTRY_STATUS,
@@ -45,6 +47,18 @@ const entrySchema = new mongoose.Schema(
     path: { type: String, required: true },
 
     status: { type: String, enum: ENTRY_STATUSES, default: ENTRY_STATUS.DRAFT },
+
+    /**
+     * Bikri khuli hai ya band — `status` se **alag** (D-50).
+     *
+     * Sold-out package ka page live rehta hai: URL zinda, SEO zinda, sirf ek badge lagta
+     * hai. `status` me jodne ka matlab hota ki season khatam hote hi page hi gayab, aur
+     * agle season me ranking dobara banani padti.
+     *
+     * Jin types ke `supports` me `availability` nahi hai, unpe ye hamesha `open` rehta
+     * hai — service wahan uska write hi nahi hone deti.
+     */
+    availability: { type: String, enum: AVAILABILITIES, default: AVAILABILITY.OPEN },
 
     /**
      * `scheduled` ke saath zaroori. Cron ka atomic claim isi pe chalta hai (R2) —

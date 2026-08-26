@@ -5,17 +5,65 @@ import { ENTRY_SUPPORT } from './schemas/content-type.js'
  *
  * Inka content code se aata hai aur seed har deploy pe DB me sync karta hai. Isliye
  * `package` ka field set badalna ek **code change** hai, migration nahi — jo Phase 1 ke
- * dauraan bilkul zaroori hai, kyunki spec 007 ke 15 khule sawaal me se kai theek isi
- * field set ko chhoote hain (§9).
+ * dauraan bilkul zaroori hai, kyunki spec 007 ke khule sawaal me se kai theek isi field
+ * set ko chhoote hain (§9).
  *
  * **Custom types (Phase 6) yahan nahi honge** — wo admin banata hai aur wo sirf DB me
  * rehte hain. Unke liye `contentTypes` collection hi source hai.
  *
  * ⚠️ `key` **stored data** hai — `entries.type` me baithi hoti hai. Rename karna matlab
- * har entry pe migration (R4 wali baat, block `type` jaisi).
+ * har entry pe migration (R4 wali baat, block `type` jaisi). Field ki `key` bhi wahi
+ * cheez hai: wo `entries.fields` me baithti hai.
  */
 
 const S = ENTRY_SUPPORT
+
+/**
+ * Package ka field set — spec 007 §2, Slice 3.
+ *
+ * **Yahan sirf wo hai jo Slice 3 me chahiye.** Itinerary (§3), pricing (§4), hotels,
+ * FAQs, goodToKnow aur reviews Slice 4-6 me judenge — unme se kai spec 007 §9 ke khule
+ * sawaalon pe ruke hue hain, aur unhe abhi likhna un sawaalon ka jawab maan lena hota.
+ *
+ * `destinations` aur `packageTypes` yahan **nahi** hain — wo `entry.taxonomies` me hain
+ * (D-49), aur kaunsi taxonomies chalti hain wo `taxonomyTypes` batata hai.
+ */
+const PACKAGE_FIELDS = [
+  {
+    key: 'shortDescription',
+    type: 'textarea',
+    label: 'Short description',
+    help: 'Ek line jo title ke neeche dikhti hai',
+  },
+  {
+    key: 'overview',
+    type: 'richText',
+    label: 'Overview',
+    help: 'Page ka "About this itinerary"',
+  },
+  { key: 'nights', type: 'number', label: 'Nights' },
+  { key: 'days', type: 'number', label: 'Days' },
+  { key: 'bannerImage', type: 'media', label: 'Banner image' },
+  { key: 'bestSeason', type: 'text', label: 'Best season', help: 'Jaise: Oct – May' },
+  {
+    key: 'bestFor',
+    type: 'tags',
+    label: 'Best for',
+    help: 'Chhoti chips — Couples, First-timers, 5–7 days',
+  },
+  {
+    key: 'featured',
+    type: 'toggle',
+    label: 'Featured',
+    help: 'Homepage aur listings me upar dikhta hai',
+  },
+  {
+    key: 'seoSchema',
+    type: 'toggle',
+    label: 'Emit Product + Trip schema',
+    help: 'Search engines ke liye structured data',
+  },
+]
 
 /** @type {ReadonlyArray<import('./types.js').ContentTypeSeed>} */
 export const BUILT_IN_CONTENT_TYPES = Object.freeze([
@@ -45,19 +93,14 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
       S.FEATURED_IMAGE,
       S.SEO,
       S.REVISIONS,
-      /** Destinations + Package Type dono `taxonomies` me hain (spec 007 §1.1, §1.2). */
-      S.TAXONOMIES,
+      /** Sold Out ek availability hai, status nahi (D-50). */
+      S.AVAILABILITY,
     ],
 
-    /**
-     * **Slice 1 me jaan-boojh kar khaali.**
-     *
-     * Package ka asli field set (shortDescription, nights/days, itinerary, pricing,
-     * hotels…) Slice 3-5 me bharega — spec 007 §2. Abhi unhe likhna matlab un sawaalon
-     * ke jawab maan lena jo abhi client ke paas hain (§9 #6, #7, #9), aur wahi galti
-     * hai jise D-41/D-42 ne pakda tha: pehle contract, phir code.
-     */
-    fields: [],
+    /** Destinations + Package Type — dono `taxonomies` collection me hain (spec 007 §1). */
+    taxonomyTypes: ['destination', 'packageType'],
+
+    fields: PACKAGE_FIELDS,
   },
 
   {
@@ -76,6 +119,10 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     hasArchive: false,
 
     supports: [S.TITLE, S.EDITOR, S.FEATURED_IMAGE, S.SEO, S.REVISIONS, S.ORDER],
+
+    /** Pages classify nahi hote — unka structure parent chain se aata hai. */
+    taxonomyTypes: [],
+
     fields: [],
   },
 
@@ -91,16 +138,10 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     archiveBase: 'blog',
     hasArchive: true,
 
-    supports: [
-      S.TITLE,
-      S.EDITOR,
-      S.EXCERPT,
-      S.FEATURED_IMAGE,
-      S.SEO,
-      S.REVISIONS,
-      S.TAXONOMIES,
-      S.AUTHOR,
-    ],
+    supports: [S.TITLE, S.EDITOR, S.EXCERPT, S.FEATURED_IMAGE, S.SEO, S.REVISIONS, S.AUTHOR],
+
+    taxonomyTypes: ['category', 'tag'],
+
     fields: [],
   },
 ])

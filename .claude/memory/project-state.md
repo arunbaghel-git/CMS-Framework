@@ -23,9 +23,13 @@ Teen faisle **D-48** me.
   chain flatten aur loop se bachav ke saath; descendants ke purane URL bhi zinda.
   Manager UI Phase 4 me hi rahegi.
 
-**Agla kaam: Slice 3 — All Packages list + Add New.** Do hisse: `package` type ka field
-set (`contentTypes.fields[]`), aur admin ki screens (`s-packages` + `s-package-edit`,
-design frozen hai — R15).
+**Slice 3 ka API hissa poora ho chuka (26 Aug — D-50):** package ka field set,
+`availability` (`Sold Out` ab status nahi, alag field hai), aur `taxonomyTypes` ka gate.
+Field DSL me ek naya type juda — `tags` (chips).
+
+**Agla kaam: Slice 3 ki admin screens** — `s-packages` (list) aur `s-package-edit`.
+**Design frozen hai (R15)** — `docs/reference/admin-design.html` ke hisaab se hi banega,
+aur kuch theek na lage to pehle poochho.
 
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
@@ -65,12 +69,13 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Slice 1  entries + contentTypes    ✅  26 Aug — D-47, migration 009
           Slice 2  master lists + defaults   ✅  26 Aug — D-48, migration 010
           A-6 + A-7 (Slice 3 ke blocker)   ✅  26 Aug — D-49, migration 011
-          Slice 3  list + Add New            🔴  ← agla kaam (field set + screens)
+          Slice 3  API (field set etc.)      ✅  26 Aug — D-50, migration 012
+          Slice 3  admin ki screens          🔴  ← agla kaam (design frozen, R15)
           Slice 4-7                          🔴  specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 491 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 504 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -130,6 +135,7 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Master lists**      | Teenon ek module me, par teen alag routes aur alag permissions. `locale` sirf taxonomies pe (D-48) |
 | **Taxonomy ka ref**   | `entry.taxonomies` me, har type ki apni key — `fields` me nahi (D-49). spec 002 ek baar badla      |
 | **Slug badalna**      | Auto-301 + chain flatten + loop se bachav; descendants pe bhi (D-49)                               |
+| **Sold Out**          | `availability` field — `status` se alag. Page live rehta hai, sirf badge (D-50)                    |
 
 Specs 001–007: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,
 **006 ✅ implemented** (menu contract), **007 🟢 approved** (Packages — D-46).

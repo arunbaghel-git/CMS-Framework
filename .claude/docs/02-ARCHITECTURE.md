@@ -111,7 +111,10 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
 
 contentTypes   * siteId, key(package|page|post|service…), label, labelPlural, icon,
                  fields[], hasBuilder, hierarchical, isBuiltIn, urlPattern,
-                 archiveBase, hasArchive, supports[]
+                 archiveBase, hasArchive, supports[], taxonomyTypes[]
+                 taxonomyTypes: kaunsi taxonomies is type pe chalti hain.
+                 supports me taxonomies flag NAHI hai — ek hi baat do jagah
+                 rakhne se wo ek din alag ho jaati (D-50 §4)
                  hierarchical: path parent chain se banega ya urlPattern se.
                  Iske bina resolvePath() ko type ka NAAM dekhna padta
                  (type === 'page') — wahi hardcoding jise D-09 ne mana kiya
@@ -121,7 +124,8 @@ contentTypes   * siteId, key(package|page|post|service…), label, labelPlural, 
                  package | page | post CODE-OWNED hain, seed sync karta hai
                  (D-46, wahi model jo built-in roles pe hai — D-36)
 
-entries        * siteId, locale, type, title, slug, path, status, publishAt,
+entries        * siteId, locale, type, title, slug, path, status, availability,
+                 publishAt,
                  type: package | page | post — package pehla asli type hai (D-46),
                  uska maal fields{} me, contentTypes.fields[] se declared
                  authorId, templateId, version, deletedAt,
@@ -231,6 +235,7 @@ sach me enforce karta hai (D-40, migration 005).
 entries:   { siteId: 1, locale: 1, path: 1 }               unique   ← routing
 entries:   { siteId: 1, type: 1, slug: 1 }                 unique
 entries:   { siteId: 1, type: 1, status: 1, publishAt: -1 }
+entries:   { siteId: 1, type: 1, availability: 1 }                   ← migration 012
 entries:   { siteId: 1, deletedAt: 1, updatedAt: -1 }
 entries:   { siteId: 1, parentId: 1, order: 1 }
 entries:   { searchText: "text" }                          ← ek hi text index allowed
@@ -310,6 +315,11 @@ patterns nahi. Published content ke baad pattern badla to redirects automatic ba
 ---
 
 ## 5. Status lifecycle
+
+**`availability` status se ALAG hai** (D-50): `open` | `soldOut`. Sold-out package ka page
+**live rehta hai** — URL zinda, SEO zinda, sirf ek badge lagta hai. Ise status me jodne ka
+matlab hota ki season khatam hote hi page hi gayab, aur agle season me ranking dobara
+banani padti. Sirf un types pe jinke `supports` me `availability` hai.
 
 ```
 draft ──> pending ──> published ──> (unpublish) ──> draft

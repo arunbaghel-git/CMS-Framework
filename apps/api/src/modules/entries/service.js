@@ -1,13 +1,16 @@
 import mongoose from 'mongoose'
 
 import {
+  AVAILABILITY,
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   ENTRY_STATUS,
+  ENTRY_SUPPORT,
   PERMISSION,
   TAXONOMY_REF_KEYS,
   TAXONOMY_TYPE_BY_REF_KEY,
   extractBlockText,
+  typeSupports,
   isReservedSlug,
   rebasePath,
   resolvePath,
@@ -133,6 +136,24 @@ function buildSearchText(entry) {
   return parts.filter(Boolean).join(' ').slice(0, MAX_SEARCH_TEXT)
 }
 
+// ── availability ─────────────────────────────────────────────────────────────
+
+/**
+ * `availability` sirf un types pe likhi jaati hai jo use support karte hain (D-50).
+ *
+ * Baaki types pe chup-chaap `open` rehti hai — error nahi, kyunki ye client ki galti nahi
+ * hai: admin ka form us type pe wo control dikhata hi nahi, aur ek purana client jo field
+ * bhej de use rokne ka koi fayda nahi. Galat data phir bhi nahi banta.
+ *
+ * @param {string|undefined} requested
+ * @param {{ supports?: string[] }} contentType
+ */
+function availabilityFor(requested, contentType) {
+  if (!typeSupports(contentType, ENTRY_SUPPORT.AVAILABILITY)) return AVAILABILITY.OPEN
+
+  return requested ?? AVAILABILITY.OPEN
+}
+
 // ── taxonomy refs ────────────────────────────────────────────────────────────
 
 /**
@@ -146,7 +167,7 @@ function buildSearchText(entry) {
  * Ye wahi invariant hai jo D-42 §2 ne media pe lagaya tha: asli bachav reference **banne**
  * se pehle hai, render pe nahi.
  */
-async function assertTaxonomyRefs(taxonomies, siteId, locale) {
+async function assertTaxonomyRefs(taxonomies, contentType, siteId, locale) {
   if (!taxonomies) return
 
   for (const key of TAXONOMY_REF_KEYS) {
@@ -154,6 +175,17 @@ async function assertTaxonomyRefs(taxonomies, siteId, locale) {
     if (!ids?.length) continue
 
     const type = TAXONOMY_TYPE_BY_REF_KEY[key]
+
+    /**
+     * Ye type wo taxonomy use karta bhi hai?
+     *
+     * Bina iske ek Post pe `destinations` set ki ja sakti hai — wo save ho jaati, list me
+     * kuch galat nahi dikhta, aur galti tab pakdi jaati jab destination delete karne pe
+     * ek aisi Post use rok deti hai jiska usse koi lena-dena hi nahi tha.
+     */
+    if (!contentType.taxonomyTypes?.includes(type)) {
+      throw unprocessable(`${contentType.label} does not use ${type} items`)
+    }
 
     for (const id of ids) {
       if (!(await taxonomyExists(id, type, siteId, locale))) {
@@ -448,7 +480,7 @@ export async function listEntries(query, siteId = DEFAULT_SITE_ID, locale = DEFA
     deletedAt: trashed ? { $ne: null } : null,
   }
 
-  for (const key of ['type', 'status', 'authorId', 'parentId']) {
+  for (const key of ['type', 'status', 'availability', 'authorId', 'parentId']) {
     if (filters[key] !== undefined) filter[key] = filters[key]
   }
   /**
@@ -494,7 +526,7 @@ export async function getEntry(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LO
 export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
   const contentType = await requireContentType(input.type, siteId)
 
-  await assertTaxonomyRefs(input.taxonomies, siteId, locale)
+  await assertTaxonomyRefs(input.taxonomies, contentType, siteId, locale)
 
   const { slug, path } = await resolveSlugAndPath({
     slug: input.slug,
@@ -523,6 +555,7 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
     slug,
     path,
     status,
+    availability: availabilityFor(input.availability, contentType),
     publishAt: null,
     authorId: actor?.user?._id ? String(actor.user._id) : null,
     version: 0,
@@ -559,7 +592,7 @@ export async function updateEntry(
 
   const contentType = await requireContentType(current.type, siteId)
 
-  await assertTaxonomyRefs(input.taxonomies, siteId, locale)
+  await assertTaxonomyRefs(input.taxonomies, contentType, siteId, locale)
 
   const next = { ...current, ...input }
   const $set = { version: current.version + 1 }
@@ -576,6 +609,10 @@ export async function updateEntry(
     'order',
   ]) {
     if (input[key] !== undefined) $set[key] = input[key]
+  }
+
+  if (input.availability !== undefined) {
+    $set.availability = availabilityFor(input.availability, contentType)
   }
 
   /**

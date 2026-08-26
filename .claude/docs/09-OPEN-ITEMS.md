@@ -100,6 +100,7 @@ blocker band ho gaye** (A-6, A-7 → **D-49**) — 491 tests passing.
 | **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
 | **spec 007 §9 #1 — Package = `entries` ka type?** | ✅ **Haan (D-46)** — client ka faisla. `packages` collection nahi banegi; engine ek hi rahega. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi apni collection me — unka apna URL aur publish lifecycle nahi hai. **spec 007 ab 🟢 approved** |
+| **spec 007 §9 #6, #7, #9** | ✅ **Teenon band (D-50)** — `Code` column **hat gaya** (field hi nahi hai) · `Best For` **chips ki list** (field DSL me naya `tags` type) · `Sold Out` ek **alag `availability` field** hai, status nahi — sold-out package ka page live rehta hai, sirf badge lagta hai. Migration 012 |
 | **A-7 — package taxonomy ka reference** | ✅ **`entry.taxonomies` generalize hua** (D-49) — ab `{categories, tags, destinations, packageTypes}`. Isse `tax:{id}` cache tag, archive aur delete guard **har type pe ek jaise** kaam karte hain. spec 002 ka contract ek baar badla, us waqt `entries` me koi asli data nahi tha |
 | **A-6 — slug badalne pe 301** | ✅ **`redirects` collection ban gayi** (D-49) — auto-301, chain flatten aur loop se bachav ke saath. Descendants ke purane URL bhi zinda. Manager UI Phase 4 me hi rahegi. Migration 011 |
 | **Slice 2 — master lists** | ✅ **Ban gaya** — `taxonomies` (Destinations + Package Type), `hotels`, `addOns`, `transfers`, singleton `packageDefaults`. Migration 010, 30 naye test, 14 nayi permissions. Teen faisle **D-48** me: teenon lists **ek module** me par **teen alag routes/permissions** · `locale` sirf wahan jahan unique index hai · `packageDefaults` `settings` me nahi |
@@ -171,7 +172,7 @@ Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
 
 ---
 
-### spec 007 §9 · Packages ke 15 baaki sawaal
+### spec 007 §9 · Packages ke 12 baaki sawaal
 
 **Deadline:** har sawaal ka apna slice — spec me likha hai
 **Koi bhi plan ko nahi rokta.** Jo ek buniyaadi tha (#1), wo D-46 me band ho gaya.
@@ -182,7 +183,7 @@ chhoot jaate the — 26 Aug ko yahi hua.
 | Slice | Sawaal |
 | --- | --- |
 | 2 | #2 What's Included aur Inclusion/Exclusion ek hi hain? · #3 `Room` hotel me ya package me? · #4 Transfer me icon? duration per-day? · #5 Package Type flat ya hierarchical? · #14 `packageDefaults` naam theek hai? |
-| 3 | #6 list ka `Code` column hataayein? · #7 `Best For` me kya bharega? · #9 `Sold Out` status hai ya `availability` field? |
+| ~~3~~ | ~~#6 · #7 · #9~~ ✅ **teenon band — D-50** |
 | 4 | #10 din ka `note` field? · #11 per-day Hotel Category dropdown hatana hai? |
 | 5 | #12 category ka `note` field? · #13 `Ferries: 3 legs` gine ya likha jaaye? |
 | 6 | #8 `ratingValue`/`ratingCount` haath se ya `reviews[]` se? |
@@ -248,10 +249,10 @@ Spec 005 me add karne honge.
 11. ✅ Slice 2 — master lists + packageDefaults    (D-48, 26 Aug — 477 tests)
 12. ✅ A-6 + A-7 — Slice 3 ke dono blocker band   (D-49, 26 Aug — 491 tests)
     entry.taxonomies generalize · redirects ka auto hissa
-13. Phase 1 ka baaki — Packages ke order se       (3 hafte)
-    Slice 3  All Packages list + Add New           ← agla kaam
-             package ka field set + admin ki screens
-    Slice 4-7 → specs/007-packages.md §7
+13. 🟡 Slice 3 — API poora, screens baaki         (D-50, 26 Aug — 504 tests)
+    ✅ field set · availability · taxonomyTypes ka gate
+    🔴 admin ki screens — s-packages + s-package-edit  ← agla kaam
+14. Slice 4-7 → specs/007-packages.md §7
 ```
 
 ### Media Phase 2 se aage kyun khisak rahi hai

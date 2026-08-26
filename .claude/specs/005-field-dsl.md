@@ -22,7 +22,7 @@ Overlap lagbhag aadha hai:
 | Field type                                                     | contentType | block schema |
 | -------------------------------------------------------------- | :---------: | :----------: |
 | `text` `textarea` `number` `select` `boolean`/`toggle` `media` |     ✅      |      ✅      |
-| `richText` `date` `relation` `repeater`                        |     ✅      |      ❌      |
+| `richText` `date` `relation` `repeater` `tags`                 |     ✅      |      ❌      |
 | `color` `slider` `link` `align` `spacing`                      |     ❌      |      ✅      |
 
 **Agar ek DSL:** ek field renderer likhoge jo **dono** jagah kaam karega — Phase 6 ka
@@ -48,6 +48,10 @@ export const FIELD_TYPES = {
   date: { component: 'DateField', contexts: ['content'] },
   relation: { component: 'RelationField', contexts: ['content'] },
   repeater: { component: 'Repeater', contexts: ['content'] },
+  // 26 Aug ko juda (D-50) — chhoti strings ki list, jaise `Couples`, `5–7 days`.
+  // `repeater` se alag isliye ki uska har item ek OBJECT hota hai aur uske liye poora
+  // sub-form banta hai; yahan value seedha `string[]` hai aur UI ek chips input.
+  tags: { component: 'TagsField', contexts: ['content'] },
 
   color: { component: 'ColorField', contexts: ['block'] },
   slider: { component: 'Slider', contexts: ['block'] },

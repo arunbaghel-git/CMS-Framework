@@ -55,6 +55,16 @@ const contentTypeSchema = new mongoose.Schema(
     supports: { type: [String], default: () => [] },
 
     /**
+     * Ye type kaunsi taxonomies use karta hai — `['destination', 'packageType']`.
+     *
+     * Do kaam karta hai: admin ko batata hai kaunse picker dikhane hain, aur server ko
+     * batata hai ki entry pe kaunsi taxonomy keys allowed hain. Bina iske ek Post pe
+     * destinations set ki ja sakti thin — save ho jaatin, aur galti kisi archive pe
+     * pakdi jaati (D-49).
+     */
+    taxonomyTypes: { type: [String], default: () => [] },
+
+    /**
      * Built-in types **code-owned** hain (D-46, D-36 ka hi model). Seed inhe har deploy
      * pe sync karta hai, isliye ye flag API se kabhi set nahi hota — sirf seed se.
      */
