@@ -1,9 +1,13 @@
 # 002 — `entries` + block envelope Zod contract
 
 **Status:** ✅ Implemented — 19 Aug 2026
+**Ek baar badla:** 26 Aug 2026 — `taxonomyRefsSchema` ab har taxonomy type ki apni key
+rakhta hai (`{categories, tags, destinations, packageTypes}`), sirf categories/tags nahi.
+Wajah aur reject kiya hua raasta **D-49** me. Us waqt `entries` me koi asli data nahi tha,
+isliye koi migration nahi lagi — aaj wahi change ek live-data migration hota.
 **Phase:** −1 (Phase 1 se pehle zaroori)
 **Blocks:** Phase 1 poora, Phase 5 builder, Phase 6 content types
-**Related:** D-04, D-05, D-09, `02-ARCHITECTURE.md` §3, §6
+**Related:** D-04, D-05, D-09, **D-49** (taxonomy refs), `02-ARCHITECTURE.md` §3, §6
 
 ---
 

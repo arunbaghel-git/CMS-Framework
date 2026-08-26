@@ -2144,3 +2144,112 @@ baaki hai — "kya koi package is destination/hotel/add-on ko use kar raha hai" 
 guard. Package taxonomy ko kaise reference karta hai wo **Slice 3** ka faisla hai
 (`09-OPEN-ITEMS.md` A-7). Destination pe hotels wala guard laga hua hai, kyunki wo dono
 aaj maujood hain.
+
+---
+
+## D-49 · Taxonomy reference ek jagah, aur slug badalne pe purana URL zinda
+
+**Context:** Slice 3 shuru karne se pehle do cheezein khuli thin — `09-OPEN-ITEMS.md` ki
+**A-7** aur **A-6**. Dono ka faisla client ne 26 Aug ko liya. Dono ek hi wajah se aaj tay
+hue: `entries` me abhi **koi asli data nahi hai**, isliye dono aaj free hain aur pehle
+package publish hone ke baad dono live-data migration ban jaate.
+
+---
+
+### A-7 · `entry.taxonomies` generalize hua — spec 002 ka contract ek baar badla
+
+**Decision:** `taxonomies` ab har taxonomy type ki apni key rakhta hai.
+
+```
+// pehle (spec 002)          // ab (D-49)
+taxonomies: {                taxonomies: {
+  categories: [],              categories:   [],
+  tags: []                     tags:         [],
+}                              destinations: [],   ← naya
+                               packageTypes: []    ← naya
+                             }
+```
+
+Keys `TAXONOMY_REF_KEY` map se aati hain — nayi taxonomy type jodne pe schema, model,
+cache tags, list filter aur delete guard me se **kisi me kuch nahi badalta**.
+
+**Kyun:** spec 007 §2 `destinations[]` ko `entries.fields` me likhta tha. Par Destinations
+hain `taxonomies` collection me — yaani ek hi cheez (taxonomy reference) do jagah, do
+tareeke se rehti. Uska seedha nateeja teen jagah dikhta:
+
+| Cheez | `fields` me rakhne pe |
+| --- | --- |
+| `tax:{id}` cache tag | sirf categories/tags pe banta — destination archive publish ke baad bhi purana dikhta, aur wajah kahin nahi dikhti |
+| Taxonomy archive | destinations ke liye alag se likhna padta |
+| "Kya koi entry ise use kar rahi hai" delete guard | do jagah, do query |
+
+Teesra sabse bhaari hai: bina uske ek destination delete ho jaata aur uska reference har
+package me baitha reh jaata.
+
+**Keemat:** ye **spec 002 ka frozen contract** hai. "Frozen" ka matlab "kabhi nahi" nahi —
+matlab hai badalne ke liye ek decision record chahiye, aur wo tabhi jab live data pe
+migration na lage. Dono shart yahan poori hain.
+
+**Ek chhoti par zaroori baat:** `taxonomyRefsSchema` pe `.strict()` lagaya gaya hai. Zod
+default me anjaan keys **chup-chaap hata deta hai** — uske bina `taxonomies: { destination:
+[...] }` (singular, galat key) bina kisi error ke gayab ho jaata: admin Save karta, "ho
+gaya" dikhta, aur uska chuna hua destination kahin nahi hota. Bilkul wahi trap jo spec 006
+me `leafItemSchema` pe pakda gaya tha (D-43 §3).
+
+**Aur write pe har id ka type bhi check hota hai**, sirf maujoodgi nahi. Bina uske ek
+Package Type ki id `destinations` me baithayi ja sakti hai — save ho jaati, list me kuch
+galat nahi dikhta, aur galti public page ke breadcrumb pe pakdi jaati.
+
+**Reject kiya:** `fields.destinations[]`. Contract safe rehta, par upar wali teen cheezein
+har naye taxonomy type pe dobara likhni padtin — aur ek din wo do raaste alag ho jaate.
+
+---
+
+### A-6 · `redirects` ka auto wala hissa Phase 4 se pehle aa gaya
+
+**Decision:** `redirects` collection ab bani (migration 011). `entries` service path badalne
+pe **apne aap 301 record karti hai**. Manager UI — haath se redirect banana, chain dekhna,
+hits ka report — **Phase 4 (SEO) me hi rahegi**.
+
+**Kyun:** cascade Slice 1 me ban chuka tha (parent ka slug badle to descendants ka path
+rebase). Bina redirect ke wo aadha kaam tha: path theek ho jaata, par jo link kisi ne share
+kar rakha hai wo chup-chaap 404 dene lagta — bina kisi error ke, aur pata mahino baad
+chalta hai jab traffic gir chuka hota.
+
+**Teen kaam ek saath hote hain** (`cache-invalidation` skill, "Slug change ka special case"):
+
+1. **Chain flatten** — jo redirects pehle purane path pe aa rahe the, wo ab seedha naye pe
+   jaate hain. Bina iske `/a → /b → /c` banta hai; har hop ek extra round-trip hai, aur
+   teen hop ke baad Google follow karna hi band kar deta hai.
+2. **Naya redirect** — `from → to`, hamesha `301` (slug badalna permanent faisla hai).
+3. **Loop se bachav** — naya path khud kabhi kisi redirect ka `from` nahi bacha rehta.
+   Aisa tab hota hai jab slug wapas purane naam pe le jaaya jaaye; us row ko na hatane ka
+   matlab hai page apne aap pe redirect karta rehta hai.
+
+**Descendants pe bhi banta hai** — sirf parent pe banane ka matlab hai ki bachche ke saare
+share kiye hue link mar jaate hain.
+
+**Purge uspe aane wale redirects bhi le jaata hai** — warna wo ek 404 pe point karte rehte
+hain: user ko ek hop milta hai aur phir bhi "page nahi mila". Seedha 404 usse saaf hai.
+
+**Fail-soft hai, par chup nahi.** Redirect na ban paane ke liye admin ka Save fail karna
+galat trade hai — par error log hota hai, warna wajah kahin dikhti hi nahi. Wahi rule jo
+`revalidateTags()` pe pehle se laga hua hai (D-14).
+
+**Redirect path badalne pe banta hai, publish state dekhe bina.** Ek draft ka URL kisi ke
+paas nahi hota, par usi entry ka publish ke baad slug badalna aam baat hai — aur us waqt
+"kya ye pehle published thi" ka hisaab rakhna ek aur state hai jo galat ho sakti hai. Ek
+bekaar redirect ki keemat ek toote hue link se kam hai.
+
+**`locale` day 1 se hai** (`{siteId, locale, from}` unique) — wahi test jo D-48 §3 me laga
+tha. `02-ARCHITECTURE` §3.3 pehle `{siteId, from}` likhta tha; wo menus wali galti ka hi
+agla roop hota.
+
+**Reject kiya:** published item pe slug edit band kar dena. 20 minute ka kaam hota, par
+client ka haath bandhta — aur Phase 4 me redirects aane pe wo guard hatana padta, yaani
+wahi kaam do baar.
+
+---
+
+**Nateeja:** 491 tests. Slice 3 ke aage ka raasta ab khula hai — dono blocker band, aur
+dono ka guard test ke saath hai.

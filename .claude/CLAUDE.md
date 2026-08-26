@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1 + Slice 2 ban chuki hain**
-(**477 tests passing**).
+(**491 tests passing**).
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
@@ -36,7 +36,12 @@ Engine ke paanch guard **D-47** me.
 
 **26 Aug — Slice 2 (master lists):** `taxonomies` (Destinations + Package Type), `hotels`,
 `addOns`, `transfers`, aur singleton `packageDefaults` — migration 010, 14 nayi
-permissions. Teen faisle **D-48** me. Agla kaam **Slice 3 — All Packages list + Add New**.
+permissions. Teen faisle **D-48** me.
+
+**26 Aug — Slice 3 ki neev (D-49):** `entry.taxonomies` ab har taxonomy type ki apni key
+rakhta hai (spec 002 ka contract ek baar badla), aur `redirects` collection ban gayi —
+slug badalne pe auto-301, chain flatten aur loop se bachav ke saath. Agla kaam
+**Slice 3 — All Packages list + Add New**.
 **C-2 (Payload spike) band ho chuka hai** — D-45: apna stack hi chalega.
 Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
@@ -168,18 +173,11 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Slice 1 aur Slice 2 land ho chuki hain (D-47, D-48). Agla kaam **Slice 3 — All Packages
-list + Add New**.
-
-⚠️ **Slice 3 se pehle do cheezein tay honi hain** (`09-OPEN-ITEMS.md`):
-
-- **A-6** — slug badalne pe path ka cascade banta hai, par purane URL pe **301 nahi**.
-  Abhi kuch publish hua hi nahi isliye kuch toota nahi; pehle publish ke baad ye asli bug hai.
-- **A-7** — package taxonomy ko kaise reference karega: `entry.taxonomies` generalize karke,
-  ya `fields.destinations[]` me. Pehla raasta **spec 002 ka frozen contract** chhoota hai.
-  Abhi `entries` me koi asli data nahi hai, isliye aaj badalna sasta hai.
-  spec 007 §9 ke **15 sawaal** abhi khule hain, par koi bhi plan nahi rokta — har ek apne
-  slice pe tay hoga (`09-OPEN-ITEMS.md`).
+Slice 1, Slice 2, aur Slice 3 ki neev land ho chuki hain (D-47, D-48, D-49).
+Agla kaam **Slice 3 — All Packages list + Add New**: `package` type ka field set
+(`contentTypes.fields[]`) aur admin ki screens.
+spec 007 §9 ke **15 sawaal** abhi khule hain, par koi bhi plan nahi rokta — har ek apne
+slice pe tay hoga (`09-OPEN-ITEMS.md`).
 
 | #   | Kya                                                    | Kab tak                                      |
 | --- | ------------------------------------------------------ | -------------------------------------------- |

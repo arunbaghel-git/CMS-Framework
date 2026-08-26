@@ -22,6 +22,7 @@ import { revalidateTags } from '../../core/revalidate.js'
  * Do sawaal, dono apne ghar me: "ye destination sach hai?" sirf yahan pata hai, aur
  * "is destination pe kitne hotel hain?" sirf wahan.
  */
+import { countEntriesUsingTaxonomy } from '../entries/service.js'
 import { countHotelsForDestination } from '../master-lists/service.js'
 import { Taxonomy } from './model.js'
 
@@ -268,11 +269,10 @@ export async function updateTaxonomy(id, input, siteId = DEFAULT_SITE_ID, locale
  *    Destination column khaali, aur wajah kahin likhi nahi hoti. Ye wahi invariant hai
  *    jo D-42 §2 ne media pe lagaya tha.
  *
- * ⚠️ **"Kya koi package ise use kar raha hai" wala guard abhi nahi hai.** Package
- * taxonomy ko kaise reference karta hai — `entry.taxonomies` me ya `fields` me — wo
- * **Slice 3** ka faisla hai (spec 002 ka frozen contract usse juda hua hai).
- * `09-OPEN-ITEMS.md` A-7 me tracked hai; wahan tay hote hi ye guard yahan judega —
- * bilkul waise hi jaise #3 abhi juda hai.
+ * 4. **Jise koi entry use kar rahi hai wo delete nahi hoti** — trash me padi entry bhi
+ *    ginti me hai, kyunki wo restore ho sakti hai. Ye guard A-7 ke faisle ke baad juda
+ *    (D-49): ab har taxonomy type ek hi jagah reference hoti hai, isliye ek hi query
+ *    chaaron ko cover karti hai.
  */
 export async function deleteTaxonomy(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
   const current = await Taxonomy.findOne({ _id: id, ...scope(siteId, locale) }).lean()
@@ -298,6 +298,13 @@ export async function deleteTaxonomy(id, siteId = DEFAULT_SITE_ID, locale = DEFA
         `${hotelCount} hotel(s) are linked to this destination. Move or delete those first.`,
       )
     }
+  }
+
+  const entryCount = await countEntriesUsingTaxonomy(id, siteId)
+  if (entryCount > 0) {
+    throw unprocessable(
+      `${entryCount} item(s) are using this. Remove it from them first, including the Trash.`,
+    )
   }
 
   await Taxonomy.deleteOne({ _id: id })

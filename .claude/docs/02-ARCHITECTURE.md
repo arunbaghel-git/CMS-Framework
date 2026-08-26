@@ -128,7 +128,12 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                  content { version, blocks: [...] },     page builder tree
                  fields  { ...customFields },            contentType ke fields
                  seo     { ... },
-                 taxonomies { categories[], tags[] },
+                 taxonomies { categories[], tags[],
+                              destinations[], packageTypes[] },
+                              key har taxonomy type ki apni — TAXONOMY_REF_KEY se.
+                              Pehle sirf categories/tags thin; D-49 me badla, taaki
+                              tax:{id} cache tag, archive aur delete guard HAR type
+                              pe ek jaise kaam karein
                  searchText,                             denormalized, index ke liye
                  featuredImageId, order, parentId, updatedAt
 
@@ -179,7 +184,10 @@ packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  itineraryImages[], bookingSteps[{title,text}], cancellationText
                  singleton — wahi pattern jo settings ka hai. Package ke domain ki
                  globals; settings me jaan-boojh kar NAHI (D-46, §1.8)
-redirects      * siteId, from, to, statusCode(301|302), hits, isAuto
+redirects      * siteId, locale, from, to, statusCode(301|302), hits, isAuto
+                 locale day 1 se — uniqueness {siteId, locale, from} hai (D-48 §3)
+                 auto-redirect entries service banati hai (slug/parent badalne pe,
+                 D-49). Manager UI Phase 4 me. Migration 011
 forms          * siteId, name, fields[], notifyEmails[], successMessage
 submissions      formId, data, ip, createdAt, expiresAt
 activityLog      userId, action, entityType, entityId, meta, createdAt   (DEFER — Q-4)
@@ -228,7 +236,8 @@ entries:   { siteId: 1, parentId: 1, order: 1 }
 entries:   { searchText: "text" }                          ← ek hi text index allowed
 media:     { siteId: 1, folderId: 1, createdAt: -1 }
 mediaRefs: { siteId: 1, mediaId: 1 }
-redirects: { siteId: 1, from: 1 }                          unique
+redirects:     { siteId: 1, locale: 1, from: 1 }            unique   ← migration 011
+redirects:     { siteId: 1, locale: 1, to: 1 }                      ← chain flatten
 taxonomies:    { siteId: 1, locale: 1, type: 1, slug: 1 }  unique   ← migration 010
 taxonomies:    { siteId: 1, type: 1, parentId: 1, order: 1 }        ← tree ki list
 hotels:        { siteId: 1, destinationId: 1, category: 1 }         ← migration 010
@@ -718,6 +727,9 @@ CRUD   /api/hotels | /api/add-ons | /api/transfers           ✅ Slice 2
                                          aur alag permissions (D-48)
 GET/PATCH /api/package-defaults          ek document, isliye koi :id nahi  ✅ Slice 2
 
+GET    /api/redirects?q=&isAuto=                             ✅ Slice 3 (auto ka hissa)
+DELETE /api/redirects/:id                create/update Phase 4 ke manager ke saath
+
 POST   /api/admin/media (multipart)   GET /api/admin/media
 POST   /api/admin/media/:id/trash | restore
 POST   /api/admin/media/:id/edit         crop / rotate / scale
@@ -727,7 +739,7 @@ GET    /api/admin/media/:id/usage        mediaRefs se
 CRUD   /api/menus   ·   GET/PUT /api/menu-locations
 GET/PATCH /api/settings                  ek document, isliye koi :id nahi (D-40)
                                          read: settings.read · write: settings.update
-CRUD   /api/templates | patterns | redirects | users
+CRUD   /api/templates | patterns | users
 GET    /api/admin/search?q=              Cmd+K, searchText pe
 GET    /api/admin/activity
 POST   /api/admin/tools/export | import

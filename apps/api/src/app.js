@@ -26,6 +26,7 @@ import { entryRoutes } from './modules/entries/routes.js'
 import { taxonomyRoutes } from './modules/taxonomies/routes.js'
 import { addOnRoutes, hotelRoutes, transferRoutes } from './modules/master-lists/routes.js'
 import { packageDefaultsRoutes } from './modules/package-defaults/routes.js'
+import { redirectRoutes } from './modules/redirects/routes.js'
 import { publicRoutes } from './modules/public/routes.js'
 import { getStorageDriver } from './modules/media/storage/index.js'
 
@@ -150,6 +151,9 @@ export function createApp() {
   app.use('/api/add-ons', addOnRoutes)
   app.use('/api/transfers', transferRoutes)
   app.use('/api/package-defaults', packageDefaultsRoutes)
+
+  // Slice 3 me sirf read + delete — auto-redirects apne aap bante hain, manager Phase 4 me
+  app.use('/api/redirects', redirectRoutes)
 
   // Public — read-only, bina auth ke (02-ARCHITECTURE §10)
   app.use('/api/public', publicRoutes)

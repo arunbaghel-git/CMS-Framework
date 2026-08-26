@@ -1,6 +1,12 @@
 import mongoose from 'mongoose'
 
-import { DEFAULT_LOCALE, DEFAULT_SITE_ID, ENTRY_STATUS, ENTRY_STATUSES } from '@cms/shared'
+import {
+  DEFAULT_LOCALE,
+  DEFAULT_SITE_ID,
+  ENTRY_STATUS,
+  ENTRY_STATUSES,
+  emptyTaxonomyRefs,
+} from '@cms/shared'
 
 /**
  * `entries` aur `revisions` — D-46, spec 007 Slice 1.
@@ -77,10 +83,18 @@ const entrySchema = new mongoose.Schema(
 
     seo: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 
-    taxonomies: {
-      categories: { type: [String], default: () => [] },
-      tags: { type: [String], default: () => [] },
-    },
+    /**
+     * Entry kaunsi taxonomies me hai — **type ke hisaab se ek key** (A-7, D-49):
+     * `{ categories, tags, destinations, packageTypes }`, har ek ids ka array.
+     *
+     * `Mixed` isliye ki keys `TAXONOMY_REF_KEY` se aati hain, aur nayi taxonomy type
+     * jodne pe yahan kuch nahi badalna chahiye. Write pe poora Zod se guzarta hai (R8),
+     * aur har id service me verify hoti hai ki wo maujood bhi hai aur sahi type ki bhi.
+     *
+     * ⚠️ Ye query me **jaata hai** (`taxonomies.destinations` pe filter), par sirf
+     * validated ids ke saath — `req.query` yahan kabhi spread nahi hoti (R9).
+     */
+    taxonomies: { type: mongoose.Schema.Types.Mixed, default: emptyTaxonomyRefs },
 
     excerpt: { type: String, default: '' },
     order: { type: Number, default: 0 },

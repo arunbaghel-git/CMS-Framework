@@ -5,6 +5,8 @@ import {
   DEFAULT_SITE_ID,
   ENTRY_STATUS,
   PERMISSION,
+  TAXONOMY_REF_KEYS,
+  TAXONOMY_TYPE_BY_REF_KEY,
   extractBlockText,
   isReservedSlug,
   rebasePath,
@@ -16,6 +18,15 @@ import {
 import { conflict, forbidden, notFound, unprocessable } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
 import { requireContentType } from '../content-types/service.js'
+import { recordAutoRedirect, removeRedirectsTo } from '../redirects/service.js'
+/**
+ * ⚠️ **Ye import circular hai** — `taxonomies/service.js` yahan se
+ * `countEntriesUsingTaxonomy` leti hai (delete rokne ke liye).
+ *
+ * Wahi tark jo baaki teen jodiyon pe likha hai: dono taraf sirf `export async function`
+ * declarations hain, aur koi bhi module load ke waqt doosre ko call nahi karta.
+ */
+import { taxonomyExists } from '../taxonomies/service.js'
 import { Entry, Revision } from './model.js'
 
 /**
@@ -120,6 +131,53 @@ function buildSearchText(entry) {
   collectText(entry.fields, parts)
 
   return parts.filter(Boolean).join(' ').slice(0, MAX_SEARCH_TEXT)
+}
+
+// ── taxonomy refs ────────────────────────────────────────────────────────────
+
+/**
+ * Har taxonomy id write se **pehle** verify hoti hai — maujood bhi ho, aur **sahi type**
+ * ki bhi.
+ *
+ * Type ka check utna hi zaroori hai jitna maujoodgi ka: bina uske ek Package Type ki id
+ * `destinations` me baithayi ja sakti hai. Wo save ho jaati, list me kuch galat nahi
+ * dikhta, aur galti tab pakdi jaati jab public page pe breadcrumb ulta-seedha banta hai.
+ *
+ * Ye wahi invariant hai jo D-42 §2 ne media pe lagaya tha: asli bachav reference **banne**
+ * se pehle hai, render pe nahi.
+ */
+async function assertTaxonomyRefs(taxonomies, siteId, locale) {
+  if (!taxonomies) return
+
+  for (const key of TAXONOMY_REF_KEYS) {
+    const ids = taxonomies[key]
+    if (!ids?.length) continue
+
+    const type = TAXONOMY_TYPE_BY_REF_KEY[key]
+
+    for (const id of ids) {
+      if (!(await taxonomyExists(id, type, siteId, locale))) {
+        throw unprocessable(`One of the selected ${type} items could not be found`)
+      }
+    }
+  }
+}
+
+/**
+ * Kitni entries is taxonomy ko use kar rahi hain — trash waali bhi ginti me.
+ *
+ * `taxonomies` service isse delete se pehle bulati hai. Trashed bhi isliye gini jaati
+ * hain ki wo restore ho sakti hain; unhe chhod dena matlab taxonomy mit jaana aur restore
+ * pe entry ka reference kisi aisi id pe baithe rehna jo hai hi nahi.
+ *
+ * `$or` isliye ki id kisi bhi key me ho sakti hai — ek hi query me chaaron dekhi jaati
+ * hain, chaar alag queries se nahi.
+ */
+export async function countEntriesUsingTaxonomy(taxonomyId, siteId = DEFAULT_SITE_ID) {
+  return Entry.countDocuments({
+    siteId,
+    $or: TAXONOMY_REF_KEYS.map((key) => ({ [`taxonomies.${key}`]: String(taxonomyId) })),
+  })
 }
 
 // ── slug + path ──────────────────────────────────────────────────────────────
@@ -248,10 +306,11 @@ async function resolveSlugAndPath({
  * hai hi nahi, aur wo entry sirf apne purane URL pe milti — jab tak koi use haath se
  * dobara save na kare.
  *
- * ⚠️ **Purane path pe 301 yahan nahi banta.** Wo `redirects` collection maangta hai
- * jiska module Phase 4 me hai (02-ARCHITECTURE §4). Slice 1 me kuch publish hua hi nahi,
- * isliye abhi koi live URL nahi toot raha — par **Slice 3 (publish) se pehle ye zaroori
- * ho jaayega**, warna slug badalne par purane link chup-chaap 404 dene lagenge.
+ * **Purane path pe 301 bhi banta hai** — har descendant pe alag (A-6, D-49). Wo kaam
+ * `redirects` service karti hai; yahan sirf purani aur nayi jodi nikaali jaati hai.
+ *
+ * Isiliye ye function `{ oldPath, newPath }` lautata hai, sirf documents nahi: caller ko
+ * dono chahiye, aur update ke **baad** purana path kahin bacha hi nahi rehta.
  */
 async function cascadeDescendantPaths(oldPath, newPath, siteId, locale) {
   if (oldPath === newPath) return []
@@ -265,21 +324,30 @@ async function cascadeDescendantPaths(oldPath, newPath, siteId, locale) {
 
   if (descendants.length === 0) return []
 
+  const moved = descendants.map((child) => ({
+    ...child,
+    oldPath: child.path,
+    path: rebasePath(child.path, oldPath, newPath),
+  }))
+
   await Entry.bulkWrite(
-    descendants.map((child) => ({
-      updateOne: {
-        filter: { _id: child._id },
-        update: { $set: { path: rebasePath(child.path, oldPath, newPath) } },
-      },
+    moved.map((child) => ({
+      updateOne: { filter: { _id: child._id }, update: { $set: { path: child.path } } },
     })),
   )
+
+  // Har descendant ka purana URL bhi kisi ne share kiya ho sakta hai — sirf parent pe
+  // redirect banane ka matlab hai ki bachche ke saare link chup-chaap mar jaate hain
+  for (const child of moved) {
+    await recordAutoRedirect(child.oldPath, child.path, siteId, locale)
+  }
 
   /**
    * Descendants ka `version` jaan-boojh kar **nahi** badhta: unka content badla hi nahi,
    * sirf unka path. Version badhane ka matlab hota ki jis editor ne bachcha page khol
    * rakha hai, use save pe bina wajah 409 mile.
    */
-  return descendants
+  return moved
 }
 
 // ── cache ────────────────────────────────────────────────────────────────────
@@ -297,8 +365,14 @@ function tagsFor(entry) {
   return [
     `entry:${entry._id ?? entry.id}`,
     `type:${entry.type}`,
-    ...(entry.taxonomies?.categories ?? []).map((id) => `tax:${id}`),
-    ...(entry.taxonomies?.tags ?? []).map((id) => `tax:${id}`),
+    /**
+     * **Har** taxonomy key, sirf categories/tags nahi (A-7, D-49).
+     *
+     * Pehle ye do keys hardcoded thin. Destinations `fields` me chali jaatin to ye tag
+     * unke liye banta hi nahi — destination archive publish ke baad bhi purana dikhta
+     * rehta, aur wajah kahin dikhti nahi. Yahi D-43 §4 wali galti ka agla roop hota.
+     */
+    ...TAXONOMY_REF_KEYS.flatMap((key) => (entry.taxonomies?.[key] ?? []).map((id) => `tax:${id}`)),
     'sitemap',
     entry.type === 'post' ? 'feed' : null,
   ].filter(Boolean)
@@ -377,8 +451,14 @@ export async function listEntries(query, siteId = DEFAULT_SITE_ID, locale = DEFA
   for (const key of ['type', 'status', 'authorId', 'parentId']) {
     if (filters[key] !== undefined) filter[key] = filters[key]
   }
-  if (filters.category) filter['taxonomies.categories'] = filters.category
-  if (filters.tag) filter['taxonomies.tags'] = filters.tag
+  /**
+   * Taxonomy filters — param ka naam wahi hai jo storage key ka hai
+   * (`?destinations=<id>`). Sirf known keys, isliye `req.query` yahan bhi kabhi seedha
+   * query me nahi jaati (R9).
+   */
+  for (const key of TAXONOMY_REF_KEYS) {
+    if (filters[key]) filter[`taxonomies.${key}`] = filters[key]
+  }
 
   /**
    * Search `searchText` pe chalti hai, `$text` pe nahi.
@@ -413,6 +493,8 @@ export async function getEntry(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LO
 
 export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
   const contentType = await requireContentType(input.type, siteId)
+
+  await assertTaxonomyRefs(input.taxonomies, siteId, locale)
 
   const { slug, path } = await resolveSlugAndPath({
     slug: input.slug,
@@ -476,6 +558,8 @@ export async function updateEntry(
   }
 
   const contentType = await requireContentType(current.type, siteId)
+
+  await assertTaxonomyRefs(input.taxonomies, siteId, locale)
 
   const next = { ...current, ...input }
   const $set = { version: current.version + 1 }
@@ -543,6 +627,16 @@ export async function updateEntry(
     if (parentChanged) $set.parentId = input.parentId
 
     descendants = await cascadeDescendantPaths(current.path, resolved.path, siteId, locale)
+
+    /**
+     * Entry ka apna purana URL — yahi wo link hai jo client ne share kiya hota hai.
+     *
+     * Redirect **path badalne pe** banta hai, publish state dekhe bina: ek draft ka URL
+     * kisi ke paas nahi hota, par usi entry ka publish hone ke baad slug badalna aam baat
+     * hai, aur us waqt "kya ye pehle published thi" ka hisaab rakhna ek aur state hai jo
+     * galat ho sakti hai. Ek bekaar redirect ki keemat ek toote hue link se kam hai.
+     */
+    await recordAutoRedirect(current.path, resolved.path, siteId, locale)
   } else if (parentChanged) {
     $set.parentId = input.parentId
   }
@@ -795,6 +889,12 @@ export async function purgeEntry(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_
 
   await Entry.deleteOne({ _id: id })
   await Revision.deleteMany({ entryId: String(id) })
+
+  /**
+   * Is path pe aane wale redirects bhi hata do — warna wo ek 404 pe point karte rehte
+   * hain: user ko ek hop milta hai aur phir bhi "page nahi mila". Seedha 404 saaf hai.
+   */
+  await removeRedirectsTo(current.path, siteId, locale)
 
   await invalidate(current)
 

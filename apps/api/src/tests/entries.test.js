@@ -10,8 +10,10 @@ import { ContentType } from '../modules/content-types/model.js'
 import { ensureBuiltInContentTypes } from '../modules/content-types/service.js'
 import { Entry, Revision } from '../modules/entries/model.js'
 import { publishDueEntries } from '../modules/entries/service.js'
+import { Redirect } from '../modules/redirects/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
+import { Taxonomy } from '../modules/taxonomies/model.js'
 import { User } from '../modules/users/model.js'
 import { createUser } from '../modules/users/service.js'
 
@@ -90,6 +92,8 @@ beforeEach(async () => {
     ContentType.deleteMany({}),
     Entry.deleteMany({}),
     Revision.deleteMany({}),
+    Redirect.deleteMany({}),
+    Taxonomy.deleteMany({}),
   ])
   invalidateRoleCache()
   await ensureDefaultRoles()
@@ -650,5 +654,194 @@ describe('search', () => {
 
     expect(res.body.data.entries).toHaveLength(2)
     expect(res.body.meta).toMatchObject({ page: 1, limit: 2, total: 3 })
+  })
+})
+
+// ── taxonomy references (A-7, D-49) ──────────────────────────────────────────
+
+describe('taxonomy references', () => {
+  async function createTaxonomy(type, name) {
+    const res = await authed('post', '/api/taxonomies', adminJar).send({ type, name })
+    return res.body.data.taxonomy
+  }
+
+  it('package apni destinations aur packageTypes rakh sakta hai', async () => {
+    const goa = await createTaxonomy('destination', 'Goa')
+    const honeymoon = await createTaxonomy('packageType', 'Honeymoon')
+
+    const res = await createEntry(adminJar, {
+      title: 'Goa Honeymoon',
+      taxonomies: { destinations: [goa.id], packageTypes: [honeymoon.id] },
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.entry.taxonomies.destinations).toEqual([goa.id])
+    expect(res.body.data.entry.taxonomies.packageTypes).toEqual([honeymoon.id])
+    // Purani do keys ab bhi hamesha maujood — jo code unhe seedha padhta hai wo chalta rahe
+    expect(res.body.data.entry.taxonomies.categories).toEqual([])
+  })
+
+  it('anjaan taxonomy id pe 422', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Nowhere',
+      taxonomies: { destinations: ['64b7f3f3f3f3f3f3f3f3f3f3'] },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('galat type ki id galat key me nahi ja sakti', async () => {
+    // Bina type ke check ke ek Package Type ki id destinations me baith jaati: save ho
+    // jaati, list me kuch galat nahi dikhta, aur galti public page ke breadcrumb pe
+    // pakdi jaati
+    const honeymoon = await createTaxonomy('packageType', 'Honeymoon')
+
+    const res = await createEntry(adminJar, {
+      title: 'Wrong Vocabulary',
+      taxonomies: { destinations: [honeymoon.id] },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('list destination se filter hoti hai', async () => {
+    const goa = await createTaxonomy('destination', 'Goa')
+    const kerala = await createTaxonomy('destination', 'Kerala')
+
+    await createEntry(adminJar, { title: 'Goa Trip', taxonomies: { destinations: [goa.id] } })
+    await createEntry(adminJar, { title: 'Kerala Trip', taxonomies: { destinations: [kerala.id] } })
+
+    const res = await authed('get', `/api/entries?destinations=${goa.id}`, adminJar)
+
+    expect(res.body.data.entries).toHaveLength(1)
+    expect(res.body.data.entries[0].title).toBe('Goa Trip')
+  })
+
+  it('jise koi entry use kar rahi hai wo taxonomy delete nahi hoti', async () => {
+    const goa = await createTaxonomy('destination', 'Goa')
+    await createEntry(adminJar, { title: 'Goa Trip', taxonomies: { destinations: [goa.id] } })
+
+    const res = await authed('delete', `/api/taxonomies/${goa.id}`, adminJar)
+    expect(res.status).toBe(422)
+  })
+
+  it('trash me padi entry bhi taxonomy ko rok-ti hai — wo restore ho sakti hai', async () => {
+    const goa = await createTaxonomy('destination', 'Goa')
+    const entry = (
+      await createEntry(adminJar, { title: 'Goa Trip', taxonomies: { destinations: [goa.id] } })
+    ).body.data.entry
+
+    await authed('post', `/api/entries/${entry.id}/trash`, adminJar).send({})
+
+    const res = await authed('delete', `/api/taxonomies/${goa.id}`, adminJar)
+    expect(res.status).toBe(422)
+  })
+})
+
+// ── auto redirects (A-6, D-49) ───────────────────────────────────────────────
+
+describe('auto redirects', () => {
+  const redirectFor = (from) => Redirect.findOne({ from }).lean()
+
+  it('slug badalne pe purane path se 301 banta hai', async () => {
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+    const { id } = created.body.data.entry
+
+    await authed('patch', `/api/entries/${id}`, adminJar).send({ version: 0, slug: 'andaman-5n' })
+
+    const redirect = await redirectFor('/packages/andaman')
+    expect(redirect.to).toBe('/packages/andaman-5n')
+    expect(redirect.statusCode).toBe(301)
+    expect(redirect.isAuto).toBe(true)
+  })
+
+  it('descendants ke purane URL bhi zinda rehte hain', async () => {
+    // Sirf parent pe redirect banane ka matlab hai ki bachche ke saare share kiye hue
+    // link chup-chaap mar jaate hain
+    const about = (await createPage(adminJar, { title: 'About' })).body.data.entry
+    await createPage(adminJar, { title: 'Team', parentId: about.id })
+
+    await authed('patch', `/api/entries/${about.id}`, adminJar).send({
+      version: 0,
+      slug: 'company',
+    })
+
+    expect((await redirectFor('/about')).to).toBe('/company')
+    expect((await redirectFor('/about/team')).to).toBe('/company/team')
+  })
+
+  it('chain flatten hoti hai — /a → /b → /c kabhi nahi banta', async () => {
+    // Har hop ek extra round-trip hai, aur teen hop ke baad Google follow karna hi band
+    // kar deta hai
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+    const { id } = created.body.data.entry
+
+    await authed('patch', `/api/entries/${id}`, adminJar).send({ version: 0, slug: 'andaman-b' })
+    await authed('patch', `/api/entries/${id}`, adminJar).send({ version: 1, slug: 'andaman-c' })
+
+    expect((await redirectFor('/packages/andaman')).to).toBe('/packages/andaman-c')
+    expect((await redirectFor('/packages/andaman-b')).to).toBe('/packages/andaman-c')
+    expect(await Redirect.countDocuments({ to: '/packages/andaman-b' })).toBe(0)
+  })
+
+  it('purane naam pe wapas jaane pe loop nahi banta', async () => {
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+    const { id } = created.body.data.entry
+
+    await authed('patch', `/api/entries/${id}`, adminJar).send({ version: 0, slug: 'andaman-b' })
+    await authed('patch', `/api/entries/${id}`, adminJar).send({ version: 1, slug: 'andaman' })
+
+    // Live path khud kabhi redirect ka source nahi bacha rehna chahiye — warna page
+    // apne aap pe redirect karta rehta hai
+    expect(await redirectFor('/packages/andaman')).toBeNull()
+    expect(await Redirect.countDocuments({ from: '/packages/andaman' })).toBe(0)
+  })
+
+  it('permanent delete uspe aane wale redirects bhi le jaata hai', async () => {
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+    const { id } = created.body.data.entry
+
+    await authed('patch', `/api/entries/${id}`, adminJar).send({ version: 0, slug: 'andaman-5n' })
+    expect(await redirectFor('/packages/andaman')).not.toBeNull()
+
+    await authed('post', `/api/entries/${id}/trash`, adminJar).send({})
+    await authed('delete', `/api/entries/${id}`, adminJar)
+
+    // Warna redirect ek 404 pe point karta rehta — ek hop, aur phir bhi "page nahi mila"
+    expect(await redirectFor('/packages/andaman')).toBeNull()
+  })
+
+  it('title badalne se (path wahi rehne pe) bekaar redirect nahi banta', async () => {
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+    const { id } = created.body.data.entry
+
+    await authed('post', `/api/entries/${id}/publish`, adminJar).send({})
+    const current = await Entry.findById(id).lean()
+
+    await authed('patch', `/api/entries/${id}`, adminJar).send({
+      version: current.version,
+      title: 'Andaman Deluxe',
+    })
+
+    expect(await Redirect.countDocuments({})).toBe(0)
+  })
+
+  it('editor redirects dekh aur hata sakta hai, author nahi (spec 001)', async () => {
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+    await authed('patch', `/api/entries/${created.body.data.entry.id}`, adminJar).send({
+      version: 0,
+      slug: 'andaman-5n',
+    })
+
+    const list = await authed('get', '/api/redirects', adminJar)
+    expect(list.body.data.redirects).toHaveLength(1)
+
+    const { id } = list.body.data.redirects[0]
+
+    // `redirect.*` editor ke paas hai — redirects SEO ka kaam hain, aur wo editor ka
+    // hissa hai (spec 001). Author ke paas nahi.
+    expect((await authed('delete', `/api/redirects/${id}`, authorJar)).status).toBe(403)
+    expect((await authed('delete', `/api/redirects/${id}`, editorJar)).status).toBe(200)
+    expect(await Redirect.countDocuments({})).toBe(0)
   })
 })

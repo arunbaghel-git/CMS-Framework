@@ -14,9 +14,18 @@ migration 009, 64 naye test, **447 total passing**. Paanch guard **D-47** me lik
 `transfers` + singleton `packageDefaults` — migration 010, 30 naye test, **477 total**.
 Teen faisle **D-48** me.
 
-**Agla kaam: Slice 3 — All Packages list + Add New.** Usse **pehle do cheezein tay honi
-hain**: A-6 (slug badalne pe 301) aur A-7 (package taxonomy ko kaise reference karega —
-ye spec 002 ka frozen contract chhoota hai).
+**Slice 3 ke dono blocker band ho chuke hain (26 Aug — D-49):**
+
+- **A-7** — `entry.taxonomies` ab har type ki apni key rakhta hai
+  (`{categories, tags, destinations, packageTypes}`). spec 002 ka contract **ek baar**
+  badla, us waqt `entries` me koi asli data nahi tha.
+- **A-6** — `redirects` collection ban gayi (migration 011). Slug badalne pe auto-301,
+  chain flatten aur loop se bachav ke saath; descendants ke purane URL bhi zinda.
+  Manager UI Phase 4 me hi rahegi.
+
+**Agla kaam: Slice 3 — All Packages list + Add New.** Do hisse: `package` type ka field
+set (`contentTypes.fields[]`), aur admin ki screens (`s-packages` + `s-package-edit`,
+design frozen hai — R15).
 
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
@@ -55,14 +64,13 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           spec 007 — Packages               ✅  🟢 approved, 26 Aug
           Slice 1  entries + contentTypes    ✅  26 Aug — D-47, migration 009
           Slice 2  master lists + defaults   ✅  26 Aug — D-48, migration 010
-          Slice 3  list + Add New            🔴  ← agla kaam
-                                                 A-6 (301) + A-7 (taxonomy ref)
-                                                 dono isse pehle tay hon
+          A-6 + A-7 (Slice 3 ke blocker)   ✅  26 Aug — D-49, migration 011
+          Slice 3  list + Add New            🔴  ← agla kaam (field set + screens)
           Slice 4-7                          🔴  specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 477 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 491 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -120,6 +128,8 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Package kya hai**   | `entries` ka ek **type** — apni collection nahi (D-46). Master lists apni collection me            |
 | **Engine ke guard**   | Create se publish nahi · published ka title URL nahi badalta · revision poora snapshot (D-47)      |
 | **Master lists**      | Teenon ek module me, par teen alag routes aur alag permissions. `locale` sirf taxonomies pe (D-48) |
+| **Taxonomy ka ref**   | `entry.taxonomies` me, har type ki apni key — `fields` me nahi (D-49). spec 002 ek baar badla      |
+| **Slug badalna**      | Auto-301 + chain flatten + loop se bachav; descendants pe bhi (D-49)                               |
 
 Specs 001–007: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,
 **006 ✅ implemented** (menu contract), **007 🟢 approved** (Packages — D-46).

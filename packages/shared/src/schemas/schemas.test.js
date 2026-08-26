@@ -161,7 +161,32 @@ describe('entrySchema', () => {
     expect(entry.version).toBe(0)
     expect(entry.deletedAt).toBeNull()
     expect(entry.content).toEqual({ version: 1, blocks: [] })
-    expect(entry.taxonomies).toEqual({ categories: [], tags: [] })
+    /**
+     * A-7 / D-49 — `taxonomies` ab har type ki apni key rakhta hai, sirf categories/tags
+     * nahi. Packages ko Destinations aur Package Type chahiye the, aur unhe `fields` me
+     * daalne ka matlab hota ki cache tag, archive aur delete guard sirf aadhe types pe
+     * kaam karte.
+     */
+    expect(entry.taxonomies).toEqual({
+      categories: [],
+      tags: [],
+      destinations: [],
+      packageTypes: [],
+    })
+  })
+
+  it('taxonomies me anjaan key chup-chaap nahi girti (D-43 §3 ka trap)', () => {
+    // Zod default me anjaan keys HATA deta hai. `.strict()` ke bina galat key
+    // (singular `destination`) bina error ke gayab ho jaati: admin Save karta,
+    // "ho gaya" dikhta, aur uska chuna hua destination kahin nahi hota
+    expect(() =>
+      entrySchema.parse({ ...validEntry(), taxonomies: { destination: ['abc'] } }),
+    ).toThrow()
+
+    expect(
+      entrySchema.parse({ ...validEntry(), taxonomies: { destinations: ['abc'] } }).taxonomies
+        .destinations,
+    ).toEqual(['abc'])
   })
 
   it('`trash` ko status nahi maanta — wo deletedAt hai (D-25)', () => {

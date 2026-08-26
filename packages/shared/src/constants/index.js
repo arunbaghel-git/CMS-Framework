@@ -95,6 +95,28 @@ export const TAXONOMY_LABEL = Object.freeze({
   [TAXONOMY_TYPE.PACKAGE_TYPE]: 'Package Type',
 })
 
+/**
+ * Taxonomy type → `entry.taxonomies` me uski key (A-7, D-49).
+ *
+ * Keys **plural** hain kyunki har ek ids ka array rakhti hai. Ye map hi wo ek jagah hai
+ * jahan se dono taraf ka naam aata hai — server ka filter, admin ka form, cache tag aur
+ * delete guard sab isi se chalte hain. Do jagah rakhne ka nateeja is repo me pehle dekha
+ * ja chuka hai (D-43 §2).
+ */
+export const TAXONOMY_REF_KEY = Object.freeze({
+  category: 'categories',
+  tag: 'tags',
+  destination: 'destinations',
+  packageType: 'packageTypes',
+})
+
+export const TAXONOMY_REF_KEYS = Object.freeze(Object.values(TAXONOMY_REF_KEY))
+
+/** Ulta map — `destinations` kis type ki key hai. Delete guard aur write validation isse use karte hain. */
+export const TAXONOMY_TYPE_BY_REF_KEY = Object.freeze(
+  Object.fromEntries(Object.entries(TAXONOMY_REF_KEY).map(([type, key]) => [key, type])),
+)
+
 /** Kaunsi taxonomy nested ho sakti hai — spec 007 §1.1, §1.2. */
 export const HIERARCHICAL_TAXONOMY_TYPES = Object.freeze([
   TAXONOMY_TYPE.CATEGORY,

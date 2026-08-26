@@ -8,8 +8,8 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 
 **Agla milestone: Packages (spec 007 — 🟢 approved).** Uska buniyaadi faisla
 26 Aug ko band ho gaya — Package `entries` ka ek type hai, **D-46**.
-**Slice 1 (engine) aur Slice 2 (master lists) dono ban chuki hain** — 477 tests
-passing, D-47 aur D-48.
+**Slice 1 (engine) aur Slice 2 (master lists) ban chuki hain, aur Slice 3 ke dono
+blocker band ho gaye** (A-6, A-7 → **D-49**) — 491 tests passing.
 **Last updated:** 26 Aug 2026
 
 ---
@@ -100,6 +100,8 @@ passing, D-47 aur D-48.
 | **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
 | **spec 007 §9 #1 — Package = `entries` ka type?** | ✅ **Haan (D-46)** — client ka faisla. `packages` collection nahi banegi; engine ek hi rahega. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi apni collection me — unka apna URL aur publish lifecycle nahi hai. **spec 007 ab 🟢 approved** |
+| **A-7 — package taxonomy ka reference** | ✅ **`entry.taxonomies` generalize hua** (D-49) — ab `{categories, tags, destinations, packageTypes}`. Isse `tax:{id}` cache tag, archive aur delete guard **har type pe ek jaise** kaam karte hain. spec 002 ka contract ek baar badla, us waqt `entries` me koi asli data nahi tha |
+| **A-6 — slug badalne pe 301** | ✅ **`redirects` collection ban gayi** (D-49) — auto-301, chain flatten aur loop se bachav ke saath. Descendants ke purane URL bhi zinda. Manager UI Phase 4 me hi rahegi. Migration 011 |
 | **Slice 2 — master lists** | ✅ **Ban gaya** — `taxonomies` (Destinations + Package Type), `hotels`, `addOns`, `transfers`, singleton `packageDefaults`. Migration 010, 30 naye test, 14 nayi permissions. Teen faisle **D-48** me: teenon lists **ek module** me par **teen alag routes/permissions** · `locale` sirf wahan jahan unique index hai · `packageDefaults` `settings` me nahi |
 | **Slice 1 — Content Core engine** | ✅ **Ban gaya** — `entries` + `contentTypes`, migration 009, 64 naye test. Paanch guard **D-47** me: create se publish nahi · published ka title badalne se URL nahi badalta · `urlPattern` entries hone ke baad lock · revision poora snapshot (path restore nahi hota) · bachche wale item trash nahi hote |
 | **Route ka prefix** | ✅ `/api/<resource>`, `/api/admin/<resource>` nahi. Doc `/api/admin/*` likhta tha par code Phase 0 se hi `/api/users` pe chal raha tha — 02-ARCHITECTURE §9 ab code ke hisaab se theek hai |
@@ -166,60 +168,6 @@ Dono cases ka lakshan ek hi hai: _"publish kiya par site update nahi hui"_. API 
 `Revalidate request rejected/failed` warning milegi.
 
 Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
-
----
-
-### A-6 · Slug badalne pe purana URL 301 nahi hota — **Slice 3 se pehle zaroori**
-
-**Deadline:** Slice 3 (publish + All Packages list) se **pehle**
-**Abhi kuch nahi tootа** — Slice 1 me kuch publish hua hi nahi
-
-Slice 1 me path ka **cascade** ban chuka hai: parent ka slug badle to saare descendants ka
-`path` rebase hota hai (test ke saath). Par purane path pe **301 redirect** nahi banta —
-wo `redirects` collection maangta hai, jiska module Phase 4 (SEO) me hai.
-
-```
-banta hai    ✅  /about → /company, aur /about/team → /company/team
-nahi banta   ❌  /about pe 301 → /company
-```
-
-Abhi ye khatarnak nahi hai kyunki koi entry publish hui hi nahi — koi live URL hai hi
-nahi jo toote. **Jis din pehla package publish hoga, us din se ye ek asli bug hai:** client
-apna slug theek karega aur uska share kiya hua link chup-chaap 404 dene lagega, bina kisi
-error ke.
-
-Do raaste hain, faisla Slice 3 ke waqt:
-
-| Option | Matlab |
-| --- | --- |
-| `redirects` collection abhi bana lo (chhota hissa) | `entries` service auto-301 likhti rahe; manager UI Phase 4 me hi rahe |
-| Slug edit **published item pe band** kar do | Chhota kaam, par client ka haath bandhta hai |
-
-Poora sandarbh: **D-47** ka aakhri paragraph, aur `cache-invalidation` skill ka
-"Slug change ka special case".
-
----
-
-### A-7 · Package taxonomy ko kaise reference karega? — **Slice 3 ka faisla**
-
-**Deadline:** Slice 3 (All Packages list + Add New) ke saath
-**Abhi kuch nahi tootа** — koi package hai hi nahi jo reference kare
-
-spec 007 §2 `destinations[]` aur `packageTypes[]` ko `entries.fields` me likhta hai, par
-dono hain `taxonomies` collection me (§8). Do raaste hain aur dono ka asar alag hai:
-
-| Option | Matlab |
-| --- | --- |
-| `entry.taxonomies` ko generalize karo — `{ [type]: string[] }` | `tax:{id}` cache tag, taxonomy archives aur delete guard **sabke liye ek jaise** kaam karte hain. Par ye **spec 002 ka frozen contract** badalta hai (`taxonomyRefsSchema` abhi `{categories, tags}` hai) |
-| `fields.destinations[]` me rakho | Contract ko haath nahi lagta. Par destinations pe archive aur cache tag apne aap kaam nahi karte — unhe alag se likhna padta |
-
-**Aaj karna sasta hai, baad me nahi:** abhi `entries` me koi asli data nahi hai. Pehla
-package publish hone ke baad ye ek live-data migration ban jaata hai.
-
-**Isse ek guard bhi ruka hua hai:** `taxonomies` aur master lists ke delete pe abhi ye
-check **nahi** hai ki koi package unhe use kar raha hai ya nahi. Destination pe hotels wala
-guard **laga hua hai** (dono aaj maujood hain); package wala guard is faisle ke turant baad
-judega.
 
 ---
 
@@ -298,9 +246,11 @@ Spec 005 me add karne honge.
 9. ✅ spec 007 — Packages 🟢 approved (D-46, 26 Aug)  Package = entries ka type
 10. ✅ Slice 1 — entries + contentTypes engine    (D-47, 26 Aug — 447 tests)
 11. ✅ Slice 2 — master lists + packageDefaults    (D-48, 26 Aug — 477 tests)
-12. Phase 1 ka baaki — Packages ke order se       (3 hafte)
+12. ✅ A-6 + A-7 — Slice 3 ke dono blocker band   (D-49, 26 Aug — 491 tests)
+    entry.taxonomies generalize · redirects ka auto hissa
+13. Phase 1 ka baaki — Packages ke order se       (3 hafte)
     Slice 3  All Packages list + Add New           ← agla kaam
-             ⚠️ A-6 (slug pe 301) aur A-7 (taxonomy reference) isse pehle tay hon
+             package ka field set + admin ki screens
     Slice 4-7 → specs/007-packages.md §7
 ```
 
@@ -370,9 +320,9 @@ Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **6 commits unpushed** hain (total 58). `origin/main` `096b182` pe khada hai; local
-  HEAD `ff6e192` — 26 Aug ka D-45 / Q-8 / linkify / spec 007 ka kaam. Aage bhi push
-  **sirf permission pe**
+- ⚠️ **Local commits `origin/main` se aage hain.** Ginti yahan jaan-boojh kar nahi likhi —
+  wo har commit pe purani ho jaati thi aur do baar galat mili. Sach `git log --oneline
+  origin/main..HEAD` se lo. **Rule wahi hai: push sirf permission pe.**
 - ⚠️ **CI ka pehla step `pnpm format:check` hai** (`.github/workflows/ci.yml`:
   Format → Lint → Test → Build). `3c29b58` isi pe fail ho raha tha — 9 files prettier-dirty
   thin, ab theek ho chuki hain. Push se pehle `pnpm format:check` **hamesha** chala lo,

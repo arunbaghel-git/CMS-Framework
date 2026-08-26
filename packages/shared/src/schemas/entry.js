@@ -4,6 +4,7 @@ import {
   DEFAULT_SITE_ID,
   ENTRY_STATUSES,
   RESERVED_SLUGS,
+  TAXONOMY_REF_KEYS,
 } from '../constants/index.js'
 import { contentSchema, emptyContent } from './content.js'
 import { emptySeo, seoSchema } from './seo.js'
@@ -41,10 +42,38 @@ export const pathSchema = z
     'Path `/` se shuru ho, lowercase ho',
   )
 
-export const taxonomyRefsSchema = z.object({
-  categories: z.array(z.string()).default([]),
-  tags: z.array(z.string()).default([]),
-})
+/**
+ * Entry kaunsi taxonomies me hai — **type ke hisaab se ek key** (A-7, D-49).
+ *
+ * Pehle ye `{ categories, tags }` tha — do hardcoded keys. Packages ko Destinations aur
+ * Package Type chahiye the, aur unhe `fields` me daalne ka matlab hota ki ek hi cheez
+ * (taxonomy reference) do jagah, do tareeke se rehti: `tax:{id}` cache tag, taxonomy
+ * archive aur "kya koi entry ise use kar rahi hai" wala delete guard — teenon sirf aadhe
+ * types pe kaam karte.
+ *
+ * `categories` aur `tags` ab bhi hamesha maujood hain (default `[]`), isliye jo code
+ * unhe seedha padhta hai wo waise ka waisa chalta hai.
+ *
+ * Keys `TAXONOMY_REF_KEY` se aati hain — nayi taxonomy type jodne pe yahan kuch nahi
+ * badalta.
+ */
+export const taxonomyRefsSchema = z
+  .object(
+    Object.fromEntries(TAXONOMY_REF_KEYS.map((key) => [key, z.array(z.string()).default([])])),
+  )
+  /**
+   * `.strict()` **zaroori** hai. Zod default me anjaan keys chup-chaap **hata deta hai** —
+   * uske bina `taxonomies: { destination: [...] }` (singular, galat key) bina kisi error ke
+   * gayab ho jaata: admin Save karta, "ho gaya" dikhta, aur uska chuna hua destination
+   * kahin nahi hota. Ye bilkul wahi trap hai jo spec 006 me `leafItemSchema` pe pakda gaya
+   * tha (D-43 §3).
+   */
+  .strict()
+
+/** Khaali refs — har key ek khaali array. */
+export function emptyTaxonomyRefs() {
+  return Object.fromEntries(TAXONOMY_REF_KEYS.map((key) => [key, []]))
+}
 
 /** Poori stored shape — DB me entry aisi dikhti hai. */
 export const entrySchema = z.object({
@@ -75,7 +104,7 @@ export const entrySchema = z.object({
   /** contentType ke custom fields. Mixed rehta hai (D-21) — validation contentType se. */
   fields: z.record(z.unknown()).default({}),
   seo: seoSchema.default(emptySeo),
-  taxonomies: taxonomyRefsSchema.default({ categories: [], tags: [] }),
+  taxonomies: taxonomyRefsSchema.default(emptyTaxonomyRefs),
 
   excerpt: z.string().max(1000).optional(),
   order: z.number().int().default(0),
@@ -132,8 +161,14 @@ export const entryListQuerySchema = z.object({
   status: z.enum(ENTRY_STATUSES).optional(),
   q: z.string().max(200).optional(),
   authorId: z.string().optional(),
-  category: z.string().optional(),
-  tag: z.string().optional(),
+  /**
+   * Taxonomy filters — param ka naam wahi hai jo storage key ka hai
+   * (`?destinations=<id>`, `?categories=<id>`).
+   *
+   * Do naam rakhne (`category` param par `categories` field) ka matlab hota ek mapping
+   * jise har naye type pe yaad rakhna padta. Ek hi naam se wo galti ho hi nahi sakti.
+   */
+  ...Object.fromEntries(TAXONOMY_REF_KEYS.map((key) => [key, z.string().optional()])),
   parentId: z.string().optional(),
   trashed: z.coerce.boolean().default(false),
   page: z.coerce.number().int().positive().default(1),
