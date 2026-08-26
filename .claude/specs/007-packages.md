@@ -540,10 +540,12 @@ SLICE 1   entries + contentTypes engine                      ✅ 26 Aug
           64 naye test · migration 009 · D-47 (paanch guard)
           ⚠️ slug badalne pe purane path ka 301 abhi nahi banta — Slice 3 se pehle
 
-SLICE 2   Master lists (chhoti screens, ek jaisi) + packageDefaults
+SLICE 2   Master lists (chhoti screens, ek jaisi) + packageDefaults   ✅ 26 Aug
           Destinations · Package Type · Transfer · Add Ons · Hotels
           packageDefaults — What's Included · booking steps · cancellation
           → client apni vocabulary bhar sakta hai
+          API taiyaar · 30 naye test · migration 010 · D-48
+          Screens abhi nahi bani — wo admin ka kaam hai (§5)
 
 SLICE 3   All Packages list + Add New (basic)
           title · slug · shortDescription · overview · nights/days · banner

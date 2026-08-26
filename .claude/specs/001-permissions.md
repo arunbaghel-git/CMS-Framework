@@ -66,6 +66,24 @@ entry.revision.restore
 taxonomy.read · taxonomy.create · taxonomy.update · taxonomy.delete
 ```
 
+### Packages ki master lists — Slice 2 me juda (D-48)
+
+```
+hotel.read · hotel.create · hotel.update · hotel.delete
+addOn.read · addOn.create · addOn.update · addOn.delete
+transfer.read · transfer.create · transfer.update · transfer.delete
+packageDefaults.read · packageDefaults.update
+```
+
+Destinations aur Package Type ke apne strings **nahi** hain — wo `taxonomies` collection
+me hain aur `taxonomy.*` se hi chalti hain.
+
+`packageDefaults` ka koi `create`/`delete` nahi — wo singleton hai (D-40 ka hi pattern).
+
+**Ek saanjhi `masterList.*` jaan-boojh kar nahi banai** — poora tark **D-48 §2** me. Chhota
+roop: do permission ko baad me ek saath dena ek line hai, ek ko baad me alag karna poora
+retrofit hai.
+
 ### Media
 
 ```
@@ -140,6 +158,10 @@ activity.read
 
 | Permission group                            | admin | editor | author | contributor |
 | ------------------------------------------- | :---: | :----: | :----: | :---------: |
+| `hotel.read` `addOn.read` `transfer.read`    |  ✅   |   ✅   |   ✅   |     ✅      |
+| `packageDefaults.read`                      |  ✅   |   ✅   |   ✅   |     ✅      |
+| `hotel.*` `addOn.*` `transfer.*` (write)    |  ✅   |   ✅   |   —    |      —      |
+| `packageDefaults.update`                    |  ✅   |   ✅   |   —    |      —      |
 | `entry.read`                                |  ✅   |   ✅   |   ✅   |     ✅      |
 | `entry.create`                              |  ✅   |   ✅   |   ✅   |     ✅      |
 | `entry.update`                              |  ✅   |   ✅   |   —    |      —      |

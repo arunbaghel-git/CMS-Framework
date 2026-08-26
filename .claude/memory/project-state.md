@@ -10,8 +10,13 @@
 **Slice 1 ban chuki hai (26 Aug).** `entries` + `contentTypes` engine chal raha hai —
 migration 009, 64 naye test, **447 total passing**. Paanch guard **D-47** me likhe hain.
 
-**Agla kaam: Slice 2 — master lists + `packageDefaults`** (spec 007 §1). Slice 3 se
-**pehle A-6 tay karna hai** — slug badalne pe purana URL abhi 301 nahi hota.
+**Slice 2 bhi ban chuki hai (26 Aug).** `taxonomies` + `hotels` + `addOns` +
+`transfers` + singleton `packageDefaults` — migration 010, 30 naye test, **477 total**.
+Teen faisle **D-48** me.
+
+**Agla kaam: Slice 3 — All Packages list + Add New.** Usse **pehle do cheezein tay honi
+hain**: A-6 (slug badalne pe 301) aur A-7 (package taxonomy ko kaise reference karega —
+ye spec 002 ka frozen contract chhoota hai).
 
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
@@ -49,13 +54,15 @@ Slice 0   Menu contract (spec 006, D-43)    ✅  ← 24 Aug
 Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           spec 007 — Packages               ✅  🟢 approved, 26 Aug
           Slice 1  entries + contentTypes    ✅  26 Aug — D-47, migration 009
-          Slice 2  master lists + defaults   🔴  ← agla kaam
-          Slice 3  list + Add New            🔴  A-6 (301) isse pehle tay ho
+          Slice 2  master lists + defaults   ✅  26 Aug — D-48, migration 010
+          Slice 3  list + Add New            🔴  ← agla kaam
+                                                 A-6 (301) + A-7 (taxonomy ref)
+                                                 dono isse pehle tay hon
           Slice 4-7                          🔴  specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 447 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 477 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -82,36 +89,37 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 
 ## Faisle jo ho chuke hain
 
-| Faisla                | Nateeja                                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------- |
-| Field DSL             | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)                                              |
-| TypeScript            | **Nahi** — sab JavaScript (D-03)                                                                  |
-| Trash                 | **`deletedAt` field**, `status: 'trash'` nahi (D-25)                                              |
-| Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)                                    |
-| Permanent delete      | **Sirf admin**                                                                                    |
-| Seed content          | **Khaali** Home + Blog                                                                            |
-| Payload spike         | **Band — Payload nahi** (D-45). Client ka frozen design + 2 hafte ka chalta hua code              |
-| Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                                               |
-| **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28)                             |
-| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                                                        |
-| **Login screen**      | Design me nahi tha → WordPress-style, design ke tokens se (D-31)                                  |
-| **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                                                  |
-| **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                                            |
-| **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34)                            |
-| **Password**          | Sirf admin set karta hai; user khud nahi badal sakta (D-35)                                       |
-| **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)                                      |
-| **Users ka menu**     | Role-aware — admin ko 3 item, baaki ko sirf Profile (D-37)                                        |
-| **Apna password**     | User Profile se khud badal sakta hai, current password ke saath (D-37)                            |
-| **Session ki umr**    | 24 ghante · "Remember me" pe 7 din · dono sliding (D-38)                                          |
-| **Role dena**         | Apna role khud nahi · apni permission se upar ka role kisi ko nahi (D-39)                         |
-| **Settings**          | Screens design se (Phase 7 se aage khiskin) · Site URL env se, editable nahi (D-40)               |
-| **Media**             | Foundation Phase 2 se aage khiski · variant + storage contract frozen · SVG blocked (D-41)        |
-| **Logo ka reference** | Media id write pe validate hoti hai · broken `<img>` kabhi nahi · orphan media abhi accept (D-42) |
-| **Menu ka contract**  | Typed · mega = Columns→Groups→Links · layout aur columnCount alag · mobile wahi data (D-43)       |
-| **className**         | Sirf presentation — behaviour kabhi nahi (R18, D-43)                                              |
-| **Footer ka model**   | `settings.footerColumns[]` — ginti client chunta hai · menu/text/dono · apna logo (D-44)          |
-| **Package kya hai**   | `entries` ka ek **type** — apni collection nahi (D-46). Master lists apni collection me           |
-| **Engine ke guard**   | Create se publish nahi · published ka title URL nahi badalta · revision poora snapshot (D-47)     |
+| Faisla                | Nateeja                                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| Field DSL             | **Ek DSL** — `contexts: ['content'\|'block']` (D-24)                                               |
+| TypeScript            | **Nahi** — sab JavaScript (D-03)                                                                   |
+| Trash                 | **`deletedAt` field**, `status: 'trash'` nahi (D-25)                                               |
+| Roles                 | **Paanch** — `subscriber` nahi (D-26), `salesAgent` hai (D-29)                                     |
+| Permanent delete      | **Sirf admin**                                                                                     |
+| Seed content          | **Khaali** Home + Blog                                                                             |
+| Payload spike         | **Band — Payload nahi** (D-45). Client ka frozen design + 2 hafte ka chalta hua code               |
+| Pehla milestone       | **Slice 0: Header + Footer** (D-27)                                                                |
+| **CSS**               | **Plain CSS** — Tailwind, CSS Modules, CSS-in-JS teenon reject (D-28)                              |
+| **Ruki hui cheezein** | Connection point abhi, data baad me (D-30)                                                         |
+| **Login screen**      | Design me nahi tha → WordPress-style, design ke tokens se (D-31)                                   |
+| **Password hashing**  | `bcryptjs` cost 12 — native `bcrypt` nahi (D-32)                                                   |
+| **`.env` loading**    | Node ka `process.loadEnvFile()` — `dotenv` nahi (D-33)                                             |
+| **Users**             | `username` immutable · asli delete + reassign · admin protected (D-34)                             |
+| **Password**          | Sirf admin set karta hai; user khud nahi badal sakta (D-35)                                        |
+| **Built-in roles**    | Code-owned — permissions har deploy pe sync hoti hain (D-36)                                       |
+| **Users ka menu**     | Role-aware — admin ko 3 item, baaki ko sirf Profile (D-37)                                         |
+| **Apna password**     | User Profile se khud badal sakta hai, current password ke saath (D-37)                             |
+| **Session ki umr**    | 24 ghante · "Remember me" pe 7 din · dono sliding (D-38)                                           |
+| **Role dena**         | Apna role khud nahi · apni permission se upar ka role kisi ko nahi (D-39)                          |
+| **Settings**          | Screens design se (Phase 7 se aage khiskin) · Site URL env se, editable nahi (D-40)                |
+| **Media**             | Foundation Phase 2 se aage khiski · variant + storage contract frozen · SVG blocked (D-41)         |
+| **Logo ka reference** | Media id write pe validate hoti hai · broken `<img>` kabhi nahi · orphan media abhi accept (D-42)  |
+| **Menu ka contract**  | Typed · mega = Columns→Groups→Links · layout aur columnCount alag · mobile wahi data (D-43)        |
+| **className**         | Sirf presentation — behaviour kabhi nahi (R18, D-43)                                               |
+| **Footer ka model**   | `settings.footerColumns[]` — ginti client chunta hai · menu/text/dono · apna logo (D-44)           |
+| **Package kya hai**   | `entries` ka ek **type** — apni collection nahi (D-46). Master lists apni collection me            |
+| **Engine ke guard**   | Create se publish nahi · published ka title URL nahi badalta · revision poora snapshot (D-47)      |
+| **Master lists**      | Teenon ek module me, par teen alag routes aur alag permissions. `locale` sirf taxonomies pe (D-48) |
 
 Specs 001–007: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,
 **006 ✅ implemented** (menu contract), **007 🟢 approved** (Packages — D-46).

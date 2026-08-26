@@ -2063,3 +2063,84 @@ Hook me rakhi hui koi bhi line yahan chup-chaap kabhi na chalne wali line hoti.
 abhi nahi banta (cascade banta hai). Slice 1 me kuch publish hua hi nahi, isliye koi live
 URL nahi toot raha — par **Slice 3 (publish) se pehle ye zaroori ho jaayega**.
 `09-OPEN-ITEMS.md` me tracked hai.
+
+---
+
+## D-48 · Master lists — ek module, teen routes; aur `locale` kis-kis pe
+
+**Context:** Slice 2 me paanch nayi collections aayin — `taxonomies` (Destinations +
+Package Type), `hotels`, `addOns`, `transfers`, aur singleton `packageDefaults`
+(spec 007 §1). Teen sawaal aaye jinka jawab convention se seedha nahi nikalta tha.
+
+### 1. `hotels` + `addOns` + `transfers` — **ek module**, teen nahi
+
+Module convention kehti hai "har module ki wahi paanch files". Teen alag module banane ka
+matlab hota list/pagination/`siteId` scoping wala **wahi code teen jagah**.
+
+**Decision:** ek `master-lists` module, service me ek **registry**. Har list ki do hi cheez
+apni hai — kaunse fields se filter hoti hai, aur write se pehle kya check karna hai.
+
+**Kyun:** is repo ne do baar dekha hai ki do jagah rakhi hui ek cheez ek din alag ho jaati
+hai — D-43 §4 (cache tag) aur D-44 §5 (wahi bug dobara). Teen copies teen guna wahi khatra.
+`menus` + `menuLocations` ka precedent bhi yahi hai: ek module, do collections.
+
+**Par routes teen alag hain** (`/api/hotels`, `/api/add-ons`, `/api/transfers`) — client ke
+liye ye teen alag screens hain, aur unki permissions bhi alag hain (neeche).
+
+**Reject kiya:** ek `/api/master-lists?list=hotel` wala route. Tab permission check ek
+query param pe nirbhar ho jaata — yaani client ye chun leta ki uski request kis permission
+se guzregi. Wo ek permission bypass hai, ek route design nahi.
+
+### 2. Permissions granular — `hotel.*`, `addOn.*`, `transfer.*`; ek `masterList.*` nahi
+
+**Decision:** 14 nayi permission strings, spec 001 ke naming (`resource.action`) ke hisaab se.
+
+**Kyun:** spec 001 ka apna rule hai — "RBAC retrofit is project ka sabse mehnga refactor
+hai." Do permissions ko baad me **ek saath dena** ek line ka kaam hai; ek ko baad me **alag
+karna** poora retrofit hai. Aaj koi aisa client nahi hai jo Hotels aur Transfers alag-alag
+dena chahe — par ye maan lena ki aisa client kabhi aayega hi nahi, wo faisla mehnga hai.
+
+**Read teenon ki `contributor` ke paas bhi hai.** Wo package edit karte waqt add-on chunta
+hai aur hotel dropdown dekhta hai; bina read ke wo saare dropdown khaali rehte — aur wo
+failure "kuch nahi mila" jaisi dikhti hai, "permission nahi hai" jaisi nahi.
+
+**Write `editor` aur upar.** Hotel ya add-on jodna site ke **har** package pe asar daalta
+hai, sirf apne package pe nahi — wahi boundary jo `taxonomy.*` pe pehle se hai.
+
+### 3. `locale` sirf `taxonomies` pe — master lists pe nahi
+
+Day-1 reserve ka test (`schema-change` §1) poochta hai: _kya ye uniqueness constraint
+badalta hai?_
+
+| Collection | Unique index | `locale` day 1 se? |
+| --- | --- | --- |
+| `taxonomies` | `{siteId, locale, type, slug}` | **haan** — warna multi-language pe unique index badalna padta, jo live data pe sabse mehnga kaam hai |
+| `hotels`, `addOns`, `transfers` | koi nahi | **nahi** — field add karna ek saada backfill hai |
+| `packageDefaults` | `{siteId}` (singleton) | **nahi** — wahi tark jo `settings` pe hai (D-40) |
+
+Ye wahi galti hai jo `menus` pe hui thi aur D-43 me theek karni padi — us waqt sabak ye
+nikla tha ki "locale hamesha daal do" nahi, balki **"jahan uniqueness hai wahan daal do"**.
+
+### 4. `packageDefaults` `settings` me nahi
+
+Ye spec 007 §1.8 me pehle se likha hai, par yahan isliye ki koi ise "singleton hi to hai,
+`settings` me daal do" keh kar merge na kar de: `settings` **site** ki settings hai — naam,
+logo, timezone, footer. Usme package ka maal daalne ka matlab hai ki kal Pages aur Posts ka
+maal bhi wahin jaayega, aur ek din `settings` ek kachra-peti ban jaayegi jise koi khol kar
+padh na sake.
+
+### Ek galti jo raaste me pakdi gayi
+
+`packageDefaults` ke model me pehle `siteId: { unique: true }` likh diya gaya tha. Mongoose
+ka `autoIndex` usse **apne naam se** (`siteId_1`) bana deta hai, aur phir migration apne
+naam wali wahi index nahi bana paati: _"Index already exists with a different name"_.
+
+Production me `autoIndex` off hota hai — yaani ye failure **sirf dev me** dikhti, aur deploy
+pe index chup-chaap banti hi nahi. Isiliye har model me likha hua hai: **indexes migration
+me, model me nahi.**
+
+**Nateeja:** paanch nayi collections, migration 010, 30 naye test. Ek cheez jaan-boojh kar
+baaki hai — "kya koi package is destination/hotel/add-on ko use kar raha hai" wala delete
+guard. Package taxonomy ko kaise reference karta hai wo **Slice 3** ka faisla hai
+(`09-OPEN-ITEMS.md` A-7). Destination pe hotels wala guard laga hua hai, kyunki wo dono
+aaj maujood hain.

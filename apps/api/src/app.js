@@ -23,6 +23,9 @@ import { mediaRoutes } from './modules/media/routes.js'
 import { menuLocationRoutes, menuRoutes } from './modules/menus/routes.js'
 import { contentTypeRoutes } from './modules/content-types/routes.js'
 import { entryRoutes } from './modules/entries/routes.js'
+import { taxonomyRoutes } from './modules/taxonomies/routes.js'
+import { addOnRoutes, hotelRoutes, transferRoutes } from './modules/master-lists/routes.js'
+import { packageDefaultsRoutes } from './modules/package-defaults/routes.js'
 import { publicRoutes } from './modules/public/routes.js'
 import { getStorageDriver } from './modules/media/storage/index.js'
 
@@ -139,10 +142,18 @@ export function createApp() {
   app.use('/api/menu-locations', menuLocationRoutes)
   app.use('/api/content-types', contentTypeRoutes)
   app.use('/api/entries', entryRoutes)
+  app.use('/api/taxonomies', taxonomyRoutes)
+
+  // Packages ki master lists — teenon ek hi module se, par alag routes aur alag
+  // permissions (spec 007 §1, Slice 2)
+  app.use('/api/hotels', hotelRoutes)
+  app.use('/api/add-ons', addOnRoutes)
+  app.use('/api/transfers', transferRoutes)
+  app.use('/api/package-defaults', packageDefaultsRoutes)
 
   // Public — read-only, bina auth ke (02-ARCHITECTURE §10)
   app.use('/api/public', publicRoutes)
-  // Aage: taxonomies, aur `/api/public/resolve` (Slice 7 / Phase 3)
+  // Aage: `/api/public/resolve` (Slice 7 / Phase 3)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

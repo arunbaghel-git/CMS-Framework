@@ -154,9 +154,11 @@ menuLocations  * siteId, locale, location, menuId
 templates      * siteId, name, type(page|post|archive|single|404|search),
                  regions{header,footer}, layout, isDefault
 patterns       * siteId, name, kind(pattern|synced), blocks[], category
-taxonomies     * siteId, type(category|tag|destination|packageType), name, slug,
-                 parentId, isDefault, seo, description, bannerMediaId
+taxonomies     * siteId, locale, type(category|tag|destination|packageType), name,
+                 slug, parentId, isDefault, seo, description, bannerMediaId, order
                  destination hierarchical (India → Kerala → Munnar), packageType flat
+                 locale day 1 se — uniqueness {siteId, locale, type, slug} hai.
+                 Menus pe ye chhoot gaya tha aur D-43 me theek karna pada
                  → specs/007-packages.md §1.1, §1.2
 
 hotels         * siteId, destinationId, category(standard|deluxe|premium|luxury),
@@ -165,6 +167,14 @@ hotels         * siteId, destinationId, category(standard|deluxe|premium|luxury)
 addOns         * siteId, name, price, where
                  price FREE TEXT hai, number nahi — "₹3,500 – ₹4,500 pp" (§1.4)
 transfers      * siteId, name, icon
+                 icon free string hai, enum nahi — icon ka set theme ka faisla
+                 hai, core ka nahi (D-17 jaisa)
+
+                 hotels/addOns/transfers pe `locale` jaan-boojh kar NAHI hai:
+                 inpe koi unique index nahi, isliye multi-language aane pe
+                 field add karna ek saada backfill hai, uniqueness ka badalna
+                 nahi (schema-change §1). Taxonomies pe wo test PASS hota hai,
+                 isliye wahan locale day 1 se hai. — D-48
 packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  itineraryImages[], bookingSteps[{title,text}], cancellationText
                  singleton — wahi pattern jo settings ka hai. Package ke domain ki
@@ -219,8 +229,11 @@ entries:   { searchText: "text" }                          ← ek hi text index 
 media:     { siteId: 1, folderId: 1, createdAt: -1 }
 mediaRefs: { siteId: 1, mediaId: 1 }
 redirects: { siteId: 1, from: 1 }                          unique
-taxonomies:    { siteId: 1, type: 1, slug: 1 }             unique
-hotels:        { siteId: 1, destinationId: 1, category: 1 }
+taxonomies:    { siteId: 1, locale: 1, type: 1, slug: 1 }  unique   ← migration 010
+taxonomies:    { siteId: 1, type: 1, parentId: 1, order: 1 }        ← tree ki list
+hotels:        { siteId: 1, destinationId: 1, category: 1 }         ← migration 010
+addOns:        { siteId: 1, name: 1 }
+transfers:     { siteId: 1, name: 1 }
 packageDefaults: { siteId: 1 }                             unique   ← singleton
 menus:         { siteId: 1, locale: 1, key: 1 }            unique   ← locale D-43 me juda
 menus:         { siteId: 1, deletedAt: 1, updatedAt: -1 }
@@ -697,6 +710,14 @@ GET    /api/entries/:id/autosave         crash recovery      — Slice 3
 
 CRUD   /api/content-types                                    ✅ Slice 1 (write sirf admin)
 
+GET    /api/taxonomies?type=destination&q=&parentId=         ✅ Slice 2
+CRUD   /api/taxonomies                   type QUERY me zaroori hai — ek collection
+                                         ka matlab ek list hona nahi hai
+CRUD   /api/hotels | /api/add-ons | /api/transfers           ✅ Slice 2
+                                         teenon ek hi module se, par alag routes
+                                         aur alag permissions (D-48)
+GET/PATCH /api/package-defaults          ek document, isliye koi :id nahi  ✅ Slice 2
+
 POST   /api/admin/media (multipart)   GET /api/admin/media
 POST   /api/admin/media/:id/trash | restore
 POST   /api/admin/media/:id/edit         crop / rotate / scale
@@ -706,7 +727,7 @@ GET    /api/admin/media/:id/usage        mediaRefs se
 CRUD   /api/menus   ·   GET/PUT /api/menu-locations
 GET/PATCH /api/settings                  ek document, isliye koi :id nahi (D-40)
                                          read: settings.read · write: settings.update
-CRUD   /api/templates | patterns | taxonomies | redirects | users
+CRUD   /api/templates | patterns | redirects | users
 GET    /api/admin/search?q=              Cmd+K, searchText pe
 GET    /api/admin/activity
 POST   /api/admin/tools/export | import

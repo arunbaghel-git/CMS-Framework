@@ -70,6 +70,60 @@ export const USER_STATUS = Object.freeze({
 
 export const USER_STATUSES = Object.freeze(Object.values(USER_STATUS))
 
+/**
+ * Taxonomy ke kism — ek hi `taxonomies` collection, `type` field se alag (02-ARCH §3).
+ *
+ * Wahi soch jo `entries` pe hai: alag collection banane ka matlab hota hierarchy, slug,
+ * uniqueness aur archive ka engine har baar dobara likhna.
+ */
+export const TAXONOMY_TYPE = Object.freeze({
+  CATEGORY: 'category',
+  TAG: 'tag',
+  /** Packages ki Destinations — hierarchical (India → Kerala → Munnar). spec 007 §1.1 */
+  DESTINATION: 'destination',
+  /** Packages ka "Theme" — flat. spec 007 §1.2 */
+  PACKAGE_TYPE: 'packageType',
+})
+
+export const TAXONOMY_TYPES = Object.freeze(Object.values(TAXONOMY_TYPE))
+
+/** UI me yahi dikhta hai, `type` key kabhi nahi (R11). */
+export const TAXONOMY_LABEL = Object.freeze({
+  [TAXONOMY_TYPE.CATEGORY]: 'Category',
+  [TAXONOMY_TYPE.TAG]: 'Tag',
+  [TAXONOMY_TYPE.DESTINATION]: 'Destination',
+  [TAXONOMY_TYPE.PACKAGE_TYPE]: 'Package Type',
+})
+
+/** Kaunsi taxonomy nested ho sakti hai — spec 007 §1.1, §1.2. */
+export const HIERARCHICAL_TAXONOMY_TYPES = Object.freeze([
+  TAXONOMY_TYPE.CATEGORY,
+  TAXONOMY_TYPE.DESTINATION,
+])
+
+/**
+ * Hotel ki category — **ginti fix hai, chaar** (client ka faisla, spec 007 §1.3).
+ *
+ * Ye jaan-boojh kar code me constant hai, master list nahi: pricing ke chaar tab isi pe
+ * bane hain (§4), aur category jodne ka matlab poore pricing model ka badalna hai — wo
+ * ek client faisla hai, ek list me row jodna nahi.
+ */
+export const HOTEL_CATEGORY = Object.freeze({
+  STANDARD: 'standard',
+  DELUXE: 'deluxe',
+  PREMIUM: 'premium',
+  LUXURY: 'luxury',
+})
+
+export const HOTEL_CATEGORIES = Object.freeze(Object.values(HOTEL_CATEGORY))
+
+export const HOTEL_CATEGORY_LABEL = Object.freeze({
+  [HOTEL_CATEGORY.STANDARD]: 'Standard',
+  [HOTEL_CATEGORY.DELUXE]: 'Deluxe',
+  [HOTEL_CATEGORY.PREMIUM]: 'Premium',
+  [HOTEL_CATEGORY.LUXURY]: 'Luxury',
+})
+
 /** Public paths jo koi entry claim nahi kar sakti. */
 export const RESERVED_SLUGS = Object.freeze(['admin', 'api', '_next', 'media', 'uploads'])
 

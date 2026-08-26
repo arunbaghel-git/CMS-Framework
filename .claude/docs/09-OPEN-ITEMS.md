@@ -8,7 +8,8 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 
 **Agla milestone: Packages (spec 007 — 🟢 approved).** Uska buniyaadi faisla
 26 Aug ko band ho gaya — Package `entries` ka ek type hai, **D-46**.
-**Slice 1 (engine) ban chuki hai** — 447 tests passing, D-47.
+**Slice 1 (engine) aur Slice 2 (master lists) dono ban chuki hain** — 477 tests
+passing, D-47 aur D-48.
 **Last updated:** 26 Aug 2026
 
 ---
@@ -99,6 +100,7 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 | **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
 | **spec 007 §9 #1 — Package = `entries` ka type?** | ✅ **Haan (D-46)** — client ka faisla. `packages` collection nahi banegi; engine ek hi rahega. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi apni collection me — unka apna URL aur publish lifecycle nahi hai. **spec 007 ab 🟢 approved** |
+| **Slice 2 — master lists** | ✅ **Ban gaya** — `taxonomies` (Destinations + Package Type), `hotels`, `addOns`, `transfers`, singleton `packageDefaults`. Migration 010, 30 naye test, 14 nayi permissions. Teen faisle **D-48** me: teenon lists **ek module** me par **teen alag routes/permissions** · `locale` sirf wahan jahan unique index hai · `packageDefaults` `settings` me nahi |
 | **Slice 1 — Content Core engine** | ✅ **Ban gaya** — `entries` + `contentTypes`, migration 009, 64 naye test. Paanch guard **D-47** me: create se publish nahi · published ka title badalne se URL nahi badalta · `urlPattern` entries hone ke baad lock · revision poora snapshot (path restore nahi hota) · bachche wale item trash nahi hote |
 | **Route ka prefix** | ✅ `/api/<resource>`, `/api/admin/<resource>` nahi. Doc `/api/admin/*` likhta tha par code Phase 0 se hi `/api/users` pe chal raha tha — 02-ARCHITECTURE §9 ab code ke hisaab se theek hai |
 | **C-2 Payload spike** | ✅ **Band — Payload nahi (D-45)**. 19 Aug ko repo khaali tha, tab sawaal sasta tha. Aaj auth/RBAC/media/settings/admin shell sab chal rahe hain (383 test), aur Payload apna admin panel laata hai — jo client ke **frozen design** (R15) se takrata hai. Uske **ideas** Phase 5 se pehle dekhenge, framework nahi lenge |
@@ -198,6 +200,29 @@ Poora sandarbh: **D-47** ka aakhri paragraph, aur `cache-invalidation` skill ka
 
 ---
 
+### A-7 · Package taxonomy ko kaise reference karega? — **Slice 3 ka faisla**
+
+**Deadline:** Slice 3 (All Packages list + Add New) ke saath
+**Abhi kuch nahi tootа** — koi package hai hi nahi jo reference kare
+
+spec 007 §2 `destinations[]` aur `packageTypes[]` ko `entries.fields` me likhta hai, par
+dono hain `taxonomies` collection me (§8). Do raaste hain aur dono ka asar alag hai:
+
+| Option | Matlab |
+| --- | --- |
+| `entry.taxonomies` ko generalize karo — `{ [type]: string[] }` | `tax:{id}` cache tag, taxonomy archives aur delete guard **sabke liye ek jaise** kaam karte hain. Par ye **spec 002 ka frozen contract** badalta hai (`taxonomyRefsSchema` abhi `{categories, tags}` hai) |
+| `fields.destinations[]` me rakho | Contract ko haath nahi lagta. Par destinations pe archive aur cache tag apne aap kaam nahi karte — unhe alag se likhna padta |
+
+**Aaj karna sasta hai, baad me nahi:** abhi `entries` me koi asli data nahi hai. Pehla
+package publish hone ke baad ye ek live-data migration ban jaata hai.
+
+**Isse ek guard bhi ruka hua hai:** `taxonomies` aur master lists ke delete pe abhi ye
+check **nahi** hai ki koi package unhe use kar raha hai ya nahi. Destination pe hotels wala
+guard **laga hua hai** (dono aaj maujood hain); package wala guard is faisle ke turant baad
+judega.
+
+---
+
 ### spec 007 §9 · Packages ke 15 baaki sawaal
 
 **Deadline:** har sawaal ka apna slice — spec me likha hai
@@ -272,9 +297,10 @@ Spec 005 me add karne honge.
 8. ✅ C-2 — Payload spike **band** (D-45, 26 Aug)  apna stack hi chalega
 9. ✅ spec 007 — Packages 🟢 approved (D-46, 26 Aug)  Package = entries ka type
 10. ✅ Slice 1 — entries + contentTypes engine    (D-47, 26 Aug — 447 tests)
-11. Phase 1 ka baaki — Packages ke order se       (3 hafte)
-    Slice 2  master lists + packageDefaults        ← agla kaam
-    Slice 3  All Packages list + Add New           (A-6 isse pehle tay karna hai)
+11. ✅ Slice 2 — master lists + packageDefaults    (D-48, 26 Aug — 477 tests)
+12. Phase 1 ka baaki — Packages ke order se       (3 hafte)
+    Slice 3  All Packages list + Add New           ← agla kaam
+             ⚠️ A-6 (slug pe 301) aur A-7 (taxonomy reference) isse pehle tay hon
     Slice 4-7 → specs/007-packages.md §7
 ```
 

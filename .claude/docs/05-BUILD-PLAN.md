@@ -179,7 +179,7 @@ karti, aur yahi wo jagah hai jahan ye likha hua hai.
 > | Slice | Kya | Phase 1 ka kaunsa hissa |
 > | --- | --- | --- |
 > | 1 ✅ | `entries` + `contentTypes` engine (26 Aug) | neeche ke pehle 11 bullet — poore |
-> | 2 | Master lists + `packageDefaults` | taxonomies ka bullet + spec 007 §1 ki nayi collections |
+> | 2 ✅ | Master lists + `packageDefaults` (26 Aug) | taxonomies ka bullet + spec 007 §1 ki nayi collections |
 > | 3 | All Packages list + Add New | admin list + editor wale bullet |
 > | 4–6 | Itinerary · Pricing · Gallery/FAQ | spec 007 ka apna, Phase 1 me nahi tha |
 > | 7 | Public package page | Phase 3 ka hissa, jaldi khinch kar |

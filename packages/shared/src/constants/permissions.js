@@ -32,6 +32,31 @@ export const PERMISSION = Object.freeze({
   TAXONOMY_UPDATE: 'taxonomy.update',
   TAXONOMY_DELETE: 'taxonomy.delete',
 
+  /**
+   * Packages ki master lists — spec 007 §1.
+   *
+   * Har list ki apni permission hai, ek saanjhi `masterList.*` nahi. Wajah spec 001 ka hi
+   * rule hai: RBAC retrofit is project ka sabse mehnga refactor hai. Do permission ko baad
+   * me **ek saath dena** aasaan hai; ek ko baad me **alag karna** poora retrofit hai.
+   *
+   * `packageDefaults` ka koi `create`/`delete` nahi — wo singleton hai, wahi shape jo
+   * `settings` ka hai (D-40).
+   */
+  HOTEL_READ: 'hotel.read',
+  HOTEL_CREATE: 'hotel.create',
+  HOTEL_UPDATE: 'hotel.update',
+  HOTEL_DELETE: 'hotel.delete',
+  ADD_ON_READ: 'addOn.read',
+  ADD_ON_CREATE: 'addOn.create',
+  ADD_ON_UPDATE: 'addOn.update',
+  ADD_ON_DELETE: 'addOn.delete',
+  TRANSFER_READ: 'transfer.read',
+  TRANSFER_CREATE: 'transfer.create',
+  TRANSFER_UPDATE: 'transfer.update',
+  TRANSFER_DELETE: 'transfer.delete',
+  PACKAGE_DEFAULTS_READ: 'packageDefaults.read',
+  PACKAGE_DEFAULTS_UPDATE: 'packageDefaults.update',
+
   // Media
   MEDIA_READ: 'media.read',
   MEDIA_UPLOAD: 'media.upload',
@@ -111,7 +136,23 @@ export const PERMISSIONS = Object.freeze(Object.values(PERMISSION))
 const P = PERMISSION
 
 /** Har role ke read-only permissions ka common base. */
-const READ_ONLY = [P.ENTRY_READ, P.TAXONOMY_READ, P.MEDIA_READ, P.MENU_READ, P.PATTERN_READ]
+/**
+ * Master lists ki **read** yahan isliye hai ki `contributor` bhi package edit karte waqt
+ * add-ons chunta hai, hotel dropdown dekhta hai aur destination pick karta hai. Bina read
+ * ke uske liye wo saare dropdown khaali rehte — aur wo failure "kuch nahi mila" jaisi
+ * dikhti hai, permission jaisi nahi.
+ */
+const READ_ONLY = [
+  P.ENTRY_READ,
+  P.TAXONOMY_READ,
+  P.MEDIA_READ,
+  P.MENU_READ,
+  P.PATTERN_READ,
+  P.HOTEL_READ,
+  P.ADD_ON_READ,
+  P.TRANSFER_READ,
+  P.PACKAGE_DEFAULTS_READ,
+]
 
 const CONTRIBUTOR = [
   ...READ_ONLY,
@@ -137,6 +178,23 @@ const EDITOR = [
   P.TAXONOMY_CREATE,
   P.TAXONOMY_UPDATE,
   P.TAXONOMY_DELETE,
+  /**
+   * Master lists ki write `editor` ke paas hai, `author` ke paas nahi.
+   *
+   * Ye ek client-vocabulary boundary hai: hotel ya add-on jodna site ke **har** package pe
+   * asar daalta hai, sirf apne package pe nahi. Wahi tark jo `taxonomy.*` pe pehle se laga
+   * hua hai.
+   */
+  P.HOTEL_CREATE,
+  P.HOTEL_UPDATE,
+  P.HOTEL_DELETE,
+  P.ADD_ON_CREATE,
+  P.ADD_ON_UPDATE,
+  P.ADD_ON_DELETE,
+  P.TRANSFER_CREATE,
+  P.TRANSFER_UPDATE,
+  P.TRANSFER_DELETE,
+  P.PACKAGE_DEFAULTS_UPDATE,
   P.MEDIA_UPDATE,
   P.MEDIA_EDIT,
   P.MEDIA_DELETE,
