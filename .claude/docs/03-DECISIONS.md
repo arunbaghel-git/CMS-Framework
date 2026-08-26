@@ -1670,9 +1670,15 @@ Fallback theme me rakhne ka nateeja: ek din footer ne fallback kiya aur drawer n
 aur wo bug payload dekh kar samajh hi nahi aata. D-42 §2 waise ka waisa hai — dono na
 mile to `null`, aur toota `<img>` phir bhi kabhi render nahi hota.
 
-**Mobile drawer bhi yahi logo use karta hai** (client ka faisla). ⚠️ Drawer ka background
-**safed** hai, footer ka gehra — to inverted logo dono jagah theek nahi dikhega. Ye ek
-khula design point hai, technical dikkat nahi.
+**Mobile drawer bhi yahi logo use karta hai** (client ka faisla).
+
+Ek sawaal isi ke saath utha tha (Q-8): drawer ka background **safed** hai aur footer ka
+**gehra**, to inverted logo dono jagah theek nahi dikhega. **26 Aug ko client ne tay kiya:
+ek hi logo dono me theek hai** — yaani logo aisa chuna jaayega jo dono background pe padha
+jaa sake, aur theme me do alag logo ka koi raasta nahi banega.
+
+Iska matlab ye bhi hai ki `footerLogoMediaId` ka kaam **"footer ka logo" hai, "dark logo"
+nahi** — wo ek alag asset hai, ek alag theme variant nahi.
 
 ### 5. Cache — footer ka tag `settings` hai, `menu:*` nahi
 

@@ -39,7 +39,7 @@ Slice 0   Menu contract (spec 006, D-43)    ✅  ← 24 Aug
           Footer design + responsive        ✅  reference ke values · mobile toggle
           Mega CTA ka variant               ✅  CTA plain text jaisa dikh raha tha
           Q-7 (logo fallback)               🔴  client ka faisla
-          Q-8 (drawer vs footer logo)       🔴  client ka faisla, kuch block nahi
+          Q-8 (drawer vs footer logo)       ✅  26 Aug — ek hi logo dono me theek hai
 Phase 1+  Content core aur aage           🔴
 ```
 
@@ -538,18 +538,16 @@ pnpm build && git push
 **Footer poora ho chuka hai** — data model, admin screen, aur design/responsive teenon.
 Chaar chhoti cheezein khuli hain, koi bhi bada kaam nahi rok rahi:
 
-| #   | Kya                                                                                                                | Kitna            |
-| --- | ------------------------------------------------------------------------------------------------------------------ | ---------------- |
-| —   | `pnpm build` **kabhi chala hi nahi** — CI ka aakhri step. Web dev band karke `rm -rf apps/web/.next && pnpm build` | 5 min            |
-| A-5 | `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET`. Sirf prod ke cache pe asar                                      | manual step      |
-| Q-8 | Drawer safed, footer gehra — ek hi logo dono me?                                                                   | client ka faisla |
+| #   | Kya                                                                                                                | Kitna       |
+| --- | ------------------------------------------------------------------------------------------------------------------ | ----------- |
+| —   | `pnpm build` **kabhi chala hi nahi** — CI ka aakhri step. Web dev band karke `rm -rf apps/web/.next && pnpm build` | 5 min       |
+| A-5 | `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET`. Sirf prod ke cache pe asar                                      | manual step |
 
 Uske baad **C-2 (Payload spike, 2 din — Phase 1 se pehle)**, phir **Phase 1 — Content Core**.
 
 ### 4. Khule items
 
 - **Q-7** — logo na mile to kya dikhe (client ka faisla). Header aur drawer dono interim pe hain
-- **Q-8** — drawer safed, footer gehra; ek hi logo dono me? (client ka faisla, D-44 §4)
 - **A-5** — `apps/web/.env` (`REVALIDATE_SECRET` + `API_URL`). Sirf **production** ke cache pe asar
 - **C-2** — Payload spike, Phase 1 se pehle
 - **spec 006 §11** — mere 6 resolved decisions ka review baaki

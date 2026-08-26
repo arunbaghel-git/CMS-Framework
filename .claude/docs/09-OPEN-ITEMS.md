@@ -93,6 +93,7 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 | Item | Faisla |
 | --- | --- |
 | **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
+| **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
 
 ---
 
@@ -193,28 +194,6 @@ Result se D-01 se D-30 me se kuch badal sakti hain — isliye Phase 1 se pehle.
 Yahan sirf isliye likha hai ki ye **chup-chaap gayab na ho jaye**: iska itihaas backfill
 nahi ho sakta, to jis din client ye maange, us din unhe pata hona chahiye ki purana
 record kahin nahi hai.
-
----
-
-### Q-8 · Drawer safed hai, footer gehra — ek hi logo dono me theek hai?
-
-**Deadline:** koi nahi — aaj kuch tootta nahi
-**Client ka faisla hai, developer ka nahi (R15)**
-
-D-44 me client ne kaha: footer ka logo **mobile drawer** bhi use kare. Wo laga diya gaya
-hai. Par reference me drawer ka background **safed** hai (`home-nav-v3.html` ka
-`.mdrawer{background:#fff}`) aur footer ka **gehra neela** — yaani jo logo footer ke liye
-inverted (safed) hoga, wo drawer me gayab dikhega.
-
-**Aaj kuch toota nahi hai:** `footerLogoMediaId` khaali ho to dono jagah header wala hi
-logo aata hai (D-44 §4 ka fallback), yaani jab tak client alag logo upload na kare tab tak
-behaviour bilkul pehle jaisa hai.
-
-| Option | Matlab |
-| --- | --- |
-| Waise hi rehne do | Client aisa logo chune jo dono background pe padha jaaye |
-| Drawer wapas header ke logo pe | `SiteHeader.jsx` me ek prop badalti hai |
-| Drawer ka background gehra karo | Reference se vichlan — wo R15 ka call hai |
 
 ---
 
