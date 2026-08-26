@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { BUTTON_VARIANTS, MEGA_COLUMN_COUNTS, MEGA_LAYOUTS, allowedColumnCounts } from '@cms/shared'
 
-import { useListDrag } from './drag-list.js'
+import { useListDrag } from '../../lib/drag-list.js'
 import {
   blankChild,
   blankCta,

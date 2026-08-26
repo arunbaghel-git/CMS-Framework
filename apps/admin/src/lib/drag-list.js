@@ -1,7 +1,12 @@
 import { useRef, useState } from 'react'
 
 /**
- * Ek list ko drag-drop se reorder karne ka hook — menus ke **har** level pe wahi.
+ * Ek list ko drag-drop se reorder karne ka hook.
+ *
+ * Ye pehle `screens/appearance/` me tha, kyunki tab sirf menus ise use karte the. Slice 4
+ * me Itinerary Builder ko bhi wahi chahiye tha (din drag se reorder hote hain, spec 007
+ * §3) — aur do screens ka saanjha helper ek screen ke folder me rakhna wahi cheez hai jo
+ * baad me copy-paste hoti hai. Isliye `lib/` me aa gaya.
  *
  * Pehle har level pe ↑↓ buttons the (spec 006 Q-C). Client ne 24 Aug ko drag-drop maanga,
  * aur wo **bina kisi migration ke** ho gaya kyunki order data me array ki position hai —

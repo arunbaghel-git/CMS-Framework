@@ -2352,3 +2352,95 @@ Slice 1 me field set jaan-boojh kar khaali chhoda gaya tha.
 
 **Nateeja:** 504 tests. Slice 3 ka API hissa poora; bacha hua kaam admin ki **screens** hai
 (`s-packages` + `s-package-edit`), aur wo frozen design ke hisaab se banegi (R15).
+
+---
+
+## D-51 · Itinerary — do chhote faisle jo din ke card pe dikhte hain
+
+**Context:** Slice 4 (Itinerary Builder) shuru karne se pehle spec 007 §9 ke do sawaal khule
+the — **#10** aur **#11** — aur ek teesra (#4 ka bacha hua aadha) khud data se tay ho gaya.
+Teenon ek hi jagah pe dikhte hain: public page pe din ke card ki **chips ki patti**.
+
+Andaman reference me wo patti aisi hai:
+
+```
+Day 1   Stay: Port Blair · Private cab · Approx. 4 hrs sightseeing
+Day 2   Ferry: 90 min · Stay: Havelock · Breakfast included
+Day 3   Stay: Havelock · Breakfast included · Add-ons priced below
+Day 4   Ferry: 40 min · Stay: Neil Island · Breakfast included
+Day 5   Ferry: 2 hrs · Stay: Port Blair · Breakfast included
+Day 6   Airport drop · Breakfast included
+```
+
+Har chip kisi field se aati hai — `Stay:` → `overnightStayId`, transfer ka naam →
+`transferId`, `Breakfast included` → `meals`. **Do chips kisi field se nahi aatin**, aur
+wahi #10 tha.
+
+### 1. `note` — ek free-text line per din (§9 #10)
+
+**Decision:** har din pe ek optional `note`. Bhara ho to chip dikhti hai, khaali ho to nahi.
+Icon **fixed** hai — client nahi chunta.
+
+**Kyun free text:** dono asli examples aapas me alag kism ke hain — `Approx. 4 hrs
+sightseeing` us din ki **mehnat** batata hai, `Add-ons priced below` page me **kahin aur**
+bhejta hai. Inhe ek structured field (`duration`, ya `hint`) me nahi baandha ja sakta.
+
+**Kyun ek line, list nahi:** reference me kisi bhi din pe do note nahi hain. `notes[]`
+rakhna aaj kaam nahi aata, aur chaar-paanch chips din ka card bhar deti hain.
+
+**Kyun icon fixed:** ek chhoti si line ke liye client se do field bharwana (text + icon)
+bhaari hai. Transfer pe icon isliye hai ki wo ek **master list** ka record hai — ek baar
+likha jaata hai aur bees packages me chalta hai. Note har din ka apna hai.
+
+**Reject kiya:** field hi na banana. Tab wo do chips page pe aatin hi nahi, aur client ko
+wo baat description me likhni padti — jahan wo ek chip ki tarah nahi dikhti.
+
+### 2. `transferNote` din pe hai, Transfer ke record pe nahi (§9 #4 ka bacha aadha)
+
+**Ye poochha nahi gaya — data ne khud tay kar diya.** Reference me ek hi `Ferry` teen alag
+duration pe chalti hai: `90 min` (Port Blair → Havelock), `40 min` (Havelock → Neil),
+`2 hrs` (Neil → Port Blair).
+
+Duration ko Transfer ke record pe rakhne ka matlab hota har route ke liye ek alag "Ferry"
+banana — `Ferry 90 min`, `Ferry 40 min` — aur wo master list ka poora point hi khatam kar
+deta (§1: _"jo cheez dohrayi jaati hai wo ek baar likhi jaaye"_).
+
+Free text hai, number nahi: `90 min`, `2 hrs` aur `overnight` teenon likhe jaate hain.
+
+### 3. Per-day Hotel Category **rahegi** (§9 #11)
+
+Spec ne ise sawaal banaya tha kyunki pricing ab package-level pe hai (§4), to per-day
+category dohraav lagti thi.
+
+**Client ka faisla: rahegi.** Wajah wahi hai jo spec ne dekhi nahi thi — ek hi package me
+kuch raatein alag darje ke hotel me ho sakti hain (Havelock pe premium, Neil pe deluxe), aur
+wo baat kahin aur kahi hi nahi ja sakti. Khaali chhodne pe package ki default category
+chalti hai.
+
+### Route strip — jo client bharta hi nahi
+
+`routeStrip()` `packages/shared` me hai, aur **lagatar** din jinka overnight stay same hai
+wo ek card me judte hain (§3.1).
+
+Ek kinara likhte waqt ulta socha gaya tha aur test ne pakda: `[Port Blair, koi stay nahi,
+Port Blair]`. Pehla jawab tha "do alag card". **Sach ulta hai** — strip *raatein* ginti hai,
+din nahi; jis din koi stay hi nahi hai wo raat banata hi nahi, to raat 1 aur raat 2 lagatar
+hain aur `NIGHTS 1–2 Port Blair` hi sahi hai.
+
+`nightsByStay()` isse **alag** function hai, jaan-boojh kar: hotel table ek hotel ki **ek**
+row dikhata hai, uska kram nahi — wahan Port Blair ki dono raatein (1 aur 5) jud kar `2`
+banti hain. Ek hi function se dono kaam lene ka matlab hota ki ek jagah galat ho jaaye.
+
+### `fields.itinerary` write pe validate hoti hai
+
+`fields` `Mixed` hai (D-46) aur poora field-DSL validator Phase 6 ke saath aayega. Par
+`itinerary` abhi se validate hoti hai — wo package ka sabse bada structured hissa hai,
+public page ka aadha render usi se banta hai, aur uske andar **references** hain
+(destination ids, transfer ids). Baaki fields aaj plain text aur numbers hain; unpe garbage
+ka nateeja ek galat dikhta hua field hai, tooti hui page nahi.
+
+**Har din ki `id` service me milti hai, model ke hook me nahi** (R1) — writes
+`findOneAndUpdate` se hote hain aur wo `save` hooks chalata hi nahi. Maujood id kabhi
+overwrite nahi hoti; wo reorder ke aar-paar stable rehni chahiye (D-43 §5).
+
+**Nateeja:** 538 tests. spec 007 §9 me ab **9 sawaal** bache.

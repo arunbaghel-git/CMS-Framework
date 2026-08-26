@@ -13,7 +13,7 @@ import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import AppearanceTabs from './AppearanceTabs.jsx'
-import { useListDrag } from './drag-list.js'
+import { useListDrag } from '../../lib/drag-list.js'
 import './Appearance.css'
 
 /**

@@ -104,3 +104,48 @@
   object-fit: cover;
   border-radius: 2px;
 }
+
+/*
+ * Itinerary Builder — design ke `.day` accordion pe khada hai, jo `primitives.css` me
+ * pehle se hai (menus builder bhi wahi use karta hai). Yahan sirf is panel ka apna hissa.
+ */
+.itin-panel {
+  margin-top: 18px;
+}
+
+.itin-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/*
+ * Day head me summary ko bachi hui jagah leni chahiye aur lambi hone pe kat-na chahiye —
+ * warna wo toggle icon ko row se bahar dhakel deti hai.
+ */
+.itin-panel .day-head .muted {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * Route strip ka preview. Ye poori tarah derived hai (spec 007 §3.1) — isliye ye ek
+ * **read-only** patti hai, koi input nahi. Uska border-top wahi batata hai: yahan se
+ * neeche client kuch bharta nahi.
+ */
+.route-strip {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.route-strip > label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.route-strip .chips {
+  margin-top: 8px;
+}

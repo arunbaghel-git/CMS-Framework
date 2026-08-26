@@ -5,7 +5,7 @@ import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import AppearanceTabs from './AppearanceTabs.jsx'
 import MegaBuilder from './MegaBuilder.jsx'
-import { useListDrag } from './drag-list.js'
+import { useListDrag } from '../../lib/drag-list.js'
 import {
   blankChild,
   blankItem,

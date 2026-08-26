@@ -639,7 +639,7 @@ describe('search', () => {
     // matlab hota ki admin apna hi likha itinerary text na dhoondh paaye
     await createEntry(adminJar, {
       title: 'Andaman',
-      fields: { itinerary: [{ day: 1, description: 'Radhanagar Beach sunset' }] },
+      fields: { itinerary: [{ title: 'Day 1', description: 'Radhanagar Beach sunset' }] },
     })
 
     const res = await authed('get', '/api/entries?q=Radhanagar', adminJar)
@@ -863,6 +863,7 @@ describe('package content type ka shape', () => {
       'nights',
       'days',
       'bannerImage',
+      'itinerary',
       'bestSeason',
       'bestFor',
       'featured',
@@ -1244,5 +1245,135 @@ describe('taxonomy list ka usageCount', () => {
     const res = await authed('get', '/api/taxonomies?type=destination', adminJar)
 
     expect(res.body.data.taxonomies[0].usageCount).toBe(0)
+  })
+})
+
+// ── itinerary (Slice 4) ──────────────────────────────────────────────────────
+
+describe('itinerary', () => {
+  async function makeDestination(name) {
+    const res = await authed('post', '/api/taxonomies', adminJar).send({
+      type: 'destination',
+      name,
+    })
+    return res.body.data.taxonomy
+  }
+
+  it('din save hote hain aur har din ko stable id milti hai', async () => {
+    // Client ids na bheje to bhi zaroori hain — bina unke reorder pe collapse state
+    // galat din pe chipak jaati hai (D-43 §5)
+    const pb = await makeDestination('Port Blair')
+
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        itinerary: [
+          { title: 'Arrive Port Blair', overnightStayId: pb.id, meals: ['dinner'] },
+          { title: 'Departure' },
+        ],
+      },
+    })
+
+    const days = res.body.data.entry.fields.itinerary
+
+    expect(res.status).toBe(201)
+    expect(days).toHaveLength(2)
+    expect(days[0].id).toBeTruthy()
+    expect(days[1].id).toBeTruthy()
+    expect(days[0].id).not.toBe(days[1].id)
+  })
+
+  it('client ki bheji hui id kabhi overwrite nahi hoti', async () => {
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { itinerary: [{ id: 'day-one', title: 'Arrive' }] },
+    })
+
+    expect(created.body.data.entry.fields.itinerary[0].id).toBe('day-one')
+
+    const updated = await authed(
+      'patch',
+      `/api/entries/${created.body.data.entry.id}`,
+      adminJar,
+    ).send({
+      version: 0,
+      fields: { itinerary: [{ id: 'day-one', title: 'Arrive Kochi' }] },
+    })
+
+    expect(updated.body.data.entry.fields.itinerary[0].id).toBe('day-one')
+  })
+
+  it('defaults bhar jaate hain — sirf title zaroori hai', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { itinerary: [{ title: 'Day one' }] },
+    })
+
+    const day = res.body.data.entry.fields.itinerary[0]
+
+    expect(day.meals).toEqual([])
+    expect(day.highlights).toEqual([])
+    expect(day.overnightStayId).toBeNull()
+    expect(day.hotelCategory).toBeNull()
+    expect(day.note).toBe('')
+  })
+
+  it('galat itinerary 400 deti hai — Mixed hone ke baawajood', async () => {
+    // `fields` Mixed hai, par itinerary package ka sabse bada structured hissa hai aur
+    // public page ka aadha render usi se banta hai
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { itinerary: [{ title: 'Day one', meals: ['brunch'] }] },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('bina title ke din reject hota hai', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { itinerary: [{ overnightStayId: null }] },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('itinerary ka text searchText me jaata hai', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        itinerary: [{ title: 'Radhanagar Beach sunset', highlights: ['Cellular Jail'] }],
+      },
+    })
+
+    expect(res.status).toBe(201)
+
+    for (const q of ['Radhanagar', 'Cellular']) {
+      const found = await authed('get', `/api/entries?q=${q}`, adminJar)
+      expect(found.body.data.entries).toHaveLength(1)
+    }
+  })
+
+  it('baaki fields itinerary ke saath mit-te nahi', async () => {
+    // `nights`/`days` bhi package ke fields hain — normalize karte waqt unhe chhoona
+    // nahi chahiye
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { nights: 5, days: 6, itinerary: [{ title: 'Day one' }] },
+    })
+
+    expect(res.body.data.entry.fields.nights).toBe(5)
+    expect(res.body.data.entry.fields.days).toBe(6)
+  })
+
+  it('jo type itinerary declare nahi karta wahan wo waise ki waisi jaati hai', async () => {
+    // Page ka field set khaali hai — uspe itinerary ka validator nahi chalna chahiye
+    const res = await createPage(adminJar, {
+      title: 'About',
+      fields: { itinerary: 'kuch bhi' },
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.entry.fields.itinerary).toBe('kuch bhi')
   })
 })

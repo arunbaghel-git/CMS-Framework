@@ -100,6 +100,7 @@ blocker band ho gaye** (A-6, A-7 → **D-49**) — 491 tests passing.
 | **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
 | **spec 007 §9 #1 — Package = `entries` ka type?** | ✅ **Haan (D-46)** — client ka faisla. `packages` collection nahi banegi; engine ek hi rahega. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi apni collection me — unka apna URL aur publish lifecycle nahi hai. **spec 007 ab 🟢 approved** |
+| **Slice 4 — Itinerary Builder** | ✅ **Ban gaya** — din-wise builder (drag-reorder, accordion), aur **route strip ka live preview** jo poori tarah derived hai. spec 007 §9 ke teen sawaal band (**D-51**): `note` ek free line hai · `transferNote` **din pe** hai (ek hi Ferry teen duration pe chalti hai) · per-day Hotel Category **rahegi**. `fields.itinerary` ab write pe validate hoti hai |
 | **A-8 — Overview ka editor** | ✅ **TipTap lag gaya** — Bold · Italic · H2 · dono lists · Link. `getJSON()` seedha `content.blocks[0].props.doc` me jaata hai, isliye **koi migration nahi lagi**: interim textarea bhi yahi doc banata tha. Image button jaan-boojh kar nahi — uske liye MediaPicker chahiye (Phase 2) |
 | **Slice 3 ki screens** | ✅ **Ban gayin** — All Packages (tabs · filters · bulk actions · row actions) aur Add New/Edit. Saath me Slice 2 ki saat screens bhi: Destinations · Package Type · Hotels · Add Ons · Transfer · What's Included · Itinerary Images. Design se jo farq hain wo `04-ADMIN-UX.md` ke aakhri section me table me hain |
 | **spec 007 §9 #6, #7, #9** | ✅ **Teenon band (D-50)** — `Code` column **hat gaya** (field hi nahi hai) · `Best For` **chips ki list** (field DSL me naya `tags` type) · `Sold Out` ek **alag `availability` field** hai, status nahi — sold-out package ka page live rehta hai, sirf badge lagta hai. Migration 012 |
@@ -174,7 +175,7 @@ Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
 
 ---
 
-### spec 007 §9 · Packages ke 12 baaki sawaal
+### spec 007 §9 · Packages ke 9 baaki sawaal
 
 **Deadline:** har sawaal ka apna slice — spec me likha hai
 **Koi bhi plan ko nahi rokta.** Jo ek buniyaadi tha (#1), wo D-46 me band ho gaya.
@@ -184,9 +185,9 @@ chhoot jaate the — 26 Aug ko yahi hua.
 
 | Slice | Sawaal |
 | --- | --- |
-| 2 | #2 What's Included aur Inclusion/Exclusion ek hi hain? · #3 `Room` hotel me ya package me? · #4 Transfer me icon? duration per-day? · #5 Package Type flat ya hierarchical? · #14 `packageDefaults` naam theek hai? |
+| 2 | #2 What's Included aur Inclusion/Exclusion ek hi hain? · #3 `Room` hotel me ya package me? · ~~#4~~ ✅ **D-51 §2** · #5 Package Type flat ya hierarchical? · #14 `packageDefaults` naam theek hai? |
 | ~~3~~ | ~~#6 · #7 · #9~~ ✅ **teenon band — D-50** |
-| 4 | #10 din ka `note` field? · #11 per-day Hotel Category dropdown hatana hai? |
+| ~~4~~ | ~~#10 · #11~~ ✅ **dono band — D-51** |
 | 5 | #12 category ka `note` field? · #13 `Ferries: 3 legs` gine ya likha jaaye? |
 | 6 | #8 `ratingValue`/`ratingCount` haath se ya `reviews[]` se? |
 | 7 | #15 similar itineraries — apne aap ya haath se? |
@@ -255,8 +256,9 @@ Spec 005 me add karne honge.
     ✅ field set · availability · taxonomyTypes ka gate
     ✅ All Packages + Add New/Edit + Slice 2 ki saat screens
     ✅ A-8 — Overview ka WYSIWYG (TipTap)
-14. Slice 4 — Itinerary Builder                   ← agla kaam
-15. Slice 5-7 → specs/007-packages.md §7
+14. ✅ Slice 4 — Itinerary Builder                 (D-51, 26 Aug — 538 tests)
+15. Slice 5 — Pricing + Hotels                    ← agla kaam
+16. Slice 6-7 → specs/007-packages.md §7
 ```
 
 ### Media Phase 2 se aage kyun khisak rahi hai

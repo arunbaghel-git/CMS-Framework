@@ -84,6 +84,25 @@ export function useTaxonomyList(type) {
 }
 
 /**
+ * Transfer list — Itinerary Builder ke har din ka dropdown.
+ *
+ * `useTaxonomyList` jaisa hi, par ye `master-lists` module se aati hai (taxonomy nahi hai —
+ * uska apna URL aur publish lifecycle nahi hai, D-48).
+ */
+export function useTransferList() {
+  const [items, setItems] = useState([])
+
+  useEffect(() => {
+    api
+      .get('/transfers', { params: { limit: 200 } })
+      .then((res) => setItems(res.data.data.items))
+      .catch(() => setItems([]))
+  }, [])
+
+  return items
+}
+
+/**
  * `package` content type — uska field set aur `supports`.
  *
  * Editor iske hisaab se chalta hai, hardcoded list se nahi: field set **code-owned** hai

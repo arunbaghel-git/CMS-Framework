@@ -435,7 +435,7 @@ tr:hover .row-actions {
   background: #f0f0f1;
 }
 .editor-area {
-  min-height: 300px;
+  min-height: 250px;
   padding: 14px;
   outline: none;
   font-size: 14px;

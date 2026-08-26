@@ -43,6 +43,19 @@ const PACKAGE_FIELDS = [
   { key: 'nights', type: 'number', label: 'Nights' },
   { key: 'days', type: 'number', label: 'Days' },
   { key: 'bannerImage', type: 'media', label: 'Banner image' },
+  {
+    /**
+     * Din-wise plan — poora contract `schemas/itinerary.js` me hai (spec 007 §3).
+     *
+     * DSL me ye `repeater` hai, par admin iske liye ek apna builder chalata hai (drag
+     * se reorder, accordion, aur route strip ka live preview). Registry me phir bhi hona
+     * zaroori hai: Phase 6 ka content-type builder isi list se type ka shape padhta hai.
+     */
+    key: 'itinerary',
+    type: 'repeater',
+    label: 'Itinerary',
+    help: 'Din-wise plan. Route strip isi se apne aap banti hai.',
+  },
   { key: 'bestSeason', type: 'text', label: 'Best season', help: 'Jaise: Oct – May' },
   {
     key: 'bestFor',

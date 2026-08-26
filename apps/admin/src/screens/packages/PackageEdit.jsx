@@ -6,9 +6,16 @@ import { contentFromRichText, emptyContent } from '@cms/shared'
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
+import ItineraryBuilder from './ItineraryBuilder.jsx'
 import RichTextEditor from './RichTextEditor.jsx'
 import TagsInput from './TagsInput.jsx'
-import { PACKAGE_TYPE, useMediaById, usePackage, useTaxonomyList } from './usePackages.js'
+import {
+  PACKAGE_TYPE,
+  useMediaById,
+  usePackage,
+  useTaxonomyList,
+  useTransferList,
+} from './usePackages.js'
 import './Packages.css'
 
 /**
@@ -25,7 +32,8 @@ import './Packages.css'
  * | Travel Themes | ✅ par ab wo **Package Type** hai — free-tag input ki jagah managed list (spec 007 §1.2) |
  * | Gallery | ✅ sirf **banner** — media grid hata diya gaya (§5.1) |
  * | SEO | ✅ |
- * | Itinerary Builder · Pricing · FAQs | ❌ **Slice 4-6** |
+ * | Itinerary Builder | ✅ Slice 4 — `ItineraryBuilder.jsx` |
+ * | Pricing · FAQs | ❌ **Slice 5-6** |
  * | Inclusions & Exclusions | ❌ **hata diya gaya** — ab wo global hai (§1.5) |
  *
  * Jo panels abhi nahi hain wo **khaali dikhaye bhi nahi jaate**. Ek panel jisme kuch na
@@ -80,6 +88,7 @@ export default function PackageEdit() {
   const { entry, loading, error: loadError, reload } = usePackage(id)
   const destinations = useTaxonomyList('destination')
   const packageTypes = useTaxonomyList('packageType')
+  const transfers = useTransferList()
 
   const [form, setForm] = useState(null)
   const [editingSlug, setEditingSlug] = useState(false)
@@ -289,6 +298,14 @@ export default function PackageEdit() {
           </div>
 
           <RichTextEditor doc={form.doc} onChange={(doc) => set({ doc })} disabled={readOnly} />
+
+          <ItineraryBuilder
+            days={form.fields.itinerary ?? []}
+            onChange={(itinerary) => setField('itinerary', itinerary)}
+            destinations={destinations}
+            transfers={transfers}
+            disabled={readOnly}
+          />
         </div>
 
         <aside>

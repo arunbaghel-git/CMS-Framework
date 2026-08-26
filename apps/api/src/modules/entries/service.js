@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import mongoose from 'mongoose'
 
 import {
@@ -10,6 +12,7 @@ import {
   TAXONOMY_REF_KEYS,
   TAXONOMY_TYPE_BY_REF_KEY,
   extractBlockText,
+  itinerarySchema,
   typeSupports,
   isReservedSlug,
   rebasePath,
@@ -134,6 +137,41 @@ function buildSearchText(entry) {
   collectText(entry.fields, parts)
 
   return parts.filter(Boolean).join(' ').slice(0, MAX_SEARCH_TEXT)
+}
+
+// ── fields ───────────────────────────────────────────────────────────────────
+
+/**
+ * `fields` ko contentType ke declare kiye hue shape se milaata hai.
+ *
+ * ⚠️ **Ye abhi poora field-DSL validator nahi hai.** `fields` `Mixed` hai (D-46) aur har
+ * field type ka apna schema Phase 6 (content-type builder) ke saath aayega. Abhi sirf
+ * `itinerary` validate hoti hai, aur uski wajah saaf hai: wo is package ka **sabse bada
+ * structured hissa** hai (spec 007 §3), public page ka aadha render usi se banta hai, aur
+ * uske andar reference hain (destination ids, transfer ids). Baaki fields aaj plain text
+ * aur numbers hain — unpe garbage aane ka nateeja ek galat dikhta hua field hai, tooti hui
+ * page nahi.
+ *
+ * **Har din ko stable `id` yahin milti hai**, model ke hook me nahi: writes
+ * `findOneAndUpdate` se hote hain aur wo `save` hooks chalata hi nahi (R1). Hook me rakhne
+ * ka nateeja hota ki ids chup-chaap assign hi na hon — aur phir reorder pe collapse state
+ * galat din pe chipak jaati (D-43 §5).
+ *
+ * Maujood `id` **kabhi overwrite nahi hoti** — wo reorder ke aar-paar stable rehni chahiye.
+ */
+function normalizeFields(fields, contentType) {
+  if (!fields) return fields
+
+  const declares = (key) => contentType?.fields?.some((f) => f.key === key)
+
+  if (fields.itinerary === undefined || !declares('itinerary')) return fields
+
+  const days = itinerarySchema.parse(fields.itinerary)
+
+  return {
+    ...fields,
+    itinerary: days.map((day) => ({ ...day, id: day.id || randomUUID() })),
+  }
 }
 
 // ── availability ─────────────────────────────────────────────────────────────
@@ -620,6 +658,7 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
     slug,
     path,
     status,
+    fields: normalizeFields(input.fields, contentType) ?? {},
     availability: availabilityFor(input.availability, contentType),
     publishAt: null,
     authorId: actor?.user?._id ? String(actor.user._id) : null,
@@ -675,6 +714,8 @@ export async function updateEntry(
   ]) {
     if (input[key] !== undefined) $set[key] = input[key]
   }
+
+  if (input.fields !== undefined) $set.fields = normalizeFields(input.fields, contentType)
 
   if (input.availability !== undefined) {
     $set.availability = availabilityFor(input.availability, contentType)

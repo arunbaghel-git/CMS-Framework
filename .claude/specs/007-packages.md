@@ -354,9 +354,9 @@ description       paragraph
 highlights[]      bullet list (page ka `itin__l`)
 meals             breakfast · lunch · dinner (checkbox)
 transfer          Transfer list se
-transferNote      `90 min`  ❓
+transferNote      `90 min`  ✅ **din pe** — ek hi Ferry teen alag duration pe chalti hai (D-51 §2)
 dayTag            `Arrival day`  — din ke card pe chhota label
-note              `Approx. 4 hrs sightseeing` · `Add-ons priced below`  ❓
+note              `Approx. 4 hrs sightseeing` · `Add-ons priced below`  ✅ free text, fixed icon (D-51 §1)
 ```
 
 Din drag se reorder hote hain (wahi `useListDrag` jo menus me hai), aur collapse/expand
@@ -364,9 +364,10 @@ hote hain (wahi `.day` accordion).
 
 **Day Images hata diye gaye.**
 
-> ❓ Admin design me har din ek **Hotel Category** dropdown bhi hai (`3★ Deluxe` waghairah).
-> Naye model me category package-level hai, to wo per-day dropdown bemaani lagta hai —
-> hatana hai ya nahi, tay nahi.
+> ✅ **Per-day Hotel Category rahegi** — client ka faisla, 26 Aug (D-51 §3). Spec ne ise
+> bemaani samjha tha kyunki pricing package-level pe hai, par ek hi package me kuch raatein
+> alag darje ke hotel me ho sakti hain (Havelock pe premium, Neil pe deluxe) aur wo baat
+> kahin aur kahi hi nahi ja sakti. Khaali = package ki default category.
 
 ### 3.1 Route strip apne aap banta hai
 
@@ -557,10 +558,12 @@ SLICE 3   All Packages list + Add New (basic)                        🟡 API po
              tabs (counts ek call me) · filters · bulk actions · row actions
           🔴 bacha: Overview ka WYSIWYG (abhi textarea) — TipTap agla kadam
 
-SLICE 4   Itinerary Builder
+SLICE 4   Itinerary Builder                                          ✅ 26 Aug
           din · overnight stay · description · highlights · meals · transfer
           + route strip derive
           → public page ka sabse bada hissa zinda
+          drag-reorder · accordion · route strip ka live preview
+          D-51 · 20 naye test
 
 SLICE 5   Pricing + Hotels
           categoryPricing + hotels[] + 4 tab
@@ -612,21 +615,21 @@ packageDefaults { siteId }                    unique    ← singleton, wahi patt
 
 Inme se koi bhi **plan ko nahi rokta** — build ke waqt tay ho sakte hain. Jo ek buniyaadi
 tha (#1), wo 26 Aug ko band ho gaya (D-46). Slice 3 ke teen (#6, #7, #9) bhi usi din band
-hue — **D-50**. Bacha: **12**.
+hue — **D-50**. Slice 4 ke #4, #10, #11 bhi band — **D-51**. Bacha: **9**.
 
 | # | Sawaal | Kab chahiye |
 | --- | --- | --- |
 | ~~1~~ | ~~Package = `entries` ka type?~~ ✅ **haan** — 26 Aug, **D-46** | ~~Slice 1 se pehle~~ |
 | 2 | `What's Included` aur `Inclusion/Exclusion` — ek hi hain? | Slice 2 |
 | 3 | `Room` hotel ke record me ya package me? | Slice 2 |
-| 4 | Transfer record me icon? Duration per-day? | Slice 2 |
+| ~~4~~ | ~~Transfer record me icon? Duration per-day?~~ ✅ icon **record pe** (Slice 2) · duration **din pe** — D-51 §2 | ~~Slice 2~~ |
 | 5 | Package Type flat ya hierarchical? | Slice 2 |
 | ~~6~~ | ~~List ka `Code` column — hataayein?~~ ✅ **haan, hat gaya** — 26 Aug, **D-50 §2** | ~~Slice 3~~ |
 | ~~7~~ | ~~`Best For` me kya bharega?~~ ✅ **chhoti chips ki list** (`tags` field type) — **D-50 §3** | ~~Slice 3~~ |
 | 8 | `ratingValue`/`ratingCount` haath se, ya `reviews[]` se gine jaayein? §2.2 | Slice 6 |
 | ~~9~~ | ~~`Sold Out` — status hai ya `availability` field?~~ ✅ **alag `availability` field** — **D-50 §1** | ~~Slice 3~~ |
-| 10 | Din ka `note` field (`Approx. 4 hrs sightseeing`)? | Slice 4 |
-| 11 | Per-day `Hotel Category` dropdown hatana hai? | Slice 4 |
+| ~~10~~ | ~~Din ka `note` field?~~ ✅ **haan** — ek free line, fixed icon. D-51 §1 | ~~Slice 4~~ |
+| ~~11~~ | ~~Per-day `Hotel Category` dropdown hatana hai?~~ ✅ **nahi, rahegi** — D-51 §3 | ~~Slice 4~~ |
 | 12 | Category ka `note` field? | Slice 5 |
 | 13 | `Ferries: 3 legs` — apne aap gine ya likha jaaye? | Slice 5 |
 | 14 | `packageDefaults` naam theek hai, ya kuch aur? §1.8 | Slice 2 |

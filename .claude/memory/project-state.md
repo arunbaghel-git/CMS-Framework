@@ -34,9 +34,11 @@ hota hi nahi.
 
 **A-8 bhi band ho gaya** — Overview ab TipTap pe hai.
 
-**Agla kaam: Slice 4 — Itinerary Builder** (spec 007 §3). Usme do sawaal khule hain jo
-uska shape tay karte hain — §9 #10 (din ka `note` field) aur #11 (per-day Hotel Category
-dropdown hatana hai ya nahi).
+**Slice 4 bhi ban chuki (26 Aug)** — Itinerary Builder, aur uske saath **route strip ka
+live preview** jo poori tarah derived hai (§3.1). Teen sawaal band — D-51.
+
+**Agla kaam: Slice 5 — Pricing + Hotels** (spec 007 §4). Usme ek sawaal khula hai — §9 #12
+(hotel category ka `note` field) aur #13 (`Ferries: 3 legs` apne aap gine ya likha jaaye).
 
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
@@ -80,12 +82,13 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Slice 3  admin ki screens          ✅  26 Aug — list + editor
           Slice 2  ki saat screens           ✅  26 Aug — taxonomy + master lists
           A-8      Overview ka TipTap        ✅  26 Aug — bold/italic/list/link
-          Slice 4  Itinerary Builder         🔴  ← agla kaam
+          Slice 4  Itinerary Builder         ✅  26 Aug — D-51, route strip live
+          Slice 5  Pricing + Hotels           🔴  ← agla kaam
           Slice 4-7                          🔴  specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 518 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 538 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -146,6 +149,7 @@ nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 | **Taxonomy ka ref**   | `entry.taxonomies` me, har type ki apni key — `fields` me nahi (D-49). spec 002 ek baar badla      |
 | **Slug badalna**      | Auto-301 + chain flatten + loop se bachav; descendants pe bhi (D-49)                               |
 | **Sold Out**          | `availability` field — `status` se alag. Page live rehta hai, sirf badge (D-50)                    |
+| **Route strip**       | Derived — lagatar same stay wale din judte hain. `nightsByStay()` alag hai (D-51)                  |
 
 Specs 001–007: 001/002/003 ✅ implemented, 004 🟡 aadha, 005 🟢 approved,
 **006 ✅ implemented** (menu contract), **007 🟢 approved** (Packages — D-46).

@@ -131,6 +131,11 @@ entries        * siteId, locale, type, title, slug, path, status, availability,
                  authorId, templateId, version, deletedAt,
                  content { version, blocks: [...] },     page builder tree
                  fields  { ...customFields },            contentType ke fields
+                         package ka itinerary[] yahin hai — poora contract
+                         packages/shared/schemas/itinerary.js me (D-51).
+                         Write pe wo VALIDATE hoti hai, baaki fields abhi
+                         nahi: usme references hain (destination/transfer ids)
+                         aur public page ka aadha render usi se banta hai
                  seo     { ... },
                  taxonomies { categories[], tags[],
                               destinations[], packageTypes[] },
