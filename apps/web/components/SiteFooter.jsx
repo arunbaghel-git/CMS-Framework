@@ -1,6 +1,7 @@
 import { SOCIAL_KEYS } from '@cms/shared'
 
 import { getSettings } from '../lib/cms.js'
+import { linkifyParts } from '../lib/linkify.js'
 import FooterColumn from './FooterColumn.jsx'
 import Icon from './Icon.jsx'
 import SocialIcon from './SocialIcon.jsx'
@@ -57,14 +58,34 @@ const SOCIAL_LABELS = {
  * preserve hote hain. `dangerouslySetInnerHTML` yahan bilkul nahi: ye field plain text
  * hai, aur usme HTML chalane ka matlab hota admin panel se stored XSS ka raasta khol
  * dena.
+ *
+ * **Phone aur email render ke waqt clickable ban jaate hain** (`linkifyParts`) — data me
+ * kuch store nahi hota aur client ko koi naya field nahi bharna padta. Phone sirf tab
+ * pakda jaata hai jab block ka icon `phone` ho; bina us shart ke pincode aur ghar ke
+ * number `tel:` link ban jaate. Poora tark `lib/linkify.js` me hai.
  */
 function TextBlock({ block }) {
+  const parts = linkifyParts(block.text, { phone: block.icon === 'phone' })
+
   return (
     <div className="ft__sup">
       <Icon name={block.icon} size={15} strokeWidth={2} />
       <div>
         {block.label && <b>{block.label}</b>}
-        {block.text && <span>{block.text}</span>}
+
+        {parts.length > 0 && (
+          <span className="ft__sup-value">
+            {parts.map((part, i) =>
+              part.href ? (
+                <a key={i} href={part.href}>
+                  {part.text}
+                </a>
+              ) : (
+                <span key={i}>{part.text}</span>
+              ),
+            )}
+          </span>
+        )}
       </div>
     </div>
   )

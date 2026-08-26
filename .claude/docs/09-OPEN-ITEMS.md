@@ -2,10 +2,10 @@
 
 **Status:** Phase 0 poora, aur **Slice 0 (Header + Footer) bhi ban chuka** — D-43 /
 spec 006. **Header aur footer dono client ke reference se match kar diye gaye** (25 Aug)
-— footer ka data model **D-44** me badla. 367 tests passing.
+— footer ka data model **D-44** me badla. 383 tests passing.
 
 Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neeche).
-**Last updated:** 25 Aug 2026
+**Last updated:** 26 Aug 2026
 
 ---
 
@@ -87,6 +87,12 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 | **Social links do jagah the** | ✅ Duplicate UI Footer screen se hat gayi — Settings ▸ General hi single source (D-44 §6) |
 | **Footer logo** | ✅ `settings.footerLogoMediaId` — footer + mobile drawer; khaali ho to header wale pe fallback (D-44 §4) |
 | **Footer ka look** | ✅ Reference ke tokens pe — gehra neela, uppercase headings, icon wale text blocks, circular social |
+
+### 26 Aug 2026
+
+| Item | Faisla |
+| --- | --- |
+| **Footer ke phone/email clickable** | ✅ **Auto-detect** — `lib/linkify.js` render ke waqt link banata hai, data me kuch store nahi hota. Phone sirf `phone` icon wale block me, warna pincode `tel:` link ban jaate (D-44 §10) |
 
 ---
 

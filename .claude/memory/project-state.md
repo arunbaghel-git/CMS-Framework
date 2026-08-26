@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 25 Aug 2026
+> **Last updated:** 26 Aug 2026
 
 ---
 
@@ -43,7 +43,7 @@ Slice 0   Menu contract (spec 006, D-43)    ✅  ← 24 Aug
 Phase 1+  Content core aur aage           🔴
 ```
 
-**Health:** 370 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 383 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -467,6 +467,7 @@ Breakpoints              1024 → 2 col, 760 → 1 col (reference ke apne)
 --pad                    26 / 23 / 20 — desktop / tablet / mobile
 Columns ka cap           4 se 6 (min-width 180 → 140, warna 6 wrap ho jaate)
 FooterColumn.jsx         mobile pe collapse — sirf MENU-ONLY column
+lib/linkify.js           phone/email render pe clickable (+13 test) — 26 Aug
 ```
 
 **Mobile ka toggle content se decide hota hai, `type` se nahi** — public payload me
@@ -537,12 +538,11 @@ pnpm build && git push
 **Footer poora ho chuka hai** — data model, admin screen, aur design/responsive teenon.
 Chaar chhoti cheezein khuli hain, koi bhi bada kaam nahi rok rahi:
 
-| #   | Kya                                                                                                                                                                                                            | Kitna            |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| —   | `pnpm build` **kabhi chala hi nahi** — CI ka aakhri step. Web dev band karke `rm -rf apps/web/.next && pnpm build`                                                                                             | 5 min            |
-| A-5 | `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET`. Sirf prod ke cache pe asar                                                                                                                                  | manual step      |
-| Q-8 | Drawer safed, footer gehra — ek hi logo dono me?                                                                                                                                                               | client ka faisla |
-| —   | Footer ke phone/email **clickable nahi** hain (reference me `tel:`/`mailto:` hain). Do raaste: text me auto-detect (magic, kabhi galat pakdega) ya text block me ek optional Link field (saaf, ek field zyada) | client ka faisla |
+| #   | Kya                                                                                                                | Kitna            |
+| --- | ------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| —   | `pnpm build` **kabhi chala hi nahi** — CI ka aakhri step. Web dev band karke `rm -rf apps/web/.next && pnpm build` | 5 min            |
+| A-5 | `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET`. Sirf prod ke cache pe asar                                      | manual step      |
+| Q-8 | Drawer safed, footer gehra — ek hi logo dono me?                                                                   | client ka faisla |
 
 Uske baad **C-2 (Payload spike, 2 din — Phase 1 se pehle)**, phir **Phase 1 — Content Core**.
 

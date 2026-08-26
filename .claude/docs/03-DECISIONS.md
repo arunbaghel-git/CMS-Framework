@@ -1774,6 +1774,41 @@ Teen cheezein jaan-boojh kar aisi hain:
    block rehta hai chahe state kuch bhi ho — aur JS na chale to mobile pe bhi sab khula
    rehta hai, chhupa hua nahi.
 
+### 10. Phone aur email render ke waqt clickable bante hain
+
+Reference ke footer me phone `tel:` aur email `mailto:` hain. Hamare text blocks plain
+text the, to mobile pe number tap hi nahi hota — travel site ke footer me ye asli nuksaan
+hai.
+
+**Data me kuch store nahi hota.** `linkifyParts()` (`apps/web/lib/linkify.js`) render ke
+waqt text ko tukdon me todta hai aur theme unhe `<a>` ya bare text ki tarah render karti
+hai. Client ko koi naya field nahi bharna padta, aur purana data turant clickable ho jaata
+hai.
+
+Do doosre raaste reject hue:
+
+| Raasta | Kyun nahi |
+| --- | --- |
+| Text me HTML allow karna | Admin panel se **stored XSS** ka seedha raasta |
+| Har block me ek `link` field | Number do baar likhna padta (text me aur `tel:` me), aur ek block me **do** number alag-alag link nahi ho sakte — reference ka "num1 / num2" wala case toot jaata |
+
+**Phone sirf `phone` icon wale block me pakda jaata hai.** Ye shart hi is design ko bachati
+hai: bina uske pincode link ban jaate — reference ke apne footer me "A&N Islands 744102"
+aur "New Delhi 110005" hain, aur koi bhi thoda dhila phone regex unhe pakad kar
+`tel:744102` bana deta, **bina kisi error ke**. Icon wahi jagah hai jahan client pehle se
+bata chuka hai ki block me kya hai; use dobara istemaal karna naya field maangne se behtar
+hai.
+
+Email pe ye shart nahi hai — `kuch@kuch.kuch` ka shape itna khaas hai ki wo galti se kisi
+pate ya date me nahi milta.
+
+`.ft__sup-value` ki apni class hai, bare `span` nahi: uske andar ab tukde aate hain, aur
+`display: block` un tukdon ko mil jaata to "+91 98100 66496 / 98110 66496" teen line ban
+jaata.
+
+Test (`linkify.test.js`, 13) me sabse zaroori wo hain jo **nahi** pakadte — pincode, timing,
+aur ghar ke number wala pata.
+
 ### Text blocks rich text NAHI hain
 
 `text` plain hai — koi HTML, koi markup. Line breaks preserve hote hain (`pre-line`), bas.

@@ -324,6 +324,10 @@ breakpoints). Mobile pe **sirf "Menu only" column collapsible** hote hain (headi
 toggle hai) — text wale column khule rehte hain, kyunki unme contact detail hoti hai
 (D-44 §9).
 
+Text block me likha phone aur email public site pe **apne aap clickable** ho jaate hain —
+client ko kuch alag nahi bharna padta. Phone tabhi pakda jaata hai jab block ka icon
+**Phone** ho, warna pincode aur ghar ke number bhi link ban jaate (D-44 §10).
+
 ⚠️ **Footer ka column flat list hai** — menu ke sirf top-level items dikhte hain. Dropdown/
 mega ke sub-items hover pe khulte hain aur footer me hover hai hi nahi. Screen ismein
 warning deti hai jab chune hue menu me aise item hon (D-44 §8).

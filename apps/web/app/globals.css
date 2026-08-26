@@ -771,13 +771,24 @@ a.mega__gl:hover {
 /* `pre-line` isliye ki text ke line breaks **stored data** hain (D-44) — client ne jahan
    Enter dabaya hai, wahan line toot-ni chahiye. `pre-wrap` nahi: wo leading spaces bhi
    rakh leta, aur textarea me galti se pade spaces footer me dikhne lagte. */
-.ft__sup span {
+/* Value ki apni class hai, bare `span` nahi — aur wo zaroori hai.
+
+   Iske andar ab **aur** span aur `<a>` aate hain (`linkifyParts` ke tukde). Bare
+   `.ft__sup span` likhne se `display: block` un tukdon ko bhi mil jaata aur har hissa
+   apni line pe chala jaata — "+91 98100 66496 / 98110 66496" teen line ban jaata. */
+.ft__sup-value {
   display: block;
   white-space: pre-line;
   color: #fff;
   font-weight: 600;
   font-size: 13px;
   line-height: 1.5;
+}
+
+/* Link dikhne me baaki text jaisa hi hai — reference me bhi underline nahi hai. Farq
+   sirf hover pe dikhta hai (`.ft__col a:hover`) aur phone pe tap karne se. */
+.ft__sup-value a {
+  color: inherit;
 }
 
 /* ---------- mobile ka accordion ----------

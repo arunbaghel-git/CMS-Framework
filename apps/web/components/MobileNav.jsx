@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+import { telHref } from '../lib/linkify.js'
 import Icon from './Icon.jsx'
 
 /**
@@ -121,15 +122,6 @@ function Item({ item }) {
     </details>
   )
 }
-
-/**
- * `tel:` href ke liye number saaf karta hai.
- *
- * Admin me phone padhne ke liye likha jaata hai ("+91 98100 66496"), aur wo waise ka waisa
- * `tel:` me daalne pe kai dialer usse theek se nahi kholte. Label me original hi dikhta
- * hai — sirf href saaf hota hai.
- */
-const telHref = (phone) => 'tel:' + String(phone).replace(/[^\d+]/g, '')
 
 /**
  * @param {object} props
