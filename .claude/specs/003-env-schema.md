@@ -36,9 +36,20 @@ ban jaayega, aur har client thoda alag hoga.
 | `PORT`      | number                          | `4000`              | —        |
 | `SITE_URL`  | url                             | —                   | ✅       |
 | `ADMIN_URL` | url                             | `${SITE_URL}/admin` | —        |
+| `EXTRA_CORS_ORIGINS` | comma se alag origins | — | — |
 | `LOG_LEVEL` | `debug\|info\|warn\|error`      | `info`              | —        |
 
 `SITE_URL` canonical URL hai — redirects, sitemap, OG tags, aur CORS allowlist sab isi se.
+
+**`EXTRA_CORS_ORIGINS`** (27 Aug) — CORS allowlist me aur origins jodne ke liye, comma se
+alag. `SITE_URL` ko list nahi banaya ja sakta kyunki wo revalidate webhook ka **target**
+bhi hai (`core/revalidate.js`). Asli setup me site kai origins se khulti hai: tunnel (demo),
+LAN ka IP (mobile pe test), staging ka preview domain. Iske bina wo har case me login
+**500** deta tha aur wajah kahin nahi dikhti thi.
+
+`*` jaan-boojh kar support nahi hai — cookies `credentials: true` ke saath jaati hain, aur
+wildcard + credentials ka matlab hai kisi bhi site ka JS aapke admin ki taraf se request
+bhej sake (D-12).
 
 ### Database
 

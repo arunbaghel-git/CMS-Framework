@@ -11,7 +11,7 @@ import mongoose from 'mongoose'
 
 import { env, isProd } from './core/env.js'
 import { logger } from './core/logger.js'
-import { errorHandler, notFoundHandler } from './core/errors.js'
+import { errorHandler, forbidden, notFoundHandler } from './core/errors.js'
 import { checkPending } from './core/migrations/runner.js'
 import { attachUser } from './middleware/auth.js'
 import { csrfProtection } from './middleware/csrf.js'
@@ -85,14 +85,51 @@ export function createApp() {
     )
   }
 
-  // CORS allowlist — wildcard kabhi nahi (D-12).
-  // Same-origin setup me ye sirf dev ke liye kaam aata hai.
-  const allowedOrigins = [env.SITE_URL, env.ADMIN_URL].filter(Boolean)
+  /**
+   * CORS allowlist — wildcard kabhi nahi (D-12).
+   *
+   * `EXTRA_CORS_ORIGINS` isliye hai ki asli setup me site ek se zyada origin se khulti hai:
+   * tunnel, LAN ka IP, staging ka preview domain. `SITE_URL` ko list nahi banaya ja sakta —
+   * wo revalidate webhook ka target bhi hai.
+   */
+  const allowedOrigins = [
+    env.SITE_URL,
+    env.ADMIN_URL,
+    ...(env.EXTRA_CORS_ORIGINS ?? '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+  ].filter(Boolean)
+
   app.use(
     cors({
       origin(origin, cb) {
+        /**
+         * `origin` na hone ka matlab same-origin GET, ya server-to-server call — dono
+         * theek hain. Browser POST pe `Origin` **hamesha** bhejta hai, chahe same-origin
+         * ho; isiliye reverse proxy ke peeche bhi ye check lagta hai.
+         */
         if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
-        cb(new Error(`CORS: origin allowed nahi hai — ${origin}`))
+
+        /**
+         * **403, 500 nahi.**
+         *
+         * Pehle yahan ek plain `Error` throw hoti thi. Wo `AppError` nahi hai, isliye
+         * error handler use "kuch galat ho gaya" wala **500** bana deta tha — aur login
+         * screen pe sirf "Something went wrong. Please try again." dikhta tha.
+         *
+         * Wo poori tarah dhokha dene wala tha: dikkat server me nahi, **configuration** me
+         * thi. Ye tab pakda gaya jab admin ko cloudflared tunnel se khola gaya — do
+         * screenshot aur ek round-trip us ek line ki wajah se laga.
+         *
+         * Ab origin naam se message me aata hai, taaki use `EXTRA_CORS_ORIGINS` me
+         * copy-paste kiya ja sake.
+         */
+        cb(
+          forbidden(
+            `Origin allowed nahi hai: ${origin}. Ise EXTRA_CORS_ORIGINS me jodo (comma se alag).`,
+          ),
+        )
       },
       credentials: true,
     }),

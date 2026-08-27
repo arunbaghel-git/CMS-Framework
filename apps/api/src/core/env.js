@@ -67,6 +67,23 @@ const envSchema = z
     SITE_URL: z.string().url(),
     ADMIN_URL: z.string().url().optional(),
 
+    /**
+     * CORS allowlist me **aur** origins — comma se alag.
+     *
+     * `SITE_URL` aur `ADMIN_URL` ek-ek hi ho sakte hain: `SITE_URL` revalidate webhook ka
+     * **target** bhi hai (`core/revalidate.js`), isliye wo list nahi ban sakta. Par asli
+     * setup me site kai origins se khulti hai — tunnel (demo), LAN ka IP (mobile pe test),
+     * staging ka preview domain, ya CDN ke aage ka host.
+     *
+     * Iske bina wo har case me login **500** deta hai aur wajah kahin nahi dikhti — wahi
+     * hua jab admin cloudflared tunnel se khola gaya.
+     *
+     * `*` yahan jaan-boojh kar **support nahi hai**. Cookies `credentials: true` ke saath
+     * jaati hain, aur wildcard + credentials ka matlab hai kisi bhi site ka JS aapke admin
+     * ki taraf se request bhej sake (D-12).
+     */
+    EXTRA_CORS_ORIGINS: z.string().optional(),
+
     MONGODB_URI: z.string().min(1),
     MONGODB_DB_NAME: z.string().min(1),
 
