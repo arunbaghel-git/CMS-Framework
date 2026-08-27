@@ -198,7 +198,7 @@ export function HotelsTag() {
  * aur tabs ke neeche panel ka `text`.
  *
  * ⚠️ **Ye hardcoded content hai, aur ye is repo ke apne usool ke khilaaf hai** (client ka
- * faisla, 27 Aug — Q-8). Dono ke liye koi field nahi hai aur client ne admin me nayi jagah
+ * faisla, 27 Aug — Q-9). Dono ke liye koi field nahi hai aur client ne admin me nayi jagah
  * dene se mana kiya. `note` (jo catbar pe chhapta hai) label ki jagah daalne ka mashwara
  * diya gaya tha; wo na-manzoor hua kyunki pill design se kaafi chaudi ho jaati.
  *

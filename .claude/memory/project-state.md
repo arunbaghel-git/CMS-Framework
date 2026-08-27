@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 27 Aug 2026
+> **Last updated:** 27 Aug 2026 (raat — design pass)
 
 ---
 
@@ -68,10 +68,13 @@ screen pe thi, aur ek bug ki wajah se **dono** screens pe dikh rahi thi (guard m
 `section !== 'images'` likha tha jabki sections ke naam `whatsIncluded`/`itineraryImages`
 hain — shart hamesha sach thi). Data ab bhi `packageDefaults` me hai, sirf screen badli.
 
-⚠️ **Hero me daam ke neeche ab kuch nahi hai.** Reference me wahan ek **chhoti** line hai
-(`per person · twin sharing`) jo hotels wali lambi line se alag hai, aur uske liye koi field
-nahi bacha (`priceBasis` D-57 me hata). Lambi line wahan daali nahi ja sakti —
-`.ptitle__p` pe `white-space: nowrap` hai. Ye chhoda hua gap hai, bhoola hua nahi.
+**Hero me daam ke neeche `per person · twin sharing` hai — aur wo static hai** (27 Aug raat,
+client ka faisla). Pehle ye gap tha: reference ki wo **chhoti** line hotels wali lambi line se
+alag hai aur uske liye koi field nahi bacha tha (`priceBasis` D-57 me hata). Pehle
+`packageDefaults.priceNote` daal kar dekhi gayi — wo poora vaakya hai ("per person on twin
+sharing, daily breakfast included.") aur `.ptitle__p` ke `white-space: nowrap` me grid column
+ko kheench deti thi. Client ne kaha "har cheez dynamic thodi aayegi", to line theme me likhi
+hui hai. `priceNote` apni asli jagah — hotels table ke neeche — waisi hi chal rahi hai.
 
 **Add-ons ab poori tarah global hain (D-61)** — package editor me panel nahi, page pe poori
 Add Ons list, aur wo `packageDefaults` ke payload me jaati hai (uska cache tag `type:package`
@@ -173,11 +176,12 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Dev tunnel/LAN + CORS 403   ✅  27 Aug — EXTRA_CORS_ORIGINS, spec 003
           Slice 5  Pricing + Hotels           ✅  27 Aug — D-56 se D-60, koi migration nahi
           FAQs ka panel (Slice 6 se aage)    ✅  27 Aug — D-59, sirf FAQs
+          Public page ka design pass         ✅  27 Aug raat — a33a143, section-dar-section
           Slice 6-7                          🔴  ← agla kaam. specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 566 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 567 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -199,6 +203,38 @@ Client ne **do asli design** diye. Ye ab guess ki jagah le chuke hain:
 nahi tha; docs galti se "rule 8" bolte the, jabki R8 Zod validation hai.)
 
 `04-ADMIN-UX.md` ab **secondary** hai — conflict ho to design jeetega.
+
+### 27 Aug (raat) — public package page ka design pass (`a33a143`)
+
+Client ne har section ka screenshot de kar `itinerary-v3.html` se milaan karwaya. Jo sections
+bane hi nahi (reviews · similar itineraries · enquiry band · sidebar widget) unhe chhoda.
+
+**Sabse kaam ki baat aage ke liye: ab tak `globals.css` me chaar _base_ rule gayab nikle
+hain** — `p`, `h1..h5`, aur do jagah list ka reset. Wajah ek hi hai: CSS reference ke
+**class rules** se selector-by-selector likhi gayi thi, uske **base resets** se nahi. Aur
+`css-diff.mjs` inhe kabhi nahi pakdegi, wo sirf `.`-wale selectors dekhti hai. Kisi bhi naye
+section pe pehle ye dekho ki reference ka koi element-level rule to nahi chhoot raha.
+
+Do aur cheezein jo is pass me sikhi:
+
+- **Token milaana kaafi nahi hota.** Maine `1280px`/`26px` dono taraf same dekh kar kaha tha
+  "width theek hai" — galat. `.pkg__hero` aur `.pgl` pe `padding` **shorthand** tha aur dono pe
+  `.wrap` bhi; shorthand ka beech wala `0` left/right bhi 0 kar deta tha, aur wo rules `.wrap`
+  ke baad aate the. `.wrap` jaisi utility ke saath koi bhi `padding`/`margin` shorthand shak ke
+  daayre me hai.
+- **`css-diff.mjs` ab paanch jhoothe alert deti hai** (`>` combinator, quote ka farq,
+  shorthand). Aage bharosa karne se pehle wo teen cheezein sikhani hongi.
+
+**Naya hardcoded content — `CATEGORY_COPY`** (`apps/web/components/package/Pricing.jsx`):
+hotel tabs ka chhota label aur panel ka paragraph. ⚠️ Isme `Sea-facing`, `Beachfront`,
+`Havelock`, `Sitapur` — **Andaman ki baat**, jabki core code har client me wahi rehta hai.
+Client ne admin me jagah dene se mana kiya aur maujood `note` bhi thukra diya. Theme layer me
+hai, `packages/shared` me nahi. Poora sandarbh **`Q-9`** me (`09-OPEN-ITEMS`) — 7 heading aur
+6 lines static hain.
+
+**Do cheezein admin ke data ki hain, code ki nahi:** Hotels master list me naam ke andar
+`(or similar)` likha hai (page khud jodta hai, do baar dikhta hai), aur din 2/4/5 pe
+`transferNote` bhara hai par transfer chuna nahi — isliye ferry ki chip banti hi nahi.
 
 ---
 

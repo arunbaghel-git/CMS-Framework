@@ -15,6 +15,118 @@ Format:
 
 ---
 
+## 2026-08-27 (raat) — Public package page design se milaya, section-dar-section
+
+**Kya hua**
+
+Client ne har section ka screenshot bhej kar `itinerary-v3.html` se milaan karwaya — ek
+section ek baar, sirf design. Jo sections bane hi nahi (Traveller reviews · Similar
+itineraries · neeche ka enquiry band · sidebar ka price widget) unhe chhoda.
+
+Commit: **`a33a143`** — 4 files, 546 insertions. `apps/web` ki teen file + `09-OPEN-ITEMS`.
+
+**Do base rule jo maujood hi nahi the — dono chup, dono ka asar poore page pe**
+
+1. **`h1..h5` ka rule tha hi nahi.** Har heading `body` se `--body` (`#4a5a6d`) le rahi thi,
+   jabki design `--ink` (`#111d2b`) maangta hai — package page ka `<h1>` isi wajah se saada
+   grey dikh raha tha. Saath me browser ka default margin bhi lag raha tha, isliye
+   `.blk h2 { margin-bottom: 10px }` jaise rules **aadhe hi** chalte the: neeche ka margin
+   hamara, upar ka browser ka. `font-weight` bhi 700 tha, 800 nahi — aur code me comment
+   likha tha ki "weight base rule se aata hai", jabki wo base rule tha hi nahi.
+2. **`.blk ul.tick` me list ka reset nahi tha.** Reference me wo global
+   `ul { margin: 0; padding: 0; list-style: none }` se aata hai, jo yahan **nahi** daala ja
+   sakta — RichText ki list ko uske apne bullet chahiye. Bina reset ke list 40px andar khisak
+   kar heading se alag ho jaati thi.
+
+Doosri wali ki chupai khaas thi: `<li>` pe `display: flex` hai, to bullet dikhta hi nahi —
+**sirf khisakav dikhta hai**, aur wo galti jaan-boojh kar diya gaya indent lagti hai.
+
+Ye pichhle session wale `.blk p` ki **teesri aur chauthi** misaal hain. Ab tak chaar base
+rules gayab nikle hain (`p`, `h1..h5`, aur do jagah list reset) — yaani `globals.css` reference
+ke **rules** se selector-by-selector likhi gayi thi, uske **base resets** se nahi. `css-diff`
+inhe kabhi nahi pakdegi kyunki wo sirf `.`-wale selectors dekhti hai.
+
+**Padding ka override — client ne khud pakda**
+
+Maine pehle token compare kar ke kaha tha "width me koi farq nahi hai" (`1280px`/`26px`, dono
+taraf same). Wo **galat** tha: `.pkg__hero` aur `.pgl`, dono pe `class="… wrap"` bhi hai aur
+dono `padding` **shorthand** use kar rahe the. Shorthand ka beech wala `0` left/right ko bhi
+0 karta hai, aur dono rules `.wrap` ke **baad** aate hain — specificity barabar (0-1-0), to
+baad wala jeeta aur `padding-inline: var(--pad)` chup-chaap ud gaya. Banner ke neeche ka
+poora page kinare se chipka tha. Ab dono `padding-block` pe hain.
+
+**Sabak:** token milaana kaafi nahi hota — cascade me kaun kise kha raha hai, wo alag sawaal
+hai. `.wrap` jaisi utility class ke saath koi bhi `padding`/`margin` shorthand shak ke daayre
+me hai.
+
+**Day-by-day poora dobara likha**
+
+Ye section sabse door tha — purani CSS Slice 4 ka kaam-chalau roop thi (ek saadi do-column
+list). Ab reference wala poora dhaancha: rail (`.itin__d::before`), uske circle
+(`.itin__k::after`), `Day 1` ka neela pill, neele bullet, chips ke icon, aur 860px pe mobile
+treatment jahan rail aur circle chhup jaate hain.
+
+`.itin { padding-left: 40px }` yahan ki sabse aham line hai: rail aur circle `.itin__d` ke
+**bahar** bethte hain (negative `left`), to list ko utni jagah chhodni padti hai. Reference me
+wo jagah `<ol>` ke **browser-default** padding se aa rahi thi — maine wo likh di, kyunki UA
+default pe layout tikana chup-chaap tootne wali cheez hai.
+
+**Baaki milaan**
+
+`.pmeta` ke icon · `<h1>` ka neela `<em>` (nights/days se derive) · route strip ka teer (CSS
+maujood thi, SVG kabhi daala hi nahi gaya — comment tak likha tha "reference me ye ek SVG hai,
+lakeer nahi") · at-a-glance ka kram (`Hotels` teesre pe) · `.dnav` ki values · hotels table ka
+paanchva `Note` column hataya (reference me chaar hi hain) · `or similar` ab italic.
+
+**Faisle — sab client ke, ek hi soch me**
+
+| Kya                                 | Faisla                                                                                       |
+| ----------------------------------- | -------------------------------------------------------------------------------------------- |
+| Hero ki `per person · twin sharing` | pehle `priceNote` daali thi, client ne **static** karwaya — "har cheez dynamic thodi aayegi" |
+| catbar ka text                      | reference wala poora — `and ferry class` chhoot gaya tha (R15)                               |
+| hotels intro                        | reference wala poora — pehli line gayab thi                                                  |
+| tab ka label + panel ka paragraph   | **hardcode** — client ne admin me nayi jagah dene se saaf mana kiya                          |
+
+`CATEGORY_COPY` (`apps/web/components/package/Pricing.jsx`) me chaaron category ka `label`
+aur `text` hai. ⚠️ Isme `Sea-facing`, `Beachfront`, `Havelock`, `Sitapur` — sab **Andaman ki
+baat hai**, jabki core code har client ke instance me wahi rehta hai. Maine mana kiya tha
+(mashwara: maujood `note` use karo, ya field banao); client ne dono thukra diye. Isliye wo
+`packages/shared` me **nahi**, theme layer me hai — client ka theme ise badal sake bina core
+chhue.
+
+**`Q-9` khula** (`09-OPEN-ITEMS`) — 7 heading aur 6 lines static hain, client ek shabd bhi
+admin se nahi badal sakta. Teen raaste likhe hain; mashwara: **jab zaroorat pade tab** field
+banao, 12 field pehle se mat banao (wahi galti jo D-57/D-58 me pakdi gayi thi).
+
+> Ye item pehle `Q-8` likha gaya tha — number pehle se resolved item pe tha (drawer vs footer
+> logo). Doosre session ne `Q-9` kar diya.
+
+**Do cheezein jo admin ka data hain, design nahi**
+
+1. Hotels master list me teenon hotel ke naam me `(or similar)` likha hai, aur page apni taraf
+   se `or similar` **jodta** hai — table me do baar dikhta hai.
+2. Din 2, 4, 5 pe `transferNote` bhara hai (`90 min`, `40 min`, `2 hrs`) par **transfer chuna
+   nahi** — chip transfer se banti hai, isliye ferry ki chip banti hi nahi. Reference me wahan
+   `Ferry: 90 min` hai.
+
+**`css-diff` ab bharosemand nahi rahi**
+
+Paanch jhoothe alert de rahi hai: `.atg div` (hamare paas `.atg > div` hai),
+`.htab button[aria-selected="true"]` aur uska `span` (hum `'true'` single quote me likhte
+hain), `.hpan[hidden]` (hum panel conditionally render karte hain), aur `.blk ul.tick` ka
+`margin-top` (humne shorthand likha). Script selector aur value ko **string** ki tarah milaati
+hai. Aage use karne se pehle ye teen cheezein sikhani hongi: `>` combinator, quote ka farq,
+aur shorthand. Warna wo confuse karegi.
+
+**Agla**
+
+1. `(or similar)` aur ferry transfer — admin me theek karna
+2. Tabs ke neeche ka paragraph aur tab label ab hardcoded hain — `Q-9` ke saath review
+3. `p { margin: 0 }` ka global reset abhi bhi nahi hai — "About this itinerary" ke do
+   paragraph ke beech ka gap reference se zyada hai. Jaan-boojh kar chhoda (RichText).
+
+---
+
 ## 2026-08-27 (shaam) — Slice 5 client ke faislon se dobara ghadi gayi; FAQs; CSS milaan
 
 **Kya hua**

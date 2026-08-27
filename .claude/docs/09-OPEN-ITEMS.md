@@ -16,7 +16,7 @@ public page pe price block · catbar · hotels table · add-ons.
 **Agla kaam: Slice 6** — Itinerary Images pool + gallery, aur FAQs · goodToKnow[] ·
 reviews[] + rating (spec 007 §7).
 
-**566 tests passing** · lint · format clean.
+**567 tests passing** · lint · format clean.
 **Last updated:** 27 Aug 2026
 
 ---
@@ -331,7 +331,7 @@ Poora sandarbh: [`specs/007-packages.md`](../specs/007-packages.md) §9
 
 ---
 
-### Q-8 · Public package page ke heading aur intro lines — static rahein ya admin se aayein?
+### Q-9 · Public package page ke heading aur intro lines — static rahein ya admin se aayein?
 
 **Deadline:** koi nahi — jab client kisi heading ko badalna chahe
 **Kisi cheez ko block nahi karta.** Page aaj poora chal raha hai.
