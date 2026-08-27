@@ -29,17 +29,38 @@
      background dikha raha tha. CSS variable missing hone pe koi error nahi aata,
      isliye ye sirf aankh se pakda jaata hai. */
   --blue-900: #0b2b4a;
+  --blue-100: #e4f0fb;
   --blue-500: #2a86d4;
   --blue-600: #1668ae;
   --blue-700: #12558f;
+  /* Hotels tab pe category ka chhota label — reference ka gold. */
+  --gold: #f5a623;
   --orange-500: #f4701c;
+  --orange-100: #ffeee2;
+
+  /*
+   * Hara aur laal — "What's included" ke do column, aur tick/cross ki list.
+   *
+   * Ye tokens pehle daale hi nahi gaye the, aur uska nateeja chup tha: `var(--green-600)`
+   * likhne pe CSS **kuch bhi nahi** karti (koi error nahi), to text apne parent ka rang le
+   * leta hai — aur "included" wali hari list saadi kaali dikhti hai.
+   */
+  --green-600: #0f8a4d;
+  --green-100: #e3f6ec;
+  --red-500: #d92d3c;
+  --red-100: #fdeaec;
   --orange-600: #d95a12;
 
   /* Radius aur shadow bhi reference se — pehle andaaze ke 6/8/10px the */
   --r1: 6px;
   --r2: 10px;
   --r3: 14px;
+  /* `.blk` (har prose section ka dabba) isi radius pe hai. */
+  --r4: 20px;
+  /* Pill radius — catbar aur hotels ke tabs (Slice 5). */
+  --rf: 999px;
   --sh-1: 0 1px 2px rgb(17 29 43 / 5%);
+  --sh-2: 0 1px 3px rgb(17 29 43 / 8%), 0 4px 12px -4px rgb(17 29 43 / 10%);
   --sh-3: 0 8px 28px -8px rgb(17 29 43 / 22%);
 
   --wrap: 1280px;
@@ -1087,34 +1108,63 @@ a.mega__gl:hover {
 .pmeta {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 10px;
-  font-size: 13px;
-  color: var(--muted, #64748b);
-  margin-bottom: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 11px;
+}
+
+/*
+ * Meta ki har chip — `Port Blair · Havelock`, `5 nights / 6 days`.
+ *
+ * Rang aur weight chip pe hain, container pe nahi (reference bhi aisa hi hai): container pe
+ * rakhne se separator ka dot bhi wahi rang le leta, jabki wo `--faint` pe hona chahiye.
+ */
+.pmeta span.t {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.pmeta svg {
+  color: var(--blue-500);
+  flex-shrink: 0;
 }
 
 .pmeta__d {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: currentColor;
-  opacity: 0.5;
+  background: var(--faint);
 }
 
-.pkg h1 {
-  font-size: clamp(28px, 4vw, 40px);
-  line-height: 1.15;
-  font-weight: 800;
-  margin: 0 0 12px;
+/*
+ * `text-wrap: balance` reference se — do line ka title lambi-chhoti line me nahi tootta.
+ *
+ * Selector `.ptitle h1` hai, `.pkg h1` nahi: hero ke bahar bhi h1 aa sakta hai aur uska
+ * clamp alag hoga.
+ */
+.ptitle h1 {
+  font-size: clamp(26px, 3.6vw, 42px);
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+/* Title ke andar ka `<em>` — `5 Nights / 6 Days` neele me. */
+.ptitle h1 em {
+  font-style: normal;
+  color: var(--blue-600);
 }
 
 .pintro {
-  font-size: 17px;
+  font-size: clamp(15px, 1.6vw, 17px);
   line-height: 1.65;
-  color: var(--muted, #475569);
-  max-width: 68ch;
-  margin: 0 0 20px;
+  color: var(--body);
+  margin-top: 14px;
+  max-width: 70ch;
 }
 
 .pkg__bestfor {
@@ -1165,15 +1215,15 @@ a.mega__gl:hover {
 
 .gal a:first-child {
   grid-row: 1 / 3;
-  border-radius: 10px 0 0 10px;
+  border-radius: var(--r4) 0 0 var(--r4);
 }
 
 .gal a:nth-child(3) {
-  border-radius: 0 10px 0 0;
+  border-radius: 0 var(--r4) 0 0;
 }
 
 .gal a:last-child {
-  border-radius: 0 0 10px 0;
+  border-radius: 0 0 var(--r4) 0;
 }
 
 .gal img {
@@ -1245,17 +1295,87 @@ a.mega__gl:hover {
  * Pehle ye sirf `border-top` tha, yaani sections ek doosre se ek lakeer se alag hote the
  * aur poora page flat lagta tha. Screenshot me farq turant dikha.
  */
+/*
+ * Har prose section ka dabba — About, Itinerary, Hotels, Add-ons, Included, Know, FAQ.
+ *
+ * Radius `--r4` (20px) hai, 10px nahi: reference me ye dabbe hero ke bade radius se mel
+ * khaate hain, aur 10px pe wo saaf dikhne wala farq banata hai.
+ */
 .blk {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r4);
   padding: clamp(18px, 2.2vw, 28px);
 }
 
+/*
+ * h2/h3 ka size **clamp** pe hai, fix nahi — chhoti screen pe 23px ke heading section ki
+ * chaudai kha jaate hain. `font-weight` yahan nahi hai: wo `h1..h6` ke base rule se aata
+ * hai (reference me bhi wahi hota hai).
+ */
 .blk h2 {
-  font-size: 24px;
+  font-size: clamp(18px, 2vw, 23px);
+  margin-bottom: 10px;
+}
+
+.blk h3 {
+  font-size: 15.5px;
+  margin: 18px 0 7px;
+}
+
+/*
+ * **Ye rule pehle tha hi nahi**, aur uska asar poore page pe tha: har section ka paragraph
+ * browser ke default size aur rang pe chal raha tha — 16px kaala, jabki design 14px
+ * `--body` maangta hai.
+ */
+.blk p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--body);
+}
+
+.blk p + p {
+  margin-top: 10px;
+}
+
+.blk p b {
+  color: var(--ink);
   font-weight: 800;
-  margin: 0 0 14px;
+}
+
+/** Pehla paragraph — baaki se thoda bada (About ka lead). */
+.blk .lead {
+  font-size: 14.5px;
+}
+
+/*
+ * Tick/cross wali list — "Good to know" ke andar (`.blk ul.tick`, `.tick.no`).
+ *
+ * Rang `--green-600`/`--red-500` se aate hain; wo tokens pehle maujood hi nahi the, isliye
+ * ye list chup-chaap kaali render hoti.
+ */
+.blk ul.tick {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.blk ul.tick li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.blk ul.tick svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--green-600);
+}
+
+.blk ul.tick.no svg {
+  color: var(--red-500);
 }
 
 .rt p {
@@ -1270,70 +1390,98 @@ a.mega__gl:hover {
   margin: 0 0 14px;
 }
 
-/* Route strip — poori tarah derived (spec 007 §3.1). */
+/*
+ * Route strip — poori tarah derived (spec 007 §3.1).
+ *
+ * Rang neele family se hain (`--blue-50` / `--blue-100`), grey se nahi: strip page ka
+ * sabse "structural" hissa hai aur design usse baaki dabbon se alag rakhta hai.
+ *
+ * `align-items: stretch` zaroori hai — do line wale naam (`Neil Island`) ke saath ek line
+ * wale card chhote reh jaate hain aur strip ooncha-neecha dikhta hai.
+ */
 .route {
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  gap: 8px;
   flex-wrap: wrap;
-  gap: 4px;
-  margin: 20px 0;
+  margin-top: 14px;
 }
 
 .route__leg {
   display: flex;
-  align-items: center;
-  gap: 4px;
+  align-items: stretch;
+  gap: 8px;
 }
 
 .route__s {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 8px 14px;
-  display: flex;
-  flex-direction: column;
-  min-width: 110px;
+  background: var(--blue-50);
+  border: 1px solid var(--blue-100);
+  border-radius: var(--r2);
+  padding: 9px 14px;
+  min-width: 118px;
 }
 
 .route__s span {
   font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted, #64748b);
+  color: var(--muted);
 }
 
 .route__s b {
-  font-weight: 700;
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
 }
 
+/* Do card ke beech ka teer — reference me ye ek SVG hai, lakeer nahi. */
 .route__a {
-  width: 18px;
-  height: 1px;
-  background: #cbd5e1;
-  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+  flex-shrink: 0;
 }
 
-/* At-a-glance grid. Cells slice ke saath badhte hain — isliye auto-fit. */
+/*
+ * At-a-glance — chaar cell: Duration · Ferries · Hotels · Best season.
+ *
+ * `repeat(4, 1fr)` fix hai, `auto-fit` nahi: chaaron cell hamesha chaar hi hain, aur
+ * auto-fit unhe do-do karke tod deta tha jab ek cell khaali hota (`ferriesNote` na bhara
+ * ho). Chhoti screen ka jawab neeche media query me hai, jaisa reference me hai.
+ */
 .atg {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .atg > div {
-  background: #f8fafc;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
   padding: 12px 14px;
+  background: var(--surface);
 }
 
 .atg span {
   display: block;
-  font-size: 11px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted, #64748b);
-  margin-bottom: 2px;
+  color: var(--muted);
+}
+
+.atg b {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-top: 4px;
+  letter-spacing: -0.01em;
 }
 
 /* Day-by-day */
@@ -1351,6 +1499,12 @@ a.mega__gl:hover {
   padding: 5px 12px;
   text-decoration: none;
   color: inherit;
+}
+
+.dnav a:hover {
+  border-color: var(--blue-500);
+  color: var(--blue-600);
+  background: var(--blue-50);
 }
 
 .itin {
@@ -1423,57 +1577,98 @@ a.mega__gl:hover {
 }
 
 /* What's included */
-.incl {
+/*
+ * What's included — do dabbe, hara aur laal (reference ka `.inx`).
+ *
+ * Pehle ye `.incl` tha aur do saadi list thi — bina dabbe, bina rang. Design me dono ek-ek
+ * card hain, aur "not included" wala **halka laal** hai. Yahi wo cheez hai jo ek nazar me
+ * batati hai ki daayein wali list ulti baat keh rahi hai.
+ *
+ * `1fr 1fr` fix hai, auto-fit nahi: ye hamesha **do** hi column hain, aur auto-fit unhe
+ * chhoti screen pe bina wajah tod deta tha.
+ */
+.inx {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
 }
 
-.incl h3 {
-  font-size: 14px;
+.inx__c {
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  padding: 16px 18px;
+  background: var(--blue-50);
+}
+
+.inx__c.no {
+  background: #fdf6f6;
+  border-color: #f6dcdf;
+}
+
+.inx__c h3 {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted, #64748b);
-  margin: 0 0 8px;
+  margin: 0 0 10px;
+  color: var(--green-600);
 }
 
-.incl ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 7px;
-  line-height: 1.6;
+.inx__c.no h3 {
+  color: var(--red-500);
 }
 
-.incl__y li::before {
-  content: '✓ ';
-  color: #059669;
-  font-weight: 700;
-}
-
-.incl__n li::before {
-  content: '✕ ';
-  color: #94a3b8;
-  font-weight: 700;
-}
-
-/* Booking steps */
+/*
+ * Booking steps — number wala circle CSS counter se aata hai, markup se nahi.
+ *
+ * `<ol>` ka apna number chhupa kar counter use karne ki wajah: design me wo number ek
+ * **neela circle** hai, aur list-marker ko waisa nahi banaya ja sakta.
+ */
 .steps {
   display: grid;
-  gap: 10px;
-  padding-left: 20px;
-  margin: 0 0 16px;
-  line-height: 1.6;
+  gap: 11px;
+  margin-top: 14px;
+  counter-reset: s;
+  list-style: none;
+  padding: 0;
+}
+
+.steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  padding: 13px 15px;
+}
+
+.steps li::before {
+  counter-increment: s;
+  content: counter(s);
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--blue-600);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
 }
 
 .steps b {
   display: block;
-  font-weight: 700;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 2px;
 }
 
-.steps span {
-  color: var(--muted, #64748b);
+.steps p {
+  font-size: 13px;
 }
 
 @media (max-width: 760px) {
@@ -1509,6 +1704,12 @@ a.mega__gl:hover {
 }
 
 /* Breadcrumb. Reference me ye dark hero pe safed hai; yahan page tinted hai, isliye ink. */
+/*
+ * Breadcrumb — reference me iske **do** roop hain: dark hero pe safed (`.vcrumb`), aur is
+ * page pe muted (`.ghead .vcrumb`). Hamare paas sirf doosra case hai (package page ka
+ * background halka hai), isliye values seedha yahan hain — ek bekaar wrapper class banane
+ * ki zaroorat nahi.
+ */
 .vcrumb {
   display: flex;
   align-items: center;
@@ -1516,8 +1717,9 @@ a.mega__gl:hover {
   flex-wrap: wrap;
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
-  padding-top: 16px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  padding-top: clamp(14px, 2vw, 22px);
 }
 
 .vcrumb a {
@@ -1526,17 +1728,18 @@ a.mega__gl:hover {
 }
 
 .vcrumb a:hover {
+  color: var(--blue-700);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .vcrumb i {
   font-style: normal;
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 .vcrumb b {
-  color: #0f172a;
+  color: var(--ink-2);
   font-weight: 700;
 }
 
@@ -1596,8 +1799,9 @@ a.mega__gl:hover {
 /* Sidebar widget — reference ka `.wdg`. */
 .wdg {
   background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  box-shadow: var(--sh-1);
   overflow: hidden;
 }
 
@@ -1672,5 +1876,422 @@ a.mega__gl:hover {
 
   .ptitle {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==================================================================
+   PRICING · HOTEL CATEGORY · TABLES — Slice 5 (spec 007 §4)
+
+   Reference: itinerary-v3.html — `.ptitle__p` `.catbar` `.htab` `.hpan` `.tbl`
+
+   Category chunna teen jagah ek saath badalta hai (upar ka daam, catbar ka card,
+   hotels ki table). Wo sync `Pricing.jsx` ke context se hota hai — yahan sirf
+   `aria-selected` ke do state hain, koi `.active` class nahi. Selection ka sach
+   pehle se DOM me hai; uske upar ek doosri class rakhna do jagah ek hi baat hai.
+   ================================================================== */
+
+.ptitle__p {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ptitle__p del {
+  font-size: 14px;
+  color: var(--faint);
+  font-weight: 600;
+}
+
+.ptitle__p b {
+  display: block;
+  font-size: clamp(28px, 3.4vw, 38px);
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+.ptitle__p span {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/*
+ * Reference me ye `.ptitle__p .b` hai — yahan `.btn`, kyunki is repo me button ka class
+ * naam alag hai (globals.css §buttons).
+ */
+.ptitle__p .btn {
+  width: 100%;
+}
+
+/* --- catbar: hero ke neeche chaar card --- */
+
+.catbar {
+  margin-top: clamp(18px, 2.4vw, 26px);
+  border-top: 1px solid var(--line);
+  padding-top: clamp(15px, 1.9vw, 19px);
+}
+
+.catbar__h {
+  display: flex;
+  align-items: baseline;
+  gap: 4px 11px;
+  flex-wrap: wrap;
+  margin-bottom: 11px;
+}
+
+.catbar__h b {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.catbar__h span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/*
+ * `repeat(4, 1fr)` fix nahi, `auto-fit` bhi nahi — client ke paas do category bhi ho
+ * sakti hain aur chaar bhi. `repeat(auto-fit, minmax(...))` do card ko poori chaudai me
+ * kheench deta, isliye ginti se hi grid banti hai.
+ */
+.catbar__g {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.catbar__g button {
+  position: relative;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r3);
+  padding: 13px 15px 14px;
+  transition:
+    border-color 0.16s,
+    box-shadow 0.16s,
+    background 0.16s;
+}
+
+.catbar__g button:hover {
+  border-color: var(--blue-500);
+  box-shadow: var(--sh-2);
+}
+
+.catbar__g b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.catbar__g span {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.catbar__g strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -0.035em;
+  margin-top: 10px;
+}
+
+.catbar__g button[aria-selected='true'] {
+  border-color: var(--blue-600);
+  background: var(--blue-50);
+  box-shadow: 0 0 0 3px var(--blue-100);
+}
+
+.catbar__g button[aria-selected='true'] b,
+.catbar__g button[aria-selected='true'] strong {
+  color: var(--blue-700);
+}
+
+.catbar__ck {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--blue-600);
+  color: #fff;
+  opacity: 0;
+  transform: scale(0.55);
+  transition:
+    opacity 0.16s,
+    transform 0.16s;
+}
+
+.catbar__g button[aria-selected='true'] .catbar__ck {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* --- hotels: category tabber --- */
+
+.htab {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.htab button {
+  font: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 8px 15px;
+  border-radius: var(--rf);
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink-2);
+  letter-spacing: -0.01em;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.htab button:hover {
+  border-color: var(--blue-500);
+  color: var(--blue-600);
+  background: var(--blue-50);
+}
+
+.htab button[aria-selected='true'] {
+  background: var(--blue-600);
+  border-color: var(--blue-600);
+  color: #fff;
+}
+
+.htab button span {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 0;
+}
+
+.htab button[aria-selected='true'] span {
+  color: #ffd98a;
+}
+
+.hpan > p {
+  margin-top: 14px;
+}
+
+/*
+ * Table ke neeche ki line — `Standard category — ₹24,999 per person`.
+ *
+ * Ye kisi field se nahi aati, price aur basis se banti hai (spec §4). Isiliye wo table ke
+ * andar nahi, uske baad ek alag patti hai: wo data nahi, data ka saaransh hai.
+ */
+.hpan__note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 14px;
+  padding: 11px 14px;
+  background: var(--blue-50);
+  border: 1px solid var(--blue-100);
+  border-radius: var(--r2);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--blue-700);
+}
+
+.hpan__note b {
+  font-weight: 900;
+  color: var(--ink);
+}
+
+/* --- tables: hotels aur add-ons dono --- */
+
+/*
+ * `overflow-x: auto` yahan hai, table pe nahi.
+ *
+ * `.tbl` ka `min-width` 520px hai — bina is wrapper ke wo phone pe poore page ko
+ * horizontally scroll karwa deti hai. Scroll table ke apne dabbe me rehna chahiye.
+ */
+.tblw {
+  overflow-x: auto;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+}
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--surface);
+  min-width: 520px;
+}
+
+.tbl th {
+  background: var(--blue-50);
+  color: var(--blue-700);
+  text-align: left;
+  padding: 11px 14px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tbl td {
+  padding: 11px 14px;
+  border-top: 1px solid var(--line-2);
+  color: var(--body);
+  line-height: 1.5;
+}
+
+.tbl td b {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.tbl td em {
+  color: var(--faint);
+  font-style: normal;
+}
+
+.tbl tr:hover td {
+  background: var(--blue-50);
+}
+
+/*
+ * 1000px — **1080px nahi**, jo reference me hai.
+ *
+ * `.ptitle` is repo me 1000px pe single-column hoti hai (upar wali media query). Dono ko
+ * alag rakhne ka matlab hota 1000-1080 ke beech ek adhoori haalat: grid abhi bhi do column
+ * ka, par daam left-aligned. Breakpoint wahi rakha jahan layout sach me badalta hai.
+ */
+@media (max-width: 1000px) {
+  .ptitle__p {
+    text-align: left;
+  }
+
+  .ptitle__p .btn {
+    width: auto;
+  }
+}
+
+@media (max-width: 700px) {
+  .catbar__g {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ==================================================================
+   FAQ — "Questions about this package" (spec 007 §2)
+
+   Reference: itinerary-v3.html — `.faq`
+
+   `<details>` browser ka apna accordion hai: koi JS nahi, koi hydration nahi, aur
+   band accordion ka text bhi Ctrl+F se mil jaata hai. Yahan sirf uska default
+   marker hata kar `+` / `−` lagaya gaya hai.
+
+   Reference ka `.faq { max-width: 860px }` yahan **nahi** hai — wahan ye section
+   poori chaudai me tha, yahan wo `.pgl__main` ke andar hai jo pehle se hi tang hai.
+   ================================================================== */
+
+/*
+ * Reference me `max-width: 860px; margin-inline: auto` hai. Yahan bhi rakha hai taaki
+ * kal ye section poori chaudai wale layout me jaaye to wo khud sambhal le — abhi
+ * `.pgl__main` isse tang hai, isliye iska koi asar nahi dikhta.
+ */
+.faq {
+  max-width: 860px;
+  margin-inline: auto;
+}
+
+.faq details {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  margin-bottom: 9px;
+  overflow: hidden;
+}
+
+.faq details[open] {
+  border-color: var(--blue-500);
+}
+
+.faq summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 15px 18px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary::after {
+  content: '+';
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--blue-500);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.faq details[open] summary::after {
+  content: '−';
+}
+
+.faq p {
+  padding: 0 18px 17px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* ==================================================================
+   PACKAGE PAGE — responsive, reference ke breakpoints se
+
+   `.atg` chaar column pe fix hai (auto-fit nahi), isliye chhoti screen ka jawab
+   yahan hai — reference me bhi thik yahi do query hain.
+   ================================================================== */
+
+@media (max-width: 1180px) {
+  .atg {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .atg {
+    grid-template-columns: 1fr 1fr;
   }
 }

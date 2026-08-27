@@ -1,5 +1,13 @@
 import Gallery from './Gallery.jsx'
 import Planner from './Planner.jsx'
+import {
+  AddOns,
+  CatBar,
+  CategoryProvider,
+  HotelsSection,
+  HotelsTag,
+  PriceBlock,
+} from './Pricing.jsx'
 import RichText from './RichText.jsx'
 
 /**
@@ -21,10 +29,29 @@ import RichText from './RichText.jsx'
  * | How booking works + cancellation | ✅ `packageDefaults` se |
  * | Gallery strip | ✅ `packageDefaults` ke pool se |
  * | Price, hotel category picker, add-ons | ❌ **Slice 5** |
- * | FAQs, reviews, similar itineraries | ❌ **Slice 6-7** |
+ * | Questions about this package (FAQs) | ✅ client ne Slice 5 ke saath maanga (D-59) |
+ * | Reviews, similar itineraries | ❌ **Slice 6-7** |
  */
 
 const MEAL_LABEL = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
+
+/**
+ * What's included ke tick aur cross — reference ke inline SVG.
+ *
+ * Rang inke apne nahi hain: wo `.blk ul.tick svg` (hara) aur `.tick.no svg` (laal) se aata
+ * hai, taaki dono list ek hi icon component se bhar sakein.
+ */
+const Tick = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+    <path d="m5 13 4 4L19 7" />
+  </svg>
+)
+
+const Cross = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+    <path d="M18 6 6 18M6 6l12 12" />
+  </svg>
+)
 
 /** `5 nights / 6 days` — dono me se ek bhi na ho to kuch nahi. */
 function duration(fields) {
@@ -58,208 +85,270 @@ export default function PackagePage({ entry, defaults, settings }) {
   const gallery = defaults?.itineraryImages ?? []
 
   return (
-    <main className="pkg">
-      {/*
-       * Order reference ka hai: breadcrumb → .gal → .ptitle → body.
-       *
-       * ⚠️ Beech ka crumb (`Andaman Tour Packages`) abhi **nahi** hai — wo package archive
-       * ka link hoga, aur wo page Phase 3 me banega. Ek crumb jo 404 pe le jaaye, wo na
-       * hone se bura hai.
-       */}
-      <nav className="wrap vcrumb" aria-label="Breadcrumb">
-        <a href="/">Home</a>
-        <i>›</i>
-        <b>{entry.title}</b>
-      </nav>
+    <CategoryProvider
+      pricing={entry.pricing}
+      currency={settings?.currency ?? 'INR'}
+      priceNote={defaults?.priceNote}
+    >
+      <main className="pkg">
+        {/*
+         * Order reference ka hai: breadcrumb → .gal → .ptitle → body.
+         *
+         * ⚠️ Beech ka crumb (`Andaman Tour Packages`) abhi **nahi** hai — wo package archive
+         * ka link hoga, aur wo page Phase 3 me banega. Ek crumb jo 404 pe le jaaye, wo na
+         * hone se bura hai.
+         */}
+        <nav className="wrap vcrumb" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          <i>›</i>
+          <b>{entry.title}</b>
+        </nav>
 
-      <div className="wrap pkg__gal">
-        <Gallery images={gallery} banner={entry.banner} title={entry.title} />
-      </div>
-
-      <section className="pkg__hero wrap ptitle">
-        <div>
-          <div className="pmeta">
-            {/* Rating Slice 6 me aayegi — abhi wo data hai hi nahi */}
-            {stays && <span className="t">{stays}</span>}
-            {stays && length && <i className="pmeta__d" />}
-            {length && <span className="t">{length}</span>}
-          </div>
-
-          <h1>{entry.title}</h1>
-
-          {fields.shortDescription && <p className="pintro">{fields.shortDescription}</p>}
-
-          {/*
-           * `bestFor` yahan **nahi** hai. Wo listing card ka field hai (`tour-v3.html`) —
-           * `Best for <b>first-timers on a short break</b>` — package page ka nahi (D-55).
-           */}
+        <div className="wrap pkg__gal">
+          <Gallery images={gallery} banner={entry.banner} title={entry.title} />
         </div>
 
         {/*
-         * Reference me yahan daayin taraf `₹31,999 → ₹24,999` aur "Get this itinerary" ka
-         * button hai. Wo **Slice 5** (pricing) hai — abhi ye cell khaali hai, isliye title
-         * poori chaudai le leta hai. Grid pehle se do column ka hai taaki us din sirf yahan
-         * content bharna pade.
+         * Reference me `.ptitle` ek andar ka div hai aur `.catbar` uska **bhai** — dono
+         * hero section ke andar. Pehle `.ptitle` khud section pe tha (tab uske do hi bachche
+         * the); catbar ko us grid ka teesra bachcha banane se do-column layout toot jaata.
          */}
-      </section>
-
-      <div className="wrap pgl">
-        <div className="pgl__main">
-          <section className="blk" id="overview">
-            <h2>About this itinerary</h2>
-            <RichText content={entry.content} />
-
-            {entry.routeStrip.length > 0 && (
-              <div className="route">
-                {entry.routeStrip.map((leg, i) => (
-                  <div className="route__leg" key={`${leg.stayId}-${leg.from}`}>
-                    {i > 0 && <div className="route__a" />}
-                    <div className="route__s">
-                      <span>
-                        {leg.nights === 1 ? `Night ${leg.from}` : `Nights ${leg.from}–${leg.to}`}
-                      </span>
-                      <b>{leg.stay?.name ?? '—'}</b>
-                    </div>
-                  </div>
-                ))}
+        <section className="pkg__hero wrap">
+          <div className="ptitle">
+            <div>
+              <div className="pmeta">
+                {/* Rating Slice 6 me aayegi — abhi wo data hai hi nahi */}
+                {stays && <span className="t">{stays}</span>}
+                {stays && length && <i className="pmeta__d" />}
+                {length && <span className="t">{length}</span>}
               </div>
-            )}
 
-            <div className="atg">
-              {length && (
-                <div>
-                  <span>Duration</span>
-                  <b>{length}</b>
-                </div>
-              )}
-              {fields.ferriesNote && (
-                <div>
-                  <span>Ferries</span>
-                  <b>{fields.ferriesNote}</b>
-                </div>
-              )}
-              {fields.bestSeason && (
-                <div>
-                  <span>Best season</span>
-                  <b>{fields.bestSeason}</b>
-                </div>
-              )}
-              {entry.packageTypes.length > 0 && (
-                <div>
-                  <span>Type</span>
-                  <b>{entry.packageTypes.map((t) => t.name).join(' · ')}</b>
-                </div>
-              )}
-              {/* Ferries aur Hotels ke cells Slice 5 me judenge */}
+              <h1>{entry.title}</h1>
+
+              {fields.shortDescription && <p className="pintro">{fields.shortDescription}</p>}
+
+              {/*
+               * `bestFor` yahan **nahi** hai. Wo listing card ka field hai (`tour-v3.html`) —
+               * `Best for <b>first-timers on a short break</b>` — package page ka nahi (D-55).
+               */}
             </div>
-          </section>
 
-          {entry.itinerary.length > 0 && (
-            <section className="blk" id="itinerary">
-              <h2>Day-by-day itinerary</h2>
+            <PriceBlock />
+          </div>
 
-              <div className="dnav">
-                {entry.itinerary.map((day, i) => (
-                  <a href={`#day${i + 1}`} key={day.id ?? i}>
-                    Day {i + 1}
-                    {day.stay ? ` · ${day.stay.name}` : ''}
-                  </a>
-                ))}
-              </div>
+          <CatBar hotels={entry.hotels} />
+        </section>
 
-              <ol className="itin">
-                {entry.itinerary.map((day, i) => (
-                  <li className="itin__d" id={`day${i + 1}`} key={day.id ?? i}>
-                    <div className="itin__k">
-                      <b>Day {i + 1}</b>
-                      {day.stay && <span>{day.stay.name}</span>}
-                      {day.dayTag && <em>{day.dayTag}</em>}
+        <div className="wrap pgl">
+          <div className="pgl__main">
+            <section className="blk" id="overview">
+              <h2>About this itinerary</h2>
+              <RichText content={entry.content} />
+
+              {entry.routeStrip.length > 0 && (
+                <div className="route">
+                  {entry.routeStrip.map((leg, i) => (
+                    <div className="route__leg" key={`${leg.stayId}-${leg.from}`}>
+                      {i > 0 && <div className="route__a" />}
+                      <div className="route__s">
+                        <span>
+                          {leg.nights === 1 ? `Night ${leg.from}` : `Nights ${leg.from}–${leg.to}`}
+                        </span>
+                        <b>{leg.stay?.name ?? '—'}</b>
+                      </div>
                     </div>
-                    <div className="itin__c">
-                      <h3>{day.title}</h3>
-                      {day.description && <p>{day.description}</p>}
+                  ))}
+                </div>
+              )}
 
-                      {day.highlights.length > 0 && (
-                        <ul className="itin__l">
-                          {day.highlights.map((line) => (
-                            <li key={line}>{line}</li>
-                          ))}
-                        </ul>
-                      )}
-
-                      {dayChips(day).length > 0 && (
-                        <div className="itin__m">
-                          {dayChips(day).map((chip) => (
-                            <span key={chip}>{chip}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          )}
-
-          {(included.length > 0 || excluded.length > 0) && (
-            <section className="blk" id="included">
-              <h2>What&rsquo;s included</h2>
-              <div className="incl">
-                {included.length > 0 && (
+              <div className="atg">
+                {length && (
                   <div>
-                    <h3>Included</h3>
-                    <ul className="incl__y">
-                      {included.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
+                    <span>Duration</span>
+                    <b>{length}</b>
                   </div>
                 )}
-                {excluded.length > 0 && (
+                {fields.ferriesNote && (
                   <div>
-                    <h3>Not included</h3>
-                    <ul className="incl__n">
-                      {excluded.map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
+                    <span>Ferries</span>
+                    <b>{fields.ferriesNote}</b>
+                  </div>
+                )}
+                {fields.bestSeason && (
+                  <div>
+                    <span>Best season</span>
+                    <b>{fields.bestSeason}</b>
+                  </div>
+                )}
+                {entry.packageTypes.length > 0 && (
+                  <div>
+                    <span>Type</span>
+                    <b>{entry.packageTypes.map((t) => t.name).join(' · ')}</b>
+                  </div>
+                )}
+                {entry.pricing?.categoryPricing?.length > 0 && (
+                  <div>
+                    <span>Hotels</span>
+                    {/* Chuni hui category ke saath badalta hai — reference ka `js-cat-tag` */}
+                    <HotelsTag />
                   </div>
                 )}
               </div>
             </section>
-          )}
 
-          {(steps.length > 0 || defaults?.cancellationText) && (
-            <section className="blk" id="booking">
-              <h2>Good to know before you book</h2>
+            {entry.itinerary.length > 0 && (
+              <section className="blk" id="itinerary">
+                <h2>Day-by-day itinerary</h2>
 
-              {steps.length > 0 && (
-                <ol className="steps">
-                  {steps.map((step, i) => (
-                    <li key={step.id ?? i}>
-                      <b>{step.title}</b>
-                      {step.text && <span>{step.text}</span>}
+                <div className="dnav">
+                  {entry.itinerary.map((day, i) => (
+                    <a href={`#day${i + 1}`} key={day.id ?? i}>
+                      Day {i + 1}
+                      {day.stay ? ` · ${day.stay.name}` : ''}
+                    </a>
+                  ))}
+                </div>
+
+                <ol className="itin">
+                  {entry.itinerary.map((day, i) => (
+                    <li className="itin__d" id={`day${i + 1}`} key={day.id ?? i}>
+                      <div className="itin__k">
+                        <b>Day {i + 1}</b>
+                        {day.stay && <span>{day.stay.name}</span>}
+                        {day.dayTag && <em>{day.dayTag}</em>}
+                      </div>
+                      <div className="itin__c">
+                        <h3>{day.title}</h3>
+                        {day.description && <p>{day.description}</p>}
+
+                        {day.highlights.length > 0 && (
+                          <ul className="itin__l">
+                            {day.highlights.map((line) => (
+                              <li key={line}>{line}</li>
+                            ))}
+                          </ul>
+                        )}
+
+                        {dayChips(day).length > 0 && (
+                          <div className="itin__m">
+                            {dayChips(day).map((chip) => (
+                              <span key={chip}>{chip}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ol>
-              )}
+              </section>
+            )}
 
-              {defaults?.cancellationText && <p className="muted">{defaults.cancellationText}</p>}
-            </section>
-          )}
+            {/*
+             * Kram reference ka hai: day-by-day → hotels → add-ons → what's included.
+             *
+             * Dono apne aap gayab ho jaate hain jab unka data nahi hota — khaali section
+             * "abhi nahi bana" nahi, "toota hua" lagta hai.
+             */}
+            <HotelsSection hotels={entry.hotels} />
+            <AddOns addOns={defaults?.addOns} />
+
+            {(included.length > 0 || excluded.length > 0) && (
+              <section className="blk" id="included">
+                <h2>What&rsquo;s included</h2>
+                <div className="inx">
+                  {included.length > 0 && (
+                    <div className="inx__c">
+                      <h3>Included</h3>
+                      <ul className="tick">
+                        {included.map((line) => (
+                          <li key={line}>
+                            <Tick />
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {excluded.length > 0 && (
+                    <div className="inx__c no">
+                      <h3>Not included</h3>
+                      <ul className="tick no">
+                        {excluded.map((line) => (
+                          <li key={line}>
+                            <Cross />
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {(steps.length > 0 || defaults?.cancellationText) && (
+              <section className="blk" id="booking">
+                <h2>Good to know before you book</h2>
+
+                {steps.length > 0 && (
+                  <ol className="steps">
+                    {steps.map((step, i) => (
+                      <li key={step.id ?? i}>
+                        {/*
+                         * Number wala neela circle `li::before` se aata hai (CSS counter) —
+                         * isliye `<li>` ka apna content ek div me lapeta hua hai, warna
+                         * flex me title aur text circle ke bagal me alag-alag baith jaate.
+                         */}
+                        <div>
+                          <b>{step.title}</b>
+                          {step.text && <p>{step.text}</p>}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                {defaults?.cancellationText && <p className="muted">{defaults.cancellationText}</p>}
+              </section>
+            )}
+
+            {/*
+             * "Questions about this package" — reference ka `#faq`.
+             *
+             * `<details>` jaan-boojh kar, koi JS nahi: accordion browser ka apna hai, wo bina
+             * hydration ke chalta hai, aur band accordion ka text bhi Ctrl+F se mil jaata hai.
+             *
+             * **Pehla khula hai**, reference ki tarah — poori band list ke saamne user ko
+             * pata hi nahi chalta ki andar kya hai.
+             */}
+            {entry.faqs?.length > 0 && (
+              <section className="blk" id="faq">
+                <h2>Questions about this package</h2>
+
+                <div className="faq">
+                  {entry.faqs.map((faq, i) => (
+                    <details key={faq.id ?? i} open={i === 0}>
+                      <summary>{faq.question}</summary>
+                      {faq.answer && <p>{faq.answer}</p>}
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/*
+           * Sticky sidebar — reference ka `.pgl__side`.
+           *
+           * Isme do widget hain: upar **price + enquiry form** (Slice 5 + Enquiries, Phase 7b)
+           * aur neeche **"Talk to a planner"**. Aaj sirf doosra ban sakta hai, kyunki uska
+           * poora data settings me pehle se hai.
+           */}
+          <aside className="pgl__side">
+            <Planner settings={settings} />
+          </aside>
         </div>
-
-        {/*
-         * Sticky sidebar — reference ka `.pgl__side`.
-         *
-         * Isme do widget hain: upar **price + enquiry form** (Slice 5 + Enquiries, Phase 7b)
-         * aur neeche **"Talk to a planner"**. Aaj sirf doosra ban sakta hai, kyunki uska
-         * poora data settings me pehle se hai.
-         */}
-        <aside className="pgl__side">
-          <Planner settings={settings} />
-        </aside>
-      </div>
-    </main>
+      </main>
+    </CategoryProvider>
   )
 }
