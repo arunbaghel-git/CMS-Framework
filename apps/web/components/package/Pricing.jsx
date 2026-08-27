@@ -83,16 +83,15 @@ export function PriceBlock({ ctaLabel = 'Get this itinerary', ctaHref = '#enquir
       {selected.strikePrice != null && <del>{formatPrice(selected.strikePrice, currency)}</del>}
       <b>{formatPrice(selected.priceFrom, currency)}</b>
       {/*
-       * Reference me yahan `per person · twin sharing` hai — ek **chhoti** line, aur wo
-       * hotels table ke neeche wali lambi line se alag hai.
+       * Ye line **static** hai, reference se jaisi ki taisi (client, 27 Aug) — har cheez
+       * field nahi banti.
        *
-       * Uske liye koi field nahi hai (basis D-57 me hata diya gaya), aur lambi wali yahan
-       * daal dena kaam nahi karta: `.ptitle__p` pe `white-space: nowrap` hai, to
-       * "per person on twin sharing, daily breakfast included" poore column ko tod deti.
-       *
-       * Isliye abhi yahan kuch nahi — line wahi ek jagah chhapti hai jahan wo asal me hai
-       * (D-62). Client ko chhoti wali chahiye hogi to wo apna ek field maangegi.
+       * Pehle yahan `packageDefaults.priceNote` daali gayi thi, par wo poori vaakya hai
+       * ("per person on twin sharing, daily breakfast included.") aur yahan ek **chhoti**
+       * line chahiye — `.ptitle__p` ke `nowrap` me wo grid column ko kheench deti thi.
+       * `priceNote` apni asli jagah, hotels table ke neeche, waisi hi chal rahi hai.
        */}
+      <span>per person · twin sharing</span>
       {/*
        * `btn btn--accent` — reference me ye `b b-o` hai, par is repo me buttons ke class
        * naam badal chuke hain (globals.css §buttons). Reference ka naam likhne ka nateeja
@@ -155,7 +154,8 @@ export function CatBar({ hotels }) {
     <div className="catbar">
       <div className="catbar__h">
         <b>Choose your hotel category</b>
-        <span>The day-by-day plan stays the same — only the hotels change.</span>
+        {/* Reference ka poora text (R15) — "and ferry class" pehle chhoot gaya tha */}
+        <span>The day-by-day plan stays the same — only the hotels and ferry class change.</span>
       </div>
 
       <div className="catbar__g" role="tablist" aria-label="Hotel category">
@@ -194,6 +194,45 @@ export function HotelsTag() {
 }
 
 /**
+ * Har hotel category ka do-hissa text — tab ka chhota naranji `label` (`Standard **Base**`)
+ * aur tabs ke neeche panel ka `text`.
+ *
+ * ⚠️ **Ye hardcoded content hai, aur ye is repo ke apne usool ke khilaaf hai** (client ka
+ * faisla, 27 Aug — Q-8). Dono ke liye koi field nahi hai aur client ne admin me nayi jagah
+ * dene se mana kiya. `note` (jo catbar pe chhapta hai) label ki jagah daalne ka mashwara
+ * diya gaya tha; wo na-manzoor hua kyunki pill design se kaafi chaudi ho jaati.
+ *
+ * Jo isse tootta hai: `Sea-facing`, `Beachfront`, `Havelock`, `Sitapur` — sab **Andaman ki
+ * baat hai**, jabki core code har client ke instance me wahi rehta hai. Agle client ke
+ * pahaadi package pe tab pe `Beachfront` likha aayega aur panel me Havelock ka zikr. Isiliye
+ * ye `packages/shared` me **nahi** hai — theme layer me hai, taaki client ka apna theme ise
+ * badal sake bina core chhue.
+ *
+ * `text` sirf un chaar category ke liye hai jo reference me hain. Client paanchvi category
+ * jode to uska panel bina paragraph ke rahega — khaali `<p>` chhapne se behtar.
+ *
+ * Jis din inke liye field banein, ye const hat jayega — aur bas.
+ */
+const CATEGORY_COPY = {
+  standard: {
+    label: 'Base',
+    text: 'The base category — comfortable, well-run properties in walkable locations, picked for reliable power, water and staff more than for the view.',
+  },
+  deluxe: {
+    label: 'Sea-facing',
+    text: 'A clear step up on all three islands, with a sea-facing room on Havelock. This is the upgrade most couples take, and the one we suggest for a honeymoon.',
+  },
+  premium: {
+    label: 'Beachfront',
+    text: 'Beachfront on both Havelock and Neil — you step out of the room onto sand. Port Blair moves to a harbour-view property on Marine Hill.',
+  },
+  luxury: {
+    label: 'Villas',
+    text: 'The highest category the islands have — the best resorts and private villas we work with. Havelock is a beachfront villa with its own deck; Neil is a boutique villa resort at Sitapur. These properties sell out first, so book early.',
+  },
+}
+
+/**
  * "Hotels on this package" — tabs + har category ki apni table.
  *
  * `Nights` aur `Room` server se resolve ho kar aate hain (`/api/public/resolve`): nights
@@ -222,9 +261,17 @@ export function HotelsSection({ hotels }) {
   return (
     <section className="blk" id="hotels">
       <h2>Hotels on this package</h2>
+      {/*
+       * Reference ka poora text (R15). Pehli line pehle chhoot gayi thi.
+       *
+       * ⚠️ "and on the enquiry form" — wo form abhi bana nahi hai (Enquiries, Q-2). Line
+       * design ki hai isliye rakhi hai; form aane tak ye ek vaada hai jo page pura nahi
+       * karta. Client kahe to aakhri teen shabd hata dena ek line ka kaam hai.
+       */}
       <p>
-        Switch the category to see the properties it puts you in — the tab you pick here also sets
-        the price shown at the top of the page.
+        Rooms are held on twin sharing with daily breakfast. Switch the category to see the
+        properties it puts you in — the tab you pick here also sets the price shown at the top of
+        the page and on the enquiry form.
       </p>
 
       {tabs.length > 1 && (
@@ -238,12 +285,18 @@ export function HotelsSection({ hotels }) {
               onClick={() => setCategory(tab.category)}
             >
               {HOTEL_CATEGORY_LABEL[tab.category] ?? tab.category}
+              {CATEGORY_COPY[tab.category]?.label && (
+                <span>{CATEGORY_COPY[tab.category].label}</span>
+              )}
             </button>
           ))}
         </div>
       )}
 
       <div className="hpan">
+        {/* Chuni hui category ka apna paragraph — `.hpan > p` (reference me table se pehle) */}
+        {CATEGORY_COPY[active.category]?.text && <p>{CATEGORY_COPY[active.category].text}</p>}
+
         <div className="tblw">
           <table className="tbl">
             <thead>
@@ -251,8 +304,13 @@ export function HotelsSection({ hotels }) {
                 <th>Island</th>
                 <th>Nights</th>
                 <th>{activeLabel} category</th>
+                {/*
+                 * `Note` ka column **hata diya gaya hai** — reference me table ke chaar hi
+                 * column hain. Hotel ka `note` pehle se catbar ke card pe chhapta hai
+                 * (D-57), aur wahi text do jagah dikhne se table me ek column bhar jaata
+                 * tha jo design me hai hi nahi.
+                 */}
                 <th>Room</th>
-                <th>Note</th>
               </tr>
             </thead>
             <tbody>
@@ -266,7 +324,6 @@ export function HotelsSection({ hotels }) {
                     {hotel.name} <em>or similar</em>
                   </td>
                   <td>{hotel.room}</td>
-                  <td>{hotel.note}</td>
                 </tr>
               ))}
             </tbody>

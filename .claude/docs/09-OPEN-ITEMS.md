@@ -331,6 +331,52 @@ Poora sandarbh: [`specs/007-packages.md`](../specs/007-packages.md) §9
 
 ---
 
+### Q-8 · Public package page ke heading aur intro lines — static rahein ya admin se aayein?
+
+**Deadline:** koi nahi — jab client kisi heading ko badalna chahe
+**Kisi cheez ko block nahi karta.** Page aaj poora chal raha hai.
+
+**Abhi ka niyam:** *dhaancha* static, *maal* admin se. Har section ka heading aur uske
+neeche ki intro line theme ke code me likhi hui hai; admin se sirf content aata hai
+(`entry.content`, `entry.itinerary[]`, `entry.faqs[]`, `packageDefaults.*`).
+
+**Kitna static hai** — 7 heading + 6 lines:
+
+| Text | Kahan |
+| --- | --- |
+| `About this itinerary` · `Day-by-day itinerary` · `What's included` (+ `Included`/`Not included`) · `Good to know before you book` · `Questions about this package` | `apps/web/components/package/PackagePage.jsx` |
+| `Hotels on this package` · `Popular add-ons` | `apps/web/components/package/Pricing.jsx` |
+| `Every day below can be moved…` (day-by-day intro) | `PackagePage.jsx` |
+| `Rooms are held on twin sharing…` (hotels intro) | `Pricing.jsx` |
+| `Added to your quote only if you want them.` (add-ons intro) | `Pricing.jsx` |
+| `per person · twin sharing` (hero ka daam) | `Pricing.jsx` |
+| `The day-by-day plan stays the same — only the hotels and ferry class change.` | `Pricing.jsx` (catbar) |
+| `or similar` (hotels table) | `Pricing.jsx` |
+| `Base` · `Sea-facing` · `Beachfront` · `Villas` (hotel tabs) | `Pricing.jsx` — `TAB_NOTE` |
+
+**Sawaal kyun hai:** client in me se **ek shabd bhi admin se nahi badal sakta**. Ye is
+framework ke buniyaadi vaade se takraata hai — har client ka apna instance, par core code
+sab me same. `Popular add-ons` ko `Optional extras` karna aaj ek code change hai, aur wo
+change us client ke instance me hi rehna padega.
+
+**`TAB_NOTE` sabse tez kaanta hai** (client ka faisla, 27 Aug — admin me nayi jagah dene se
+mana kiya). `Sea-facing` aur `Beachfront` **Andaman ki baat hai**, jabki wo file har client
+ke instance me wahi rehti hai. Agle client ke pahaadi package pe tab pe `Beachfront` likha
+aayega. Isiliye wo `packages/shared` me nahi, theme layer me hai — client ka theme ise badal
+sake bina core chhue.
+
+**Teen raaste:**
+
+1. **Aise hi rehne do** — theme ka hissa maano. Abhi yahi chal raha hai.
+2. **`packageDefaults` me ek `labels{}` block** — saaton heading + paanchon line, sab
+   optional; khaali ho to abhi wala text default rahe. Ek screen, ek baar bharna.
+3. **Jab zaroorat pade tab** — jo heading client sach me badalna chahe, sirf usi ko field
+   banao. **Mashwara yahi hai** — abhi kisi ne badalne ko kaha nahi, aur 12 field pehle se
+   bana dena wahi galti hai jo D-57/D-58 me pakdi gayi thi (jo cheez pehle se hai, use
+   dobara mat poochho).
+
+---
+
 ### Q-2 · Enquiries — Phase 7b ya alag Phase 9?
 
 **Deadline:** Phase 7 se pehle

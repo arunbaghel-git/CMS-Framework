@@ -114,6 +114,30 @@ body.noscroll {
   overflow: hidden;
 }
 
+/*
+ * **Ye rule pehle tha hi nahi** — `.blk p` wali hi galti, bas headings pe.
+ *
+ * Iske bina har heading `body` se `--body` (#4a5a6d, halka slaty) le rahi thi, jabki design
+ * `--ink` (#111d2b) maangta hai — package page ka `<h1>` screenshot me isi wajah se saada
+ * grey dikh raha tha. Saath me browser ka default `margin` bhi lag raha tha, isliye
+ * `.blk h2 { margin-bottom: 10px }` jaise rules aadhe hi kaam kar rahe the: neeche ka
+ * margin unka, upar ka browser ka.
+ *
+ * Reference ka rule (line 64) jaisa ka waisa. `font-weight: 800` yahin se aata hai —
+ * `.blk h2`/`.blk h3` sirf size batate hain, weight nahi.
+ */
+h1,
+h2,
+h3,
+h4,
+h5 {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -1101,8 +1125,16 @@ a.mega__gl:hover {
   padding-bottom: 64px;
 }
 
+/*
+ * `padding-block`, `padding` shorthand **nahi** — ye element `.wrap` bhi hai.
+ *
+ * Shorthand `padding: 20px 0 8px` me `0` ka matlab left/right bhi 0 hai, aur ye rule
+ * `.wrap` ke baad aata hai (specificity dono ki 0-1-0), isliye wo `padding-inline:
+ * var(--pad)` ko chup-chaap uda deta tha — banner ke neeche ka poora hero section page ke
+ * bilkul kinare se chipka hua tha.
+ */
 .pkg__hero {
-  padding: 20px 0 8px;
+  padding-block: 20px 8px;
 }
 
 .pmeta {
@@ -1354,10 +1386,22 @@ a.mega__gl:hover {
  * Rang `--green-600`/`--red-500` se aate hain; wo tokens pehle maujood hi nahi the, isliye
  * ye list chup-chaap kaali render hoti.
  */
+/*
+ * ⚠️ `list-style`, `padding` aur neeche ka `margin` yahin reset hote hain.
+ *
+ * Reference me ye teenon ek **global** `ul { margin: 0; padding: 0; list-style: none }`
+ * se aate hain, jo yahan nahi daala ja sakta — RichText ki list ko uske apne bullet aur
+ * indent chahiye. Bina reset ke browser ka default lagta tha: list 40px andar khisak kar
+ * heading se alag ho jaati thi aur neeche 16px ka fazool gap chhod deti thi. `<li>` pe
+ * `display: flex` hone se bullet waise bhi nahi dikhta tha — sirf khisakav dikhta tha,
+ * yaani galti aisi lagti thi jaise jaan-boojh kar di gayi ho.
+ */
 .blk ul.tick {
   display: grid;
   gap: 8px;
-  margin-top: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .blk ul.tick li {
@@ -1485,20 +1529,29 @@ a.mega__gl:hover {
 }
 
 /* Day-by-day */
+
+/*
+ * Din ki pill-links. Values ab reference se hain — pehle wali andaaze ki thin aur token
+ * banne se pehle ki (`1px solid #e2e8f0`, seedha `999px`).
+ *
+ * `margin` sirf upar hai, neeche nahi: dnav aur timeline ke beech ki jagah `.itin` ke
+ * apne `margin-top` se aati hai. Dono jagah rakhne se wo do baar judti thi.
+ */
 .dnav {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 8px 0 20px;
+  gap: 7px;
+  margin-top: 14px;
 }
 
 .dnav a {
-  font-size: 13px;
-  border: 1px solid #e2e8f0;
-  border-radius: 999px;
-  padding: 5px 12px;
-  text-decoration: none;
-  color: inherit;
+  padding: 7px 13px;
+  border-radius: var(--rf);
+  border: 1.5px solid var(--line);
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--body);
 }
 
 .dnav a:hover {
@@ -1507,73 +1560,216 @@ a.mega__gl:hover {
   background: var(--blue-50);
 }
 
+/*
+ * Day-by-day timeline — reference (`.itin`) se poori tarah dobara likhi gayi. Pehle yahan
+ * ek saadi do-column list thi: na baayin taraf ki rail, na uske circle, na "Day 1" ka neela
+ * pill. Wo Slice 4 ka kaam chalau roop tha, design ka nahi.
+ *
+ * `padding-left` yahin ki sabse aham line hai. Rail aur circle `.itin__d` ke **bahar**
+ * baayein taraf bethte hain (negative `left`), isliye list ko utni jagah chhodni padti hai
+ * — na chhode to wo `.blk` ke padding me ghus kar kat jaate hain. Reference me ye jagah
+ * `<ol>` ke browser-default 40px se aati thi; yahan wo likhi hui hai, kyunki kisi UA ke
+ * default pe layout tikana chup-chaap tootne wali cheez hai.
+ */
 .itin {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  --rail: clamp(18px, 2.2vw, 28px);
   display: grid;
-  gap: 22px;
+  gap: 0;
+  margin-top: 18px;
+  padding-left: 40px;
+  list-style: none;
+  counter-reset: d;
 }
 
 .itin__d {
+  position: relative;
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: clamp(12px, 1.3vw, 16px);
+  padding: 22px 0;
   scroll-margin-top: 90px;
 }
 
-.itin__k {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+/* Rail — har din ke baayein, poori unchai me. */
+.itin__d::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--rail) / -2 - 1px);
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--line-2);
 }
 
+/* Pehle din rail circle ke neeche se shuru hoti hai, aakhri din uske thoda baad ruk
+   jaati hai — warna lakeer upar-neeche khali hawa me latakti hai. */
+.itin__d:first-child::before {
+  top: 11px;
+}
+
+.itin__d:first-child {
+  padding-top: 4px;
+}
+
+.itin__d:last-child::before {
+  bottom: auto;
+  height: 29px;
+}
+
+.itin__k {
+  position: relative;
+}
+
+/* Rail pe din ka circle. */
+.itin__k::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--rail) / -2 - 6px);
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--blue-600);
+}
+
+/* `Day 1` — neela pill, saada bold text nahi. */
 .itin__k b {
-  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 5px 11px;
+  border-radius: var(--rf);
+  background: var(--blue-600);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
 }
 
 .itin__k span {
-  font-size: 13px;
-  color: var(--muted, #64748b);
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-top: 8px;
 }
 
 .itin__k em {
   font-style: normal;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted, #94a3b8);
+  display: block;
+  font-size: 11.5px;
+  color: var(--faint);
+  font-weight: 600;
+  margin-top: 2px;
 }
 
 .itin__c h3 {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 0 0 8px;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+  margin: 0 0 7px;
 }
 
 .itin__c p {
-  line-height: 1.7;
-  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--body);
+  margin: 0;
 }
 
+/*
+ * Highlights. Bullet browser ka nahi, `::before` ka neela dot hai — isliye `list-style`
+ * aur `padding` yahin reset hote hain (reference me ye global `ul` reset se aata hai, jo
+ * yahan nahi daala ja sakta: RichText ki list ko uske apne bullet chahiye).
+ */
 .itin__l {
-  padding-left: 18px;
-  line-height: 1.7;
-  margin: 0 0 10px;
+  display: grid;
+  gap: 7px;
+  margin: 11px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.itin__l li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--body);
+}
+
+.itin__l li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue-500);
+  flex-shrink: 0;
+  margin-top: 7px;
 }
 
 .itin__m {
   display: flex;
+  gap: 6px;
   flex-wrap: wrap;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--muted, #64748b);
+  margin-top: 13px;
 }
 
 .itin__m span {
-  background: #f1f5f9;
-  border-radius: 999px;
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+  background: var(--line-2);
+  padding: 5px 10px;
+  border-radius: var(--rf);
+}
+
+.itin__m svg {
+  color: var(--blue-600);
+  flex-shrink: 0;
+}
+
+/*
+ * Chhoti screen pe rail hat jaati hai aur din ka sar ek line me aa jaata hai — 100px ka
+ * column phone pe content ko kuchal deta hai. Breakpoint reference wala (860px).
+ */
+@media (max-width: 860px) {
+  .itin {
+    padding-left: 0;
+  }
+
+  .itin__d {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .itin__d::before {
+    display: none;
+  }
+
+  .itin__k {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .itin__k::after {
+    display: none;
+  }
+
+  .itin__k span {
+    margin: 0;
+  }
+
+  .itin__k em {
+    display: none;
+  }
 }
 
 /* What's included */
@@ -1769,7 +1965,8 @@ a.mega__gl:hover {
   grid-template-columns: minmax(0, 1fr) 322px;
   gap: clamp(18px, 2.4vw, 32px);
   align-items: start;
-  padding: clamp(18px, 2.4vw, 28px) 0 64px;
+  /* `.pkg__hero` wali hi wajah — ye bhi `.wrap` hai, isliye shorthand nahi (upar dekho) */
+  padding-block: clamp(18px, 2.4vw, 28px) 64px;
 }
 
 .pgl__main {
@@ -2174,10 +2371,13 @@ a.mega__gl:hover {
   font-weight: 800;
 }
 
-.tbl td em {
-  color: var(--faint);
-  font-style: normal;
-}
+/*
+ * `.tbl td em` ka apna koi rule **nahi** hai — jaan-boojh kar.
+ *
+ * Yahan pehle `color: var(--faint); font-style: normal` tha, par reference me `or similar`
+ * saada **italic** hai aur baaki cell jaise hi rang me. Grey aur seedha karne se wo hotel
+ * ke naam se alag ek "chhoti sooch na" jaisa dikhne lagta tha.
+ */
 
 .tbl tr:hover td {
   background: var(--blue-50);
