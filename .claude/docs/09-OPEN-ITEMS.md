@@ -101,6 +101,7 @@ blocker band ho gaye** (A-6, A-7 → **D-49**) — 491 tests passing.
 | **Q-8 drawer vs footer logo** | ✅ **Ek hi logo dono me theek hai** — client ka faisla. Koi code change nahi; abhi ka behaviour hi final hai. Logo aisa chuna jaaye jo gehre footer aur safed drawer **dono** pe padha jaaye |
 | **spec 007 §9 #1 — Package = `entries` ka type?** | ✅ **Haan (D-46)** — client ka faisla. `packages` collection nahi banegi; engine ek hi rahega. Master lists (`hotels`, `addOns`, `transfers`, `packageDefaults`) phir bhi apni collection me — unka apna URL aur publish lifecycle nahi hai. **spec 007 ab 🟢 approved** |
 | **Public package page** | ✅ **Shuru ho gaya (D-52)** — client ne 26 Aug ko chuna ki page slice ke saath badhe, Slice 7 ka intezaar na kare. Ek hi catch-all route, `GET /api/public/resolve`, aur naya `path:` cache tag — **jiske bina publish karne pe page saaf hi nahi hota tha**. Auto-301 ab sach me chalta hai |
+| **spec 007 §9 #3, #12, #13** | ✅ **Teenon band (D-53)** — `Room` **hotel ke record pe** (kuch nahi badla) · category ke daam ke saath **ek chhoti line** (Slice 5 me banegi) · `Ferries` **client likhega**, derive nahi (`included` ginti se aa hi nahi sakta, aur Transfer ek free list hai) |
 | **`bestFor` ka shape** | ✅ **Ek line, chips nahi (D-55)** — client ne asli listing page dikhaya: `Best for <b>first-timers on a short break</b>`. Card ke baaki chips (`2N / 3D`, `Ferry`) **derived** hain, `bestFor` nahi. Field DSL ka `tags` type bhi hata diya — uska koi caller nahi bacha. D-50 §3 superseded |
 | **`availability` (Sold Out)** | ✅ **Banaya, phir hata diya (D-54)** — client ne live page dekhne ke baad kaha ki ye feature chahiye hi nahi. D-50 §1 superseded. Migration 012 **delete nahi ki**: wo apply ho chuki thi, aur file hatane se runner use "missing" report karta — 013 sirf uska index drop karti hai. Field Mongo me chhod diya (koi query use padhti hi nahi) |
 | **Slice 4 — Itinerary Builder** | ✅ **Ban gaya** — din-wise builder (drag-reorder, accordion), aur **route strip ka live preview** jo poori tarah derived hai. spec 007 §9 ke teen sawaal band (**D-51**): `note` ek free line hai · `transferNote` **din pe** hai (ek hi Ferry teen duration pe chalti hai) · per-day Hotel Category **rahegi**. `fields.itinerary` ab write pe validate hoti hai |
@@ -300,7 +301,7 @@ dikhta jab koi sidebar me Posts pe click karta.
 
 ---
 
-### spec 007 §9 · Packages ke 9 baaki sawaal
+### spec 007 §9 · Packages ke 6 baaki sawaal
 
 **Deadline:** har sawaal ka apna slice — spec me likha hai
 **Koi bhi plan ko nahi rokta.** Jo ek buniyaadi tha (#1), wo D-46 me band ho gaya.
@@ -310,9 +311,10 @@ chhoot jaate the — 26 Aug ko yahi hua.
 
 | Slice | Sawaal |
 | --- | --- |
-| 2 | #2 What's Included aur Inclusion/Exclusion ek hi hain? · #3 `Room` hotel me ya package me? · ~~#4~~ ✅ **D-51 §2** · #5 Package Type flat ya hierarchical? · #14 `packageDefaults` naam theek hai? |
+| 2 | #2 What's Included aur Inclusion/Exclusion ek hi hain? · ~~#3~~ ✅ **D-53 §3** · ~~#4~~ ✅ **D-51 §2** · #5 Package Type flat ya hierarchical? · #14 `packageDefaults` naam theek hai? |
 | ~~3~~ | ~~#6 · #7 · #9~~ ✅ **teenon band — D-50** |
 | ~~4~~ | ~~#10 · #11~~ ✅ **dono band — D-51** |
+| ~~5~~ | ~~#12 · #13~~ ✅ **dono band — D-53** |
 | 5 | #12 category ka `note` field? · #13 `Ferries: 3 legs` gine ya likha jaaye? |
 | 6 | #8 `ratingValue`/`ratingCount` haath se ya `reviews[]` se? |
 | 7 | #15 similar itineraries — apne aap ya haath se? |

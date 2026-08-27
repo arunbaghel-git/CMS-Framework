@@ -39,10 +39,10 @@ export const hotelSchema = z.object({
   /**
    * `Deluxe, twin sharing` — public page ke hotel table ka Room column.
    *
-   * ⚠️ Ye hotel ke record pe hai ya package pe, ye **abhi tay nahi** hai (spec 007 §9 #3).
-   * Yahan isliye hai ki hotel ka kamra hotel ki apni property hai; agar client kahe ki ye
-   * package ke hisaab se badalta hai to ye field `fields.hotels[]` me chala jaayega. Wo
-   * badalna sasta hai — is field pe koi index ya reference nahi hai.
+   * **Hotel ke record pe hi rehta hai** — client ka faisla, 26 Aug (D-53 §3). Room hotel ki
+   * apni property hai: "City Hotel ka Deluxe room". Package pe le jaane ka matlab hota ki
+   * client har package pe har hotel ka room dobara likhe — teen destination × chaar
+   * category = bara row, har package pe.
    */
   room: z.string().max(200).default(''),
 
@@ -106,7 +106,8 @@ export const transferSchema = z.object({
    * chunne ka raasta milna chahiye, code change ke bina.
    *
    * ⚠️ Duration (`90 min`) yahan **nahi** hai — wo har din alag hoti hai, isliye wo
-   * itinerary ke din ka field hai (Slice 4). spec 007 §9 #4.
+   * itinerary ke din ka field hai (D-51 §2). Reference me ek hi `Ferry` teen alag duration
+   * pe chalti hai; record pe rakhne ka matlab hota har route ke liye alag "Ferry" banana.
    */
   icon: z.string().max(60).default(''),
 

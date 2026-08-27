@@ -179,15 +179,16 @@ Slice 1, 2 aur 3 poori ho chuki hain (D-47 se D-50) — API aur screens dono.
 aur naya `path:` cache tag. Client ka faisla — page **har slice ke saath badhega**.
 
 Agla kaam **Slice 5 — Pricing + Hotels** (spec 007 §4), ab **admin aur public page dono ek
-saath**. Usme §9 ke teen sawaal khule hain — **#12** (category ka `note`), **#13**
-(`Ferries: 3 legs` derive ya manual), **#3** (`Room` hotel pe ya package me).
+saath**. Uske teenon sawaal **band ho chuke hain** (D-53), to koi rukawat nahi:
+categoryPricing[] (4 category × priceFrom/strikePrice/note), currency/basis/GST/advance,
+hotels[] ka panel — aur page pe price block, catbar, hotels table, add-ons.
 
 **Design frozen hai (R15)**: `docs/reference/admin-design.html` ke hisaab se hi banega, aur
 build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**. Jo farq abhi liye
 gaye hain wo sab client ke faislon se hain aur `04-ADMIN-UX.md` ke aakhri section me
 table me likhe hain.
-spec 007 §9 ke **15 sawaal** abhi khule hain, par koi bhi plan nahi rokta — har ek apne
-slice pe tay hoga (`09-OPEN-ITEMS.md`).
+spec 007 §9 ke **6 sawaal** abhi khule hain (#2, #5, #8, #14, #15, #16), par koi bhi plan
+nahi rokta — har ek apne slice pe tay hoga (`09-OPEN-ITEMS.md`).
 
 | #   | Kya                                                    | Kab tak                                      |
 | --- | ------------------------------------------------------ | -------------------------------------------- |

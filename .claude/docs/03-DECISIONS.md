@@ -2542,6 +2542,75 @@ sambhaalta hai, aur do route ek hi path pe rakhna Next me error hai.
 
 ---
 
+## D-53 · Slice 5 ke teen sawaal — client ke jawab (§9 #3, #12, #13)
+
+**Context:** Slice 5 (Pricing + Hotels) shuru karne se pehle spec 007 §9 ke teen sawaal
+khule the. Client ne 26 Aug ko teenon ka jawab diya. **#13 usi din bana bhi**; #12 Slice 5
+ke saath banega; #3 me kuch badalna hi nahi tha.
+
+> ⚠️ Ye record us din **likhna chhoot gaya tha.** Code me (`content-types.js` ka
+> `ferriesNote`) aur commit message me "D-53" ka hawala tha, par decision maujood hi nahi
+> thi — numbering D-52 se seedha D-54 pe kood rahi thi. Agle `/status` me ye pakda gaya.
+
+### 1. `ferriesNote` — client khud likhega, derive nahi hoga (§9 #13)
+
+Page ke "At a glance" me `Ferries · 3 legs, included` hai. Sawaal tha: ye ginti itinerary se
+apne aap nikle, ya client likhe?
+
+**Decision:** client likhega. `fields.ferriesNote`, free text.
+
+**Kyun derive nahi:** dekhne me ye route strip jaisa hi lagta tha — itinerary ke jin dino pe
+transfer "Ferry" hai, unki ginti. Par do cheezein raaste me aati hain:
+
+- **Transfer ek free list hai** (spec 007 §1.6). Client `Ferry`, `Catamaran`, `Cruise` —
+  kuch bhi likh sakta hai. "Ye ferry hai" pehchanne ke liye us record pe ek flag chahiye
+  hota, ya `icon` se andaaza lagana padta — aur wo bharosemand nahi.
+- **`included` ginti se aa hi nahi sakta.** Asli line `3 legs, included` hai. Number derive
+  ho bhi jaata to us shabd ke liye phir bhi ek field chahiye — yaani do source, ek line.
+
+Ye route strip se **ulta** case hai (D-51): wahan poori line structured data se banti hai,
+yahan aadhi nahi ban sakti. Aadha derive karna sabse bura hota — client ko samajh hi nahi
+aata ki number kahan se aaya aur wo badalta kyun nahi.
+
+### 2. Har hotel category ke daam ke saath ek chhoti line (§9 #12)
+
+Reference ke `catbar` me har card pe **teen** cheezein hain:
+
+```
+Standard    Comfortable, well-located     ₹24,999
+Deluxe      Sea-facing on Havelock        ₹29,499
+Premium     Beachfront on Havelock        ₹36,999
+```
+
+Beech wali line kisi field se nahi aati thi.
+
+**Decision:** `categoryPricing[].note` — ek chhoti line, har category ki apni.
+
+**Kyun:** iske bina cards me sirf naam aur number bachta hai, aur customer ko pata hi nahi
+chalta ki ₹5,000 zyada dene se **milta kya hai**. Wahi ek line poore upgrade ko bechti hai.
+
+**Slice 5 me banega** — `categoryPricing[]` abhi bana hi nahi.
+
+### 3. `Room` hotel ke record pe hi rahega (§9 #3)
+
+`Deluxe, twin sharing` — ye hotel ke record pe rahe ya har package apna likhe?
+
+**Decision:** hotel ke record pe. **Yaani kuch nahi badla** — Slice 2 me wahi banaya gaya
+tha, bas wo tab tay nahi tha.
+
+**Kyun:** room hotel ki apni property hai — "City Hotel ka Deluxe room". Ek baar likha, har
+package me chalta hai. Package pe le jaane ka matlab hota ki client har package pe har
+hotel ka room dobara likhe, aur teen destination × chaar category = bara row har baar.
+
+**Reject kiya:** "hotel pe default, package pe override". Wo lachila zaroor hai, par ek aur
+field aur ek aur "kaunsa jeetega" wala sawaal laata hai — aur aaj koi aisa case nahi hai
+jahan ek hi hotel do packages me alag room de.
+
+`master-lists.js` me `room` ke upar wala ⚠️ comment ab hata diya gaya hai — wo "abhi tay
+nahi hai" kehta tha.
+
+---
+
 ## D-54 · `availability` hata diya gaya — client ko wo feature chahiye hi nahi
 
 **Supersedes:** D-50 §1

@@ -616,13 +616,14 @@ packageDefaults { siteId }                    unique    ← singleton, wahi patt
 
 Inme se koi bhi **plan ko nahi rokta** — build ke waqt tay ho sakte hain. Jo ek buniyaadi
 tha (#1), wo 26 Aug ko band ho gaya (D-46). Slice 3 ke teen (#6, #7, #9) bhi usi din band
-hue — **D-50**. Slice 4 ke #4, #10, #11 bhi band — **D-51**. Bacha: **9**.
+hue — **D-50**. Slice 4 ke #4, #10, #11 bhi band — **D-51**. Slice 5 ke #3, #12, #13 bhi —
+**D-53**. Bacha: **6** (#2, #5, #8, #14, #15, #16).
 
 | # | Sawaal | Kab chahiye |
 | --- | --- | --- |
 | ~~1~~ | ~~Package = `entries` ka type?~~ ✅ **haan** — 26 Aug, **D-46** | ~~Slice 1 se pehle~~ |
 | 2 | `What's Included` aur `Inclusion/Exclusion` — ek hi hain? | Slice 2 |
-| 3 | `Room` hotel ke record me ya package me? | Slice 2 |
+| ~~3~~ | ~~`Room` hotel ke record me ya package me?~~ ✅ **hotel ke record pe** — **D-53 §3** (kuch nahi badla) | ~~Slice 2~~ |
 | ~~4~~ | ~~Transfer record me icon? Duration per-day?~~ ✅ icon **record pe** (Slice 2) · duration **din pe** — D-51 §2 | ~~Slice 2~~ |
 | 5 | Package Type flat ya hierarchical? | Slice 2 |
 | ~~6~~ | ~~List ka `Code` column — hataayein?~~ ✅ **haan, hat gaya** — 26 Aug, **D-50 §2** | ~~Slice 3~~ |
@@ -631,8 +632,8 @@ hue — **D-50**. Slice 4 ke #4, #10, #11 bhi band — **D-51**. Bacha: **9**.
 | ~~9~~ | ~~`Sold Out` — status hai ya `availability` field?~~ ✅ **banaya, phir hata diya** — client ko wo feature chahiye hi nahi (**D-54**, D-50 §1 superseded) | ~~Slice 3~~ |
 | ~~10~~ | ~~Din ka `note` field?~~ ✅ **haan** — ek free line, fixed icon. D-51 §1 | ~~Slice 4~~ |
 | ~~11~~ | ~~Per-day `Hotel Category` dropdown hatana hai?~~ ✅ **nahi, rahegi** — D-51 §3 | ~~Slice 4~~ |
-| 12 | Category ka `note` field? | Slice 5 |
-| 13 | `Ferries: 3 legs` — apne aap gine ya likha jaaye? | Slice 5 |
+| ~~12~~ | ~~Category ka `note` field?~~ ✅ **haan, ek chhoti line** — **D-53 §2**. Slice 5 me banega | ~~Slice 5~~ |
+| ~~13~~ | ~~`Ferries: 3 legs` — apne aap gine ya likha jaaye?~~ ✅ **client likhega** — **D-53 §1**. Ban chuka hai | ~~Slice 5~~ |
 | 14 | `packageDefaults` naam theek hai, ya kuch aur? §1.8 | Slice 2 |
 | 15 | Similar itineraries — apne aap (salah) ya haath se? §6.1 | Slice 7 |
 | 16 | Enquiries (Q-2) — `Enq.` column aur booking form iska intezaar kar rahe hain | baad me |

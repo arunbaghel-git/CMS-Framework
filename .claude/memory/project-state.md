@@ -45,6 +45,10 @@ itinerary, What is included, booking steps, gallery.
 bana" pe hain, jabki engine (D-46) unhe support karta hai aur seed me dono types register
 hain. Kaam Packages wali screens ka doosra roop hai.
 
+**Slice 5 ke teenon sawaal band ho chuke hain (D-53)** — `Room` hotel ke record pe,
+category ke daam ke saath ek chhoti line, aur `Ferries` client likhega (`ferriesNote` ban
+bhi chuka). Yaani Slice 5 pe **koi rukawat nahi** hai.
+
 **Agla kaam: Slice 5 — Pricing + Hotels** (spec 007 §4) — ab **admin aur public page dono**
 ek saath. Usme teen sawaal khule hain: §9 #12 (category ka `note`), #13 (`Ferries: 3 legs`
 derive ho ya likha jaaye), aur #3 (`Room` hotel ke record pe ya package me).
