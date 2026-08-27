@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL } from '@cms/shared'
 
 import { api, errorMessage } from '../../lib/api.js'
+import PriceLinePanel from './PriceLinePanel.jsx'
 import { useAuth } from '../../lib/auth.jsx'
 import { useTaxonomyList } from './usePackages.js'
 import './Packages.css'
@@ -40,8 +41,23 @@ export const MASTER_LISTS = {
         type: 'text',
         hint: 'Jaise: Deluxe, twin sharing — public page ke table me yahi chhapta hai',
       },
+      {
+        /**
+         * Optional (client, 27 Aug — D-57). Do jagah dikhta hai: public table ka Note
+         * column, aur category card ki beech wali line — isiliye ek chhoti line hi theek
+         * hai, poora paragraph nahi.
+         *
+         * Pehle ye har package pe alag likha jaata tha (`categoryPricing[].note`, D-53 §2).
+         * Hotel ke record pe aane ka matlab hai: ek baar likho, har package me chalta hai —
+         * wahi tark jo `room` pe laga tha (D-53 §3).
+         */
+        key: 'note',
+        label: 'Note',
+        type: 'text',
+        hint: 'Optional, ek chhoti line — jaise: Sea-facing on Havelock',
+      },
     ],
-    columns: ['name', 'destinationId', 'category', 'room'],
+    columns: ['name', 'destinationId', 'category', 'room', 'note'],
   },
   addOns: {
     endpoint: '/add-ons',
@@ -87,6 +103,7 @@ const COLUMN_LABEL = {
   destinationId: 'Destination',
   category: 'Category',
   room: 'Room',
+  note: 'Note',
   price: 'Price',
   where: 'Where',
   icon: 'Icon',
@@ -259,6 +276,14 @@ export default function MasterListScreen({ list }) {
           <span>{notice}</span>
         </div>
       )}
+
+      {/*
+       * Price line sirf Hotels ki screen pe — wo page pe hotels table ke theek neeche
+       * chhapti hai, aur setting wahin honi chahiye jahan uska asar dikhta hai (D-62).
+       *
+       * Data `packageDefaults` me hi rehta hai; sirf screen badli hai.
+       */}
+      {list === 'hotels' && <PriceLinePanel />}
 
       <div className="edit-grid tax-grid">
         {canWrite && (

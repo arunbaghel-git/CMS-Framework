@@ -46,6 +46,19 @@ export const hotelSchema = z.object({
    */
   room: z.string().max(200).default(''),
 
+  /**
+   * `Sea-facing on Havelock` — hotel ki ek chhoti line, **optional** (client, 27 Aug — D-57).
+   *
+   * Do jagah dikhti hai: public page ki hotels table ka Note column, aur catbar ke card ki
+   * beech wali line (jahan us category ke **pehle** hotel ka note aata hai).
+   *
+   * ⚠️ Pehle ye `categoryPricing[].note` thi, yaani har package apna likhta (D-53 §2).
+   * Client ne use hotel ke record pe bheja: hotel ki khaasiyat hotel ki apni baat hai, aur
+   * ek baar likhne se har package me wahi chalti hai — wahi tark jo `room` pe laga tha
+   * (D-53 §3).
+   */
+  note: z.string().max(200).default(''),
+
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
 })

@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 26 Aug 2026
+> **Last updated:** 27 Aug 2026
 
 ---
 
@@ -23,9 +23,12 @@ Teen faisle **D-48** me.
   chain flatten aur loop se bachav ke saath; descendants ke purane URL bhi zinda.
   Manager UI Phase 4 me hi rahegi.
 
-**Slice 3 ka API hissa poora ho chuka (26 Aug — D-50):** package ka field set,
-`availability` (`Sold Out` ab status nahi, alag field hai), aur `taxonomyTypes` ka gate.
-Field DSL me ek naya type juda — `tags` (chips).
+**Slice 3 ka API hissa poora ho chuka (26 Aug — D-50):** package ka field set aur
+`taxonomyTypes` ka gate. Field DSL me ek naya type juda — `tags` (chips).
+⚠️ D-50 ka `availability` field usi din **hata diya gaya** (D-54) — client ko wo feature
+chahiye hi nahi tha. Aaj koi code use nahi padhta; migration **013** uska index gira deti hai.
+012 aur 013 dono files rahengi — applied migration ki file hatane pe runner har boot pe
+"missing" ki jhoothi chetavni deta hai.
 
 **Slice 3 poori ho chuki (26 Aug)** — API aur screens dono. Saath me Slice 2 ki saat
 screens bhi ban gayin (Destinations · Package Type · Hotels · Add Ons · Transfer ·
@@ -49,9 +52,78 @@ hain. Kaam Packages wali screens ka doosra roop hai.
 category ke daam ke saath ek chhoti line, aur `Ferries` client likhega (`ferriesNote` ban
 bhi chuka). Yaani Slice 5 pe **koi rukawat nahi** hai.
 
-**Agla kaam: Slice 5 — Pricing + Hotels** (spec 007 §4) — ab **admin aur public page dono**
-ek saath. Usme teen sawaal khule hain: §9 #12 (category ka `note`), #13 (`Ferries: 3 legs`
-derive ho ya likha jaaye), aur #3 (`Room` hotel ke record pe ya package me).
+**Slice 5 ban gayi (27 Aug — D-56)** — admin aur public page dono ek saath.
+`fields.pricing{}` (basis · GST · advance · categoryPricing[]), `fields.hotels[]` aur
+`fields.addOns[]`; admin me do naye panel (**Pricing** · **Hotels**) aur sidebar ka
+**Add-ons** checklist; page pe price block · catbar · hotels table · add-ons. 13 naye test.
+
+**FAQs ka panel bhi ban gaya (D-59)** — client ne Slice 5 ke saath maanga, Slice 6 ka
+intezaar nahi. **Sirf FAQs, policies nahi**: cancellation `packageDefaults` me hi rahegi
+(wahi lakeer jo What's Included aur price line pe hai — jo har package pe same hai, wo
+package ka data nahi). Jawab **plain text** hai, aur page pe accordion `<details>` se banta
+hai — band accordion ka text bhi Ctrl+F se milta hai.
+
+**Price line ab Packages ▸ Hotels screen pe hai (D-62)** — pehle wo What's Included wali
+screen pe thi, aur ek bug ki wajah se **dono** screens pe dikh rahi thi (guard me
+`section !== 'images'` likha tha jabki sections ke naam `whatsIncluded`/`itineraryImages`
+hain — shart hamesha sach thi). Data ab bhi `packageDefaults` me hai, sirf screen badli.
+
+⚠️ **Hero me daam ke neeche ab kuch nahi hai.** Reference me wahan ek **chhoti** line hai
+(`per person · twin sharing`) jo hotels wali lambi line se alag hai, aur uske liye koi field
+nahi bacha (`priceBasis` D-57 me hata). Lambi line wahan daali nahi ja sakti —
+`.ptitle__p` pe `white-space: nowrap` hai. Ye chhoda hua gap hai, bhoola hua nahi.
+
+**Add-ons ab poori tarah global hain (D-61)** — package editor me panel nahi, page pe poori
+Add Ons list, aur wo `packageDefaults` ke payload me jaati hai (uska cache tag `type:package`
+hai; entry ke payload me rakhne ka matlab hota ki naya add-on jodne pe har package alag saaf
+karna pade). ⚠️ **Spec §1.4 ka ulta hai** — wahan likha tha ki chune jaate hain, taaki jo
+package Havelock jaata hi nahi uspe wahan ke add-ons na dikhein. Client ne palat diya.
+
+**Hotels panel me ab ek hi blank row hai (D-61)** — Destination · Category · Hotel · Add.
+Neeche sirf wo rows jo client ne khud jodi hain, ✕ ke saath. Jodi hui row us jodi ke auto
+wale ko **hata deti hai**.
+
+**Public hotels table poori tarah derived hai (D-58 + D-60)** — rows itinerary ke overnight
+stays se, categories pricing se, aur hotel **Hotels master list** se (ek jodi pe do hotel hon
+to naam ke kram me pehla). `fields.hotels[]` ab chunav nahi, **override** hai: package ke
+panel me kuch na karo to bhi table bharti hai.
+
+⚠️ **Row teen shart pe banti hai:** wo jagah itinerary me ho · us category ka daam bhara ho ·
+us jodi ka koi hotel maujood ho. Panel ke har dropdown ka pehla option `Auto — <hotel>` hai,
+taaki khaali chhodne pe kya jaayega wo naam ke saath dikhe.
+
+**Client ke chaar faisle (27 Aug — D-56, D-57):** Pricing panel me **chaaron category ki
+row hamesha** (Category · Price From · Strike-through), **currency nahi** (settings se),
+**Price Basis / GST / Advance ki poori row nahi**, aur per-category `note` **hotel ke
+record pe** chala gaya (Hotels submenu me optional field).
+
+⚠️ **Khaali daam = wo category is package pe milti hi nahi** — wo catbar aur hotels tabs
+dono se gayab ho jaati hai. Chhanni server pe hai (`pricedCategories()`), theme me nahi.
+
+**Design ka koi text nahi hataya (R15).** Jo per-package field nahi rahe unka source badla:
+`per person on twin sharing…` ab `packageDefaults.priceNote` se (Packages ▸ What's Included
+wali screen pe naya "Price line" panel), aur card ki beech wali line us category ke pehle
+hotel ke `note` se.
+
+⚠️ **Teen cheezein derive hoti hain, store kahin nahi:** upar ka `₹31,999 → ₹24,999`
+(sabse sasti category), hotels table ka `Nights` (`nightsByStay()`), aur `Deluxe category —
+₹29,499` ka pehla hissa. `Room` aur `Note` dono package pe nahi hain — wo hotel ke apne
+record pe hain (D-53 §3, D-57 §2).
+
+**Agla kaam: Slice 6** (spec 007 §7) — Itinerary Images pool + gallery, aur FAQs ·
+goodToKnow[] · reviews[] + rating.
+
+**27 Aug — dev server tunnel/LAN se khulta hai, aur CORS reject 403 hai.** Kaam share
+karne ke liye cloudflared tunnel lagate waqt do gap mile, dono asli: Vite sirf localhost pe
+bind tha (`host: true` juda — iske bina docker se pahunch, LAN pe mobile test, aur koi bhi
+tunnel kabhi nahi chalta), aur allowlist se bahar ka origin **500** ban jaata tha kyunki wahan
+plain `Error` throw hoti thi — login screen pe sirf "Something went wrong" dikhta tha, yaani
+**configuration ki galti server crash jaisi lagti thi**. Ab wo `forbidden()` hai aur message
+me origin ka naam aata hai. Naya env var **`EXTRA_CORS_ORIGINS`** (comma se alag, optional) —
+`SITE_URL` ko list nahi banaya ja sakta kyunki wo revalidate webhook ka **target** bhi hai,
+aur `*` jaan-boojh kar support nahi (cookies `credentials` ke saath jaati hain — D-12).
+spec 003 update ho chuki hai. **Koi naya D-xx nahi liya** — ye D-12 ka palan hai, uska
+apwaad nahi.
 
 **Phase 0 ka approved execution scope poora.** Auth, RBAC, admin shell, Users,
 Settings General, Media foundation, aur Settings Logo/Favicon current scope me live hain.
@@ -92,17 +164,20 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Slice 2  master lists + defaults   ✅  26 Aug — D-48, migration 010
           A-6 + A-7 (Slice 3 ke blocker)   ✅  26 Aug — D-49, migration 011
           Slice 3  API (field set etc.)      ✅  26 Aug — D-50, migration 012
+          availability hata (D-54)          ✅  26 Aug — migration 013, index gira
           Slice 3  admin ki screens          ✅  26 Aug — list + editor
           Slice 2  ki saat screens           ✅  26 Aug — taxonomy + master lists
           A-8      Overview ka TipTap        ✅  26 Aug — bold/italic/list/link
           Slice 4  Itinerary Builder         ✅  26 Aug — D-51, route strip live
           Public package page        🟡  26 Aug — D-52, slice ke saath badhega
-          Slice 5  Pricing + Hotels           🔴  ← agla kaam (admin + page dono)
-          Slice 4-7                          🔴  specs/007-packages.md §7
+          Dev tunnel/LAN + CORS 403   ✅  27 Aug — EXTRA_CORS_ORIGINS, spec 003
+          Slice 5  Pricing + Hotels           ✅  27 Aug — D-56 se D-60, koi migration nahi
+          FAQs ka panel (Slice 6 se aage)    ✅  27 Aug — D-59, sirf FAQs
+          Slice 6-7                          🔴  ← agla kaam. specs/007-packages.md §7
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 541 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 566 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 

@@ -21,9 +21,12 @@ const S = ENTRY_SUPPORT
 /**
  * Package ka field set — spec 007 §2, Slice 3.
  *
- * **Yahan sirf wo hai jo Slice 3 me chahiye.** Itinerary (§3), pricing (§4), hotels,
- * FAQs, goodToKnow aur reviews Slice 4-6 me judenge — unme se kai spec 007 §9 ke khule
- * sawaalon pe ruke hue hain, aur unhe abhi likhna un sawaalon ka jawab maan lena hota.
+ * Slice 3 me bana, Slice 4 me `itinerary` (§3) aur Slice 5 me `pricing`/`hotels` (§4) juda.
+ *
+ * **`addOns` yahan jaan-boojh kar nahi hai** — client ne 27 Aug ko use poori tarah global
+ * kar diya (D-61): page har package pe Add Ons ki poori list dikhata hai, aur package usme
+ * se chunta nahi. **FAQs, goodToKnow, reviews aur rating abhi baaki hain** — wo
+ * Slice 6 me judenge.
  *
  * `destinations` aur `packageTypes` yahan **nahi** hain — wo `entry.taxonomies` me hain
  * (D-49), aur kaunsi taxonomies chalti hain wo `taxonomyTypes` batata hai.
@@ -57,6 +60,52 @@ const PACKAGE_FIELDS = [
     help: 'Din-wise plan. Route strip isi se apne aap banti hai.',
   },
   { key: 'bestSeason', type: 'text', label: 'Best season', help: 'Jaise: Oct – May' },
+  {
+    /**
+     * Daam — poora contract `schemas/pricing.js` me hai (spec 007 §4, Slice 5).
+     *
+     * DSL me ye ek `group` hai: andar sirf `categoryPricing[]` hai — chaar category, har
+     * ek ka `priceFrom` aur `strikePrice`. Spec §2 me bhi ye `pricing{}` hai.
+     *
+     * Client ne 27 Aug ko `Price Basis · GST % · Advance to Book %` wali poori row hata di
+     * (D-57), aur per-category `note` hotel ke record pe bhej diya.
+     *
+     * **Currency yahan nahi hai** — wo `settings.currency` se aati hai (client, 27 Aug).
+     *
+     * ⚠️ Page ka `₹31,999 → ₹24,999` **sabse sasti category** se derive hota hai
+     * (`cheapestPricing()`), kisi "featured category" field se nahi.
+     */
+    key: 'pricing',
+    type: 'group',
+    label: 'Pricing',
+    help: 'Har hotel category ka apna daam',
+  },
+  {
+    /**
+     * Har destination × category pe ek hotel (§4.2).
+     *
+     * `Nights` yahan **nahi** hai — wo itinerary se derive hoti hai (`nightsByStay()`).
+     * `Room` bhi nahi — wo hotel ke apne record pe hai (D-53 §3).
+     */
+    key: 'hotels',
+    type: 'repeater',
+    label: 'Hotels',
+    help: 'Har destination par har category ka hotel',
+  },
+  {
+    /**
+     * Page ka "Questions about this package" — poora contract `schemas/faq.js` me
+     * (spec 007 §2).
+     *
+     * Design me iska panel **"FAQs & Policies"** tha; client ne 27 Aug ko sirf FAQs maanga.
+     * Policies wahin hain jahan wo pehle se the — `packageDefaults.cancellationText` (§2.1),
+     * kyunki wo har package pe same hain.
+     */
+    key: 'faqs',
+    type: 'repeater',
+    label: 'FAQs',
+    help: 'Is package ke apne sawaal-jawab',
+  },
   {
     /**
      * `first-timers on a short break` — **ek line**, chips nahi (client, 26 Aug, D-55).

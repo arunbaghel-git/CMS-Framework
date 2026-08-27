@@ -70,6 +70,20 @@ export const packageDefaultsSchema = z.object({
 
   bookingSteps: z.array(bookingStepSchema).max(20).default([]),
 
+  /**
+   * `per person on twin sharing, daily breakfast included` — daam ke saath wali line
+   * (client, 27 Aug — D-57).
+   *
+   * Page pe **do jagah** chhapti hai: hero me daam ke neeche, aur hotels table ke neeche
+   * wali patti me (`Deluxe category — ₹29,499 <yahi line>`).
+   *
+   * **Yahan isliye hai ki ye har package pe bilkul same hai** — wahi lakeer jo What's
+   * Included pe hai (§1.5). Pehle iska aadha hissa `pricing.priceBasis` se derive hota tha;
+   * client ne wo field hata di, par line design me hai aur dikhni chahiye (R15) — to wo ab
+   * poori tarah client ke likhe hue shabd hain, na ki aadhi derived aadhi likhi hui.
+   */
+  priceNote: z.string().max(300).default(''),
+
   /** "Cancellations more than 30 days before travel…" — spec 007 §2.1. */
   cancellationText: z.string().max(5000).default(''),
 
@@ -94,6 +108,7 @@ export function emptyPackageDefaults() {
     whatsIncluded: { included: [], excluded: [] },
     itineraryImages: [],
     bookingSteps: [],
+    priceNote: '',
     cancellationText: '',
   }
 }

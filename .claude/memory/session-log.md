@@ -15,6 +15,202 @@ Format:
 
 ---
 
+## 2026-08-27 (shaam) — Slice 5 client ke faislon se dobara ghadi gayi; FAQs; CSS milaan
+
+**Kya hua**
+
+Slice 5 subah ban gayi thi (D-56). Uske baad client ne editor **chal kar dekha** aur chhe
+badlaav maange — har ek ka apna decision record hai (D-57 se D-62). Saath me FAQs ka panel
+bana, aur din ke aakhir me public page ki CSS reference se rule-by-rule milaayi gayi.
+
+**Faisle (sab client ke, R15)**
+
+| #    | Kya badla                                                                                                                                                                                            |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D-57 | Pricing panel me **chaaron category ki row hamesha**; `Price Basis · GST · Advance` ki poori row hati; per-category `note` **hotel ke record pe** chala gaya. Khaali daam = wo category page pe nahi |
+| D-58 | Hotels panel ki rows **itinerary se** banti hain, chuni nahi jaatin                                                                                                                                  |
+| D-59 | **FAQs** ka panel — sirf FAQs, **policies nahi** (wo `packageDefaults` me hi)                                                                                                                        |
+| D-60 | Hotel bhi **derive** hota hai (master list se); `fields.hotels[]` ab sirf **override**                                                                                                               |
+| D-61 | **Add-ons global** — editor me panel nahi, poori list `packageDefaults` ke payload me                                                                                                                |
+| D-62 | **Price line** `Packages ▸ Hotels` screen pe (pehle What's Included pe thi, aur ek bug se **dono** screens pe dikh rahi thi)                                                                         |
+
+**Ek soch jo poore din chali:** har baar client ne wahi cheez hatai jo package me **pehle se
+likhi hui** thi — destination itinerary me tha, category pricing me, hotel master list me.
+Teenon baar jawab ek hi tha: dobara mat poochho, derive karo. Aaj package editor me pricing
+ke aath number, hotels ki zero se ek row, aur FAQs — bas.
+
+**CSS milaan (aakhri hissa)**
+
+`itinerary-v3.html` ki CSS aur `globals.css` ka **rule-by-rule diff** script se nikala
+(scratchpad me `css-diff.mjs`). Shuru me **28 selector missing, 29 me values alag**; ab
+**4 missing** bache hain aur wo chaaron un sections ke hain jo bane hi nahi.
+
+Do sabse badi cheezein jo pakdi gayin, aur dono chup thin:
+
+1. **Chaar design token maujood hi nahi the** — `--green-600`, `--red-500`, `--r4`,
+   `--orange-100`. Token na ho to `var()` **kuch nahi karti**, koi error nahi: "What's
+   included" ki hari list saadi kaali render ho rahi thi.
+2. **`.blk p` rule tha hi nahi** — har section ke paragraph browser ke default pe (16px
+   kaala), jabki design 14px / `--body` maangta hai. Ye poore page pe dikhta tha.
+
+Markup do jagah badla: What's included ab `.inx__c` ke **do card** (hara/laal, tick-cross
+SVG), aur booking steps ab **neele number-circle** wale card (CSS counter se).
+
+Ek aur bug isi pass me mila: CTA button `className="b b-o"` pe tha — reference ka naam,
+jabki is repo me wo `btn btn--accent` hai. Button bilkul **unstyled** render ho raha tha.
+
+**⚠️ Jo maine toda, aur theek nahi kar paya**
+
+`next build` chalayi jab `next dev` chal raha tha — Windows pe wo `.next/trace` pe EPERM
+deti hai, aur beech me maarne se `.next` kharab ho gaya. Pehle har page 500, phir maine
+`.next/server` aur `.next/cache` hata diye to 404. **Dev server ko restart chahiye** —
+`apps/web` terminal me Ctrl+C, phir `pnpm dev:web`. API (4000) aur admin (5173) theek hain.
+
+Iska seedha nateeja: **poore din ki CSS aankh se verify nahi ho payi**, sirf code aur
+reference ka milaan hua.
+
+**Agla — naya session, sirf design**
+
+Client ne kaha: jo sections **bane hue hain** wo design se match hone chahiye, ek-ek karke,
+wo screenshot denge. Jo bane hi nahi (Traveller reviews · Similar itineraries · neeche ka
+"Want this trip on your dates?" band · sidebar ka price widget) unhe abhi chhod dena hai.
+
+**Teen sawaal khule hain**, teenon unhi na-bane sections ke:
+
+1. `ratingValue` haath se likha jaaye ya `reviews[]` se gina jaaye (spec §9 #8) — mera
+   mashwara **haath se**: `412` ka matlab hai "412 reviews hain", jabki page pe teen dikhte
+   hain; derive karne pe wo **3** ho jaata
+2. Similar itineraries **apne aap** chunein ya haath se (spec §9 #15) — mashwara **apne aap**
+3. Neeche ka band aur sidebar widget me **enquiry form** hai, aur Enquiries Phase 7b me hai
+   (Q-2) — form ka khaali shell, ya "Call/WhatsApp" button (settings me phone pehle se hai)
+
+## 2026-08-27 — Slice 5 — Pricing + Hotels (D-56); docs sync
+
+**Kya hua**
+
+- Session `/status` se shuru — **4 doc mismatch** mile aur sab theek kiye (neeche), phir
+  Slice 5 banayi: `fields.pricing{}` + `fields.hotels[]` + `fields.addOns[]`, admin ke do
+  naye panel, aur public page pe price block · catbar · hotels table · add-ons.
+- **Koi migration nahi lagi** — teenon field `entries.fields` (Mixed) ke andar hain, na
+  naya collection na naya index.
+
+**Faisle — D-56, dono client se (27 Aug)**
+
+1. **Pricing panel ki pehli row `Category · Price From · Strike-through` hai.** Design me
+   wahan `Currency · Price From · Strike-through` tha. Grid wahi `row3` hai — sirf pehla
+   khana badla, kyunki daam ab har category ka apna hai.
+2. **Currency package pe hai hi nahi.** Spec §4 me wo package ka field thi (INR|USD|AED)
+   aur maine bana bhi di thi; client ne hata di. Wo `settings.currency` se aati hai.
+   Dono jagah rakhne ka matlab ek extra field nahi, ek **sawaal** hota: "kaunsi jeetegi".
+
+**Teen cheezein derive hoti hain, store kahin nahi** — ye slice ka sabse zaroori hissa
+hai, kyunki teenon ke liye ek-ek field banana bahut aasan tha:
+
+| Page pe                                  | Kahan se                                   |
+| ---------------------------------------- | ------------------------------------------ |
+| Upar ka `₹31,999 → ₹24,999`              | sabse sasti category — `cheapestPricing()` |
+| Hotels table ka `Nights`                 | itinerary — `nightsByStay()`               |
+| `Standard category — ₹24,999 per person` | price + basis se                           |
+
+`Room` bhi package pe nahi hai — hotel ke apne record pe (D-53 §3).
+
+**Paanch guard, sab reference BANNE se pehle** (D-42 §2 wala invariant): hotel/add-on ki
+id sach ho · `destinationId` sach me Destination ho · ek category do baar price na ho · ek
+destination × category pe do hotel na hon · `strikePrice > priceFrom`. Aakhri wala schema
+me **nahi**, service me hai — schema me lagane ka matlab hota ki aadha bhara hua form save
+hi na ho.
+
+Aur delivery ke chhor pe ek aur: public projection me jis row ka hotel ya destination
+resolve na ho, wo **payload me aati hi nahi** — adhoori row ka nateeja public table me ek
+khaali cell hota, jo customer ko dikhta hai.
+
+**Public page pe teenon jagah ek hi category.** Reference me category chunna upar ka daam,
+catbar ka card aur hotels ki table — teenon ek saath badalta hai (design ka JS `js-catpick`
+aur `js-htab` ko sync karta hai). Isliye selected category ek React **context** me hai,
+teen alag state me nahi.
+
+**Docs jo badle:** `03-DECISIONS` (D-56) · `02-ARCHITECTURE` §3 (`entries.fields` ka naya
+maal) · `04-ADMIN-UX` (editor ke naye panel, aur `Sold Out`/`From price` wali do stale
+rows) · `09-OPEN-ITEMS` · `CLAUDE.md` · project-state.
+
+**Session ke shuru me jo 4 mismatch mile the**
+
+1. `project-state.md` khud se ulta bol rahi thi — "Slice 5 ke teenon sawaal band (D-53)"
+   aur do line neeche "teen sawaal khule hain". Doosri line hatayi.
+2. `09-OPEN-ITEMS.md` ka header "383 tests" keh raha tha (andar ek jagah 491) — asli 541.
+3. §"spec 007 §9" table me row 5 **do baar** thi — ek band, ek khuli. Duplicate hatayi.
+4. 27 Aug ka CORS/tunnel kaam kisi doc me record nahi tha — teen jagah juda, aur
+   `EXTRA_CORS_ORIGINS` `06-OPERATIONS` §4.0 me documented (env var ka doc rule miss
+   ho gaya tha).
+
+Saath me do stale claim: project-state `availability` ko live field bata rahi thi (D-54 me
+hat chuka), aur `entries.test.js` ka section header wahi purani baat keh raha tha.
+
+**Ek cheez jo verify nahi ho payi:** `pnpm --filter @cms/web build` chal nahi sakti jab
+`next dev` chalu ho — `.next/trace` pe Windows ka file lock EPERM deta hai. Uski jagah
+**chalte hue dev server pe** verify kiya: package page **200** deti hai aur `Pricing.jsx`
+compile ho kar chalta hai (provider `<main>` ko lapetta hai). Admin ka `vite build` clean
+hai.
+
+**Agla**
+
+1. **Slice 6** — Itinerary Images pool + gallery, aur FAQs · goodToKnow[] · reviews[] +
+   rating (spec 007 §7)
+2. `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET` (**A-5**, manual step)
+3. Pricing ko asli data ke saath dekhna — dev DB ke package me abhi pricing khaali hai,
+   isliye page pe catbar/table abhi dikhte nahi (wo khud ko chhupate hain, wahi design hai)
+
+## 2026-08-27 — Dev server tunnel/LAN se khula, CORS reject 403 hua; docs sync
+
+**Kya hua**
+
+- Kaam share karne ke liye cloudflared tunnel lagaya, aur usme **do asli gap** mile —
+  demo ke nahi, code ke:
+  1. **Vite sirf localhost pe bind tha.** Next (`apps/web`) default `0.0.0.0` pe bind
+     hota hai, Vite `[::1]` pe — isliye tunnel se site chal gayi aur admin **502** de raha
+     tha. `host: true` juda. Iske bina teen cheezein kabhi nahi hotin: docker se pahunch,
+     LAN pe mobile se test, aur koi bhi tunnel.
+  2. **CORS reject 500 ban jaata tha.** Allowlist se bahar ka origin aane pe ek plain
+     `Error` throw hoti thi; wo `AppError` nahi hai, to error handler use generic **500**
+     bana deta tha aur login screen pe sirf "Something went wrong. Please try again."
+     dikhta tha. Yaani **configuration ki galti server crash jaisi dikhti thi.** Ab wo
+     `forbidden()` hai aur message me origin ka naam aata hai, taaki use seedha
+     `EXTRA_CORS_ORIGINS` me copy-paste kiya ja sake.
+- `/status` chalaya — **4 doc mismatch** mile, sab theek kiye (neeche).
+
+**Ek baat jo pehle GALAT kahi gayi thi:** "Vite `/api` proxy karta hai to same-origin hai,
+CORS nahi phansega." Browser POST/PATCH/DELETE pe `Origin` header **hamesha** bhejta hai,
+chahe same-origin ho — isiliye `/api/me` (GET) pe 401 aaya par login (POST) pe 500.
+
+**Faisle:** **koi naya D-xx nahi.** Ye D-12 ka **palan** hai, uska apwaad nahi — `*`
+jaan-boojh kar support nahi kiya gaya (cookies `credentials: true` ke saath jaati hain,
+aur wildcard + credentials = kisi bhi site ka JS aapke admin ki taraf se request bhej
+sake). `SITE_URL` ko list nahi banaya ja sakta — wo revalidate webhook ka **target** bhi
+hai (`core/revalidate.js`), isliye alag var: **`EXTRA_CORS_ORIGINS`** (comma se alag,
+optional). spec 003 me documented.
+
+**Docs jo badle (mismatch sync)**
+
+1. `project-state.md` **khud se ulta bol rahi thi** — ek jagah "Slice 5 ke teenon sawaal
+   band (D-53)", do line neeche "Usme teen sawaal khule hain". Doosri line hatayi.
+2. `09-OPEN-ITEMS.md` ka header **"383 tests passing"** keh raha tha (andar ek jagah 491) —
+   asli **541**. Poora status block Phase 1 ki aaj ki haalat pe likha gaya.
+3. `09-OPEN-ITEMS.md` §"spec 007 §9" table me **row 5 do baar** thi — ek band (D-53), ek
+   khuli. Duplicate hatayi; sahi ginti **6 khule** (#2 #5 #8 #14 #15 #16).
+4. Aaj ka kaam kisi doc me record nahi tha — project-state, session-log aur "Ab ka order"
+   teenon me juda.
+
+Saath me do stale claim bhi theek hue: project-state abhi bhi `availability` ko live field
+bata rahi thi (wo **D-54** me hat chuka, migration 013 index gira deti hai), aur
+`entries.test.js` ka section header bhi wahi purani baat keh raha tha.
+
+**Agla**
+
+1. `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET` (**A-5**, manual step)
+2. **Slice 5 — Pricing + Hotels** (spec 007 §4), admin + public page dono ek saath.
+   Teenon sawaal D-53 me band, koi rukawat nahi
+3. `EXTRA_CORS_ORIGINS` `apps/api/.env.example` me hai ya nahi — verify karo
+
 ## 2026-08-21 — Users ka menu role-aware hua; Roles submenu drop; Profile screen bani
 
 **Kya hua**

@@ -132,9 +132,15 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                  fields  { ...customFields },            contentType ke fields
                          package ka itinerary[] yahin hai — poora contract
                          packages/shared/schemas/itinerary.js me (D-51).
-                         Write pe wo VALIDATE hoti hai, baaki fields abhi
-                         nahi: usme references hain (destination/transfer ids)
-                         aur public page ka aadha render usi se banta hai
+                         Aur pricing{} + hotels[] + faqs[] bhi — contract
+                         packages/shared/schemas/pricing.js aur faq.js me
+                         (D-56, D-59).
+                         Write pe ye CHAARON VALIDATE hote hain, baaki fields
+                         abhi nahi: inme references hain (destination, transfer,
+                         hotel, add-on ids) aur public page ka aadha render
+                         inhi se banta hai. pricing me SIRF categoryPricing[]
+                         hai — currency settings.currency se (D-56 §2), aur
+                         basis/GST/advance client ne hata diye (D-57 §3)
                  seo     { ... },
                  taxonomies { categories[], tags[],
                               destinations[], packageTypes[] },
@@ -189,7 +195,10 @@ transfers      * siteId, name, icon
                  nahi (schema-change §1). Taxonomies pe wo test PASS hota hai,
                  isliye wahan locale day 1 se hai. — D-48
 packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
-                 itineraryImages[], bookingSteps[{title,text}], cancellationText
+                 itineraryImages[], bookingSteps[{title,text}], cancellationText,
+                 priceNote — "per person on twin sharing…" (D-57 §3)
+                 add-ons poori list bhi ISI payload me jaati hai (D-61) —
+                 wo ab har package pe wahi hai, to cache tag bhi wahi
                  singleton — wahi pattern jo settings ka hai. Package ke domain ki
                  globals; settings me jaan-boojh kar NAHI (D-46, §1.8)
 redirects      * siteId, locale, from, to, statusCode(301|302), hits, isAuto

@@ -2723,3 +2723,518 @@ poori list dobara bharni padti.
 
 **Nateeja:** 541 tests. Admin ke **Info** panel me ab `Best for` ek saada text input hai,
 `Ferries` ke saath.
+
+---
+
+## D-56 · Slice 5 — pricing ka shape, aur currency package pe nahi hai
+
+> ⚠️ **Hotels panel wala hissa D-58 se superseded hai** — rows ab itinerary se khud
+> banti hain, chuni nahi jaatin.
+>
+> ⚠️ **§1 aur §3 ka aadha hissa D-57 se superseded hai** (usi din, client ne panel chal kar
+> dekhne ke baad): ab chaaron category ki row hamesha hoti hai, `priceBasis`/`gstPercent`/
+> `advancePercent` hata diye gaye, aur per-category `note` hotel ke record pe chala gaya.
+> §2 (currency) aur baaki sab waise hi hai.
+
+**Context:** Slice 5 (Pricing + Hotels) me spec 007 §4 ko code me utaarna tha. Spec ka
+model saaf tha — chaar category, har ek ka apna daam — par **editor ka panel** design se
+seedha nahi aata: `admin-design.html` ka "Pricing & Departures" panel ek alag duniya ka
+hai, aur uske do bade hisse client pehle hi hata chuka tha.
+
+Do faisle client ne 27 Aug ko liye (R15 — design change client se aata hai), teesra unka
+palan hai.
+
+### 1. Pricing panel ki pehli row **category** ki hai, currency ki nahi
+
+Design me pehli `row3` ye thi:
+
+```
+Currency   |  Price From  |  Strike-through Price
+```
+
+Ab ye hai:
+
+```
+Hotel Category  |  Price From  |  Strike-through Price
+Note  [......................................]
+                                    ＋ Add category
+```
+
+Yaani grid **wahi** hai — sirf pehla khana badla. Spec §4 bhi yahi kehta tha ("category ek
+dropdown se chuni jaayegi, aur neeche uske apne field bharenge"), par wo panel ke layout pe
+chup thi. Client ne 27 Aug ko wo khaali jagah bhar di.
+
+Design ke jo do hisse pehle hi hat chuke the wo waise hi hate rahe: **Occupancy Slabs** aur
+**Fixed Departures** (spec §4).
+
+### 2. Currency package pe **nahi** hai — wo `settings.currency` se aati hai
+
+Spec §4 me currency package ka apna field thi (`INR | USD | AED`), aur maine wahi banaya
+bhi tha. Client ne 27 Aug ko hata diya: **"currency nahi chahiye"**.
+
+**Kyun ye sahi hai:** ek site ek hi currency me bechti hai, aur wo `settings.currency` me
+pehle se maujood hai. Dono jagah rakhne ka matlab sirf ek extra field nahi hota — ek
+**sawaal** hota hai: "kaunsi jeetegi". Listing page site ki currency se banti, package page
+package ki currency se, aur do jagah do chinh dikhne ki galti mahino baad pakdi jaati.
+
+`formatPrice(amount, currency)` isliye currency **baahar se** leta hai; payload me wo
+`getPublicSettings()` se aati hai.
+
+### 3. `pricing{}` ek group hai, paanch alag field nahi
+
+`fields.pricing` ek object hai — andar `categoryPricing[]` (D-57 ke baad **sirf** wahi).
+Spec §2 me bhi wo `pricing{}` hai.
+
+Paanch top-level field banane ka matlab hota ki editor me wo alag-alag panel me bikhar
+jaate, aur "ye pricing ka hissa hai" wali baat kahin likhi hi na hoti.
+
+`hotels[]` aur `addOns[]` alag rahe — spec §2 me wo bhi alag hain, aur unka jeevan pricing
+se alag hai.
+
+### Teen cheezein jo derive hoti hain, store nahi
+
+Ye Slice 5 ka sabse zaroori hissa hai, kyunki teenon ke liye ek-ek field banana bahut
+aasan tha:
+
+| Page pe | Kahan se |
+| --- | --- |
+| Upar ka `₹31,999 → ₹24,999` | **sabse sasti category** — `cheapestPricing()`. Koi "featured category" field nahi |
+| Hotels table ka `Nights` | itinerary — `nightsByStay()`. Itinerary badle to table apne aap theek |
+| `Standard category — ₹24,999` | category + uska daam se banti hai. Uske baad wali line `packageDefaults.priceNote` se aati hai (D-57 §3) |
+
+Chauthi cheez jo yahan **nahi** hai: `Room`. Wo hotel ke apne record pe hai (D-53 §3).
+
+### Paanch guard — sab reference **banne se pehle**
+
+Wahi invariant jo D-42 §2 ne media pe lagaya tha, aur jo taxonomy refs pe pehle se hai:
+
+1. `hotelId` aur `addOns[]` ki har id sach me maujood ho
+2. `destinationId` sach me ek **Destination** ho — koi aur taxonomy nahi
+3. ek category do baar price na ho — warna catbar me ek hi tab do baar aata hai aur
+   `cheapestPricing()` unme se ek chun leta hai
+4. ek destination × category pe do hotel na hon — warna table me us island ki do row
+5. `strikePrice > priceFrom`
+
+Paanchwa guard **schema me nahi, service me** hai: schema me lagane ka matlab hota ki aadha
+bhara hua form save hi na ho (`strikePrice` pehle likh diya, `priceFrom` abhi baaki).
+
+**Aur ek jagah, delivery ke chhor pe:** public projection me jis row ka hotel ya destination
+resolve na ho, wo **payload me aati hi nahi**. Adhoori row bhejne ka matlab hota public
+table me ek khaali cell — aur wo customer ko dikhta hai.
+
+### Public page pe teenon jagah ek hi category
+
+Reference me category chunna **teen jagah ek saath** badalta hai: upar ka daam, catbar ka
+chuna hua card, aur hotels ki table (design ka apna JS `js-catpick` aur `js-htab` ko sync
+karta hai). Isliye selected category ek React **context** me hai, teen alag state me nahi —
+warna page pe do alag jawab dikhte aur user ko pata hi na chalta ki kaunsa sach hai.
+
+**Nateeja:** 554 tests (13 naye). Koi migration **nahi** — teenon field `entries.fields`
+(Mixed) ke andar hain, na naya collection na naya index.
+
+---
+
+## D-57 · Pricing panel — chaaron category ki row, aur note hotel ke record pe
+
+**Supersedes:** D-56 §1 aur §3 ka aadha hissa
+
+**Context:** D-56 me Slice 5 ban gayi thi, par client ne panel **chal kar dekhne ke baad**
+teen aur badlaav maange (27 Aug, usi din). Teenon UI ke faisle hain, par do ka asar seedha
+schema pe padta hai — isliye alag record.
+
+### 1. Chaaron category ki row hamesha — koi "＋ Add category" nahi
+
+Pehle panel me ek khaali panel se shuruaat hoti thi aur client ek-ek category jodta tha.
+
+**Decision:** chaaron rows hamesha dikhti hain — Standard · Deluxe · Premium · Luxury.
+
+**Kyun:** categories **fix chaar** hain (§1.3, wo khud client ka faisla tha). Fix cheez ko
+ek-ek karke jodwana ek bane-banaye sach ko dobara bharwana hai. Aur "Add category" ka
+dropdown ek aur sawaal laata tha: kaunsi bachi hain, aur kram kaun tay karega.
+
+**Iska schema pe asar:** `categoryPricing[].priceFrom` ab **nullable** hai.
+
+**Khaali daam = wo category is package pe milti hi nahi.** Wahi category public page ke
+catbar aur hotels ke tabs, dono se gayab ho jaati hai.
+
+Ek alag "ye category on hai" toggle **jaan-boojh kar nahi** banaya: wo ek hi baat do jagah
+likhna hota, aur dono ke alag ho jaane pe page pe bina daam ka card dikh jaata.
+
+Chhanni **server pe** hai (`pricedCategories()`), theme me nahi — payload me sirf wahi
+categories jaati hain jinka daam hai, sasti se mehngi ke kram me. Do jagah wahi tark rakhne
+ka matlab hota ki ek din wo alag ho jaayein aur page pe chaar card par teen tab dikhein.
+
+### 2. `note` package se hat kar **hotel ke record** pe chala gaya
+
+Pehle wo `categoryPricing[].note` thi — har package apni likhta (D-53 §2).
+
+**Decision:** `hotels.note`, optional. Catbar ka card us category ke **pehle hotel** ka note
+dikhata hai; "pehla" = package ke `hotels[]` me jo pehle aata hai, yaani kram client ke
+haath me hai.
+
+**Kyun:** wahi tark jo `room` pe laga tha (D-53 §3) — hotel ki khaasiyat hotel ki apni baat
+hai. Ek baar likho, har package me chalti hai. Package pe rakhne ka matlab tha ki client 60
+packages pe wahi line dobara likhe.
+
+> ⚠️ **Ek trade-off jo maine client ko batayi thi:** ek category me kai hotel hote hain
+> (teen destination = teen row), aur card pe ek hi line aati hai. Isliye card pe **jis
+> hotel ka note pehle milta hai** wahi dikhta hai — hotels[] ka kram badalne pe card ki line
+> chup-chaap badal sakti hai. Client ne ye jaante hue chuna.
+
+### 3. `Price Basis · GST % · Advance to Book %` wali poori row hat gayi
+
+Design me ye row thi aur D-56 me bani bhi thi.
+
+**Decision:** teenon field hata diye. `PRICE_BASIS` ka poora constant set bhi gaya — uska
+koi caller nahi bacha (wahi tark jo `tags` field type pe laga tha, D-55).
+
+**Par page ka text nahi hata** — client ne saaf kaha: _"jo design me hai wo sab dikhega,
+hatane ka koi sawaal hi nahi hota"_ (R15). Page pe `per person on twin sharing, daily
+breakfast included` do jagah chhapti hai: hero me daam ke neeche, aur hotels table ke neeche
+wali patti me.
+
+**To wo line ab `packageDefaults.priceNote` se aati hai** — ek baar likhi, har package pe
+wahi. (⚠️ Uski **screen** aur **kitni jagah dikhti hai**, dono **D-62** me badal gaye:
+panel ab Hotels ki screen pe hai, aur hero se wo line hat gayi.) Ye wahi lakeer hai jo What's Included pe pehle se hai (§1.5): jo cheez har package pe
+bilkul same chhapti hai, wo package ka data nahi hai.
+
+Pehle wo line **aadhi derived aadhi likhi hui** thi (`per person` basis se, `on twin
+sharing, daily breakfast included` kahin se nahi). Aadha derive karna sabse bura shape hai —
+wahi galti jo `ferriesNote` pe pakdi gayi thi (D-53 §1). Ab wo poori tarah client ke shabd
+hain.
+
+### Ab kya derive hota hai aur kya likha jaata hai
+
+| Page pe | Kahan se |
+| --- | --- |
+| Upar ka `₹31,999 → ₹24,999` | **derived** — sabse sasti category (`cheapestPricing()`) |
+| Hotels table ka `Nights` | **derived** — itinerary se (`nightsByStay()`) |
+| `Deluxe category — ₹29,499` ka pehla hissa | **derived** — chuna hua tab + uska daam |
+| `per person on twin sharing…` | **likha hua** — `packageDefaults.priceNote` |
+| Card ki beech wali line | **likha hua** — us category ke pehle hotel ka `note` |
+| Table ka `Room` aur `Note` | **likha hua** — hotel ke apne record se |
+
+**Nateeja:** 557 tests (3 naye — khaali category ka save aur uska page se gayab hona, public
+payload ka kram, aur khaali daam pe strike-through ka check na lagna). Koi migration
+**nahi**: `pricing` `entries.fields` (Mixed) me hai, aur `hotels.note` / `priceNote` dono
+naye optional field hain jinka default `''` hai.
+
+---
+
+## D-58 · Hotels panel ki rows itinerary se banti hain — chuni nahi jaatin
+
+> ⚠️ **"Hotel na chunna bhi ek jawab hai" wala hissa D-60 se superseded hai** — hotel ab
+> derive hota hai (master list se), aur `hotels[]` sirf **override** hai. Rows ka itinerary
+> se banna waisa hi hai.
+
+**Supersedes:** D-56 ka Hotels panel wala hissa
+
+**Context:** D-57 ke turant baad client ne panel dobara dekha. Hotels panel me har row ke
+teen dropdown the — Destination, Category, Hotel — aur ek "＋ Add hotel" button.
+
+**Decision:** rows **apne aap** banti hain. Client sirf hotel chunta hai, aur wo bhi
+**optional** hai.
+
+```
+Rows  =  itinerary ke overnight stays  ×  wo categories jinka daam bhara hai
+```
+
+### Kyun — do khaane pehle se maloom the
+
+Destination aur category dono ka jawab package me pehle se likha hua tha:
+
+- **Destination** — itinerary keh chuki hai ki kahan-kahan raat rukni hai
+  (`overnightStayId`, D-51)
+- **Category** — pricing keh chuki hai ki is package pe kaunsi category milti hai (D-57 §1)
+
+Unhe dobara chunwana wahi galti thi jo `Nights` ko haath se bharwane me hoti (§4.2): **ek
+hi sach do jagah.** Aur uska fail hona chup hai — client itinerary me Neil Island hata deta
+hai, hotels panel me uski row baithi rehti hai, koi error kahin nahi aata, aur public table
+me ek aisa island dikhta rehta hai jahan koi rukta hi nahi.
+
+### Jagah ek baar, chahe raatein do baar
+
+Port Blair raat 1 aur raat 5 dono me aa sakta hai, par hotel ek hi hai — isliye row bhi ek.
+Ye wahi farq hai jo `nightsByStay()` aur `routeStrip()` ke beech hai (D-51): strip me Port
+Blair **do** card hai (trip ka kram), table me **ek** row (hotel ki baat).
+
+### Chhanni do jagah — aur dono zaroori hain
+
+**Editor me:** rows hi utni banti hain jitni honi chahiye. Ye bharne se rokta hai.
+
+**Public projection me:** jis row ka `Nights` 0 hai, wo payload me aati hi nahi. Ye us data
+ki chhanni hai jo **pehle se bhara ja chuka** hai — package save hone ke baad itinerary badal
+sakti hai, aur purani row document me baithi rah jaati hai.
+
+Ek hi jagah rakhna kaafi nahi tha: editor purane documents ko theek nahi karta, aur server
+editor ke bina bhi likha ja sakta hai.
+
+### Hotel na chunna bhi ek jawab hai
+
+Har row pe "Not set" pehla option hai. Us jagah ka hotel na chuno to us category ki table me
+wo row aati hi nahi — package adhoora bhara ho to page pe adhoori table nahi dikhti.
+
+Isiliye `hotels[]` me row **tabhi** banti hai jab hotel chuna jaata hai: khaali rows save
+karne ka koi matlab nahi, aur wo har package ke document me bekaar ka maal chhod jaatin.
+
+**Nateeja:** 558 tests (1 naya — itinerary se hataye gaye destination ki row public table me
+nahi aati). Schema **nahi badla**: `hotels[]` ka shape wahi hai (`destinationId`,
+`category`, `hotelId`), sirf wo bharne ka tareeka badla hai.
+
+---
+
+## D-59 · FAQs ka panel — sirf FAQs, policies nahi
+
+**Context:** Client ne 27 Aug ko FAQs ka panel maanga, saaf shart ke saath: **"with no
+policies"**. Design me wo panel **"FAQs & Policies"** hai (`admin-design.html`), aur uske do
+example rows me hi dono kism dikh jaati hain:
+
+```
+Is the houseboat private or shared?        ← FAQ — is package ki baat
+What is the cancellation policy?          ← POLICY — har package pe same
+```
+
+**Decision:** panel ka naam **FAQs** hai aur usme sirf `question` + `answer` hain. Policy
+wahin rahegi jahan wo pehle se hai — `packageDefaults.cancellationText` (§2.1).
+
+### Kyun ye sahi lakeer hai
+
+Wahi lakeer jo What's Included pe hai (§1.5), aur jo D-57 §3 me price line pe lagi:
+**jo cheez har package pe bilkul same chhapti hai, wo package ka data nahi hai.**
+
+Dono ko ek panel me rakhne ka nateeja seedha hai — client cancellation policy 60 packages pe
+dobara likhta, aur ek din wo alag-alag ho jaatin. Us din ye pata karna ki "sahi wali kaunsi
+hai" kisi ke bas ka nahi hota.
+
+Ye Slice 6 ka kaam tha (spec §7), par client ne Slice 5 ke saath maanga — wahi precedent jo
+public page pe laga tha (D-52): scope client se aata hai, plan ka slice number apne aap koi
+rok nahi hai.
+
+### Jawab plain text hai, rich text nahi
+
+Reference me har jawab **ek paragraph** hai (`.faq p`) — koi heading, list ya link nahi.
+TipTap pe le jaane ka matlab hota ek aur block tree, uska versioning, aur us sab ka Phase 5
+me migration — ek paragraph ke liye.
+
+Agar kal client ko FAQ me link chahiye hoga, to wo ek asli baat hogi aur tab uska apna
+faisla hoga. Aaj wo sirf ek andaaza hai.
+
+### Page pe `<details>`, koi JS nahi
+
+Public FAQ accordion browser ka apna `<details>`/`<summary>` hai. Teen faayde, teenon asli:
+hydration nahi lagti, JS band ho to bhi khulta hai, aur **band accordion ka text bhi Ctrl+F
+se mil jaata hai** — apna banaya hua accordion ye teesra kabhi nahi deta.
+
+**Pehla FAQ khula** rehta hai, reference ki tarah: poori band list ke saamne user ko pata hi
+nahi chalta ki andar kya hai.
+
+### Khaali sawaal payload me nahi jaata
+
+Public projection un rows ko gira deti hai jinka `question` khaali hai. Aisi row ka nateeja
+page pe ek aisa accordion hota jo khulta to hai par usme kuch likha hi nahi hota.
+
+**Nateeja:** 562 tests (4 naye). Koi migration **nahi** — `faqs` `entries.fields` (Mixed) ke
+andar hai.
+
+---
+
+## D-60 · Hotels table apne aap bharti hai — panel sirf override hai
+
+> ⚠️ **Panel wala hissa D-61 se superseded hai** — ab wahan har jodi ki row nahi, ek blank
+> row hai aur neeche sirf jodi hui rows. Table ka derive hona waisa hi hai.
+
+**Supersedes:** D-58 ka "client hotel chunta hai" wala hissa
+
+**Context:** D-58 me rows itinerary se banne lagi thin, par **hotel chunna** ab bhi admin ka
+kaam tha: na chuno to us jagah ki row public table me aati hi nahi thi. Client ne wahi pakda
+— unka matlab tha ki table **public side pe destination ke hisaab se apne aap** bhare, aur
+panel sirf tab kaam aaye jab kisi ek package pe koi doosra hotel chahiye ho.
+
+**Decision:** hotel ab **derive** hota hai, chuna nahi jaata.
+
+```
+row       =  itinerary ka overnight stay  ×  wo category jiska daam bhara hai
+hotel     =  package ka override   ya   master list me us jodi ka hotel
+```
+
+`fields.hotels[]` ka shape wahi hai, par uska **matlab badal gaya**: wo ab chunav nahi,
+**override** hai. Khaali `hotels[]` ka matlab "kuch nahi dikhega" nahi, "sab apne aap" hai.
+
+### Kyun — teesra khaana bhi pehle se maloom tha
+
+D-58 me destination aur category ke liye yahi tark laga tha: dono package me pehle se likhe
+the. Hotel bhi wahi cheez nikla — **Hotels master list keh chuki hai ki Port Blair ke
+Standard me kaunsa hotel hai.** Use har package pe dobara chunwana teesri baar wahi galti
+thi.
+
+Iska asli faayda ginti me dikhta hai: teen destination × chaar category = **bara** dropdown
+har package pe, aur 60 packages pe 720 baar wahi jawab. Ab wo zero hai — jab tak kisi ek
+package pe sach me kuch alag na ho.
+
+### Ek jodi pe do hotel — naam ke kram me pehla
+
+Master list me ek destination × category pe do hotel ho sakte hain. Page **naam ke kram me
+pehla** dikhata hai (query `sort({ name: 1 })` pe hai).
+
+Koi bhi rule chahiye tha; ye kam se kam **sthir** hai — list me naya hotel jodne se doosre
+packages ka page nahi badalta, jab tak wo naam me aage na aaye. Aur theek yahi wo jagah hai
+jahan override sach me kaam aata hai.
+
+### Panel me "Auto" ka label — ye zaroori hissa hai, sajawat nahi
+
+Har dropdown ka pehla option `Auto — City Hotel` hai: khaali chhodne pe **kya jaayega**, wo
+naam ke saath likha hota hai.
+
+Bina uske panel jhooth bolta: dropdown "Not set" dikhata aur client maan leta ki page pe kuch
+nahi jaayega — to wo har row pe bewajah hotel chunta, aur override ka poora faayda khatam ho
+jaata.
+
+Wo label admin me **dobara** wahi tark chalata hai jo server pe hai (naam ke kram me pehla).
+Do jagah ek hi tark rakhna aam taur pe galat hai — yahan jaan-boojh kar hai, kyunki admin
+wala sirf **label** hai, sach nahi. Sach server pe banta hai. Label galat ho jaane ka nateeja
+confusion hai; label na hone ka nateeja isse bura hai.
+
+### Chhanni ab teen shart pe
+
+Public projection me row tabhi banti hai jab teenon sach hon:
+
+1. wo jagah itinerary me hai (`Nights > 0`, D-58)
+2. us category ka daam bhara hua hai (D-57 §1)
+3. us jodi ka koi hotel maujood hai — override ya master list se
+
+Teesri shart wahi invariant hai jo D-42 §2 ne media pe lagaya tha: adhoori row bhejne ka
+matlab public table me ek khaali cell hota, aur wo customer ko dikhta hai.
+
+**Nateeja:** 565 tests (3 naye — table bina kuch chune bhar jaati hai, override auto ko hata
+deta hai, aur bina daam wali category ki table banti hi nahi). Schema **nahi badla**.
+
+---
+
+## D-61 · Add-ons global ho gaye, aur Hotels panel sirf jodne ke liye rah gaya
+
+**Supersedes:** spec 007 §1.4 ka "add-ons chune jaate hain" wala hissa · D-60 ka panel wala
+hissa
+
+**Context:** Client ne 27 Aug ko package editor khol kar dekha. Hotels panel me bara rows
+thin (teen destination × chaar category), aur unme se lagbhag saari sirf wahi dohra rahi
+thin jo Hotels master list me pehle se likha tha. Add-ons ka checklist bhi wahin tha.
+
+### 1. Add-ons ab **poori list** chhapti hai — package chunta nahi
+
+Spec §1.4 me iska ulta likha tha, aur wajah bhi likhi thi:
+
+> ⚠️ Add-ons har package pe CHUNE jaate hain, poori list nahi chhapti. […] jo package
+> Havelock jaata hi nahi, uspe "Elephant Beach snorkelling" dikhana galat hai.
+
+**Client ne wo palat diya.** Ab har package pe poori Add Ons list chhapti hai, aur package
+editor me uska koi panel nahi hai.
+
+**Ye baat likhi ja rahi hai kyunki uska nateeja aage dikhega:** jis package me Havelock hai
+hi nahi, uspe bhi Havelock wale add-ons dikhenge. Jis din ye khatakega, jawab yahan likha
+hai — wo ek naya bug nahi hoga, ye faisla hoga.
+
+`fields.addOns`, uska guard, `packageAddOnsSchema` aur `useAddOnList` — chaaron hata diye
+gaye. Ek field jiska koi user na ho wo sirf sadta hai (wahi tark jo `tags` field type pe
+laga tha, D-55).
+
+**Add-ons ab `packageDefaults` ke payload me jaate hain, entry ke nahi.** Ye maine tay
+kiya, aur wajah cache hai: ab ye har package pe **wahi** hain, to inka cache tag bhi wahi
+hona chahiye (`type:package`). Entry ke payload me rakhne ka matlab hota ki ek naya add-on
+jodne pe har package ka `entry:{id}` alag-alag saaf karna pade — aur jo chhoot jaaye wo
+stale baitha rahe. Yahi tark `whatsIncluded` aur `bookingSteps` pe pehle se laga hua hai
+(§1.8).
+
+### 2. Hotels panel me ab **ek hi blank row** hai
+
+D-60 me panel har jodi ki row dikhata tha, `Auto — <hotel>` label ke saath. Client ne wo
+poori list hata di.
+
+```
+Hotels
+The site picks each hotel from the Hotels list on its own.
+Add a row here only if this package needs a different property somewhere.
+
+[Destination ▾]  [Category ▾]  [Hotel ▾]     [＋ Add hotel]
+
+Destination │ Category │ Hotel              │
+Havelock    │ Deluxe   │ Sea Palms Resort   │ ✕      ← sirf jodi hui rows
+```
+
+Neeche wali list me **sirf wo rows hain jo client ne khud jodi hain** — auto wali kabhi
+nahi. Wo list isliye hai ki bina uske jodi hui row kahin dikhti hi nahi aur use hatane ka
+koi raasta hi na bachta.
+
+**Jodi hui row us jodi ke auto wale ko hata deti hai**, uske saath nahi dikhti — ek island
+ki ek category me do hotel dekh kar customer ko pata hi nahi chalta ki wo kis me ruk raha
+hai. (Ye maine tay kiya; client ne is par kuch nahi kaha.)
+
+### Jo kho gaya, aur kyun theek hai
+
+D-60 ka `Auto — <hotel>` label admin me batata tha ki kis jagah kya jaayega. Wo ab nahi
+dikhta — dekhne ke liye public page kholna padega.
+
+Panel ka kaam **jodna** hai, preview dikhana nahi. Aur bara rows ki keemat us ek label se
+kahin zyada thi: unme se lagbhag saari sirf master list dohra rahi thin.
+
+**Nateeja:** 566 tests. Schema me `fields.addOns` gaya, baaki kuch nahi badla. Koi migration
+nahi — purane documents me agar `addOns` bacha hai to use ab koi padhta hi nahi.
+
+---
+
+## D-62 · Price line Hotels ki screen pe — aur hero se hat gayi
+
+**Supersedes:** D-57 §3 ka "kahan rakhi jaaye" wala hissa
+
+**Context:** D-57 §3 me `packageDefaults.priceNote` bani thi aur uska panel **What's
+Included** wali screen pe rakha gaya tha — is tark pe ki dono global hain.
+
+Client ne 27 Aug ko do baatein pakdin, dono sahi:
+
+### 1. Panel **dono** screens pe dikh raha tha — ek asli bug
+
+Guard `section !== 'images'` likha gaya tha, jabki screen ke sections ke naam
+`whatsIncluded` aur `itineraryImages` hain. `'images'` kisi se match nahi karta, to shart
+hamesha sach thi aur panel **Itinerary Images aur What's Included dono** pe aa gaya.
+
+Ye us kism ki galti hai jo test se nahi pakdi jaati aur lint se bhi nahi — string kahin se
+bhi aa sakti thi, aur galat hone pe wo **zyada** dikhati hai, kam nahi. Aankh se hi pakdi
+jaati hai, aur client ne pakdi.
+
+### 2. Setting wahin honi chahiye jahan uska asar dikhta hai
+
+Ye line page pe **sirf ek jagah** chhapti hai — hotels ki table ke theek neeche:
+
+```
+Deluxe category — ₹29,499 per person on twin sharing, daily breakfast included.
+                             └──────────── ye hissa ────────────┘
+```
+
+**Decision:** panel ab **Packages ▸ Hotels** screen pe hai (`PriceLinePanel.jsx`).
+
+"Global hai isliye globals wali screen pe rakho" ek achha lagne wala tark tha, par usme
+client ko ye yaad rakhna padta ki wo line "global" hai — jabki use bas itna pata hai ki wo
+hotels ke neeche dikhti hai.
+
+⚠️ **Data ab bhi `packageDefaults` me hi hai**, `hotels` collection me nahi — wo ek hi line
+hai poori site ke liye, kisi ek hotel ki baat nahi. Sirf uski **screen** badli hai. Ye farq
+maayne rakhta hai: kal koi ise hotel ke record pe le jaana chahe to ye record use rokega.
+
+### Hero se ye line hat gayi
+
+D-57 §3 me maine ise **do** jagah lagaya tha — hotels table ke neeche, aur hero me daam ke
+neeche. Wo galat tha, aur reference dekhne se hi saaf hai ki wahan **do alag text** hain:
+
+```
+hero            per person · twin sharing                              ← chhoti
+hotels ke neeche  per person on twin sharing, daily breakfast included  ← lambi
+```
+
+Aur lambi wali hero me kaam kar hi nahi sakti: `.ptitle__p` pe `white-space: nowrap` hai
+(reference se), to wo poore column ko tod deti.
+
+**Abhi hero me us daam ke neeche kuch nahi hai.** Chhoti line ke liye koi field nahi bacha —
+`priceBasis` D-57 §3 me hata diya gaya tha. Ye ek **jaan-boojh kar chhoda hua gap** hai, na
+ki bhoola hua: client ko wo chhoti line chahiye hogi to wo apna ek field maangegi, aur tab
+ye tay hoga ki wo package ki hai ya site ki.
+
+**Nateeja:** 566 tests. Schema me kuch nahi badla — `priceNote` wahi hai jahan tha.

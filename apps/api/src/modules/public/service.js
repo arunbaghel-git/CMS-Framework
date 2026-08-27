@@ -1,13 +1,17 @@
 import {
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
+  cheapestPricing,
   isPubliclyVisible,
+  nightsByStay,
   normalizePath,
+  pricedCategories,
+  pricingSchema,
   routeStrip,
 } from '@cms/shared'
 
 import { Entry } from '../entries/model.js'
-import { Transfer } from '../master-lists/model.js'
+import { AddOn, Hotel, Transfer } from '../master-lists/model.js'
 import { Media } from '../media/model.js'
 import { toPublicMedia } from '../media/service.js'
 import { getPublicMenuById } from '../menus/service.js'
@@ -280,6 +284,137 @@ async function resolveTaxonomies(ids, siteId, locale) {
 }
 
 /**
+ * Pricing, hotels aur add-ons — sab **resolve ho kar** jaate hain (spec 007 §4, Slice 5).
+ *
+ * Theme ko yahan se sidha render karne laayak data milta hai: hotel ka naam aur room,
+ * destination ka naam, aur har destination pe kitni raatein. Ye teenon teen alag jagah
+ * rehte hain (`hotels` master list · `taxonomies` · itinerary), aur unhe theme me jodne ka
+ * matlab hota ki har theme apna lookup likhe (R10 wali soch).
+ *
+ * **`nights` yahan derive hoti hai, store kahin nahi hai** — `nightsByStay()` se, wahi
+ * function jo admin ka preview chalata hai. Isiliye itinerary badalte hi table ki raatein
+ * apne aap theek ho jaati hain.
+ *
+ * ⚠️ Jis row ka hotel ya destination resolve na ho, wo **payload me aati hi nahi**. Yahi
+ * D-42 §2 wala invariant hai, ek darja aage: adhoori row bhejne ka matlab hota public
+ * table me ek khaali cell — aur wo customer ko dikhta hai.
+ */
+async function resolvePackageExtras(fields, days, siteId, locale) {
+  /**
+   * `fields.hotels[]` **override** hai, chunav nahi (D-60).
+   *
+   * Default har row ka apne aap nikalta hai — us destination aur us category ka jo hotel
+   * master list me hai. Ye map tab kaam aata hai jab client ne kisi ek package ke liye koi
+   * doosra hotel joda ho.
+   */
+  const overrides = new Map(
+    (Array.isArray(fields.hotels) ? fields.hotels : []).map((row) => [
+      String(row.destinationId) + ':' + row.category,
+      String(row.hotelId),
+    ]),
+  )
+
+  /**
+   * **Rows itinerary se banti hain** (D-58) — jahan raat rukni hai, wahi jagah, usi kram me.
+   *
+   * Ek jagah do baar aa sakti hai (Port Blair raat 1 aur raat 5) par hotel ek hi hai, isliye
+   * row bhi ek. Yahi farq route strip se hai (D-51).
+   */
+  const stayIds = []
+  for (const day of days) {
+    const id = day?.overnightStayId
+    if (id && !stayIds.includes(String(id))) stayIds.push(String(id))
+  }
+
+  const [hotelDocs, stays] = await Promise.all([
+    stayIds.length
+      ? Hotel.find({ destinationId: { $in: stayIds }, siteId })
+          .select('name room note destinationId category')
+          .sort({ name: 1 })
+          .lean()
+          .catch(() => [])
+      : [],
+    resolveTaxonomies(stayIds, siteId, locale),
+  ])
+
+  const stayById = new Map(stays.map((st) => [st.id, st]))
+  const nights = nightsByStay(days)
+
+  /**
+   * `pricingSchema.parse()` yahan **dobara** chalti hai, jabki service write pe bhi chalti
+   * hai. Ye bekaar nahi hai: Slice 5 se pehle ke package documents me `pricing` hai hi
+   * nahi, aur parse unhe poore shape me badal deta hai. Theme ko phir `?? 0` har jagah
+   * nahi likhna padta.
+   */
+  const pricing = pricingSchema.parse(fields.pricing ?? {})
+  const categories = pricedCategories(pricing).map((row) => row.category)
+
+  /**
+   * Ek jagah aur ek category ka hotel — pehle override, warna master list se.
+   *
+   * Master list me ek hi jodi pe do hotel ho sakte hain. Us soorat me **naam ke kram me
+   * pehla** chunte hain (query `sort({ name: 1 })` pe hai) — koi bhi rule chahiye tha, aur
+   * ye kam se kam sthir hai: list me row jodne se doosre packages ka page nahi badalta.
+   * Jab client ko wo pasand na ho, wahi ek jagah hai jahan override kaam aata hai.
+   */
+  const pickHotel = (destinationId, category) => {
+    const overrideId = overrides.get(`${destinationId}:${category}`)
+    if (overrideId) {
+      const chosen = hotelDocs.find((h) => String(h._id) === overrideId)
+      if (chosen) return chosen
+    }
+
+    return hotelDocs.find(
+      (h) => String(h.destinationId) === destinationId && h.category === category,
+    )
+  }
+
+  const hotels = []
+  for (const category of categories) {
+    for (const destinationId of stayIds) {
+      const destination = stayById.get(destinationId)
+      const hotel = pickHotel(destinationId, category)
+
+      /**
+       * Jis jodi ka koi hotel hai hi nahi, uski row table me nahi aati — na khaali cell, na
+       * "TBD". Wahi invariant jo D-42 §2 ne media pe lagaya tha.
+       */
+      if (!destination || !hotel) continue
+
+      hotels.push({
+        id: `${destinationId}:${category}`,
+        category,
+        destination,
+        /** Nights itinerary se derive hoti hai, store kahin nahi (`nightsByStay()`). */
+        nights: nights[destinationId] ?? 0,
+        name: hotel.name,
+        room: hotel.room ?? '',
+        /** Table ka Note column, aur catbar ke card ki beech wali line (D-57 §2). */
+        note: hotel.note ?? '',
+      })
+    }
+  }
+
+  return {
+    pricing: {
+      /**
+       * **Sirf wo categories jinka daam bhara hua hai**, sasti se mehngi ke kram me.
+       *
+       * Jiska daam khaali hai wo category is package pe milti hi nahi (D-57), isliye wo
+       * payload me aati hi nahi — theme ko har jagah `priceFrom != null` likhne ki zaroorat
+       * na pade, aur ek jagah chhoot jaane pe bina daam ka card na dikhe.
+       */
+      categoryPricing: pricedCategories(pricing),
+
+      /** Page ke upar ka daam — sabse sasti category (§6). Theme ise derive nahi karta. */
+      from: cheapestPricing(pricing),
+    },
+
+    hotels,
+  }
+}
+
+/**
  * Public entry payload — **admin ka shape nahi** (02-ARCHITECTURE §10).
  *
  * Yahan se `version`, `deletedAt`, `searchText`, `authorId` aur `templateId` bahar nahi
@@ -304,7 +439,10 @@ async function toPublicEntry(doc, siteId, locale) {
   ])
 
   const stayIds = days.map((d) => d.overnightStayId)
-  const stays = await resolveTaxonomies(stayIds, siteId, locale)
+  const [stays, extras] = await Promise.all([
+    resolveTaxonomies(stayIds, siteId, locale),
+    resolvePackageExtras(fields, days, siteId, locale),
+  ])
   const stayById = new Map(stays.map((s) => [s.id, s]))
   const transferById = new Map(
     transfers.map((t) => [String(t._id), { id: String(t._id), name: t.name, icon: t.icon }]),
@@ -361,6 +499,28 @@ async function toPublicEntry(doc, siteId, locale) {
       ...leg,
       stay: stayById.get(leg.stayId) ?? null,
     })),
+
+    /**
+     * FAQs — jaisi ki waisi (spec 007 §2). Isme koi reference nahi hai, isliye yahan
+     * resolve karne ko kuch nahi; sirf khaali sawaal gir jaate hain.
+     *
+     * Khaali `question` wali row page pe ek aisa accordion banati jo khulta to hai par
+     * usme kuch likha hi nahi hota.
+     */
+    faqs: (Array.isArray(fields.faqs) ? fields.faqs : [])
+      .filter((faq) => faq?.question)
+      .map((faq) => ({ id: faq.id, question: faq.question, answer: faq.answer ?? '' })),
+
+    /**
+     * Pricing · hotels · add-ons — teenon resolve ho kar (spec 007 §4).
+     *
+     * `fields` ke andar **nahi** rakhe gaye, jaan-boojh kar: `fields` wo hai jo entry pe
+     * jaisa ka waisa likha hai, aur ye teen us se alag hain — inme dusri collections ka
+     * data ghula hua hai (hotel ka naam, destination, derived nights). Ek jagah milaane ka
+     * matlab hota ki theme ko pata hi na chale ki kya stored hai aur kya banaya gaya.
+     */
+    pricing: extras.pricing,
+    hotels: extras.hotels,
   }
 }
 
@@ -374,9 +534,24 @@ async function toPublicEntry(doc, siteId, locale) {
 export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
   const doc = await ensurePackageDefaults(siteId)
 
-  const images = await Promise.all(
-    (doc.itineraryImages ?? []).map((id) => toDisplayImage(id, 'medium', siteId)),
-  )
+  /**
+   * Add-ons ab **poori master list** hai, package ka chunav nahi (D-61).
+   *
+   * Ye `packageDefaults` ke saath isliye jaati hai, entry ke payload me nahi: ab ye har
+   * package pe **wahi** hai, aur iska cache tag bhi wahi hona chahiye (`type:package`).
+   * Entry ke payload me rakhne ka matlab hota ki ek naya add-on jodne pe har package ka
+   * `entry:{id}` alag-alag saaf karna pade — aur jo chhoot jaaye wo stale baitha rahe.
+   *
+   * Yahi tark upar `whatsIncluded` aur `bookingSteps` pe pehle se laga hua hai (§1.8).
+   */
+  const [images, addOns] = await Promise.all([
+    Promise.all((doc.itineraryImages ?? []).map((id) => toDisplayImage(id, 'medium', siteId))),
+    AddOn.find({ siteId })
+      .select('name price where')
+      .sort({ name: 1 })
+      .lean()
+      .catch(() => []),
+  ])
 
   return {
     whatsIncluded: {
@@ -384,6 +559,15 @@ export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
       excluded: doc.whatsIncluded?.excluded ?? [],
     },
     bookingSteps: doc.bookingSteps ?? [],
+    priceNote: doc.priceNote ?? '',
+
+    /** Poori Add Ons list — kram naam se, wahi jo admin ki list me dikhta hai. */
+    addOns: addOns.map((a) => ({
+      id: String(a._id),
+      name: a.name,
+      price: a.price ?? '',
+      where: a.where ?? '',
+    })),
     cancellationText: doc.cancellationText ?? '',
     /** Jo media resolve na ho wo gir jaati hai — toota hua `<img>` kabhi nahi (D-42 §2). */
     itineraryImages: images.filter(Boolean),

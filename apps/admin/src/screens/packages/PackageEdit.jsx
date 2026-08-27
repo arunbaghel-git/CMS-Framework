@@ -7,10 +7,14 @@ import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
+import FaqsPanel from './FaqsPanel.jsx'
+import HotelsPanel from './HotelsPanel.jsx'
 import ItineraryBuilder from './ItineraryBuilder.jsx'
+import PricingPanel from './PricingPanel.jsx'
 import RichTextEditor from './RichTextEditor.jsx'
 import {
   PACKAGE_TYPE,
+  useHotelList,
   useMediaById,
   usePackage,
   useTaxonomyList,
@@ -99,6 +103,7 @@ export default function PackageEdit() {
   const destinations = useTaxonomyList('destination')
   const packageTypes = useTaxonomyList('packageType')
   const transfers = useTransferList()
+  const hotels = useHotelList()
 
   const [form, setForm] = useState(null)
   const [editingSlug, setEditingSlug] = useState(false)
@@ -372,6 +377,47 @@ export default function PackageEdit() {
             transfers={transfers}
             disabled={readOnly}
           />
+
+          {/*
+           * Pricing aur Hotels — design me ye Itinerary Builder ke baad hi aate hain
+           * ("Pricing & Departures" panel), aur wahi kram yahan bhi hai.
+           *
+           * Do alag panel hone ki wajah: pricing poore package ki baat hai aur hotels har
+           * destination ki. Ek panel me daalne ka matlab hota ek lambi body jisme do alag
+           * kism ki tables hain.
+           */}
+          <Panel title="Pricing">
+            <PricingPanel
+              pricing={form.fields.pricing}
+              onChange={(pricing) => setField('pricing', pricing)}
+              disabled={readOnly}
+            />
+          </Panel>
+
+          <Panel title="Hotels">
+            <HotelsPanel
+              rows={form.fields.hotels ?? []}
+              onChange={(rows) => setField('hotels', rows)}
+              days={form.fields.itinerary ?? []}
+              pricing={form.fields.pricing}
+              destinations={destinations}
+              hotels={hotels}
+              disabled={readOnly}
+            />
+          </Panel>
+
+          {/*
+           * FAQs — design me ye panel "FAQs & Policies" tha; client ne sirf FAQs maanga
+           * (27 Aug, D-59). Cancellation policy wahin hai jahan wo pehle se thi —
+           * packageDefaults, kyunki wo har package pe same hai (§2.1).
+           */}
+          <Panel title="FAQs">
+            <FaqsPanel
+              faqs={form.fields.faqs ?? []}
+              onChange={(faqs) => setField('faqs', faqs)}
+              disabled={readOnly}
+            />
+          </Panel>
         </div>
 
         <aside>

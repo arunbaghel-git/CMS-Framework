@@ -40,7 +40,8 @@ export function usePackages(query) {
 }
 
 /**
- * Tabs ke counts — All · Published · Drafts · Sold Out · Trash.
+ * Tabs ke counts — All · Published · Drafts · Trash. (Sold Out wala tab nahi hai —
+ * `availability` field hi hata di gayi, D-54.)
  *
  * **Ek hi call** me sab aate hain. Paanch alag requests ka matlab hota paanch alag waqt
  * ke jawab: ek tab 58 dikhata aur doosra 57, aur wo farq kabhi samajh nahi aata.
@@ -101,6 +102,31 @@ export function useTransferList() {
 
   return items
 }
+
+/**
+ * Hotels aur Add Ons ki poori list — Pricing/Hotels panel aur Add-ons checklist ke liye.
+ *
+ * `useTransferList` jaisa hi pattern, aur wahi `limit: 200` wali soch. Hotels ka case
+ * thoda alag hai: wo master lists me **sabse pehle badi** hone wali list hai (har
+ * destination pe chaar category), isliye 200 pe pahunchna yahan sabse pehle mumkin hai.
+ * Us din ye dropdown ek search wala control banega — par wo tab, jab wo sach me ho.
+ *
+ * @param {string} path abhi sirf `hotels` — add-ons editor me chune hi nahi jaate (D-61)
+ */
+function useMasterList(path) {
+  const [items, setItems] = useState([])
+
+  useEffect(() => {
+    api
+      .get(`/${path}`, { params: { limit: 200 } })
+      .then((res) => setItems(res.data.data.items))
+      .catch(() => setItems([]))
+  }, [path])
+
+  return items
+}
+
+export const useHotelList = () => useMasterList('hotels')
 
 /**
  * `package` content type — uska field set aur `supports`.

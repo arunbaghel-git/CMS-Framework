@@ -56,6 +56,9 @@ const packageDefaultsSchema = new mongoose.Schema(
      */
     bookingSteps: { type: mongoose.Schema.Types.Mixed, default: () => [] },
 
+    /** `per person on twin sharing, daily breakfast included` — daam ke saath (D-57). */
+    priceNote: { type: String, default: '' },
+
     cancellationText: { type: String, default: '' },
   },
   { timestamps: true, collection: 'packageDefaults', minimize: false },

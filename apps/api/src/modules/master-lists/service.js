@@ -28,6 +28,16 @@ const scope = (siteId = DEFAULT_SITE_ID) => ({ siteId })
 
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+/**
+ * Mongo id ka shape sahi hai?
+ *
+ * `$in` me ek bekaar string daalne pe Mongoose **CastError** phenkta hai, aur wo error
+ * handler me **500** banta hai — jabki ye user ka bhara hua reference hai, server ki
+ * kharabi nahi. Filter karne se wo id map me aati hi nahi, aur bulane wala use "nahi mili"
+ * keh kar 422 de deta hai.
+ */
+const isObjectId = (v) => /^[0-9a-f]{24}$/i.test(String(v))
+
 function toApi(doc) {
   if (!doc) return null
   const plain = typeof doc.toObject === 'function' ? doc.toObject() : doc
@@ -142,6 +152,30 @@ export async function getItem(key, id, siteId = DEFAULT_SITE_ID) {
  */
 export async function countHotelsForDestination(destinationId, siteId = DEFAULT_SITE_ID) {
   return Hotel.countDocuments({ ...scope(siteId), destinationId: String(destinationId) })
+}
+
+/**
+ * Kai ids ek saath — **ek query me**, id ke hisaab se map ban kar.
+ *
+ * Do jagah chahiye, aur dono me ginti chhoti nahi hai: package save pe har `hotels[]` row
+ * ki id verify hoti hai (teen destination × chaar category = bara), aur public page ka
+ * projection unhi hotels ke naam aur room nikaalta hai. Ek-ek karke poochne ka matlab hota
+ * ek page render pe bara round trip.
+ *
+ * Jo id mili hi nahi wo map me hoti hi nahi — bulane wala ussi se pata kar leta hai ki
+ * kaunsi chhoot gayi.
+ *
+ * @returns {Promise<Map<string, any>>}
+ */
+export async function findItemsByIds(key, ids, siteId = DEFAULT_SITE_ID) {
+  const { Model } = listOf(key)
+
+  const unique = [...new Set((ids ?? []).map(String))].filter(isObjectId)
+  if (!unique.length) return new Map()
+
+  const docs = await Model.find({ _id: { $in: unique }, ...scope(siteId) }).lean()
+
+  return new Map(docs.map((doc) => [String(doc._id), toApi(doc)]))
 }
 
 // ── writes ───────────────────────────────────────────────────────────────────

@@ -137,6 +137,8 @@ missing var pe app start hi na ho, runtime pe fail na kare.
 NODE_ENV                 development | production
 PORT
 SITE_URL                 https://acme-dental.com    (canonical, redirects ke liye)
+ADMIN_URL                default ${SITE_URL}/admin
+EXTRA_CORS_ORIGINS       optional, comma se alag — CORS allowlist me aur origins
 
 # Database
 MONGODB_URI              per-client alag database
@@ -167,7 +169,36 @@ LOG_LEVEL
 ```
 
 > Ye list abhi **draft** hai — Phase −1 me isse finalize karna hai
-> ([`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)).
+> ([`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)). Authoritative schema
+> [`specs/003-env-schema.md`](../specs/003-env-schema.md) hai.
+
+### 4.0 `EXTRA_CORS_ORIGINS` — jab admin kisi teesre origin se khule (27 Aug)
+
+CORS allowlist `SITE_URL` + `ADMIN_URL` se banti hai. Asli setup me site aksar aur bhi
+origins se khulti hai — **tunnel** (demo/share), **LAN ka IP** (mobile pe test),
+**staging ka preview domain**, ya CDN ke aage ka host. Unhe `EXTRA_CORS_ORIGINS` me daalo,
+comma se alag.
+
+```bash
+# apps/api/.env
+EXTRA_CORS_ORIGINS=https://abcd-1234.trycloudflare.com,http://192.168.1.7:5173
+```
+
+⚠️ **Lakshan pehchano:** origin allowlist me na ho to login **403** deta hai aur message me
+**origin ka naam** hota hai — use seedha is var me copy-paste kar do. (27 Aug se pehle wahi
+case **500** banta tha aur screen pe sirf "Something went wrong" dikhta tha — configuration
+ki galti server crash jaisi lagti thi.)
+
+Do cheezein jaan-boojh kar aisi hain:
+
+- **`SITE_URL` ko list nahi banaya ja sakta** — wo revalidate webhook ka **target** bhi hai
+  (`core/revalidate.js`), usme ek hi URL chahiye
+- **`*` support nahi hai** — cookies `credentials: true` ke saath jaati hain, aur wildcard +
+  credentials ka matlab hai kisi bhi site ka JS aapke admin ki taraf se request bhej sake
+  (D-12)
+
+Dev me admin ka Vite server `host: true` pe hai, isliye wo LAN aur tunnel dono se pahunchta
+hai. Iske bina tunnel se site chalti hai par admin **502** deta hai.
 
 ### 4.1 ⚠️ `apps/web` ki apni `.env` chahiye (Slice 0 se)
 

@@ -5,8 +5,9 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1 + Slice 2 ban chuki hain**
-(**541 tests passing**).
+**Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1–5 ban chuki hain**; public package
+page shuru ho chuka hai aur har slice ke saath badh raha hai (**554 tests passing**).
+Agla kaam **Slice 6 — Itinerary Images pool + FAQs, goodToKnow, reviews + rating**.
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
@@ -173,15 +174,54 @@ Decision reverse karna ho to purani `D-xx` entry **delete mat karo** — usme
 
 ## Abhi ke blockers
 
-Slice 1, 2 aur 3 poori ho chuki hain (D-47 se D-50) — API aur screens dono.
+Slice 1 se 5 poori ho chuki hain (D-47 se D-51, D-56) — API aur screens dono.
 
 **26 Aug — public package page shuru** (D-52): ek hi catch-all route, `/api/public/resolve`,
 aur naya `path:` cache tag. Client ka faisla — page **har slice ke saath badhega**.
 
-Agla kaam **Slice 5 — Pricing + Hotels** (spec 007 §4), ab **admin aur public page dono ek
-saath**. Uske teenon sawaal **band ho chuke hain** (D-53), to koi rukawat nahi:
-categoryPricing[] (4 category × priceFrom/strikePrice/note), currency/basis/GST/advance,
-hotels[] ka panel — aur page pe price block, catbar, hotels table, add-ons.
+**27 Aug — dev server tunnel/LAN se khulta hai, aur CORS reject ab 403 hai.** Allowlist se
+bahar ka origin pehle plain `Error` throw karta tha, jo error handler me **500** ban jaata
+tha — login screen pe sirf "Something went wrong" dikhta tha, yaani configuration ki galti
+server crash jaisi lagti thi. Ab message me origin ka naam aata hai. Naya optional env var
+**`EXTRA_CORS_ORIGINS`** (tunnel · LAN IP · staging preview) — `06-OPERATIONS.md` §4.0.
+`SITE_URL` ko list nahi banaya ja sakta (wo revalidate ka target bhi hai) aur `*` support
+nahi hai — D-12 ka palan, uska apwaad nahi.
+
+**27 Aug — Slice 5 ban gayi (D-56, D-57):** `pricing{}` + `hotels[]` + `addOns[]`, admin
+ke do naye panel (Pricing · Hotels) aur sidebar ka Add-ons checklist, aur public page pe
+price block · catbar · hotels table · add-ons. Koi migration nahi lagi.
+
+Pricing panel me **chaaron category ki row hamesha** hoti hai — Category · Price From ·
+Strike-through. **Khaali daam ka matlab hai "ye category is package pe milti hi nahi"** aur
+wo page se gayab ho jaati hai. Panel me **currency nahi** (`settings.currency` se) aur
+**Price Basis / GST / Advance bhi nahi** — dono client ke faisle.
+
+**FAQs ka panel bhi ban gaya** (D-59) — sirf FAQs, **policies nahi**: policy har package pe
+same hoti hai aur wo `packageDefaults` me pehle se hai. Page pe wo `<details>` se banta hai,
+koi JS nahi.
+
+**Price line** (`per person on twin sharing…`) **Packages ▸ Hotels** screen pe hai (D-62) —
+wo page pe sirf hotels table ke neeche chhapti hai, isliye setting wahin. Hero me daam ke
+neeche abhi **kuch nahi** — wahan design me ek chhoti alag line hai jiske liye koi field nahi
+bacha (jaan-boojh kar chhoda gaya gap).
+
+**Add-ons ab global hain** (D-61) — package editor me unka panel nahi hai, page har package
+pe poori Add Ons list dikhata hai, aur wo `packageDefaults` ke payload me jaati hai (cache
+tag `type:package`). ⚠️ Spec §1.4 ka **ulta** hai, client ka faisla.
+
+**Public hotels table poori tarah derived hai** (D-58, D-60) — rows itinerary ke overnight
+stays se, categories pricing se, aur hotel Hotels master list se. Package ka panel **sirf
+override** hai: usme kuch na karo to bhi table bharti hai. `fields.hotels[]` ab chunav nahi,
+override hai.
+
+Design ka koi text nahi hataya (R15). Jo per-package field nahi rahe unka source badla:
+`per person on twin sharing…` ab `packageDefaults.priceNote` se, aur category card ki beech
+wali line hotel ke apne `note` se. **Teen cheezein derive hoti hain, store nahi:** upar ka
+daam (sabse sasti category), table ka `Nights` (itinerary se), aur `Deluxe category —
+₹29,499`.
+
+Agla kaam **Slice 6** (spec 007 §7) — Itinerary Images pool + gallery, aur FAQs ·
+goodToKnow[] · reviews[] + rating.
 
 **Design frozen hai (R15)**: `docs/reference/admin-design.html` ke hisaab se hi banega, aur
 build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**. Jo farq abhi liye

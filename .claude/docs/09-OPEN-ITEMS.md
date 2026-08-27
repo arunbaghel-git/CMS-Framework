@@ -1,16 +1,23 @@
 # 09 — Open Items
 
-**Status:** Phase 0 poora, aur **Slice 0 (Header + Footer) bhi ban chuka** — D-43 /
-spec 006. **Header aur footer dono client ke reference se match kar diye gaye** (25 Aug)
-— footer ka data model **D-44** me badla. 383 tests passing.
+**Status:** Phase 0 poora, **Slice 0 (Header + Footer)** poora — D-43 / spec 006, header
+aur footer dono client ke reference se match (25 Aug), footer ka data model **D-44** me
+badla.
 
 Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neeche).
 
-**Agla milestone: Packages (spec 007 — 🟢 approved).** Uska buniyaadi faisla
-26 Aug ko band ho gaya — Package `entries` ka ek type hai, **D-46**.
-**Slice 1 (engine) aur Slice 2 (master lists) ban chuki hain, aur Slice 3 ke dono
-blocker band ho gaye** (A-6, A-7 → **D-49**) — 491 tests passing.
-**Last updated:** 26 Aug 2026
+**Abhi ka milestone: Phase 1 — Packages (spec 007 — 🟢 approved).** Buniyaadi faisla
+26 Aug ko band — Package `entries` ka ek type hai, **D-46**.
+**Slice 1 (engine) · Slice 2 (master lists) · Slice 3 (API + screens) · Slice 4
+(Itinerary Builder) — chaaron ban chuki hain** (D-47 se D-51), aur **public package page
+shuru ho chuka hai** (D-52) — wo har slice ke saath badhega.
+**Slice 5 (Pricing + Hotels) bhi ban gayi** — 27 Aug, **D-56**. Admin ke do naye panel aur
+public page pe price block · catbar · hotels table · add-ons.
+**Agla kaam: Slice 6** — Itinerary Images pool + gallery, aur FAQs · goodToKnow[] ·
+reviews[] + rating (spec 007 §7).
+
+**566 tests passing** · lint · format clean.
+**Last updated:** 27 Aug 2026
 
 ---
 
@@ -312,10 +319,10 @@ chhoot jaate the — 26 Aug ko yahi hua.
 | Slice | Sawaal |
 | --- | --- |
 | 2 | #2 What's Included aur Inclusion/Exclusion ek hi hain? · ~~#3~~ ✅ **D-53 §3** · ~~#4~~ ✅ **D-51 §2** · #5 Package Type flat ya hierarchical? · #14 `packageDefaults` naam theek hai? |
+| ~~5~~ | ~~currency package pe ya settings me~~ ✅ **D-56 §2** — settings me (client, 27 Aug) |
 | ~~3~~ | ~~#6 · #7 · #9~~ ✅ **teenon band — D-50** |
 | ~~4~~ | ~~#10 · #11~~ ✅ **dono band — D-51** |
 | ~~5~~ | ~~#12 · #13~~ ✅ **dono band — D-53** |
-| 5 | #12 category ka `note` field? · #13 `Ferries: 3 legs` gine ya likha jaaye? |
 | 6 | #8 `ratingValue`/`ratingCount` haath se ya `reviews[]` se? |
 | 7 | #15 similar itineraries — apne aap ya haath se? |
 | baad me | #16 Enquiries (Q-2) — `Enq.` column aur booking form iska intezaar kar rahe hain |
@@ -380,14 +387,26 @@ Spec 005 me add karne honge.
 12. ✅ A-6 + A-7 — Slice 3 ke dono blocker band   (D-49, 26 Aug — 491 tests)
     entry.taxonomies generalize · redirects ka auto hissa
 13. ✅ Slice 3 — API aur screens dono              (D-50, 26 Aug — 518 tests)
-    ✅ field set · availability · taxonomyTypes ka gate
+    ✅ field set · ~~availability~~ (D-54 me hata) · taxonomyTypes ka gate
     ✅ All Packages + Add New/Edit + Slice 2 ki saat screens
     ✅ A-8 — Overview ka WYSIWYG (TipTap)
 14. ✅ Slice 4 — Itinerary Builder                 (D-51, 26 Aug — 538 tests)
 15. 🟡 Public package page — shuru             (D-52, 26 Aug — 547 tests)
     hero · overview · route strip · itinerary · included · booking · gallery
-16. Slice 5 — Pricing + Hotels                 ← agla kaam (admin + page dono)
-17. Slice 6-7 → specs/007-packages.md §7
+16. ✅ Dev server tunnel/LAN se khule; CORS reject ab 403  (27 Aug — 541 tests)
+    naya env var `EXTRA_CORS_ORIGINS` · spec 003 update
+17. ✅ Slice 5 — Pricing + Hotels     (D-56 · D-57 · D-58, 27 Aug — 558 tests)
+    pricing{} · hotels[] · addOns[] · admin ke do panel · page pe catbar + table
+    chaaron category ki row hamesha; khaali daam = wo category page pe nahi
+    currency, basis, GST, advance — chaaron package pe NAHI (client, 27 Aug)
+    note ab hotel ke record pe; price wali line packageDefaults.priceNote se
+    hotels table poori derived — rows itinerary se, hotel master list se
+    package ka hotels[] sirf OVERRIDE hai (D-60), panel me ek blank row (D-61)
+    add-ons global — editor me panel nahi, poori list packageDefaults se (D-61)
+18. ✅ FAQs ka panel — Slice 6 se aage khiska    (D-59, 27 Aug — 565 tests)
+    sirf FAQs, policies nahi; page pe <details>, koi JS nahi
+19. Slice 6 — Itinerary Images pool + goodToKnow · reviews   ← agla kaam
+20. Slice 7 → specs/007-packages.md §7
 ```
 
 ### Media Phase 2 se aage kyun khisak rahi hai
@@ -463,6 +482,9 @@ Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block
   Format → Lint → Test → Build). `3c29b58` isi pe fail ho raha tha — 9 files prettier-dirty
   thin, ab theek ho chuki hain. Push se pehle `pnpm format:check` **hamesha** chala lo,
   warna CI pehle hi step pe red ho jaata hai
+- ⚠️ **`EXTRA_CORS_ORIGINS` (27 Aug) `.env.example` me hai ya nahi — verify karo.** Var
+  optional hai isliye kuch tootega nahi, par jis din admin tunnel/LAN se khulega us din
+  ye pehli cheez hai jo chahiye hogi (spec 003)
 - ⚠️ **`apps/api/.env.example` me `REFRESH_TOKEN_TTL_REMEMBER=7d` add karna hai** aur
   `REFRESH_TOKEN_TTL` ko `24h` karna hai. Var ka default code me hai isliye kuch tootega
   nahi, par example file batati nahi

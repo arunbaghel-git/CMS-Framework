@@ -73,6 +73,7 @@ export async function updatePackageDefaults(input, siteId = DEFAULT_SITE_ID) {
 
   if (input.whatsIncluded !== undefined) $set.whatsIncluded = input.whatsIncluded
   if (input.cancellationText !== undefined) $set.cancellationText = input.cancellationText
+  if (input.priceNote !== undefined) $set.priceNote = input.priceNote
   if (input.bookingSteps !== undefined) $set.bookingSteps = withIds(input.bookingSteps)
 
   if (input.itineraryImages !== undefined) {

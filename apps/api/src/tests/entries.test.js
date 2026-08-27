@@ -846,12 +846,12 @@ describe('auto redirects', () => {
   })
 })
 
-// ── package ka field set + availability (Slice 3, D-50) ──────────────────────
+// ── package ka field set (Slice 3, D-50 — `availability` D-54 me hata) ───────
 
 describe('package content type ka shape', () => {
   const typeByKey = async (key) => ContentType.findOne({ key }).lean()
 
-  it('Slice 3 ke fields register ho chuke hain', async () => {
+  it('package ke fields register ho chuke hain — Slice 3 se 5 tak', async () => {
     const pkg = await typeByKey('package')
     const keys = pkg.fields.map((f) => f.key)
 
@@ -865,6 +865,9 @@ describe('package content type ka shape', () => {
       'bannerImage',
       'itinerary',
       'bestSeason',
+      'pricing',
+      'hotels',
+      'faqs',
       'bestFor',
       'ferriesNote',
       'featured',
@@ -1311,6 +1314,558 @@ describe('itinerary', () => {
 })
 
 // ── public resolve (Slice 7 ki shuruaat) ─────────────────────────────────────
+
+describe('pricing + hotels (Slice 5)', () => {
+  async function makeDestination(name) {
+    const res = await authed('post', '/api/taxonomies', adminJar).send({
+      type: 'destination',
+      name,
+    })
+    return res.body.data.taxonomy
+  }
+
+  async function makeHotel(
+    destinationId,
+    category,
+    name,
+    room = 'Deluxe, twin sharing',
+    note = '',
+  ) {
+    const res = await authed('post', '/api/hotels', adminJar).send({
+      destinationId,
+      category,
+      name,
+      room,
+      note,
+    })
+    return res.body.data.item
+  }
+
+  it('pricing save hoti hai aur defaults khud bhar jaate hain', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { pricing: { categoryPricing: [{ category: 'standard', priceFrom: 24999 }] } },
+    })
+
+    const pricing = res.body.data.entry.fields.pricing
+
+    expect(res.status).toBe(201)
+    expect(pricing.categoryPricing[0].strikePrice).toBeNull()
+    // Basis, GST, advance aur per-category note — chaaron hata diye gaye (D-57)
+    expect(pricing.priceBasis).toBeUndefined()
+    expect(pricing.gstPercent).toBeUndefined()
+    expect(pricing.categoryPricing[0].note).toBeUndefined()
+  })
+
+  it('khaali daam wali category save hoti hai, par public page pe nahi jaati', async () => {
+    // Chaaron rows editor me hamesha hoti hain; khaali chhodna hi "ye category is package
+    // pe milti hi nahi" kehne ka tareeka hai (D-57)
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        pricing: {
+          categoryPricing: [
+            { category: 'standard', priceFrom: 24999 },
+            { category: 'deluxe' },
+            { category: 'premium', priceFrom: null },
+          ],
+        },
+      },
+    })
+
+    expect(created.status).toBe(201)
+    expect(created.body.data.entry.fields.pricing.categoryPricing).toHaveLength(3)
+
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+    const { categoryPricing } = res.body.data.entry.pricing
+
+    expect(categoryPricing).toHaveLength(1)
+    expect(categoryPricing[0].category).toBe('standard')
+  })
+
+  it('public categoryPricing sasti se mehngi ke kram me aati hai', async () => {
+    // Theme ko sort nahi karna padta — aur upar ka "from" daam aur pehla tab hamesha ek
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        pricing: {
+          categoryPricing: [
+            { category: 'luxury', priceFrom: 49999 },
+            { category: 'standard', priceFrom: 24999 },
+            { category: 'deluxe', priceFrom: 29499 },
+          ],
+        },
+      },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+
+    expect(res.body.data.entry.pricing.categoryPricing.map((r) => r.category)).toEqual([
+      'standard',
+      'deluxe',
+      'luxury',
+    ])
+  })
+
+  it('currency aur basis package pe hain hi nahi — bheje jaayein to bhi (D-56, D-57)', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        pricing: {
+          currency: 'USD',
+          priceBasis: 'perCouple',
+          advancePercent: 25,
+          categoryPricing: [],
+        },
+      },
+    })
+
+    expect(res.body.data.entry.fields.pricing).toEqual({ categoryPricing: [] })
+  })
+
+  it('ek category do baar price nahi ho sakti', async () => {
+    // Duplicate ka nateeja chup hota hai: catbar me ek hi tab do baar, aur page ka "from"
+    // daam un dono me se ek chun leta hai
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        pricing: {
+          categoryPricing: [
+            { category: 'deluxe', priceFrom: 29499 },
+            { category: 'deluxe', priceFrom: 31999 },
+          ],
+        },
+      },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('khaali daam wali row pe strike-through ka check nahi lagta', async () => {
+    // Warna chaaron rows me se ek adhoori bhari ho to poora package save hi na ho
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { pricing: { categoryPricing: [{ category: 'deluxe', strikePrice: 35999 }] } },
+    })
+
+    expect(res.status).toBe(201)
+  })
+
+  it('kaata hua daam asli daam se bada hona chahiye', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        pricing: {
+          categoryPricing: [{ category: 'standard', priceFrom: 24999, strikePrice: 19999 }],
+        },
+      },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('galat category 400 deti hai — fields Mixed hone ke baawajood', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { pricing: { categoryPricing: [{ category: 'gold', priceFrom: 100 }] } },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('har hotel row ko stable id milti hai', async () => {
+    const pb = await makeDestination('Port Blair')
+    const hotel = await makeHotel(pb.id, 'standard', 'City Hotel')
+
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { hotels: [{ destinationId: pb.id, category: 'standard', hotelId: hotel.id }] },
+    })
+
+    expect(res.body.data.entry.fields.hotels[0].id).toBeTruthy()
+  })
+
+  it('anjaan hotel ki id save nahi hoti', async () => {
+    const pb = await makeDestination('Port Blair')
+
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        hotels: [
+          { destinationId: pb.id, category: 'standard', hotelId: '507f1f77bcf86cd799439011' },
+        ],
+      },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('destination ki jagah kisi aur taxonomy ki id nahi chal sakti', async () => {
+    // Wahi invariant jo taxonomy refs pe hai — bachav reference BANNE se pehle
+    const pb = await makeDestination('Port Blair')
+    const hotel = await makeHotel(pb.id, 'standard', 'City Hotel')
+
+    const honeymoon = (
+      await authed('post', '/api/taxonomies', adminJar).send({
+        type: 'packageType',
+        name: 'Honeymoon',
+      })
+    ).body.data.taxonomy
+
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        hotels: [{ destinationId: honeymoon.id, category: 'standard', hotelId: hotel.id }],
+      },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('ek destination pe ek category ka ek hi hotel', async () => {
+    const pb = await makeDestination('Port Blair')
+    const a = await makeHotel(pb.id, 'standard', 'City Hotel')
+    const b = await makeHotel(pb.id, 'standard', 'Bay Hotel')
+
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        hotels: [
+          { destinationId: pb.id, category: 'standard', hotelId: a.id },
+          { destinationId: pb.id, category: 'standard', hotelId: b.id },
+        ],
+      },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('guard update pe bhi lagta hai, sirf create pe nahi', async () => {
+    const pb = await makeDestination('Port Blair')
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+
+    const res = await authed('patch', `/api/entries/${created.body.data.entry.id}`, adminJar).send({
+      version: 0,
+      fields: {
+        hotels: [
+          { destinationId: pb.id, category: 'standard', hotelId: '507f1f77bcf86cd799439011' },
+        ],
+      },
+    })
+
+    expect(res.status).toBe(422)
+  })
+
+  it('hotels table apne aap bharti hai — package pe kuch chuna hi na ho to bhi', async () => {
+    // D-60: rows itinerary se, categories pricing se, aur hotel master list se. Panel me
+    // kuch na karo to bhi page pe table poori bharti hai
+    const pb = await makeDestination('Port Blair')
+    const hav = await makeDestination('Havelock')
+    await makeHotel(pb.id, 'standard', 'City Hotel', 'Deluxe, twin sharing')
+    await makeHotel(hav.id, 'standard', 'Symphony Palms', 'Sea view')
+
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        itinerary: [
+          { title: 'Day 1', overnightStayId: pb.id },
+          { title: 'Day 2', overnightStayId: hav.id },
+        ],
+        pricing: { categoryPricing: [{ category: 'standard', priceFrom: 24999 }] },
+        // hotels[] jaan-boojh kar khaali — kuch chuna hi nahi gaya
+      },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+    const { hotels } = res.body.data.entry
+
+    expect(hotels.map((h) => h.name)).toEqual(['City Hotel', 'Symphony Palms'])
+    expect(hotels[0].room).toBe('Deluxe, twin sharing')
+  })
+
+  it('package ka override us jagah ka auto hotel hata deta hai', async () => {
+    const pb = await makeDestination('Port Blair')
+    // Naam ke kram me "Bay Hotel" pehle aata hai, isliye auto wahi chunega
+    await makeHotel(pb.id, 'standard', 'Bay Hotel')
+    const city = await makeHotel(pb.id, 'standard', 'City Hotel')
+
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        itinerary: [{ title: 'Day 1', overnightStayId: pb.id }],
+        pricing: { categoryPricing: [{ category: 'standard', priceFrom: 24999 }] },
+        hotels: [{ destinationId: pb.id, category: 'standard', hotelId: city.id }],
+      },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+    const { hotels } = res.body.data.entry
+
+    expect(hotels).toHaveLength(1)
+    expect(hotels[0].name).toBe('City Hotel')
+  })
+
+  it('jis jagah package rukta hi nahi, uski row table me nahi aati', async () => {
+    // Rows itinerary se banti hain (D-58) — Neil ka hotel master list me hai, par package
+    // wahan rukta hi nahi
+    const pb = await makeDestination('Port Blair')
+    const neil = await makeDestination('Neil Island')
+    await makeHotel(pb.id, 'standard', 'City Hotel')
+    await makeHotel(neil.id, 'standard', 'Beach Resort')
+
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        itinerary: [{ title: 'Day 1', overnightStayId: pb.id }],
+        pricing: { categoryPricing: [{ category: 'standard', priceFrom: 24999 }] },
+      },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+    const { hotels } = res.body.data.entry
+
+    expect(hotels).toHaveLength(1)
+    expect(hotels[0].destination.name).toBe('Port Blair')
+  })
+
+  it('jis category ka daam nahi bhara, uski table bhi nahi banti', async () => {
+    // Categories pricing se aati hain (D-57 §1) — Deluxe ka hotel maujood hone ke baawajood
+    const pb = await makeDestination('Port Blair')
+    await makeHotel(pb.id, 'standard', 'City Hotel')
+    await makeHotel(pb.id, 'deluxe', 'Marine Hill Hotel')
+
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        itinerary: [{ title: 'Day 1', overnightStayId: pb.id }],
+        pricing: { categoryPricing: [{ category: 'standard', priceFrom: 24999 }] },
+      },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+    const { hotels } = res.body.data.entry
+
+    expect(hotels.map((h) => h.category)).toEqual(['standard'])
+  })
+
+  it('public payload me daam aur hotel resolve ho kar jaate hain', async () => {
+    const pb = await makeDestination('Port Blair')
+    const hav = await makeDestination('Havelock')
+    const cityHotel = await makeHotel(
+      pb.id,
+      'standard',
+      'City Hotel',
+      'Deluxe, twin sharing',
+      'Near Aberdeen Bazaar',
+    )
+    const palms = await makeHotel(hav.id, 'standard', 'Symphony Palms', 'Sea view, twin')
+
+    const created = await createEntry(adminJar, {
+      title: 'Andaman 5 Nights',
+      fields: {
+        // Port Blair do baar — raat 1 aur raat 4. Table me wo EK row hai, do nahi
+        itinerary: [
+          { title: 'Day 1', overnightStayId: pb.id },
+          { title: 'Day 2', overnightStayId: hav.id },
+          { title: 'Day 3', overnightStayId: hav.id },
+          { title: 'Day 4', overnightStayId: pb.id },
+          { title: 'Day 5' },
+        ],
+        pricing: {
+          categoryPricing: [
+            { category: 'deluxe', priceFrom: 29499, strikePrice: 35999 },
+            { category: 'standard', priceFrom: 24999, strikePrice: 31999 },
+          ],
+        },
+        hotels: [
+          { destinationId: pb.id, category: 'standard', hotelId: cityHotel.id },
+          { destinationId: hav.id, category: 'standard', hotelId: palms.id },
+        ],
+        // `deluxe` ka koi hotel master list me nahi hai — us category ki table nahi banti
+      },
+    })
+
+    await authed('post', '/api/entries/' + created.body.data.entry.id + '/publish', adminJar).send(
+      {},
+    )
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman-5-nights')
+    const { entry } = res.body.data
+
+    // Page ke upar ka daam sabse SASTI category se aata hai, list ke kram se nahi
+    expect(entry.pricing.from.category).toBe('standard')
+    expect(entry.pricing.from.priceFrom).toBe(24999)
+
+    // Nights itinerary se derive hoti hai, store kahin nahi hoti
+    const portBlair = entry.hotels.find((h) => h.destination.name === 'Port Blair')
+    expect(portBlair.nights).toBe(2)
+    expect(portBlair.name).toBe('City Hotel')
+    // Room hotel ke apne record se aata hai (D-53 §3)
+    expect(portBlair.room).toBe('Deluxe, twin sharing')
+    // Note bhi hotel ke record se — pehle wo har package pe likha jaata tha (D-57)
+    expect(portBlair.note).toBe('Near Aberdeen Bazaar')
+  })
+
+  it('hotel delete ho jaaye to us row ka khaali cell public page pe nahi jaata', async () => {
+    // D-42 §2 wala invariant, ek darja aage: adhoori row payload me aati hi nahi
+    const pb = await makeDestination('Port Blair')
+    const hotel = await makeHotel(pb.id, 'standard', 'City Hotel')
+
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        itinerary: [{ title: 'Day 1', overnightStayId: pb.id }],
+        pricing: { categoryPricing: [{ category: 'standard', priceFrom: 24999 }] },
+        hotels: [{ destinationId: pb.id, category: 'standard', hotelId: hotel.id }],
+      },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    await authed('delete', `/api/hotels/${hotel.id}`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.entry.hotels).toEqual([])
+  })
+})
+
+describe('packageDefaults ka priceNote (D-57 §3, D-62)', () => {
+  it('save hoke wapas aata hai — aur public payload me bhi jaata hai', async () => {
+    /**
+     * Ye test ek **chup** bug se aaya hai: field model aur Zod schema dono me jud gaya tha,
+     * par `updatePackageDefaults()` me fields ek-ek karke `$set` me daale jaate hain aur
+     * wahan `priceNote` chhoot gaya.
+     *
+     * Nateeja bilkul khamosh tha — PATCH **200** deta tha, koi error kahin nahi, bas value
+     * kabhi save hi nahi hoti. Screen pe wo "type karo, Save dabao, text gayab" jaisa dikhta
+     * hai. Isiliye ye test round-trip dekhta hai, sirf status code nahi.
+     */
+    const line = 'per person on twin sharing, daily breakfast included'
+
+    const res = await authed('patch', '/api/package-defaults', adminJar).send({ priceNote: line })
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.packageDefaults.priceNote).toBe(line)
+
+    const fresh = await authed('get', '/api/package-defaults', adminJar)
+    expect(fresh.body.data.packageDefaults.priceNote).toBe(line)
+
+    const pub = await request(app).get('/api/public/package-defaults')
+    expect(pub.body.data.packageDefaults.priceNote).toBe(line)
+  })
+})
+
+describe('add-ons — poori list, package ka chunav nahi (D-61)', () => {
+  async function makeAddOn(name) {
+    const res = await authed('post', '/api/add-ons', adminJar).send({ name, price: '3500 pp' })
+    return res.body.data.item
+  }
+
+  it('saare add-ons packageDefaults ke saath jaate hain, naam ke kram me', async () => {
+    // Entry ke payload me isliye nahi ki inka cache tag alag hai (type:package) — ek naya
+    // add-on jodne pe har package ka entry:{id} alag saaf karna padta
+    await makeAddOn('Sea walk')
+    await makeAddOn('Candlelight dinner')
+
+    const res = await request(app).get('/api/public/package-defaults')
+    const { addOns } = res.body.data.packageDefaults
+
+    expect(addOns.map((a) => a.name)).toEqual(['Candlelight dinner', 'Sea walk'])
+    expect(addOns[0].price).toBe('3500 pp')
+  })
+
+  it('package pe addOns field hai hi nahi — bheja jaaye to bhi', async () => {
+    const addOn = await makeAddOn('Scuba try-dive')
+
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { addOns: [addOn.id] },
+    })
+
+    // `fields` Mixed hai, isliye value girti nahi — par contentType use declare hi nahi
+    // karta, aur public payload use kabhi nahi padhta
+    expect(res.status).toBe(201)
+
+    const pkg = await ContentType.findOne({ key: 'package' }).lean()
+    expect(pkg.fields.map((f) => f.key)).not.toContain('addOns')
+  })
+})
+
+describe('FAQs', () => {
+  it('har FAQ ko stable id milti hai', async () => {
+    // Wahi wajah jo itinerary ke din pe hai — bina id ke reorder pe khuli hui row galat
+    // FAQ pe chipak jaati hai (D-43 §5)
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        faqs: [
+          { question: 'Which ferry class is included?', answer: 'Base class.' },
+          { question: 'Can I swap Neil for Baratang?' },
+        ],
+      },
+    })
+
+    const faqs = res.body.data.entry.fields.faqs
+
+    expect(res.status).toBe(201)
+    expect(faqs[0].id).toBeTruthy()
+    expect(faqs[1].id).toBeTruthy()
+    expect(faqs[0].id).not.toBe(faqs[1].id)
+    expect(faqs[1].answer).toBe('')
+  })
+
+  it('client ki bheji hui id kabhi overwrite nahi hoti', async () => {
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { faqs: [{ id: 'faq-one', question: 'Ferry class?' }] },
+    })
+
+    const updated = await authed(
+      'patch',
+      `/api/entries/${created.body.data.entry.id}`,
+      adminJar,
+    ).send({
+      version: 0,
+      fields: { faqs: [{ id: 'faq-one', question: 'Which ferry class?' }] },
+    })
+
+    expect(updated.body.data.entry.fields.faqs[0].id).toBe('faq-one')
+  })
+
+  it('bina sawaal ki FAQ 400 deti hai — fields Mixed hone ke baawajood', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { faqs: [{ answer: 'Jawab hai par sawaal nahi' }] },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('public payload me FAQs jaisi ki waisi jaati hain', async () => {
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        faqs: [{ question: 'Which ferry class is included?', answer: 'Base class, included.' }],
+      },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+    const { faqs } = res.body.data.entry
+
+    expect(faqs).toHaveLength(1)
+    expect(faqs[0].question).toBe('Which ferry class is included?')
+    expect(faqs[0].answer).toBe('Base class, included.')
+  })
+})
 
 describe('GET /api/public/resolve', () => {
   const resolve = (path) => request(app).get(`/api/public/resolve?path=${encodeURIComponent(path)}`)

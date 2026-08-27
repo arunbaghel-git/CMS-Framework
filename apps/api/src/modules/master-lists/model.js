@@ -33,6 +33,9 @@ const hotelSchema = new mongoose.Schema(
 
     /** `Deluxe, twin sharing`. Hotel pe hai ya package pe — spec 007 §9 #3 abhi khula hai. */
     room: { type: String, default: '' },
+
+    /** Hotel ki ek chhoti line — public table ka Note column, aur catbar ka card (D-57). */
+    note: { type: String, default: '' },
   },
   { timestamps: true, collection: 'hotels', minimize: false },
 )

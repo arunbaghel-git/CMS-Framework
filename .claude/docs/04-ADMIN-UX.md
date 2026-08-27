@@ -467,10 +467,17 @@ me do baar dekha ja chuka hai — wo do jagah ek din alag ho jaati hain.
 | Kya | Kyun |
 | --- | --- |
 | `Code` column nahi hai | Package Code field client ne hata diya (D-50 §2) |
-| `Sold Out` tab `availability` pe filter karta hai | Wo status nahi hai (D-50 §1) |
-| `From price` aur `Enq.` `—` dikhate hain | Pricing Slice 5, Enquiries Phase 7b (D-30) |
+| `Sold Out` tab nahi hai | `availability` field hi hata di gayi — client ko wo feature chahiye hi nahi (**D-54**, D-50 §1 superseded) |
+| `Enq.` column `—` dikhata hai | Enquiries Phase 7b (D-30, Q-2) |
 | Editor ki WYSIWYG toolbar nahi hai | Ek toolbar jo kuch kare hi na, wo "toota hua" lagta hai. Wahi tark jisse Slice 0 me "Link type" dropdown hataya gaya tha. **TipTap agla kadam** — data ka shape uske liye pehle se sahi hai |
-| Itinerary · Pricing · FAQs ke panels nahi hain | Slice 4-6. Khaali panel dikhana "abhi nahi bana" nahi, "toota hua" lagta hai |
+| **FAQs** panel me policies nahi hain | Design me wo "FAQs & Policies" tha. Policy har package pe same hoti hai aur wo `packageDefaults` me pehle se hai (§2.1) — dono ek panel me rakhne ka matlab hota ki client wahi policy 60 packages pe dobara likhe (**D-59**) |
+| Pricing panel **chaaron category ki fixed table** hai — Category · Price From · Strike-through | Design me ek row thi (`Currency · Price From · Strike-through`). Categories fix chaar hain, to unhe ek-ek karke jodwana bane-banaye sach ko dobara bharwana tha. **Khaali daam = wo category is package pe milti hi nahi** aur page se gayab ho jaati hai (client, 27 Aug — **D-57 §1**) |
+| Panel me **currency nahi** hai | `settings.currency` se aati hai. Dono jagah hone ka matlab hota "kaunsi jeetegi" (**D-56 §2**) |
+| Panel me **Price Basis · GST % · Advance to Book %** nahi hain | Client ne poori row hata di. Page ki `per person on twin sharing…` wali line phir bhi dikhti hai — wo **Packages ▸ Hotels** screen ke **Price line** panel se aati hai (`packageDefaults.priceNote`, **D-57 §3**, **D-62**). Setting wahin hai jahan uska asar dikhta hai |
+| Hotels list me **Note** ek naya optional field hai | Pehle wo har package pe likha jaata tha (`categoryPricing[].note`). Hotel ki khaasiyat hotel ki apni baat hai — ek baar likho, har package me chalti hai (**D-57 §2**) |
+| Pricing me **Occupancy Slabs** aur **Fixed Departures** nahi hain | Client ne dono poori tables hata di (spec 007 §4) |
+| **Hotels** panel design me tha hi nahi | Spec §4.2 se aaya, aur usme **ek hi blank row** hai — Destination · Category · Hotel · Add (**D-61**). Public table poori tarah derived hai: rows itinerary se, categories pricing se, hotel Hotels master list se (**D-58**, **D-60**). Panel me kuch na karo to bhi table bharti hai; neeche sirf wo rows dikhti hain jo client ne khud jodi hain |
+| **Add-ons** ka panel hai hi nahi | Client ne 27 Aug ko add-ons poori tarah global kar diye — page har package pe poori Add Ons list dikhata hai (**D-61**). Spec §1.4 ka ulta, jaan-boojh kar |
 | Inclusions & Exclusions ka panel nahi hai | Wo ab **global** hai (spec 007 §1.5) |
 | Package Details me paanch field kam hain | Client ne hataye — Package Code, Difficulty, Group Size, Trending ribbon, Enable enquiry form |
 | "Travel Themes" ab **Package Type** hai | Free-tag input ki jagah managed list (spec 007 §1.2) |

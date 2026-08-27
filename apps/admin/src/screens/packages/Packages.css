@@ -167,3 +167,19 @@
 .route-strip .chips {
   margin-top: 8px;
 }
+
+/**
+ * Pricing ki chaar-row wali table — `PricingPanel.jsx`.
+ *
+ * Category ka khaana tang hai (usme sirf ek label hai) aur daam ke do khaane baraabar.
+ * Bina width ke number inputs poori chaudai le lete hain aur teen khaano ki table ek
+ * bemaani chaudi patti ban jaati hai.
+ */
+.price-table td:first-child,
+.price-table th:first-child {
+  width: 140px;
+}
+
+.price-table td .inp {
+  max-width: 180px;
+}

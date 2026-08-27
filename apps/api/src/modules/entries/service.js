@@ -8,9 +8,13 @@ import {
   ENTRY_STATUS,
   PERMISSION,
   TAXONOMY_REF_KEYS,
+  TAXONOMY_TYPE,
   TAXONOMY_TYPE_BY_REF_KEY,
   extractBlockText,
+  faqsSchema,
   itinerarySchema,
+  packageHotelsSchema,
+  pricingSchema,
   isReservedSlug,
   rebasePath,
   resolvePath,
@@ -29,6 +33,12 @@ import { recordAutoRedirect, removeRedirectsTo } from '../redirects/service.js'
  * Wahi tark jo baaki teen jodiyon pe likha hai: dono taraf sirf `export async function`
  * declarations hain, aur koi bhi module load ke waqt doosre ko call nahi karta.
  */
+/**
+ * ⚠️ **Ye import bhi circular hai** — `master-lists/service.js` `taxonomies` se hoti hui
+ * wapas yahan aati hai. Wahi tark: dono taraf sirf `export async function`, aur load ke
+ * waqt koi kisi ko call nahi karta.
+ */
+import { findItemsByIds } from '../master-lists/service.js'
 import { taxonomyExists } from '../taxonomies/service.js'
 import { Entry, Revision } from './model.js'
 
@@ -160,15 +170,37 @@ function normalizeFields(fields, contentType) {
   if (!fields) return fields
 
   const declares = (key) => contentType?.fields?.some((f) => f.key === key)
+  const has = (key) => fields[key] !== undefined && declares(key)
 
-  if (fields.itinerary === undefined || !declares('itinerary')) return fields
+  const out = { ...fields }
 
-  const days = itinerarySchema.parse(fields.itinerary)
-
-  return {
-    ...fields,
-    itinerary: days.map((day) => ({ ...day, id: day.id || randomUUID() })),
+  if (has('itinerary')) {
+    const days = itinerarySchema.parse(fields.itinerary)
+    out.itinerary = days.map((day) => ({ ...day, id: day.id || randomUUID() }))
   }
+
+  /**
+   * Pricing (spec 007 §4) — yahan validate hone ki wajah itinerary wali hi hai, par ek
+   * darja upar: iska galat hona ek galat dikhta hua field nahi, **galat daam** hai.
+   *
+   * `.parse()` defaults bhi bhar deta hai, isliye adhoora bhara hua pricing bhi page pe
+   * poore shape me pahunchta hai — theme ko `?? 0` har jagah nahi likhna padta.
+   */
+  if (has('pricing')) out.pricing = pricingSchema.parse(fields.pricing)
+
+  /** Har hotel row ki apni stable `id` — wahi wajah jo itinerary ke din pe hai. */
+  if (has('hotels')) {
+    const rows = packageHotelsSchema.parse(fields.hotels)
+    out.hotels = rows.map((row) => ({ ...row, id: row.id || randomUUID() }))
+  }
+
+  /** FAQ ki apni stable `id` — wahi wajah jo itinerary ke din pe hai (D-43 §5). */
+  if (has('faqs')) {
+    const faqs = faqsSchema.parse(fields.faqs)
+    out.faqs = faqs.map((faq) => ({ ...faq, id: faq.id || randomUUID() }))
+  }
+
+  return out
 }
 
 // ── taxonomy refs ────────────────────────────────────────────────────────────
@@ -207,6 +239,96 @@ async function assertTaxonomyRefs(taxonomies, contentType, siteId, locale) {
     for (const id of ids) {
       if (!(await taxonomyExists(id, type, siteId, locale))) {
         throw unprocessable(`One of the selected ${type} items could not be found`)
+      }
+    }
+  }
+}
+
+// ── package refs (spec 007 §4, Slice 5) ──────────────────────────────────────
+
+/**
+ * Pricing aur hotels ke andar ke reference — write se **pehle** verify hote hain.
+ *
+ * Wahi invariant jo taxonomy refs pe upar hai aur jo D-42 §2 ne media pe lagaya tha:
+ * bachav reference **banne** se pehle hai, render pe nahi. Yahan uski keemat sabse zyada
+ * hai — ek toota hua `hotelId` public page ki hotels table me ek khaali row banata hai,
+ * aur wo customer ko dikhta hai.
+ *
+ * Teen cheezein dekhi jaati hain, aur teenon Zod se nahi ho saktin (dono ko DB chahiye ya
+ * poori list ek saath):
+ *
+ * 1. `hotelId` sach me maujood hai
+ * 2. `destinationId` sach me ek **Destination** hai — koi aur taxonomy nahi
+ * 3. ek hi category (ya destination × category) do baar nahi aayi
+ */
+async function assertPackageRefs(fields, contentType, siteId, locale) {
+  if (!fields) return
+
+  const declares = (key) => contentType?.fields?.some((f) => f.key === key)
+
+  // ── pricing: ek category ek hi baar, aur kaata hua daam asli se bada ──────
+  if (fields.pricing !== undefined && declares('pricing')) {
+    const rows = fields.pricing?.categoryPricing ?? []
+    const seen = new Set()
+
+    for (const row of rows) {
+      /**
+       * Duplicate category chup-chaap sabse bura hai: catbar me ek hi tab do baar aata
+       * hai, aur `cheapestPricing()` unme se ek chun leta hai — page pe daam har build pe
+       * badalta hua dikhta.
+       */
+      if (seen.has(row.category)) {
+        throw unprocessable(
+          `Each hotel category can only be priced once — ${row.category} is repeated`,
+        )
+      }
+      seen.add(row.category)
+
+      /**
+       * Kaata hua daam asli se **bada** hona chahiye. Ye schema me nahi hai jaan-boojh kar
+       * (`pricing.js`): wahan lagane ka matlab hota ki aadha bhara hua form save hi na ho.
+       * Yahan wo poore document pe dekha jaata hai, jab dono number saamne hote hain.
+       *
+       * `priceFrom` khaali ho to kuch nahi dekha jaata — wo category is package pe milti hi
+       * nahi, aur uske adhoore khaano pe error dena editor me chaaron rows bharwa dega.
+       */
+      if (row.priceFrom != null && row.strikePrice !== null && row.strikePrice <= row.priceFrom) {
+        throw unprocessable('The struck-through price must be higher than the actual price')
+      }
+    }
+  }
+
+  // ── hotels: har id sach ho, aur ek jodi do baar na aaye ──────────────────
+  if (fields.hotels !== undefined && declares('hotels')) {
+    const rows = fields.hotels ?? []
+
+    if (rows.length) {
+      const hotels = await findItemsByIds(
+        'hotel',
+        rows.map((r) => r.hotelId),
+        siteId,
+      )
+      const pairs = new Set()
+
+      for (const row of rows) {
+        if (!hotels.has(String(row.hotelId))) {
+          throw unprocessable('One of the selected hotels could not be found')
+        }
+
+        if (!(await taxonomyExists(row.destinationId, TAXONOMY_TYPE.DESTINATION, siteId, locale))) {
+          throw unprocessable('One of the selected destinations could not be found')
+        }
+
+        /**
+         * Ek destination pe ek category ka ek hi hotel — warna public table me us island
+         * ki do row aati hain aur customer ko pata hi nahi chalta ki wo kaunse hotel me
+         * ruk raha hai.
+         */
+        const pair = `${row.destinationId}:${row.category}`
+        if (pairs.has(pair)) {
+          throw unprocessable('That destination already has a hotel for this category')
+        }
+        pairs.add(pair)
       }
     }
   }
@@ -621,6 +743,7 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
   const contentType = await requireContentType(input.type, siteId)
 
   await assertTaxonomyRefs(input.taxonomies, contentType, siteId, locale)
+  await assertPackageRefs(input.fields, contentType, siteId, locale)
 
   const { slug, path } = await resolveSlugAndPath({
     slug: input.slug,
@@ -687,6 +810,7 @@ export async function updateEntry(
   const contentType = await requireContentType(current.type, siteId)
 
   await assertTaxonomyRefs(input.taxonomies, contentType, siteId, locale)
+  await assertPackageRefs(input.fields, contentType, siteId, locale)
 
   const next = { ...current, ...input }
   const $set = { version: current.version + 1 }
