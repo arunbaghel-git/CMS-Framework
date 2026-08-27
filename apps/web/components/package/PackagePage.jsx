@@ -164,17 +164,68 @@ const ChipIcon = ({ name }) => (
 )
 
 /**
+ * Din ka description → paragraph aur list ke blocks (D-64).
+ *
+ * **Niyam ek hi hai: `-` se shuru hone wali line bullet hai, baaki paragraph.**
+ *
+ * Pehle bullets ka apna field tha (`highlights[]`) aur client ko har din **do** jagah
+ * bharni padti thi. Client ne dono ko ek kar diya; purana data migration 014 me isi shape me
+ * aa chuka hai.
+ *
+ * Lagatar bullet lines **ek hi `<ul>`** me judti hain — warna teen bullet teen alag list
+ * ban jaate aur unke beech ka spacing ek jaisa nahi rehta.
+ *
+ * Ye markdown **nahi** hai aur na banega: yahan sirf ek niyam hai, jo hint me likha hua hai.
+ * Poora markdown lagane ka matlab hota ek parser, uski sanitisation, aur wo saara sawaal jo
+ * rich text pe pehle hi tay ho chuka hai (D-46 §3 — content TipTap pe hai, ye field nahi).
+ *
+ * @param {string} [description]
+ */
+function dayBlocks(description) {
+  const blocks = []
+
+  for (const raw of String(description ?? '').split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+
+    const isItem = /^[-•*]\s*/.test(line)
+    const last = blocks[blocks.length - 1]
+
+    if (!isItem) {
+      blocks.push({ type: 'p', text: line })
+      continue
+    }
+
+    const item = line.replace(/^[-•*]\s*/, '')
+    if (last?.type === 'list') last.items.push(item)
+    else blocks.push({ type: 'list', items: [item] })
+  }
+
+  return blocks
+}
+
+/**
  * Din ke card ki chips — sab structured data se, sirf `note` free text hai (D-51 §1).
  *
- * Ab har chip ke saath uska icon bhi aata hai. Icon chip ke **kism** se tay hota hai, uske
- * text se nahi — text client ka hai aur usme kuch bhi ho sakta hai.
+ * Har chip ke saath uska icon bhi aata hai. Icon chip ke **kism** se tay hota hai, uske text
+ * se nahi — text client ka hai aur usme kuch bhi ho sakta hai.
  */
 function dayChips(day) {
   return [
-    day.transfer && {
-      text: [day.transfer.name, day.transferNote].filter(Boolean).join(': '),
-      icon: 'car',
-      emoji: day.transfer.icon || '',
+    /**
+     * Transfer ki chip **tab bhi** banti hai jab sirf duration likhi ho.
+     *
+     * Pehle shart `day.transfer &&` thi, yaani transfer na chuna ho to poori chip gir jaati
+     * thi — aur uske saath client ka likha hua `90 min` bhi. Ye chup tha: admin me text
+     * bhara dikhta tha, page pe kuch nahi aata.
+     *
+     * Duration akeli ho to icon ghadi ka hai, gaadi ka nahi — bina transfer ke gaadi ka
+     * icon ek aisi baat keh deta hai jo likhi hi nahi gayi.
+     */
+    (day.transfer || day.transferNote) && {
+      text: [day.transfer?.name, day.transferNote].filter(Boolean).join(': '),
+      icon: day.transfer ? 'car' : 'clock',
+      emoji: day.transfer?.icon || '',
     },
     day.stay && { text: `Stay: ${day.stay.name}`, icon: 'bed' },
     day.meals.length > 0 && {
@@ -197,11 +248,7 @@ export default function PackagePage({ entry, defaults, settings }) {
   const gallery = defaults?.itineraryImages ?? []
 
   return (
-    <CategoryProvider
-      pricing={entry.pricing}
-      currency={settings?.currency ?? 'INR'}
-      priceNote={defaults?.priceNote}
-    >
+    <CategoryProvider pricing={entry.pricing} currency={settings?.currency ?? 'INR'}>
       <main className="pkg">
         {/*
          * Order reference ka hai: breadcrumb → .gal → .ptitle → body.
@@ -380,14 +427,16 @@ export default function PackagePage({ entry, defaults, settings }) {
                       </div>
                       <div className="itin__c">
                         <h3>{day.title}</h3>
-                        {day.description && <p>{day.description}</p>}
-
-                        {day.highlights.length > 0 && (
-                          <ul className="itin__l">
-                            {day.highlights.map((line) => (
-                              <li key={line}>{line}</li>
-                            ))}
-                          </ul>
+                        {dayBlocks(day.description).map((block, bi) =>
+                          block.type === 'list' ? (
+                            <ul className="itin__l" key={bi}>
+                              {block.items.map((line) => (
+                                <li key={line}>{line}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p key={bi}>{block.text}</p>
+                          ),
                         )}
 
                         {dayChips(day).length > 0 && (
@@ -418,7 +467,7 @@ export default function PackagePage({ entry, defaults, settings }) {
              * "abhi nahi bana" nahi, "toota hua" lagta hai.
              */}
             <HotelsSection hotels={entry.hotels} />
-            <AddOns addOns={defaults?.addOns} />
+            <AddOns addOns={entry.addOns} />
 
             {(included.length > 0 || excluded.length > 0) && (
               <section className="blk" id="included">

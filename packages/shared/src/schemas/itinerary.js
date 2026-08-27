@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-import { HOTEL_CATEGORIES } from '../constants/index.js'
-
 /**
  * Itinerary ka contract — spec 007 §3, Slice 4.
  *
@@ -38,10 +36,21 @@ export const itineraryDaySchema = z.object({
    */
   overnightStayId: z.string().nullable().default(null),
 
+  /**
+   * Din ka poora text — paragraph **aur** list, dono isi me (client, 27 Aug — D-64).
+   *
+   * Pehle `highlights[]` alag field thi. Client ne kaha alag row nahi chahiye, list yahin
+   * likh denge — aur wo theek hai: dono ek hi din ki baat kehte the, aur do field bharwane
+   * ka matlab tha ki client har din do jagah jaaye.
+   *
+   * **Niyam ek hi hai: `-` se shuru hone wali line bullet banti hai, baaki paragraph.**
+   * Sirf bullets likho to sirf bullets aayenge; paragraph + list dono chaho to wo bhi.
+   * Purana `highlights` data migration 014 me isi shape me aa chuka hai.
+   *
+   * Ye rich text **nahi** hai, aur wo jaan-boojh kar: har din ka apna block tree matlab
+   * uska versioning aur Phase 5 me uski migration — ek paragraph aur chaar bullet ke liye.
+   */
   description: z.string().max(5000).default(''),
-
-  /** Page ka `itin__l` — bullet list. */
-  highlights: z.array(z.string().max(300)).max(20).default([]),
 
   meals: z.array(z.enum(MEALS)).max(3).default([]),
 
@@ -74,16 +83,14 @@ export const itineraryDaySchema = z.object({
    */
   note: z.string().max(200).default(''),
 
-  /**
-   * Per-day hotel category — client ka faisla (spec 007 §9 #11, 26 Aug).
+  /*
+   * `hotelCategory` **hata diya gaya** (client, 27 Aug — D-64).
    *
-   * Pricing package-level pe hai (§4), isliye ye pehle bemaani laga tha. Par client ne
-   * rakha: ek hi package me kuch raatein alag darje ke hotel me ho sakti hain, aur wo baat
-   * kahin aur nahi kahi ja sakti.
-   *
-   * Khaali = package ki default category chalegi.
+   * Wo D-51 me client ke hi kehne pe aaya tha: "ek hi package me kuch raatein alag darje ke
+   * hotel me ho sakti hain." Live dekhne ke baad unhe wo column bemaani laga — pricing
+   * package-level pe hai (§4) aur hotels ki table usi se banti hai, to din pe ek aur category
+   * chunna ek aisa sawaal tha jiska jawab page pe kahin dikhta hi nahi tha.
    */
-  hotelCategory: z.enum(HOTEL_CATEGORIES).nullable().default(null),
 })
 
 export const itinerarySchema = z.array(itineraryDaySchema).max(60).default([])

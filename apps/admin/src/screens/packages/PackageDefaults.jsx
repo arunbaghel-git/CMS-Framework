@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
+import { confirmRemove } from '../../lib/confirm.js'
 import { useMediaById } from './usePackages.js'
 import './Packages.css'
 
@@ -116,6 +117,8 @@ export default function PackageDefaults({ section }) {
   }
 
   async function removeImage(id) {
+    if (!confirmRemove('this image')) return
+
     const next = images.filter((x) => x !== id)
     setImages(next)
     await save({ itineraryImages: next })

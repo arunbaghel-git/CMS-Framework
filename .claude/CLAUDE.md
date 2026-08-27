@@ -200,10 +200,15 @@ wo page se gayab ho jaati hai. Panel me **currency nahi** (`settings.currency` s
 same hoti hai aur wo `packageDefaults` me pehle se hai. Page pe wo `<details>` se banta hai,
 koi JS nahi.
 
-**Price line** (`per person on twin sharing…`) **Packages ▸ Hotels** screen pe hai (D-62) —
-wo page pe sirf hotels table ke neeche chhapti hai, isliye setting wahin. Hero me daam ke
-neeche abhi **kuch nahi** — wahan design me ek chhoti alag line hai jiske liye koi field nahi
-bacha (jaan-boojh kar chhoda gaya gap).
+**27 Aug — editor ki safai (D-64):** din se `hotelCategory` hata, `highlights[]`
+description me mil gayi (`-` wali line = bullet, **migration 014**), add-ons wapas package ka
+chunav (D-61 ka palat), har remove pe confirmation, aur main column ke panels drag se reorder
+hote hain (kram `localStorage` me). Ek chup bug bhi tha — transfer duration akeli likhi ho to
+page pe aati hi nahi thi.
+
+**Price line** (`per person on twin sharing…`) theme me **static** hai (D-63) — uske liye
+admin me koi field nahi. Wo har package pe, har category pe bilkul wahi rehti hai. Yahi
+Q-9 wali soch hai: dhaancha static, maal admin se.
 
 **Add-ons ab global hain** (D-61) — package editor me unka panel nahi hai, page har package
 pe poori Add Ons list dikhata hai, aur wo `packageDefaults` ke payload me jaati hai (cache

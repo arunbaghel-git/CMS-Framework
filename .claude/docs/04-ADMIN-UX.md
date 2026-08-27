@@ -466,6 +466,10 @@ me do baar dekha ja chuka hai — wo do jagah ek din alag ho jaati hain.
 
 | Kya | Kyun |
 | --- | --- |
+| `.toggle-ico` **14px** hai, reference me 11px | Client ne bada karwaya (27 Aug) — us naap pe wo caret se zyada ek dhabba lagta tha, aur wo poore admin me chalis jagah hai |
+
+| Kya | Kyun |
+| --- | --- |
 | `Code` column nahi hai | Package Code field client ne hata diya (D-50 §2) |
 | `Sold Out` tab nahi hai | `availability` field hi hata di gayi — client ko wo feature chahiye hi nahi (**D-54**, D-50 §1 superseded) |
 | `Enq.` column `—` dikhata hai | Enquiries Phase 7b (D-30, Q-2) |
@@ -473,11 +477,15 @@ me do baar dekha ja chuka hai — wo do jagah ek din alag ho jaati hain.
 | **FAQs** panel me policies nahi hain | Design me wo "FAQs & Policies" tha. Policy har package pe same hoti hai aur wo `packageDefaults` me pehle se hai (§2.1) — dono ek panel me rakhne ka matlab hota ki client wahi policy 60 packages pe dobara likhe (**D-59**) |
 | Pricing panel **chaaron category ki fixed table** hai — Category · Price From · Strike-through | Design me ek row thi (`Currency · Price From · Strike-through`). Categories fix chaar hain, to unhe ek-ek karke jodwana bane-banaye sach ko dobara bharwana tha. **Khaali daam = wo category is package pe milti hi nahi** aur page se gayab ho jaati hai (client, 27 Aug — **D-57 §1**) |
 | Panel me **currency nahi** hai | `settings.currency` se aati hai. Dono jagah hone ka matlab hota "kaunsi jeetegi" (**D-56 §2**) |
-| Panel me **Price Basis · GST % · Advance to Book %** nahi hain | Client ne poori row hata di. Page ki `per person on twin sharing…` wali line phir bhi dikhti hai — wo **Packages ▸ Hotels** screen ke **Price line** panel se aati hai (`packageDefaults.priceNote`, **D-57 §3**, **D-62**). Setting wahin hai jahan uska asar dikhta hai |
+| Panel me **Price Basis · GST % · Advance to Book %** nahi hain | Client ne poori row hata di. Page ki `per person on twin sharing…` wali line phir bhi dikhti hai — par uske liye **admin me koi field nahi** hai: wo theme me static hai, kyunki har package pe wahi rehti hai (**D-63**, Q-9) |
 | Hotels list me **Note** ek naya optional field hai | Pehle wo har package pe likha jaata tha (`categoryPricing[].note`). Hotel ki khaasiyat hotel ki apni baat hai — ek baar likho, har package me chalti hai (**D-57 §2**) |
 | Pricing me **Occupancy Slabs** aur **Fixed Departures** nahi hain | Client ne dono poori tables hata di (spec 007 §4) |
 | **Hotels** panel design me tha hi nahi | Spec §4.2 se aaya, aur usme **ek hi blank row** hai — Destination · Category · Hotel · Add (**D-61**). Public table poori tarah derived hai: rows itinerary se, categories pricing se, hotel Hotels master list se (**D-58**, **D-60**). Panel me kuch na karo to bhi table bharti hai; neeche sirf wo rows dikhti hain jo client ne khud jodi hain |
-| **Add-ons** ka panel hai hi nahi | Client ne 27 Aug ko add-ons poori tarah global kar diye — page har package pe poori Add Ons list dikhata hai (**D-61**). Spec §1.4 ka ulta, jaan-boojh kar |
+| **Add-ons** sidebar me checkbox list hai | Destinations/Package Type jaisa hi chunav (spec §1.4). Ye D-61 me global ho gaya tha aur **D-64 §4** me wapas chunav pe aaya |
+| Itinerary ke din me **Hotel Category** nahi hai | D-51 §3 me client ne maanga tha, live dekhne ke baad hataya — uska jawab page pe kahin dikhta hi nahi tha (**D-64 §2**) |
+| Din me **Highlights** ka alag field nahi hai | Ab wo description me hai: `-` se shuru hone wali line bullet banti hai (**D-64 §3**, migration 014) |
+| Main column ke panels **drag se reorder** hote hain | Kram `localStorage` me, DB me nahi — ye ek user ki pasand hai (**D-64 §6**). Sidebar nahi, kyunki usme Save baitha hai |
+| Har **remove** pe ek confirmation aati hai | Galat click ka koi undo nahi — save tak wo sirf browser me hai (**D-64 §5**) |
 | Inclusions & Exclusions ka panel nahi hai | Wo ab **global** hai (spec 007 §1.5) |
 | Package Details me paanch field kam hain | Client ne hataye — Package Code, Difficulty, Group Size, Trending ribbon, Enable enquiry form |
 | "Travel Themes" ab **Package Type** hai | Free-tag input ki jagah managed list (spec 007 §1.2) |

@@ -13,6 +13,7 @@ import {
   extractBlockText,
   faqsSchema,
   itinerarySchema,
+  packageAddOnsSchema,
   packageHotelsSchema,
   pricingSchema,
   isReservedSlug,
@@ -194,6 +195,9 @@ function normalizeFields(fields, contentType) {
     out.hotels = rows.map((row) => ({ ...row, id: row.id || randomUUID() }))
   }
 
+  /** Duplicate ids gir jaati hain — ek add-on do baar chunne ka koi matlab nahi. */
+  if (has('addOns')) out.addOns = [...new Set(packageAddOnsSchema.parse(fields.addOns))]
+
   /** FAQ ki apni stable `id` — wahi wajah jo itinerary ke din pe hai (D-43 §5). */
   if (has('faqs')) {
     const faqs = faqsSchema.parse(fields.faqs)
@@ -257,7 +261,7 @@ async function assertTaxonomyRefs(taxonomies, contentType, siteId, locale) {
  * Teen cheezein dekhi jaati hain, aur teenon Zod se nahi ho saktin (dono ko DB chahiye ya
  * poori list ek saath):
  *
- * 1. `hotelId` sach me maujood hai
+ * 1. `hotelId` aur `addOns[]` ki ids sach me maujood hain
  * 2. `destinationId` sach me ek **Destination** hai — koi aur taxonomy nahi
  * 3. ek hi category (ya destination × category) do baar nahi aayi
  */
@@ -329,6 +333,19 @@ async function assertPackageRefs(fields, contentType, siteId, locale) {
           throw unprocessable('That destination already has a hotel for this category')
         }
         pairs.add(pair)
+      }
+    }
+  }
+
+  // ── add-ons: chune hue sab maujood hon ───────────────────────────────────
+  if (fields.addOns !== undefined && declares('addOns')) {
+    const ids = fields.addOns ?? []
+
+    if (ids.length) {
+      const addOns = await findItemsByIds('addOn', ids, siteId)
+
+      if (addOns.size !== new Set(ids.map(String)).size) {
+        throw unprocessable('One of the selected add-ons could not be found')
       }
     }
   }

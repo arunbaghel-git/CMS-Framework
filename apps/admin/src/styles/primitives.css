@@ -83,8 +83,19 @@
   padding: 9px 12px;
   border-bottom: 1px solid var(--border-soft);
 }
+/*
+ * `margin-right: auto` — heading ke daayein ki saari khaali jagah yahi kha jaata hai.
+ *
+ * `.panel-head` pe `space-between` hai. Do bachchon pe wo theek tha (h2 baayein, toggle
+ * daayein), par jaise hi teesra bachcha aaya (drag ka grip, D-64) space-between ne h2 ko
+ * **beech me** bitha diya.
+ *
+ * Auto margin `justify-content` se pehle jagah leta hai, isliye grip aur h2 saath me baayein
+ * rehte hain aur baaki sab daayein — chahe head me do cheezein hon ya chaar.
+ */
 .panel-head h2 {
   font-size: 14px;
+  margin-right: auto;
 }
 .panel-body {
   padding: 12px;
@@ -99,10 +110,17 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+/*
+ * Panel kholne/band karne ka caret.
+ *
+ * Reference me ye **11px** hai; client ne bada karwaya (27 Aug) — us naap pe wo caret se
+ * zyada ek dhabba lagta tha, aur wo poore admin me chalis jagah hai.
+ */
 .toggle-ico {
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 14px;
+  line-height: 1;
 }
 
 /* ============================================================

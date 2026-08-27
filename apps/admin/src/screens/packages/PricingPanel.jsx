@@ -10,8 +10,9 @@ import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL } from '@cms/shared'
  *   Design me wo upar wali row me the; ab har category ki apni row hai.
  * - **Currency panel me hai hi nahi** (27 Aug) — wo `settings.currency` se aati hai.
  * - **`Price Basis · GST % · Advance to Book %` wali row hat gayi** (27 Aug, D-57). Page pe
- *   `per person on twin sharing…` wali line ab `packageDefaults.priceNote` se aati hai —
- *   ek baar likhi jaati hai, har package pe wahi chhapti hai.
+ *   `per person on twin sharing…` wali line theme me **static** hai (`PRICE_NOTE`,
+ *   `apps/web/components/package/Pricing.jsx`) — wo har package pe, har category pe bilkul
+ *   wahi rehti hai, isliye uske liye admin me koi field nahi hai (Q-9).
  *
  * ## Chaaron rows hamesha dikhti hain
  *

@@ -196,7 +196,6 @@ transfers      * siteId, name, icon
                  isliye wahan locale day 1 se hai. — D-48
 packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  itineraryImages[], bookingSteps[{title,text}], cancellationText,
-                 priceNote — "per person on twin sharing…" (D-57 §3)
                  add-ons poori list bhi ISI payload me jaati hai (D-61) —
                  wo ab har package pe wahi hai, to cache tag bhi wahi
                  singleton — wahi pattern jo settings ka hai. Package ke domain ki

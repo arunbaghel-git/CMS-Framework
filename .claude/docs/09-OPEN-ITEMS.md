@@ -16,7 +16,7 @@ public page pe price block · catbar · hotels table · add-ons.
 **Agla kaam: Slice 6** — Itinerary Images pool + gallery, aur FAQs · goodToKnow[] ·
 reviews[] + rating (spec 007 §7).
 
-**567 tests passing** · lint · format clean.
+**568 tests passing** · lint · format clean.
 **Last updated:** 27 Aug 2026
 
 ---
@@ -340,7 +340,7 @@ Poora sandarbh: [`specs/007-packages.md`](../specs/007-packages.md) §9
 neeche ki intro line theme ke code me likhi hui hai; admin se sirf content aata hai
 (`entry.content`, `entry.itinerary[]`, `entry.faqs[]`, `packageDefaults.*`).
 
-**Kitna static hai** — 7 heading + 6 lines:
+**Kitna static hai** — 7 heading + 7 lines:
 
 | Text | Kahan |
 | --- | --- |
@@ -352,6 +352,7 @@ neeche ki intro line theme ke code me likhi hui hai; admin se sirf content aata 
 | `per person · twin sharing` (hero ka daam) | `Pricing.jsx` |
 | `The day-by-day plan stays the same — only the hotels and ferry class change.` | `Pricing.jsx` (catbar) |
 | `or similar` (hotels table) | `Pricing.jsx` |
+| `per person on twin sharing, daily breakfast included.` (hotels table ke neeche) | `Pricing.jsx` — `PRICE_NOTE` (**D-63**: pehle ye admin ka field tha, client ne hataya) |
 | `Base` · `Sea-facing` · `Beachfront` · `Villas` (hotel tabs) | `Pricing.jsx` — `TAB_NOTE` |
 
 **Sawaal kyun hai:** client in me se **ek shabd bhi admin se nahi badal sakta**. Ye is

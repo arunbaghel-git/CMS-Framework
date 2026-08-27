@@ -1,7 +1,8 @@
 import { useState } from 'react'
 
-import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL, MEALS, MEAL_LABEL, routeStrip } from '@cms/shared'
+import { MEALS, MEAL_LABEL, routeStrip } from '@cms/shared'
 
+import { confirmRemove } from '../../lib/confirm.js'
 import { useListDrag } from '../../lib/drag-list.js'
 
 /**
@@ -14,7 +15,7 @@ import { useListDrag } from '../../lib/drag-list.js'
  *   hone pe "Havelock" aur "Havelock Island" do alag jagah ban jaate, aur route strip do
  *   card dikhati. Yahi wajah thi ki client ne ise list se bandha.
  *
- * Design me jo nahi tha par spec §3 maangti hai: `highlights[]`, `transferNote` (`90 min`),
+ * Design me jo nahi tha par spec §3 maangti hai: `transferNote` (`90 min`),
  * `dayTag` (`Arrival day`) aur `note` (`Approx. 4 hrs sightseeing` — D-51 §1).
  *
  * **Route strip ka live preview neeche hai.** Wo puri tarah derived hai (§3.1) — client use
@@ -30,24 +31,28 @@ function blankDay() {
     title: '',
     overnightStayId: null,
     description: '',
-    highlights: [],
     meals: [],
     transferId: null,
     transferNote: '',
     dayTag: '',
     note: '',
-    hotelCategory: null,
   }
 }
 
-/** Textarea me ek line = ek highlight. */
-const toLines = (text) =>
-  String(text ?? '')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
+/*
+ * `toLines()` **hata diya gaya** — wo sirf `highlights[]` ke liye tha, aur wo field D-64 me
+ * description me mil gayi. Ek helper jiska koi caller na ho wo sirf sadta hai (wahi tark
+ * jo `tags` field type par laga tha, D-55).
+ */
 
-export default function ItineraryBuilder({ days, onChange, destinations, transfers, disabled }) {
+export default function ItineraryBuilder({
+  days,
+  onChange,
+  destinations,
+  transfers,
+  disabled,
+  dragHandle,
+}) {
   const [open, setOpen] = useState(() => new Set())
 
   const nameOf = (list, id) => list.find((x) => x.id === id)?.name
@@ -116,6 +121,12 @@ export default function ItineraryBuilder({ days, onChange, destinations, transfe
   return (
     <div className="panel itin-panel">
       <div className="panel-head">
+        {/* Panels ka kram badalne ka grip — SortablePanels deta hai (D-64) */}
+        {dragHandle && (
+          <span className="grip" {...dragHandle}>
+            ⠿
+          </span>
+        )}
         <h2>Itinerary Builder</h2>
         <span className="muted">
           {days.length} {days.length === 1 ? 'day' : 'days'}
@@ -191,6 +202,15 @@ export default function ItineraryBuilder({ days, onChange, destinations, transfe
                       onChange={(e) => update(index, { description: e.target.value })}
                       disabled={disabled}
                     />
+                    {/*
+                     * Hint yahan zaroori hai, sajawat nahi: `-` wala niyam dekh kar pata
+                     * nahi chalta. Pehle bullets ka apna field tha (`highlights[]`); ab wo
+                     * isi textarea me hain (D-64).
+                     */}
+                    <div className="hint">
+                      <code>-</code> se shuru hone wali line page pe bullet banti hai; baaki
+                      paragraph
+                    </div>
                   </div>
 
                   <div className="row3">
@@ -227,24 +247,6 @@ export default function ItineraryBuilder({ days, onChange, destinations, transfe
                         {transfers.map((t) => (
                           <option key={t.id} value={t.id}>
                             {t.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="field">
-                      <label>Hotel Category</label>
-                      <select
-                        className="sel"
-                        value={day.hotelCategory ?? ''}
-                        onChange={(e) => update(index, { hotelCategory: e.target.value || null })}
-                        disabled={disabled}
-                      >
-                        {/* Khaali = package ki default category chalegi */}
-                        <option value="">Package default</option>
-                        {HOTEL_CATEGORIES.map((c) => (
-                          <option key={c} value={c}>
-                            {HOTEL_CATEGORY_LABEL[c]}
                           </option>
                         ))}
                       </select>
@@ -286,23 +288,14 @@ export default function ItineraryBuilder({ days, onChange, destinations, transfe
                     </div>
                   </div>
 
-                  <div className="field">
-                    <label>
-                      Highlights <span className="muted">(one per line)</span>
-                    </label>
-                    <textarea
-                      className="ta"
-                      value={day.highlights.join('\n')}
-                      onChange={(e) => update(index, { highlights: toLines(e.target.value) })}
-                      disabled={disabled}
-                    />
-                  </div>
-
                   {!disabled && (
                     <button
                       className="btn btn-danger btn-sm"
                       type="button"
-                      onClick={() => onChange(days.filter((_, i) => i !== index))}
+                      onClick={() => {
+                        if (!confirmRemove(`Day ${index + 1}`)) return
+                        onChange(days.filter((_, i) => i !== index))
+                      }}
                     >
                       Remove Day
                     </button>

@@ -111,7 +111,7 @@ export function useTransferList() {
  * destination pe chaar category), isliye 200 pe pahunchna yahan sabse pehle mumkin hai.
  * Us din ye dropdown ek search wala control banega — par wo tab, jab wo sach me ho.
  *
- * @param {string} path abhi sirf `hotels` — add-ons editor me chune hi nahi jaate (D-61)
+ * @param {string} path `hotels` ya `add-ons`
  */
 function useMasterList(path) {
   const [items, setItems] = useState([])
@@ -127,6 +127,7 @@ function useMasterList(path) {
 }
 
 export const useHotelList = () => useMasterList('hotels')
+export const useAddOnList = () => useMasterList('add-ons')
 
 /**
  * `package` content type — uska field set aur `supports`.

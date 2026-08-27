@@ -5,6 +5,7 @@ import { contentFromRichText, emptyContent } from '@cms/shared'
 
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import Panel from '../../components/admin/Panel.jsx'
+import SortablePanels from '../../components/admin/SortablePanels.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import FaqsPanel from './FaqsPanel.jsx'
@@ -14,6 +15,7 @@ import PricingPanel from './PricingPanel.jsx'
 import RichTextEditor from './RichTextEditor.jsx'
 import {
   PACKAGE_TYPE,
+  useAddOnList,
   useHotelList,
   useMediaById,
   usePackage,
@@ -104,6 +106,7 @@ export default function PackageEdit() {
   const packageTypes = useTaxonomyList('packageType')
   const transfers = useTransferList()
   const hotels = useHotelList()
+  const addOns = useAddOnList()
 
   const [form, setForm] = useState(null)
   const [editingSlug, setEditingSlug] = useState(false)
@@ -336,88 +339,91 @@ export default function PackageEdit() {
            * hai, aur ferries ka kya hisaab. Isliye ye main column me itinerary ke paas hain,
            * sidebar ke meta boxes me nahi.
            */}
-          <Panel title="Info">
-            <div className="panel-body">
-              <div className="field">
-                <label>Best for</label>
-                <input
-                  className="inp"
-                  placeholder="first-timers on a short break"
-                  value={form.fields.bestFor ?? ''}
-                  onChange={(e) => setField('bestFor', e.target.value)}
-                  disabled={readOnly}
-                />
-                <div className="hint">
-                  Listing card pe dikhta hai — <b>Best for</b> ke baad ye line. Package page pe
-                  nahi.
+          <SortablePanels storageKey="package-edit-panels" disabled={readOnly}>
+            <Panel key="info" title="Info">
+              <div className="panel-body">
+                <div className="field">
+                  <label>Best for</label>
+                  <input
+                    className="inp"
+                    placeholder="first-timers on a short break"
+                    value={form.fields.bestFor ?? ''}
+                    onChange={(e) => setField('bestFor', e.target.value)}
+                    disabled={readOnly}
+                  />
+                  <div className="hint">
+                    Listing card pe dikhta hai — <b>Best for</b> ke baad ye line. Package page pe
+                    nahi.
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label>Ferries</label>
+                  <input
+                    className="inp"
+                    placeholder="3 legs, included"
+                    value={form.fields.ferriesNote ?? ''}
+                    onChange={(e) => setField('ferriesNote', e.target.value)}
+                    disabled={readOnly}
+                  />
+                  <div className="hint">
+                    Page ke &quot;At a glance&quot; me dikhta hai. Ginti apne aap nahi hoti —
+                    &quot;included&quot; jaisi baat itinerary se nikal hi nahi sakti.
+                  </div>
                 </div>
               </div>
+            </Panel>
 
-              <div className="field">
-                <label>Ferries</label>
-                <input
-                  className="inp"
-                  placeholder="3 legs, included"
-                  value={form.fields.ferriesNote ?? ''}
-                  onChange={(e) => setField('ferriesNote', e.target.value)}
-                  disabled={readOnly}
-                />
-                <div className="hint">
-                  Page ke &quot;At a glance&quot; me dikhta hai. Ginti apne aap nahi hoti —
-                  &quot;included&quot; jaisi baat itinerary se nikal hi nahi sakti.
-                </div>
-              </div>
-            </div>
-          </Panel>
-
-          <ItineraryBuilder
-            days={form.fields.itinerary ?? []}
-            onChange={(itinerary) => setField('itinerary', itinerary)}
-            destinations={destinations}
-            transfers={transfers}
-            disabled={readOnly}
-          />
-
-          {/*
-           * Pricing aur Hotels — design me ye Itinerary Builder ke baad hi aate hain
-           * ("Pricing & Departures" panel), aur wahi kram yahan bhi hai.
-           *
-           * Do alag panel hone ki wajah: pricing poore package ki baat hai aur hotels har
-           * destination ki. Ek panel me daalne ka matlab hota ek lambi body jisme do alag
-           * kism ki tables hain.
-           */}
-          <Panel title="Pricing">
-            <PricingPanel
-              pricing={form.fields.pricing}
-              onChange={(pricing) => setField('pricing', pricing)}
-              disabled={readOnly}
-            />
-          </Panel>
-
-          <Panel title="Hotels">
-            <HotelsPanel
-              rows={form.fields.hotels ?? []}
-              onChange={(rows) => setField('hotels', rows)}
+            <ItineraryBuilder
+              key="itinerary"
               days={form.fields.itinerary ?? []}
-              pricing={form.fields.pricing}
+              onChange={(itinerary) => setField('itinerary', itinerary)}
               destinations={destinations}
-              hotels={hotels}
+              transfers={transfers}
               disabled={readOnly}
             />
-          </Panel>
 
-          {/*
-           * FAQs — design me ye panel "FAQs & Policies" tha; client ne sirf FAQs maanga
-           * (27 Aug, D-59). Cancellation policy wahin hai jahan wo pehle se thi —
-           * packageDefaults, kyunki wo har package pe same hai (§2.1).
-           */}
-          <Panel title="FAQs">
-            <FaqsPanel
-              faqs={form.fields.faqs ?? []}
-              onChange={(faqs) => setField('faqs', faqs)}
-              disabled={readOnly}
-            />
-          </Panel>
+            {/*
+             * Pricing aur Hotels — design me ye Itinerary Builder ke baad hi aate hain
+             * ("Pricing & Departures" panel), aur wahi default kram yahan bhi hai.
+             *
+             * Do alag panel hone ki wajah: pricing poore package ki baat hai aur hotels har
+             * destination ki. Ek panel me daalne ka matlab hota ek lambi body jisme do alag
+             * kism ki tables hain.
+             */}
+            <Panel key="pricing" title="Pricing">
+              <PricingPanel
+                pricing={form.fields.pricing}
+                onChange={(pricing) => setField('pricing', pricing)}
+                disabled={readOnly}
+              />
+            </Panel>
+
+            <Panel key="hotels" title="Hotels">
+              <HotelsPanel
+                rows={form.fields.hotels ?? []}
+                onChange={(rows) => setField('hotels', rows)}
+                days={form.fields.itinerary ?? []}
+                pricing={form.fields.pricing}
+                destinations={destinations}
+                hotels={hotels}
+                disabled={readOnly}
+              />
+            </Panel>
+
+            {/*
+             * FAQs — design me ye panel "FAQs & Policies" tha; client ne sirf FAQs maanga
+             * (27 Aug, D-59). Cancellation policy wahin hai jahan wo pehle se thi —
+             * packageDefaults, kyunki wo har package pe same hai (§2.1).
+             */}
+            <Panel key="faqs" title="FAQs">
+              <FaqsPanel
+                faqs={form.fields.faqs ?? []}
+                onChange={(faqs) => setField('faqs', faqs)}
+                disabled={readOnly}
+              />
+            </Panel>
+          </SortablePanels>
         </div>
 
         <aside>
@@ -551,6 +557,49 @@ export default function PackageEdit() {
                 onToggle={(taxonomyId) => toggleTaxonomy('packageTypes', taxonomyId)}
                 disabled={readOnly}
               />
+            </div>
+          </Panel>
+
+          {/*
+           * Add-ons — spec §1.4: "editor me checkbox list hogi".
+           *
+           * Sidebar me isliye ki ye Destinations aur Package Type jaisa hi kaam hai: ek
+           * managed list me se **chunna**.
+           *
+           * ⚠️ Ye panel D-61 me hata diya gaya tha (add-ons tab global ho gaye the) aur D-64
+           * me wapas aaya. Aaj ka niyam wahi hai jo spec §1.4 me likha tha — poori list kabhi
+           * nahi chhapti, kyunki jo package Havelock jaata hi nahi uspe wahan ke add-ons
+           * dikhana galat hai.
+           */}
+          <Panel title="Add-ons">
+            <div className="panel-body">
+              {addOns.length === 0 ? (
+                <p className="subtitle" style={{ margin: 0 }}>
+                  No add-ons yet.
+                </p>
+              ) : (
+                <div className="checklist">
+                  {addOns.map((addOn) => (
+                    <label key={addOn.id}>
+                      <input
+                        type="checkbox"
+                        checked={(form.fields.addOns ?? []).includes(addOn.id)}
+                        disabled={readOnly}
+                        onChange={() => {
+                          const current = form.fields.addOns ?? []
+                          setField(
+                            'addOns',
+                            current.includes(addOn.id)
+                              ? current.filter((x) => x !== addOn.id)
+                              : [...current, addOn.id],
+                          )
+                        }}
+                      />
+                      {addOn.name}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </Panel>
 

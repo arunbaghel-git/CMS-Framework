@@ -63,10 +63,36 @@ intezaar nahi. **Sirf FAQs, policies nahi**: cancellation `packageDefaults` me h
 package ka data nahi). Jawab **plain text** hai, aur page pe accordion `<details>` se banta
 hai — band accordion ka text bhi Ctrl+F se milta hai.
 
-**Price line ab Packages ▸ Hotels screen pe hai (D-62)** — pehle wo What's Included wali
-screen pe thi, aur ek bug ki wajah se **dono** screens pe dikh rahi thi (guard me
-`section !== 'images'` likha tha jabki sections ke naam `whatsIncluded`/`itineraryImages`
-hain — shart hamesha sach thi). Data ab bhi `packageDefaults` me hai, sirf screen badli.
+**Editor ki safai — D-64 (27 Aug).** Client ne editor aur page dono chala kar dekha aur ek
+saath saat baatein kahin:
+
+- **Transfer duration page pe aati hi nahi thi** — chip ki shart `day.transfer &&` thi, to
+  duration akeli likhi ho to poori chip gir jaati thi. Chup bug: admin me text dikhta tha,
+  page pe kuch nahi
+- Din se **Hotel Category** hata (D-51 §3 ka palat) — uska jawab page pe kahin dikhta hi
+  nahi tha
+- **`highlights[]` description me mil gayi** — niyam: `-` se shuru hone wali line bullet,
+  baaki paragraph. **Migration 014** ne purana data isi shape me daal diya
+- **Add-ons wapas package ka chunav** (D-61 ka palat) — sidebar me checklist, aur payload
+  `packageDefaults` se wapas entry pe
+- Har **remove** pe confirmation (`lib/confirm.js`)
+- Main column ke **panels drag se reorder** hote hain (`SortablePanels`) — kram
+  `localStorage` me, DB me nahi
+- Do chhote fix: panel ki heading beech me chali gayi thi (`space-between` + teesra bachcha),
+  aur All Packages ka thumbnail **kabhi wire hi nahi tha** (khaali `<span class="thumb">`)
+
+⚠️ `.toggle-ico` ab **14px** hai jabki reference me 11px — client ka faisla, comment me wajah
+likhi hai taaki koi "design se match karo" ke naam pe wapas na kar de.
+
+**Price line ab theme me static hai (D-63)** — admin se uska field **hata diya gaya**
+(27 Aug). Wo har package pe, har category pe wahi rehti hai, to uske liye admin me ek aur
+jagah dena bina wajah tha. Ab wo `PRICE_NOTE` hai (`components/package/Pricing.jsx`), Q-9
+wali baaki teen static lines ke saath.
+
+> Pehle ka safar (ab sirf itihaas): D-62 me wo Packages ▸ Hotels screen pe thi; usse pehle What's Included wali
+> screen pe thi, aur ek bug ki wajah se **dono** screens pe dikh rahi thi (guard me
+> `section !== 'images'` likha tha jabki sections ke naam `whatsIncluded`/`itineraryImages`
+> hain — shart hamesha sach thi). Data ab bhi `packageDefaults` me hai, sirf screen badli.
 
 **Hero me daam ke neeche `per person · twin sharing` hai — aur wo static hai** (27 Aug raat,
 client ka faisla). Pehle ye gap tha: reference ki wo **chhoti** line hotels wali lambi line se
@@ -181,7 +207,7 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 567 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 568 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 

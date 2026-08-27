@@ -16,10 +16,17 @@ import { useState } from 'react'
  * hota ki har parent use apne state me rakhe aur save/reload pe wo kahin galat jagah reset
  * ho. Yahan wo panel ke saath rehta hai aur uske saath hi khatam ho jaata hai.
  *
+ * ## `dragHandle` — kram badalne ka grip
+ *
+ * Head pe pehle se ek `onClick` hai (collapse). Grip usi head me baithta hai, isliye uske
+ * apne handlers me `stopPropagation` zaroori hai — warna har drag ke baad panel band ya
+ * khul jaata, aur wo bilkul galti jaisa lagta.
+ *
  * @param {string} title
  * @param {React.ReactNode} [aside] head ke daayin taraf chhoti line — jaise "7 days"
  * @param {React.ReactNode} [footer] panel band hone pe bhi dikhta rehta hai
  * @param {boolean} [defaultOpen]
+ * @param {object} [dragHandle] `useListDrag().handleProps(i)` — de do to head me grip aa jaata hai
  */
 export default function Panel({
   title,
@@ -27,6 +34,7 @@ export default function Panel({
   footer,
   defaultOpen = true,
   className = '',
+  dragHandle,
   children,
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -45,6 +53,19 @@ export default function Panel({
           setOpen((v) => !v)
         }}
       >
+        {dragHandle && (
+          <span
+            className="grip"
+            {...dragHandle}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              e.stopPropagation()
+              dragHandle.onKeyDown?.(e)
+            }}
+          >
+            ⠿
+          </span>
+        )}
         <h2>{title}</h2>
         {aside}
         <span className="toggle-ico">{open ? '▾' : '▸'}</span>

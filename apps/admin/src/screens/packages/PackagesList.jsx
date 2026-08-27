@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
-import { usePackageCounts, usePackages, useTaxonomyList } from './usePackages.js'
+import { useMediaById, usePackageCounts, usePackages, useTaxonomyList } from './usePackages.js'
 import './Packages.css'
 
 /**
@@ -112,6 +112,15 @@ export default function PackagesList() {
   )
 
   const { data, meta, loading, error, reload } = usePackages(query)
+
+  /**
+   * Rows ke banner — sirf **is page** ke, poori list ke nahi.
+   *
+   * `useMediaById` har id pe ek call karta hai, aur pagination day 1 se hai (R14), isliye
+   * ye 20 se aage kabhi nahi jaata. Bina pagination ke ye 500 calls ban jaata — wahi wajah
+   * hai ki ids yahan se aati hain, kisi global list se nahi.
+   */
+  const media = useMediaById(data.map((entry) => entry.fields?.bannerImage).filter(Boolean))
 
   const nameOf = (list, id) => list.find((t) => t.id === id)?.name
 
@@ -398,7 +407,25 @@ export default function PackagesList() {
                 </td>
               )}
               <td>
-                <span className="thumb" />
+                {/*
+                 * Banner ka thumbnail. Pehle yahan ek **khaali span** tha — sirf gradient
+                 * wala placeholder, jo kabhi kisi image se juda hi nahi tha.
+                 *
+                 * Media resolve na ho to wahi placeholder wapas aa jaata hai, toota hua
+                 * `<img>` kabhi nahi (D-42 §2): id set hone ke baawajood media delete ho
+                 * sakti hai, aur tab `src` 404 deta.
+                 */}
+                {(() => {
+                  const doc = media[entry.fields?.bannerImage]
+                  const variant =
+                    doc?.variants?.find((v) => v.key === 'thumb') ?? doc?.variants?.[0]
+
+                  return variant ? (
+                    <img className="thumb" src={variant.url} alt="" loading="lazy" />
+                  ) : (
+                    <span className="thumb" />
+                  )
+                })()}
               </td>
               <td>
                 <Link className="row-title" to={`/packages/${entry.id}`}>

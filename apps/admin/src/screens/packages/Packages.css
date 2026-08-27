@@ -183,3 +183,30 @@
 .price-table td .inp {
   max-width: 180px;
 }
+
+/**
+ * Panels ka kram badalne wala wrapper — `SortablePanels.jsx` (D-64).
+ *
+ * `display: flex` isliye zaroori hai ki `order` sirf flex/grid ke bachchon pe chalta hai.
+ * Bina iske drag chalta rehta aur kuch hilta hi nahi — bilkul chup failure.
+ *
+ * `gap` wahi jo `.edit-grid` ke column me panels ke beech pehle se tha; wo margin se aata
+ * tha aur ab wrapper ke andar wo collapse nahi hota.
+ */
+.sortable-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Panel ke head me grip — day/FAQ row wali grip se chhota nahi, par uska apna spacing hai. */
+.panel-head .grip {
+  cursor: grab;
+  color: var(--muted, #7b8a9c);
+  margin-right: 8px;
+  user-select: none;
+}
+
+.panel-head .grip:active {
+  cursor: grabbing;
+}

@@ -264,6 +264,12 @@ export async function resolvePublicPath(
   return { kind: 'entry', entry: await toPublicEntry(entry, siteId, locale) }
 }
 
+/**
+ * Mongo id ka shape sahi hai? `$in` me bekaar string CastError phenkti hai, aur wo public
+ * page pe **500** ban jaati — jabki wo sirf ek purana reference hai.
+ */
+const isObjectId = (v) => /^[0-9a-f]{24}$/i.test(String(v))
+
 /** Taxonomy ids → `{ id, name, slug }` — ek query me, ek-ek karke nahi. */
 async function resolveTaxonomies(ids, siteId, locale) {
   const unique = [...new Set((ids ?? []).filter(Boolean))]
@@ -307,6 +313,8 @@ async function resolvePackageExtras(fields, days, siteId, locale) {
    * master list me hai. Ye map tab kaam aata hai jab client ne kisi ek package ke liye koi
    * doosra hotel joda ho.
    */
+  const addOnIds = Array.isArray(fields.addOns) ? fields.addOns : []
+
   const overrides = new Map(
     (Array.isArray(fields.hotels) ? fields.hotels : []).map((row) => [
       String(row.destinationId) + ':' + row.category,
@@ -326,7 +334,7 @@ async function resolvePackageExtras(fields, days, siteId, locale) {
     if (id && !stayIds.includes(String(id))) stayIds.push(String(id))
   }
 
-  const [hotelDocs, stays] = await Promise.all([
+  const [hotelDocs, addOnDocs, stays] = await Promise.all([
     stayIds.length
       ? Hotel.find({ destinationId: { $in: stayIds }, siteId })
           .select('name room note destinationId category')
@@ -334,8 +342,16 @@ async function resolvePackageExtras(fields, days, siteId, locale) {
           .lean()
           .catch(() => [])
       : [],
+    addOnIds.length
+      ? AddOn.find({ _id: { $in: addOnIds.filter(isObjectId) }, siteId })
+          .select('name price where')
+          .lean()
+          .catch(() => [])
+      : [],
     resolveTaxonomies(stayIds, siteId, locale),
   ])
+
+  const addOnById = new Map(addOnDocs.map((d) => [String(d._id), d]))
 
   const stayById = new Map(stays.map((st) => [st.id, st]))
   const nights = nightsByStay(days)
@@ -411,6 +427,22 @@ async function resolvePackageExtras(fields, days, siteId, locale) {
     },
 
     hotels,
+
+    /**
+     * Kram wahi jo client ne chuna tha — list ka apna sort yahan nahi lagta.
+     *
+     * Ye `packageDefaults` me **nahi** hai (wahan D-61 me thoda waqt raha tha): ab ye har
+     * package ka apna chunav hai, aur uska cache tag bhi usi entry ka hai.
+     */
+    addOns: addOnIds
+      .map((id) => addOnById.get(String(id)))
+      .filter(Boolean)
+      .map((d) => ({
+        id: String(d._id),
+        name: d.name,
+        price: d.price ?? '',
+        where: d.where ?? '',
+      })),
   }
 }
 
@@ -479,7 +511,6 @@ async function toPublicEntry(doc, siteId, locale) {
       id: day.id,
       title: day.title,
       description: day.description ?? '',
-      highlights: day.highlights ?? [],
       meals: day.meals ?? [],
       dayTag: day.dayTag ?? '',
       note: day.note ?? '',
@@ -521,6 +552,7 @@ async function toPublicEntry(doc, siteId, locale) {
      */
     pricing: extras.pricing,
     hotels: extras.hotels,
+    addOns: extras.addOns,
   }
 }
 
@@ -534,24 +566,9 @@ async function toPublicEntry(doc, siteId, locale) {
 export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
   const doc = await ensurePackageDefaults(siteId)
 
-  /**
-   * Add-ons ab **poori master list** hai, package ka chunav nahi (D-61).
-   *
-   * Ye `packageDefaults` ke saath isliye jaati hai, entry ke payload me nahi: ab ye har
-   * package pe **wahi** hai, aur iska cache tag bhi wahi hona chahiye (`type:package`).
-   * Entry ke payload me rakhne ka matlab hota ki ek naya add-on jodne pe har package ka
-   * `entry:{id}` alag-alag saaf karna pade — aur jo chhoot jaaye wo stale baitha rahe.
-   *
-   * Yahi tark upar `whatsIncluded` aur `bookingSteps` pe pehle se laga hua hai (§1.8).
-   */
-  const [images, addOns] = await Promise.all([
-    Promise.all((doc.itineraryImages ?? []).map((id) => toDisplayImage(id, 'medium', siteId))),
-    AddOn.find({ siteId })
-      .select('name price where')
-      .sort({ name: 1 })
-      .lean()
-      .catch(() => []),
-  ])
+  const images = await Promise.all(
+    (doc.itineraryImages ?? []).map((id) => toDisplayImage(id, 'medium', siteId)),
+  )
 
   return {
     whatsIncluded: {
@@ -559,16 +576,6 @@ export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
       excluded: doc.whatsIncluded?.excluded ?? [],
     },
     bookingSteps: doc.bookingSteps ?? [],
-    priceNote: doc.priceNote ?? '',
-
-    /** Poori Add Ons list — kram naam se, wahi jo admin ki list me dikhta hai. */
-    addOns: addOns.map((a) => ({
-      id: String(a._id),
-      name: a.name,
-      price: a.price ?? '',
-      where: a.where ?? '',
-    })),
-    cancellationText: doc.cancellationText ?? '',
     /** Jo media resolve na ho wo gir jaati hai — toota hua `<img>` kabhi nahi (D-42 §2). */
     itineraryImages: images.filter(Boolean),
   }

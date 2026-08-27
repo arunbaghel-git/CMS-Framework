@@ -23,9 +23,8 @@ const S = ENTRY_SUPPORT
  *
  * Slice 3 me bana, Slice 4 me `itinerary` (§3) aur Slice 5 me `pricing`/`hotels` (§4) juda.
  *
- * **`addOns` yahan jaan-boojh kar nahi hai** — client ne 27 Aug ko use poori tarah global
- * kar diya (D-61): page har package pe Add Ons ki poori list dikhata hai, aur package usme
- * se chunta nahi. **FAQs, goodToKnow, reviews aur rating abhi baaki hain** — wo
+ * `addOns` ek baar hata kar wapas aaya hai — D-61 me global, D-64 me phir se package ka
+ * chunav (spec §1.4 wala asli niyam). **FAQs, goodToKnow, reviews aur rating abhi baaki hain** — wo
  * Slice 6 me judenge.
  *
  * `destinations` aur `packageTypes` yahan **nahi** hain — wo `entry.taxonomies` me hain
@@ -91,6 +90,19 @@ const PACKAGE_FIELDS = [
     type: 'repeater',
     label: 'Hotels',
     help: 'Har destination par har category ka hotel',
+  },
+  {
+    /**
+     * Add Ons master list me se **chune hue** — poori list kabhi nahi chhapti (§1.4).
+     *
+     * Wajah seedhi hai: jo package Havelock jaata hi nahi, uspe "Elephant Beach snorkelling"
+     * dikhana galat hai. Ye What's Included se ulta case hai — wo global hai (§1.5), ye
+     * package ka apna chunav.
+     */
+    key: 'addOns',
+    type: 'relation',
+    label: 'Add-ons',
+    help: 'Is package pe dikhne wale add-ons',
   },
   {
     /**

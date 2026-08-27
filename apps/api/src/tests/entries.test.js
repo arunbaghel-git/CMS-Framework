@@ -867,6 +867,7 @@ describe('package content type ka shape', () => {
       'bestSeason',
       'pricing',
       'hotels',
+      'addOns',
       'faqs',
       'bestFor',
       'ferriesNote',
@@ -1247,10 +1248,12 @@ describe('itinerary', () => {
     const day = res.body.data.entry.fields.itinerary[0]
 
     expect(day.meals).toEqual([])
-    expect(day.highlights).toEqual([])
     expect(day.overnightStayId).toBeNull()
-    expect(day.hotelCategory).toBeNull()
     expect(day.note).toBe('')
+
+    // `hotelCategory` aur `highlights` dono D-64 me hate — bheje jaayein to bhi nahi bachte
+    expect(day.hotelCategory).toBeUndefined()
+    expect(day.highlights).toBeUndefined()
   })
 
   it('galat itinerary 400 deti hai — Mixed hone ke baawajood', async () => {
@@ -1737,65 +1740,61 @@ describe('pricing + hotels (Slice 5)', () => {
   })
 })
 
-describe('packageDefaults ka priceNote (D-57 §3, D-62)', () => {
-  it('save hoke wapas aata hai — aur public payload me bhi jaata hai', async () => {
-    /**
-     * Ye test ek **chup** bug se aaya hai: field model aur Zod schema dono me jud gaya tha,
-     * par `updatePackageDefaults()` me fields ek-ek karke `$set` me daale jaate hain aur
-     * wahan `priceNote` chhoot gaya.
-     *
-     * Nateeja bilkul khamosh tha — PATCH **200** deta tha, koi error kahin nahi, bas value
-     * kabhi save hi nahi hoti. Screen pe wo "type karo, Save dabao, text gayab" jaisa dikhta
-     * hai. Isiliye ye test round-trip dekhta hai, sirf status code nahi.
-     */
-    const line = 'per person on twin sharing, daily breakfast included'
-
-    const res = await authed('patch', '/api/package-defaults', adminJar).send({ priceNote: line })
+describe('packageDefaults ka payload', () => {
+  it('priceNote ab payload me nahi jaata — wo line theme me static hai (Q-9)', async () => {
+    // Pehle ye `packageDefaults.priceNote` thi (D-57 §3). Client ne field hata diya kyunki
+    // wo har package pe, har category pe bilkul wahi rehti hai. Ye test isliye hai ki wo
+    // key chupke se wapas na aa jaaye — tab theme me static line aur payload ki line do
+    // alag source ban jaate, aur ek din wo alag ho jaate
+    const res = await request(app).get('/api/public/package-defaults')
 
     expect(res.status).toBe(200)
-    expect(res.body.data.packageDefaults.priceNote).toBe(line)
-
-    const fresh = await authed('get', '/api/package-defaults', adminJar)
-    expect(fresh.body.data.packageDefaults.priceNote).toBe(line)
-
-    const pub = await request(app).get('/api/public/package-defaults')
-    expect(pub.body.data.packageDefaults.priceNote).toBe(line)
+    expect(res.body.data.packageDefaults.priceNote).toBeUndefined()
   })
 })
 
-describe('add-ons — poori list, package ka chunav nahi (D-61)', () => {
+describe('add-ons — package ka chunav (§1.4, D-64)', () => {
   async function makeAddOn(name) {
     const res = await authed('post', '/api/add-ons', adminJar).send({ name, price: '3500 pp' })
     return res.body.data.item
   }
 
-  it('saare add-ons packageDefaults ke saath jaate hain, naam ke kram me', async () => {
-    // Entry ke payload me isliye nahi ki inka cache tag alag hai (type:package) — ek naya
-    // add-on jodne pe har package ka entry:{id} alag saaf karna padta
+  it('chune hue add-ons public payload me resolve ho kar jaate hain', async () => {
+    // ⚠️ Ye field do baar ja chuka hai aur wapas aaya: D-61 me global, D-64 me phir chunav.
+    // Aaj ka niyam wahi hai jo spec §1.4 me likha tha — poori list kabhi nahi chhapti
+    const snorkel = await makeAddOn('Elephant Beach snorkelling')
     await makeAddOn('Sea walk')
-    await makeAddOn('Candlelight dinner')
 
-    const res = await request(app).get('/api/public/package-defaults')
-    const { addOns } = res.body.data.packageDefaults
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { addOns: [snorkel.id] },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
 
-    expect(addOns.map((a) => a.name)).toEqual(['Candlelight dinner', 'Sea walk'])
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+    const { addOns } = res.body.data.entry
+
+    // Sirf chuna hua — "Sea walk" list me hone ke baawajood nahi
+    expect(addOns).toHaveLength(1)
+    expect(addOns[0].name).toBe('Elephant Beach snorkelling')
     expect(addOns[0].price).toBe('3500 pp')
   })
 
-  it('package pe addOns field hai hi nahi — bheja jaaye to bhi', async () => {
-    const addOn = await makeAddOn('Scuba try-dive')
-
+  it('anjaan add-on chuna nahi ja sakta', async () => {
     const res = await createEntry(adminJar, {
       title: 'Andaman',
-      fields: { addOns: [addOn.id] },
+      fields: { addOns: ['507f1f77bcf86cd799439011'] },
     })
 
-    // `fields` Mixed hai, isliye value girti nahi — par contentType use declare hi nahi
-    // karta, aur public payload use kabhi nahi padhta
-    expect(res.status).toBe(201)
+    expect(res.status).toBe(422)
+  })
 
-    const pkg = await ContentType.findOne({ key: 'package' }).lean()
-    expect(pkg.fields.map((f) => f.key)).not.toContain('addOns')
+  it('packageDefaults me add-ons nahi jaate — wo package ka chunav hai', async () => {
+    await makeAddOn('Scuba try-dive')
+
+    const res = await request(app).get('/api/public/package-defaults')
+
+    expect(res.body.data.packageDefaults.addOns).toBeUndefined()
   })
 })
 

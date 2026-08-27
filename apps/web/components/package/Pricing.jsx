@@ -36,7 +36,7 @@ function useCategory() {
   return ctx
 }
 
-export function CategoryProvider({ pricing, currency, priceNote, children }) {
+export function CategoryProvider({ pricing, currency, children }) {
   /**
    * Rows **server pe hi** chhan kar aate hain (`pricedCategories()`) — jinka daam nahi
    * bhara wo payload me hi nahi hote, aur jo hain wo sasti se mehngi ke kram me hain.
@@ -58,13 +58,11 @@ export function CategoryProvider({ pricing, currency, priceNote, children }) {
     () => ({
       rows,
       currency,
-      /** `per person on twin sharing…` — global line (`packageDefaults.priceNote`, D-57). */
-      priceNote: priceNote ?? '',
       category,
       setCategory,
       selected: rows.find((r) => r.category === category) ?? rows[0] ?? null,
     }),
-    [rows, currency, priceNote, category],
+    [rows, currency, category],
   )
 
   return <CategoryContext.Provider value={value}>{children}</CategoryContext.Provider>
@@ -89,7 +87,7 @@ export function PriceBlock({ ctaLabel = 'Get this itinerary', ctaHref = '#enquir
        * Pehle yahan `packageDefaults.priceNote` daali gayi thi, par wo poori vaakya hai
        * ("per person on twin sharing, daily breakfast included.") aur yahan ek **chhoti**
        * line chahiye — `.ptitle__p` ke `nowrap` me wo grid column ko kheench deti thi.
-       * `priceNote` apni asli jagah, hotels table ke neeche, waisi hi chal rahi hai.
+       * Wo line apni asli jagah — hotels table ke neeche — `PRICE_NOTE` se chhapti hai.
        */}
       <span>per person · twin sharing</span>
       {/*
@@ -213,6 +211,18 @@ export function HotelsTag() {
  *
  * Jis din inke liye field banein, ye const hat jayega — aur bas.
  */
+/**
+ * `… per person on twin sharing, daily breakfast included.` — hotels table ke neeche wali
+ * patti ka aakhri hissa (client, 27 Aug — Q-9).
+ *
+ * Pehle ye `packageDefaults.priceNote` thi aur admin me Packages ▸ Hotels pe uska field tha
+ * (D-57 §3, D-62). Client ne wo field hata diya: ye line har package pe, har category pe
+ * bilkul wahi rehti hai, aur uske liye admin me ek aur jagah dena bina wajah tha.
+ *
+ * Category ka naam aur daam ab bhi **derive** hote hain — sirf ye poonchh static hai.
+ */
+const PRICE_NOTE = 'per person on twin sharing, daily breakfast included.'
+
 const CATEGORY_COPY = {
   standard: {
     label: 'Base',
@@ -240,7 +250,7 @@ const CATEGORY_COPY = {
  * banata nahi, sirf dikhata hai.
  */
 export function HotelsSection({ hotels }) {
-  const { rows, category, setCategory, currency, priceNote } = useCategory()
+  const { rows, category, setCategory, currency } = useCategory()
 
   const byCategory = useMemo(() => {
     const map = new Map()
@@ -333,14 +343,13 @@ export function HotelsSection({ hotels }) {
         {/*
          * `Deluxe category — ₹29,499 per person on twin sharing, daily breakfast included.`
          *
-         * Do hisse: category ka naam aur daam **derive** hote hain (chuna hua tab + uska
-         * daam), aur baaki line `packageDefaults.priceNote` se aati hai — har package pe
-         * wahi (D-57).
+         * Category ka naam aur daam **derive** hote hain (chuna hua tab + uska daam); baaki
+         * line static hai (`PRICE_NOTE`, upar).
          */}
         <div className="hpan__note">
           <span>
-            <b>{activeLabel}</b> category — <b>{formatPrice(active.priceFrom, currency)}</b>
-            {priceNote ? ' ' + priceNote : ''}
+            <b>{activeLabel}</b> category — <b>{formatPrice(active.priceFrom, currency)}</b>{' '}
+            {PRICE_NOTE}
           </span>
         </div>
       </div>
@@ -351,9 +360,8 @@ export function HotelsSection({ hotels }) {
 /**
  * "Popular add-ons" — Add Ons master list, poori.
  *
- * **Poori master list chhapti hai** — client ne 27 Aug ko package ka chunav hata diya
- * (D-61). Wo `packageDefaults` ke saath aati hai, entry ke payload me nahi: ab ye har package
- * pe wahi hai, aur uska cache tag bhi wahi hona chahiye (`type:package`).
+ * **Package pe chune hue add-ons** — poori master list kabhi nahi chhapti (§1.4). Ye field
+ * D-61 me global ho gaya tha aur D-64 me wapas chunav pe aa gaya.
  *
  * Category se iska koi lena-dena nahi, isliye ye context bhi nahi padhta — par file yahi hai,
  * kyunki page pe ye hotels ke theek baad aata hai.

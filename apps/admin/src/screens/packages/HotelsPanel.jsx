@@ -2,6 +2,8 @@ import { useState } from 'react'
 
 import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL, pricedCategories } from '@cms/shared'
 
+import { confirmRemove } from '../../lib/confirm.js'
+
 /**
  * Hotels — spec 007 §4.2. **Design me ye panel tha hi nahi**, ye spec se aaya hai.
  *
@@ -187,7 +189,13 @@ export default function HotelsPanel({
                     type="button"
                     className="btn btn-sm"
                     disabled={disabled}
-                    onClick={() => onChange(list.filter((_, i) => i !== index))}
+                    onClick={() => {
+                      const what = `${nameOf(row.destinationId)} · ${
+                        HOTEL_CATEGORY_LABEL[row.category] ?? row.category
+                      }`
+                      if (!confirmRemove(what)) return
+                      onChange(list.filter((_, i) => i !== index))
+                    }}
                   >
                     ✕
                   </button>

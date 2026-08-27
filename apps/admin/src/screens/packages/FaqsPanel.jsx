@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+import { confirmRemove } from '../../lib/confirm.js'
 import { useListDrag } from '../../lib/drag-list.js'
 
 /**
@@ -111,7 +112,10 @@ export default function FaqsPanel({ faqs, onChange, disabled }) {
                   <button
                     type="button"
                     className="btn btn-sm"
-                    onClick={() => onChange(list.filter((_, i) => i !== index))}
+                    onClick={() => {
+                      if (!confirmRemove(faq.question || `FAQ ${index + 1}`)) return
+                      onChange(list.filter((_, i) => i !== index))
+                    }}
                   >
                     Remove
                   </button>

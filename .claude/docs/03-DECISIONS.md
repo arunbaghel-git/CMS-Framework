@@ -3112,6 +3112,9 @@ deta hai, aur bina daam wali category ki table banti hi nahi). Schema **nahi bad
 
 ## D-61 · Add-ons global ho gaye, aur Hotels panel sirf jodne ke liye rah gaya
 
+> ⚠️ **§1 (add-ons global) D-64 §4 se superseded hai** — wo usi din wapas package ke chunav
+> pe aa gaye. §2 (Hotels panel ka blank row) waisa hi hai.
+
 **Supersedes:** spec 007 §1.4 ka "add-ons chune jaate hain" wala hissa · D-60 ka panel wala
 hissa
 
@@ -3238,3 +3241,167 @@ ki bhoola hua: client ko wo chhoti line chahiye hogi to wo apna ek field maangeg
 ye tay hoga ki wo package ki hai ya site ki.
 
 **Nateeja:** 566 tests. Schema me kuch nahi badla — `priceNote` wahi hai jahan tha.
+
+---
+
+## D-63 · Price line theme me static — admin se field hata diya
+
+**Supersedes:** D-57 §3 · D-62
+
+**Context:** `per person on twin sharing, daily breakfast included` wali line ka teen din me
+teesra ghar badla:
+
+```
+D-57 §3   packageDefaults.priceNote bani, panel What's Included wali screen pe
+D-62      panel Packages ▸ Hotels pe khiska — setting wahin jahan asar dikhta hai
+D-63      field hi hat gaya — line ab theme me static hai
+```
+
+Client ne 27 Aug ko kaha: admin se hata kar static daal do.
+
+**Decision:** `PRICE_NOTE` — ek constant `apps/web/components/package/Pricing.jsx` me.
+`packageDefaults.priceNote` poori tarah hata diya gaya: schema, model, service ka whitelist
+aur public projection, chaaron jagah se.
+
+### Kyun ye sahi hai
+
+Wo line **har package pe, har category pe bilkul wahi** rehti hai. Uske liye admin me ek
+field dene ka matlab tha: ek aur screen pe ek aur panel, jise client ek baar bharega aur
+phir kabhi nahi chhuega — aur tab tak har naye instance me wo **khaali** rahegi, yaani page
+pe aadhi line chhapegi.
+
+Ye wahi lakeer hai jo Q-9 me pehle se khinch chuki hai — **dhaancha static, maal admin se.**
+Us list me teen cheezein pehle se thin (hero ka `per person · twin sharing`, catbar ka
+vaakya, aur `CATEGORY_COPY`); ye chauthi hai.
+
+### Jo cheez sach me bharni padti hai wo derive hi rehti hai
+
+Patti ka pehla aadha ab bhi derived hai — `Deluxe` chuna hua tab hai aur `₹29,499` uska
+apna daam. Sirf poonchh static hui.
+
+### Ek chhoti keemat, aur wo Q-9 me pehle se likhi hai
+
+Ye line English me theme ke code me baithi hai. Jis din koi client `daily breakfast` ki
+jagah kuch aur kehna chahega, wo **code change** hoga, admin ka kaam nahi. Q-9 usi sawaal
+ka ghar hai — wahan ye chauthi line bhi jud chuki hai.
+
+### Test badal gaya
+
+D-62 ke saath ek **round-trip** test likha gaya tha (PATCH → GET → public payload), kyunki
+us waqt field save hi nahi ho raha tha. Ab wo bemaani hai; uski jagah ek guard hai: wo key
+public payload me **dobara na aa jaaye**. Warna theme ki static line aur payload ki line do
+alag source ban jaate, aur ek din wo alag ho jaate.
+
+**Nateeja:** 567 tests. Migration nahi — field kabhi kisi asli document me tha hi nahi
+(mongoose use `$unset` ki zaroorat ke bina chhod deta hai, aur use ab koi padhta nahi).
+
+---
+
+## D-64 · Editor ki safai — do field hate, ek wapas aaya, aur do aadatein judin
+
+**Supersedes:** D-51 §3 (per-day `hotelCategory`) · D-61 (add-ons global)
+
+**Context:** Client ne editor aur page dono chala kar dekha aur ek saath saat baatein kahin.
+Chhe UI ki hain, ek asli bug tha. Sab ek hi din ke hain, isliye ek record.
+
+### 1. Transfer duration page pe aati hi nahi thi — bug
+
+Chip ki shart `day.transfer && …` thi, yaani transfer **na chuna ho** to poori chip gir
+jaati thi — aur uske saath client ka likha hua `90 min` bhi.
+
+Data me wo teen din maujood the:
+
+```
+Day 2 | transferId: —  | transferNote: "90 min"
+Day 4 | transferId: —  | transferNote: "40 min"
+Day 5 | transferId: —  | transferNote: "2 hrs"
+```
+
+Ye chup tha: admin me text bhara hua dikhta tha, page pe kuch nahi. Ab duration akeli ho to
+bhi chip banti hai — **ghadi ke icon ke saath**, gaadi ke nahi: bina transfer ke gaadi ka
+icon ek aisi baat keh deta hai jo likhi hi nahi gayi.
+
+### 2. Per-day `hotelCategory` hata
+
+D-51 §3 me ye client ke hi kehne pe aaya tha ("ek hi package me kuch raatein alag darje ke
+hotel me ho sakti hain"). Live dekhne ke baad unhe wo column bemaani laga, aur wo sahi hai:
+pricing package-level pe hai (§4) aur hotels ki table usi se banti hai, to din pe ek aur
+category chunne ka jawab **page pe kahin dikhta hi nahi tha**.
+
+Migration nahi lagi — wo ek chunav tha, likha hua text nahi. Mongo me bacha hua field muft
+hai aur ab use koi padhta nahi.
+
+### 3. `highlights[]` description me mil gayi — **migration 014**
+
+Din ke card pe do field the: `description` (paragraph) aur `highlights[]` (bullets). Client
+ne kaha alag row nahi chahiye, list description me likh denge.
+
+**Niyam ek hi hai: `-` se shuru hone wali line bullet, baaki paragraph.**
+
+> ⚠️ Client ne kaha tha "har nayi line alag bullet". Wo poora nahi kiya gaya, aur wajah data
+> me thi: unke har din ka `description` ek **asli paragraph** hai. Har line ko bullet banane
+> ka matlab hota ki wo paragraph bhi bullet ban jaaye aur design ka shape hi toot jaaye.
+> Sirf bullets likhne pe sirf bullets aate hain — yaani client ki baat bhi poori hoti hai.
+
+Ye markdown **nahi** hai aur na banega: poora markdown lagane ka matlab hota ek parser, uski
+sanitisation, aur wo saara sawaal jo rich text pe pehle hi tay ho chuka hai (D-46 §3).
+
+**Migration isliye zaroori thi ki text kho na jaaye** — bina uske client ka likha har
+highlight page se chup-chaap gayab ho jaata. `down()` bhi hai, par wo poori tarah ulta nahi
+hai aur wo file me likha hua hai: migration ke **baad** likhe gaye bullets bhi wapas
+`highlights` ban jaayenge, kyunki dono ek jaise dikhte hain.
+
+### 4. Add-ons wapas package ka chunav — D-61 ka palat
+
+D-61 me client ne add-ons **global** kar diye the (poori list har package pe). Usi din unhone
+wapas maanga: sidebar me checklist, Destinations ki tarah.
+
+Aaj ka niyam wahi hai jo spec §1.4 me shuru se likha tha — package chunta hai, poori list
+nahi chhapti. `fields.addOns`, uska guard, `packageAddOnsSchema` aur `useAddOnList` chaaron
+wapas aa gaye, aur payload `packageDefaults` se wapas **entry** pe chala gaya (ab wo har
+package ka apna chunav hai, to cache tag bhi usi entry ka).
+
+> Ye field do baar ja chuka hai aur do baar wapas aaya hai. Wo apne aap me ek jaankari hai:
+> jab client ise teesri baar chhuye, pehle ye record padha jaaye.
+
+### 5. Har remove pe ek pooch — `lib/confirm.js`
+
+Itinerary ka din, FAQ, hotels ki override row, master list ka delete, aur image remove — sab
+pe. Message me **kya** ja raha hai wo likha aata hai (`Remove Day 3?`); "Remove this?" padh
+kar user ko ye pata hi nahi chalta ki uska cursor kis row pe tha.
+
+`window.confirm` hi rakha, apna modal nahi — repo me ye pattern pehle se hai (`Menus.jsx`,
+`MegaBuilder.jsx`), aur teesra tareeka banane ka matlab hota ek hi kaam do shakl me.
+
+### 6. Panels ka kram client badal sakta hai — `SortablePanels`
+
+Main column ke paanch panel: Info · Itinerary · Pricing · Hotels · FAQs. Grip panel ke apne
+head me hai.
+
+**Kram `localStorage` me hai, DB me nahi.** Ye ek user ki pasand hai, site ki setting nahi —
+DB me rakhne ka matlab hota ki ek editor apna kram badle aur baaki sabka badal jaaye. Yahi
+tark `Panel` ke collapse state pe pehle se laga hua hai.
+
+**Sidebar jaan-boojh kar chhoda** — usme Publish sabse upar hai aur Save usi ke andar. Use
+neeche khiska dena "Save kahan gaya" wala sawaal banata hai.
+
+⚠️ **Ek trade-off jo likha hona chahiye:** dikhne ka kram CSS `order` se aata hai, DOM ka
+kram nahi badalta. Keyboard aur screen reader DOM padhte hain, isliye tab karte hue panels
+apne **asli** kram me aayenge. Isiliye grip pe keyboard se bhi reorder hota hai (↑/↓).
+
+### 7. Do chhoti cheezein jo isi din nikleen
+
+**Panel ki heading beech me chali gayi thi.** `.panel-head` pe `justify-content:
+space-between` hai aur wo bachchon ki **ginti** pe nirbhar tha: do pe theek (h2 baayein,
+toggle daayein), teen pe (grip juda) h2 beech me. Fix `.panel-head h2 { margin-right: auto }`
+hai — auto margin `justify-content` se pehle jagah leta hai, isliye ab head me do cheezein
+hon ya chaar, heading baayein hi rehti hai.
+
+**All Packages me image kabhi wire hi nahi thi.** Cell me ek **khaali `<span class="thumb">`**
+tha — sirf gradient placeholder. Ab har row ka `bannerImage` resolve hota hai; media na mile
+to wahi placeholder wapas aata hai, toota hua `<img>` kabhi nahi (D-42 §2). Ids sirf **is
+page** ki rows se aati hain — `useMediaById` har id pe ek call karta hai, aur bina pagination
+ke ye 500 calls ban jaata.
+
+**Nateeja:** 568 tests. Migration **014** (highlights → description). Baaki koi migration
+nahi.

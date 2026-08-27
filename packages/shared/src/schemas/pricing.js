@@ -24,8 +24,8 @@ import { HOTEL_CATEGORIES } from '../constants/index.js'
  * laga tha, D-55).
  *
  * Page pe `per person on twin sharing, daily breakfast included` wali line phir bhi dikhti
- * hai — wo ab `packageDefaults.priceNote` se aati hai, ek baar likhi jaati hai aur har
- * package pe wahi chhapti hai.
+ * hai — wo theme me **static** hai (`PRICE_NOTE`), kyunki har package pe, har category pe
+ * bilkul wahi rehti hai (Q-9).
  */
 
 /**
@@ -103,11 +103,14 @@ export const packageHotelSchema = z.object({
  */
 export const packageHotelsSchema = z.array(packageHotelSchema).max(80).default([])
 
-/*
- * `packageAddOnsSchema` **hata diya gaya** (D-61) — add-ons ab global hain, package unme se
- * chunta nahi. Ek schema jiska koi caller na ho wo sirf sadta hai; wahi tark jo `tags` field
- * type (D-55) aur `PRICE_BASIS` (D-57) pe laga tha.
+/**
+ * Package pe chune hue add-ons — Add Ons master list ki ids (§1.4).
+ *
+ * ⚠️ Ye field **do baar** ja chuka hai aur wapas aaya hai: D-61 me client ne add-ons global
+ * kar diye the (poori list har package pe), aur D-64 me wapas chunav pe le aaye. Aaj ka
+ * niyam wahi hai jo spec §1.4 me likha tha — package chunta hai, poori list nahi chhapti.
  */
+export const packageAddOnsSchema = z.array(z.string().min(1)).max(50).default([])
 
 // ── derived ──────────────────────────────────────────────────────────────────
 

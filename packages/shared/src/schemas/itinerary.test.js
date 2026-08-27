@@ -84,9 +84,12 @@ describe('itineraryDaySchema', () => {
 
     expect(parsed.overnightStayId).toBeNull()
     expect(parsed.meals).toEqual([])
-    expect(parsed.highlights).toEqual([])
     expect(parsed.note).toBe('')
-    expect(parsed.hotelCategory).toBeNull()
+    expect(parsed.description).toBe('')
+
+    // `highlights` aur `hotelCategory` dono D-64 me hate — bheje jaayein to bhi nahi bachte
+    expect(parsed.highlights).toBeUndefined()
+    expect(parsed.hotelCategory).toBeUndefined()
   })
 
   it('meals me sirf teen known values chalti hain', () => {
@@ -97,11 +100,13 @@ describe('itineraryDaySchema', () => {
     ])
   })
 
-  it('hotelCategory chaar fixed values me se hi hoti hai', () => {
-    expect(() => itineraryDaySchema.parse({ title: 'x', hotelCategory: 'ultra' })).toThrow()
-    expect(itineraryDaySchema.parse({ title: 'x', hotelCategory: 'luxury' }).hotelCategory).toBe(
-      'luxury',
-    )
+  it('hotelCategory ab hai hi nahi — bheji jaaye to bhi gir jaati hai (D-64)', () => {
+    // Client ne D-51 me maangi thi, live dekhne ke baad hata di: pricing package-level pe
+    // hai aur hotels ki table usi se banti hai, to din pe ek aur category ka jawab page pe
+    // kahin dikhta hi nahi tha
+    const parsed = itineraryDaySchema.parse({ title: 'x', hotelCategory: 'luxury' })
+
+    expect(parsed.hotelCategory).toBeUndefined()
   })
 
   it('transferNote free text hai — 90 min, 2 hrs, overnight sab chalte hain', () => {

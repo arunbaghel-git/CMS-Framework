@@ -3,8 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL } from '@cms/shared'
 
 import { api, errorMessage } from '../../lib/api.js'
-import PriceLinePanel from './PriceLinePanel.jsx'
 import { useAuth } from '../../lib/auth.jsx'
+import { confirmRemove } from '../../lib/confirm.js'
 import { useTaxonomyList } from './usePackages.js'
 import './Packages.css'
 
@@ -188,6 +188,8 @@ export default function MasterListScreen({ list }) {
   }
 
   async function remove(item) {
+    if (!confirmRemove(item.name)) return
+
     setError(null)
     setNotice(null)
 
@@ -276,14 +278,6 @@ export default function MasterListScreen({ list }) {
           <span>{notice}</span>
         </div>
       )}
-
-      {/*
-       * Price line sirf Hotels ki screen pe — wo page pe hotels table ke theek neeche
-       * chhapti hai, aur setting wahin honi chahiye jahan uska asar dikhta hai (D-62).
-       *
-       * Data `packageDefaults` me hi rehta hai; sirf screen badli hai.
-       */}
-      {list === 'hotels' && <PriceLinePanel />}
 
       <div className="edit-grid tax-grid">
         {canWrite && (
