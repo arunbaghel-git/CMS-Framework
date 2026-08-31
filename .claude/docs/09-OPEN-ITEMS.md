@@ -13,8 +13,9 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 shuru ho chuka hai** (D-52) — wo har slice ke saath badhega.
 **Slice 5 (Pricing + Hotels) bhi ban gayi** — 27 Aug, **D-56**. Admin ke do naye panel aur
 public page pe price block · catbar · hotels table · add-ons.
-**Agla kaam: Slice 6** — Itinerary Images pool + gallery, aur FAQs · goodToKnow[] ·
-reviews[] + rating (spec 007 §7).
+**Agla kaam: Slice 6 ka bacha hua hissa** — `goodToKnow[]` aur `reviews[]` + rating.
+⚠️ Slice 6 ka aadha ban chuka hai: Itinerary Images ka pool + gallery Slice 4/D-52 me, aur
+FAQs D-59 me. Ek sawaal khula hai — §9 #8 (rating haath se ya `reviews[]` se).
 
 **568 tests passing** · lint · format clean.
 **Last updated:** 27 Aug 2026
@@ -305,6 +306,26 @@ packages flat hain. Ye copy-paste se nahi aayega.
 **Ye yahan isliye likha hai ki ye chup-chaap gayab ho raha tha.** Slice 1 se Slice 4 tak ka
 poora kaam Packages pe kendrit raha, aur is gap ka kisi list me zikr nahi tha — wo sirf tab
 dikhta jab koi sidebar me Posts pe click karta.
+
+---
+
+### Public page ke chaar section jo abhi bane hi nahi
+
+**Deadline:** koi nahi — page aaj poora chalta hai, ye sections **render hi nahi hote**
+**Yahan isliye hain ki inhe "TODO" kahin aur nahi likha gaya**
+
+Design (`itinerary-v3.html`) me ye chaar hain aur hamare page pe nahi:
+
+| Section | Kya chahiye | Kis sawaal pe ruka |
+| --- | --- | --- |
+| **Traveller reviews** | `reviews[]` + `ratingValue`/`ratingCount` | §9 #8 — rating haath se ya derive |
+| **Similar itineraries** | koi naya field nahi, sab derived (§6.1) | §9 #15 — apne aap chunein ya haath se |
+| **"Want this trip on your dates?"** (neeche ka band) | enquiry form | **Q-2** — Enquiries Phase 7b me hai |
+| Sidebar ka **price + enquiry widget** | wahi enquiry form | **Q-2** |
+
+Pehle do Slice 6-7 me aayenge. Aakhri do Enquiries ke bina adhoore rahenge — un par teen
+raaste hain: form ka khaali shell (D-30 wala precedent), ya "Call/WhatsApp" button (settings
+me phone pehle se hai), ya jab tak Enquiries na bane tab tak chhod dena.
 
 ---
 

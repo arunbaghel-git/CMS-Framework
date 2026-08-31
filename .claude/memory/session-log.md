@@ -15,6 +15,74 @@ Format:
 
 ---
 
+## 2026-08-27 (raat, doosra hissa) — Editor ki safai (D-64), aur code push
+
+**Kya hua**
+
+Design pass ke baad client ne editor aur page dono chala kar dekha aur ek saath **saat**
+baatein kahin. Chhe UI ki, ek asli bug. Commit `370d0f9`.
+
+**Bug — transfer duration page pe aati hi nahi thi**
+
+Chip ki shart `day.transfer &&` thi, yaani transfer **na chuna ho** to poori chip gir jaati
+thi — aur uske saath client ka likha `90 min` bhi. Data me teen din wahi the:
+
+```
+Day 2 | transferId: —  | transferNote: "90 min"
+Day 4 | transferId: —  | transferNote: "40 min"
+Day 5 | transferId: —  | transferNote: "2 hrs"
+```
+
+Ye chup tha: admin me text bhara hua dikhta tha, page pe kuch nahi.
+
+**Baaki chhe**
+
+| Kya                                    | Note                                                                |
+| -------------------------------------- | ------------------------------------------------------------------- |
+| Din se `hotelCategory` hata            | D-51 §3 ka palat — uska jawab page pe kahin dikhta hi nahi tha      |
+| `highlights[]` description me mil gayi | `-` wali line = bullet. **Migration 014** purana data laayi         |
+| Add-ons wapas package ka chunav        | D-61 ka palat, usi din. Payload `packageDefaults` se wapas entry pe |
+| Har remove pe confirmation             | `lib/confirm.js` — message me batata hai **kya** ja raha hai        |
+| Panels drag se reorder                 | `SortablePanels` — kram `localStorage` me, DB me nahi               |
+| `.toggle-ico` 11 → 14px                | Reference se jaan-boojh kar alag, client ka faisla                  |
+
+**Do chhote fix jo isi kaam se nikle, dono chup the**
+
+1. **Panel ki heading beech me chali gayi thi.** `.panel-head` pe `space-between` hai aur wo
+   bachchon ki **ginti** pe nirbhar tha: do pe theek (h2 baayein, toggle daayein), teen pe
+   (grip juda) h2 beech me. Fix `h2 { margin-right: auto }` — auto margin
+   `justify-content` se pehle jagah leta hai, isliye ab head me do cheezein hon ya chaar,
+   heading baayein hi rehti hai.
+2. **All Packages me image kabhi wire hi nahi thi** — cell me ek **khaali
+   `<span class="thumb">`** tha, sirf gradient placeholder. Ab banner resolve hota hai;
+   media na mile to wahi placeholder wapas aata hai, toota `<img>` kabhi nahi (D-42 §2).
+
+**Ek jagah client ki baat poori nahi maani, aur wo record me hai**
+
+Client ne kaha tha "har nayi line alag bullet". Wo poora nahi kiya — **paragraph wali line
+paragraph hi rehti hai**. Wajah data me thi: unke har din ka `description` ek **asli
+paragraph** hai, aur har line ko bullet banane ka matlab hota wo paragraph bhi bullet ban
+jaaye. Sirf bullets likhne pe sirf bullets aate hain, yaani unki baat bhi poori hoti hai.
+Tark D-64 §3 me likha hai taaki wapas jaana ho to saamne rahe.
+
+**Push** — saat commits `origin/main` pe gaye (`ef95732..370d0f9`). Push se pehle
+`format:check` aur `lint` dono chalaye; CI ka pehla step wahi hai aur ek purana commit
+(`3c29b58`) us par red ho chuka hai.
+
+**Aakhir me ek doc safai (usi din, baad me)**
+
+`project-state` aur `09-OPEN-ITEMS` dono ka "Agla kaam" ab bhi **poora Slice 6** keh raha
+tha — "Itinerary Images pool + gallery, aur FAQs · goodToKnow · reviews". Usme se aadha
+pehle hi ban chuka hai (pool + gallery Slice 4/D-52 me, FAQs D-59 me), yaani `/status`
+naye session ko wo kaam batata jo ho chuka hai. Dono lines theek ki gayin, aur page ke
+**chaar na-bane sections** ka apna item bhi `09-OPEN-ITEMS` me likh diya gaya.
+
+**Agla**
+
+1. **Slice 6 ka bacha hua hissa** — `goodToKnow[]` aur `reviews[]` + rating
+2. Uska ek sawaal: §9 #8 — rating haath se ya `reviews[]` se (mashwara: haath se)
+3. `apps/web/.env` (**A-5**), aur Hotels list me do entry ulti hain
+
 ## 2026-08-27 (raat) — Public package page design se milaya, section-dar-section
 
 **Kya hua**

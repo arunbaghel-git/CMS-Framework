@@ -139,8 +139,20 @@ hotel ke `note` se.
 ₹29,499` ka pehla hissa. `Room` aur `Note` dono package pe nahi hain — wo hotel ke apne
 record pe hain (D-53 §3, D-57 §2).
 
-**Agla kaam: Slice 6** (spec 007 §7) — Itinerary Images pool + gallery, aur FAQs ·
-goodToKnow[] · reviews[] + rating.
+**Agla kaam: Slice 6 ka bacha hua hissa** — `goodToKnow[]` aur `reviews[]` + rating
+(`ratingValue`/`ratingCount`).
+
+⚠️ Slice 6 ka aadha pehle hi ban chuka hai, isliye uska poora naam padh kar mat chalna:
+**Itinerary Images ka pool aur gallery Slice 4/D-52 me aa gaye the**, aur **FAQs D-59 me**
+(client ne Slice 5 ke saath maang li thi). Sirf upar wali do cheezein baaki hain.
+
+Un dono se public page ke do khaali section bharenge — **Traveller reviews**, aur "Good to
+know" ka **upar wala hissa** (abhi wahan sirf global booking steps + cancellation hain).
+
+**Ek sawaal ispe ruka hai** (spec 007 §9 #8): `ratingValue` (4.9) aur `ratingCount` (412)
+client haath se likhe, ya `reviews[]` se gine jaayein? Mashwara: **haath se** — design me
+`412 traveller reviews` hai par cards teen hi hain, to derive karne pe wo number chup-chaap
+**3** ho jayega aur `4.9 average from 412 trips` wali line jhooth bolegi.
 
 **27 Aug — dev server tunnel/LAN se khulta hai, aur CORS reject 403 hai.** Kaam share
 karne ke liye cloudflared tunnel lagate waqt do gap mile, dono asli: Vite sirf localhost pe
