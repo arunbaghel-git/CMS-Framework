@@ -48,7 +48,17 @@ export const bookingStepSchema = z.object({
  * (D-44 §8) pe laga: admin se aayi HTML ko render karna stored XSS ka seedha raasta hai.
  */
 const headingSchema = z.string().trim().max(120).default('')
-const descriptionSchema = z.string().trim().max(1000).default('')
+/**
+ * 1000 se 3000 (client, 31 Aug — D-68).
+ *
+ * Pehle ye ek intro **line** ke naap ka tha. Ab "Good to know before you book" ka poora
+ * content isi box me jaata hai (spec ka `goodToKnow[]` field banaya hi nahi gaya, kyunki
+ * wo content har package pe same rehta hai), aur wo do-teen paragraph ka hota hai.
+ *
+ * `cancellationText` pehle se 5000 pe hai — usi shreni ka content hai, isliye 1000 wahan
+ * bhi kam hi lagta.
+ */
+const descriptionSchema = z.string().trim().max(3000).default('')
 
 /**
  * `{ overview: {...}, itinerary: {...}, ... }` — keys `PACKAGE_SECTIONS` se.

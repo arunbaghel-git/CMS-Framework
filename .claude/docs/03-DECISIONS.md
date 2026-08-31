@@ -3745,3 +3745,73 @@ theme me `.sec` hai hi nahi — page ke baaki sections seedhe `.wrap` use karte 
 
 **Nateeja:** 581 tests (3 naye). Koi migration nahi — khaali `{}` ka matlab "section off"
 hai, aur wahi default hai.
+
+---
+
+## D-68
+
+**`goodToKnow[]` banaya hi nahi gaya — wo content Section Headings ke box me jaata hai**
+_31 Aug 2026 · client ka faisla_
+
+### Sawaal
+
+Slice 6 me do cheezein bachi thin: `goodToKnow[]` aur `reviews[]` + rating. Client ne khud
+poochha: _"good to know ke section ko ham heading section me dal sakte hai kya?"_
+
+Sawaal seedha uss jagah pe ungli rakhta hai jahan spec ne ek baat **maan** li thi.
+
+### Spec ne kya maana tha
+
+spec 007 §2.1 ka tark: "Good to know before you book" me do kism ka content mila hua hai —
+
+```
+h3  The ferries decide this itinerary      ← IS package ke baare me
+h3  What the days actually feel like       ← IS package ke baare me
+h3  Booking & cancellation                 ← har package pe same
+```
+
+…aur isliye pehle do ke liye per-package `goodToKnow[]` chahiye, kyunki _"har itinerary ki
+ferry wali majboori alag hoti hai"_.
+
+### Client se poochhne pe jawab: **"same rahega"**
+
+Unka good-to-know content har package pe ek jaisa hai. Yaani wo **per-package data hai hi
+nahi**, aur spec ki wo maani hui baat galat thi.
+
+### Faisla
+
+`goodToKnow[]` **banega hi nahi**. Wo content
+`packageDefaults.sectionLabels.booking.description` me jaata hai — wo box **D-65 me pehle se
+ban chuka hai** aur page pe theek wahin chhapta hai jahan ye hissa hona chahiye: heading ke
+neeche, booking steps se upar.
+
+```
+Good to know before you book        ← sectionLabels.booking.heading
+<good-to-know ka content>           ← sectionLabels.booking.description  ← yahan
+1. Tell us your dates…              ← packageDefaults.bookingSteps
+Cancellations more than 30 days…    ← packageDefaults.cancellationText
+```
+
+Sirf ek badlaav laga: description ka cap **1000 → 3000 chars** (`cancellationText` pehle se
+5000 pe hai — usi shreni ka content hai).
+
+**Kya bach gaya:** ek repeatable field, ek admin panel, uske tests, aur theme me use
+render karne ka code. Wahi galti thi jo D-57/D-58 me pakdi gayi — _jo cheez pehle se hai,
+use dobara mat poochho._
+
+### ⚠️ Ek cheez us box me nahi ho sakti — sub-headings
+
+Wo **plain text** block hai (XSS ka wahi tark jo FAQs aur footer text blocks pe hai —
+D-59, D-44 §8), aur page pe ek `<p>` banta hai jisme line breaks `pre-line` se zinda rehte
+hain. Design ke `h3` us box se **nahi** banenge.
+
+Jis din client ko wo `h3` chahiye, ye faisla dobara khulega — aur tab tak koi bekaar field
+DB me nahi padi hai. Ulta case (field bana kar hatana) D-54 me ho chuka hai aur usme
+migration likhni padi thi.
+
+### Iska asar Slice 6 pe
+
+Slice 6 me ab **sirf `reviews[]` + rating** bacha hai, aur wo `spec 007 §9 #8` pe ruka hai
+(rating haath se ya `reviews[]` se gini jaaye).
+
+**Nateeja:** koi naya code nahi, koi migration nahi. Sirf ek cap badla aur spec/docs sync.

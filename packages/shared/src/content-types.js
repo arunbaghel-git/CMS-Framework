@@ -25,7 +25,9 @@ const S = ENTRY_SUPPORT
  *
  * `addOns` ek baar hata kar wapas aaya hai — D-61 me global, D-64 me phir se package ka
  * chunav (spec §1.4 wala asli niyam). `faqs` D-59 me juda (Slice 6 se aage khiska).
- * **`goodToKnow` aur `reviews` + rating abhi baaki hain** — wo Slice 6 me judenge.
+ * **`reviews` + rating abhi baaki hain** — wo Slice 6 me judenge. `goodToKnow` **banega hi
+ * nahi** (D-68): uska content har package pe same rehta hai, to wo
+ * `packageDefaults.sectionLabels.booking.description` me jaata hai.
  *
  * `destinations` aur `packageTypes` yahan **nahi** hain — wo `entry.taxonomies` me hain
  * (D-49), aur kaunsi taxonomies chalti hain wo `taxonomyTypes` batata hai.

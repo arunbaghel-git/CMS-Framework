@@ -15,6 +15,61 @@ Format:
 
 ---
 
+## 2026-08-31 (raat) — `goodToKnow[]` banaya hi nahi gaya (D-68)
+
+**Kya hua**
+
+Slice 6 shuru karne se pehle client ne khud poochha: _"good to know ke section ko ham
+heading section me dal sakte hai kya?"_
+
+Sawaal ne theek uss jagah pe ungli rakhi jahan spec ne ek baat **maan** li thi. spec 007
+§2.1 kehti thi ki us section me do kism ka content hai — do `h3` "IS package ke baare me"
+hain aur booking/cancellation global hai — aur isi par ek per-package repeatable field
+(`goodToKnow[]`) khada tha. Tark tha: _"har itinerary ki ferry wali majboori alag hoti hai."_
+
+Poochhne pe client ka jawab: **"same rahega."**
+
+Yaani wo per-package data hai hi nahi. Spec ki maani hui baat galat thi, aur us par ek
+repeater field + admin panel + tests + theme code banne wale the.
+
+**Ab wo content kahan jaata hai**
+
+`packageDefaults.sectionLabels.booking.description` — wo box **D-65 me pehle se ban chuka
+tha**, khaali pada tha, aur page pe theek wahin chhapta hai jahan ye hissa hona chahiye:
+
+```
+Good to know before you book        ← sectionLabels.booking.heading
+<good-to-know ka content>           ← sectionLabels.booking.description   ← yahan
+1. Tell us your dates…              ← packageDefaults.bookingSteps
+Cancellations more than 30 days…    ← packageDefaults.cancellationText
+```
+
+Sirf ek badlaav laga: description ka cap **1000 → 3000 chars**. 1000 ek intro _line_ ke naap
+ka tha; ab usme do-teen paragraph jaate hain. (`cancellationText` pehle se 5000 pe hai —
+usi shreni ka content.)
+
+**Koi naya code nahi. Koi migration nahi.**
+
+> **Sabak:** spec me likhi hui baat aur client ka asli case do alag cheezein ho sakti hain.
+> Yahan spec ka tark padhne me bilkul theek lagta tha (ferry ki majboori sach me alag hoti
+> hai) — par is client ke content me wo farak hai hi nahi. **Field banane se pehle ek line
+> ka sawaal poochh lena ek poore panel se sasta pada.** Wahi lakeer D-57/D-58 pe thi: jo
+> cheez pehle se hai, use dobara mat poochho.
+
+⚠️ **Ek hadd jo saaf likhi hui hai:** us box me **sub-headings nahi** ban sakte. Wo plain
+text hai (XSS ka wahi tark jo FAQs — D-59 — aur footer text blocks — D-44 §8 — pe hai), aur
+page pe ek `<p>` banta hai jisme line breaks `pre-line` se zinda rehte hain. Design ke `h3`
+usse nahi banenge. Jis din client ko wo chahiye, D-68 dobara khulega.
+
+Ulta case pehle ho chuka hai: **D-54** me `availability` bana kar hataya gaya tha aur uske
+liye migration likhni padi. Yahan kuch bana hi nahi, to hatane ko bhi kuch nahi.
+
+**Slice 6 me ab sirf `reviews[]` + rating bacha hai**, aur wo spec 007 §9 #8 pe ruka hai
+(rating haath se likhi jaaye ya `reviews[]` se gini jaaye — mashwara **haath se**, kyunki
+design me `412 traveller reviews` hai par cards teen hi hain).
+
+**Nateeja:** 581 tests · lint · format clean. Sirf ek cap aur docs sync.
+
 ## 2026-08-31 (raat) — Admin ka responsive; handoff ke sabak permanent docs me
 
 **Kya hua**

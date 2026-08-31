@@ -7,7 +7,9 @@ Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1–5 ban chuki hain**; public package
 page shuru ho chuka hai aur har slice ke saath badh raha hai (**581 tests passing**).
-Agla kaam **Slice 6 ka bacha hua hissa — `goodToKnow[]` aur `reviews[]` + rating**.
+Agla kaam **Slice 6 ka bacha hua hissa — sirf `reviews[]` + rating**.
+⚠️ `goodToKnow[]` **banega hi nahi** (D-68) — uska content har package pe same rehta hai, to
+wo Packages ▸ Section Headings ke "Good to know" wale description box me jaata hai.
 ⚠️ Slice 6 ka aadha pehle hi ban chuka hai: **Itinerary Images ka pool + gallery** Slice 4 /
 D-52 me, aur **FAQs** D-59 me. Poora naam padh kar mat chalna.
 
@@ -227,10 +229,16 @@ wali line hotel ke apne `note` se. **Teen cheezein derive hoti hain, store nahi:
 daam (sabse sasti category), table ka `Nights` (itinerary se), aur `Deluxe category —
 ₹29,499`.
 
-Agla kaam **Slice 6 ka bacha hua hissa** (spec 007 §7) — `goodToKnow[]` aur `reviews[]` +
-rating. Itinerary Images ka pool + gallery (Slice 4 / D-52) aur FAQs (D-59) **ban chuke hain**.
-`reviews[]` ek sawaal pe ruka hai — spec 007 §9 #8 (rating haath se ya `reviews[]` se gine);
-`goodToKnow[]` pe koi rukawat nahi.
+Agla kaam **Slice 6 ka bacha hua hissa** (spec 007 §7) — sirf `reviews[]` + rating.
+Itinerary Images ka pool + gallery (Slice 4 / D-52) aur FAQs (D-59) **ban chuke hain**.
+
+⚠️ **`goodToKnow[]` banega hi nahi (D-68).** Client se poochhne pe pata chala ki wo content
+har package pe **same** rehta hai — spec §2.1 ne ulta maan liya tha ("har itinerary ki ferry
+wali majboori alag hoti hai"). Ab wo `Packages ▸ Section Headings` → "Good to know" ke
+description box me jaata hai (D-65 me wo box pehle se ban chuka tha). Ek repeater field, ek
+panel aur uske tests bach gaye.
+
+`reviews[]` ek sawaal pe ruka hai — spec 007 §9 #8 (rating haath se ya `reviews[]` se gine).
 
 **31 Aug — section ke heading aur lines ab admin se (D-65, Q-9 ka bada hissa band):**
 `packageDefaults.sectionLabels` — 7 section, har ek pe `{ heading, description }`. Naya

@@ -187,8 +187,24 @@ know" section sirf tab dikhta tha jab booking steps bhi bhare hon. Kahin koi err
 Bilkul wahi shakl jo D-64 wale transfer-duration bug ki thi. **Is codebase ka apna failure
 mode yahi hai — payload me field add karna bhool jaana, aur dono taraf ka code sahi dikhna.**
 
-**Agla kaam: Slice 6 ka bacha hua hissa** — `goodToKnow[]` aur `reviews[]` + rating
+**Agla kaam: Slice 6 ka bacha hua hissa** — sirf `reviews[]` + rating
 (`ratingValue`/`ratingCount`).
+
+**31 Aug — `goodToKnow[]` banega hi nahi (D-68).** Client ne khud poochha: _"good to know ke
+section ko ham heading section me dal sakte hai kya?"_ Poochhne pe pata chala ki unka
+good-to-know content **har package pe same** rehta hai.
+
+spec 007 §2.1 ne **ulta maan liya tha** — "har itinerary ki ferry wali majboori alag hoti
+hai" — aur usi maani hui baat pe ek per-package repeatable field khada tha. Ab wo content
+`sectionLabels.booking.description` me jaata hai; wo box **D-65 me pehle se ban chuka tha**
+aur page pe theek wahin chhapta hai jahan ye hissa hona chahiye (heading ke neeche, booking
+steps se upar). Sirf ek cap badla: description 1000 → **3000 chars**.
+
+⚠️ **Us box me sub-headings nahi ban sakte** — wo plain text hai (XSS ka wahi tark jo FAQs
+aur footer text blocks pe hai). Design ke `h3` ("The ferries decide this itinerary") usse
+nahi banenge. Jis din client ko wo chahiye, D-68 dobara khulega — aur tab tak koi bekaar
+field DB me nahi padi. Ulta case (field bana kar hatana) **D-54** me ho chuka hai aur usme
+migration likhni padi thi.
 
 **31 Aug — hero ka lightbox ban gaya (D-66).** Tile pe click → popup, usme **saari** images
 (banner + poora pool), **ek waqt pe ek**, 4 second pe apne aap agli. Hero ka mosaic waisa hi

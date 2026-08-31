@@ -13,7 +13,8 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 shuru ho chuka hai** (D-52) — wo har slice ke saath badhega.
 **Slice 5 (Pricing + Hotels) bhi ban gayi** — 27 Aug, **D-56**. Admin ke do naye panel aur
 public page pe price block · catbar · hotels table · add-ons.
-**Agla kaam: Slice 6 ka bacha hua hissa** — `goodToKnow[]` aur `reviews[]` + rating.
+**Agla kaam: Slice 6 ka bacha hua hissa** — sirf `reviews[]` + rating. `goodToKnow[]`
+banega hi nahi (**D-68**, client 31 Aug) — wo content Section Headings ke box me jaata hai.
 ⚠️ Slice 6 ka aadha ban chuka hai: Itinerary Images ka pool + gallery Slice 4/D-52 me, aur
 FAQs D-59 me. Ek sawaal khula hai — §9 #8 (rating haath se ya `reviews[]` se).
 
@@ -460,9 +461,9 @@ Spec 005 me add karne honge.
 18. ✅ FAQs ka panel — Slice 6 se aage khiska    (D-59, 27 Aug — 565 tests)
     sirf FAQs, policies nahi; page pe <details>, koi JS nahi
 19. ✅ A-5 — apps/web ki .env; revalidate ab configured    (31 Aug)
-20. Slice 6 ka bacha hua hissa — goodToKnow[] · reviews[] + rating  ← agla kaam
+20. Slice 6 ka bacha hua hissa — sirf reviews[] + rating   ← agla kaam
     ⚠️ Itinerary Images pool + gallery (Slice 4/D-52) aur FAQs (D-59) BAN CHUKE hain
-    goodToKnow[] pe koi rukawat nahi; reviews[] §9 #8 pe ruka hai
+    goodToKnow[] BANEGA HI NAHI (D-68); reviews[] §9 #8 pe ruka hai
 21. Slice 7 → specs/007-packages.md §7
 ```
 

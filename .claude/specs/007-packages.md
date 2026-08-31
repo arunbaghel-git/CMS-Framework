@@ -263,7 +263,9 @@ pricing{}             §4
 addOns[]              Add Ons se CHUNE hue (§1.4) — poori list nahi chhapti
 hotels[]              Hotels se chune hue — §4.2
 faqs[]                question · answer — page ka "Questions about this package"
-goodToKnow[]          heading + rich text — §2.1
+goodToKnow[]          ❌ BANA HI NAHI — client (31 Aug): content har package pe same
+                      rehta hai, to wo Section Headings ke "Good to know" wale
+                      description box me jaata hai. D-68, §2.1 dekho
 ratingValue           4.9   ratingCount           412   / teen jagah dikhta hai — §2.2
 reviews[]             §2.2
 seoSchema             boolean — design ke SEO panel ka "Emit Product + Trip schema"
@@ -309,10 +311,29 @@ Isliye do jagah:
 
 | Hissa | Kahan |
 | --- | --- |
-| `goodToKnow[]` — heading + rich text, repeatable | package me (§2) |
+| ~~`goodToKnow[]` — heading + rich text, repeatable~~ | ❌ **bana hi nahi** — neeche |
 | `bookingSteps[]` + `cancellationText` | `packageDefaults` me (§1.8) |
 
 Theme dono ko ek hi section me jod kar dikhati hai.
+
+> ### ⚠️ `goodToKnow[]` banaya hi nahi gaya — D-68 (client, 31 Aug)
+>
+> Upar wala tark **maan liya gaya tha** ki pehle do hisse package ke apne honge ("har
+> itinerary ki ferry wali majboori alag hoti hai"). Client se seedha poochhne pe jawab
+> aaya: **"same rahega"** — unka good-to-know content har package pe ek jaisa hai.
+>
+> Yaani wo per-package data hai hi nahi, aur uske liye ek repeatable field + ek panel
+> banana wahi galti hoti jo D-57/D-58 me pakdi gayi thi.
+>
+> Ab wo content **`packageDefaults.sectionLabels.booking.description`** me jaata hai — wo
+> box D-65 me pehle se ban chuka hai aur page pe theek wahin chhapta hai jahan ye hissa
+> hona chahiye: heading ke neeche, booking steps se upar. Cap 1000 → **3000 chars**.
+>
+> ⚠️ **Ek cheez us box me nahi ho sakti — sub-headings.** Wo ek **plain text** block hai
+> (XSS ka wahi tark jo FAQs aur footer text blocks pe hai, D-59/D-44 §8), aur page pe ek
+> `<p>` banta hai jisme line breaks `pre-line` se zinda rehte hain. Design ke `h3`
+> ("The ferries decide this itinerary") us box se nahi banenge. Jis din client ko wo
+> chahiye, tab ye faisla dobara khulega — aur tab tak koi field bekaar nahi padi hai.
 
 ### 2.2 Rating aur reviews
 
@@ -454,7 +475,7 @@ nahi gaya:
 | Itinerary Builder | §3 |
 | Inclusions & Exclusions | **hataya** — ab global (§1.5) |
 | Pricing & Departures | §4 — Fixed Departures aur Occupancy Slabs hataye |
-| FAQs & Policies | §2 `faqs[]` + §2.1 `goodToKnow[]` |
+| FAQs & Policies | §2 `faqs[]` + §2.1 (~~`goodToKnow[]`~~ — D-68, bana hi nahi) |
 | Publish (Status · Visibility · Availability) | §2 — `status` · `private` · `availability` ❓ |
 | Package Details | §2 — `nights`, `days`, `bestSeason`, `featured`; baaki 5 hataye |
 | Destinations | §1.1 |
@@ -493,7 +514,7 @@ nahi gaya:
 | Hotel category tabs + tables | categoryPricing[] + hotels[] |
 | Popular add-ons | **Add Ons** — package me chune hue (§1.4) |
 | What's included | **What's Included** — global, `packageDefaults` (§1.5, §1.8) |
-| Good to know before you book | goodToKnow[] + `packageDefaults` ke bookingSteps/cancellation (§2.1) |
+| Good to know before you book | `sectionLabels.booking.description` + `packageDefaults` ke bookingSteps/cancellation (§2.1, D-68) |
 | Questions about this package | faqs[] |
 | Reviews ke cards | reviews[] (§2.2) |
 | Similar itineraries | **derived** (§6.1) |
@@ -570,7 +591,7 @@ SLICE 5   Pricing + Hotels
           → daam aur hotel table live
 
 SLICE 6   Itinerary Images pool + gallery
-          + FAQ · goodToKnow[] · reviews[] + rating
+          + FAQ · ~~goodToKnow[]~~ (D-68) · reviews[] + rating
 
 SLICE 7   Public package page — poora render                        🟡 shuru ho chuka
           Client ne 26 Aug ko "har slice ke saath thoda-thoda" chuna (D-52)
