@@ -36,7 +36,47 @@ node .claude/scripts/media-diff.mjs .claude/docs/reference/home-nav-v3.html   # 
 Ye script `css-diff.mjs` ki kami bharti hai — wo media blocks ko **jaan-boojh kar hata**
 deti hai, isliye responsive ka poora hissa kisi check me aata hi nahi tha.
 
-**Jo bacha hai:** admin (`admin-design.html`), aur public ka footer grid (neeche dekho).
+## ⬜ Jo bacha hai — **admin ka responsive** (client: "admin ka CSS baad me")
+
+`admin-design.html` me kul **do** media block hain. Ek hamare paas hai, doosra **poora gayab**:
+
+```css
+@media (max-width: 1100px) {
+  /* ✅ hai — primitives.css:416 */
+  .edit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 782px) {
+  /* ❌ ek line bhi nahi */
+  body:not(.collapsed) .sidebar {
+    width: var(--sidebar-w-collapsed);
+  }
+  .main {
+    margin-left: var(--sidebar-w-collapsed);
+    padding: 8px 12px 40px;
+  }
+  .row2,
+  .row3 {
+    grid-template-columns: 1fr;
+  }
+}
+```
+
+Matlab: phone pe admin ka **sidebar poori chaudi rehta hai** aur content ko dabaa deta hai,
+aur har do/teen-column form row (Pricing panel · Hotels panel · Settings) mobile pe bhi
+multi-column hi rehti hai.
+
+Achhi baat — iske liye jo chahiye wo **sab pehle se maujood hai**: `--sidebar-w-collapsed:
+52px` (`tokens.css:31`), `.main` ka `margin-left` (`layout.css:17`), `.row2`/`.row3`
+(`primitives.css:351`), aur `body.collapsed` wali aadat. Sirf ye block likhna hai.
+
+⚠️ Hamare do apne media block bhi hain jo reference me nahi (`.mega-link` aur `.tax-grid`,
+dono 900px) — wo hamari screens ke liye hain, hataana nahi.
+
+**Public ka footer grid** bhi baaki hai, par wo jaan-boojh kar alag hai — neeche
+"mat badalna" table dekho.
 
 ## 🎯 Breakpoints hi alag the — ye thi asli wajah
 
