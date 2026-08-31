@@ -465,6 +465,31 @@ a {
 }
 
 /*
+ * Tang desktop pe `md` panel apne nav item ke beech me nahi, **container ke daayein kinare**
+ * pe lagta hai — reference ka hi rule (aur uska hi comment: 780px ke panel ko daayein taraf
+ * ke nav item pe centre karne ki jagah hoti hi nahi).
+ *
+ * Ye khidki hamare liye asli hai: nav 1040px pe burger ban jaata hai, yaani 1040–1180 ke
+ * beech `md` panel zinda bhi hai aur jagah bhi kam hai. `min()` uski chaudai to kaat leta
+ * tha, par `left: 50%` + negative margin use item pe centre rakhta tha — isliye daayein ke
+ * items pe wo wrap ke bahar nikal jaata tha.
+ *
+ * `.nav__i--md` wahi modifier hai jo `SiteHeader.jsx` layout se lagata hai (`--full`/`--wide`
+ * wali hi aadat) — `:has()` ki zaroorat nahi.
+ */
+@media (max-width: 1180px) {
+  .nav__i--md {
+    position: static;
+  }
+
+  .mega--md {
+    left: auto;
+    right: var(--pad);
+    margin-left: 0;
+  }
+}
+
+/*
  * `--mega-cols` server ke `columnCount` se aata hai.
  *
  * Isi liye 2 se 6 tak har count bina nayi CSS ke chalta hai — `columns: 5` bhi, jo
@@ -1309,28 +1334,47 @@ a.mega__gl:hover {
   border-radius: 10px;
 }
 
-@media (max-width: 760px) {
-  .gal {
+/*
+ * Mosaic mobile pe khulti hai — **860px**, jo reference ka naap hai (pehle 760px tha).
+ *
+ * Reference me tiles ki unchai `aspect-ratio` se aati hai, fix `height` se nahi: pehla tile
+ * 16/9 aur poori chaudai me, baaki 4/3 do column me. Purani wali 320px pe tay thi aur usme
+ * chauthe tile se aage sab `display: none` the — yaani phone pe pool ki aadhi tasveerein
+ * dikhti hi nahi thin, jabki design me sab dikhti hain.
+ *
+ * ⚠️ `:has()` wala guard yahan **saath likhna zaroori hai**. `.gal:has(...)` ki specificity
+ * `.gal` se zyada hai (`:has()` apne andar ke sabse bhaari selector ki ginti leta hai),
+ * isliye wo file me pehle hone ke bawajood in rules ko haraa deta — 5 se kam image wale
+ * pool pe mobile layout lagta hi nahi. Dono ko ek saath rakhna hi iska ilaaj hai.
+ */
+@media (max-width: 860px) {
+  .gal,
+  .gal:has(button:nth-child(-n + 4):last-child) {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: repeat(2, 1fr);
-    height: 320px;
+    grid-template-rows: none;
+    height: auto;
+    gap: 6px;
   }
 
-  /* Mobile pe pehla image poori chaudai le — chhote tiles usse neeche */
-  .gal button:first-child {
-    grid-column: 1 / 3;
-    grid-row: 1 / 2;
-    border-radius: 10px 10px 0 0;
+  /*
+   * `!important` reference se hai, aur yahan wo sach me chahiye: desktop ke kinare
+   * `.gal button:nth-child(3)` aur `:last-child` pe lage hain, jinki specificity (0,2,1)
+   * is rule (0,1,1) se zyada hai. Bina iske teesre aur aakhri tile ka ek kona mobile pe
+   * bhi gol reh jaata — baaki sab seedhe, aur wo ek kona galti jaisa dikhta.
+   */
+  .gal button,
+  .gal:has(button:nth-child(-n + 4):last-child) button {
+    aspect-ratio: 4 / 3;
+    border-radius: 0 !important;
   }
 
-  .gal button:nth-child(3),
-  .gal button:last-child {
-    border-radius: 0;
-  }
-
-  /* Do se zyada chhote tiles mobile pe bheed karte hain */
-  .gal button:nth-child(n + 4) {
-    display: none;
+  /* Pehla tile poori chaudai me, aur akela hi gol kinaron wala */
+  .gal button:first-child,
+  .gal:has(button:nth-child(-n + 4):last-child) button:first-child {
+    grid-row: auto;
+    grid-column: 1 / -1;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r3) !important;
   }
 }
 
@@ -1880,16 +1924,20 @@ a.mega__gl:hover {
   font-size: 13px;
 }
 
+/*
+ * Included / Not included 760px pe ek column ho jaate hain — reference ka naap.
+ *
+ * Ye rule pehle tha hi nahi, isliye do card phone pe bhi `1fr 1fr` me nichude rehte the
+ * aur har line do-do shabd pe tootti thi.
+ *
+ * ⚠️ Yahan pehle `.itin__d`/`.itin__k` ka ek **doosra** block tha — wahi kaam jo 860px wala
+ * block pehle hi kar chuka hai, bas thode alag gaps ke saath. Do jagah ek hi layout likhne
+ * ka nateeja ye tha ki 860 ka `gap: 10px` phone pe chup-chaap `8px` ban jaata tha. Reference
+ * me is naap pe itinerary ka koi rule hai hi nahi.
+ */
 @media (max-width: 760px) {
-  .itin__d {
+  .inx {
     grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .itin__k {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 8px;
   }
 }
 
@@ -2074,18 +2122,48 @@ a.mega__gl:hover {
   text-overflow: ellipsis;
 }
 
-@media (max-width: 1000px) {
-  /* Sidebar content ke neeche chala jaata hai — sticky ka koi matlab nahi bachta */
+/*
+ * Sidebar **do kadam** me girta hai, ek me nahi — reference bhi yahi karta hai.
+ *
+ * Pehle ye ek hi rule tha, 1000px pe. Uska nateeja ye tha ki 1024–1180px ke beech hamara
+ * page reference se milta hi nahi tha: wahan sidebar poori 322px chaudi rehti thi aur
+ * content ka column nichud jaata tha, phir 1000px pe sab ek jhatke me girta tha.
+ */
+@media (max-width: 1180px) {
+  /* Content ka column tang ho raha hai — sidebar patli ho jaati hai, girti nahi */
   .pgl {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 290px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .ptitle {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
+@media (max-width: 1024px) {
+  /* Ab sidebar sach me neeche chali jaati hai — sticky ka koi matlab nahi bachta */
+  .pgl {
+    grid-template-columns: 1fr;
   }
 
+  /*
+   * Neeche jaate hi widgets **do column** me baith jaate hain — poori chaudai me ek ke
+   * neeche ek rakhne se har widget bematlab lamba ho jaata hai.
+   */
   .pgl__side {
     position: static;
+    top: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
+}
 
-  .ptitle {
-    grid-template-columns: minmax(0, 1fr);
+@media (max-width: 760px) {
+  .pgl__side {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2397,13 +2475,15 @@ a.mega__gl:hover {
 }
 
 /*
- * 1000px — **1080px nahi**, jo reference me hai.
+ * 1080px — reference wala hi. (Pehle yahan 1000px tha; wo tab sahi tha jab `.ptitle` bhi
+ * 1000px pe girti thi. Ab dono reference pe hain.)
  *
- * `.ptitle` is repo me 1000px pe single-column hoti hai (upar wali media query). Dono ko
- * alag rakhne ka matlab hota 1000-1080 ke beech ek adhoori haalat: grid abhi bhi do column
- * ka, par daam left-aligned. Breakpoint wahi rakha jahan layout sach me badalta hai.
+ * Ye teenon rule ek hi baat ke teen hisse hain — `.ptitle` ka single-column hona (upar wali
+ * media query), daam ka left-align, aur button ka poori chaudai chhodna. Inhe alag width pe
+ * rakhne ka matlab hota beech me ek adhoori haalat: grid abhi bhi do column ka, par daam
+ * left-aligned. Isliye teenon 1080px pe hain.
  */
-@media (max-width: 1000px) {
+@media (max-width: 1080px) {
   .ptitle__p {
     text-align: left;
   }
@@ -2809,8 +2889,13 @@ a.mega__gl:hover {
   align-content: center;
 }
 
-/* Reference ka apna breakpoint — us par `.offer__in` ek column ho jaata hai */
-@media (max-width: 860px) {
+/*
+ * 1024px — reference ka apna naap (`.about, .callme, .imap, .offer__in` sab wahin girte
+ * hain). Yahan pehle 860px likha tha, comment ke saath ki wo "reference ka breakpoint" hai
+ * — wo galat tha. 860 pe CTA ka `1.35fr .65fr` tablet par itna nichud jaata tha ki daayein
+ * ka button column do line me tootta tha.
+ */
+@media (max-width: 1024px) {
   .offer__in {
     grid-template-columns: 1fr;
   }

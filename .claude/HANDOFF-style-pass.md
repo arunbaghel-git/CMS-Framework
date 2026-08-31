@@ -23,36 +23,49 @@ Analysis: `docs/10-REFERENCE-DESIGN.md` (public) · `docs/11-REFERENCE-ADMIN.md`
 
 ---
 
-## 🎯 Sabse pehle ye dekho — breakpoints hi alag hain
+## ✅ Public **package page** ka responsive ho chuka hai (31 Aug)
 
-Yahi sabse zyada mumkin wajah hai ki "mobile theek nahi aa raha". Layout flip **galat
-chaudai** pe ho raha hai, CSS galat nahi hai.
-
-| Kya                              | Reference                           | Hamara `globals.css`    |
-| -------------------------------- | ----------------------------------- | ----------------------- |
-| `.pgl` — sidebar collapse        | **1180px** aur **1024px** (do step) | **1000px** (ek hi step) |
-| `.gal` — hero mosaic             | **860px**                           | **760px**               |
-| `.inx` — Included / Not included | **760px**                           | **860px** (ulta!)       |
-| `.ft__g` — footer grid           | **1024px** aur **760px**            | **1040px**              |
-| `.hdr__top`                      | **600px**                           | is naap pe rule hi nahi |
-| `.mnav`                          | **1040px**                          | is naap pe rule hi nahi |
-| `.ptitle__p .b`                  | **1080px**                          | rule nahi               |
-| `.mega--md`                      | **1180px**                          | rule nahi               |
-
-⚠️ `.inx` wala ulta hai — reference 760px pe todta hai, hum 860px pe. Aur `.pgl` reference
-me **do** step me girta hai (pehle price row badalti hai, phir sidebar girta hai); hamare
-paas ek hi step hai, isliye 1000–1180px ke beech layout reference se milta hi nahi.
-
-**Ye list is command se nikli thi** (dobara chala kar verify kar lena, main ne aaj CSS chhui
-hai):
+Neeche wali table ab **itihaas** hai — package page wale saare selector theek kiye ja chuke
+hain. Verify karne ka tareeka ab likha hua hai:
 
 ```bash
-# reference ke @media blocks aur unke selectors
-node -e '...'   # detail ke liye is session ka transcript, ya haath se dono file compare karo
+node .claude/scripts/media-diff.mjs                                    # package page
+node .claude/scripts/media-diff.mjs .claude/docs/reference/home-nav-v3.html   # header/nav
 ```
 
-`.gal a` → hamare theme me ab **`.gal button`** hai (aaj badla, D-66) — reference ke 860px
-wale rules port karte waqt selector bhi badalna hoga.
+Ye script `css-diff.mjs` ki kami bharti hai — wo media blocks ko **jaan-boojh kar hata**
+deti hai, isliye responsive ka poora hissa kisi check me aata hi nahi tha.
+
+**Jo bacha hai:** admin (`admin-design.html`), aur public ka footer grid (neeche dekho).
+
+## 🎯 Breakpoints hi alag the — ye thi asli wajah
+
+Layout flip **galat chaudai** pe ho raha tha, CSS galat nahi thi.
+
+| Kya                              | Reference               | Pehle hamare     | Ab                  |
+| -------------------------------- | ----------------------- | ---------------- | ------------------- |
+| `.pgl` — sidebar collapse        | **1180px** + **1024px** | 1000px (ek step) | ✅ do step          |
+| `.pgl__side`                     | **1024px** + **760px**  | 1000px           | ✅                  |
+| `.ptitle` · `.ptitle__p`         | **1080px**              | 1000px           | ✅                  |
+| `.gal` — hero mosaic             | **860px**               | 760px            | ✅                  |
+| `.inx` — Included / Not included | **760px**               | rule hi nahi tha | ✅                  |
+| `.itin__d` · `.itin__k`          | **860px**               | 860 **aur** 760  | ✅ duplicate hataya |
+| `.offer__in` — CTA card          | **1024px**              | 860px            | ✅                  |
+| `.mega--md`                      | **1180px**              | rule nahi        | ✅                  |
+
+Sabse asardaar `.pgl` wala tha: reference **do** kadam me girta hai (pehle sidebar 322→290px,
+phir 1024 pe neeche), hamare paas ek hi step tha — isliye **1024–1180px ke beech** page
+reference se milta hi nahi tha.
+
+Do cheezein jo karte waqt kaatti hain, dono ab CSS me comment ke saath likhi hain:
+
+- **`.gal` ka `:has()` guard.** `.gal:has(...)` ki specificity `.gal` se zyada hai, isliye
+  media block me dono ko **saath** likhna padta hai — warna 5 se kam image wale pool pe
+  mobile layout lagta hi nahi.
+- **`border-radius` pe `!important`.** Desktop ke kinare `.gal button:nth-child(3)` /
+  `:last-child` pe hain (0,2,1), media ka `.gal button` (0,1,1) unse haar jaata hai.
+
+`.gal a` → hamare theme me `.gal button` hai (D-66); script me uska rename map likha hai.
 
 ---
 
@@ -61,16 +74,20 @@ wale rules port karte waqt selector bhi badalna hoga.
 Har ek **client ke faisle** se hai (R15). "Design se match karo" ke naam pe inhe wapas
 karna is project me pehle bhi ho chuka hai, aur har baar dobara palatna pada.
 
-| Kya                                       | Kahan                | Kyun                                                                                                                             |
-| ----------------------------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `.btn` ka padding / font-size             | `globals.css:180`    | Client ne khud tune kiya (25 Aug). Reference ka `.b` 11px 20px / 14px pe hai; hamara compact hai. **Comment code me likha hai.** |
-| `.toggle-ico` **14px** (reference 11px)   | `primitives.css:119` | Client ne bada karwaaya (D-64) — 11px pe caret ek dhabba lagta tha, aur wo admin me 40 jagah hai                                 |
-| `.panel-foot` ka `flex-wrap: wrap`        | `primitives.css`     | Design me nahi hai, par nuksaan bhi nahi — jaan-boojh kar chhoda gaya                                                            |
-| Hotels table me `or similar` **nahi** hai | `Pricing.jsx`        | Client: "jo name hoga wahi dikhega, apne side se add mat karo" (D-65)                                                            |
-| Hero pe **lightbox** hai                  | `Lightbox.jsx`       | Design me lightbox/modal/popup **0 baar** hai. Client ne maanga (D-66)                                                           |
-| CTA card ka box **static text** hai       | `CtaSection.jsx`     | Design me daam derive hota tha; client ne band kiya (D-67)                                                                       |
-| `.sec` / `.sec--white` **nahi banayi**    | —                    | Reference me CTA us wrapper me hai; hamare theme me `.sec` hai hi nahi, sab `.wrap` use karte hain (D-67)                        |
-| Appearance me sirf **Menus + Footer**     | `nav.js`             | Homepage Blocks aur Banners & Sliders jaan-boojh kar hataye (D-43)                                                               |
+| Kya                                           | Kahan                | Kyun                                                                                                                                                 |
+| --------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.btn` ka padding / font-size                 | `globals.css:180`    | Client ne khud tune kiya (25 Aug). Reference ka `.b` 11px 20px / 14px pe hai; hamara compact hai. **Comment code me likha hai.**                     |
+| `.toggle-ico` **14px** (reference 11px)       | `primitives.css:119` | Client ne bada karwaaya (D-64) — 11px pe caret ek dhabba lagta tha, aur wo admin me 40 jagah hai                                                     |
+| `.panel-foot` ka `flex-wrap: wrap`            | `primitives.css`     | Design me nahi hai, par nuksaan bhi nahi — jaan-boojh kar chhoda gaya                                                                                |
+| Hotels table me `or similar` **nahi** hai     | `Pricing.jsx`        | Client: "jo name hoga wahi dikhega, apne side se add mat karo" (D-65)                                                                                |
+| Hero pe **lightbox** hai                      | `Lightbox.jsx`       | Design me lightbox/modal/popup **0 baar** hai. Client ne maanga (D-66)                                                                               |
+| CTA card ka box **static text** hai           | `CtaSection.jsx`     | Design me daam derive hota tha; client ne band kiya (D-67)                                                                                           |
+| `.sec` / `.sec--white` **nahi banayi**        | —                    | Reference me CTA us wrapper me hai; hamare theme me `.sec` hai hi nahi, sab `.wrap` use karte hain (D-67)                                            |
+| Appearance me sirf **Menus + Footer**         | `nav.js`             | Homepage Blocks aur Banners & Sliders jaan-boojh kar hataye (D-43)                                                                                   |
+| Header 1040px pe sikudta hai (ref 600px)      | `globals.css`        | 1040 wahi jagah hai jahan nav chhup kar burger banta hai. Do alag breakpoint rakhne se beech ki widths pe adhoori haalat banti — comment code me hai |
+| `.brand__img` **750px** pe chhota (ref 600px) | `globals.css`        | Hamare header me logo + do button + burger ek line me aate hain; tangi 750 pe hi shuru ho jaati hai — comment code me hai                            |
+| `.burger` base hi **33px** (ref 38px)         | `globals.css`        | Reference 600px pe 33px karta hai; hamara burger dikhta hi 1040 se neeche hai, isliye 33px seedha base pe                                            |
+| Footer **flex** hai, `.ft__g` grid nahi       | `globals.css`        | D-44 — client column ki ginti aur har column ki width khud chunta hai; reference ka fix grid us model me fit hi nahi hota                            |
 
 ⚠️ **Aur ek aam niyam:** client CSS ki values khud haath se tune karta hai. Koi value
 reference se alag mile aur uske upar comment ho — wo galti nahi hai. Comment padho, phir
