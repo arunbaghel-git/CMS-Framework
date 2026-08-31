@@ -15,6 +15,143 @@ Format:
 
 ---
 
+## 2026-08-31 — A-5 band; docs sync; section headings admin se (D-65); R17 cleanup
+
+**Kya hua**
+
+Teen hisse. Pehla — `/status` ne declared aur asli state ka farak nikala. Doosra — A-5
+(`apps/web/.env`) band hua. Teesra — client ne teen naye feature maange, aur unme se
+**pehla** ban gaya.
+
+### 1. Docs sach se alag ho gaye the
+
+31 Aug ke docs-sync commit (`e4b095d`) ne `project-state`, `09-OPEN-ITEMS` aur `session-log`
+theek kiye the — par **`CLAUDE.md` chhoot gayi**. Usme teen cheezein purani thin: test count
+(554 vs 568), "agla kaam" (usme wo bhi likha tha jo ban chuka tha), aur **D-61 vs D-64 ka
+takraav** — ek hi file me "add-ons global hain" aur "add-ons wapas package pe" dono likhe the.
+
+Wahi takraav **do aur jagah** mila: `project-state.md` aur `02-ARCHITECTURE.md` §3. Teenon
+me D-61 ab "itihaas" ke blockquote me hai.
+
+> **Sabak:** doc-sync commit me _saari_ jagah check karni padti hain jahan wahi baat likhi
+> hai. Ek jagah theek karke commit kar dena us baat ko aur zyada bhramit karta hai — ab do
+> jagah do alag jawab dete hain, aur padhne wale ko pata nahi kaunsa naya hai.
+
+### 2. A-5 band — par ek footgun ke saath
+
+Secret `apps/api/.env` aur `apps/web/.env` dono me same hai (fingerprint se verify kiya,
+value kabhi print nahi ki). Endpoint ab galat secret pe **401** deta hai, `503` nahi.
+
+⚠️ **Next `.env` sirf boot pe padhta hai.** File banane ke baad web dev server restart na ho
+to wahi purana 503 aata rehta hai — aur lakshan bilkul waisa hi dikhta hai jaise `.env` bani
+hi na ho.
+
+### 3. D-65 — section ke heading aur lines ab admin se (Q-9 ka bada hissa)
+
+Client ne Q-9 ke teen raaston me se **#2** chuna. Poora tark D-65 me hai. Chaar baatein jo
+yaad rakhne laayak hain:
+
+**a. Har section ko heading _aur_ description — chahe aaj line ho ya na ho.** Client ke
+shabd: _"abhi nahi hai to kya hua, aage text bhi daal sakte hai."_ Aaj 7 me se sirf 3 pe
+line hai; baaki 4 ka field khaali hai aur khaali rehne pe page pe kuch nahi chhapta.
+
+**b. Khaali ke do alag matlab, aur admin ka form isi wajah se bhara hua khulta hai.**
+
+Pehla draft placeholder wala tha. Wo **galat** tha: placeholder pe client kisi line ko
+**hata** hi nahi sakta — box khaali karte hi placeholder theme ka text wapas dikha deta hai.
+Isliye form defaults se bhara hua khulta hai, aur niyam seedha hai: jo box me dikh raha hai
+wahi page pe chhapega. Khaali `heading` phir bhi theme se bharti hai (section bina title ke
+na rahe), par khaali `description` line ko sach me hata deti hai.
+
+Ye sirf theory nahi thi — hotels wali line me abhi bhi likha hai _"and on the enquiry
+form"_, aur wo form bana hi nahi (Q-2). Pehle uske liye code me comment tha: "client kahe to
+aakhri teen shabd hata dena ek line ka kaam hai." Ab wo client ka apna kaam hai.
+
+**c. `.strict()` — test ne pehli hi baar pakda, aur ye doosri baar hai.**
+
+Zod default me anjaan keys **chup-chaap hata deta hai**. Uske bina `{ notASection: {...} }`
+bhejne pe API **200** deti, key gayab ho jaati, aur admin ko "ho gaya" dikhta. Theek wahi
+bug jo D-43 §3 me `leafItemSchema` pe mila tha.
+
+Maine test pehle likha aur wo **fail hua** — 200 aaya jahan 400 chahiye tha. Agar test na
+hota to ye kabhi pakda hi na jaata.
+
+**d. Default ek hi jagah — `package-sections.js`.**
+
+Wahi list teen kaam karti hai: theme ka fallback, admin ka pre-fill, Zod ki shape. Do jagah
+rakhne pe wo ek din alag ho jaate aur admin kuch dikhata, page kuch chhapta. D-43 §2 wala
+`allowedColumnCounts` ka sabak.
+
+### 4. Aur ek chup bug — `cancellationText` payload me tha hi nahi
+
+`PackagePage.jsx` **do jagah** `defaults.cancellationText` padhta hai, par
+`getPublicPackageDefaults()` use bhejti hi nahi thi. Nateeja: client ki likhi cancellation
+policy page pe **kabhi** nahi aati thi, aur "Good to know" section sirf tab dikhta tha jab
+booking steps bhi bhare hon. Kahin koi error nahi, dono taraf ka code padhne me sahi.
+
+Ye bilkul wahi shakl hai jo D-64 wale transfer-duration bug ki thi. **Do baar ho chuka hai,
+to ab ye is codebase ka pehchana hua failure mode hai:** payload me field add karna bhool
+jaana. Theme use padhta rehta hai, admin use save karta rehta hai, aur beech me kuch nahi.
+
+Live API se pakda — `/api/public/package-defaults` ki keys ginne pe wo teen thin
+(`whatsIncluded`, `bookingSteps`, `itineraryImages`), jabki theme chaar padh raha tha.
+
+### Kya bana
+
+```
+packages/shared/src/constants/package-sections.js   PACKAGE_SECTIONS — 7 section, defaults
+packages/shared/src/schemas/package-defaults.js     sectionLabels + .strict()
+apps/api/src/modules/package-defaults/model.js      sectionLabels (Mixed, bookingSteps jaisa)
+apps/api/src/modules/public/service.js              toSectionLabels() + cancellationText FIX
+apps/web/components/package/SectionHead.jsx         naya — heading + optional line
+apps/web/components/package/PackagePage.jsx         5 section ab payload se
+apps/web/components/package/Pricing.jsx             hotels + add-ons ab payload se
+apps/admin/src/screens/packages/PackageDefaults.jsx teesra section — sectionLabels
+apps/admin/src/lib/nav.js + App.jsx                 /packages/section-headings
+```
+
+**Migration nahi lagi** — day-1 reserve test ke teenon jawab "nahi", aur khaali `{}` ka
+matlab hi "theme ke apne headings" hai.
+
+**Nateeja:** 574 tests (6 naye) · lint clean · format clean. Live verify kiya — payload me
+saaton section aaye, aur rendered page pe wahi text (JSX se saare hardcoded heading hat
+chuke hain, sirf comments me naam bache hain).
+
+### Client ke do aur feature — abhi baaki
+
+- **Hero pe click → popup, images auto-slide.** ⚠️ Design reference me lightbox/modal/popup
+  **0 baar** hai — ye R15 ka documented deviation banega.
+- **Settings me CTA section** (page ka aakhri card). Ye design me **pehle se hai**
+  (`itinerary-v3.html:2102`, `.offer`) aur un 4 missing sections me se ek hai. ⚠️ Usme daam
+  aur category **derived** hain, aur ek button `#enquiry` pe jaata hai — jo Q-2 pe atka hai.
+
+### 5. R17 — admin ka saara UI text ab English me
+
+Upar wali baat client ne turant pakad li aur theek karne ko kaha. **16 string** Hinglish se
+English hui — `hint`, `subtitle`, `placeholder` aur ek `title`:
+
+```
+App.jsx                    Package Type ka subtitle
+ItineraryBuilder.jsx       4 hint — transfer duration · note · route strip · `-` wala bullet niyam
+MasterListScreen.jsx       4 hint — room · note · where · icon
+PackageDefaults.jsx        3 subtitle + 1 placeholder + 1 hint
+PackageEdit.jsx            2 hint — bestFor · ferriesNote
+TaxonomyScreen.jsx         slug ka hint
+```
+
+**Comments aur test names Hinglish hi hain** — R17 saaf kehta hai "UI ka text English me,
+code comments Hinglish". Grep se ye do alag karna aasan nahi tha: pehle scan me 50 me se
+zyada tar hits **multi-line JSX comments** (`{/* … */}`) ki continuation lines thin, jo
+`*` se shuru nahi hoti. Isliye aakhir me ek chhota script likha jo pehle block/line comments
+ko blank karta hai, phir Hinglish dhoondhta hai — usne do string aur nikaleen jo aankh se
+chhoot gayi thin.
+
+⚠️ **Ek string jaan-boojh kar chhodi:** `lib/auth.jsx` ka
+`throw new Error('useAuth ko <AuthProvider> ke andar hi call karo')`. Wo UI ka text nahi,
+developer ke liye assertion hai — comment wali shreni me aata hai. Client kabhi nahi dekhega.
+
+`apps/web` pehle se saaf tha (public site ka text design se aata hai, aur wo English hai).
+
 ## 2026-08-27 (raat, doosra hissa) — Editor ki safai (D-64), aur code push
 
 **Kya hua**

@@ -444,6 +444,153 @@ describe('packageDefaults', () => {
     expect(res.status).toBe(422)
   })
 
+  /**
+   * Section headings — Q-9 (client, 31 Aug).
+   *
+   * Ye contract test hai, UI ka nahi: "khaali chhodi" aur "kabhi chhui hi nahi" ka farak
+   * **server pe** tay hota hai (`toSectionLabels()`), aur wahi farak client ko line hataane
+   * deta hai. Bina test ke wo farak ek din chup-chaap mit jaata.
+   */
+  describe('sectionLabels (Q-9)', () => {
+    it('kuch set na ho to public payload me theme ke apne heading aur line aate hain', async () => {
+      const res = await request(app).get('/api/public/package-defaults')
+
+      expect(res.status).toBe(200)
+
+      const labels = res.body.data.packageDefaults.sectionLabels
+
+      expect(labels.overview.heading).toBe('About this itinerary')
+      /** Overview pe description ka field hi nahi — uska text `entry.content` se aata hai. */
+      expect(labels.overview).not.toHaveProperty('description')
+      expect(labels.addOns.heading).toBe('Popular add-ons')
+      expect(labels.addOns.description).toBe('Added to your quote only if you want them.')
+    })
+
+    it('client ka heading aur description dono public payload me jaate hain', async () => {
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: {
+          addOns: { heading: 'Optional extras', description: 'Add these to your quote.' },
+        },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+      const labels = res.body.data.packageDefaults.sectionLabels
+
+      expect(labels.addOns).toEqual({
+        heading: 'Optional extras',
+        description: 'Add these to your quote.',
+      })
+    })
+
+    it('khaali heading pe theme ka heading wapas aata hai — section bina title ke nahi rehta', async () => {
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: { faq: { heading: '', description: '' } },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+
+      expect(res.body.data.packageDefaults.sectionLabels.faq.heading).toBe(
+        'Questions about this package',
+      )
+    })
+
+    it('khaali description line ko HATA deti hai — theme wali wapas nahi aati', async () => {
+      /**
+       * Yahi is feature ka asli maqsad hai. Add-ons ki line theme me maujood hai; client
+       * use khaali karke hata sakta hai. Agar yahan fallback lag gaya to client kisi bhi
+       * line se kabhi peecha nahi chhuda payega — aur hotels wali line me to abhi ek
+       * jhootha vaada hai ("and on the enquiry form", Q-2).
+       */
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: { addOns: { heading: 'Popular add-ons', description: '' } },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+
+      expect(res.body.data.packageDefaults.sectionLabels.addOns.description).toBe('')
+    })
+
+    /**
+     * Overview pe description ka box hai hi nahi (client, 31 Aug) — uska text
+     * `entry.content` (Edit Package ▸ Overview) se aata hai, aur wo per-package hai.
+     *
+     * `.strict()` ke bina Zod ise **chup-chaap gira deta** aur admin ko "save ho gaya"
+     * dikhta. Yahi wajah hai ki ye test hai.
+     */
+    it('overview pe description bhejne se 400 aata hai — chup-chaap girta nahi', async () => {
+      const res = await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: {
+          overview: { heading: 'About this trip', description: 'Kuch bhi' },
+        },
+      })
+
+      expect(res.status).toBe(400)
+    })
+
+    it('overview ka heading akela save hota hai, aur payload me description ki key hoti hi nahi', async () => {
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: { overview: { heading: 'About this trip' } },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+      const overview = res.body.data.packageDefaults.sectionLabels.overview
+
+      expect(overview.heading).toBe('About this trip')
+      expect(overview).not.toHaveProperty('description')
+    })
+
+    /**
+     * Admin jo padhta hai wahi wapas bhejta hai (Save pe poora object jaata hai). Agar
+     * payload me koi aisi key ho jo schema na le, to Save **400** pe mar jaata — aur wo
+     * failure sirf asli admin chalane pe dikhti, test me kabhi nahi.
+     */
+    it('admin ka padha hua payload bina badle wapas save ho jaata hai', async () => {
+      const read = await authed('get', '/api/package-defaults', adminJar)
+      const roundTrip = await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: read.body.data.packageDefaults.sectionLabels,
+      })
+
+      expect(roundTrip.status).toBe(200)
+    })
+
+    /**
+     * Admin ko **resolved** labels milte hain, raw stored nahi — wahi text jo page pe
+     * chhap raha hai. Warna admin ko khud fallback lagana padta aur wo shart do jagah
+     * likhi hoti.
+     */
+    it('admin ko bhi resolved labels milte hain, khaali stored nahi', async () => {
+      const res = await authed('get', '/api/package-defaults', adminJar)
+      const labels = res.body.data.packageDefaults.sectionLabels
+
+      expect(labels.addOns.description).toBe('Added to your quote only if you want them.')
+    })
+
+    it('anjaan section key reject hoti hai', async () => {
+      const res = await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: { notASection: { heading: 'Hi', description: '' } },
+      })
+
+      expect(res.status).toBe(400)
+    })
+  })
+
+  /**
+   * ⚠️ Ye payload me **chhoot gaya tha** (31 Aug ko pakda) — `PackagePage.jsx` ise padhta
+   * hai par projection bhejti hi nahi thi, to client ki likhi cancellation policy page pe
+   * kabhi nahi aati thi. Wahi shakl jo D-64 wale transfer-duration bug ki thi.
+   */
+  it('cancellationText public payload me jaata hai', async () => {
+    await authed('patch', '/api/package-defaults', adminJar).send({
+      cancellationText: 'Cancellations more than 30 days before travel are fully refunded.',
+    })
+
+    const res = await request(app).get('/api/public/package-defaults')
+
+    expect(res.body.data.packageDefaults.cancellationText).toBe(
+      'Cancellations more than 30 days before travel are fully refunded.',
+    )
+  })
+
   it('contributor padh sakta hai, badal nahi sakta', async () => {
     expect((await authed('get', '/api/package-defaults', contributorJar)).status).toBe(200)
     expect(

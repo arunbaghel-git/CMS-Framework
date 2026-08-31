@@ -24,8 +24,8 @@ const S = ENTRY_SUPPORT
  * Slice 3 me bana, Slice 4 me `itinerary` (§3) aur Slice 5 me `pricing`/`hotels` (§4) juda.
  *
  * `addOns` ek baar hata kar wapas aaya hai — D-61 me global, D-64 me phir se package ka
- * chunav (spec §1.4 wala asli niyam). **FAQs, goodToKnow, reviews aur rating abhi baaki hain** — wo
- * Slice 6 me judenge.
+ * chunav (spec §1.4 wala asli niyam). `faqs` D-59 me juda (Slice 6 se aage khiska).
+ * **`goodToKnow` aur `reviews` + rating abhi baaki hain** — wo Slice 6 me judenge.
  *
  * `destinations` aur `packageTypes` yahan **nahi** hain — wo `entry.taxonomies` me hain
  * (D-49), aur kaunsi taxonomies chalti hain wo `taxonomyTypes` batata hai.

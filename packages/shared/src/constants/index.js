@@ -3,6 +3,7 @@
  */
 
 export * from './icons.js'
+export * from './package-sections.js'
 export * from './permissions.js'
 export * from './theme-locations.js'
 

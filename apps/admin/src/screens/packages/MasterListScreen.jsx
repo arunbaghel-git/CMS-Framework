@@ -39,7 +39,7 @@ export const MASTER_LISTS = {
         key: 'room',
         label: 'Room',
         type: 'text',
-        hint: 'Jaise: Deluxe, twin sharing — public page ke table me yahi chhapta hai',
+        hint: 'e.g. Deluxe, twin sharing — this is what prints in the table on the public page',
       },
       {
         /**
@@ -54,7 +54,7 @@ export const MASTER_LISTS = {
         key: 'note',
         label: 'Note',
         type: 'text',
-        hint: 'Optional, ek chhoti line — jaise: Sea-facing on Havelock',
+        hint: 'Optional, one short line — e.g. Sea-facing on Havelock',
       },
     ],
     columns: ['name', 'destinationId', 'category', 'room', 'note'],
@@ -80,7 +80,7 @@ export const MASTER_LISTS = {
         key: 'where',
         label: 'Where',
         type: 'text',
-        hint: 'Sirf jagah — din ka zikr nahi (wo package ka hai)',
+        hint: 'Place only — no mention of days, those belong to the package',
       },
     ],
     columns: ['name', 'price', 'where'],
@@ -92,7 +92,7 @@ export const MASTER_LISTS = {
     permission: 'transfer',
     fields: [
       { key: 'name', label: 'Name', type: 'text', required: true },
-      { key: 'icon', label: 'Icon', type: 'text', hint: 'Jaise: car, ferry, flight' },
+      { key: 'icon', label: 'Icon', type: 'text', hint: 'e.g. car, ferry, flight' },
     ],
     columns: ['name', 'icon'],
   },

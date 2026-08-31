@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
+import { PACKAGE_SECTIONS, sectionHasDescription } from '@cms/shared'
+
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
@@ -37,6 +39,8 @@ export default function PackageDefaults({ section }) {
   const [included, setIncluded] = useState('')
   const [excluded, setExcluded] = useState('')
   const [images, setImages] = useState([])
+  /** `{ overview: {heading, description}, … }` — Q-9. */
+  const [labels, setLabels] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -54,6 +58,17 @@ export default function PackageDefaults({ section }) {
         setIncluded((data.whatsIncluded?.included ?? []).join('\n'))
         setExcluded((data.whatsIncluded?.excluded ?? []).join('\n'))
         setImages(data.itineraryImages ?? [])
+
+        /**
+         * API **resolved** labels bhejti hai — yaani theek wahi text jo page pe chhap raha
+         * hai (`resolveSectionLabels()`, D-65). Isliye yahan koi fallback nahi lagta.
+         *
+         * Form isi wajah se **bhara hua** khulta hai, placeholder se nahi: placeholder pe
+         * client kisi line ko **hata** hi nahi sakta tha — box khaali karte hi placeholder
+         * purana text wapas dikha deta. Bhare hue box ka niyam seedha hai: jo dikh raha
+         * hai wahi page pe chhapega, aur khaali karoge to wahan kuch nahi aayega.
+         */
+        setLabels(data.sectionLabels ?? {})
       })
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setLoading(false))
@@ -135,17 +150,22 @@ export default function PackageDefaults({ section }) {
   }
 
   const isImages = section === 'itineraryImages'
+  const isLabels = section === 'sectionLabels'
+
+  const title = isImages ? 'Itinerary Images' : isLabels ? 'Section Headings' : "What's Included"
+
+  const subtitle = isImages
+    ? 'One global pool — every package page shows a few of these, and they change on refresh.'
+    : isLabels
+      ? 'These headings print on every package page. Leave a description empty and no line appears under that section.'
+      : 'This same list prints on every package. Keep the lines generic — not about any one package.'
 
   return (
     <>
       <div className="page-head">
-        <h1>{isImages ? 'Itinerary Images' : "What's Included"}</h1>
+        <h1>{title}</h1>
       </div>
-      <p className="subtitle">
-        {isImages
-          ? 'Ek global pool — har package page inme se kuch images dikhata hai, aur refresh pe wo badal jaati hain.'
-          : 'Har package pe yahi list chhapti hai. Lines generic likhein — kisi ek package ki baat nahi.'}
-      </p>
+      <p className="subtitle">{subtitle}</p>
 
       {error && (
         <div className="notice err" role="alert">
@@ -158,7 +178,65 @@ export default function PackageDefaults({ section }) {
         </div>
       )}
 
-      {isImages ? (
+      {isLabels ? (
+        <div className="panel">
+          <div className="panel-head">
+            <h2>Section Headings</h2>
+          </div>
+          <div className="panel-body">
+            {PACKAGE_SECTIONS.map((section) => (
+              <div className="field" key={section.key}>
+                <label>{section.label}</label>
+                <input
+                  className="inp"
+                  value={labels[section.key]?.heading ?? ''}
+                  onChange={(e) =>
+                    setLabels((prev) => ({
+                      ...prev,
+                      [section.key]: { ...prev[section.key], heading: e.target.value },
+                    }))
+                  }
+                  disabled={!canWrite}
+                />
+
+                {sectionHasDescription(section) ? (
+                  <textarea
+                    className="ta"
+                    rows={2}
+                    placeholder="Description — leave empty and no line appears"
+                    value={labels[section.key]?.description ?? ''}
+                    onChange={(e) =>
+                      setLabels((prev) => ({
+                        ...prev,
+                        [section.key]: { ...prev[section.key], description: e.target.value },
+                      }))
+                    }
+                    disabled={!canWrite}
+                  />
+                ) : (
+                  <div className="hint">
+                    The text under this heading comes from each package&rsquo;s own Overview.
+                  </div>
+                )}
+
+                {section.hint && <div className="hint">{section.hint}</div>}
+              </div>
+            ))}
+          </div>
+          {canWrite && (
+            <div className="panel-foot">
+              <button
+                className="btn btn-primary"
+                type="button"
+                disabled={saving}
+                onClick={() => save({ sectionLabels: labels })}
+              >
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          )}
+        </div>
+      ) : isImages ? (
         <div className="panel">
           <div className="panel-head">
             <h2>Image pool</h2>
@@ -226,8 +304,8 @@ export default function PackageDefaults({ section }) {
                 disabled={!canWrite}
               />
               <div className="hint">
-                Generic likhein — &quot;Accommodation on twin sharing with daily breakfast&quot;, na
-                ki &quot;5 nights…&quot;
+                Keep it generic — &quot;Accommodation on twin sharing with daily breakfast&quot;,
+                not &quot;5 nights…&quot;
               </div>
             </div>
             <div className="field">

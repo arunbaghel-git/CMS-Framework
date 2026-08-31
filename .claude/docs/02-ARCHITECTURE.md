@@ -196,8 +196,12 @@ transfers      * siteId, name, icon
                  isliye wahan locale day 1 se hai. — D-48
 packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  itineraryImages[], bookingSteps[{title,text}], cancellationText,
-                 add-ons poori list bhi ISI payload me jaati hai (D-61) —
-                 wo ab har package pe wahi hai, to cache tag bhi wahi
+                 sectionLabels{<section>:{heading,description}}  ← D-65 (Q-9)
+                 sectionLabels ki keys PACKAGE_SECTIONS se aati hain aur schema
+                 pe .strict() hai — anjaan key chup-chaap gir jaati (D-43 §3)
+                 khaali {} = theme ke apne headings, isliye migration nahi lagi
+                 ⚠️ add-ons ISME NAHI hain — wo D-61 me kuch der yahan the, par
+                 D-64 (usi din) me wapas package ke apne chunav ban gaye
                  singleton — wahi pattern jo settings ka hai. Package ke domain ki
                  globals; settings me jaan-boojh kar NAHI (D-46, §1.8)
 redirects      * siteId, locale, from, to, statusCode(301|302), hits, isAuto

@@ -4,6 +4,8 @@ import { createContext, useContext, useMemo, useState } from 'react'
 
 import { HOTEL_CATEGORY_LABEL, formatPrice } from '@cms/shared'
 
+import SectionHead from './SectionHead.jsx'
+
 /**
  * Daam aur hotel category — `itinerary-v3.html` ke `.ptitle__p`, `.catbar` aur `#hotels` se
  * (spec 007 §4, Slice 5).
@@ -249,7 +251,7 @@ const CATEGORY_COPY = {
  * itinerary se derive hoti hai aur room hotel ke apne record se (D-53 §3). Theme unhe
  * banata nahi, sirf dikhata hai.
  */
-export function HotelsSection({ hotels }) {
+export function HotelsSection({ hotels, label }) {
   const { rows, category, setCategory, currency } = useCategory()
 
   const byCategory = useMemo(() => {
@@ -270,19 +272,15 @@ export function HotelsSection({ hotels }) {
 
   return (
     <section className="blk" id="hotels">
-      <h2>Hotels on this package</h2>
       {/*
-       * Reference ka poora text (R15). Pehli line pehle chhoot gayi thi.
+       * Heading aur line dono ab admin se (Q-9, 31 Aug). Default `package-sections.js` me
+       * hai — wahi reference ka poora text (R15).
        *
-       * ⚠️ "and on the enquiry form" — wo form abhi bana nahi hai (Enquiries, Q-2). Line
-       * design ki hai isliye rakhi hai; form aane tak ye ek vaada hai jo page pura nahi
-       * karta. Client kahe to aakhri teen shabd hata dena ek line ka kaam hai.
+       * ⚠️ Default me "and on the enquiry form" likha hai aur wo form abhi bana nahi
+       * (Enquiries, Q-2). Pehle wo teen shabd hatana ek code change tha; ab client box
+       * khaali kar ke poori line hata sakta hai.
        */}
-      <p>
-        Rooms are held on twin sharing with daily breakfast. Switch the category to see the
-        properties it puts you in — the tab you pick here also sets the price shown at the top of
-        the page and on the enquiry form.
-      </p>
+      <SectionHead label={label} />
 
       {tabs.length > 1 && (
         <div className="htab" role="tablist" aria-label="Hotel category">
@@ -330,9 +328,22 @@ export function HotelsSection({ hotels }) {
                     <b>{hotel.destination.name}</b>
                   </td>
                   <td>{hotel.nights}</td>
-                  <td>
-                    {hotel.name} <em>or similar</em>
-                  </td>
+                  {/*
+                   * Naam **jaisa hai waisa** — theme apni taraf se kuch nahi jodta
+                   * (client, 31 Aug).
+                   *
+                   * Pehle yahan `<em>or similar</em>` chhapta tha, design ke hisaab se
+                   * (R15). Par Hotels master list me client ne khud har naam me
+                   * "(or similar)" likha hua tha, to table me wo **do baar** aata:
+                   * `Garden resort, 5 min from Govind Nagar beach (or similar) or similar`.
+                   *
+                   * Do raaste the — naam se hata do, ya theme se. Client ne theme se
+                   * hatane ko kaha: _"jo name hoga wahi dikhega, apne side se add mat
+                   * karo."_ Ye design se **vichlan** hai, client ke faisle se (R15) — aur
+                   * yahi is poore din ka niyam raha: admin ka text jaisa likha hai waisa
+                   * chhape, theme uspe apna kuch na chipkaye.
+                   */}
+                  <td>{hotel.name}</td>
                   <td>{hotel.room}</td>
                 </tr>
               ))}
@@ -366,13 +377,12 @@ export function HotelsSection({ hotels }) {
  * Category se iska koi lena-dena nahi, isliye ye context bhi nahi padhta — par file yahi hai,
  * kyunki page pe ye hotels ke theek baad aata hai.
  */
-export function AddOns({ addOns }) {
+export function AddOns({ addOns, label }) {
   if (!addOns?.length) return null
 
   return (
     <section className="blk" id="add-ons">
-      <h2>Popular add-ons</h2>
-      <p>Added to your quote only if you want them.</p>
+      <SectionHead label={label} />
 
       <div className="tblw">
         <table className="tbl">

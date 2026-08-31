@@ -454,7 +454,7 @@ raha hai, isliye wahin add karna sasta hai.
 | Add New / Edit | `screens/packages/PackageEdit.jsx` | `#s-package-edit` |
 | Destinations · Package Type | `screens/packages/TaxonomyScreen.jsx` | `#s-taxonomy` |
 | Hotels · Add Ons · Transfer | `screens/packages/MasterListScreen.jsx` | naya, `#s-taxonomy` ka layout |
-| What's Included · Itinerary Images | `screens/packages/PackageDefaults.jsx` | naya |
+| What's Included · Itinerary Images · Section Headings | `screens/packages/PackageDefaults.jsx` | naya |
 
 ### Ek screen, kai lists
 

@@ -352,8 +352,8 @@ export default function PackageEdit() {
                     disabled={readOnly}
                   />
                   <div className="hint">
-                    Listing card pe dikhta hai — <b>Best for</b> ke baad ye line. Package page pe
-                    nahi.
+                    Shows on the listing card — this line comes after <b>Best for</b>. Not on the
+                    package page.
                   </div>
                 </div>
 
@@ -367,8 +367,9 @@ export default function PackageEdit() {
                     disabled={readOnly}
                   />
                   <div className="hint">
-                    Page ke &quot;At a glance&quot; me dikhta hai. Ginti apne aap nahi hoti —
-                    &quot;included&quot; jaisi baat itinerary se nikal hi nahi sakti.
+                    Shows in &quot;At a glance&quot; on the page. Not counted automatically —
+                    something like &quot;included&quot; can&rsquo;t be worked out from the
+                    itinerary.
                   </div>
                 </div>
               </div>

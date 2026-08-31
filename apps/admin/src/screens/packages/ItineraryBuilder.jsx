@@ -208,8 +208,8 @@ export default function ItineraryBuilder({
                      * isi textarea me hain (D-64).
                      */}
                     <div className="hint">
-                      <code>-</code> se shuru hone wali line page pe bullet banti hai; baaki
-                      paragraph
+                      A line starting with <code>-</code> becomes a bullet on the page; everything
+                      else is a paragraph
                     </div>
                   </div>
 
@@ -263,7 +263,9 @@ export default function ItineraryBuilder({
                         onChange={(e) => update(index, { transferNote: e.target.value })}
                         disabled={disabled}
                       />
-                      <div className="hint">Har din alag hoti hai — isliye din pe hai</div>
+                      <div className="hint">
+                        Set per day — the same ferry runs at different times
+                      </div>
                     </div>
                     <div className="field">
                       <label>Day tag</label>
@@ -284,7 +286,7 @@ export default function ItineraryBuilder({
                         onChange={(e) => update(index, { note: e.target.value })}
                         disabled={disabled}
                       />
-                      <div className="hint">Khaali chhodo to chip dikhti hi nahi</div>
+                      <div className="hint">Leave empty and no chip appears</div>
                     </div>
                   </div>
 
@@ -326,8 +328,8 @@ export default function ItineraryBuilder({
           <div className="route-strip">
             <label>Route strip</label>
             <div className="hint">
-              Ye apne aap banti hai — lagatar din jinka Overnight Stay same hai, wo ek card me judte
-              hain.
+              Built automatically — consecutive days with the same Overnight Stay are grouped into
+              one card.
             </div>
             <div className="chips">
               {strip.map((leg, i) => (

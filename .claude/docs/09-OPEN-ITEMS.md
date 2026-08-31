@@ -17,8 +17,13 @@ public page pe price block · catbar · hotels table · add-ons.
 ⚠️ Slice 6 ka aadha ban chuka hai: Itinerary Images ka pool + gallery Slice 4/D-52 me, aur
 FAQs D-59 me. Ek sawaal khula hai — §9 #8 (rating haath se ya `reviews[]` se).
 
-**568 tests passing** · lint · format clean.
-**Last updated:** 27 Aug 2026
+**A-5 band ho gaya (31 Aug)** — `apps/web/.env` ban gayi, revalidate ab configured hai.
+**Q-9 ka bada hissa bhi band (31 Aug — D-65)** — section ke heading aur unke neeche ki lines
+ab admin se aati hain. Saath me ek chup bug bhi nikla: `cancellationText` public payload me
+ja hi nahi raha tha.
+
+**574 tests passing** (25 files) · lint clean · format clean — 31 Aug ko verify kiya.
+**Last updated:** 31 Aug 2026
 
 ---
 
@@ -123,6 +128,14 @@ FAQs D-59 me. Ek sawaal khula hai — §9 #8 (rating haath se ya `reviews[]` se)
 | **Route ka prefix** | ✅ `/api/<resource>`, `/api/admin/<resource>` nahi. Doc `/api/admin/*` likhta tha par code Phase 0 se hi `/api/users` pe chal raha tha — 02-ARCHITECTURE §9 ab code ke hisaab se theek hai |
 | **C-2 Payload spike** | ✅ **Band — Payload nahi (D-45)**. 19 Aug ko repo khaali tha, tab sawaal sasta tha. Aaj auth/RBAC/media/settings/admin shell sab chal rahe hain (383 test), aur Payload apna admin panel laata hai — jo client ke **frozen design** (R15) se takrata hai. Uske **ideas** Phase 5 se pehle dekhenge, framework nahi lenge |
 
+### 31 Aug 2026
+
+| Item | Faisla |
+| --- | --- |
+| **Q-9 section ke heading + lines** | ✅ **Bada hissa band — D-65.** 7 section ke heading aur unke neeche ki lines ab admin se aati hain (`packageDefaults.sectionLabels`, screen **Packages ▸ Section Headings**). Client ne teen raaston me se **#2** chuna, aur har section ko heading **aur** description dono diye — chahe aaj us section pe line ho ya na ho. Khaali `description` line ko **hata** deti hai (khaali `heading` pe theme ka heading wapas aata hai). Chhoti inline lines (`or similar`, `PRICE_NOTE`, `TAB_NOTE`) abhi bhi static — Q-9 usi ke liye khula hai |
+| **`cancellationText` payload me nahi tha** | ✅ **Chup bug, 31 Aug ko pakda aur theek kiya** (D-65). `PackagePage.jsx` do jagah use padhta tha par public projection use bhejti hi nahi thi — client ki likhi cancellation policy page pe **kabhi** nahi aati thi, aur "Good to know" section sirf tab dikhta tha jab booking steps bhi hon. Wahi shakl jo D-64 wale transfer-duration bug ki thi |
+| **A-5 `apps/web` ki `.env`** | ✅ **Ban gayi — revalidate ab configured hai.** `API_URL=http://localhost:4000` aur `REVALIDATE_SECRET` (`apps/api/.env` se **bilkul same** — verify kiya: dono 42 chars, ek hi fingerprint). Endpoint ab galat secret pe **401** deta hai, `503` nahi — yaani secret load ho chuka hai. `SITE_URL` bhi web pe hi point karta hai (`localhost:3000` API ki CORS allowlist me mila). ⚠️ **Next `.env` sirf boot pe padhta hai** — file banane ke baad web dev server restart karna zaroori hai, warna 503 aata rahega |
+
 ---
 
 ## 🔴 Ab bhi baaki
@@ -160,30 +173,6 @@ dikhta hai — missing state kahin defined nahi. Pehle draft me ye chup-chaap "s
 text" maan liya gaya tha; wo developer ka faisla ban raha tha, isliye alag kar diya gaya.
 
 Client se poochhne wala sawaal: **logo na ho to header me uski jagah kya dikhna chahiye?**
-
----
-
-### A-5 · `apps/web` ki `.env` — revalidate abhi chal nahi raha
-
-**Deadline:** Slice 0 ko "done" kehne se pehle
-**Ye ek manual step hai** — `.env` files is environment se likhi nahi ja saktin
-
-Slice 0 ka revalidate webhook code taiyaar hai (`apps/web/app/api/revalidate/route.js`
-+ `apps/api/src/core/revalidate.js`), par `apps/web` ke paas `REVALIDATE_SECRET` nahi
-hai — isliye endpoint **503** deta hai aur cache kabhi saaf nahi hota.
-
-```bash
-# apps/web/.env
-API_URL=http://localhost:4000
-REVALIDATE_SECRET=<apps/api/.env se BILKUL same>
-```
-
-⚠️ Secret alag hua to API ko **401** milega. `revalidateTags()` fail-soft hai, isliye
-admin ka Save theek dikhega par site purani rahegi — aur koi error screen pe nahi aayega.
-Dono cases ka lakshan ek hi hai: _"publish kiya par site update nahi hui"_. API ke logs me
-`Revalidate request rejected/failed` warning milegi.
-
-Poori detail: [`06-OPERATIONS.md`](06-OPERATIONS.md) §4.1
 
 ---
 
@@ -352,34 +341,30 @@ Poora sandarbh: [`specs/007-packages.md`](../specs/007-packages.md) §9
 
 ---
 
-### Q-9 · Public package page ke heading aur intro lines — static rahein ya admin se aayein?
+### Q-9 · Page ki chhoti inline lines — static rahein ya admin se aayein?
 
-**Deadline:** koi nahi — jab client kisi heading ko badalna chahe
+**Deadline:** koi nahi — jab client inme se kisi ko badalna chahe
 **Kisi cheez ko block nahi karta.** Page aaj poora chal raha hai.
 
-**Abhi ka niyam:** *dhaancha* static, *maal* admin se. Har section ka heading aur uske
-neeche ki intro line theme ke code me likhi hui hai; admin se sirf content aata hai
-(`entry.content`, `entry.itinerary[]`, `entry.faqs[]`, `packageDefaults.*`).
+> ✅ **Iska bada hissa 31 Aug ko band ho gaya — D-65.** 7 section ke **heading aur unke
+> neeche ki lines** ab admin se aati hain (`packageDefaults.sectionLabels`, screen:
+> **Packages ▸ Section Headings**). Client ne teen raaston me se **#2** chuna. Neeche sirf
+> wo bacha hai jo abhi bhi theme me likha hua hai.
 
-**Kitna static hai** — 7 heading + 7 lines:
+**Abhi ka niyam:** _dhaancha_ static, _maal_ admin se. Section ke heading aur lines ab admin
+se aa gaye; jo bacha hai wo **section ke heading nahi** hain — wo table ke andar ke shabd
+aur chhoti inline lines hain.
+
+**Kya abhi bhi static hai:**
 
 | Text | Kahan |
 | --- | --- |
-| `About this itinerary` · `Day-by-day itinerary` · `What's included` (+ `Included`/`Not included`) · `Good to know before you book` · `Questions about this package` | `apps/web/components/package/PackagePage.jsx` |
-| `Hotels on this package` · `Popular add-ons` | `apps/web/components/package/Pricing.jsx` |
-| `Every day below can be moved…` (day-by-day intro) | `PackagePage.jsx` |
-| `Rooms are held on twin sharing…` (hotels intro) | `Pricing.jsx` |
-| `Added to your quote only if you want them.` (add-ons intro) | `Pricing.jsx` |
 | `per person · twin sharing` (hero ka daam) | `Pricing.jsx` |
 | `The day-by-day plan stays the same — only the hotels and ferry class change.` | `Pricing.jsx` (catbar) |
-| `or similar` (hotels table) | `Pricing.jsx` |
+| ~~`or similar` (hotels table)~~ | ✅ **hat gaya** — 31 Aug, client: "jo name hoga wahi dikhega, apne side se add mat karo" (D-65 amendment 4) |
 | `per person on twin sharing, daily breakfast included.` (hotels table ke neeche) | `Pricing.jsx` — `PRICE_NOTE` (**D-63**: pehle ye admin ka field tha, client ne hataya) |
 | `Base` · `Sea-facing` · `Beachfront` · `Villas` (hotel tabs) | `Pricing.jsx` — `TAB_NOTE` |
-
-**Sawaal kyun hai:** client in me se **ek shabd bhi admin se nahi badal sakta**. Ye is
-framework ke buniyaadi vaade se takraata hai — har client ka apna instance, par core code
-sab me same. `Popular add-ons` ko `Optional extras` karna aaj ek code change hai, aur wo
-change us client ke instance me hi rehna padega.
+| `Included` / `Not included` (What's included ke do column) | `PackagePage.jsx` — section ka heading nahi, column ka label hai |
 
 **`TAB_NOTE` sabse tez kaanta hai** (client ka faisla, 27 Aug — admin me nayi jagah dene se
 mana kiya). `Sea-facing` aur `Beachfront` **Andaman ki baat hai**, jabki wo file har client
@@ -387,15 +372,11 @@ ke instance me wahi rehti hai. Agle client ke pahaadi package pe tab pe `Beachfr
 aayega. Isiliye wo `packages/shared` me nahi, theme layer me hai — client ka theme ise badal
 sake bina core chhue.
 
-**Teen raaste:**
-
-1. **Aise hi rehne do** — theme ka hissa maano. Abhi yahi chal raha hai.
-2. **`packageDefaults` me ek `labels{}` block** — saaton heading + paanchon line, sab
-   optional; khaali ho to abhi wala text default rahe. Ek screen, ek baar bharna.
-3. **Jab zaroorat pade tab** — jo heading client sach me badalna chahe, sirf usi ko field
-   banao. **Mashwara yahi hai** — abhi kisi ne badalne ko kaha nahi, aur 12 field pehle se
-   bana dena wahi galti hai jo D-57/D-58 me pakdi gayi thi (jo cheez pehle se hai, use
-   dobara mat poochho).
+**Mashwara — abhi kuch mat karo.** D-65 ne wo sab de diya jo client ne maanga tha. Ye bachi
+hui lines abhi kisi ne badalne ko kahi nahi, aur unke liye pehle se field bana dena wahi
+galti hai jo D-57/D-58 me pakdi gayi thi (jo cheez pehle se hai, use dobara mat poochho).
+Jis din `TAB_NOTE` sach me kisi doosre client pe galat lage, wo apne aap sabse pehla
+candidate hai.
 
 ---
 
@@ -473,8 +454,11 @@ Spec 005 me add karne honge.
     add-ons global — editor me panel nahi, poori list packageDefaults se (D-61)
 18. ✅ FAQs ka panel — Slice 6 se aage khiska    (D-59, 27 Aug — 565 tests)
     sirf FAQs, policies nahi; page pe <details>, koi JS nahi
-19. Slice 6 — Itinerary Images pool + goodToKnow · reviews   ← agla kaam
-20. Slice 7 → specs/007-packages.md §7
+19. ✅ A-5 — apps/web ki .env; revalidate ab configured    (31 Aug)
+20. Slice 6 ka bacha hua hissa — goodToKnow[] · reviews[] + rating  ← agla kaam
+    ⚠️ Itinerary Images pool + gallery (Slice 4/D-52) aur FAQs (D-59) BAN CHUKE hain
+    goodToKnow[] pe koi rukawat nahi; reviews[] §9 #8 pe ruka hai
+21. Slice 7 → specs/007-packages.md §7
 ```
 
 ### Media Phase 2 se aage kyun khisak rahi hai

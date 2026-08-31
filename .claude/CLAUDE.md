@@ -6,8 +6,10 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1–5 ban chuki hain**; public package
-page shuru ho chuka hai aur har slice ke saath badh raha hai (**554 tests passing**).
-Agla kaam **Slice 6 — Itinerary Images pool + FAQs, goodToKnow, reviews + rating**.
+page shuru ho chuka hai aur har slice ke saath badh raha hai (**574 tests passing**).
+Agla kaam **Slice 6 ka bacha hua hissa — `goodToKnow[]` aur `reviews[]` + rating**.
+⚠️ Slice 6 ka aadha pehle hi ban chuka hai: **Itinerary Images ka pool + gallery** Slice 4 /
+D-52 me, aur **FAQs** D-59 me. Poora naam padh kar mat chalna.
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
@@ -210,9 +212,9 @@ page pe aati hi nahi thi.
 admin me koi field nahi. Wo har package pe, har category pe bilkul wahi rehti hai. Yahi
 Q-9 wali soch hai: dhaancha static, maal admin se.
 
-**Add-ons ab global hain** (D-61) — package editor me unka panel nahi hai, page har package
-pe poori Add Ons list dikhata hai, aur wo `packageDefaults` ke payload me jaati hai (cache
-tag `type:package`). ⚠️ Spec §1.4 ka **ulta** hai, client ka faisla.
+**Add-ons wapas package ka chunav hain** (D-64 — D-61 ka palat, usi din). Sidebar me
+checklist, aur payload `packageDefaults` se wapas entry pe. Yaani spec §1.4 ka asli niyam
+hi chal raha hai. ⚠️ D-61 wala "global add-ons" ab **purana** hai — 27 Aug ko palat gaya.
 
 **Public hotels table poori tarah derived hai** (D-58, D-60) — rows itinerary ke overnight
 stays se, categories pricing se, aur hotel Hotels master list se. Package ka panel **sirf
@@ -225,8 +227,31 @@ wali line hotel ke apne `note` se. **Teen cheezein derive hoti hain, store nahi:
 daam (sabse sasti category), table ka `Nights` (itinerary se), aur `Deluxe category —
 ₹29,499`.
 
-Agla kaam **Slice 6** (spec 007 §7) — Itinerary Images pool + gallery, aur FAQs ·
-goodToKnow[] · reviews[] + rating.
+Agla kaam **Slice 6 ka bacha hua hissa** (spec 007 §7) — `goodToKnow[]` aur `reviews[]` +
+rating. Itinerary Images ka pool + gallery (Slice 4 / D-52) aur FAQs (D-59) **ban chuke hain**.
+`reviews[]` ek sawaal pe ruka hai — spec 007 §9 #8 (rating haath se ya `reviews[]` se gine);
+`goodToKnow[]` pe koi rukawat nahi.
+
+**31 Aug — section ke heading aur lines ab admin se (D-65, Q-9 ka bada hissa band):**
+`packageDefaults.sectionLabels` — 7 section, har ek pe `{ heading, description }`. Naya
+screen **Packages ▸ Section Headings**. Default `packages/shared` ki
+`package-sections.js` me hai aur wahi **teen** kaam karta hai — theme ka fallback, admin ka
+pre-fill, aur Zod ki shape. Resolve **server pe** hota hai (`toSectionLabels()`), theme me
+nahi.
+
+⚠️ **Khaali ke do alag matlab:** khaali `heading` pe theme ka heading wapas aata hai (section
+bina title ke na rahe), par khaali `description` line ko **hata** deti hai. Isiliye admin ka
+form defaults se **bhara hua** khulta hai, placeholder se nahi — placeholder pe client kisi
+line ko hata hi nahi sakta tha. Koi migration nahi lagi.
+
+⚠️ Chhoti inline lines abhi bhi static hain — `or similar`, `per person · twin sharing`,
+`PRICE_NOTE`, catbar ki line, aur hotel tabs ke naam (`TAB_NOTE`). Q-9 unhi ke liye khula
+hai; `TAB_NOTE` sabse tez kaanta hai (wo Andaman-specific hai).
+
+**Saath me ek chup bug bhi theek hua** — `cancellationText` public payload me ja hi nahi
+raha tha, jabki `PackagePage.jsx` use do jagah padhta hai. Client ki likhi cancellation
+policy page pe **kabhi** nahi aati thi. Wahi shakl jo D-64 wale transfer-duration bug ki
+thi: dono taraf ka code sahi dikhta hai, bas payload me field chhoot gaya tha.
 
 **Design frozen hai (R15)**: `docs/reference/admin-design.html` ke hisaab se hi banega, aur
 build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**. Jo farq abhi liye
@@ -235,12 +260,11 @@ table me likhe hain.
 spec 007 §9 ke **6 sawaal** abhi khule hain (#2, #5, #8, #14, #15, #16), par koi bhi plan
 nahi rokta — har ek apne slice pe tay hoga (`09-OPEN-ITEMS.md`).
 
-| #   | Kya                                                    | Kab tak                                      |
-| --- | ------------------------------------------------------ | -------------------------------------------- |
-| A-5 | `apps/web` ki `.env` — `REVALIDATE_SECRET` + `API_URL` | Ab — iske bina prod me cache saaf nahi hoga  |
-| Q-7 | Logo na mile to header me kya dikhe?                   | Client ka faisla (R15) — abhi interim pe hai |
-| Q-2 | Enquiries — Phase 7b ya alag Phase 9?                  | Phase 7 se pehle                             |
-| Q-3 | Field DSL me `matrix` + `table` types                  | Phase 5c se pehle                            |
+| #   | Kya                                   | Kab tak                                      |
+| --- | ------------------------------------- | -------------------------------------------- |
+| Q-7 | Logo na mile to header me kya dikhe?  | Client ka faisla (R15) — abhi interim pe hai |
+| Q-2 | Enquiries — Phase 7b ya alag Phase 9? | Phase 7 se pehle                             |
+| Q-3 | Field DSL me `matrix` + `table` types | Phase 5c se pehle                            |
 
 **Q-7 ka interim:** logo na mile to header me **kuch render nahi hota** (nav left shift).
 Ye D-42 §2 ka palan hai, koi faisla nahi. Code me `Q-7 INTERIM` comment hai

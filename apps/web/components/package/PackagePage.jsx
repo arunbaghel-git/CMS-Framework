@@ -1,3 +1,5 @@
+import { PACKAGE_SECTION_DEFAULTS } from '@cms/shared'
+
 import Gallery from './Gallery.jsx'
 import Planner from './Planner.jsx'
 import {
@@ -9,6 +11,7 @@ import {
   PriceBlock,
 } from './Pricing.jsx'
 import RichText from './RichText.jsx'
+import SectionHead from './SectionHead.jsx'
 
 /**
  * Package ka public page — `docs/reference/itinerary-v3.html` se.
@@ -247,6 +250,15 @@ export default function PackagePage({ entry, defaults, settings }) {
   const steps = defaults?.bookingSteps ?? []
   const gallery = defaults?.itineraryImages ?? []
 
+  /**
+   * Section ke heading aur lines — admin se (Q-9).
+   *
+   * Fallback API me lag chuka hota hai; ye `??` sirf us soorat ke liye hai jab
+   * `packageDefaults` ka call hi fail ho jaaye — tab bhi page bina heading ke nahi rehta.
+   * Shared constant se hai, isliye ye doosra default kabhi pehle se alag nahi ho sakta.
+   */
+  const labels = defaults?.sectionLabels ?? PACKAGE_SECTION_DEFAULTS
+
   return (
     <CategoryProvider pricing={entry.pricing} currency={settings?.currency ?? 'INR'}>
       <main className="pkg">
@@ -325,7 +337,7 @@ export default function PackagePage({ entry, defaults, settings }) {
         <div className="wrap pgl">
           <div className="pgl__main">
             <section className="blk" id="overview">
-              <h2>About this itinerary</h2>
+              <SectionHead label={labels.overview} />
               <RichText content={entry.content} />
 
               {entry.routeStrip.length > 0 && (
@@ -396,17 +408,13 @@ export default function PackagePage({ entry, defaults, settings }) {
 
             {entry.itinerary.length > 0 && (
               <section className="blk" id="itinerary">
-                <h2>Day-by-day itinerary</h2>
-
                 {/*
-                 * ⚠️ Ye line **static** hai, reference se. Isme ek vaada hai ("Replanning is
-                 * free") jo har client pe sach nahi hoga — jis din ise badalne ki zaroorat
-                 * pade, ye `packageDefaults` ka field banegi.
+                 * Ye line pehle static thi, aur uspe likha tha: "isme ek vaada hai
+                 * (Replanning is free) jo har client pe sach nahi hoga — jis din ise
+                 * badalne ki zaroorat pade, ye `packageDefaults` ka field banegi."
+                 * Wo din aa gaya (Q-9, 31 Aug) — ab wo field hai.
                  */}
-                <p>
-                  Every day below can be moved, shortened or swapped. Replanning is free — you only
-                  pay the difference in what you change.
-                </p>
+                <SectionHead label={labels.itinerary} />
 
                 <div className="dnav">
                   {entry.itinerary.map((day, i) => (
@@ -466,12 +474,12 @@ export default function PackagePage({ entry, defaults, settings }) {
              * Dono apne aap gayab ho jaate hain jab unka data nahi hota — khaali section
              * "abhi nahi bana" nahi, "toota hua" lagta hai.
              */}
-            <HotelsSection hotels={entry.hotels} />
-            <AddOns addOns={entry.addOns} />
+            <HotelsSection hotels={entry.hotels} label={labels.hotels} />
+            <AddOns addOns={entry.addOns} label={labels.addOns} />
 
             {(included.length > 0 || excluded.length > 0) && (
               <section className="blk" id="included">
-                <h2>What&rsquo;s included</h2>
+                <SectionHead label={labels.included} />
                 <div className="inx">
                   {included.length > 0 && (
                     <div className="inx__c">
@@ -505,7 +513,7 @@ export default function PackagePage({ entry, defaults, settings }) {
 
             {(steps.length > 0 || defaults?.cancellationText) && (
               <section className="blk" id="booking">
-                <h2>Good to know before you book</h2>
+                <SectionHead label={labels.booking} />
 
                 {steps.length > 0 && (
                   <ol className="steps">
@@ -540,7 +548,7 @@ export default function PackagePage({ entry, defaults, settings }) {
              */}
             {entry.faqs?.length > 0 && (
               <section className="blk" id="faq">
-                <h2>Questions about this package</h2>
+                <SectionHead label={labels.faq} />
 
                 <div className="faq">
                   {entry.faqs.map((faq, i) => (

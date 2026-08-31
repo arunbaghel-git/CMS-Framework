@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 
-import { DEFAULT_SITE_ID, emptyPackageDefaults } from '@cms/shared'
+import { DEFAULT_SITE_ID, emptyPackageDefaults, resolveSectionLabels } from '@cms/shared'
 
 import { unprocessable } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
@@ -20,7 +20,21 @@ function toApi(doc) {
   const plain = typeof doc.toObject === 'function' ? doc.toObject() : doc
   const { _id, __v, ...rest } = plain
 
-  return rest
+  return {
+    ...rest,
+    /**
+     * Admin ko bhi **resolved** labels milte hain, raw stored nahi — wahi jo public payload
+     * me jaate hain (D-65).
+     *
+     * Wajah: admin ka form wahi dikhana chahiye jo page pe sach me chhap raha hai. Raw
+     * bhejne pe admin ko khud fallback lagana padta, aur wo shart phir do jagah likhi hoti
+     * — API me aur admin me. Do jagah wahi shart ek din alag ho jaati hai.
+     *
+     * Isse "save karne pe kuch badal gaya" wala confusion bhi nahi hota: form me jo dikh
+     * raha tha, Save uske alawa kuch likhta hi nahi.
+     */
+    sectionLabels: resolveSectionLabels(rest.sectionLabels),
+  }
 }
 
 /** Idempotent — seed aur pehli read dono isse bulati hain. */
@@ -74,6 +88,7 @@ export async function updatePackageDefaults(input, siteId = DEFAULT_SITE_ID) {
   if (input.whatsIncluded !== undefined) $set.whatsIncluded = input.whatsIncluded
   if (input.cancellationText !== undefined) $set.cancellationText = input.cancellationText
   if (input.bookingSteps !== undefined) $set.bookingSteps = withIds(input.bookingSteps)
+  if (input.sectionLabels !== undefined) $set.sectionLabels = input.sectionLabels
 
   if (input.itineraryImages !== undefined) {
     await assertMediaExists(input.itineraryImages, siteId)

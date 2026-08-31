@@ -7,6 +7,7 @@ import {
   normalizePath,
   pricedCategories,
   pricingSchema,
+  resolveSectionLabels,
   routeStrip,
 } from '@cms/shared'
 
@@ -576,7 +577,23 @@ export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
       excluded: doc.whatsIncluded?.excluded ?? [],
     },
     bookingSteps: doc.bookingSteps ?? [],
+
+    /**
+     * ⚠️ Ye payload me **chhoot gaya tha** (31 Aug ko pakda).
+     *
+     * `PackagePage.jsx` do jagah `defaults.cancellationText` padhta hai — "Good to know"
+     * section ki shart me, aur uske andar ki `<p>` me. Par projection ise bhejti hi nahi
+     * thi, to client jo cancellation policy admin me likhta tha wo page pe **kabhi nahi**
+     * aati thi, aur "Good to know" sirf tab dikhta tha jab booking steps bhi hon.
+     *
+     * Bilkul wahi shakl jo D-64 wale transfer-duration bug ki thi: admin me text bhara hua
+     * dikhta hai, page pe kuch nahi, aur kahin koi error nahi.
+     */
+    cancellationText: doc.cancellationText ?? '',
+
     /** Jo media resolve na ho wo gir jaati hai — toota hua `<img>` kabhi nahi (D-42 §2). */
     itineraryImages: images.filter(Boolean),
+
+    sectionLabels: resolveSectionLabels(doc.sectionLabels),
   }
 }

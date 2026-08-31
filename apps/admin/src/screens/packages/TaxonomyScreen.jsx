@@ -231,7 +231,7 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
                   onChange={(e) => setForm({ ...form, slug: e.target.value })}
                 />
                 <div className="hint">
-                  URL-friendly, lowercase, hyphens only. Khaali chhodo to naam se ban jaayega.
+                  URL-friendly, lowercase, hyphens only. Leave empty to build it from the name.
                 </div>
               </div>
 

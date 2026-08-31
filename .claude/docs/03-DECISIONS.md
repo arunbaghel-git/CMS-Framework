@@ -3405,3 +3405,189 @@ ke ye 500 calls ban jaata.
 
 **Nateeja:** 568 tests. Migration **014** (highlights → description). Baaki koi migration
 nahi.
+
+---
+
+## D-65
+
+**Package page ke section headings aur unki lines ab admin se aati hain — Q-9 band**
+_31 Aug 2026 · client ka faisla_
+
+### Sawaal
+
+`09-OPEN-ITEMS.md` ka **Q-9** aaj tak khula tha: page ke 7 heading aur unke neeche ki
+lines theme me hardcoded thin (`PackagePage.jsx` + `Pricing.jsx`). Client **ek shabd bhi**
+admin se nahi badal sakta tha — `Popular add-ons` ko `Optional extras` karna ek code change
+tha, aur wo change us client ke instance me hi reh jaata. Ye is framework ke buniyaadi vaade
+se takraata hai: har client ka apna instance, par core code sab me same.
+
+Q-9 me teen raaste likhe the. Mashwara **#3** tha ("jab zaroorat pade tab"). Client ne
+**#2** chuna — sab ek saath, ek screen pe.
+
+### Faisla
+
+**`packageDefaults.sectionLabels`** — 7 section, har ek pe `{ heading, description }`.
+Admin me naya screen: **Packages ▸ Section Headings**.
+
+**`packageDefaults` me, package pe nahi.** Ye har package pe **bilkul same** chhapte hain.
+Per-package rakhne ka matlab hota 14 naye field har editor me — theek wahi galti jo D-57 aur
+D-58 me pakdi gayi thi (jo cheez har package pe same hai, wo package ka data nahi).
+
+**Har section ko heading _aur_ description dono** — chahe aaj us section ke neeche koi line
+ho ya na ho. Aaj 7 me se sirf 3 pe line hai (itinerary · hotels · add-ons); baaki 4 pe field
+khaali hai. Client ke shabd: _"abhi nahi hai to kya hua, aage text bhi daal sakte hai."_
+
+### Khaali ke do alag matlab — ye is faisle ka asli hissa hai
+
+| Stored            | Page pe                                          |
+| ----------------- | ------------------------------------------------ |
+| key hai hi nahi   | theme ka heading **aur** theme ki line           |
+| `heading: ''`     | theme ka heading — section bina title ke na rahe |
+| `description: ''` | **kuch nahi** — line hat jaati hai               |
+
+Line ka hat-na zaroori tha. Hotels wali line me likha hai _"and on the enquiry form"_ — aur
+wo form abhi bana hi nahi (Q-2). Pehle uske liye code me comment tha: _"Client kahe to
+aakhri teen shabd hata dena ek line ka kaam hai."_ Ab wo client ka apna kaam hai.
+
+"Key hai hi nahi" wala case **naye instance** ke liye hai: jab tak koi screen kholta nahi,
+page bilkul waisa hi chalta hai jaisa pehle. Aur admin ka form defaults se **bhara hua**
+khulta hai (placeholder se nahi) — placeholder rakhne pe client kisi line ko hata hi nahi
+sakta tha, kyunki box khaali karte hi placeholder theme ka text wapas dikha deta.
+
+### Default ek hi jagah hai
+
+`packages/shared/src/constants/package-sections.js` — `PACKAGE_SECTIONS`.
+
+Wahi list **teen** kaam karti hai: theme ka fallback, admin ka pre-fill, aur Zod ki shape.
+Alag rakhne pe wo ek din alag ho jaate — admin kuch dikhata, page kuch chhapta, aur kisi ko
+pata nahi chalta. Yahi sabak D-43 §2 me `allowedColumnCounts` pe mila tha.
+
+Naya section jodna ab **ek file** ka kaam hai: list me entry daalo, schema aur admin apne
+aap saath aa jaate hain.
+
+### Resolve server pe hota hai, theme me nahi
+
+`toSectionLabels()` public projection me hai. Theme me karne ka matlab hota saat jagah
+`labels.x?.heading || 'About this itinerary'` likhna — aur wahi wo shakl hai jisme ek din
+ek jagah ka default baaki se alag ho jaata hai. Public projection pehle se yahi kaam karti
+hai (media → `null`, `href` → resolved).
+
+### Migration nahi lagi
+
+Day-1 reserve test ke teenon jawab "nahi" — na koi query/index chhoota hai, na uniqueness
+badalta hai, na backfill mehnga hai. Khaali `{}` ka matlab hi "theme ke apne headings" hai,
+to purane documents pe aaj bhi wahi chhapega jo kal chhapta tha.
+
+### `.strict()` — test ne pehli hi baar pakda
+
+`sectionLabels` pe `.strict()` **zaroori** tha. Zod default me anjaan keys chup-chaap **hata
+deta hai**, to `{ notASection: {...} }` bhejne pe API **200** deti, key gayab ho jaati, aur
+admin ko "ho gaya" dikhta. Theek wahi bug jo D-43 §3 me `leafItemSchema` pe mila tha.
+
+### Saath me ek chup bug bhi theek hua — `cancellationText`
+
+`PackagePage.jsx` **do jagah** `defaults.cancellationText` padhta hai — "Good to know"
+section ki shart me, aur uske andar ki `<p>` me. Par `getPublicPackageDefaults()` use payload
+me bhejti hi nahi thi.
+
+Nateeja: client jo cancellation policy admin me likhta tha wo page pe **kabhi nahi** aati
+thi, aur "Good to know" section sirf tab dikhta tha jab booking steps bhi bhare hon. Kahin
+koi error nahi.
+
+Bilkul wahi shakl jo **D-64** wale transfer-duration bug ki thi: admin me text bhara hua
+dikhta hai, page pe kuch nahi. Ye is codebase ka apna failure mode hai — **payload me field
+add karna bhool jaana**, aur dono taraf ka code sahi dikhna.
+
+### Jo jaan-boojh kar NAHI liya
+
+Page ki chhoti inline lines — `or similar`, `per person · twin sharing`, `PRICE_NOTE`,
+catbar wali line, aur hotel tabs ke naam (`Base` · `Sea-facing` · `Beachfront` · `Villas`).
+Wo **section ke heading nahi** hain, aur unhe abhi field banana wahi galti hoti jo D-57/D-58
+me pakdi gayi thi.
+
+⚠️ Tab wale naam sabse tez kaanta hain — wo **Andaman-specific** hain aur har client ke
+instance me wahi rehte hain. Uska record Q-9 me hai aur wo khula rahega.
+
+**Nateeja:** 574 tests (6 naye). Koi migration nahi.
+
+### Amendment — 31 Aug, usi din
+
+**1. Overview pe description ka box nahi hai** (client). Client ne poochha ki "About this
+itinerary" ka content to Edit Package ▸ Overview se aata hai na — haan, wahi (`entry.content`,
+per-package). Us section ko ek aur description dene ka matlab hota heading aur us rich text
+ke **beech** me ek **global** line, jo har package pe wahi rehti. Do intro ek doosre ke upar.
+
+Ab `package-sections.js` me us entry pe `hasDescription: false` hai. Uska asar teen jagah:
+
+- **Zod** — overview ka shape sirf `{ heading }` hai, `.strict()` ke saath. `description`
+  bhejne pe **400** aata hai, chup-chaap girta nahi
+- **Admin** — textarea ki jagah ek line ka hint: _"The text under this heading comes from
+  each package's own Overview."_
+- **Payload** — overview pe `description` ki key **aati hi nahi**
+
+Flag ka default **haan** hai (`hasDescription !== false`) — naya section jodne wale ko wahi
+milta hai jo aam hai, aur apwaad likh kar batana padta hai.
+
+**2. Fallback ab ek hi jagah — `resolveSectionLabels()` `packages/shared` me.**
+
+Pehli shakl me resolve sirf public projection me tha, aur admin apni **alag copy** rakhta
+tha. Wo galat tha, aur usne turant ek asli galti bhi banayi:
+
+Admin ka endpoint **raw stored** bhejta tha. Ek baar `sectionLabels` save ho jaane ke baad
+uski har key `{heading, description: ''}` hoti hai — aur admin ka pre-fill
+`stored?.description ?? default` likhta tha. `??` `''` pe fallback **nahi** karta (aur
+theek yahi chahiye tha), to form khaali descriptions dikhata, client Save dabata, aur saari
+lines **chup-chaap mit jaati**. Dev DB pe theek yahi hua.
+
+Ab dono taraf — public projection **aur** admin ka `toApi()` — wahi ek function bulate hain.
+Admin ko wahi text milta hai jo page pe chhap raha hai, aur uske paas fallback ki koi logic
+bachi hi nahi. **Do jagah likhi hui shart ek din alag ho jaati hai** — yahi D-43 §2 ka sabak
+tha, aur is baar wo alag hone me kuch ghante lage.
+
+⚠️ Iske saath ek naya test bhi hai: **admin ka padha hua payload bina badle wapas save ho
+jaana chahiye**. Admin Save pe poora object bhejta hai, to payload me koi bhi aisi key jo
+schema na le, Save ko 400 pe maar deti — aur wo failure sirf asli admin chalane pe dikhti,
+test me kabhi nahi. (Pehle draft me `overview.description: ''` bheji ja rahi thi aur theek
+yahi hota.)
+
+**Nateeja:** 578 tests (10 naye). Koi migration nahi.
+
+**3. Hotels ke box pe ek hint** (client ne page pe duplicate text dekha, usi din).
+
+Page pe Hotels ki line ke **neeche** ek aur paragraph dikhta hai — chuni hui category ka
+apna text (`CATEGORY_COPY`, `Pricing.jsx`). Wo tabs ke **baad** aata hai aur tab badalne pe
+**badal jaata hai**.
+
+Client ne page dekh kar dono paragraph description box me paste kar diye. Nateeja: wo text
+page pe **do baar** chhapne laga — ek baar box se, ek baar widget se. Aur tab badalne pe
+upar wala "base category" hi likha rehta jabki neeche "sea-facing" aa jaata.
+
+Box ko dekh kar ye pata hi nahi chalta ki neeche wala paragraph kiska hai. Ab section pe
+ek optional `hint` field hai aur Hotels pe wo likha hua hai. **Data ki galti thi, code ki
+nahi** — par galti karna aasan tha, aur wahi UI ka kaam hai.
+
+⚠️ `CATEGORY_COPY` khud abhi bhi **static** hai (Q-9 ka bacha hua hissa) — aur wo
+Andaman-specific hai, isliye Q-9 me wahi sabse tez kaanta likha hai.
+
+**4. Hotels table me theme ka `or similar` hata diya gaya** (client, usi din).
+
+Table ka hotel cell aise chhapta tha: `{hotel.name} <em>or similar</em>` — `or similar`
+design ka apna text tha (R15). Par Hotels master list me client ne **aathon** hotel ke naam
+me khud "(or similar)" likha hua tha, to page pe wo **do baar** aata:
+
+```
+Garden resort, 5 min from Govind Nagar beach (or similar) or similar
+```
+
+Do raaste the — naam se hata do (8 record badalte), ya theme se. Client ne theme chuna:
+_"jo name hoga wahi dikhega, apne side se add mat karo."_
+
+Ye design se **vichlan** hai, isliye yahan likha ja raha hai (R15 — vichlan client se aaya,
+developer se nahi). ⚠️ Iska matlab ye bhi hai ki jis hotel ke naam me "or similar" na likha
+ho, uspe page pe kuch nahi aayega — wo ab **content ka faisla** hai, code ka nahi.
+
+**Ye is poore din ka niyam ban gaya:** admin ka text jaisa likha hai **waisa** chhape, theme
+uspe apni taraf se kuch na jode. Yahi baat teen jagah alag-alag roop me nikli — section ki
+description (paste kiya hua duplicate), hotels table ka `or similar`, aur Overview ka
+description box jo hata diya gaya.
+

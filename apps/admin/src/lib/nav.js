@@ -94,6 +94,11 @@ export const NAV = [
         to: '/packages/itinerary-images',
         permission: PERMISSION.PACKAGE_DEFAULTS_READ,
       },
+      {
+        label: 'Section Headings',
+        to: '/packages/section-headings',
+        permission: PERMISSION.PACKAGE_DEFAULTS_READ,
+      },
     ],
   },
   {
@@ -220,6 +225,7 @@ export const ROUTE_GUARDS = Object.freeze({
   '/packages/transfers': PERMISSION.TRANSFER_READ,
   '/packages/whats-included': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/itinerary-images': PERMISSION.PACKAGE_DEFAULTS_READ,
+  '/packages/section-headings': PERMISSION.PACKAGE_DEFAULTS_READ,
 
   '/users': PERMISSION.USER_READ,
   '/users/new': PERMISSION.USER_INVITE,

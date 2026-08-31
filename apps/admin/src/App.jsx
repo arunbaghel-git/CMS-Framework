@@ -145,7 +145,7 @@ const APP_ROUTES = [
       <TaxonomyScreen
         type="packageType"
         title="Package Type"
-        subtitle="Flat list — Honeymoon, Adventure, Family. List me iska column 'Theme' hai."
+        subtitle="Flat list — Honeymoon, Adventure, Family. Shown as the 'Theme' column in the packages list."
       />
     ),
   },
@@ -154,6 +154,7 @@ const APP_ROUTES = [
   { path: '/packages/transfers', element: <MasterListScreen list="transfers" /> },
   { path: '/packages/whats-included', element: <PackageDefaults section="whatsIncluded" /> },
   { path: '/packages/itinerary-images', element: <PackageDefaults section="itineraryImages" /> },
+  { path: '/packages/section-headings', element: <PackageDefaults section="sectionLabels" /> },
   /**
    * `/packages/:id` sabse **aakhir** me — warna wo `destinations`, `hotels` jaise har
    * static segment ko ek entry id ki tarah padh leta.

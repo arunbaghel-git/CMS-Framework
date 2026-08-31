@@ -57,6 +57,19 @@ const packageDefaultsSchema = new mongoose.Schema(
     bookingSteps: { type: mongoose.Schema.Types.Mixed, default: () => [] },
 
     cancellationText: { type: String, default: '' },
+
+    /**
+     * Page ke section headings + unke neeche ki lines — Q-9 (client, 31 Aug).
+     *
+     * `Mixed` wahi tark se jo `bookingSteps` pe hai: har value ek object hai
+     * (`{heading, description}`), write pe poora Zod se guzarta hai (R8), aur ye kabhi
+     * kisi query me nahi jaata — isliye R9 wala injection khatra yahan nahi hai.
+     *
+     * Khaali `{}` ka matlab "theme ke apne headings" (`PACKAGE_SECTION_DEFAULTS`), isliye
+     * purane documents ko koi migration nahi chahiye — unpe aaj bhi wahi chhapega jo kal
+     * chhapta tha.
+     */
+    sectionLabels: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
   },
   { timestamps: true, collection: 'packageDefaults', minimize: false },
 )

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DEFAULT_SITE_ID } from '../constants/index.js'
+import { DEFAULT_SITE_ID, PACKAGE_SECTIONS, sectionHasDescription } from '../constants/index.js'
 
 /**
  * `packageDefaults` — Packages ke apne globals (spec 007 §1.8).
@@ -31,6 +31,50 @@ export const bookingStepSchema = z.object({
   title: z.string().min(1).max(200),
   text: z.string().max(1000).default(''),
 })
+
+/**
+ * Ek section ka heading + uske neeche ki line — Q-9 ka jawab (client, 31 Aug).
+ *
+ * **Dono khaali ho sakte hain, aur khaali ka matlab alag-alag hai:**
+ *
+ * - khaali `heading` → theme ka apna heading chhapega (`PACKAGE_SECTION_DEFAULTS`)
+ * - khaali `description` → us section ke neeche **kuch nahi** chhapega
+ *
+ * Ye farak jaan-boojh kar hai. Heading ke bina section ka koi matlab nahi, isliye wahan
+ * fallback chahiye; par line optional hai — aaj saat me se sirf teen sections pe hai, aur
+ * baaki chaar pe client chaahe to baad me daal sakta hai.
+ *
+ * Text **plain** hai, rich text nahi — wahi tark jo FAQs (D-59) aur footer ke text blocks
+ * (D-44 §8) pe laga: admin se aayi HTML ko render karna stored XSS ka seedha raasta hai.
+ */
+const headingSchema = z.string().trim().max(120).default('')
+const descriptionSchema = z.string().trim().max(1000).default('')
+
+/**
+ * `{ overview: {...}, itinerary: {...}, ... }` — keys `PACKAGE_SECTIONS` se.
+ *
+ * Shape list se banti hai, haath se nahi likhi jaati: naya section jodne pe sirf
+ * `package-sections.js` badlegi, ye schema apne aap saath aa jaayega. Wahi pattern jo
+ * `settings.js` ke `socialShape()` pe chal raha hai.
+ *
+ * ⚠️ **Overview pe sirf `heading` hai.** Uska "text" pehle se `entry.content` (Edit Package
+ * ▸ Overview) hai, aur wo per-package hai — client ne 31 Aug ko wahan global line dene se
+ * mana kiya. `.strict()` isliye lagta hai ki `description` bhejne pe **400** aaye: bina
+ * uske Zod use chup-chaap gira deta aur admin ko "save ho gaya" dikhta.
+ */
+const sectionLabelsShape = Object.fromEntries(
+  PACKAGE_SECTIONS.map((section) => [
+    section.key,
+    z
+      .object(
+        sectionHasDescription(section)
+          ? { heading: headingSchema, description: descriptionSchema }
+          : { heading: headingSchema },
+      )
+      .strict()
+      .default({}),
+  ]),
+)
 
 export const packageDefaultsSchema = z.object({
   siteId: z.string().default(DEFAULT_SITE_ID),
@@ -79,6 +123,23 @@ export const packageDefaultsSchema = z.object({
   /** "Cancellations more than 30 days before travel…" — spec 007 §2.1. */
   cancellationText: z.string().max(5000).default(''),
 
+  /**
+   * Page ke section headings aur unke neeche ki lines — Q-9 (client, 31 Aug).
+   *
+   * `packageDefaults` me hai, package pe nahi: ye har package pe **bilkul same** chhapte
+   * hain. Per-package rakhne ka matlab hota 14 naye field har editor me — theek wahi galti
+   * jo D-57/D-58 me pakdi gayi thi.
+   */
+  /**
+   * ⚠️ `.strict()` zaroori hai — Zod default me anjaan keys **chup-chaap hata deta hai**.
+   *
+   * Uske bina `{ notASection: {...} }` bhejne pe API 200 deti, key gayab ho jaati, aur
+   * admin ko "ho gaya" dikhta. Theek wahi bug jo D-43 §3 me `leafItemSchema` pe mila tha —
+   * wahan depth-4 ke `children` bina kisi error ke gaayab ho rahe the. Test ne yahan bhi
+   * pehli hi baar pakda.
+   */
+  sectionLabels: z.object(sectionLabelsShape).strict().default({}),
+
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
 })
@@ -101,5 +162,11 @@ export function emptyPackageDefaults() {
     itineraryImages: [],
     bookingSteps: [],
     cancellationText: '',
+    /**
+     * Khaali — yaani naye instance pe theme ke apne headings chhapte hain. Yahan aaj ka
+     * text copy **nahi** kiya jaata: copy karne pe wo DB me jam jaata, aur theme ka default
+     * kabhi sudhre to purane instances usse kabhi nahi paate.
+     */
+    sectionLabels: {},
   }
 }
