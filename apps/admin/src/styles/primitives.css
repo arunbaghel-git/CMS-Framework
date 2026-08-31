@@ -322,6 +322,23 @@ tr:hover .row-actions {
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary);
 }
+
+/*
+ * Ek `.field` me do control ek ke neeche ek hon to beech me jagah.
+ *
+ * Form control ka default margin 0 hota hai, aur `.field` sirf apne **neeche** 14px deta
+ * hai — do control ke **beech** ka koi rule tha hi nahi. Section Headings screen pe har
+ * section ka input aur description ka textarea isliye bilkul chipke hue the: do border ek
+ * doosre se laga kar ek hi mota dabba jaisa dikhte the, aur dekh kar pata hi nahi chalta
+ * tha ki wo do alag field hain.
+ *
+ * `.field >` ke andar isliye rakha ki ye sirf ek hi field ke andar wale control jode pe
+ * lage — do alag `.field` ke beech ki doori `.field` ke apne margin se hi aani chahiye.
+ * `:is()` se teenon (`inp`/`sel`/`ta`) ka har jodi ek hi line me aa jaata hai.
+ */
+.field > :is(.inp, .sel, .ta) + :is(.inp, .sel, .ta) {
+  margin-top: 8px;
+}
 .ta {
   min-height: 110px;
   resize: vertical;
