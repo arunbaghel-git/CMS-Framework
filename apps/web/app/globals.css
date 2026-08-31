@@ -2654,3 +2654,170 @@ a.mega__gl:hover {
     animation: none;
   }
 }
+
+/* ==================================================================
+   CLOSING CTA — page ka aakhri card (D-67)
+
+   Reference ke `.offer` se hi — gradient, glow, glass box, blinking dot.
+   Waha ye `.sec.sec--white > .wrap` me tha; hamare theme me `.sec` hai hi nahi,
+   isliye `.wrap.pkg__cta`.
+   ================================================================== */
+
+.pkg__cta {
+  margin-bottom: clamp(32px, 5vw, 64px);
+}
+
+.offer {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r4);
+  background: linear-gradient(120deg, var(--blue-900) 0%, var(--blue-700) 55%, #1b7fb8 100%);
+  padding: clamp(24px, 3.4vw, 40px);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Orange glow — sirf sajawat, isliye pseudo-element (DOM me ek khaali div nahi) */
+.offer::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(244, 112, 28, 0.22);
+  filter: blur(20px);
+}
+
+.offer__in {
+  position: relative;
+  /* Glow ke upar — bina iske text uske peeche chala jaata hai */
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 26px;
+  align-items: center;
+}
+
+.offer h2 {
+  color: #fff;
+  font-size: clamp(21px, 2.6vw, 30px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.offer__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(244, 112, 28, 0.2);
+  border: 1px solid rgba(255, 160, 77, 0.4);
+  color: #ffc79b;
+  padding: 5px 13px;
+  border-radius: var(--rf);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.dotp {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff9d4d;
+  animation: bl 1.8s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes bl {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.offer ul {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  list-style: none;
+  padding: 0;
+}
+
+.offer li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 13.5px;
+}
+
+.offer li svg {
+  color: #7cc7ff;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.offer__box {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--r3);
+  padding: 20px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.offer__box b {
+  display: block;
+  font-size: 34px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.offer__box span {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  display: block;
+  margin: 6px 0 14px;
+}
+
+/*
+ * Buttons `.btn` hi hain (R18 — look `variant` se aata hai, className se nahi), par box ke
+ * andar wo poori chaudai lete hain. Reference me iske liye alag `.b-w` class thi; hamare
+ * paas variants pehle se hain, to sirf width yahan se.
+ *
+ * `+ .btn` pe hi margin — pehle button ke upar gap `span` ke margin se aa chuka hota hai.
+ */
+.offer__box .btn {
+  width: 100%;
+}
+
+.offer__box .btn + .btn {
+  margin-top: 9px;
+}
+
+/* Box na ho to buttons ka apna row — wo case admin ke box khaali chhodne se banta hai */
+.offer__btns {
+  display: grid;
+  gap: 9px;
+  align-content: center;
+}
+
+/* Reference ka apna breakpoint — us par `.offer__in` ek column ho jaata hai */
+@media (max-width: 860px) {
+  .offer__in {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dotp {
+    animation: none;
+  }
+}

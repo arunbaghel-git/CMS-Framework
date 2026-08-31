@@ -202,12 +202,28 @@ nahi laga. Aage koi ise tode to suite chup rahegi. Jis din `apps/web` pe compone
 aayein, **hover-pause** wala case pehla candidate hai — wo bug aankh se bhi nahi dikhta tha,
 sirf "slide nahi chal rahi" jaisa lagta.
 
-⚠️ **Client ka ek feature abhi baaki:**
+**31 Aug — page ka aakhri CTA card ban gaya (D-67).** Design ka `.offer` — badge + heading +
+bullets + box + 2 button. Ab `settings.ctaSection` me, screen: **Settings ▸ CTA Section**.
 
-- **Settings me ek CTA section** — itinerary page ka aakhri section, card jaisa. Ye design
-  me **pehle se hai** (`itinerary-v3.html:2102`, `.offer`): badge + heading + 3 bullets +
-  price box + 2 button. ⚠️ Usme daam aur category **derived** hain, aur ek button `#enquiry`
-  pe jaata hai — jo abhi bana hi nahi (Q-2).
+**Teen baatein:**
+
+1. **`settings` me hai, `packageDefaults` me nahi** — client: "dusre pages par bhi use
+   hoga". Ye D-46 ka palan hai, apwaad nahi. ⚠️ Par iska nateeja ye hai ki package page ka
+   text ab **do jagah** hai — headings Packages me, ye card Settings me.
+2. ⚠️ **Poori tarah static — kuch bhi derive nahi hota** (client: "price kahin se derive
+   nahi hoga"). Design me box ka daam aur category `js-px`/`js-cat-name` se aate the; ab wo
+   saade text hain. Look bilkul waisa hi, sirf source badla. **Ek hi text har page pe
+   dikhega**, isliye admin screen pe box ke upar chetavni likhi hai ki wahan pakka daam mat
+   likho.
+3. **Button ka URL ek field hai** — enquiry form (Q-2) bana hi nahi. Client: "abhi fields
+   bana do jisse bad me bhej sake". Khaali URL pe button payload me jaata hi nahi, yaani
+   page pe dikhta nahi (D-30). Form banne pe sirf ek value bharni hai, koi code change nahi.
+
+Isse `09-OPEN-ITEMS` ke **chaar missing sections me se ek** band ho gaya. Sidebar ka
+price+enquiry widget abhi bhi Q-2 pe hai — wahan asli form chahiye, sirf link nahi.
+
+⚠️ **Dev DB me smoke data daala hua hai** (badge/heading/bullets/box/2 button) taaki section
+dikhe. Client apna content bharega — Settings ▸ CTA Section se.
 
 ⚠️ Slice 6 ka aadha pehle hi ban chuka hai, isliye uska poora naam padh kar mat chalna:
 **Itinerary Images ka pool aur gallery Slice 4/D-52 me aa gaye the**, aur **FAQs D-59 me**
@@ -287,11 +303,11 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           R17 — admin ka UI text English me  ✅  31 Aug — 16 string; comments Hinglish hi
           Slice 6-7                          🔴  ← agla kaam. specs/007-packages.md §7
           Hero ka lightbox + auto-slide      ✅  31 Aug — D-66, R15 ka vichlan (client)
-          Closing CTA card (settings se)     🔴  client, 31 Aug — design me hai, Q-2 pe atka
+          Closing CTA card (settings se)     ✅  31 Aug — D-67, Q-2 ka atkav khula
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 574 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 581 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 

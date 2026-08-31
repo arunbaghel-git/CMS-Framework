@@ -406,6 +406,68 @@ describe('GET /api/public/settings', () => {
     expect(headerButtons[0]).not.toHaveProperty('enabled')
   })
 
+  /**
+   * Page ka aakhri CTA card — D-67.
+   *
+   * Ye contract test hai: card ka poora matlab hi ye hai ki wo **static** rahe aur uska
+   * button tab tak na dikhe jab tak uska URL na ho (enquiry form Q-2 pe atka hai). Dono
+   * bina test ke chup-chaap badal sakte the.
+   */
+  describe('ctaSection (D-67)', () => {
+    const full = {
+      enabled: true,
+      badge: 'Planning open for 2026 season',
+      heading: 'Want this trip on your dates?',
+      bullets: ['The same day-by-day plan', 'Ferry seats held'],
+      boxTitle: 'Plan with us',
+      boxNote: 'per person, twin sharing',
+      buttons: [
+        { label: 'Get this itinerary', url: '/contact', variant: 'accent' },
+        // URL abhi nahi hai — enquiry form bana hi nahi (Q-2)
+        { label: 'Enquire', url: '' },
+      ],
+    }
+
+    it('off ho to public payload me null jaata hai', async () => {
+      await authed('patch', '/api/settings', adminJar).send({
+        ctaSection: { ...full, enabled: false },
+      })
+
+      const res = await request(app).get('/api/public/settings')
+
+      expect(res.body.data.settings.ctaSection).toBeNull()
+    })
+
+    it('on ho to poora card jaata hai, par bina URL wala button nahi', async () => {
+      await authed('patch', '/api/settings', adminJar).send({ ctaSection: full })
+
+      const { ctaSection } = (await request(app).get('/api/public/settings')).body.data.settings
+
+      expect(ctaSection.badge).toBe('Planning open for 2026 season')
+      expect(ctaSection.bullets).toEqual(['The same day-by-day plan', 'Ferry seats held'])
+      expect(ctaSection.boxTitle).toBe('Plan with us')
+
+      /**
+       * Yahi is section ka asli maqsad hai: jab tak form ka URL nahi bhara, wo button page
+       * pe aata hi nahi — adhoora control dikhane se behtar hai na dikhana (D-30).
+       */
+      expect(ctaSection.buttons).toEqual([
+        { label: 'Get this itinerary', url: '/contact', target: '_self', variant: 'accent' },
+      ])
+      expect(ctaSection.buttons[0]).not.toHaveProperty('enabled')
+    })
+
+    it('do se zyada button 400 dete hain', async () => {
+      const res = await authed('patch', '/api/settings', adminJar).send({
+        ctaSection: {
+          buttons: Array.from({ length: 3 }, (_, i) => ({ label: `B${i}`, url: '/x' })),
+        },
+      })
+
+      expect(res.status).toBe(400)
+    })
+  })
+
   it('chaar se zyada header buttons 400 dete hain', async () => {
     const res = await authed('patch', '/api/settings', adminJar).send({
       headerButtons: Array.from({ length: 5 }, (_, i) => ({ label: `B${i}`, url: '/x' })),

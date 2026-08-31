@@ -172,6 +172,14 @@ export const NAV = [
     label: 'Settings',
     children: [
       { label: 'General', to: '/settings', permission: PERMISSION.SETTINGS_READ },
+      /**
+       * Page ka aakhri CTA card — D-67. Design me ye `.offer` hai.
+       *
+       * ⚠️ Ye `settings` me hai, `packageDefaults` me nahi — client ka faisla: "dusre pages
+       * par bhi use hoga". Package ke aur text (headings) Packages ▸ Section Headings me
+       * hain, ye yahan.
+       */
+      { label: 'CTA Section', to: '/settings/cta', permission: PERMISSION.SETTINGS_READ },
       { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
       { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
       {
@@ -241,6 +249,7 @@ export const ROUTE_GUARDS = Object.freeze({
    * cheezein uske kaam ki hain), badalni nahi.
    */
   '/settings': PERMISSION.SETTINGS_READ,
+  '/settings/cta': PERMISSION.SETTINGS_READ,
   /**
    * Menus screen khud `menu.update` na hone pe form disable kar deti hai — `author` aur
    * `contributor` menu **dekh** sakte hain (link banate waqt ye kaam ka hai), badal nahi.

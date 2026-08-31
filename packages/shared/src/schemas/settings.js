@@ -120,6 +120,63 @@ const headerButtonSchema = z.object({
   enabled: z.boolean().default(true),
 })
 
+/** Page ke aakhri CTA card ka ek button — do se zyada nahi (D-67). */
+const ctaButtonSchema = z.object({
+  label: z.string().trim().max(60).default(''),
+  /**
+   * ⚠️ Ye field is poore section ki wajah hai.
+   *
+   * Design me "Get this itinerary" `#enquiry` pe jaata hai — aur wo form abhi bana hi nahi
+   * (Enquiries, Q-2). Client ne kaha: _"button to form par hi jata hai par abhi bana nahi
+   * hai to abhi fields bana do jisse bad me bhej sake."_ Yaani jis din form bane, sirf ye
+   * ek value badlegi — koi code change nahi. D-30 ka hi precedent: connection point abhi,
+   * data baad me.
+   *
+   * Khaali URL pe button page pe **dikhta hi nahi** — adhoora control dikhane se behtar hai
+   * na dikhana (D-30: "khaali cheez khaali dikhe, tooti hui nahi").
+   */
+  url: z.union([z.literal(''), menuUrlSchema]).default(''),
+  target: z.enum(/** @type {[string, ...string[]]} */ (LINK_TARGETS)).default('_self'),
+  /** Look `variant` se aata hai, className se nahi (R18) — wahi teen jo header pe hain. */
+  variant: z.enum(/** @type {[string, ...string[]]} */ (BUTTON_VARIANTS)).default('accent'),
+  enabled: z.boolean().default(true),
+})
+
+export const MAX_CTA_BUTTONS = 2
+export const MAX_CTA_BULLETS = 6
+
+/**
+ * Page ka aakhri CTA card — design ka `.offer` (`itinerary-v3.html`), D-67.
+ *
+ * **`settings` me hai, `packageDefaults` me nahi** — client ka faisla: _"dusre pages par
+ * bhi use hoga."_ Ye is project ke aam niyam ka **apwaad** hai (package ke domain ka maal
+ * `packageDefaults` me jaata hai, D-46) — par wo niyam hi kehta hai ki jo cheez sirf
+ * package ki nahi hai wo `settings` me rahegi, aur ye card poore site ka hai.
+ *
+ * ⚠️ **Poori tarah static — kuch bhi derive nahi hota** (client, 31 Aug). Box ka bada text
+ * (`boxTitle`) aur uske neeche ki line (`boxNote`) saade text hain, package ke pricing se
+ * nahi aate. Design me wahan `₹24,999` aur `Standard category` derive hote the (`js-px` /
+ * `js-cat-name`), par wo raasta band hai: ye card doosre pages pe bhi jaayega jahan koi
+ * package hai hi nahi.
+ *
+ * ⚠️ Iska ek nateeja maan lena chahiye: **ek hi text har package pe dikhega** — ₹24,999
+ * wale package pe bhi aur ₹45,000 wale pe bhi. Isiliye `boxTitle` me pakka daam likhna
+ * theek nahi hoga; wahan kuch aisa chahiye jo har jagah sach ho.
+ */
+export const ctaSectionSchema = z.object({
+  /** Band karne pe section page pe render hi nahi hota — wahi flag jo headerButtons pe hai. */
+  enabled: z.boolean().default(false),
+  /** Upar ka chhota chip — "Planning open for 2026 season". Khaali ho to chip nahi aata. */
+  badge: z.string().trim().max(80).default(''),
+  heading: z.string().trim().max(200).default(''),
+  /** Tick wali list. Khaali list pe `<ul>` banti hi nahi. */
+  bullets: z.array(z.string().trim().max(300)).max(MAX_CTA_BULLETS).default([]),
+  /** Daayein box ka bada text. Khaali ho to poora box gayab. */
+  boxTitle: z.string().trim().max(60).default(''),
+  boxNote: z.string().trim().max(200).default(''),
+  buttons: z.array(ctaButtonSchema).max(MAX_CTA_BUTTONS).default([]),
+})
+
 /**
  * Footer ke ek column me kya dikhe.
  *
@@ -290,6 +347,15 @@ export const settingsSchema = z.object({
    * Drawer isko isliye use karta hai ki wo bhi gehre background pe khulta hai.
    */
   footerLogoMediaId: z.string().nullable().default(null),
+
+  /**
+   * Page ka aakhri CTA card — design ka `.offer` (D-67).
+   *
+   * ⚠️ Ye `settings` me hai kyunki client ne kaha "dusre pages par bhi use hoga". Package
+   * ke domain ka maal aam taur pe `packageDefaults` me jaata hai (D-46) — ye uska apwaad
+   * nahi, uska palan hai: jo cheez sirf package ki nahi, wo yahin rehni chahiye.
+   */
+  ctaSection: ctaSectionSchema.default({}),
 
   /**
    * `{year}` placeholder theme replace karta hai, taaki har 1 January ko client ko

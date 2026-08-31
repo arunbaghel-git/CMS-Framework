@@ -455,6 +455,11 @@ raha hai, isliye wahin add karna sasta hai.
 | Destinations · Package Type | `screens/packages/TaxonomyScreen.jsx` | `#s-taxonomy` |
 | Hotels · Add Ons · Transfer | `screens/packages/MasterListScreen.jsx` | naya, `#s-taxonomy` ka layout |
 | What's Included · Itinerary Images · Section Headings | `screens/packages/PackageDefaults.jsx` | naya |
+| Settings ▸ CTA Section | `screens/settings/CtaSection.jsx` | `itinerary-v3.html` ka `.offer` (D-67) |
+
+⚠️ **CTA Section `Settings` me hai, `Packages` me nahi** — client ka faisla: "dusre pages
+par bhi use hoga" (D-67). Iska matlab package page ka text **do jagah** baithta hai:
+headings `Packages ▸ Section Headings` me, aur ye card `Settings ▸ CTA Section` me.
 
 ### Ek screen, kai lists
 

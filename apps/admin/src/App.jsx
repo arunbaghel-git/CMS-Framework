@@ -18,6 +18,7 @@ import PackageDefaults from './screens/packages/PackageDefaults.jsx'
 import PackageEdit from './screens/packages/PackageEdit.jsx'
 import TaxonomyScreen from './screens/packages/TaxonomyScreen.jsx'
 import PackagesList from './screens/packages/PackagesList.jsx'
+import CtaSection from './screens/settings/CtaSection.jsx'
 import General from './screens/settings/General.jsx'
 import DeleteUser from './screens/users/DeleteUser.jsx'
 import UserForm from './screens/users/UserForm.jsx'
@@ -166,6 +167,7 @@ const APP_ROUTES = [
   { path: '/users/:id/delete', element: <DeleteUser /> },
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
+  { path: '/settings/cta', element: <CtaSection /> },
   { path: '/appearance/menus', element: <Menus /> },
   { path: '/appearance/footer', element: <AppearanceFooter /> },
 ]

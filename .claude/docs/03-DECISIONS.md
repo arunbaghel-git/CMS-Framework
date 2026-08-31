@@ -3661,3 +3661,87 @@ Yaani lightbox ka behaviour **kisi test se bandha hua nahi hai** — aage koi is
 suite chup rahegi. Jis din `apps/web` pe component tests aayein, hover-pause wala case
 (neeche §3) pehla candidate hai, kyunki wo bug aankh se bhi nahi dikhta tha — sirf "slide
 nahi chal rahi" jaisa lagta.
+
+---
+
+## D-67
+
+**Page ka aakhri CTA card — `settings` me, poori tarah static**
+_31 Aug 2026 · client ka faisla_
+
+### Sawaal
+
+Design ka aakhri section (`itinerary-v3.html:2102`, `.offer`) — badge + heading + 3 bullets
++ daayein ek box + do button. Ye un **chaar sections** me se ek tha jo bane hi nahi the
+(`09-OPEN-ITEMS`), aur wo **Q-2 (Enquiries) pe atka** tha: uska button `#enquiry` pe jaata
+hai aur wo form abhi bana hi nahi.
+
+### Faisla
+
+Client ne atkav khol diya: _"button to form par hi jata hai par abhi bana nahi hai to abhi
+fields bana do jisse bad me bhej sake aur ye section rahega poora."_
+
+Yaani **section poora ab banega**, aur button ka target ek **field** hai. Jis din form bane,
+sirf ek value bharni hai — koi code change nahi. Ye D-30 ka hi precedent: _connection point
+abhi, data baad me._
+
+### `settings` me, `packageDefaults` me nahi
+
+Client: _"dusre pages par bhi use hoga."_
+
+Ye D-46 ka **palan** hai, apwaad nahi. Wahan likha tha ki package ke domain ka maal
+`packageDefaults` me jaaye taaki `settings` kachra-peti na bane — par usi tark ka doosra
+hissa ye hai ki **jo cheez sirf package ki nahi hai wo `settings` me hi rehni chahiye**.
+
+⚠️ Iska ek nateeja: package page ka text ab **do jagah** hai — headings
+`Packages ▸ Section Headings` me (D-65), aur ye card `Settings ▸ CTA Section` me. Ye
+qeemat jaan-boojh kar di gayi hai, kyunki card package ka hai hi nahi.
+
+### ⚠️ Poori tarah static — kuch bhi derive nahi hota
+
+Client: _"only static section hoga koi value automaticaly update nahi hogi"_ aur
+_"design same rahega jaisa hai price kahin se derive nahi hoga."_
+
+Design me box ka daam aur category **derive** hote the — `js-px` aur `js-cat-name`, wahi
+elements jo catbar ke saath badalte hain. Ab wo do saade text field hain (`boxTitle`,
+`boxNote`). Design ka **look bilkul waisa hi** hai; sirf source badla.
+
+⚠️ **Iska matlab hai ek hi text har page pe** — ₹24,999 wale package pe bhi aur ₹45,000
+wale pe bhi. Isiliye admin screen pe box ke upar ek chetavni likhi hui hai: _"This box shows
+the same text on every page — avoid writing an exact price here."_ Ye baat field dekh kar
+pata nahi chalti, aur galti chup-chaap live chali jaati.
+
+### Khaali ka matlab har jagah tay hai
+
+| Khaali | Nateeja |
+| --- | --- |
+| `enabled: false` | poora section render hi nahi hota (payload me `null`) |
+| `badge` | upar ka chip nahi aata |
+| `bullets` | `<ul>` banti hi nahi |
+| `boxTitle` | **poora box** gayab, buttons apne row me chale jaate hain |
+| button ka `url` | wo button payload me hi nahi jaata |
+
+Aakhri row hi wo cheez hai jo "form abhi bana nahi" ko khud-ba-khud sambhal leti hai
+(D-30: khaali cheez khaali dikhe, tooti hui nahi).
+
+### Filter server pe hai, theme me nahi
+
+`enabled: false` wale aur adhoore (label ya URL bina) button public payload me **jaate hi
+nahi**, aur `enabled` khud bahar nahi jaata — theme ko sirf wahi milta hai jo dikhna hai.
+Bilkul wahi shakl jo `headerButtons` pe hai (D-43).
+
+Adhoora button rokna zaroori tha kyunki schema use block nahi karta: admin label type kar
+ke URL khaali chhod kar Save kar sakta hai, aur wo ek toota hua link ban jaata.
+
+### Do chhoti cheezein
+
+**Buttons `.btn` hi hain, `variant` ke saath** — R18 ka palan: look structured field se aata
+hai, className se nahi. Reference me iske liye alag `.b-o`/`.b-g`/`.b-w` classes thin; hamare
+paas variants pehle se the, to sirf `width: 100%` box ke andar se aayi.
+
+**`.sec.sec--white` nahi banayi.** Reference me card us wrapper me baithta hai, par hamare
+theme me `.sec` hai hi nahi — page ke baaki sections seedhe `.wrap` use karte hain. Ek nayi
+`.sec` class ka matlab hota ek aur spacing system, jiska doosra koi user nahi.
+
+**Nateeja:** 581 tests (3 naye). Koi migration nahi — khaali `{}` ka matlab "section off"
+hai, aur wahi default hai.

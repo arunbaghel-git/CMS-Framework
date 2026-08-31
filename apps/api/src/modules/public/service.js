@@ -199,6 +199,33 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
      * Header aur footer dono har page pe hain, isliye ek hi request dono ko serve karti
      * hai — aur cache me ek hi `settings` tag rakhti hai (D-44 §5).
      */
+    /**
+     * Page ka aakhri CTA card — D-67.
+     *
+     * **Filter yahan lagta hai, theme me nahi** — wahi soch jo `headerButtons` pe hai
+     * (upar). Do cheezein chhanti hain: `enabled: false` wale button, aur wo jinka label
+     * ya URL adhoora hai. Adhoora button ek toota hua link hai, aur admin use type karte
+     * waqt Save kar sakta hai (schema use block nahi karta) — isliye rok yahan zaroori hai.
+     *
+     * ⚠️ Yahi wo jagah hai jahan "form abhi bana nahi" wali baat khud-ba-khud sambhal jaati
+     * hai: jab tak URL khaali hai, button payload me jaata hi nahi aur page pe dikhta nahi.
+     * Form banne pe sirf ek value bharni hai (D-30).
+     *
+     * `enabled` bahar nahi jaata — theme ko sirf wahi milta hai jo dikhna hai.
+     */
+    ctaSection: settings.ctaSection?.enabled
+      ? {
+          badge: settings.ctaSection.badge ?? '',
+          heading: settings.ctaSection.heading ?? '',
+          bullets: (settings.ctaSection.bullets ?? []).filter(Boolean),
+          boxTitle: settings.ctaSection.boxTitle ?? '',
+          boxNote: settings.ctaSection.boxNote ?? '',
+          buttons: (settings.ctaSection.buttons ?? [])
+            .filter((b) => b.enabled && b.label && b.url)
+            .map(({ label, url, target, variant }) => ({ label, url, target, variant })),
+        }
+      : null,
+
     footerColumns,
     footerLogo,
     footerCopyright: settings.footerCopyright,

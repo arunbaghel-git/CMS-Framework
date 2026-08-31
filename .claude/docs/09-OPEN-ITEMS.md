@@ -22,7 +22,7 @@ FAQs D-59 me. Ek sawaal khula hai — §9 #8 (rating haath se ya `reviews[]` se)
 ab admin se aati hain. Saath me ek chup bug bhi nikla: `cancellationText` public payload me
 ja hi nahi raha tha.
 
-**574 tests passing** (25 files) · lint clean · format clean — 31 Aug ko verify kiya.
+**581 tests passing** (25 files) · lint clean · format clean — 31 Aug ko verify kiya.
 **Last updated:** 31 Aug 2026
 
 ---
@@ -303,18 +303,23 @@ dikhta jab koi sidebar me Posts pe click karta.
 **Deadline:** koi nahi — page aaj poora chalta hai, ye sections **render hi nahi hote**
 **Yahan isliye hain ki inhe "TODO" kahin aur nahi likha gaya**
 
-Design (`itinerary-v3.html`) me ye chaar hain aur hamare page pe nahi:
+Design (`itinerary-v3.html`) me ye chaar the. **Ek ban gaya (31 Aug — D-67)**, teen baaki:
 
 | Section | Kya chahiye | Kis sawaal pe ruka |
 | --- | --- | --- |
 | **Traveller reviews** | `reviews[]` + `ratingValue`/`ratingCount` | §9 #8 — rating haath se ya derive |
 | **Similar itineraries** | koi naya field nahi, sab derived (§6.1) | §9 #15 — apne aap chunein ya haath se |
-| **"Want this trip on your dates?"** (neeche ka band) | enquiry form | **Q-2** — Enquiries Phase 7b me hai |
+| ~~**"Want this trip on your dates?"**~~ | ✅ **ban gaya — D-67** | Q-2 ka atkav khul gaya, neeche |
 | Sidebar ka **price + enquiry widget** | wahi enquiry form | **Q-2** |
 
-Pehle do Slice 6-7 me aayenge. Aakhri do Enquiries ke bina adhoore rahenge — un par teen
-raaste hain: form ka khaali shell (D-30 wala precedent), ya "Call/WhatsApp" button (settings
-me phone pehle se hai), ya jab tak Enquiries na bane tab tak chhod dena.
+Pehle do Slice 6-7 me aayenge.
+
+**Q-2 ka atkav is band pe khul gaya (31 Aug).** Client ne teen raaston me se chautha chuna:
+_"button to form par hi jata hai par abhi bana nahi hai to abhi fields bana do jisse bad me
+bhej sake."_ Yaani section **poora ban gaya** aur button ka target ek **field** hai — jis
+din form bane, sirf ek value bharni hai. Khaali URL pe button dikhta hi nahi (D-30).
+
+⚠️ Sidebar wala widget abhi bhi Q-2 pe hai — wahan asli **form** chahiye, sirf ek link nahi.
 
 ---
 

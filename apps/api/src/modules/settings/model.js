@@ -71,6 +71,19 @@ const settingsSchema = new mongoose.Schema(
      * Mongoose ka `_id` uske upar ek doosri identity ban kar public payload tak pahunch
      * jaata.
      */
+    /**
+     * Page ka aakhri CTA card — D-67.
+     *
+     * `Mixed` wahi tark se jo `packageDefaults.bookingSteps` pe hai: andar ek nested object
+     * hai, write pe poora Zod se guzarta hai (R8), aur ye kabhi kisi query me nahi jaata —
+     * isliye R9 wala injection khatra yahan nahi hai.
+     *
+     * Nested `Schema` na lene ki ek aur wajah: uske andar `buttons[]` aur `bullets[]` dono
+     * hain, aur Mongoose har row me apna `_id` ghusa deta (wahi dikkat jo `headerButtons`
+     * pe `_id: false` se roki gayi thi) — teen level pe wo teen jagah likhna padta.
+     */
+    ctaSection: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+
     footerColumns: {
       type: [
         new mongoose.Schema(

@@ -103,6 +103,13 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  footerColumns[{ id, heading, type(menu|text|both),         max 6
                                  width(normal|wide), menuId,
                                  textBlocks[{ id, icon, label, text }] }]   max 6 blocks
+                 ctaSection{ enabled, badge, heading, bullets[] max 6,       ← D-67
+                             boxTitle, boxNote,
+                             buttons[{label,url,target,variant,enabled}] max 2 }
+                 poori tarah STATIC — box ka daam package se derive NAHI hota
+                 settings me hai kyunki card doosre pages pe bhi jaayega (client)
+                 button ka url khaali = wo button payload me hi nahi jaata (D-30);
+                 enquiry form (Q-2) banne pe sirf wahi ek value bharni hai
                  frontPageType, homepageEntryId, postsPageEntryId, postsPerPage,
                  searchEngineVisible
                  PLANNED: defaultSeo, titleTemplates, privacyPolicyEntryId,

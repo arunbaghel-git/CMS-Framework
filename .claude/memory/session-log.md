@@ -15,7 +15,7 @@ Format:
 
 ---
 
-## 2026-08-31 — A-5 band; docs sync; section headings admin se (D-65); R17 cleanup
+## 2026-08-31 — A-5 band; section headings (D-65); R17; lightbox (D-66); CTA card (D-67)
 
 **Kya hua**
 
@@ -151,6 +151,56 @@ chhoot gayi thin.
 developer ke liye assertion hai — comment wali shreni me aata hai. Client kabhi nahi dekhega.
 
 `apps/web` pehle se saaf tha (public site ka text design se aata hai, aur wo English hai).
+
+### 6. D-66 — hero ka lightbox
+
+Client ne maanga: hero pe click → popup, aur images kuch der baad apne aap slide hon.
+Poora tark D-66 me. Do baatein yahan likhne laayak:
+
+**Design me lightbox hai hi nahi.** `itinerary-v3.html` me `lightbox`/`modal`/`popup`/
+`dialog` — chaaron 0 baar. Pehle tile ek `<a href={image.url}>` tha. Ye R15 ka vichlan hai,
+client se aaya.
+
+**Ek bug build ke dauraan pakda jo aankh se bhi nahi dikhta.** Maine hover-pause **backdrop**
+pe lagaya tha. Backdrop poori screen ghera hai — yaani desktop pe cursor kahin bhi ho, popup
+hamesha "paused" rehta aur auto-slide **kabhi chalti hi nahi**. Koi error nahi, bas feature
+gayab. Ab pause sirf image pe hai.
+
+⚠️ Lightbox **kisi test se bandha hua nahi** — repo me browser automation nahi hai
+(Playwright/Puppeteer dono nahi) aur R3 ke chalte sirf iske liye nayi dependency lena theek
+nahi laga. Client ne khud chala kar confirm kiya.
+
+### 7. D-67 — page ka aakhri CTA card
+
+Design ka `.offer` — wo un **chaar sections me se ek** tha jo bane hi nahi the, aur **Q-2
+(Enquiries) pe atka** tha kyunki uska button `#enquiry` pe jaata hai.
+
+**Client ne atkav khol diya:** _"button to form par hi jata hai par abhi bana nahi hai to
+abhi fields bana do jisse bad me bhej sake aur ye section rahega poora."_ Yaani section poora
+ab bana, aur button ka target ek field hai — form banne pe sirf ek value bharni hai. D-30 ka
+precedent.
+
+**Do faisle jo maine pehle galat maan liye the, aur client ne theek kiye:**
+
+Maine poochha tha ki fields `packageDefaults` me jaayein ya `settings` me, aur mera mashwara
+`packageDefaults` tha (package page ka card hai, aur D-46 kehta hai package ka maal wahan
+jaaye). Client ne `settings` chuna — wajah: _"dusre pages par bhi use hoga."_ Wo sahi hai,
+aur ye D-46 ka **palan** hai, apwaad nahi: usi tark ka doosra hissa kehta hai ki jo cheez
+sirf package ki nahi, wo `settings` me rahe.
+
+Doosra — maine box ke daam ko derive rakhne ka option diya tha. Client: _"design same rahega
+jaisa hai price kahin se derive nahi hoga."_ Ab wo saada text hai. **Look bilkul waisa hi,
+sirf source badla.**
+
+⚠️ Iska ek nateeja hai jo maan lena chahiye: **ek hi text har page pe dikhega** — ₹24,999
+wale package pe bhi aur ₹45,000 wale pe bhi. Isiliye admin screen pe box ke upar ek chetavni
+likhi hui hai. Ye baat field dekh kar pata nahi chalti, aur galti chup-chaap live chali
+jaati.
+
+⚠️ **Package page ka text ab do jagah hai** — headings `Packages ▸ Section Headings` me,
+CTA card `Settings ▸ CTA Section` me. Ye qeemat jaan-boojh kar di gayi.
+
+**Dev DB me smoke data daala hua hai** taaki section dikhe; client apna content bharega.
 
 ## 2026-08-27 (raat, doosra hissa) — Editor ki safai (D-64), aur code push
 

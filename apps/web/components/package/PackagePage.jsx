@@ -1,5 +1,6 @@
 import { PACKAGE_SECTION_DEFAULTS } from '@cms/shared'
 
+import CtaSection from './CtaSection.jsx'
 import Gallery from './Gallery.jsx'
 import Planner from './Planner.jsx'
 import {
@@ -573,6 +574,15 @@ export default function PackagePage({ entry, defaults, settings }) {
             <Planner settings={settings} />
           </aside>
         </div>
+
+        {/*
+         * Page ka aakhri card — reference ka "CLOSING CTA" (D-67).
+         *
+         * `.pgl` grid ke **bahar** hai, kyunki design me ye poori chaudai ka section hai,
+         * main column ka hissa nahi. Admin ne section off kiya ho to component khud `null`
+         * lautata hai.
+         */}
+        <CtaSection cta={settings?.ctaSection} />
       </main>
     </CategoryProvider>
   )
