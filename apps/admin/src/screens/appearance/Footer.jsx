@@ -273,8 +273,9 @@ function ColumnCard({ column, index, menus, disabled, handle, row, onChange, onR
         {showsMenu && (
           <div className="field">
             <label>Menu</label>
+            {/* Chaudai ke liye doosri class — wajah Appearance.css me likhi hai */}
             <select
-              className="sel"
+              className="sel ftr-menu-sel"
               value={column.menuId ?? ''}
               disabled={disabled}
               onChange={(e) => onChange({ ...column, menuId: e.target.value || null })}

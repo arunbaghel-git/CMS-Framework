@@ -234,6 +234,23 @@
   width: 150px;
 }
 
+/* Column ka "Menu" dropdown poori chaudai ka nahi hai.
+
+   Usme sirf menu ka naam aata hai ("Footer Links", "Company") — chhoti value ke liye poori
+   row ka box aankh ko ye keh raha tha ki yahan lamba text bharna hai. Ab wo apni zaroorat
+   jitna hai.
+
+   ⚠️ Yahan bhi **do class** (`.sel.ftr-menu-sel`) — wahi wajah jo upar `.ftr-block-icon` pe
+   likhi hai: `primitives.css` ka `.sel { width: 100% }` bhi (0,1,0) hai, aur barabar hone pe
+   jeet load order se tay hoti hai, jisme component CSS primitives se PEHLE aati hai.
+
+   `max-width` isliye, fix `width` nahi: card chhoti screen pe sikudta hai, aur fix chaudai
+   wahan uske bahar nikal jaati. */
+.field > .sel.ftr-menu-sel {
+  width: 100%;
+  max-width: 300px;
+}
+
 /* Label ka input **badhta nahi** — uske content jitna hi chahiye.
 
    Pehle yahan `flex: 1` tha, to wo poori bachi hui row kha jaata tha: ek chhote se optional
