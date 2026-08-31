@@ -16,6 +16,21 @@
 body.collapsed .main {
   margin-left: var(--sidebar-w-collapsed);
 }
+
+/* Phone pe sidebar hamesha 52px ka rail hota hai (Sidebar.css), isliye content bhi utna
+ * hi khisakta hai — chahe user ne collapse kiya ho ya nahi.
+ *
+ * `body.collapsed` wali shart yahan **nahi** chahiye: dono haalat me value ek hi hai, to
+ * reference bhi ise seedha `.main` pe likhta hai. Padding bhi wahin se — 20px side padding
+ * 375px ki screen pe content ko aur nichod deta hai.
+ *
+ * ⚠️ 782px teen file me hai — dekho `primitives.css` (`.row2`/`.row3`) aur `Sidebar.css`. */
+@media (max-width: 782px) {
+  .main {
+    margin-left: var(--sidebar-w-collapsed);
+    padding: 8px 12px 40px;
+  }
+}
 .page-head {
   display: flex;
   align-items: center;

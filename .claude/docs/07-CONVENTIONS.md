@@ -387,3 +387,63 @@ site chup-chaap toot jaati hai — koi error nahi, sirf galat layout.
 
 Iska ek test hona chahiye jo assert kare ki `className` badalne se render **nahi** badalta
 (D-43, spec 006 §10).
+
+---
+
+## 9. CSS ke chaar chup failure
+
+Ye rule nahi, **jaal** hain. Chaaron is repo me sach me ho chuke hain, aur chaaron me koi
+error nahi aata — bas dikhna galat ho jaata hai. Isliye inhe grep kar sakne laayak jagah pe
+likha ja raha hai (pehle ye sirf ek handoff file me the).
+
+### 9.1 Ek-class wale override bharose ke laayak nahi hain
+
+`primitives.css` ka `.sel { width: 100% }` aur component ka `.my-class { width: 130px }` —
+dono ki specificity (0,1,0). **Barabar hone pe jeet load order se tay hoti hai**, aur
+component CSS bundle me primitives se **pehle** aati hai. Yaani component haar jaata hai.
+
+**Do baar kaat chuka hai:** `.edit-grid` × `.appearance-grid` (D-43 — panel ulte chaude ho
+gaye) aur `.ftr-block-icon` (D-44 §6 — select poori row kha gaya aur **Label ka input 20px
+ke dabbe me nichud gaya**; client ko dikha hi nahi ki wahan koi field hai).
+
+**Ilaaj:** do class likho — `.ftr-block-head .sel.ftr-block-icon`, `.edit-grid.appearance-grid`.
+
+### 9.2 CSS variable missing ho to browser chup rehta hai
+
+`background: var(--blue-900)` jab token defined hi na ho → **transparent**. Koi error, koi
+warning, aur devtools me bhi wo rule "lagi hui" dikhti hai.
+
+Poora footer grey dikhne laga tha (D-44 §7) — aur guard bhi dhoka de gaya tha, kyunki
+`grep var(--blue-900)` usage se match ho gaya. **Naya token add karo to ek baar aankh se
+dekh lo.**
+
+### 9.3 `:has()` wale layout guards media block me chhoot jaate hain
+
+`.gal:has(button:nth-child(-n + 4):last-child)` ki specificity `.gal` se **zyada** hai.
+Media block me sirf `.gal` likhne pe wo guard jeet jaata hai aur 5 se kam images wale pool
+pe mobile ka layout lagta hi nahi. Media me **dono** saath likhne padte hain.
+
+Isi ka doosra roop: `border-radius` desktop pe `.gal button:nth-child(3)` (0,2,1) se aata
+hai, aur media ka `.gal button` (0,1,1) usse haar jaata hai — wahan `!important` chahiye.
+
+### 9.4 Reference ka media block copy karne se pehle dekho ki wo kis state pe tika hai
+
+`admin-design.html` 782px pe sirf sidebar ki **width** badalta hai, labels nahi chhupata —
+wahan wo `overflow-x: hidden` se kat jaate hain. Hamare yahan labels chhupane ka kaam
+`body.collapsed` wale rule karte hain, aur 782px pe body collapsed hoti hi **nahi**. Sirf
+width copy karne pe rail me aadha kata hua text dikhta: "Packa", "Setti".
+
+**Sabak:** media block akela nahi padha jaata — wo baaki CSS ki kis shart pe tika hai, wo
+bhi dekho.
+
+### Verify karne ka tareeka
+
+`css-diff.mjs` media blocks ko **jaan-boojh kar hata** deti hai, isliye responsive ka poora
+hissa uske check me aata hi nahi. Uske liye alag script hai:
+
+```bash
+node .claude/scripts/media-diff.mjs                                  # public package page
+node .claude/scripts/media-diff.mjs .claude/docs/reference/home-nav-v3.html
+node .claude/scripts/media-diff.mjs .claude/docs/reference/admin-design.html \
+  $(find apps/admin/src -name "*.css" | sort)                        # admin (kai files)
+```

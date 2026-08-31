@@ -369,6 +369,24 @@ tr:hover .row-actions {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
+
+/* Phone pe do/teen column ki form row ek column ho jaati hai — `admin-design.html` se.
+ *
+ * Iske bina Pricing panel, Hotels panel aur Settings ke saare `.row2`/`.row3` mobile pe
+ * bhi multi-column rehte the: 375px me teen input matlab har ek ~110px ka, jisme
+ * "Strike-through" jaisa label padha hi nahi jaata.
+ *
+ * ⚠️ **782px is project ka admin-mobile breakpoint hai** aur wo teen file me likha hai —
+ * yahan (`.row2`/`.row3`), `layout.css` (`.main`), aur `Sidebar.css` (rail). Teenon ek hi
+ * media block ke hisse hain (reference me wo ek hi block hai); ek badle to teenon badalne
+ * hain. Alag-alag rakhne ki wajah sirf ye hai ki is codebase me media rule apne base rule
+ * ke saath rehta hai — wahi `.edit-grid` pe hai (neeche, 1100px). */
+@media (max-width: 782px) {
+  .row2,
+  .row3 {
+    grid-template-columns: 1fr;
+  }
+}
 .inline-lbl {
   display: flex;
   align-items: center;

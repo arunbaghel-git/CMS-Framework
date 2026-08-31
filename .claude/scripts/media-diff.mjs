@@ -17,11 +17,17 @@ import fs from 'node:fs'
  * media me) — reference ke un pages ke selectors se shor nahi machati jo hamare paas hain
  * hi nahi (`.hawards`, `.vrail`, `.clogos` wagairah).
  *
- * chalao: node .claude/scripts/media-diff.mjs [reference.html]
+ * chalao:
+ *   node .claude/scripts/media-diff.mjs                          # package page
+ *   node .claude/scripts/media-diff.mjs <reference.html> [...our.css]
+ *
+ * Doosra argument se aage jitni bhi CSS files do, wo **jod kar** ek maani jaati hain.
+ * Public theme ek hi file hai (`globals.css`), par admin ki CSS `styles/`, `components/`
+ * aur `screens/` me bant-ti hai — bina is list ke admin ka milaan ho hi nahi sakta tha.
  */
 
 const REF_FILE = process.argv[2] ?? '.claude/docs/reference/itinerary-v3.html'
-const OUR_FILE = 'apps/web/app/globals.css'
+const OUR_FILES = process.argv.length > 3 ? process.argv.slice(3) : ['apps/web/app/globals.css']
 
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 
@@ -89,7 +95,7 @@ function topLevel(css) {
 
 const refHtml = fs.readFileSync(REF_FILE, 'utf8')
 const refCss = [...refHtml.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n')
-const ourCss = fs.readFileSync(OUR_FILE, 'utf8')
+const ourCss = OUR_FILES.map((f) => fs.readFileSync(f, 'utf8')).join('\n')
 
 const refMedia = mediaBlocks(refCss)
 const ourMedia = mediaBlocks(ourCss)
@@ -151,4 +157,5 @@ for (const sel of Object.keys(ourW).sort()) {
 }
 
 console.log(`\n\nkul: ${drift} selector ka breakpoint alag, ${extra} sirf hamare paas`)
-console.log(`ref: ${REF_FILE}`)
+console.log(`ref : ${REF_FILE}`)
+console.log(`ours: ${OUR_FILES.join(' · ')}`)

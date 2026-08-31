@@ -124,6 +124,38 @@ body.collapsed .submenu,
 body.collapsed .collapse-label {
   display: none;
 }
+
+/* ---------- phone pe sidebar hamesha icon-rail ----------
+ * `admin-design.html` ka doosra media block. 200px ka sidebar 375px ki screen pe aadhi
+ * jagah kha jaata tha.
+ *
+ * ⚠️ **Reference sirf width badalta hai, labels nahi chhupata** — wahan wo `overflow-x:
+ * hidden` se kat jaate hain. Hamare yahan wo kaam `body.collapsed` wale rule karte hain
+ * (upar), aur 782px pe body collapsed hoti hi nahi — to sirf width copy karne pe rail me
+ * **aadha kata hua text** dikhta: "Packa", "Setti". Isliye wahi list yahan dobara hai.
+ *
+ * Duplicate jaan-boojh kar hai. Upar wale selector me `body.collapsed` juda hua hai, aur
+ * CSS me do alag conditions ko bina dohraaye jodne ka koi tareeka nahi (na nesting hai, na
+ * preprocessor — D-28). Dono list ek saath badalni hain.
+ *
+ * `body:not(.collapsed)` isliye ki jab user ne khud collapse kiya ho, upar wale rule
+ * pehle se lage hue hain.
+ *
+ * ⚠️ 782px teen file me hai — dekho `layout.css` (`.main`) aur `primitives.css`
+ * (`.row2`/`.row3`). */
+@media (max-width: 782px) {
+  body:not(.collapsed) .sidebar {
+    width: var(--sidebar-w-collapsed);
+  }
+
+  body:not(.collapsed) .menu-link .label,
+  body:not(.collapsed) .menu-link .caret,
+  body:not(.collapsed) .menu-count,
+  body:not(.collapsed) .submenu,
+  body:not(.collapsed) .collapse-label {
+    display: none;
+  }
+}
 .collapse-btn {
   margin-top: auto;
 }

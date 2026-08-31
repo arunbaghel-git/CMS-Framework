@@ -472,6 +472,7 @@ me do baar dekha ja chuka hai — wo do jagah ek din alag ho jaati hain.
 | Kya | Kyun |
 | --- | --- |
 | `.toggle-ico` **14px** hai, reference me 11px | Client ne bada karwaya (27 Aug) — us naap pe wo caret se zyada ek dhabba lagta tha, aur wo poore admin me chalis jagah hai |
+| 782px pe sidebar ke **labels chhupte** hain, reference me nahi | Reference wahan sirf width badalta hai aur labels `overflow-x: hidden` se kat-te hain. Hamare yahan labels chhupane ka kaam `body.collapsed` karta hai, aur 782px pe body collapsed hoti hi nahi — sirf width copy karne pe rail me **aadha kata hua text** dikhta ("Packa", "Setti"). Isliye wahi selector list `body:not(.collapsed)` ke saath dobara likhi hai (31 Aug, `07-CONVENTIONS.md` §9.4) |
 
 | Kya | Kyun |
 | --- | --- |

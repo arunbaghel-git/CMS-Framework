@@ -15,6 +15,83 @@ Format:
 
 ---
 
+## 2026-08-31 (raat) — Admin ka responsive; handoff ke sabak permanent docs me
+
+**Kya hua**
+
+Style session ne public ka kaam poora kiya aur admin jaan-boojh kar chhoda (client: "admin
+ka CSS baad me"). Aaj wo bacha hua block laga, aur handoff file ko delete karne laayak
+banaya gaya.
+
+**Kaam khud chhota tha — `admin-design.html` me kul do media block hain, ek gayab tha:**
+
+```
+Sidebar.css     @media 782px  →  body:not(.collapsed) .sidebar 52px
+layout.css      @media 782px  →  .main ka margin-left + padding 8px 12px 40px
+primitives.css  @media 782px  →  .row2 / .row3 ek column
+```
+
+Zaroori sab pehle se maujood tha — `--sidebar-w-collapsed: 52px`, `.main` ka margin,
+`.row2`/`.row3`, aur `body.collapsed` wali aadat. Sirf block likhna tha.
+
+**Par ek gotcha tha jo sirf reference padhne se nahi dikhta**
+
+Reference 782px pe **sirf width** badalta hai, labels nahi chhupata — wahan wo
+`overflow-x: hidden` se kat jaate hain. Hamare theme me labels chhupane ka kaam
+`body.collapsed` wale rule karte hain (wo hamara apna add-on hai, reference me `.label`/
+`.caret` chhupte hi nahi), aur **782px pe body collapsed hoti hi nahi**.
+
+Yaani seedha copy karne pe 52px ke rail me aadha kata hua text dikhta: "Packa", "Setti".
+Isliye wahi selector list `body:not(.collapsed)` ke saath dobara likhi gayi.
+
+Duplicate jaan-boojh kar hai — CSS me do alag conditions ko bina dohraaye jodne ka koi
+tareeka nahi (na nesting, na preprocessor — D-28). Comment dono jagah likha hai ki **dono
+list saath badalni hain**.
+
+> **Sabak jo naya hai:** reference ka media block akela nahi padha jaata. Wo baaki CSS ki
+> **kis shart pe tika hai**, wo bhi dekhna padta hai. Yahan wo shart ek aisi class thi jo
+> hamare theme me hai hi zyada (`body.collapsed` pe `.label` chhupana), aur usi se bug
+> banta.
+
+**`media-diff.mjs` ab kai file le sakti hai**
+
+Script sirf `apps/web/app/globals.css` pe chalti thi, isliye **admin ka milaan ho hi nahi
+sakta tha** — admin ki CSS `styles/`, `components/` aur `screens/` me 14 file me bantti hai.
+Ab doosre argument se aage jitni bhi file do, wo jod kar ek maani jaati hain. Default
+behaviour waisa ka waisa (public ka check bina argument ke chalta hai).
+
+```bash
+node .claude/scripts/media-diff.mjs .claude/docs/reference/admin-design.html \
+  $(find apps/admin/src -name "*.css" | sort)
+# → 0 selector ka breakpoint alag
+```
+
+Jo 9 "sirf hamare paas" nikle wo sab hamari apni screens ke hain — `.edit-grid.appearance-grid`
+(1100), `.edit-grid.tax-grid` (900), `.mega-link` (900), aur ye 5 label-hiding wale (782).
+
+**Handoff ke sabak permanent jagah pe utaare gaye**
+
+Handoff delete hone wali file hai, aur usme do cheezein aisi thin jo baad me bhi kaam ki
+hain. Pehle maine handoff ke top pe likh diya tha ki "wo apni pakki jagah pe ja chuki hain"
+— **wo galat tha, tab tak gayi nahi thin.** Check karke pakda, phir sach banaya:
+
+- `07-CONVENTIONS.md` **§9 — CSS ke chaar chup failure** (naya section): ek-class override
+  ka load order · missing CSS variable ka chup-chaap transparent ban jaana · `:has()` guard
+  ka media block me chhoot jaana · aur upar wala "media block kis state pe tika hai" wala.
+  Saath me media-diff chalane ke teenon command.
+- `04-ADMIN-UX.md` ki "Design se jo alag hai" table me 782px wala deviation.
+
+> **Ek aadat jo yahan kaam aayi:** kuch likhne se pehle wo sach hai ya nahi, wo grep karke
+> dekha. Do line ka claim tha aur dono galat nikle.
+
+**Nateeja:** 581 tests · lint · format · admin build clean. Koi test nahi juda — CSS ke liye
+is repo me koi test layer nahi hai; verify `media-diff.mjs` aur build ke output se hua.
+
+**Ek sawaal ab bhi client pe khula hai** (style session ne uthaya tha): reference ke `body`
+pe `font-size: 15px` aur `line-height: 1.55` hain, hamare paas nahi — yaani jis text pe
+humne khud size nahi likha wo poore site pe ek pixel bada hai. Asar har page pe hai, isliye
+bina poochhe nahi kiya gaya.
+
 ## 2026-08-31 (style pass) — public page har chaudai pe; mobile ka scroll; admin ka field gap
 
 **Kya hua**

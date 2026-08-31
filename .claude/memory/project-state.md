@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 31 Aug 2026 (style pass — public responsive poora, admin baaki)
+> **Last updated:** 31 Aug 2026 (style pass poora — public + admin, dono pe 0 drift)
 
 ---
 
@@ -243,10 +243,27 @@ ginta, **iOS Safari ginta hai** — isliye bug sirf phone pe dikhta tha. Ab `vis
 bhi hai, jisse ek **a11y bug** bhi gaya: `aria-hidden` ke bawajood drawer ke link **Tab se
 focus ho jaate the**.
 
-⚠️ **Admin ka responsive baaki hai — client ne kaha "baad me".** `admin-design.html` ke do
-media block me se **782px wala poora gayab** hai: phone pe sidebar collapse nahi hota aur
-`.row2`/`.row3` multi-column rehti hain. Uska code aur zaroori tokens ki line numbers
-`.claude/HANDOFF-style-pass.md` me likhi hain.
+**Admin ka responsive bhi ho gaya (31 Aug).** `admin-design.html` ke dono media block ab
+maujood hain — `media-diff.mjs` admin pe **0 drift** deti hai. Teen jagah gaya, kyunki is
+codebase me media rule apne base rule ke saath rehta hai: `Sidebar.css` (rail 52px),
+`layout.css` (`.main` ka margin + padding), `primitives.css` (`.row2`/`.row3` ek column).
+
+⚠️ **Ek jagah reference se jaan-boojh kar aage gaye.** Reference 782px pe sirf sidebar ki
+**width** badalta hai, labels nahi chhupata — wahan wo `overflow-x: hidden` se kat jaate
+hain. Hamare yahan labels chhupane ka kaam `body.collapsed` karta hai, aur 782px pe body
+collapsed hoti hi **nahi**. Sirf width copy karne pe rail me aadha kata text dikhta —
+"Packa", "Setti". Isliye wahi selector list `body:not(.collapsed)` ke saath dobara likhi
+hai; **dono list saath badalni hain.**
+
+**`media-diff.mjs` ab kai CSS files le sakti hai** (doosre argument se aage). Pehle wo sirf
+`globals.css` pe chalti thi, isliye admin ka milaan ho hi nahi sakta tha — admin ki CSS
+`styles/`, `components/` aur `screens/` me bant-ti hai.
+
+**Handoff ke sabak permanent docs me utar diye gaye** — CSS ke chaar chup failure ab
+`07-CONVENTIONS.md` **§9** me hain (ek-class override ka load order · missing CSS var ka
+transparent · `:has()` guard media me · "reference ka media block kis state pe tika hai"),
+aur admin ka 782px wala deviation `04-ADMIN-UX.md` ki table me.
+`.claude/HANDOFF-style-pass.md` ab delete kiya ja sakta hai.
 
 ⚠️ **Ek sawaal client pe khula hai:** `body` me `font-size: 15px` aur `line-height: 1.55`
 reference me hain, hamare paas nahi. Browser default 16px hai, yaani jis text pe humne khud

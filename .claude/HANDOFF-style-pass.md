@@ -1,7 +1,24 @@
 # Handoff — style pass (sab screens, khaas kar mobile)
 
-> Ye ek **handoff** hai, permanent doc nahi. Kaam khatam hone pe delete kar dena.
+> Ye ek **handoff** hai, permanent doc nahi.
 > Likha: 31 Aug 2026, us session se jo D-65 · D-66 · D-67 pe kaam kar rahi thi.
+>
+> ✅ **Poora kaam ho chuka hai** — public package page + header/nav (style session), aur
+> admin (31 Aug, isi session ne). Dono taraf `media-diff.mjs` **0 drift** deti hai.
+>
+> **Ab ise delete kiya ja sakta hai** — jo cheezein aage bhi kaam ki thin, wo 31 Aug ko apni
+> pakki jagah pe daal di gayi hain:
+>
+> | Kya                                                   | Ab kahan                                   |
+> | ----------------------------------------------------- | ------------------------------------------ |
+> | CSS ke chup failure + verify ka tareeka               | `07-CONVENTIONS.md` **§9** (naya)          |
+> | Admin ka 782px wala deviation                         | `04-ADMIN-UX.md` → "Design se jo alag hai" |
+> | `.toggle-ico`, Appearance ka scope                    | `04-ADMIN-UX.md` (pehle se the)            |
+> | Lightbox · CTA ka static box · hotels ka `or similar` | D-65 · D-66 · D-67                         |
+> | `.btn` ka hand-tuned padding                          | `globals.css` ke apne comment me           |
+>
+> Public site ke baaki deviations (header 1040px, `.brand__img` 750px, `.burger` 33px,
+> footer flex) **sirf code ke comments me hain** — unhe kisi doc me nahi utaara gaya.
 
 ## Kaam
 
@@ -36,47 +53,48 @@ node .claude/scripts/media-diff.mjs .claude/docs/reference/home-nav-v3.html   # 
 Ye script `css-diff.mjs` ki kami bharti hai — wo media blocks ko **jaan-boojh kar hata**
 deti hai, isliye responsive ka poora hissa kisi check me aata hi nahi tha.
 
-## ⬜ Jo bacha hai — **admin ka responsive** (client: "admin ka CSS baad me")
+## ✅ Admin ka responsive bhi ho gaya (31 Aug)
 
-`admin-design.html` me kul **do** media block hain. Ek hamare paas hai, doosra **poora gayab**:
+`admin-design.html` ke **dono** media block ab maujood hain. Verify:
 
-```css
-@media (max-width: 1100px) {
-  /* ✅ hai — primitives.css:416 */
-  .edit-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 782px) {
-  /* ❌ ek line bhi nahi */
-  body:not(.collapsed) .sidebar {
-    width: var(--sidebar-w-collapsed);
-  }
-  .main {
-    margin-left: var(--sidebar-w-collapsed);
-    padding: 8px 12px 40px;
-  }
-  .row2,
-  .row3 {
-    grid-template-columns: 1fr;
-  }
-}
+```bash
+node .claude/scripts/media-diff.mjs .claude/docs/reference/admin-design.html \
+  $(find apps/admin/src -name "*.css" | sort)
 ```
 
-Matlab: phone pe admin ka **sidebar poori chaudi rehta hai** aur content ko dabaa deta hai,
-aur har do/teen-column form row (Pricing panel · Hotels panel · Settings) mobile pe bhi
-multi-column hi rehti hai.
+→ **0 selector ka breakpoint alag.**
 
-Achhi baat — iske liye jo chahiye wo **sab pehle se maujood hai**: `--sidebar-w-collapsed:
-52px` (`tokens.css:31`), `.main` ka `margin-left` (`layout.css:17`), `.row2`/`.row3`
-(`primitives.css:351`), aur `body.collapsed` wali aadat. Sirf ye block likhna hai.
+Script ab **kai CSS files** le sakti hai (doosre argument se aage). Pehle wo sirf
+`apps/web/app/globals.css` pe chalti thi, isliye admin ka milaan ho hi nahi sakta tha — admin
+ki CSS `styles/`, `components/` aur `screens/` me bantti hai.
 
-⚠️ Hamare do apne media block bhi hain jo reference me nahi (`.mega-link` aur `.tax-grid`,
-dono 900px) — wo hamari screens ke liye hain, hataana nahi.
+**Jo bana:**
 
-**Public ka footer grid** bhi baaki hai, par wo jaan-boojh kar alag hai — neeche
-"mat badalna" table dekho.
+```
+Sidebar.css     @media 782px  →  body:not(.collapsed) .sidebar 52px + labels chhupe
+layout.css      @media 782px  →  .main ka margin-left + padding
+primitives.css  @media 782px  →  .row2 / .row3 ek column
+```
+
+⚠️ **Ek jagah reference se jaan-boojh kar aage gaye hain.** Reference 782px pe sirf sidebar
+ki **width** badalta hai, labels nahi chhupata — wahan wo `overflow-x: hidden` se kat jaate
+hain. Hamare yahan labels chhupane ka kaam `body.collapsed` wale rule karte hain, aur 782px
+pe body collapsed hoti hi nahi. Sirf width copy karne pe rail me **aadha kata hua text**
+dikhta: "Packa", "Setti". Isliye wahi selector list `body:not(.collapsed)` ke saath dobara
+likhi hai.
+
+Duplicate jaan-boojh kar hai — CSS me do alag conditions ko bina dohraaye jodne ka koi
+tareeka nahi (na nesting, na preprocessor — D-28). **Dono list ek saath badalni hain**,
+comment dono jagah likha hai.
+
+⚠️ **782px teen file me hai** (`Sidebar.css` · `layout.css` · `primitives.css`). Reference me
+wo ek hi block hai; alag isliye kiya kyunki is codebase me media rule apne base rule ke saath
+rehta hai (wahi `.edit-grid` pe hai). Ek badle to teenon badalne hain — comment teenon me hai.
+
+**Hamare apne 782px se bahar ke rules** (reference me nahi, hataana nahi): `.edit-grid.appearance-grid`
+1100px · `.edit-grid.tax-grid` 900px · `.mega-link` 900px.
+
+---
 
 ## 🎯 Breakpoints hi alag the — ye thi asli wajah
 
