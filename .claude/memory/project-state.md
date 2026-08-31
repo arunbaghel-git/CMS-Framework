@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 27 Aug 2026 (raat — design pass)
+> **Last updated:** 31 Aug 2026 (A-5 band, Q-9 ka bada hissa band — D-65)
 
 ---
 
@@ -102,11 +102,14 @@ sharing, daily breakfast included.") aur `.ptitle__p` ke `white-space: nowrap` m
 ko kheench deti thi. Client ne kaha "har cheez dynamic thodi aayegi", to line theme me likhi
 hui hai. `priceNote` apni asli jagah — hotels table ke neeche — waisi hi chal rahi hai.
 
-**Add-ons ab poori tarah global hain (D-61)** — package editor me panel nahi, page pe poori
-Add Ons list, aur wo `packageDefaults` ke payload me jaati hai (uska cache tag `type:package`
-hai; entry ke payload me rakhne ka matlab hota ki naya add-on jodne pe har package alag saaf
-karna pade). ⚠️ **Spec §1.4 ka ulta hai** — wahan likha tha ki chune jaate hain, taaki jo
-package Havelock jaata hi nahi uspe wahan ke add-ons na dikhein. Client ne palat diya.
+**Add-ons wapas package ka chunav hain (D-64)** — sidebar me checklist, payload
+`packageDefaults` se wapas entry pe. Yaani **spec §1.4 ka asli niyam** hi chal raha hai:
+jo package Havelock jaata hi nahi, uspe wahan ke add-ons nahi dikhte.
+
+> ⚠️ **D-61 ab purana hai** (ab sirf itihaas): us din add-ons global kar diye gaye the —
+> editor me panel nahi, page pe poori Add Ons list, aur payload `packageDefaults` se
+> (cache tag `type:package`). Client ne **usi din** palat diya — D-64. Agar kahin
+> "add-ons global hain" padho, wo D-61 wali purani line hai.
 
 **Hotels panel me ab ek hi blank row hai (D-61)** — Destination · Category · Hotel · Add.
 Neeche sirf wo rows jo client ne khud jodi hain, ✕ ke saath. Jodi hui row us jodi ke auto
@@ -139,8 +142,72 @@ hotel ke `note` se.
 ₹29,499` ka pehla hissa. `Room` aur `Note` dono package pe nahi hain — wo hotel ke apne
 record pe hain (D-53 §3, D-57 §2).
 
+**A-5 band ho gaya (31 Aug)** — `apps/web/.env` ban gayi (`API_URL` + `REVALIDATE_SECRET`),
+aur secret `apps/api/.env` wale se **bilkul same** hai. Revalidate ab configured hai: galat
+secret pe endpoint **401** deta hai, `503` nahi. ⚠️ **Next `.env` sirf boot pe padhta hai** —
+file banane ke baad web dev server restart karna zaroori hai, warna wahi purana 503 aata
+rahega aur lagega ki `.env` kaam hi nahi kar rahi.
+
+**31 Aug — section ke heading aur lines ab admin se (D-65).** Q-9 ka bada hissa band.
+`packageDefaults.sectionLabels` — 7 section, har ek pe `{ heading, description }`; naya
+screen **Packages ▸ Section Headings**. Client ne Q-9 ke teen raaston me se **#2** chuna,
+aur har section ko heading **aur** description dono diye — chahe aaj us section ke neeche
+line ho ya na ho ("abhi nahi hai to kya hua, aage text bhi daal sakte hai").
+
+**Teen baatein jo yaad rakhni hain:**
+
+1. **Default ek hi jagah hai** — `packages/shared/src/constants/package-sections.js`. Wahi
+   list theme ka fallback, admin ka pre-fill aur Zod ki shape teenon deti hai. Naya section
+   jodna ab ek file ka kaam hai. Alag rakhne pe wo ek din alag ho jaate — D-43 §2 wala sabak.
+2. ⚠️ **Khaali ke do alag matlab.** Khaali `heading` pe theme ka heading wapas aata hai
+   (section bina title ke na rahe), par khaali `description` line ko **hata** deti hai.
+   Isiliye admin ka form defaults se **bhara hua** khulta hai — placeholder pe client kisi
+   line ko hata hi nahi sakta tha, kyunki box khaali karte hi placeholder text wapas dikha
+   deta. Hotels wali line me abhi bhi ek jhootha vaada hai ("and on the enquiry form", Q-2),
+   aur ab client use khud kaat sakta hai.
+3. **`.strict()` test ne pehli hi baar pakda.** Zod anjaan keys chup-chaap hata deta hai, to
+   galat section key bhejne pe API 200 deti aur key gayab ho jaati. Wahi bug jo D-43 §3 me
+   `leafItemSchema` pe mila tha — **doosri baar**.
+4. **Overview pe description ka box nahi hai** (client, usi din). Uska text Edit Package ▸
+   Overview (`entry.content`) se aata hai, aur wo per-package hai — wahan global line dena
+   do intro ek doosre ke upar rakhna hota. `hasDescription: false`, aur payload me wo key
+   aati hi nahi.
+5. ⚠️ **Fallback ab ek hi jagah hai** — `resolveSectionLabels()` (`packages/shared`), jise
+   public projection **aur** admin ka `toApi()` dono bulate hain. Pehli shakl me admin ki
+   apni copy thi aur usne turant ek asli galti bana di: admin ko raw stored milta tha, aur
+   save ho chuke doc me har description `''` hoti hai — `?? ` `''` pe fallback nahi karta,
+   to form khaali dikhata aur agla Save saari lines **chup-chaap mita deta**. Dev DB pe
+   theek yahi hua. Naya test: **admin ka padha hua payload bina badle wapas save ho jaana
+   chahiye**.
+
+**Aur ek chup bug isi kaam me nikla — `cancellationText`.** `PackagePage.jsx` use **do
+jagah** padhta hai, par `getPublicPackageDefaults()` use payload me bhejti hi nahi thi.
+Yaani client ki likhi cancellation policy page pe **kabhi** nahi aati thi, aur "Good to
+know" section sirf tab dikhta tha jab booking steps bhi bhare hon. Kahin koi error nahi.
+Bilkul wahi shakl jo D-64 wale transfer-duration bug ki thi. **Is codebase ka apna failure
+mode yahi hai — payload me field add karna bhool jaana, aur dono taraf ka code sahi dikhna.**
+
 **Agla kaam: Slice 6 ka bacha hua hissa** — `goodToKnow[]` aur `reviews[]` + rating
 (`ratingValue`/`ratingCount`).
+
+**31 Aug — hero ka lightbox ban gaya (D-66).** Tile pe click → popup, usme **saari** images
+(banner + poora pool), **ek waqt pe ek**, 4 second pe apne aap agli. Hero ka mosaic waisa hi
+hai. ⚠️ Design me lightbox/modal/popup **0 baar** hai — R15 ka vichlan, client se aaya.
+
+**Client ne khud chala kar confirm kiya** — popup khulta hai, slide theek chalti hai.
+
+⚠️ Par lightbox **kisi test se bandha hua nahi hai** — repo me koi browser automation nahi
+(Playwright/Puppeteer dono nahi), aur R3 ke chalte sirf iske liye nayi dependency lena theek
+nahi laga. Aage koi ise tode to suite chup rahegi. Jis din `apps/web` pe component tests
+aayein, **hover-pause** wala case pehla candidate hai — wo bug aankh se bhi nahi dikhta tha,
+sirf "slide nahi chal rahi" jaisa lagta.
+
+⚠️ **Client ka ek feature abhi baaki:**
+
+- **Settings me ek CTA section** — itinerary page ka aakhri section, card jaisa. Ye design
+  me **pehle se hai** (`itinerary-v3.html:2102`, `.offer`): badge + heading + 3 bullets +
+  price box + 2 button. ⚠️ Usme daam aur category **derived** hain, aur ek button `#enquiry`
+  pe jaata hai — jo abhi bana hi nahi (Q-2).
 
 ⚠️ Slice 6 ka aadha pehle hi ban chuka hai, isliye uska poora naam padh kar mat chalna:
 **Itinerary Images ka pool aur gallery Slice 4/D-52 me aa gaye the**, aur **FAQs D-59 me**
@@ -191,7 +258,7 @@ Slice 0   Menu contract (spec 006, D-43)    ✅  ← 24 Aug
           menus + menuLocations API         ✅  public read + cache tags
           Appearance: Menus + Footer        ✅  mega builder ke saath
           Public header + footer render     ✅  desktop + mobile, ek hi data
-          Revalidate webhook                🟡  code ready, apps/web ki .env baaki (A-5)
+          Revalidate webhook                ✅  31 Aug — apps/web ki .env ban gayi (A-5 band)
           Admin UX iterations (24 Aug)      ✅  drag-drop · accordions · header buttons
           Header design match (25 Aug)      ✅  buttons · drawer · Inter · sticky
           Footer ka naya model (D-44)       ✅  25 Aug — migration 008
@@ -215,11 +282,16 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Slice 5  Pricing + Hotels           ✅  27 Aug — D-56 se D-60, koi migration nahi
           FAQs ka panel (Slice 6 se aage)    ✅  27 Aug — D-59, sirf FAQs
           Public page ka design pass         ✅  27 Aug raat — a33a143, section-dar-section
+          Section headings admin se (D-65)   ✅  31 Aug — Q-9 ka bada hissa, migration nahi
+          cancellationText payload me        ✅  31 Aug — chup bug, D-64 wali hi shakl
+          R17 — admin ka UI text English me  ✅  31 Aug — 16 string; comments Hinglish hi
           Slice 6-7                          🔴  ← agla kaam. specs/007-packages.md §7
+          Hero ka lightbox + auto-slide      ✅  31 Aug — D-66, R15 ka vichlan (client)
+          Closing CTA card (settings se)     🔴  client, 31 Aug — design me hai, Q-2 pe atka
 Phase 2+  Media library aur aage           🔴
 ```
 
-**Health:** 568 tests passing · lint clean · admin build clean · API media/settings
+**Health:** 574 tests passing · lint clean · admin build clean · API media/settings
 integration clean. Media upload route, SVG rejection, media.upload permission, and
 settings logo/favicon ID persistence have focused coverage.
 
@@ -753,10 +825,10 @@ pnpm build && git push
 **Footer poora ho chuka hai** — data model, admin screen, aur design/responsive teenon.
 Chaar chhoti cheezein khuli hain, koi bhi bada kaam nahi rok rahi:
 
-| #   | Kya                                                                                                                | Kitna       |
-| --- | ------------------------------------------------------------------------------------------------------------------ | ----------- |
-| —   | `pnpm build` **kabhi chala hi nahi** — CI ka aakhri step. Web dev band karke `rm -rf apps/web/.next && pnpm build` | 5 min       |
-| A-5 | `apps/web/.env` — `API_URL` + `REVALIDATE_SECRET`. Sirf prod ke cache pe asar                                      | manual step |
+| #   | Kya                                                                                                                | Kitna   |
+| --- | ------------------------------------------------------------------------------------------------------------------ | ------- |
+| —   | `pnpm build` **kabhi chala hi nahi** — CI ka aakhri step. Web dev band karke `rm -rf apps/web/.next && pnpm build` | 5 min   |
+| A-5 | ~~`apps/web/.env` — `API_URL` + `REVALIDATE_SECRET`~~ ✅ **31 Aug ko ban gayi**                                    | ho gaya |
 
 C-2 band ho chuka hai (D-45), to agla bada kaam **Phase 1 — Content Core** hai — ya jo bhi
 client agla approve kare (D-45 §2: is project ka order client se aata hai, kisi fixed
@@ -765,7 +837,7 @@ roadmap se nahi).
 ### 4. Khule items
 
 - **Q-7** — logo na mile to kya dikhe (client ka faisla). Header aur drawer dono interim pe hain
-- **A-5** — `apps/web/.env` (`REVALIDATE_SECRET` + `API_URL`). Sirf **production** ke cache pe asar
+- ~~**A-5** — `apps/web/.env`~~ ✅ **31 Aug ko ban gayi** — revalidate ab configured hai
 - **spec 006 §11** — mere 6 resolved decisions ka review baaki
 
 ### 5. Ek chhoti gandagi

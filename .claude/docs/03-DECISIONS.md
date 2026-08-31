@@ -3591,3 +3591,73 @@ uspe apni taraf se kuch na jode. Yahi baat teen jagah alag-alag roop me nikli �
 description (paste kiya hua duplicate), hotels table ka `or similar`, aur Overview ka
 description box jo hata diya gaya.
 
+---
+
+## D-66
+
+**Hero ki image pe click → popup, ek waqt pe ek image, 4 second pe apne aap agli**
+_31 Aug 2026 · client ka faisla_
+
+### Faisla
+
+Hero ke mosaic ka koi bhi tile dabane pe ek popup khulta hai. Usme **saari** images aati
+hain — banner aur poora `itineraryImages` pool, sirf wo paanch nahi jo mosaic me dikh rahi
+thin — aur **ek waqt pe ek** image dikhti hai, 4 second baad agli.
+
+Hero ka mosaic **waisa hi hai** — refresh pe shuffle hota hai (D-52), par page pe apne aap
+slide nahi hota. Client ne sirf popup ki baat ki thi.
+
+### ⚠️ Ye design me hai hi nahi — R15 ka vichlan
+
+`itinerary-v3.html` me `lightbox`, `modal`, `popup`, `dialog` — chaaron me se ek bhi **0
+baar** aata hai. Pehle tile ek `<a href={image.url}>` tha, yaani click seedha image file
+khol deta tha.
+
+Vichlan **client se aaya hai, developer se nahi** — R15 isi ke liye hai. Yahan likha ja
+raha hai taaki koi baad me "design se match karo" ke naam pe ise hata na de.
+
+### Teen cheezein jo shakl tay karti hain
+
+**1. Tile ab `<button>` hai, `<a>` nahi.** Keyboard se pahunchna, Enter/Space, aur screen
+reader ka "button" bolna — teenon `<button>` me apne aap milte hain. `<div onClick>` pe wo
+teenon haath se banane padte, aur aksar ek chhoot jaata hai.
+
+**2. Click ka index `all` me dhoondha jaata hai, `tiles` me nahi.** `tiles` shuffle ho chuki
+paanch hain aur popup **saari** images dikhata hai — tile ka index seedha bhejne pe click
+ek image pe hota aur popup kisi aur pe khulta.
+
+**3. Hover-pause sirf image pe hai, backdrop pe nahi.** Ye pehle draft me galat tha aur
+build ke dauraan pakda gaya: backdrop poori screen ghera hai, to uspe `onMouseEnter` lagane
+ka matlab tha ki desktop pe cursor kahin bhi ho, popup hamesha "paused" rehta — yaani
+auto-slide **kabhi chalti hi nahi**. Bilkul chup failure: koi error nahi, bas feature gayab.
+
+### Auto-slide ke teen niyam
+
+| Niyam | Kyun |
+| --- | --- |
+| Image pe hover karne se rukti hai | Jo image dekhne ke liye user ruka hai, wahi uske haath ke neeche se khisak jaana sabse chidhane wali cheez hai |
+| Haath se aage badhne pe timer **dobara** shuru hota hai | Warna user next dabata hai aur 200ms baad slide khud aage badh jaati hai — do image ek saath nikal jaati hain |
+| `prefers-reduced-motion` pe chalti hi nahi | Apne aap badalta content us setting ka seedha nishana hai. Arrows tab bhi kaam karte hain |
+
+### Aur kya mila
+
+Esc se band · ← → se aage-peeche · backdrop pe click se band (image pe nahi — warna image
+dabate hi popup band ho jaata) · mobile pe swipe (40px se kam ko swipe nahi maana jaata, wo
+tap ka haath hilna hota hai) · `1 / 12` counter · popup khulte hi background ka scroll band ·
+band hone pe focus **wapas usi tile pe** jaata hai jispe click hua tha.
+
+Koi library nahi li — swipe do touch point ka farak hai, aur baaki sab CSS.
+
+### Kya verify hua
+
+SSR: tiles `<button>` ban kar aa rahe hain, page 200 deta hai, lint/format/578 tests green.
+
+**Asli interaction client ne khud chala kar confirm kiya** (31 Aug) — popup khulta hai aur
+slide theek chalti hai.
+
+⚠️ Ye is repo me automated nahi hai: koi browser automation maujood nahi (Playwright aur
+Puppeteer dono nahi), aur R3 ke chalte sirf iske liye nayi dependency lena theek nahi laga.
+Yaani lightbox ka behaviour **kisi test se bandha hua nahi hai** — aage koi ise tode to
+suite chup rahegi. Jis din `apps/web` pe component tests aayein, hover-pause wala case
+(neeche §3) pehla candidate hai, kyunki wo bug aankh se bhi nahi dikhta tha — sirf "slide
+nahi chal rahi" jaisa lagta.

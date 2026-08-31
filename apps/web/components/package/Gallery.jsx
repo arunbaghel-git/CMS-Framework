@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
+import Lightbox from './Lightbox.jsx'
+
 /**
  * Page ka hero — `itinerary-v3.html` ka `.gal` mosaic.
  *
@@ -60,6 +62,9 @@ export default function Gallery({ images, banner, title }) {
   /** Pehla render server jaisa — `useEffect` ke baad hi shuffle lagta hai. */
   const [tiles, setTiles] = useState(() => all.slice(0, SHOWN))
 
+  /** Popup band ho to `null`, warna `all` me wo index jisse wo khula hai. */
+  const [open, setOpen] = useState(null)
+
   /**
    * List ki pehchaan ek string se — array ki identity har render pe nayi hoti hai, aur uspe
    * depend karne ka matlab hota ki effect har render pe chale aur images phadakti rahein.
@@ -77,17 +82,40 @@ export default function Gallery({ images, banner, title }) {
 
   const extra = all.length - tiles.length
 
+  /**
+   * Popup jis image se khulega uska index — `all` me, `tiles` me nahi.
+   *
+   * ⚠️ Ye farak zaroori hai: `tiles` shuffle ho chuki paanch hain, aur popup **saari**
+   * images dikhata hai. Tile ka index seedha popup me bhejne pe click ek image pe hota aur
+   * popup kisi aur pe khulta.
+   */
+  const openAt = (image) => setOpen(all.findIndex((x) => x.url === image.url))
+
   return (
-    <div className="gal">
-      {tiles.map((image, i) => (
-        <a key={image.url} href={image.url}>
-          <img src={image.url} alt={image.alt || title} loading={i === 0 ? 'eager' : 'lazy'} />
-          {/* `+18 photos` hamesha aakhri tile pe — reference me wahi hai */}
-          {i === tiles.length - 1 && extra > 0 && (
-            <span className="gal__more">+ {extra} photos</span>
-          )}
-        </a>
-      ))}
-    </div>
+    <>
+      <div className="gal">
+        {tiles.map((image, i) => (
+          /*
+           * `<a href>` se `<button>` — pehle click seedha image file kholta tha, ab popup
+           * kholta hai (client, 31 Aug).
+           *
+           * `<div onClick>` nahi: keyboard se pahunchna aur Enter/Space dono `<button>` me
+           * apne aap milte hain, aur screen reader use "button" bolta hai — `<div>` pe wo
+           * teenon haath se banane padte.
+           */
+          <button key={image.url} type="button" onClick={() => openAt(image)}>
+            <img src={image.url} alt={image.alt || title} loading={i === 0 ? 'eager' : 'lazy'} />
+            {/* `+18 photos` hamesha aakhri tile pe — reference me wahi hai */}
+            {i === tiles.length - 1 && extra > 0 && (
+              <span className="gal__more">+ {extra} photos</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {open !== null && (
+        <Lightbox images={all} startIndex={open} title={title} onClose={() => setOpen(null)} />
+      )}
+    </>
   )
 }
