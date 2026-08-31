@@ -234,9 +234,24 @@
   width: 150px;
 }
 
+/* Label ka input **badhta nahi** — uske content jitna hi chahiye.
+
+   Pehle yahan `flex: 1` tha, to wo poori bachi hui row kha jaata tha: ek chhote se optional
+   label ("CUSTOMER SUPPORT") ke liye poori chaudai ka box, jabki uske saath wala icon
+   dropdown sirf 150px ka. Row dekhne me ek bada khaali input lagti thi.
+
+   `flex: 0 1 260px` — badhega nahi, par jagah kam pade to sikud jaayega. `min-width: 0`
+   flex item ke default `min-width: auto` ko hataata hai; bina uske wo placeholder ki poori
+   chaudai se chhota ho hi nahi sakta aur chhoti screen pe row bahar nikal jaati hai. */
 .ftr-block-head .inp {
   min-width: 0;
-  flex: 1;
+  flex: 0 1 260px;
+}
+
+/* ✕ hamesha daayein kinare pe — label ke sikudne se wo uske paas khisak jaata tha.
+   `margin-left: auto` bachi hui jagah kha leta hai, isliye koi spacer div nahi chahiye. */
+.ftr-block-head .btn-danger {
+  margin-left: auto;
 }
 
 /* Textarea `.inp` hi hai, bas do line lambi. `resize: vertical` isliye ki lamba pata
