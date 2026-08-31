@@ -386,6 +386,46 @@ candidate hai.
 
 ---
 
+### A-12 · CI green ho hi nahi sakti — na Mongo hai, na API
+
+**Deadline:** koi sakht nahi, par **har push red aata hai**
+**31 Aug ko pakda** — pehla `pnpm build` local pe chalane par
+
+`.github/workflows/ci.yml` `ubuntu-latest` pe chalta hai: Format → Lint → Test → Build.
+Usme **koi service container nahi** hai.
+
+| Step | CI me kya hota hai |
+| --- | --- |
+| `pnpm format:check` · `pnpm lint` | ✅ chalte hain |
+| `pnpm test` | ❌ integration tests ko **chalta Mongo** chahiye (auth, entries, menus, master-lists…) |
+| `pnpm build` | ❌ `apps/web` ka root layout build ke waqt `getSettings()` **fetch** karta hai |
+
+**Build wala 31 Aug ko aankhon se dekha gaya:** API band thi to `next build` `/_not-found`
+pe teen baar **60-second timeout** kha kar gira ("Failed to build /_not-found after 3
+attempts"). API chalu karte hi wahi build green ho gaya. Yaani failure environment ka hai,
+code ka nahi — par CI me wo environment kabhi hota hi nahi.
+
+⚠️ **Isiliye "CI red hai" ab tak kisi ko kuch nahi batata.** Wo har commit pe red hai, to
+red hona ek signal reh hi nahi gaya. Yahi wo haalat hai jisme ek din koi **asli** failure
+bhi ignore ho jaayega — flaky test wali chetavni (A-11) ka hi bada roop.
+
+**Do cheezein chahiye:**
+
+1. **CI me `mongo` service container** — `services:` block, aur test se pehle uska healthy
+   hona. Ye seedha kaam hai
+2. **Web build ka API par depend karna** — do raaste:
+   - layout ka fetch **build-time pe fail-soft** ho (settings na milen to defaults se render
+     ho jaaye). Ye waise bhi behtar hai: prod me API ek pal ke liye down hone se poora
+     build/page nahi girna chahiye
+   - ya CI me build se pehle API bhi uthao (bhaari, aur DB pe nirbhar)
+
+**Mashwara: #1 + fail-soft.** Fail-soft wala D-42 §2 wali hi soch hai — "toota hua `<img>`
+kabhi nahi" ka doosra roop: data na mile to page bina us hisse ke bane, poora build na gire.
+
+**Andaza:** aadha din.
+
+---
+
 ### Q-2 · Enquiries — Phase 7b ya alag Phase 9?
 
 **Deadline:** Phase 7 se pehle

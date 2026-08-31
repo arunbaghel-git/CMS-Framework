@@ -218,6 +218,22 @@ nahi banenge. Jis din client ko wo chahiye, D-68 dobara khulega — aur tab tak 
 field DB me nahi padi. Ulta case (field bana kar hatana) **D-54** me ho chuka hai aur usme
 migration likhni padi thi.
 
+### 🔴 A-12 — CI green ho hi nahi sakti (31 Aug ko pakda, **theek NAHI kiya**)
+
+Pehli baar `pnpm build` local pe chalane par nikla. `ci.yml` `ubuntu-latest` pe chalta hai
+aur usme **koi service container nahi** — na Mongo, na API. Isliye:
+
+- `pnpm test` ❌ integration tests ko chalta Mongo chahiye
+- `pnpm build` ❌ `apps/web` ka layout build ke waqt `getSettings()` fetch karta hai
+
+Build wala aankhon se dekha: API band thi to `next build` `/_not-found` pe teen baar
+60-second timeout kha kar gira; API chalu karte hi green ho gaya.
+
+⚠️ **Har commit pe red hai, isliye red hona ab koi signal hi nahi raha** — us haalat me ek
+din koi asli failure bhi ignore ho jaayega (A-11 wali flaky-test chetavni ka bada roop).
+
+Poora tark aur mashwara `09-OPEN-ITEMS.md` → **A-12** me. Andaza: aadha din.
+
 ### 🔴 Yahin se kal shuru karna hai — "Good to know" ka **style**
 
 Client ne 31 Aug ki shaam wo box bhara, text page pe aa gaya, aur phir poochha:
