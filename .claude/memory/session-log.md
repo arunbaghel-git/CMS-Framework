@@ -15,6 +15,116 @@ Format:
 
 ---
 
+## 2026-08-31 (style pass) — public page har chaudai pe; mobile ka scroll; admin ka field gap
+
+**Kya hua**
+
+`HANDOFF-style-pass.md` wala kaam uthaya. **Public package page ka responsive poora ho gaya**;
+admin client ke kehne pe **baad ke liye chhoda** ("admin ka CSS baad me").
+
+Paanch commit: `217722c` (responsive + script) · `589d13f` (mobile scroll) · `74ac010`
+(admin field gap) · `b5fa5d6` (handoff) · `943ed54` (client ka textarea tune).
+
+### 1. Pehle naapne ka auzaar banaya — `.claude/scripts/media-diff.mjs`
+
+Handoff me is jagah `node -e '...'` ka **khaali placeholder** tha, yaani wo doc apne hi
+kaam ko verify karne ka tareeka nahi deta tha.
+
+Asli kami iske peeche thi: **`css-diff.mjs` media blocks ko jaan-boojh kar hata deti hai.**
+Wo sirf desktop milaati hai. Isliye responsive ka poora hissa aaj tak kisi check me aaya hi
+nahi, aur breakpoints chup-chaap alag ho gaye — kisi ne kuch toda nahi tha, wo kabhi milaye
+hi nahi gaye the.
+
+Nayi script dono file ke `@media` block padhti hai aur **sirf un selectors pe bolti hai jo
+hamari CSS me sach me hain** — warna reference ke doosre pages ka shor (`.hawards`,
+`.vrail`, `.clogos`) asli mismatch dabaa deta hai.
+
+### 2. "Mobile theek nahi aa raha" ki wajah CSS galat hona nahi tha
+
+**Layout galat chaudai pe flip ho raha tha.** Script ne aath farq nikale, sab theek kiye:
+
+| Selector                 | Reference   | Pehle            |
+| ------------------------ | ----------- | ---------------- |
+| `.pgl`                   | 1180 + 1024 | 1000 (ek step)   |
+| `.pgl__side`             | 1024 + 760  | 1000             |
+| `.ptitle` · `.ptitle__p` | 1080        | 1000             |
+| `.gal`                   | 860         | 760              |
+| `.inx`                   | 760         | rule hi nahi tha |
+| `.itin__d` · `.itin__k`  | 860         | 860 **aur** 760  |
+| `.offer__in`             | 1024        | 860              |
+| `.mega--md`              | 1180        | rule nahi        |
+
+Teen sabse kaam ke:
+
+- **`.pgl`** reference me **do kadam** me girta hai (1180 pe sidebar 322→290px, 1024 pe
+  neeche). Hamare paas ek hi step tha, isliye **1024–1180px ke beech page reference se
+  milta hi nahi tha** — sidebar poori chaudi rehti thi aur content ka column nichud jaata.
+- **`.gal`** ke purane 760 block me chauthe tile se aage sab `display: none` the. Yaani
+  **phone pe pool ki aadhi tasveerein dikhti hi nahi thin**, jabki design me sab dikhti hain.
+- **`.itin__d` ka duplicate** — wahi kaam 860 pehle se kar raha tha, to 860 ka `gap: 10px`
+  phone pe chup-chaap `8px` ban jaata tha.
+
+`.gal` me do specificity ke kaante mile, dono ab comment ke saath: `:has()` guard `.gal` se
+bhaari hai (media me dono **saath** likhne padte hain, warna 5 se kam image wale pool pe
+mobile layout lagta hi nahi), aur kinaron pe `!important` chahiye kyunki desktop ka
+`.gal button:nth-child(3)` (0,2,1) media ke `.gal button` (0,1,1) se jeet jaata hai.
+
+### 3. Phone pe poore page ka horizontal scroll — band drawer
+
+Desktop pe kuch galat nahi dikhta tha. `.mdrawer` **hamesha DOM me rehta hai** (conditionally
+render karne pe slide wali transition chalti hi nahi) aur band haalat me `translateX(100%)`
+se screen ke daayein bahar khada tha. Chrome aise fixed element ko scroll area me nahi ginta
+— **iOS Safari ginta hai**.
+
+Ab wo band hone pe `visibility: hidden` bhi hai. Isse ek **doosra bug** bhi theek hua jo alag
+se maujood tha: `aria-hidden` ke bawajood drawer ke saare link **Tab se focus ho jaate the**.
+
+Saath me `body { overflow-x: hidden }` (reference me hai, hamare paas nahi tha). Dono isliye
+ki akela `overflow-x` wajah nahi hataata, **lakshan chhupata hai** — aur tab agli baar yahi
+galti chup-chaap kat jaati.
+
+> Baaki sambhavit source check kar liye, teenon saaf: `.tblw` ka `overflow-x: auto` `.tbl` ke
+> 520px `min-width` ko sambhal raha hai, lightbox conditionally render hota hai, aur `.drop`
+> ka 220px nav ke andar hai jo 1040 se neeche `display: none` hai.
+
+### 4. Admin — Section Headings me input aur textarea chipke hue the
+
+Wajah screen ki nahi, **primitives ki**: form control ka default margin 0 hai, `.field` sirf
+apne **neeche** 14px deta hai, aur do control ke **beech** ka koi rule tha hi nahi. Ab tak
+har `.field` me ek hi control hota tha, isliye ye kami kabhi dikhi nahi.
+`.field > :is(.inp, .sel, .ta) + :is(.inp, .sel, .ta) { margin-top: 8px }` — poore admin me
+scan kiya, do stacked control **sirf isi screen pe** hain.
+
+Screen-level override jaan-boojh kar nahi likha — component CSS bundle me primitives se
+pehle aati hai, to barabar specificity pe wo haar jaata (D-43 aur D-44 §6 me do baar kat
+chuka hai).
+
+**Faisle**
+
+| Kya                                             | Kaun           |
+| ----------------------------------------------- | -------------- |
+| Admin ka baaki CSS **baad me**                  | client         |
+| `.ta` ka `min-height` **150px** (reference 110) | client ka tune |
+| Header/footer ke chaar farq **nahi** chhue      | maine, R15 se  |
+
+Header ke teen farq (1040 pe sikudna, `.brand__img` 750px, `.burger` base 33px) aur footer ka
+flex model — sab apne comment ke saath likhe hue the aur ek seedha `.btn` ke tuned padding pe
+hai. Chaaron ab handoff ki **"mat badalna"** table me hain.
+
+**Agla**
+
+1. **Admin ka responsive** — `admin-design.html` ke do media block me se `782px` wala **poora
+   gayab** hai (sidebar phone pe collapse nahi hota, `.row2`/`.row3` multi-column rehti hain).
+   Uska code aur zaroori tokens ki line numbers handoff me likh diye hain.
+2. **`body` ka `font-size: 15px` + `line-height: 1.55`** — reference me hai, hamare paas nahi.
+   Browser default 16px hai, yaani jis text pe humne khud size nahi likha wo **poore site pe**
+   ek pixel bada hai. Asar har page pe hai, isliye bina poochhe nahi kiya — **client ka jawab
+   baaki hai.**
+3. `css-diff.mjs` ke **paanch jhoothe alert** ab bhi hain (`>` combinator, quote ka farq,
+   shorthand) — dono script ek din milani chahiye.
+
+---
+
 ## 2026-08-31 — A-5 band; section headings (D-65); R17; lightbox (D-66); CTA card (D-67)
 
 **Kya hua**

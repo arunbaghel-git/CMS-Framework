@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 31 Aug 2026 (A-5 band, Q-9 ka bada hissa band — D-65)
+> **Last updated:** 31 Aug 2026 (style pass — public responsive poora, admin baaki)
 
 ---
 
@@ -225,6 +225,38 @@ price+enquiry widget abhi bhi Q-2 pe hai — wahan asli form chahiye, sirf link 
 ⚠️ **Dev DB me smoke data daala hua hai** (badge/heading/bullets/box/2 button) taaki section
 dikhe. Client apna content bharega — Settings ▸ CTA Section se.
 
+**31 Aug — style pass: public package page ab har chaudai pe reference se milta hai.**
+
+Client ne mobile pe farak bataya tha. Wajah CSS galat hona nahi thi — **layout galat chaudai
+pe flip ho raha tha**. Ye aaj tak kisi check me nahi aaya kyunki **`css-diff.mjs` media blocks
+ko jaan-boojh kar hata deti hai**; wo sirf desktop milaati hai. Naya auzaar
+`.claude/scripts/media-diff.mjs` wahi kami bharta hai.
+
+Aath breakpoint theek hue. Sabse asardaar `.pgl`: reference **do kadam** me girta hai (1180 pe
+sidebar 322→290px, 1024 pe neeche), hamare paas ek hi tha — isliye **1024–1180px ke beech page
+reference se milta hi nahi tha**. `.gal` ke purane block me chauthe tile se aage sab
+`display: none` the, yaani phone pe pool ki **aadhi tasveerein dikhti hi nahi thin**.
+
+**Phone ka horizontal scroll bhi theek hua** — `.mdrawer` hamesha DOM me rehta hai aur band
+haalat me screen ke daayein bahar khada tha. Chrome fixed element ko scroll area me nahi
+ginta, **iOS Safari ginta hai** — isliye bug sirf phone pe dikhta tha. Ab `visibility: hidden`
+bhi hai, jisse ek **a11y bug** bhi gaya: `aria-hidden` ke bawajood drawer ke link **Tab se
+focus ho jaate the**.
+
+⚠️ **Admin ka responsive baaki hai — client ne kaha "baad me".** `admin-design.html` ke do
+media block me se **782px wala poora gayab** hai: phone pe sidebar collapse nahi hota aur
+`.row2`/`.row3` multi-column rehti hain. Uska code aur zaroori tokens ki line numbers
+`.claude/HANDOFF-style-pass.md` me likhi hain.
+
+⚠️ **Ek sawaal client pe khula hai:** `body` me `font-size: 15px` aur `line-height: 1.55`
+reference me hain, hamare paas nahi. Browser default 16px hai, yaani jis text pe humne khud
+size nahi likha wo **poore site pe** ek pixel bada hai. Asar har page pe hai, isliye bina
+poochhe nahi kiya.
+
+**Header aur footer jaan-boojh kar nahi chhue** — unke chaar farq apne-apne comment ke saath
+likhe hue the aur ek seedha `.btn` ke client-tuned padding pe hai. Chaaron ab handoff ki
+"mat badalna" table me hain, taaki agla pass unhe "match" karne na chal de.
+
 ⚠️ Slice 6 ka aadha pehle hi ban chuka hai, isliye uska poora naam padh kar mat chalna:
 **Itinerary Images ka pool aur gallery Slice 4/D-52 me aa gaye the**, aur **FAQs D-59 me**
 (client ne Slice 5 ke saath maang li thi). Sirf upar wali do cheezein baaki hain.
@@ -304,6 +336,9 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Slice 6-7                          🔴  ← agla kaam. specs/007-packages.md §7
           Hero ka lightbox + auto-slide      ✅  31 Aug — D-66, R15 ka vichlan (client)
           Closing CTA card (settings se)     ✅  31 Aug — D-67, Q-2 ka atkav khula
+          Public page ka RESPONSIVE pass     ✅  31 Aug — 8 breakpoint, media-diff.mjs
+          Phone ka horizontal scroll         ✅  31 Aug — band drawer, + a11y bug
+          Admin ka responsive                🔴  ← 782px block gayab. Client: baad me
 Phase 2+  Media library aur aage           🔴
 ```
 
