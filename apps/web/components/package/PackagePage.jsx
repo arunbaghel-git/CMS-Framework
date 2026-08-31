@@ -260,6 +260,23 @@ export default function PackagePage({ entry, defaults, settings }) {
    */
   const labels = defaults?.sectionLabels ?? PACKAGE_SECTION_DEFAULTS
 
+  /**
+   * Client ne is section ke description box me kuch likha hai?
+   *
+   * ⚠️ Ye har section ke guard me **zaroori** hai. Pehle guard sirf section ke apne data ko
+   * dekhte the (`steps.length > 0`, `faqs.length > 0`…), to client ka likha text bina kisi
+   * error ke gayab ho jaata tha — admin me bhara hua dikhta, page pe kuch nahi.
+   *
+   * D-68 ke baad ye aur zaroori ho gaya: "Good to know" ka **poora content** ab isi box me
+   * aata hai, yaani wahan description hi section ki wajah hai.
+   *
+   * Ye is codebase ka pehchana hua failure mode hai — D-64 (transfer chip ki shart
+   * `day.transfer &&` thi, to akeli likhi duration gir jaati thi) aur D-65
+   * (`cancellationText` payload me hi nahi ja raha tha). Teeno baar lakshan ek: **admin me
+   * text dikhta hai, page pe kuch nahi, aur kahin koi error nahi.**
+   */
+  const wrote = (key) => Boolean(labels[key]?.description)
+
   return (
     <CategoryProvider pricing={entry.pricing} currency={settings?.currency ?? 'INR'}>
       <main className="pkg">
@@ -407,7 +424,7 @@ export default function PackagePage({ entry, defaults, settings }) {
               </div>
             </section>
 
-            {entry.itinerary.length > 0 && (
+            {(entry.itinerary.length > 0 || wrote('itinerary')) && (
               <section className="blk" id="itinerary">
                 {/*
                  * Ye line pehle static thi, aur uspe likha tha: "isme ek vaada hai
@@ -478,7 +495,7 @@ export default function PackagePage({ entry, defaults, settings }) {
             <HotelsSection hotels={entry.hotels} label={labels.hotels} />
             <AddOns addOns={entry.addOns} label={labels.addOns} />
 
-            {(included.length > 0 || excluded.length > 0) && (
+            {(included.length > 0 || excluded.length > 0 || wrote('included')) && (
               <section className="blk" id="included">
                 <SectionHead label={labels.included} />
                 <div className="inx">
@@ -512,7 +529,7 @@ export default function PackagePage({ entry, defaults, settings }) {
               </section>
             )}
 
-            {(steps.length > 0 || defaults?.cancellationText) && (
+            {(steps.length > 0 || defaults?.cancellationText || wrote('booking')) && (
               <section className="blk" id="booking">
                 <SectionHead label={labels.booking} />
 
@@ -547,7 +564,7 @@ export default function PackagePage({ entry, defaults, settings }) {
              * **Pehla khula hai**, reference ki tarah — poori band list ke saamne user ko
              * pata hi nahi chalta ki andar kya hai.
              */}
-            {entry.faqs?.length > 0 && (
+            {(entry.faqs?.length > 0 || wrote('faq')) && (
               <section className="blk" id="faq">
                 <SectionHead label={labels.faq} />
 

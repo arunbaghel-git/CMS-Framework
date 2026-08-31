@@ -3815,3 +3815,47 @@ Slice 6 me ab **sirf `reviews[]` + rating** bacha hai, aur wo `spec 007 §9 #8` 
 (rating haath se ya `reviews[]` se gini jaaye).
 
 **Nateeja:** koi naya code nahi, koi migration nahi. Sirf ek cap badla aur spec/docs sync.
+
+### Amendment — 31 Aug, usi din: section ka guard description ko ginta hi nahi tha
+
+Client ne D-68 wale box me text daala aur **page pe kuch nahi aaya**.
+
+Data theek save hua tha (`sectionLabels.booking.description: "test"`). Bug guard me tha:
+
+```jsx
+{(steps.length > 0 || defaults?.cancellationText) && (   // ← description hai hi nahi
+  <section id="booking">
+    <SectionHead label={labels.booking} />
+```
+
+Client ke paas booking steps 0 the aur cancellation text khaali — to poora section gir
+gaya, unki likhi line samet.
+
+**Yahi kami chhe jagah thi**, sirf `booking` pe nahi: `itinerary`, `included`, `faq`
+(`PackagePage.jsx`), aur `hotels` · `addOns` (`Pricing.jsx`). Sab jagah guard **sirf section
+ke apne data** ko dekhta tha. D-68 se pehle ye kami dikhti nahi thi kyunki description ek
+**intro line** thi, section ki wajah nahi. D-68 ne use section ka asli content bana diya.
+
+Ab har guard me `wrote(key)` hai — "client ne is section me kuch likha hai?".
+
+⚠️ `HotelsSection` me do alag return hain, ek shart nahi: neeche `active` `tabs[0]` se
+banta hai aur khaali `tabs` pe wo `undefined` ho kar `active.category` pe **crash** karta.
+
+### Ye is codebase ka pehchana hua failure mode hai — teesri baar
+
+| Kab | Kya |
+| --- | --- |
+| **D-64** | `day.transfer &&` — transfer na chuna ho to akeli likhi duration bhi gir jaati thi |
+| **D-65** | `cancellationText` public payload me ja hi nahi raha tha |
+| **D-68 (yahan)** | section ka guard description ko ginta hi nahi tha |
+
+Teenon baar lakshan bilkul ek: **admin me text bhara hua dikhta hai, page pe kuch nahi, aur
+kahin koi error nahi.** Teenon baar client ne pakda, kisi test ne nahi.
+
+**Wajah bhi ek hi hai:** koi naya field jodte waqt uske **saare consumer** nahi dekhe jaate
+— payload, guard, aur render teen alag jagah hain, aur teenon me se ek chhoot jaana kaafi
+hai. Naya field jodo to teenon check karo.
+
+⚠️ **Iska koi test nahi hai.** `apps/web` pe koi test layer hai hi nahi (25 test files, sab
+API ke). Verify live page se hua. Jab tak theme pe tests nahi aate, ye class dobara bhi
+sirf client hi pakdega.

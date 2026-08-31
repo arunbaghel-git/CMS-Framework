@@ -200,6 +200,18 @@ hai" — aur usi maani hui baat pe ek per-package repeatable field khada tha. Ab
 aur page pe theek wahin chhapta hai jahan ye hissa hona chahiye (heading ke neeche, booking
 steps se upar). Sirf ek cap badla: description 1000 → **3000 chars**.
 
+⚠️ **Ek bug isi se nikla (usi din theek):** section ka guard description ko **ginta hi nahi
+tha** — client ne box bhara aur page pe kuch nahi aaya. Guard sirf section ke apne data ko
+dekhta tha (`steps.length > 0 || cancellationText`), aur client ke paas dono khaali the, to
+poora section gir gaya. **Yahi kami chhe jagah thi** (itinerary · included · faq · booking ·
+hotels · addOns); ab har guard me `wrote(key)` hai.
+
+⚠️ **Ye is codebase ka pehchana hua failure mode hai — teesri baar.** D-64 (transfer chip),
+D-65 (`cancellationText` payload me nahi tha), aur ab ye. Teenon baar lakshan ek: admin me
+text bhara dikhta hai, page pe kuch nahi, koi error nahi. Teenon baar **client ne pakda,
+kisi test ne nahi** — `apps/web` pe koi test layer hai hi nahi. Naya field jodo to uske
+**teenon** consumer dekho: payload · guard · render.
+
 ⚠️ **Us box me sub-headings nahi ban sakte** — wo plain text hai (XSS ka wahi tark jo FAQs
 aur footer text blocks pe hai). Design ke `h3` ("The ferries decide this itinerary") usse
 nahi banenge. Jis din client ko wo chahiye, D-68 dobara khulega — aur tab tak koi bekaar

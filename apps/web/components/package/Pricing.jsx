@@ -264,7 +264,24 @@ export function HotelsSection({ hotels, label }) {
 
   // Jin categories ka daam bhi hai aur hotel bhi
   const tabs = rows.filter((row) => (byCategory.get(row.category) ?? []).length > 0)
-  if (tabs.length === 0) return null
+
+  /**
+   * Koi category na ho to table ban hi nahi sakti — par agar client ne is section ka
+   * description likha hai to wo phir bhi chhapna chahiye.
+   *
+   * Yahan **jaldi lautna zaroori hai**, `null` se pehle: neeche `active` `tabs[0]` se
+   * banta hai, aur khaali `tabs` pe wo `undefined` ho kar `active.category` pe crash
+   * karega. Isiliye ye do alag return hain, ek shart nahi.
+   */
+  if (tabs.length === 0) {
+    if (!label?.description) return null
+
+    return (
+      <section className="blk" id="hotels">
+        <SectionHead label={label} />
+      </section>
+    )
+  }
 
   const active = tabs.find((t) => t.category === category) ?? tabs[0]
   const table = byCategory.get(active.category) ?? []
@@ -378,34 +395,37 @@ export function HotelsSection({ hotels, label }) {
  * kyunki page pe ye hotels ke theek baad aata hai.
  */
 export function AddOns({ addOns, label }) {
-  if (!addOns?.length) return null
+  /** Ek bhi add-on na ho aur client ne kuch likha bhi na ho — tabhi poora section chhodo. */
+  if (!addOns?.length && !label?.description) return null
 
   return (
     <section className="blk" id="add-ons">
       <SectionHead label={label} />
 
-      <div className="tblw">
-        <table className="tbl">
-          <thead>
-            <tr>
-              <th>Add-on</th>
-              <th>Price</th>
-              <th>Where</th>
-            </tr>
-          </thead>
-          <tbody>
-            {addOns.map((addOn) => (
-              <tr key={addOn.id}>
-                <td>
-                  <b>{addOn.name}</b>
-                </td>
-                <td>{addOn.price}</td>
-                <td>{addOn.where}</td>
+      {addOns?.length > 0 && (
+        <div className="tblw">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Add-on</th>
+                <th>Price</th>
+                <th>Where</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {addOns.map((addOn) => (
+                <tr key={addOn.id}>
+                  <td>
+                    <b>{addOn.name}</b>
+                  </td>
+                  <td>{addOn.price}</td>
+                  <td>{addOn.where}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   )
 }
