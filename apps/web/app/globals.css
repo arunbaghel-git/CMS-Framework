@@ -108,6 +108,20 @@ body {
   font-family: var(--font);
   color: var(--body);
   background: var(--surface);
+
+  /*
+   * `overflow-x: hidden` reference se — aur ye cosmetic nahi hai.
+   *
+   * Mobile drawer (`.mdrawer`) hamesha DOM me rehta hai aur band haalat me `translateX(100%)`
+   * se screen ke daayein bahar khada hota hai. Chrome fixed element ko scroll area me nahi
+   * ginta, par **iOS Safari ginta hai** — isliye phone pe poore page pe ek horizontal
+   * scrollbar aa jaata tha, jabki desktop pe sab theek dikhta tha.
+   *
+   * Ye akela ilaaj nahi hai — drawer khud bhi ab band hone pe `visibility: hidden` hai
+   * (neeche). Dono isliye ki `overflow-x` sirf **jad** ko dhakta hai; koi bhi naya chaudा
+   * element kal phir yahi bug laa sakta hai, aur tab wo chup-chaap kat jaayega.
+   */
+  overflow-x: hidden;
 }
 
 body.noscroll {
@@ -575,6 +589,20 @@ a.mega__gl:hover {
   z-index: 100;
 }
 
+/*
+ * Drawer hamesha DOM me rehta hai (`MobileNav.jsx` use conditionally render nahi karta —
+ * warna slide wali transition chalti hi nahi, element har baar naya banta).
+ *
+ * Isliye band haalat me `visibility: hidden` **zaroori** hai, sirf `translateX` kaafi nahi:
+ *
+ *  - iOS Safari screen ke bahar khade fixed element ko scroll area me ginta hai → poore
+ *    page pe horizontal scrollbar
+ *  - aur `aria-hidden` ke bawajood andar ke saare link **Tab se focus ho jaate the** —
+ *    keyboard user ko ek aisi nav milti thi jo dikh hi nahi rahi
+ *
+ * `transition` me `visibility` isliye hai ki band hote waqt wo slide **poori hone ke baad**
+ * chhupe; khulte waqt wo turant dikh jaati hai (visibility discrete animate hoti hai).
+ */
 .mdrawer {
   position: fixed;
   top: 0;
@@ -583,13 +611,17 @@ a.mega__gl:hover {
   width: min(360px, 88vw);
   background: var(--surface);
   transform: translateX(100%);
-  transition: transform 0.22s;
+  visibility: hidden;
+  transition:
+    transform 0.22s,
+    visibility 0.22s;
   overflow-y: auto;
   z-index: 101;
 }
 
 .mdrawer.on {
   transform: translateX(0);
+  visibility: visible;
 }
 
 .mdrawer__head {
