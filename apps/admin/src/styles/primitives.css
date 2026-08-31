@@ -339,8 +339,19 @@ tr:hover .row-actions {
 .field > :is(.inp, .sel, .ta) + :is(.inp, .sel, .ta) {
   margin-top: 8px;
 }
+/*
+ * ⚠️ `min-height` reference me **110px** hai — 150px client ka apna tune hai (31 Aug).
+ * "Design se match karo" ke naam pe ise wapas mat karna; wahi baat jo `.toggle-ico` aur
+ * `.btn` pe hai.
+ *
+ * Ye poore admin ke har textarea pe lagta hai, sirf Section Headings pe nahi.
+ *
+ * Isi wajah se `PackageDefaults.jsx` ka `rows={2}` bekaar pada hai — `min-height` use
+ * hamesha haraa deta hai. Wo prop hataya nahi gaya kyunki JS band ho ya CSS na pahunche to
+ * `rows` hi aakhri sahara hai.
+ */
 .ta {
-  min-height: 110px;
+  min-height: 150px;
   resize: vertical;
 }
 .title-input {
