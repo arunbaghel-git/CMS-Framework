@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 31 Aug 2026 (style pass poora — public + admin, dono pe 0 drift)
+> **Last updated:** 31 Aug 2026 (din ke aakhir me — agla kaam "Good to know ka style", neeche)
 
 ---
 
@@ -217,6 +217,37 @@ aur footer text blocks pe hai). Design ke `h3` ("The ferries decide this itinera
 nahi banenge. Jis din client ko wo chahiye, D-68 dobara khulega — aur tab tak koi bekaar
 field DB me nahi padi. Ulta case (field bana kar hatana) **D-54** me ho chuka hai aur usme
 migration likhni padi thi.
+
+### 🔴 Yahin se kal shuru karna hai — "Good to know" ka **style**
+
+Client ne 31 Aug ki shaam wo box bhara, text page pe aa gaya, aur phir poochha:
+_"text is coming but what about style — should we make it a text editor instead of a
+description for good to know?"_
+
+**Ye D-68 se alag sawaal hai.** D-68 ne "per-package ya global?" ka jawab diya (global). Ye
+sawaal "**flat text ya structured?**" ka hai — aur wo pehle se nikalta hi nahi. Us waqt maan
+liya gaya tha ki ek plain box kaafi hoga; wahi maan lena ab test ho raha hai.
+
+Design me us section ke upar wale do hisse **h3 + paragraph** hain. Aaj wo dono ek hi `<p>`
+me chipak jaate hain — line breaks dikhte hain, par heading, spacing aur bold kuch nahi.
+
+**Teen raaste (client ko batae ja chuke, jawab abhi nahi aaya):**
+
+| #   | Kya                                                                                                                                         | Trade-off                                                                                                                                                                                                                                                                                             |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **TipTap rich text** (jaisa Overview me hai)                                                                                                | ⚠️ XSS wala aitraaz yahan **nahi** lagta — TipTap HTML nahi, **JSON doc** store karta hai aur theme use node-by-node render karti hai (Overview pehle se yahi hai). Asli aitraaz doosra: dhaancha client ke haath me chala jaata hai, aur "dhaancha static, maal admin se" (Q-9) ka ulta ho jaata hai |
+| 2   | **Plain text hi, render behtar** — blank line pe alag `<p>`, aur `-` wali line bullet (D-64 wali convention, client pehle se use karta hai) | Sasta, koi schema change nahi. Par `h3` phir bhi nahi milega                                                                                                                                                                                                                                          |
+| 3   | **`packageDefaults.goodToKnow[]`** — repeatable `{heading, text}`, **global**                                                               | Design se bilkul milta hai, dhaancha code me rehta hai, text plain rehta hai. UI ka pattern bhi maujood hai — `bookingSteps` ka repeater **usi screen pe** `{title, text}` ke saath chal raha hai                                                                                                     |
+
+**Mashwara: #3.** ⚠️ Wo D-68 ko **aadha** palatta hai — "field banao hi mat" wala hissa. Uska
+asli hissa (global, per-package nahi) waise ka waisa rehta hai; D-68 galat nahi tha, wo bas
+is doosre sawaal ka jawab nahi de raha tha.
+
+**Faisla ek baat pe hai:** client ke content me sub-headings hain ya nahi? Haan → #3.
+Sirf paragraph → #2. Link/bold/list bhi chahiye → #1.
+
+⚠️ **Chahe kuch bhi chunein, #2 ka aadha kaam har haal me karna padega** — abhi poora text ek
+hi `<p>` me chipakta hai aur paragraph ke beech spacing aati hi nahi.
 
 **31 Aug — hero ka lightbox ban gaya (D-66).** Tile pe click → popup, usme **saari** images
 (banner + poora pool), **ek waqt pe ek**, 4 second pe apne aap agli. Hero ka mosaic waisa hi
