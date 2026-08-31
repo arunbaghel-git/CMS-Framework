@@ -99,6 +99,22 @@ Screen-level override jaan-boojh kar nahi likha — component CSS bundle me prim
 pehle aati hai, to barabar specificity pe wo haar jaata (D-43 aur D-44 §6 me do baar kat
 chuka hai).
 
+### 5. Admin ke do aur chhote kaam (client ne chalte-chalte maange)
+
+- **`.ta` ka `min-height` 110 → 150px** (`943ed54`) — client ka apna tune. Value unki hai;
+  maine sirf upar wahi bachaav wala comment daala jo `.toggle-ico` (D-64) aur `.btn` pe hai,
+  taaki agla "design se match" pass ise wapas na kar de. ⚠️ Ye **poore admin ke har
+  textarea** pe lagta hai, sirf Section Headings pe nahi.
+- **Footer column ka `Menu` dropdown ab `max-width: 300px`** (`15d629e`) — usme sirf menu ka
+  naam aata hai, par box poori row kha raha tha. Selector `.field > .sel.ftr-menu-sel` —
+  **do class**, wahi primitives wali wajah. `max-width` liya, fix `width` nahi: card chhoti
+  screen pe sikudta hai aur fix chaudai wahan uske bahar nikal jaati.
+
+> Aaj teen baar ek hi cheez kaati: **is codebase me ek-class wala override bharose ke laayak
+> nahi hai.** `.field` ka gap, `.ftr-menu-sel`, aur pehle `.ftr-block-icon`/`.edit-grid` —
+> sab me primitives load order se jeet jaata hai. Admin me koi bhi width/spacing override
+> likhte waqt pehla sawaal yahi hona chahiye.
+
 **Faisle**
 
 | Kya                                             | Kaun           |

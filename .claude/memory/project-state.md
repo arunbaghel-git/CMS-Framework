@@ -338,6 +338,7 @@ Phase 1   Content Core — Packages ke order se (spec 007, D-46)
           Closing CTA card (settings se)     ✅  31 Aug — D-67, Q-2 ka atkav khula
           Public page ka RESPONSIVE pass     ✅  31 Aug — 8 breakpoint, media-diff.mjs
           Phone ka horizontal scroll         ✅  31 Aug — band drawer, + a11y bug
+          Admin ke chhote CSS fix            ✅  31 Aug — field gap, textarea 150px, menu dropdown
           Admin ka responsive                🔴  ← 782px block gayab. Client: baad me
 Phase 2+  Media library aur aage           🔴
 ```
