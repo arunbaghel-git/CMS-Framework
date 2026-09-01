@@ -15,6 +15,7 @@ import {
 } from './Pricing.jsx'
 import Reviews, { HeroRating, RatingNote } from './Reviews.jsx'
 import RichText from './RichText.jsx'
+import Schema from './Schema.jsx'
 import SectionHead from './SectionHead.jsx'
 import Similar from './Similar.jsx'
 
@@ -314,6 +315,25 @@ export default function PackagePage({ entry, defaults, settings }) {
   return (
     <CategoryProvider pricing={entry.pricing} currency={settings?.currency ?? 'INR'}>
       <main className="pkg">
+        {/*
+         * Structured data — reference ke `@graph` se (breadcrumb · trip · FAQs).
+         *
+         * `<main>` ke andar hai, `<head>` me nahi: Next ke App Router me `generateMetadata`
+         * se `<script>` nahi nikalti, aur JSON-LD body me bilkul valid hai (Google khud yahi
+         * kehta hai). Yahan hone ka ek faayda aur hai — jo data page render karta hai wahi
+         * schema ko milta hai, do alag fetch nahi.
+         */}
+        <Schema
+          entry={entry}
+          defaults={defaults}
+          settings={settings}
+          breadcrumbs={[
+            { name: 'Home', path: '/' },
+            { name: ARCHIVE_CRUMB.label, path: ARCHIVE_CRUMB.href },
+            { name: entry.title, path: entry.path },
+          ]}
+        />
+
         {/* Order reference ka hai: breadcrumb → .gal → .ptitle → body. */}
         <nav className="wrap vcrumb" aria-label="Breadcrumb">
           <a href="/">Home</a>
