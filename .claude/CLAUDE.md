@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1–7 ban chuki hain** —
-public package page ke **saare** section live hain (**617 tests passing**).
+public package page ke **saare** section live hain (**619 tests passing**).
 1 Sep ko client ki 15-item list se: reviews (D-70), similar itineraries (D-71), structured
 data, Enquiry Forms (D-72) aur typography tokens (D-73).
 ⚠️ `goodToKnow[]` **banega hi nahi** (D-68) — uska content har package pe same rehta hai, to

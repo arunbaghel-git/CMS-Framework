@@ -1,15 +1,27 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 1 Sep 2026, shaam — client ki 15-item list poori
+> **Last updated:** 1 Sep 2026, raat — 11 commit, saara kaam land ho chuka
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (1 Sep, shaam)
+## ⏭️ Nayi session yahan se shuru kare (2 Sep)
 
 **Aaj kya hua:** client ne ek 15-item list di (7 public site + 6 admin + reviews + similar +
-enquiry forms). **Poori list ban gayi**, saat commit me. 617 tests pass, lint aur format
-clean, admin build green.
+enquiry forms). **Poori list ban gayi**, aur uske baad client ne live chala kar chaar aur
+baatein kahin. Kul **11 commit**. 619 tests pass, lint aur format clean, admin build green.
+
+### Client ne live chala kar jo chaar baatein kahin (sab ho chuki)
+
+1. **Reviews Packages ka submenu nahi, apna menu hona chahiye** — unhone pehli baar me hi
+   "one menu in sidebar" kaha tha, maine galat padha. Ab `/reviews` top-level hai
+2. **Enquiry form reference se poora match kare** — paanch cheezein chhoot gayi thi:
+   Hotel category ka dropdown (jo daam badalta hai), placeholder, `.bkg__two` jodi, `optional`
+   tag, aur button ke neeche wali `<small>` line
+3. **`From price` me range dikhao, sirf sasta nahi** — ab `₹24,999 – ₹49,999`
+4. **"did i ask to add unnecessary things?"** — maine `Built-in fields not in this form` wala
+   panel bina maange bana diya tha. Hata diya; unhone jo maanga tha (type dropdown me
+   `Package`) wahi bana
 
 ### Pehle ye do, warna waqt zaya hoga
 
@@ -21,13 +33,26 @@ clean, admin build green.
    nahi** (migration 004 applied ho chuki hai, to naye permission ka koi aur raasta nahi).
    Ye failure chup hai — koi error nahi aata, bas item gayab rehta hai.
 
-### Client ko ye teen cheezein batani hain
+### ⏳ Ek sawaal jiska jawab nahi aaya
 
-| #   | Kya                                                                                    | Kyun                                                                                                                                                                                                              |
-| --- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Trip schema ek checkbox pe hai** — `Edit Package ▸ SEO ▸ Emit Product + Trip schema` | Wo field Slice 3 se maujood tha aur aaj tak kuch karta hi nahi tha. Default **off** hai, to purane packages pe wo tick karni padegi                                                                               |
-| 2   | **Enquiry ka mail abhi jaata nahi** — SMTP Phase 0 se blocked                          | Submissions `enquiries` collection me store ho rahi hain, par unhe **dekhne ki screen nahi** hai. Ye client ka faisla tha ("only Enquiry Forms"), par unhe pata hona chahiye ki abhi wo enquiries sirf DB me hain |
-| 3   | **Hero popup ka backdrop ab halka safed hai** (P1)                                     | Client ne "shadow hatao" kaha tha. Poora transparent nahi kiya — tab peeche ka page image ke aar-paar padha jaane lagta. Agar wo sach me poora transparent chahte hain, wo ek line hai                            |
+**`Hotel category` unke form me nahi hai** (wo field baad me juda, aur purane form naye
+default nahi uthate). Maine poochha tha ki use bhi `Add a field` ke dropdown me daal doon
+ya nahi — jawab nahi aaya. **Ek line ka kaam hai** (`ADDABLE` me ek entry,
+`FormBuilder.jsx`), par jaan-boojh kar nahi kiya: client ne sirf `Package` kaha tha, aur
+usi din wo bina maange kaam karne pe tok chuke the.
+
+⚠️ Iske bina wo reference wala **daam badalne wala dropdown** apne form me daal hi nahi
+sakte — yaani enquiry form ka sabse kaam ka hissa unke paas nahi hai. Kal pehla sawaal yahi
+poochho.
+
+### Client ko ye chaar cheezein batani hain
+
+| #   | Kya                                                                                    | Kyun                                                                                                                                                                                                                                                     |
+| --- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Trip schema ek checkbox pe hai** — `Edit Package ▸ SEO ▸ Emit Product + Trip schema` | Wo field Slice 3 se maujood tha aur aaj tak kuch karta hi nahi tha. Default **off** hai, to purane packages pe wo tick karni padegi                                                                                                                      |
+| 2   | **Enquiry ka mail abhi jaata nahi** — SMTP Phase 0 se blocked                          | Submissions `enquiries` collection me store ho rahi hain, par unhe **dekhne ki screen nahi** hai. Ye client ka faisla tha ("only Enquiry Forms"), par unhe pata hona chahiye ki abhi wo enquiries sirf DB me hain                                        |
+| 3   | **Hero popup ka backdrop ab halka safed hai** (P1)                                     | Client ne "shadow hatao" kaha tha. Poora transparent nahi kiya — tab peeche ka page image ke aar-paar padha jaane lagta. Agar wo sach me poora transparent chahte hain, wo ek line hai                                                                   |
+| 4   | **`optional` ka tag ab kahin nahi hai**                                                | Client ne uska checkbox hatane ko kaha, aur uske saath maine poora code bhi hata diya (bina UI ke wo config kahin se set hi nahi ho sakti thi). Nateeja: reference me `Special request` ke label ke aage jo halka `optional` hai, wo page pe nahi aayega |
 
 ### Khule items — ginti ke hisaab se
 
@@ -40,7 +65,19 @@ clean, admin build green.
 | **Q-9**             | Chhoti inline lines — `or similar`, `TAB_NOTE` (Andaman-specific), catbar ki line | client     |
 | **A-9**             | Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe                           | —          |
 
-### Aaj ka sabse kaam ka sabak
+### Aaj ke do sabak
+
+**Client jo shabd me kehta hai, wahi maano — apna "behtar" version nahi.** Unhone
+_"one menu in sidebar"_ kaha; maine use "Packages ke submenu me ek item" padh liya kyunki
+**data** ke hisaab se reviews baaki master lists jaisi hi hai. Par unki baat daayre ki thi,
+data ki nahi.
+
+**Aur jo nahi maanga, wo mat banao — chahe wo unki hi dikkat solve karta ho.** Unhone poochha
+ki missing field admin me dikhe; maine ek poora "Built-in fields not in this form" panel bana
+diya. Unhone tok diya, aur jo maanga tha wo do line ka tha (type dropdown me ek entry). Dikkat
+sahi pakdi thi, hal apne mann se bana liya.
+
+### Kal ka sabse kaam ka sabak
 
 **Design ki "galti" pehle apna hi na-samajhna hoti hai.** `.prow` ke responsive rules dekh
 kar maine unhe likhne ki galti samajh liya (1180px pe kam column, 1024px pe zyada) aur apne
