@@ -1,4 +1,5 @@
 import {
+  DEFAULT_FORM_FIELDS,
   FORM_FIELD_TYPE_LABEL,
   FORM_PLACEMENTS,
   FORM_PLACEMENT_LABEL,
@@ -149,6 +150,47 @@ export default function FormBuilder() {
       ],
     })
     setNewField({ label: '', type: 'text' })
+  }
+
+  /**
+   * Jo built-in field **is form me hain hi nahi**.
+   *
+   * Do tarah se aisa hota hai, aur dono asli hain:
+   *
+   * 1. Client ne use **Remove** kar diya tha aur ab wapas chahiye
+   * 2. Wo field is form ke **banne ke baad** code me juda — `Hotel category` ke saath theek
+   *    yahi hua (1 Sep). Purane form apne aap naye default nahi utha lete, aur wo sahi bhi
+   *    hai: kisi ke bane hue form me chup-chaap ek naya khaana ghusa dena uska form badalna
+   *    hai, uski marzi ke bina
+   *
+   * ⚠️ Pehle iska koi raasta hi nahi tha — client ko wo field **dikhta hi nahi** tha, aur
+   * "kya wo hai aur maine chhupa rakha hai, ya hai hi nahi" ka jawab kahin se nahi milta tha
+   * (client, 1 Sep). Ab wo yahin neeche list me dikhte hain.
+   */
+  const missing = DEFAULT_FORM_FIELDS.filter(
+    (candidate) => !form.fields.some((field) => field.key === candidate.key),
+  )
+
+  /** Built-in field wapas — apne asli default ke saath, chhupa hua nahi. */
+  function restoreField(candidate) {
+    setError(null)
+    set({
+      fields: [
+        ...form.fields,
+        {
+          options: [],
+          placeholder: '',
+          width: 'full',
+          optionalTag: false,
+          ...candidate,
+          /**
+           * `show: true` — client ne ise khud jodne ke liye click kiya hai. Uska apna default
+           * (`Hotel category` pe `false`) naye form ke liye hai, is click ke liye nahi.
+           */
+          show: true,
+        },
+      ],
+    })
   }
 
   function removeField(index) {
@@ -482,6 +524,24 @@ export default function FormBuilder() {
               )}
               <span className="muted">{form.fields.length} fields</span>
             </div>
+
+            {canWrite && missing.length > 0 && (
+              <div className="panel-foot missing-fields">
+                <span className="muted">Built-in fields not in this form</span>
+                <div className="addrow">
+                  {missing.map((candidate) => (
+                    <button
+                      key={candidate.key}
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => restoreField(candidate)}
+                    >
+                      ＋ {candidate.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </Panel>
         </div>
 

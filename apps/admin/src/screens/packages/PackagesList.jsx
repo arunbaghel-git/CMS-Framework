@@ -1,4 +1,4 @@
-import { cheapestPricing, formatPrice } from '@cms/shared'
+import { formatPrice, pricedCategories } from '@cms/shared'
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -23,10 +23,20 @@ import './Packages.css'
  * 2. **`Enq.` column bhi nahi hai** (client, 1 Sep). Wo Slice 3 se `—` dikha raha tha
  *    kyunki Enquiries bani hi nahi thi. Client ne use rakhne ki jagah hatane ko kaha —
  *    Enquiries banne pe wapas aayega.
- * 3. **`From price` ab asli daam dikhata hai** (client, 1 Sep). Wo derive hota hai —
- *    **sabse sasti category** (`cheapestPricing()`), wahi jo public page ke upar chhapta
- *    hai. Ek hi jagah se dono aane ka matlab hai ki list aur page kabhi alag daam nahi
- *    dikha sakte.
+ * 3. **`From price` ab **poori range** dikhata hai** — `₹24,999 – ₹49,999` (client,
+ *    1 Sep: _"i ask to show low price and max price not only low price"_).
+ *
+ *    Pehle sirf sabse sasta daam tha, kyunki page ke upar wahi chhapta hai. Par list ka kaam
+ *    alag hai: wahan client apne saare packages ek saath dekh raha hota hai, aur "yeh package
+ *    kitne ka hai" ka jawab ek number se milta hi nahi jab uski chaar category ke chaar daam
+ *    hain. Range se pata chalta hai ki package kahan se kahan tak jaata hai.
+ *
+ *    Dono sire `pricedCategories()` se aate hain — wahi function jo public page ke catbar
+ *    aur hotels ke tabs bharta hai, aur wo **sasti se mehngi** ke kram me deta hai. Ek hi
+ *    jagah se aane ka matlab hai ki list aur page kabhi alag daam nahi dikha sakte.
+ *
+ *    Sirf **ek** category ka daam bhara ho to ek hi number aata hai — `₹24,999 – ₹24,999`
+ *    likhna ek jhoothi range hai.
  *
  *    ⚠️ **Sort nahi hai, sirf display** (client, 1 Sep — "sort karne ki kya jarurat hai").
  *    Wo waise bhi seedha nahi hota: `From price` stored nahi hai, to Mongo use sort nahi
@@ -494,13 +504,21 @@ export default function PackagesList() {
               <td className="nowrap">{duration(entry.fields)}</td>
               <td className="nowrap">
                 {(() => {
-                  const cheapest = cheapestPricing(entry.fields?.pricing)
+                  /* Sasti se mehngi ke kram me — pehla sabse sasta, aakhri sabse mehnga */
+                  const priced = pricedCategories(entry.fields?.pricing)
                   /* Ek bhi category ka daam nahi bhara — khaali cheez khaali dikhe (D-30) */
-                  if (!cheapest) return <span className="muted">—</span>
+                  if (!priced.length) return <span className="muted">—</span>
+
+                  const low = priced[0].priceFrom
+                  const high = priced[priced.length - 1].priceFrom
 
                   return (
                     <>
-                      <b>{formatPrice(cheapest.priceFrom, currency)}</b>
+                      <b>
+                        {formatPrice(low, currency)}
+                        {/* Ek hi category pe range nahi — wo ek jhoothi range hoti */}
+                        {high !== low && ` – ${formatPrice(high, currency)}`}
+                      </b>
                       {/* Design ki chhoti line. Static hai — `priceBasis` D-57 me hat gaya tha */}
                       <div className="muted price-basis">per person</div>
                     </>
