@@ -84,18 +84,6 @@ export const NAV = [
       { label: 'Hotels', to: '/packages/hotels', permission: PERMISSION.HOTEL_READ },
       { label: 'Add Ons', to: '/packages/add-ons', permission: PERMISSION.ADD_ON_READ },
       { label: 'Transfer', to: '/packages/transfers', permission: PERMISSION.TRANSFER_READ },
-      /**
-       * Reviews — client, 1 Sep. Design me ye item hai hi nahi (na purane
-       * `admin-design.html` me, na 1 Sep wale `admin-design-v2.html` me).
-       *
-       * R15 ke against nahi hai: badlaav **client se** aaya hai, developer se nahi — wahi
-       * raasta jisse spec 007 ne is submenu me paanch item jode the.
-       *
-       * Baaki master lists ke saath rakha hai, kyunki wo wahi cheez hai: ek managed list
-       * jisme se page content banta hai. Farq sirf itna ki package inme se **chunta nahi** —
-       * reviews har package ke neeche wahi ki wahi chhapti hain.
-       */
-      { label: 'Reviews', to: '/packages/reviews', permission: PERMISSION.REVIEW_READ },
       {
         label: "What's Included",
         to: '/packages/whats-included',
@@ -124,6 +112,30 @@ export const NAV = [
    * Teenon anbane item phir bhi yahan hain: D-30 — khaali cheez khaali dikhni chahiye,
    * tooti hui nahi. Menu se hata dene se baad me poora nav dobara likhna padta.
    */
+  /**
+   * Reviews — **apna top-level menu**, Packages ka submenu nahi (client, 1 Sep).
+   *
+   * ⚠️ Pehle ye `Packages ▸ Reviews` bana diya gaya tha, kyunki data ke hisaab se wo baaki
+   * master lists jaisa hi hai (Hotels · Add Ons · Transfer). Client ne palta, aur unki baat
+   * pehli baar me hi saaf thi — _"one menu in sidebar"_.
+   *
+   * Wajah data me nahi, **daayre me** hai: Hotels aur Add Ons package ke **andar** ki
+   * cheezein hain — har package unme se chunta hai. Reviews kisi package ke andar nahi
+   * hain; wo poori site ki hain aur har package ke neeche wahi ki wahi chhapti hain. Jo
+   * cheez sabke upar hai, wo kisi ek ke andar nahi baithni chahiye.
+   *
+   * Ye wahi lakeer hai jo A-13/A-14 pe bani thi, bas ulti taraf se: **admin ka dhaancha us
+   * cheez ke daayre ko follow karta hai, uske data model ko nahi.**
+   *
+   * Submenu nahi hai — screen ek hi hai (form + list ek saath), Media jaisi.
+   */
+  {
+    id: 'reviews',
+    icon: '★',
+    label: 'Reviews',
+    to: '/reviews',
+    permission: PERMISSION.REVIEW_READ,
+  },
   {
     id: 'enquiries',
     icon: '✉',

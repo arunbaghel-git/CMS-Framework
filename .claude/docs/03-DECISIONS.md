@@ -4213,6 +4213,13 @@ tha: `ratingValue`/`ratingCount` haath se likhe jaayein ya `reviews[]` se gine j
 | Reviews (star · month · text · name · last line) | nayi `reviews` collection | ek dohrayi jaati hui cheez, master list jaisi |
 | Rating (`4.9` / `412 trips`) | `packageDefaults.rating` | ek hi jodi, list nahi |
 
+**Reviews ka apna top-level sidebar menu hai**, `Packages` ka submenu nahi. Pehle wo
+submenu bana diya gaya tha (data ke hisaab se wo Hotels/Add Ons jaisa hi hai) aur client ne
+palta — unki baat pehli baar me saaf thi: _"one menu in sidebar"_. Wajah data me nahi,
+**daayre me** hai: Hotels package ke **andar** ki cheez hai (har package chunta hai), reviews
+kisi package ke andar nahi — wo poori site ki hain. **Admin ka dhaancha cheez ke daayre ko
+follow karta hai, uske data model ko nahi.**
+
 **`entries` pe koi `reviews[]` field nahi bani.** Spec §7 me wo per-package socha gaya tha;
 client ne ulta chuna. Wahi faisla `goodToKnow[]` pe hua tha (D-68) — **jo har package pe same
 chhapta hai, wo package ka data nahi hai.**

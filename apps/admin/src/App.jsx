@@ -155,7 +155,14 @@ const APP_ROUTES = [
   { path: '/packages/hotels', element: <MasterListScreen list="hotels" /> },
   { path: '/packages/add-ons', element: <MasterListScreen list="addOns" /> },
   { path: '/packages/transfers', element: <MasterListScreen list="transfers" /> },
-  { path: '/packages/reviews', element: <MasterListScreen list="reviews" /> },
+  /**
+   * `/reviews` — `/packages/reviews` **nahi** (client, 1 Sep). Reviews ka apna top-level
+   * menu hai, isliye uska apna top-level path bhi.
+   *
+   * Iska ek chhupa hua faayda bhi hai: `/packages/*` wala "abhi nahi bana" splat neeche
+   * hai, aur us raaste se nikal jaane ka matlab hai ki koi galti se wo splat pakde hi na.
+   */
+  { path: '/reviews', element: <MasterListScreen list="reviews" /> },
 
   /**
    * ⚠️ `/enquiries/forms/new` `/enquiries/forms/:id` se **pehle** hai — wahi wajah jo
