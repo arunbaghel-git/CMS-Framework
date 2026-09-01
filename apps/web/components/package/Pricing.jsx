@@ -32,7 +32,16 @@ import SectionHead from './SectionHead.jsx'
 
 const CategoryContext = createContext(null)
 
-function useCategory() {
+/**
+ * ⚠️ Ye hook **is file ke bahar bhi** jaata hai — `EnquiryForm` ka "Hotel category" dropdown
+ * isse hi category badalta hai (reference ka `.js-cat-sel`).
+ *
+ * Yaani page pe do jagah se ek hi cheez chunti hai: upar ka catbar, aur sidebar ka form. Wo
+ * jaan-boojh kar hai — reference me bhi dono ek hi daam dikhate hain, isliye unka state bhi
+ * ek hi hona chahiye. Do alag state rakhne ka matlab hota ki catbar "Deluxe" dikhata aur form
+ * "Standard" bhejta.
+ */
+export function useCategory() {
   const ctx = useContext(CategoryContext)
   if (!ctx) throw new Error('Pricing ke hisse CategoryProvider ke andar hi chalte hain')
   return ctx

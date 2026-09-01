@@ -96,13 +96,50 @@ export const formFieldSchema = z.object({
   options: z.array(z.string().min(1).max(120)).max(50).default([]),
 
   /**
-   * Sirf `select` pe, aur sirf ek value — `packages`.
+   * Sirf `select` pe — vikalp admin ke likhe hue nahi, kahin aur se aate hain.
    *
-   * Design kehta hai `Dropdown · auto-filled from Packages`. Us haalat me vikalp admin nahi
-   * likhta; wo publish package ki list se aate hain, aur nayi package jodte hi form me aa
-   * jaati hai.
+   * | `source` | Vikalp kahan se | Design |
+   * | --- | --- | --- |
+   * | `packages` | is page ka package + uske similar | `Dropdown · auto-filled from Packages` |
+   * | `categories` | is package ki **bhari hui** categories, daam ke saath | `Standard — ₹24,999` |
+   *
+   * ⚠️ `categories` sirf ek dropdown nahi hai — wo **page ka daam badalta hai**. Reference
+   * (`itinerary-v3.html`) me wahi `.js-cat-sel` hai: category chunte hi widget ka neela sar
+   * aur "save %" dono badal jaate hain. Isiliye uske vikalp admin likh hi nahi sakta — wo
+   * har package ke apne daam hain.
    */
-  source: z.enum(['packages']).optional(),
+  source: z.enum(['packages', 'categories']).optional(),
+
+  /**
+   * `Your name`, `+91 98765 43210`, `you@example.com` — reference ke apne placeholders.
+   *
+   * Label batata hai ki khaana **kya** hai; placeholder batata hai ki uska **roop** kya hai.
+   * Mobile pe ye sabse zyada kaam aata hai: `+91` dikhte hi user ko pata chal jaata hai ki
+   * country code chahiye ya nahi.
+   */
+  placeholder: z.string().max(200).default(''),
+
+  /**
+   * `half` wale do field **ek row me** baithte hain — reference ka `.bkg__two`.
+   *
+   * Wahan `Travel date` aur `Guests` ek saath hain, aur wo bina wajah nahi: sidebar ka form
+   * patla hai, aur do chhote khaane ko poori chaudai dena form ko bekaar lamba kar deta hai.
+   *
+   * Jodi **apne aap** banti hai — do lagataar `half` mil jaayein to wo ek row ho jaate hain.
+   * Admin ko "row" jaisi koi cheez banane ki zaroorat nahi; ek akela `half` bhi theek chalta
+   * hai (wo poori chaudai le leta hai).
+   */
+  width: z.enum(['full', 'half']).default('full'),
+
+  /**
+   * Label ke aage halka `optional` — reference me sirf `Special request` pe hai.
+   *
+   * Ye `required` ka ulta **nahi** hai, aur isiliye alag khaana hai. Reference me
+   * `Travel date` aur `Guests` bhi optional hain par unpe ye tag nahi — wo `.bkg__two` ki
+   * tang jodi me hain aur wahan tag label ko tod deta. Yaani ye ek **dikhne ka** faisla hai,
+   * niyam ka nahi; use `!required` se derive karna reference se hi alag ho jaata.
+   */
+  optionalTag: z.boolean().default(false),
 })
 
 // ── form ─────────────────────────────────────────────────────────────────────
@@ -146,6 +183,19 @@ export const formSchema = z.object({
       value: z.string().trim().max(500).default(''),
     })
     .default({ mode: 'message', value: '' }),
+
+  /**
+   * Button ke neeche ki chhoti line — reference ka `<small>`.
+   *
+   * `No advance to see the plan. Answered by a planner in Port Blair, usually within 4
+   * working hours.`
+   *
+   * Ye thank-you message se **alag** hai aur ye farq maayne rakhta hai: thank-you submit ke
+   * **baad** aata hai, ye **pehle** — jab user abhi soch raha hai ki bharun ya na bharun.
+   * Isme jhijhak todne wali baat hoti hai ("no advance", "4 hours"), aur usi wajah se wo
+   * conversion pe seedha asar daalti hai.
+   */
+  footnote: z.string().trim().max(300).default(''),
 
   placement: z.enum(FORM_PLACEMENTS).default('none'),
 
@@ -196,9 +246,30 @@ export const formListQuerySchema = z.object({
  * kar use pehle ye sochna padta ki ek enquiry form me hota kya hai.
  */
 export const DEFAULT_FORM_FIELDS = Object.freeze([
-  { key: 'fullName', label: 'Full Name', type: 'text', show: true, required: true },
-  { key: 'email', label: 'Email', type: 'email', show: true, required: true },
-  { key: 'phone', label: 'Phone / WhatsApp', type: 'phone', show: true, required: true },
+  {
+    key: 'fullName',
+    label: 'Full Name',
+    type: 'text',
+    show: true,
+    required: true,
+    placeholder: 'Your name',
+  },
+  {
+    key: 'email',
+    label: 'Email',
+    type: 'email',
+    show: true,
+    required: true,
+    placeholder: 'you@example.com',
+  },
+  {
+    key: 'phone',
+    label: 'Phone / WhatsApp',
+    type: 'phone',
+    show: true,
+    required: true,
+    placeholder: '+91 98765 43210',
+  },
   {
     key: 'packageName',
     label: 'Package',
@@ -208,8 +279,38 @@ export const DEFAULT_FORM_FIELDS = Object.freeze([
     /** Vikalp publish packages se aate hain — admin inhe likhta nahi. */
     source: 'packages',
   },
-  { key: 'travelDate', label: 'Travel Date', type: 'date', show: true, required: false },
-  { key: 'travellers', label: 'Travellers', type: 'number', show: true, required: false },
+  /** Ye do reference me ek hi row me hain (`.bkg__two`) — isiliye dono `half`. */
+  {
+    key: 'travelDate',
+    label: 'Travel Date',
+    type: 'date',
+    show: true,
+    required: false,
+    width: 'half',
+  },
+  {
+    key: 'travellers',
+    label: 'Travellers',
+    type: 'number',
+    show: true,
+    required: false,
+    width: 'half',
+  },
+  /**
+   * Hotel category — reference ka `.js-cat-sel`.
+   *
+   * `show: false` pe khulta hai, jaan-boojh kar: har site package pe category-wise daam
+   * nahi rakhti, aur bina bhare hue daam ke ye dropdown khaali hota (aur tab render bhi nahi
+   * hota). Jise chahiye wo ek tick se chalu kar le.
+   */
+  {
+    key: 'hotelCategory',
+    label: 'Hotel category',
+    type: 'select',
+    show: false,
+    required: false,
+    source: 'categories',
+  },
   {
     key: 'budget',
     label: 'Budget',
@@ -218,7 +319,15 @@ export const DEFAULT_FORM_FIELDS = Object.freeze([
     required: false,
     options: ['Under ₹25,000', '₹25,000 – ₹50,000', '₹50,000 – ₹1,00,000', 'Above ₹1,00,000'],
   },
-  { key: 'message', label: 'Message', type: 'textarea', show: true, required: false },
+  {
+    key: 'message',
+    label: 'Message',
+    type: 'textarea',
+    show: true,
+    required: false,
+    optionalTag: true,
+    placeholder: "Honeymoon, kids' ages, flight timings — anything we should plan around",
+  },
   { key: 'consent', label: 'Consent', type: 'checkbox', show: true, required: true },
   {
     /** Design: `Hidden · captured automatically`. Browser bharta hai, client nahi. */
@@ -236,9 +345,17 @@ export function emptyForm() {
     name: '',
     emailTo: '',
     afterSubmit: { mode: 'message', value: 'Thank you — we will get back to you shortly.' },
+    /** Reference ki apni line — client kaat sakta hai, par ek chalti hui shuruaat milti hai. */
+    footnote: 'No advance to see the plan. Answered by a planner, usually within 4 working hours.',
     placement: 'none',
     status: 'draft',
-    fields: DEFAULT_FORM_FIELDS.map((field) => ({ options: [], ...field })),
+    fields: DEFAULT_FORM_FIELDS.map((field) => ({
+      options: [],
+      placeholder: '',
+      width: 'full',
+      optionalTag: false,
+      ...field,
+    })),
   }
 }
 

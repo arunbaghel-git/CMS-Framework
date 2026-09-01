@@ -2902,6 +2902,41 @@ a.mega__gl:hover {
   margin-top: 3px;
 }
 
+/*
+ * Do chhote khaane ek row me — reference ka `.bkg__two` (`Travel date` + `Guests`).
+ *
+ * Jodi apne aap banti hai: do **lagataar** `half` fields (`EnquiryForm` ka `toRows()`).
+ * Sidebar ka form patla hai, aur do chhote khaano ko poori chaudai dena use bekaar lamba
+ * kar deta hai.
+ */
+.bkg__two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+
+/* Row ka apna margin hai, isliye andar wale fields ka margin hat jaata hai. */
+.bkg__two .fld {
+  margin-bottom: 0;
+}
+
+/*
+ * Button ke neeche ki chhoti line — reference ka `<small>`.
+ *
+ * Ye thank-you se alag hai: wo submit ke **baad** aata hai, ye **pehle**. Isme jhijhak
+ * todne wali baat hoti hai ("No advance to see the plan"), isliye wo button ke saath hi
+ * padhi jaani chahiye — beech me koi gap nahi.
+ */
+.bkg__b small {
+  display: block;
+  text-align: center;
+  font-size: var(--fs-3xs);
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 10px;
+}
+
 /* ---------- form fields ----------
    Reference ka `.fld`. Ye poore page ke liye hai, sirf is widget ke liye nahi — jis din
    koi doosra form bane (contact page), wo inhi class pe khada hoga. */
@@ -2950,6 +2985,22 @@ a.mega__gl:hover {
   min-height: 70px;
   line-height: 1.5;
   display: block;
+}
+
+/*
+ * Label ke aage halka `optional` — reference ka `.fld label em`.
+ *
+ * Label khud upper-case aur mota hai; ye uske ulta hai (chhota, halka, saada) taaki wo label
+ * ka hissa na lage. `font-style: normal` isliye ki `<em>` browser me tirchha hota hai aur
+ * reference me wo tirchha nahi hai.
+ */
+.fld label em {
+  font-style: normal;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--faint);
+  margin-left: 5px;
 }
 
 /*

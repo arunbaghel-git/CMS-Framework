@@ -1,8 +1,9 @@
 'use client'
 
+import { HOTEL_CATEGORY_LABEL, formatPrice } from '@cms/shared'
 import { useState } from 'react'
 
-import { PriceHeader } from './Pricing.jsx'
+import { PriceHeader, useCategory } from './Pricing.jsx'
 
 /**
  * Sidebar ka enquiry form — reference ka `.wdg--book` (`itinerary-v3.html`).
@@ -40,16 +41,25 @@ const Arrow = () => (
  * `hidden` yahan **aata hi nahi** — wo neeche alag se bharta hai (`sourcePage`). Use yahan
  * render karne ka matlab hota ek dikhne wala khaali khaana.
  */
-function Field({ field, value, onChange, packages }) {
+function Field({ field, value, onChange, packages, categories }) {
   const id = `enq-${field.key}`
 
   /**
-   * `source: 'packages'` — vikalp publish packages se, admin ke likhe hue nahi.
+   * Dropdown ke vikalp teen jagah se aa sakte hain — admin, packages, ya pricing.
    *
-   * List na mile to field **render hi nahi hoti**: ek khaali dropdown adhoora control
-   * dikhana hai (D-30, wahi tark jo khaali URL wale button pe hai).
+   * `categories` ki value **category ki key** hoti hai (`standard`), aur uska label daam ke
+   * saath (`Standard — ₹24,999`) — reference ka `.js-cat-sel` bilkul yahi hai.
+   *
+   * Kahin se bhi list na mile to field **render hi nahi hoti**: ek khaali dropdown adhoora
+   * control dikhana hai (D-30, wahi tark jo khaali URL wale button pe hai). Ye `categories`
+   * pe sach me hota hai — jis package pe daam bhare hi nahi, wahan wo dropdown khaali hai.
    */
-  const options = field.source === 'packages' ? packages : (field.options ?? [])
+  const options =
+    field.source === 'packages'
+      ? packages.map((name) => ({ value: name, label: name }))
+      : field.source === 'categories'
+        ? categories
+        : (field.options ?? []).map((option) => ({ value: option, label: option }))
 
   if (field.type === 'select' && options.length === 0) return null
 
@@ -75,18 +85,25 @@ function Field({ field, value, onChange, packages }) {
     )
   }
 
+  /* Half-width ka layout `.bkg__two` karta hai, field khud nahi — yahan koi extra class nahi. */
   return (
     <div className="fld">
-      <label htmlFor={id}>{field.label}</label>
+      <label htmlFor={id}>
+        {field.label}
+        {/* Reference me ye `<em>optional</em>` hai — halka, label ke turant baad. */}
+        {field.optionalTag && <em>optional</em>}
+      </label>
 
-      {field.type === 'textarea' && <textarea {...common} rows={3} />}
+      {field.type === 'textarea' && (
+        <textarea {...common} rows={3} placeholder={field.placeholder || undefined} />
+      )}
 
       {field.type === 'select' && (
         <select {...common}>
           <option value="">Choose…</option>
           {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
@@ -98,6 +115,7 @@ function Field({ field, value, onChange, packages }) {
           type={
             { email: 'email', phone: 'tel', number: 'number', date: 'date' }[field.type] ?? 'text'
           }
+          placeholder={field.placeholder || undefined}
           /** Browser ka autofill — sabse bada single UX faayda, aur muft hai. */
           autoComplete={
             { email: 'email', phone: 'tel', text: field.key === 'fullName' ? 'name' : 'off' }[
@@ -110,15 +128,62 @@ function Field({ field, value, onChange, packages }) {
   )
 }
 
+/**
+ * Fields → rows. Do **lagataar** `half` ek row me, baaki akele.
+ *
+ * Reference me `Travel date` aur `Guests` ek `.bkg__two` me hain. Admin ko "row" jaisi koi
+ * cheez banane ka raasta dene ki jagah, do lagataar `half` apne aap jud jaate hain — ek
+ * checkbox se wo kaam ho jaata hai jiske liye warna ek poora grouping UI banana padta.
+ *
+ * Akela `half` (ya list ka aakhri) apni row me rehta hai aur poori chaudai le leta hai. Wo
+ * bura nahi dikhta, aur uske liye alag niyam likhna is chhoti si cheez ko bada bana deta.
+ */
+function toRows(fields) {
+  const rows = []
+
+  for (let i = 0; i < fields.length; i++) {
+    const field = fields[i]
+    const next = fields[i + 1]
+
+    if (field.width === 'half' && next?.width === 'half') {
+      rows.push([field, next])
+      i++
+      continue
+    }
+
+    rows.push([field])
+  }
+
+  return rows
+}
+
 export default function EnquiryForm({ form, packages = [], sourcePath }) {
   const [values, setValues] = useState({})
   const [hp, setHp] = useState('')
   const [state, setState] = useState({ sending: false, done: false, error: null })
 
+  /**
+   * Category ka state **form ke bahar** rehta hai — wo poore page ka hai (`CategoryProvider`).
+   *
+   * Isiliye "Hotel category" wala dropdown apni value `values` me nahi rakhta: agar rakhta,
+   * to upar ke catbar se category badalne pe form purani dikhata rehta. Ek hi source hone se
+   * dono hamesha ek jaisi dikhti hain — reference me bhi wahi hota hai.
+   */
+  const { rows: categoryRows, category, setCategory, currency } = useCategory()
+
   if (!form) return null
 
   /** `hidden` fields form pe nahi dikhte — unhe browser bharta hai. */
   const visible = (form.fields ?? []).filter((field) => field.type !== 'hidden')
+
+  /** `Standard — ₹24,999` — reference ka `.js-cat-sel`. Value category ki key hai. */
+  const categoryOptions = categoryRows.map((row) => ({
+    value: row.category,
+    label: `${HOTEL_CATEGORY_LABEL[row.category] ?? row.category} — ${formatPrice(row.priceFrom, currency)}`,
+  }))
+
+  /** Jin fields ki value page ke category state se aati hai, `values` se nahi. */
+  const isCategoryField = (field) => field.source === 'categories'
 
   const set = (key, value) => setValues((v) => ({ ...v, [key]: value }))
 
@@ -140,8 +205,19 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
          */
         body: JSON.stringify({
           formId: form.id,
-          /** `sourcePage` yahan judta hai — design me wo "captured automatically" hai. */
-          values: { ...values, sourcePage: sourcePath },
+          values: {
+            ...values,
+            /**
+             * Category ka jawab yahan judta hai, `values` se nahi — uska state page ka hai.
+             * Bina iske chuni hui category enquiry me pahunchti hi nahi, aur wahi wo ek cheez
+             * hai jispe poora quote tika hota hai.
+             */
+            ...Object.fromEntries(
+              visible.filter(isCategoryField).map((field) => [field.key, category]),
+            ),
+            /** `sourcePage` — design me wo "captured automatically" hai. */
+            sourcePage: sourcePath,
+          },
           hp,
         }),
       })
@@ -174,15 +250,29 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
           </p>
         ) : (
           <form onSubmit={submit}>
-            {visible.map((field) => (
-              <Field
-                key={field.key}
-                field={field}
-                value={values[field.key]}
-                onChange={(value) => set(field.key, value)}
-                packages={packages}
-              />
-            ))}
+            {toRows(visible).map((row) => {
+              const fields = row.map((field) => (
+                <Field
+                  key={field.key}
+                  field={field}
+                  value={isCategoryField(field) ? category : values[field.key]}
+                  onChange={(value) =>
+                    isCategoryField(field) ? setCategory(value) : set(field.key, value)
+                  }
+                  packages={packages}
+                  categories={categoryOptions}
+                />
+              ))
+
+              /* Ek akela field seedha, do wale `.bkg__two` ke andar — reference ka grid. */
+              return row.length === 2 ? (
+                <div className="bkg__two" key={row[0].key}>
+                  {fields}
+                </div>
+              ) : (
+                fields
+              )
+            })}
 
             {/*
              * Honeypot — asli user ise dekh hi nahi sakta, bot bhar deta hai. Bhara hua aaye
@@ -213,6 +303,14 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
               {state.sending ? 'Sending…' : 'Get this itinerary'}
               {!state.sending && <Arrow />}
             </button>
+
+            {/*
+             * Button ke neeche ki chhoti line — reference ka `<small>`.
+             *
+             * Ye thank-you message se alag hai: wo submit ke **baad** aata hai, ye **pehle** —
+             * jab user abhi soch raha hai ki bharun ya na bharun.
+             */}
+            {form.footnote && <small>{form.footnote}</small>}
           </form>
         )}
       </div>

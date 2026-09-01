@@ -135,7 +135,17 @@ export default function FormBuilder() {
     set({
       fields: [
         ...form.fields,
-        { key, label, type: newField.type, show: true, required: false, options: [] },
+        {
+          key,
+          label,
+          type: newField.type,
+          show: true,
+          required: false,
+          options: [],
+          placeholder: '',
+          width: 'full',
+          optionalTag: false,
+        },
       ],
     })
     setNewField({ label: '', type: 'text' })
@@ -158,6 +168,7 @@ export default function FormBuilder() {
       name: form.name,
       emailTo: form.emailTo,
       afterSubmit: form.afterSubmit,
+      footnote: form.footnote,
       placement: form.placement,
       status: form.status,
       fields: form.fields,
@@ -254,7 +265,7 @@ export default function FormBuilder() {
                 </select>
               </div>
 
-              <div className="field" style={{ marginBottom: 0 }}>
+              <div className="field">
                 <label>
                   {form.afterSubmit?.mode === 'redirect' ? 'Redirect to' : 'Thank-you message'}
                 </label>
@@ -267,6 +278,26 @@ export default function FormBuilder() {
                   placeholder={form.afterSubmit?.mode === 'redirect' ? '/thank-you' : ''}
                   disabled={readOnly}
                 />
+              </div>
+
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Note under the button</label>
+                <input
+                  className="inp"
+                  value={form.footnote ?? ''}
+                  onChange={(e) => set({ footnote: e.target.value })}
+                  disabled={readOnly}
+                />
+                {/*
+                 * ⚠️ Ye thank-you message se **alag** hai, aur ye farq zaroori hai — dono box
+                 * paas-paas hain aur ek dusre jaise dikhte hain. Thank-you submit ke **baad**
+                 * aata hai; ye **pehle**, jab user abhi soch raha hai ki bharun ya na bharun.
+                 */}
+                <div className="hint">
+                  Shown <b>before</b> they submit, right under the button — the thank-you message
+                  above is shown after. Good place for what removes hesitation: &ldquo;No advance to
+                  see the plan. Answered by a planner, usually within 4 working hours.&rdquo;
+                </div>
               </div>
             </div>
           </Panel>
@@ -296,6 +327,8 @@ export default function FormBuilder() {
                         {FORM_FIELD_TYPE_LABEL[field.type] ?? field.type}
                         {/* Design: `Dropdown · auto-filled from Packages` */}
                         {field.source === 'packages' && ' · auto-filled from Packages'}
+                        {field.source === 'categories' &&
+                          ' · auto-filled from this package’s prices'}
                         {field.type === 'hidden' && ' · captured automatically'}
                       </div>
 
@@ -305,6 +338,57 @@ export default function FormBuilder() {
                        * jaate. Do raaste ek saath dene se ye pata hi nahi chalta ki page pe
                        * kaunse chhap rahe hain.
                        */}
+                      {/*
+                       * Placeholder sirf un fields pe jinme sach me type hota hai. Dropdown,
+                       * checkbox aur hidden pe uska koi roop hi nahi banta — box dikhana wahan
+                       * ek aisa control dena hota jo kuch karta hi nahi (D-30 ka ulta).
+                       */}
+                      {['text', 'email', 'phone', 'number', 'textarea'].includes(field.type) && (
+                        <input
+                          className="inp field-sub"
+                          value={field.placeholder ?? ''}
+                          onChange={(e) => setField(index, { placeholder: e.target.value })}
+                          placeholder="Placeholder — e.g. +91 98765 43210"
+                          disabled={readOnly}
+                          aria-label={`${field.label} placeholder`}
+                        />
+                      )}
+
+                      <div className="field-flags">
+                        {/*
+                         * Do lagataar `half` apne aap ek row ban jaate hain (reference ka
+                         * `.bkg__two`). Admin ko "row" jaisi koi cheez banane ki zaroorat nahi.
+                         */}
+                        <label className="inline-lbl">
+                          <input
+                            type="checkbox"
+                            checked={field.width === 'half'}
+                            onChange={(e) =>
+                              setField(index, { width: e.target.checked ? 'half' : 'full' })
+                            }
+                            disabled={readOnly}
+                          />{' '}
+                          Half width
+                        </label>
+
+                        {/*
+                         * `required` ka ulta **nahi** hai — reference me Travel date aur Guests
+                         * bhi optional hain par unpe tag nahi. Ye dikhne ka faisla hai, niyam ka
+                         * nahi, isliye apna checkbox.
+                         */}
+                        {!field.required && (
+                          <label className="inline-lbl">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(field.optionalTag)}
+                              onChange={(e) => setField(index, { optionalTag: e.target.checked })}
+                              disabled={readOnly}
+                            />{' '}
+                            Say &ldquo;optional&rdquo;
+                          </label>
+                        )}
+                      </div>
+
                       {field.type === 'select' && !field.source && (
                         <>
                           <textarea

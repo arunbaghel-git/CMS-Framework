@@ -28,6 +28,9 @@ const formSchema = new mongoose.Schema(
       value: { type: String, default: '' },
     },
 
+    /** Button ke neeche ki chhoti line — thank-you se alag: ye submit se **pehle** dikhti hai. */
+    footnote: { type: String, default: '' },
+
     placement: { type: String, default: 'none' },
 
     status: { type: String, default: 'draft' },

@@ -168,6 +168,8 @@ export async function getPublicPackageForm(siteId = DEFAULT_SITE_ID) {
     id: String(doc._id),
     name: doc.name,
     afterSubmit: doc.afterSubmit ?? { mode: 'message', value: '' },
+    /** Button ke neeche ki chhoti line — reference ka `<small>`. */
+    footnote: doc.footnote ?? '',
     fields: (doc.fields ?? [])
       .filter((field) => field.show !== false)
       .map((field) => ({
@@ -177,6 +179,9 @@ export async function getPublicPackageForm(siteId = DEFAULT_SITE_ID) {
         required: Boolean(field.required),
         options: field.options ?? [],
         source: field.source,
+        placeholder: field.placeholder ?? '',
+        width: field.width ?? 'full',
+        optionalTag: Boolean(field.optionalTag),
       })),
   }
 }
