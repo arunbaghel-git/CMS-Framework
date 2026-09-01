@@ -1865,6 +1865,78 @@ describe('add-ons — package ka chunav (§1.4, D-64)', () => {
   })
 })
 
+describe('similar itineraries (§9 #15 — apne aap)', () => {
+  /** Publish tak le jaane wala chhota helper — similar sirf publicly visible package leta hai. */
+  async function publishedPackage(title, fields) {
+    const created = await createEntry(adminJar, { title, fields })
+    const { id } = created.body.data.entry
+    await authed('post', `/api/entries/${id}/publish`, adminJar).send({})
+
+    return id
+  }
+
+  const resolve = (slug) => request(app).get(`/api/public/resolve?path=/packages/${slug}`)
+
+  it('wahi nights AUR days wale package aate hain — khud ko chhod kar', async () => {
+    await publishedPackage('Andaman A', { nights: 5, days: 6 })
+    await publishedPackage('Andaman B', { nights: 5, days: 6 })
+    await publishedPackage('Andaman C', { nights: 5, days: 6 })
+
+    const res = await resolve('andaman-a')
+    const { similar } = res.body.data.entry
+
+    expect(similar.map((s) => s.title).sort()).toEqual(['Andaman B', 'Andaman C'])
+  })
+
+  it('sirf days match karne se similar nahi banta', async () => {
+    // Client ne dono maange the (5N/6D = 5N/6D). 4N/6D "same days" hai par same trip nahi
+    await publishedPackage('Andaman A', { nights: 5, days: 6 })
+    await publishedPackage('Andaman D', { nights: 4, days: 6 })
+
+    const res = await resolve('andaman-a')
+
+    expect(res.body.data.entry.similar).toEqual([])
+  })
+
+  it('bina publish kiya package similar me nahi aata', async () => {
+    await publishedPackage('Andaman A', { nights: 5, days: 6 })
+    await createEntry(adminJar, { title: 'Andaman Draft', fields: { nights: 5, days: 6 } })
+
+    const res = await resolve('andaman-a')
+
+    expect(res.body.data.entry.similar).toEqual([])
+  })
+
+  it('jis package pe nights/days likhe hi nahi, uske similar khaali rehte hain', async () => {
+    // Bina guard ke `null === null` har adhoore package ko doosre ka similar bana deta
+    await publishedPackage('Andaman A', {})
+    await publishedPackage('Andaman B', {})
+
+    const res = await resolve('andaman-a')
+
+    expect(res.body.data.entry.similar).toEqual([])
+  })
+
+  it('card ka daam sabse sasti category se derive hota hai', async () => {
+    await publishedPackage('Andaman A', { nights: 5, days: 6 })
+    await publishedPackage('Andaman B', {
+      nights: 5,
+      days: 6,
+      pricing: {
+        categoryPricing: [
+          { category: 'deluxe', priceFrom: 29499 },
+          { category: 'standard', priceFrom: 24999, strikePrice: 31999 },
+        ],
+      },
+    })
+
+    const res = await resolve('andaman-a')
+    const [card] = res.body.data.entry.similar
+
+    expect(card.from).toMatchObject({ category: 'standard', priceFrom: 24999, strikePrice: 31999 })
+  })
+})
+
 describe('FAQs', () => {
   it('har FAQ ko stable id milti hai', async () => {
     // Wahi wajah jo itinerary ke din pe hai — bina id ke reorder pe khuli hui row galat

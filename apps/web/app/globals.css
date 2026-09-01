@@ -2835,6 +2835,258 @@ a.mega__gl:hover {
    Isliye tokens page ke hain, par shakl yahin tay hui hai.
    ================================================================== */
 
+/* ---------- similar itineraries ----------
+   Reference: itinerary-v3.html — `.sim` `.prow`
+
+   Har card ek **poori chaudai ki row** hai (media | details | price rail), aur `.sim` unhe
+   ek ke neeche ek rakhta hai. Client ne isi ke aage kaha — "3 cards, uske bad 1,2,3 button
+   pagination" — to teen ke baad numbered pagination lagti hai.
+
+   ⚠️ Reference me `.prow` ke liye koi media query nahi hai (wo listing page se aaya hai,
+   jahan column chaudi hoti hai). 238px + 226px ki do tay column patli screen pe beech ka
+   text 100px ka kar deti hain, isliye neeche do breakpoint yahan jode gaye hain. */
+
+.sim {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.prow {
+  display: grid;
+  grid-template-columns: 238px minmax(0, 1fr) 226px;
+  align-items: stretch;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  overflow: hidden;
+  box-shadow: var(--sh-1);
+  transition:
+    box-shadow 0.18s,
+    border-color 0.18s,
+    transform 0.18s;
+}
+
+.prow:hover {
+  border-color: var(--blue-500);
+  box-shadow: var(--sh-2);
+  transform: translateY(-2px);
+}
+
+.prow__m {
+  position: relative;
+  overflow: hidden;
+  /* Image na ho to bhi khaana bhara dikhe — toota hua nahi (D-42 §2). */
+  background: var(--blue-100);
+  min-height: 196px;
+}
+
+.prow__m img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.prow:hover .prow__m img {
+  transform: scale(1.05);
+}
+
+.prow__b {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px clamp(18px, 2vw, 24px);
+}
+
+.prow__b h3 {
+  font-size: clamp(17px, 1.8vw, 20px);
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.prow:hover .prow__b h3 {
+  color: var(--blue-700);
+}
+
+.prow__route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  font-weight: var(--fw-semi);
+}
+
+.prow__route svg {
+  flex-shrink: 0;
+  color: var(--blue-500);
+}
+
+.prow__inc {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 3px;
+}
+
+.prow__inc span {
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-bold);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  background: var(--blue-50);
+  padding: 4px 9px;
+  border-radius: var(--rf);
+}
+
+.prow__p {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  text-align: right;
+  border-left: 1px solid var(--line-2);
+  background: linear-gradient(180deg, var(--surface), var(--blue-50));
+  padding: 20px clamp(16px, 1.8vw, 22px);
+}
+
+.prow__rt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.prow__rt b {
+  background: var(--green-600);
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: var(--r1);
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-heading);
+}
+
+.prow__p del {
+  font-size: var(--fs-sm);
+  color: var(--faint);
+  font-weight: var(--fw-semi);
+}
+
+.prow__p strong {
+  font-size: clamp(21px, 2.2vw, 26px);
+  font-weight: var(--fw-black);
+  color: var(--ink);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.prow__go {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--rf);
+  background: var(--surface);
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue-700);
+  white-space: nowrap;
+}
+
+.prow:hover .prow__go {
+  background: var(--blue-600);
+  border-color: var(--blue-600);
+  color: #fff;
+}
+
+/*
+ * `1 2 3` — client ne yahi maanga (1 Sep). Reference me iski jagah ek "View all" button hai
+ * (`.vmore`), numbered pagination nahi.
+ */
+.simpg {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.simpg button {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 9px;
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  color: var(--blue-700);
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r1);
+  transition:
+    border-color 0.16s,
+    background 0.16s,
+    color 0.16s;
+}
+
+.simpg button:hover {
+  border-color: var(--blue-500);
+  background: var(--blue-50);
+}
+
+.simpg button.on {
+  background: var(--blue-600);
+  border-color: var(--blue-600);
+  color: #fff;
+}
+
+@media (max-width: 1080px) {
+  .prow {
+    /* Price rail apni chaudai chhod deta hai; media aur text ka anupaat wahi rehta hai. */
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+
+  .prow__p {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    border-left: 0;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .prow__rt {
+    margin-bottom: 0;
+    margin-right: auto;
+  }
+
+  .prow__go {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .prow {
+    grid-template-columns: 1fr;
+  }
+
+  .prow__m {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+}
+
 /* ---------- traveller reviews ----------
    Reference: itinerary-v3.html — `.rev` `.revc` `.pmeta__rt`
 

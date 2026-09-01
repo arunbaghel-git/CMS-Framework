@@ -484,6 +484,119 @@ async function resolvePackageExtras(fields, days, siteId, locale) {
  * **References resolve ho kar jaate hain** (R10) — theme ko kabhi id se naam dhoondhne
  * ki zaroorat nahi padni chahiye, warna har theme apna lookup likhta hai.
  */
+/**
+ * Similar itineraries — spec 007 §9 #15 ka jawab: **apne aap chunte hain** (client, 1 Sep).
+ *
+ * Niyam ek line ka hai: _wahi package jinke `nights` **aur** `days` dono is package jaise
+ * hain, khud ko chhod kar._ Client ne dono maange (`5N/6D = 5N/6D`), sirf days nahi — 5N/6D
+ * aur 4N/6D ek jaise nahi hain, aur "same days" wali list me wo ghus jaata.
+ *
+ * Yahan **koi naya field nahi bana**. Wahi soch jo route strip (D-51) aur hotels table
+ * (D-58/D-60) pe hai: jo package pe pehle se hai use dobara mat poochho. Client ko "similar
+ * packages" chunne ka koi kaam nahi karna padta, aur naya package jodte hi wo apne aap
+ * purane packages ke page pe aa jaata hai.
+ *
+ * ## Card ka poora maal derived hai
+ *
+ * Route stays se, chips nights/days + transfers + meals se, daam sabse sasti category se.
+ * Ek bhi cheez alag se stored nahi hai.
+ *
+ * ## Cap 12 kyun
+ *
+ * Theme teen-teen ke page banata hai (client: "1, 2, 3 button pagination"). 12 pe wo chaar
+ * page ban jaate hain — itni same-duration packages waise hi kam hoti hain, par cap ke bina
+ * ek din 60 package wali site pe har package ka payload chup-chaap dus guna ho jaata. Wahi
+ * soch jo `itineraryImages` aur `reviews` ke cap pe hai.
+ *
+ * ⚠️ `status` ka filter yahan **query me** hai, `isPubliclyVisible()` se nahi: wo ek
+ * document pe chalti hai, aur yahan list chahiye. Dono ka matlab ek hi rakha gaya hai —
+ * `published`, ya `scheduled` jiska waqt aa chuka (R2 wala self-healing).
+ */
+async function resolveSimilarPackages(doc, siteId, locale) {
+  const { nights, days } = doc.fields ?? {}
+
+  /**
+   * Jis package pe nights/days likhe hi nahi, uske liye "same duration" ka koi matlab nahi.
+   * Bina is guard ke `null === null` sab adhoore packages ko ek doosre ka similar bana deta.
+   */
+  if (nights == null || days == null) return []
+
+  const now = new Date()
+  const docs = await Entry.find({
+    siteId,
+    locale,
+    type: doc.type,
+    deletedAt: null,
+    _id: { $ne: doc._id },
+    'fields.nights': nights,
+    'fields.days': days,
+    $or: [{ status: 'published' }, { status: 'scheduled', publishAt: { $lte: now } }],
+  })
+    .sort({ updatedAt: -1 })
+    .limit(12)
+    .lean()
+
+  if (!docs.length) return []
+
+  /**
+   * Saare candidates ke stays **ek query me** — har card ke liye alag call ka matlab hota
+   * bara round trip ek page render pe. Wahi tark jo `findItemsByIds()` pe likha hai.
+   */
+  const allStayIds = docs.flatMap((d) =>
+    (Array.isArray(d.fields?.itinerary) ? d.fields.itinerary : []).map(
+      (day) => day.overnightStayId,
+    ),
+  )
+  const [stays, transfers] = await Promise.all([
+    resolveTaxonomies(allStayIds, siteId, locale),
+    Transfer.find({ siteId })
+      .select('name')
+      .lean()
+      .catch(() => []),
+  ])
+  const stayById = new Map(stays.map((s) => [s.id, s]))
+  const transferNameById = new Map(transfers.map((t) => [String(t._id), t.name]))
+
+  return Promise.all(
+    docs.map(async (d) => {
+      const fields = d.fields ?? {}
+      const itinerary = Array.isArray(fields.itinerary) ? fields.itinerary : []
+      const pricing = pricingSchema.parse(fields.pricing ?? {})
+
+      /**
+       * Chips — `5N / 6D` · `Ferry` · `Breakfast` (reference ka `.prow__inc`).
+       *
+       * Teenon derived hain. Transfers aur meals `Set` se guzarte hain: ek hi ferry teen din
+       * chal sakti hai, aur card pe "Ferry Ferry Ferry" chhapna bemaani hai.
+       */
+      const transferChips = [
+        ...new Set(itinerary.map((day) => transferNameById.get(day.transferId)).filter(Boolean)),
+      ]
+      const mealChips = [
+        ...new Set(itinerary.flatMap((day) => (Array.isArray(day.meals) ? day.meals : []))),
+      ]
+
+      return {
+        id: String(d._id),
+        title: d.title,
+        path: d.path,
+        /** `medium` — card ka thumbnail hai, hero nahi. */
+        banner: await toDisplayImage(fields.bannerImage, 'medium', siteId),
+        nights: fields.nights,
+        days: fields.days,
+        /** Route — reference ka `Port Blair → Havelock → Neil`, stays ke kram me. */
+        route: routeStrip(itinerary)
+          .map((leg) => stayById.get(leg.stayId)?.name)
+          .filter(Boolean),
+        transfers: transferChips,
+        meals: mealChips,
+        /** Sabse sasti category — wahi jo us package ke apne page ke upar chhapta hai. */
+        from: cheapestPricing(pricing),
+      }
+    }),
+  )
+}
+
 async function toPublicEntry(doc, siteId, locale) {
   const fields = doc.fields ?? {}
   const days = Array.isArray(fields.itinerary) ? fields.itinerary : []
@@ -499,9 +612,10 @@ async function toPublicEntry(doc, siteId, locale) {
   ])
 
   const stayIds = days.map((d) => d.overnightStayId)
-  const [stays, extras] = await Promise.all([
+  const [stays, extras, similar] = await Promise.all([
     resolveTaxonomies(stayIds, siteId, locale),
     resolvePackageExtras(fields, days, siteId, locale),
+    resolveSimilarPackages(doc, siteId, locale),
   ])
   const stayById = new Map(stays.map((s) => [s.id, s]))
   const transferById = new Map(
@@ -581,6 +695,19 @@ async function toPublicEntry(doc, siteId, locale) {
     pricing: extras.pricing,
     hotels: extras.hotels,
     addOns: extras.addOns,
+
+    /**
+     * Similar itineraries — poori tarah derived, koi field nahi (spec 007 §9 #15).
+     *
+     * `fields` ke bahar hai, wahi wajah jo upar teen pe likhi hai: ye entry pe stored nahi
+     * hai, banaya gaya hai.
+     *
+     * ⚠️ Iska cache tag `entry:{id}` hai — yaani naya package publish hone pe purane
+     * packages ke page tab tak stale rehte hain jab tak unka apna tag saaf na ho. Aaj
+     * `type:package` bhi revalidate hota hai (entries service publish pe), isliye ye theek
+     * chalta hai; agar kabhi wo tag hata to ye section peeche reh jaayega.
+     */
+    similar,
   }
 }
 

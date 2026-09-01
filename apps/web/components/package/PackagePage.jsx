@@ -16,6 +16,7 @@ import {
 import Reviews, { HeroRating, RatingNote } from './Reviews.jsx'
 import RichText from './RichText.jsx'
 import SectionHead from './SectionHead.jsx'
+import Similar from './Similar.jsx'
 
 /**
  * Package ka public page — `docs/reference/itinerary-v3.html` se.
@@ -286,6 +287,12 @@ export default function PackagePage({ entry, defaults, settings }) {
    */
   const reviews = defaults?.reviews ?? []
   const rating = defaults?.rating
+
+  /**
+   * Similar itineraries — server pe chune gaye (wahi nights/days, khud ko chhod kar).
+   * Yahan koi filter nahi lagta; theme sirf teen-teen ke page banata hai.
+   */
+  const similar = entry.similar ?? []
 
   /**
    * Client ne is section ke description box me kuch likha hai?
@@ -644,6 +651,24 @@ export default function PackagePage({ entry, defaults, settings }) {
                     </details>
                   ))}
                 </div>
+              </section>
+            )}
+
+            {/*
+             * Similar itineraries — reference ka `#similar`.
+             *
+             * Section tabhi aata hai jab sach me koi doosra package usi duration ka ho. Sirf
+             * heading likhi hone se ye nahi khulta: ek "Similar itineraries" heading jiske
+             * neeche kuch na ho, wo D-30 ka ulta hai — khaali nahi, **toota hua** dikhta hai.
+             *
+             * Isiliye yahan `wrote('similar')` ki shart **nahi** hai, jabki reviews aur baaki
+             * sections pe hai. Wahan client ka likha text apne aap me content hota hai; yahan
+             * content sirf cards hain.
+             */}
+            {similar.length > 0 && (
+              <section className="blk" id="similar">
+                <SectionHead label={labels.similar} />
+                <Similar items={similar} rating={rating} currency={settings?.currency ?? 'INR'} />
               </section>
             )}
           </div>
