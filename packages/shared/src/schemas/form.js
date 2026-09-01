@@ -131,15 +131,15 @@ export const formFieldSchema = z.object({
    */
   width: z.enum(['full', 'half']).default('full'),
 
-  /**
-   * Label ke aage halka `optional` — reference me sirf `Special request` pe hai.
+  /*
+   * ⚠️ Yahan ek `optionalTag` bhi tha — label ke aage halka `optional` (reference me
+   * `Special request` pe hai). Client ne uska checkbox hatane ko kaha (1 Sep), aur uske baad
+   * wo kahin se **set hi nahi ho sakta tha**: schema me khaana, payload me safar, theme me
+   * render — sab maujood, aur koi use bhar hi nahi sakta.
    *
-   * Ye `required` ka ulta **nahi** hai, aur isiliye alag khaana hai. Reference me
-   * `Travel date` aur `Guests` bhi optional hain par unpe ye tag nahi — wo `.bkg__two` ki
-   * tang jodi me hain aur wahan tag label ko tod deta. Yaani ye ek **dikhne ka** faisla hai,
-   * niyam ka nahi; use `!required` se derive karna reference se hi alag ho jaata.
+   * Aisi config chhodna khaali chhodne se bura hai: wo padhne wale ko lagta hai ki koi
+   * feature hai, aur wo use dhoondhta rehta hai. Isliye poora hata diya gaya.
    */
-  optionalTag: z.boolean().default(false),
 })
 
 // ── form ─────────────────────────────────────────────────────────────────────
@@ -325,7 +325,6 @@ export const DEFAULT_FORM_FIELDS = Object.freeze([
     type: 'textarea',
     show: true,
     required: false,
-    optionalTag: true,
     placeholder: "Honeymoon, kids' ages, flight timings — anything we should plan around",
   },
   { key: 'consent', label: 'Consent', type: 'checkbox', show: true, required: true },
@@ -353,7 +352,6 @@ export function emptyForm() {
       options: [],
       placeholder: '',
       width: 'full',
-      optionalTag: false,
       ...field,
     })),
   }

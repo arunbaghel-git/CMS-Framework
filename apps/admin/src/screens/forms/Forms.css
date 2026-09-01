@@ -50,22 +50,6 @@
   flex-wrap: wrap;
 }
 
-/*
- * "Built-in fields not in this form" — Fields panel ka doosra foot.
- *
- * Yahan wo field aate hain jo client ne Remove kar diye the, ya jo is form ke banne ke baad
- * code me jude. Ek line me label, neeche unke buttons — `.addrow` wahi hai jo "Add a field"
- * pe hai, taaki dono foot ek jaise dikhein.
- */
-.missing-fields {
-  display: block;
-  border-top: 1px dashed var(--border-soft);
-}
-
-.missing-fields .addrow {
-  margin-top: 8px;
-}
-
 /* Design ka `.sc-box` — form ki id ek copy karne laayak dabbe me. */
 .sc-box {
   display: flex;

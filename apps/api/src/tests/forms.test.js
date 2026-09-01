@@ -287,9 +287,9 @@ describe('public payload me form', () => {
     expect(res.body.data.packageDefaults.enquiryForm).toBeNull()
   })
 
-  it('reference wale chaar khaane payload me jaate hain', async () => {
+  it('reference wale teen khaane payload me jaate hain', async () => {
     /*
-     * Ye chaar 1 Sep ko jude the, taaki sidebar ka form reference (`itinerary-v3.html`) se
+     * Ye teen 1 Sep ko jude the, taaki sidebar ka form reference (`itinerary-v3.html`) se
      * poora match kare. Har ek ka payload me jaana zaroori hai — chhoot jaane pe wo admin me
      * bhara dikhta hai aur page pe kuch nahi hota. Is repo me wo shakl paanch baar ho chuki
      * hai (D-64, D-65, D-68, aur rating).
@@ -298,9 +298,7 @@ describe('public payload me form', () => {
     await makeForm({
       footnote: 'No advance to see the plan.',
       fields: base.fields.map((f) =>
-        f.key === 'travelDate'
-          ? { ...f, width: 'half', placeholder: 'When?', optionalTag: true }
-          : f,
+        f.key === 'travelDate' ? { ...f, width: 'half', placeholder: 'When?' } : f,
       ),
     })
 
@@ -309,11 +307,7 @@ describe('public payload me form', () => {
     const travelDate = enquiryForm.fields.find((f) => f.key === 'travelDate')
 
     expect(enquiryForm.footnote).toBe('No advance to see the plan.')
-    expect(travelDate).toMatchObject({
-      width: 'half',
-      placeholder: 'When?',
-      optionalTag: true,
-    })
+    expect(travelDate).toMatchObject({ width: 'half', placeholder: 'When?' })
   })
 
   it('hotel category wala field apne vikalp admin se nahi leta', async () => {

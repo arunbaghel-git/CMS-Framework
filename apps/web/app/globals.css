@@ -2988,22 +2988,6 @@ a.mega__gl:hover {
 }
 
 /*
- * Label ke aage halka `optional` — reference ka `.fld label em`.
- *
- * Label khud upper-case aur mota hai; ye uske ulta hai (chhota, halka, saada) taaki wo label
- * ka hissa na lage. `font-style: normal` isliye ki `<em>` browser me tirchha hota hai aur
- * reference me wo tirchha nahi hai.
- */
-.fld label em {
-  font-style: normal;
-  font-weight: var(--fw-bold);
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--faint);
-  margin-left: 5px;
-}
-
-/*
  * Checkbox wali field — reference me ye hai hi nahi (wahan consent ka field nahi tha), par
  * admin ke default form me hai. Isliye ye do line hamari hain: checkbox aur uska text ek
  * line me, aur text upper-case nahi (wo ek label nahi, ek vaakya hai).

@@ -1,5 +1,4 @@
 import {
-  DEFAULT_FORM_FIELDS,
   FORM_FIELD_TYPE_LABEL,
   FORM_PLACEMENTS,
   FORM_PLACEMENT_LABEL,
@@ -38,8 +37,31 @@ import './Forms.css'
  * nahi. Isiliye naye field ki key label se **ek baar** banti hai aur uske baad jam jaati hai.
  */
 
-/** Builder ke dropdown me `hidden` nahi hai — wo field client haath se nahi jodta. */
-const ADDABLE_TYPES = ['text', 'email', 'phone', 'number', 'date', 'select', 'checkbox', 'textarea']
+/**
+ * "Add a field" ke dropdown ke vikalp.
+ *
+ * Pehle aath saade types the (`hidden` yahan jaan-boojh kar nahi — wo field client haath se
+ * nahi jodta). Ab ek aur hai — **Package** — aur wo type nahi, ek **taiyaar field** hai:
+ * dropdown jiske vikalp apne aap packages se aate hain.
+ *
+ * Client ne yahi maanga (1 Sep): _"just add package in dropdown with text email wale me, aur
+ * default me `Dropdown · auto-filled from Packages` utha lega"_. Wajah seedhi hai — wo
+ * dropdown admin ke likhe vikalp se ban hi nahi sakta, to use "Dropdown chuno, phir source
+ * set karo" wale do kadam me todna bemaani hai. Ek chunav, poora field.
+ *
+ * `patch` wahi hai jo naye field pe lag jaata hai.
+ */
+const ADDABLE = [
+  { value: 'text', patch: { type: 'text' } },
+  { value: 'email', patch: { type: 'email' } },
+  { value: 'phone', patch: { type: 'phone' } },
+  { value: 'number', patch: { type: 'number' } },
+  { value: 'date', patch: { type: 'date' } },
+  { value: 'select', patch: { type: 'select' } },
+  { value: 'checkbox', patch: { type: 'checkbox' } },
+  { value: 'textarea', patch: { type: 'textarea' } },
+  { value: 'package', label: 'Package', patch: { type: 'select', source: 'packages' } },
+]
 
 /**
  * `Travel Date` → `travelDate`.
@@ -139,58 +161,19 @@ export default function FormBuilder() {
         {
           key,
           label,
-          type: newField.type,
           show: true,
           required: false,
           options: [],
           placeholder: '',
           width: 'full',
-          optionalTag: false,
+          /** Type — aur `Package` jaise vikalp pe uske saath `source` bhi. */
+          ...(ADDABLE.find((option) => option.value === newField.type)?.patch ?? {
+            type: newField.type,
+          }),
         },
       ],
     })
     setNewField({ label: '', type: 'text' })
-  }
-
-  /**
-   * Jo built-in field **is form me hain hi nahi**.
-   *
-   * Do tarah se aisa hota hai, aur dono asli hain:
-   *
-   * 1. Client ne use **Remove** kar diya tha aur ab wapas chahiye
-   * 2. Wo field is form ke **banne ke baad** code me juda — `Hotel category` ke saath theek
-   *    yahi hua (1 Sep). Purane form apne aap naye default nahi utha lete, aur wo sahi bhi
-   *    hai: kisi ke bane hue form me chup-chaap ek naya khaana ghusa dena uska form badalna
-   *    hai, uski marzi ke bina
-   *
-   * ⚠️ Pehle iska koi raasta hi nahi tha — client ko wo field **dikhta hi nahi** tha, aur
-   * "kya wo hai aur maine chhupa rakha hai, ya hai hi nahi" ka jawab kahin se nahi milta tha
-   * (client, 1 Sep). Ab wo yahin neeche list me dikhte hain.
-   */
-  const missing = DEFAULT_FORM_FIELDS.filter(
-    (candidate) => !form.fields.some((field) => field.key === candidate.key),
-  )
-
-  /** Built-in field wapas — apne asli default ke saath, chhupa hua nahi. */
-  function restoreField(candidate) {
-    setError(null)
-    set({
-      fields: [
-        ...form.fields,
-        {
-          options: [],
-          placeholder: '',
-          width: 'full',
-          optionalTag: false,
-          ...candidate,
-          /**
-           * `show: true` — client ne ise khud jodne ke liye click kiya hai. Uska apna default
-           * (`Hotel category` pe `false`) naye form ke liye hai, is click ke liye nahi.
-           */
-          show: true,
-        },
-      ],
-    })
   }
 
   function removeField(index) {
@@ -412,23 +395,6 @@ export default function FormBuilder() {
                           />{' '}
                           Half width
                         </label>
-
-                        {/*
-                         * `required` ka ulta **nahi** hai — reference me Travel date aur Guests
-                         * bhi optional hain par unpe tag nahi. Ye dikhne ka faisla hai, niyam ka
-                         * nahi, isliye apna checkbox.
-                         */}
-                        {!field.required && (
-                          <label className="inline-lbl">
-                            <input
-                              type="checkbox"
-                              checked={Boolean(field.optionalTag)}
-                              onChange={(e) => setField(index, { optionalTag: e.target.checked })}
-                              disabled={readOnly}
-                            />{' '}
-                            Say &ldquo;optional&rdquo;
-                          </label>
-                        )}
                       </div>
 
                       {field.type === 'select' && !field.source && (
@@ -511,9 +477,9 @@ export default function FormBuilder() {
                     value={newField.type}
                     onChange={(e) => setNewField((f) => ({ ...f, type: e.target.value }))}
                   >
-                    {ADDABLE_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {FORM_FIELD_TYPE_LABEL[type]}
+                    {ADDABLE.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label ?? FORM_FIELD_TYPE_LABEL[option.value]}
                       </option>
                     ))}
                   </select>
@@ -524,24 +490,6 @@ export default function FormBuilder() {
               )}
               <span className="muted">{form.fields.length} fields</span>
             </div>
-
-            {canWrite && missing.length > 0 && (
-              <div className="panel-foot missing-fields">
-                <span className="muted">Built-in fields not in this form</span>
-                <div className="addrow">
-                  {missing.map((candidate) => (
-                    <button
-                      key={candidate.key}
-                      type="button"
-                      className="btn btn-sm"
-                      onClick={() => restoreField(candidate)}
-                    >
-                      ＋ {candidate.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </Panel>
         </div>
 

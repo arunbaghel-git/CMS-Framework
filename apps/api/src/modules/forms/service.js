@@ -181,7 +181,6 @@ export async function getPublicPackageForm(siteId = DEFAULT_SITE_ID) {
         source: field.source,
         placeholder: field.placeholder ?? '',
         width: field.width ?? 'full',
-        optionalTag: Boolean(field.optionalTag),
       })),
   }
 }

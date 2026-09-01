@@ -88,11 +88,7 @@ function Field({ field, value, onChange, packages, categories }) {
   /* Half-width ka layout `.bkg__two` karta hai, field khud nahi — yahan koi extra class nahi. */
   return (
     <div className="fld">
-      <label htmlFor={id}>
-        {field.label}
-        {/* Reference me ye `<em>optional</em>` hai — halka, label ke turant baad. */}
-        {field.optionalTag && <em>optional</em>}
-      </label>
+      <label htmlFor={id}>{field.label}</label>
 
       {field.type === 'textarea' && (
         <textarea {...common} rows={3} placeholder={field.placeholder || undefined} />
