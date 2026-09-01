@@ -12,6 +12,28 @@ import { api, errorMessage } from '../../lib/api.js'
 
 export const PACKAGE_TYPE = 'package'
 
+/**
+ * Site ki currency — `From price` column ke liye (client, 1 Sep).
+ *
+ * Currency package pe **nahi** hai, `settings.currency` pe hai (D-56 §2). List ko wo
+ * dikhani hai, to use yahan se leni padti hai.
+ *
+ * Call fail ho jaaye to `INR` — wahi default `formatPrice()` ka bhi hai. List currency ke
+ * liye kabhi rukni nahi chahiye: daam galat chinh ke saath dikhna khali list se behtar hai.
+ */
+export function useSiteCurrency() {
+  const [currency, setCurrency] = useState('INR')
+
+  useEffect(() => {
+    api
+      .get('/settings')
+      .then((res) => setCurrency(res.data.data.settings?.currency ?? 'INR'))
+      .catch(() => setCurrency('INR'))
+  }, [])
+
+  return currency
+}
+
 /** List — `entryListQuerySchema` ke params hi jaate hain. */
 export function usePackages(query) {
   const [state, setState] = useState({ data: [], meta: null, loading: true, error: null })

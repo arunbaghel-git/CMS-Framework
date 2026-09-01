@@ -61,11 +61,34 @@ import './Packages.css'
  * migration nahi lagi**.
  */
 
+/**
+ * Status ke do hi vikalp — **Draft aur Published** (client, 1 Sep).
+ *
+ * `Pending review` yahan se hat gaya. Wo sirf ek dropdown option nahi tha: uske peeche
+ * `POST /entries/:id/submit-review` hai, aur `contributor` role publish **kar hi nahi
+ * sakta** — uske liye review ke liye bhejna hi ek raasta tha (D-25 / D-26).
+ *
+ * API ka wo raasta **jaisa ka waisa hai** — sirf is screen se chunav hat gaya. Client ke
+ * paas aaj koi contributor user hai hi nahi, aur jis din banega us din ye option wapas is
+ * list me daalna ek line ka kaam hai. Route hata dena uska ulta hota: permission, service
+ * aur test sab dobara likhne padte.
+ */
 const STATUS_OPTIONS = [
   { value: 'draft', label: 'Draft' },
-  { value: 'pending', label: 'Pending review' },
   { value: 'published', label: 'Published' },
 ]
+
+/**
+ * Purani `pending` wali entry ke liye ek chhupa hua option.
+ *
+ * Iske bina bug **chup** hota: `<select>` ki `value` un options me se kisi se match nahi
+ * karti, to browser pehla option (`Draft`) dikha deta — aur user ko lagta ki entry draft
+ * hai. Save karte hi wo sach me draft ban jaati, bina kisi ke chhue.
+ *
+ * Ye tabhi judta hai jab entry sach me `pending` pe ho. Chunne laayak nahi hai: yahan se
+ * nikalne ka raasta hai, wapas jaane ka nahi.
+ */
+const PENDING_OPTION = { value: 'pending', label: 'Pending review (old)', disabled: true }
 
 /** Nested checklist — design ka `.checklist` (India → Kerala → Munnar). */
 function TaxonomyChecklist({ items, selected, onToggle, disabled }) {
@@ -221,9 +244,12 @@ export default function PackageEdit() {
         })
       } else if (!wantsPublished && isLive) {
         await api.post(`/entries/${entryId}/unpublish`)
-      } else if (form.status === 'pending' && currentStatus === 'draft') {
-        await api.post(`/entries/${entryId}/submit-review`)
       }
+      /*
+       * Yahan pehle ek teesri branch thi — `pending` chunne pe `submit-review`. Status ka
+       * wo option 1 Sep ko hat gaya (upar), isliye wo branch pahunch se bahar ho gayi thi.
+       * API ka route abhi bhi hai; option wapas aane pe branch bhi wapas aayegi.
+       */
 
       setNotice('Saved.')
 
@@ -457,8 +483,11 @@ export default function PackageEdit() {
                   onChange={(e) => set({ status: e.target.value })}
                   disabled={readOnly}
                 >
-                  {STATUS_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
+                  {(form.status === 'pending'
+                    ? [PENDING_OPTION, ...STATUS_OPTIONS]
+                    : STATUS_OPTIONS
+                  ).map((o) => (
+                    <option key={o.value} value={o.value} disabled={o.disabled}>
                       {o.label}
                     </option>
                   ))}
@@ -581,7 +610,15 @@ export default function PackageEdit() {
               ) : (
                 <div className="checklist">
                   {addOns.map((addOn) => (
-                    <label key={addOn.id}>
+                    /*
+                     * `.inline-lbl` — wahi primitive jo upar TaxonomyChecklist use karta hai.
+                     *
+                     * Iske bina ye `<label>` browser ke default **inline** pe the, to teen-teen
+                     * ek line me bharte the aur naam beech se toot jaate the (client, 1 Sep).
+                     * Destinations ki checklist pehle se theek dikhti thi — farq sirf ye class
+                     * thi.
+                     */
+                    <label className="inline-lbl" key={addOn.id}>
                       <input
                         type="checkbox"
                         checked={(form.fields.addOns ?? []).includes(addOn.id)}

@@ -1,9 +1,16 @@
+import { cheapestPricing, formatPrice } from '@cms/shared'
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
-import { useMediaById, usePackageCounts, usePackages, useTaxonomyList } from './usePackages.js'
+import {
+  useMediaById,
+  usePackageCounts,
+  usePackages,
+  useSiteCurrency,
+  useTaxonomyList,
+} from './usePackages.js'
 import './Packages.css'
 
 /**
@@ -13,9 +20,20 @@ import './Packages.css'
  *
  * 1. **`Code` column nahi hai** — Package Code field client ne 26 Aug ko hata diya tha
  *    (D-50 §2). Column rakh kar khaali chhodna user ko har baar confuse karta hai.
- * 2. **`From price` aur `Enq.` columns `—` dikhate hain** — pricing Slice 5 me hai aur
- *    Enquiries Phase 7b me. Design khud Users screen pe yahi karta hai (D-30: khaali
- *    cheez khaali dikhe, tooti hui nahi).
+ * 2. **`Enq.` column bhi nahi hai** (client, 1 Sep). Wo Slice 3 se `—` dikha raha tha
+ *    kyunki Enquiries bani hi nahi thi. Client ne use rakhne ki jagah hatane ko kaha —
+ *    Enquiries banne pe wapas aayega.
+ * 3. **`From price` ab asli daam dikhata hai** (client, 1 Sep). Wo derive hota hai —
+ *    **sabse sasti category** (`cheapestPricing()`), wahi jo public page ke upar chhapta
+ *    hai. Ek hi jagah se dono aane ka matlab hai ki list aur page kabhi alag daam nahi
+ *    dikha sakte.
+ *
+ *    ⚠️ **Sort nahi hai, sirf display** (client, 1 Sep — "sort karne ki kya jarurat hai").
+ *    Wo waise bhi seedha nahi hota: `From price` stored nahi hai, to Mongo use sort nahi
+ *    kar sakti — aggregation ya ek denormalized field chahiye hoti.
+ *
+ *    Jis package pe koi bhi category ki keemat nahi bhari, wahan `—` hi rehta hai — khaali
+ *    daam ka matlab hai "wo category milti hi nahi" (D-56).
  *
  * `Itinerary` row action bhi abhi Edit pe hi le jaata hai — alag itinerary screen Slice 4
  * me banegi.
@@ -68,6 +86,7 @@ export default function PackagesList() {
 
   const destinations = useTaxonomyList('destination')
   const packageTypes = useTaxonomyList('packageType')
+  const currency = useSiteCurrency()
 
   const [selected, setSelected] = useState([])
   const [bulkAction, setBulkAction] = useState('')
@@ -372,7 +391,6 @@ export default function PackagesList() {
             <th>Duration</th>
             <th>From price</th>
             <th>Theme</th>
-            <th>Enq.</th>
             <th>Status</th>
             <th>Updated</th>
           </tr>
@@ -380,7 +398,7 @@ export default function PackagesList() {
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={10} className="muted">
+              <td colSpan={9} className="muted">
                 Loading…
               </td>
             </tr>
@@ -388,7 +406,7 @@ export default function PackagesList() {
 
           {!loading && data.length === 0 && (
             <tr>
-              <td colSpan={10} className="muted">
+              <td colSpan={9} className="muted">
                 {tab === 'trash' ? 'Trash is empty.' : 'No packages yet.'}
               </td>
             </tr>
@@ -474,11 +492,22 @@ export default function PackagesList() {
               </td>
               <td className="muted">{labelFor(entry, 'destinations', destinations)}</td>
               <td className="nowrap">{duration(entry.fields)}</td>
-              {/* Pricing Slice 5 me hai — khaali cheez khaali dikhe, tooti hui nahi (D-30) */}
-              <td className="muted">—</td>
+              <td className="nowrap">
+                {(() => {
+                  const cheapest = cheapestPricing(entry.fields?.pricing)
+                  /* Ek bhi category ka daam nahi bhara — khaali cheez khaali dikhe (D-30) */
+                  if (!cheapest) return <span className="muted">—</span>
+
+                  return (
+                    <>
+                      <b>{formatPrice(cheapest.priceFrom, currency)}</b>
+                      {/* Design ki chhoti line. Static hai — `priceBasis` D-57 me hat gaya tha */}
+                      <div className="muted price-basis">per person</div>
+                    </>
+                  )
+                })()}
+              </td>
               <td className="muted">{labelFor(entry, 'packageTypes', packageTypes)}</td>
-              {/* Enquiries Phase 7b pe block hai */}
-              <td className="muted">—</td>
               <td>
                 <span className={`badge ${STATUS_BADGE[entry.status] ?? 'b-draft'}`}>
                   {STATUS_LABEL[entry.status] ?? entry.status}

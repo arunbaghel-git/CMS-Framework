@@ -218,3 +218,29 @@
   margin: 0;
   padding: 0 12px;
 }
+
+/*
+ * `From price` cell ki chhoti doosri line — `admin-design.html` me wo inline
+ * `style="font-size:11px"` hai. Inline ki jagah class isliye ki wo theme ka hissa hai,
+ * content ka nahi — wahi lakeer jo public side pe `.blk__note` pe hai.
+ */
+.price-basis {
+  font-size: 11px;
+}
+
+/*
+ * Itinerary ke din me Meals ke teen checkbox — ek hi row me (client, 1 Sep).
+ *
+ * `.inline-lbl` khud flex hai, isliye har checkbox apni line le leta tha aur `.row3` ke us
+ * column me neeche bahut jagah bachi rehti thi. Wrap isliye hai ki 782px se neeche `.row3`
+ * ek column ka ho jaata hai, aur wahan teen checkbox ek line me nahi bharte.
+ */
+.meals-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.meals-row .inline-lbl {
+  margin-bottom: 0;
+}

@@ -145,7 +145,7 @@ export default function BookingPanel({ steps, cancellationText, onChange, disabl
                     {!disabled && (
                       <button
                         type="button"
-                        className="btn btn-sm"
+                        className="btn btn-sm btn-danger"
                         onClick={() => {
                           if (!confirmRemove(step.title || `Step ${index + 1}`)) return
                           setSteps(list.filter((_, i) => i !== index))

@@ -187,7 +187,7 @@ export default function HotelsPanel({
                 <td>
                   <button
                     type="button"
-                    className="btn btn-sm"
+                    className="btn btn-sm btn-danger"
                     disabled={disabled}
                     onClick={() => {
                       const what = `${nameOf(row.destinationId)} · ${

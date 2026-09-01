@@ -216,23 +216,30 @@ export default function ItineraryBuilder({
                   <div className="row3">
                     <div className="field">
                       <label>Meals</label>
-                      {MEALS.map((meal) => (
-                        <label className="inline-lbl" key={meal}>
-                          <input
-                            type="checkbox"
-                            checked={day.meals.includes(meal)}
-                            onChange={(e) =>
-                              update(index, {
-                                meals: e.target.checked
-                                  ? [...day.meals, meal]
-                                  : day.meals.filter((m) => m !== meal),
-                              })
-                            }
-                            disabled={disabled}
-                          />{' '}
-                          {MEAL_LABEL[meal]}
-                        </label>
-                      ))}
+                      {/*
+                       * Teenon ek hi line me (client, 1 Sep — "space available hai").
+                       * `.inline-lbl` khud flex hai, to wo ek-ek karke neeche baithte the;
+                       * unhe ek row me laane ke liye maa-baap ko flex karna padta hai.
+                       */}
+                      <div className="meals-row">
+                        {MEALS.map((meal) => (
+                          <label className="inline-lbl" key={meal}>
+                            <input
+                              type="checkbox"
+                              checked={day.meals.includes(meal)}
+                              onChange={(e) =>
+                                update(index, {
+                                  meals: e.target.checked
+                                    ? [...day.meals, meal]
+                                    : day.meals.filter((m) => m !== meal),
+                                })
+                              }
+                              disabled={disabled}
+                            />{' '}
+                            {MEAL_LABEL[meal]}
+                          </label>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="field">

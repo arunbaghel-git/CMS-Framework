@@ -111,7 +111,7 @@ export default function FaqsPanel({ faqs, onChange, disabled }) {
                 {!disabled && (
                   <button
                     type="button"
-                    className="btn btn-sm"
+                    className="btn btn-sm btn-danger"
                     onClick={() => {
                       if (!confirmRemove(faq.question || `FAQ ${index + 1}`)) return
                       onChange(list.filter((_, i) => i !== index))
