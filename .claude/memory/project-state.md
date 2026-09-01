@@ -1,44 +1,56 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 1 Sep 2026 (session band — agla kaam sabse upar likha hai)
+> **Last updated:** 1 Sep 2026, shaam — client ki 15-item list poori
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (1 Sep, session band karte waqt)
+## ⏭️ Nayi session yahan se shuru kare (1 Sep, shaam)
 
-**Agla bada kaam (client):** _"i want to update whole admin and public site with final
-requirement"_ — final requirements ke hisaab se poora admin + public site update karna.
-Requirements client se aayengi; unke bina shuru mat karna.
+**Aaj kya hua:** client ne ek 15-item list di (7 public site + 6 admin + reviews + similar +
+enquiry forms). **Poori list ban gayi**, saat commit me. 617 tests pass, lint aur format
+clean, admin build green.
 
-### Pehle ye teen, warna waqt zaya hoga
+### Pehle ye do, warna waqt zaya hoga
 
 1. **`docker compose up -d mongo` aur `pnpm dev`** — teenon apps. `/api/health` pe
-   `migrations.pending: 0` dikhna chahiye; `14` aaye to API galat Mongo pe hai (Windows ka
-   `mongod` service — `sc.exe config MongoDB start= disabled`).
-2. **API restart pending tha.** `apps/api/.env` me `EXTRA_CORS_ORIGINS` me cloudflared tunnel
-   ka origin jud chuka hai, par API ne use padha nahi (Node `.env` sirf **boot pe** padhta
-   hai — D-33). Restart ke baad admin ka tunnel login 403 ki jagah 401 dega.
-3. **`apps/web/app/globals.css` me client ke uncommitted CSS tweaks hain** — `.ft`,
-   `.pkg__gal`, `.catbar__g`. **Inhe revert mat karna** (memory: client CSS khud tune karta
-   hai). Jispe comment nahi hai wo bhi drift nahi hai — aaj `.steps b` pe yahi galti hui thi.
+   `migrations.pending: 0` dikhna chahiye. Aaj **do nayi migration** judi hain (016 · 017),
+   to pehli baar `pnpm cms migrate` chalani padegi.
+2. **`pnpm cms migrate` chalao** — 016 aur 017 dono me **roles ka permission sync** hai.
+   Bina uske `Packages ▸ Reviews` aur `Enquiries ▸ Enquiry Forms` **menu me dikhenge hi
+   nahi** (migration 004 applied ho chuki hai, to naye permission ka koi aur raasta nahi).
+   Ye failure chup hai — koi error nahi aata, bas item gayab rehta hai.
+
+### Client ko ye teen cheezein batani hain
+
+| #   | Kya                                                                                    | Kyun                                                                                                                                                                                                              |
+| --- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Trip schema ek checkbox pe hai** — `Edit Package ▸ SEO ▸ Emit Product + Trip schema` | Wo field Slice 3 se maujood tha aur aaj tak kuch karta hi nahi tha. Default **off** hai, to purane packages pe wo tick karni padegi                                                                               |
+| 2   | **Enquiry ka mail abhi jaata nahi** — SMTP Phase 0 se blocked                          | Submissions `enquiries` collection me store ho rahi hain, par unhe **dekhne ki screen nahi** hai. Ye client ka faisla tha ("only Enquiry Forms"), par unhe pata hona chahiye ki abhi wo enquiries sirf DB me hain |
+| 3   | **Hero popup ka backdrop ab halka safed hai** (P1)                                     | Client ne "shadow hatao" kaha tha. Poora transparent nahi kiya — tab peeche ka page image ke aar-paar padha jaane lagta. Agar wo sach me poora transparent chahte hain, wo ek line hai                            |
 
 ### Khule items — ginti ke hisaab se
 
-| #           | Kya                                                                                                                  | Andaza     |
-| ----------- | -------------------------------------------------------------------------------------------------------------------- | ---------- |
-| **A-12**    | CI green ho hi nahi sakti — ubuntu pe na Mongo hai na API. **Har commit pe red**, isliye red hona ab koi signal nahi | aadha din  |
-| **A-14**    | `What's Included` bhi apne tab me jaana chahiye — wo bhi page ka ek section hai                                      | 1-2 ghante |
-| **A-15**    | Design-check ki dono script me blind spot — bare element selectors, aur hamari taraf ki extra property               | 2-3 ghante |
-| **Slice 6** | `reviews[]` + rating — spec 007 §9 #8 pe ruka (rating haath se ya derive; **mashwara: haath se**)                    | —          |
+| #                   | Kya                                                                               | Andaza     |
+| ------------------- | --------------------------------------------------------------------------------- | ---------- |
+| **A-12**            | CI green ho hi nahi sakti — ubuntu pe na Mongo hai na API. **Har commit pe red**  | aadha din  |
+| **A-14**            | `What's Included` bhi apne tab me jaana chahiye — wo bhi page ka ek section hai   | 1-2 ghante |
+| **A-15**            | Design-check ki dono script me blind spot                                         | 2-3 ghante |
+| **Enquiries inbox** | All Enquiries · Enquiry Detail · Export CSV — data bhar raha hai, screen nahi hai | 1-2 din    |
+| **Q-9**             | Chhoti inline lines — `or similar`, `TAB_NOTE` (Andaman-specific), catbar ki line | client     |
+| **A-9**             | Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe                           | —          |
 
 ### Aaj ka sabse kaam ka sabak
 
-**Admin ka dhaancha page ke section follow karta hai, collection ke field nahi.** Maine
-ulta kiya tha (do field dekhe, do screen bana di) aur client ne palta.
+**Design ki "galti" pehle apna hi na-samajhna hoti hai.** `.prow` ke responsive rules dekh
+kar maine unhe likhne ki galti samajh liya (1180px pe kam column, 1024px pe zyada) aur apne
+do breakpoint laga diye. Wo galat tha: 1024px pe **sidebar hat jaata hai**, isliye card ka
+column chauda ho jaata hai. Reference ke naap sahi the.
 
-Aur: **teen chup bug** aaj pakde gaye, teenon client ne — kisi test ya script ne nahi.
-Lakshan har baar ek: _admin me text bhara dikhta hai, page pe kuch nahi, koi error nahi._
+⚠️ Aur wahi purana: **`updatePackageDefaults()` ka `$set` ek whitelist hai.** `rating` usme
+jodna bhool gaya tha — Zod pass karta, API 200 deti, admin "Saved." dikhata, aur value DB tak
+pahunchti hi nahi. Test ne pakda. Ye is repo ki chauthi baar wali shakl hai (D-64, D-65,
+D-68). Whitelist ke upar ab chetavni likhi hai.
 
 ---
 

@@ -201,8 +201,19 @@ transfers      * siteId, name, icon
                  field add karna ek saada backfill hai, uniqueness ka badalna
                  nahi (schema-change §1). Taxonomies pe wo test PASS hota hai,
                  isliye wahan locale day 1 se hai. — D-48
+reviews        * siteId, rating(1-5), month("YYYY-MM"), text, name, lastLine
+                 UNIVERSAL hain — package inme se kuch chunta NAHI (D-70). Isiliye
+                 entries pe koi reviews[] field nahi bani; spec §7 me wo per-package
+                 socha gaya tha aur client ne 1 Sep ko ulta chuna
+                 month STRING hai, Date nahi — Date banate hi timezone 1 taareekh ki
+                 raat ko pichhla mahina bana deta. Sort bhi isi pe (YYYY-MM ka
+                 lexical aur chronological kram ek hi hai). Migration 016
+                 ⚠️ rating (4.9 / 412 trips) YAHAN NAHI — wo ek global jodi hai aur
+                 packageDefaults.rating me hai; reviews se gini NAHI jaati (§9 #8)
+
 packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  itineraryImages[], bookingSteps[{title,text}], cancellationText,
+                 rating{value,count},                            ← D-70
                  sectionLabels{<section>:{heading,description}}  ← D-65 (Q-9)
                  sectionLabels ki keys PACKAGE_SECTIONS se aati hain aur schema
                  pe .strict() hai — anjaan key chup-chaap gir jaati (D-43 §3)
@@ -215,13 +226,37 @@ redirects      * siteId, locale, from, to, statusCode(301|302), hits, isAuto
                  locale day 1 se — uniqueness {siteId, locale, from} hai (D-48 §3)
                  auto-redirect entries service banati hai (slug/parent badalne pe,
                  D-49). Manager UI Phase 4 me. Migration 011
-forms          * siteId, name, fields[], notifyEmails[], successMessage
-submissions      formId, data, ip, createdAt, expiresAt
+forms          * siteId, name, emailTo, afterSubmit{mode,value}, placement,
+                 status(active|draft), fields[{key,label,type,show,required,
+                 options[],source}]                              ← D-72, migration 017
+                 field ki `key` STORED DATA hai — enquiries ke values usi naam se
+                 baithte hain (R4). Label badalta hai, key nahi
+                 placement ke aaj do hi vikalp hain (packages | none); design ke
+                 baaki teen (Contact page · Popup · Sticky bar) ko page builder
+                 chahiye (Phase 5)
+enquiries      * siteId, formId, formName, sourcePath, values{}, status
+                 formName COPY hota hai, sirf formId nahi — form rename ya delete
+                 ho jaaye to bhi enquiry apna source jaanti hai
+                 values me sirf string/number/boolean pahunchte hain — ye endpoint
+                 BINA AUTH ke hai, isliye R9 yahan sabse zyada maayne rakhta hai
+                 ⚠️ Ise dekhne ki screen ABHI NAHI hai (client ne "only Enquiry
+                 Forms" kaha). Collection phir bhi banayi gayi: ek form jo bhara
+                 jaata hai par store nahi hota, wo asli enquiries chup-chaap kho
+                 deta hai — screen baad me banti hai, kho gaya data nahi (D-72)
+
+                 ⚠️ NAAM KA FARQ, jaan-boojh kar: is doc me pehle ye `submissions`
+                 likhi thi (spec 001 ke saath), aur permissions aaj bhi
+                 `submission.*` hain. Collection `enquiries` hai kyunki client ki
+                 poori vocabulary wahi hai — design, nav aur screens sab "Enquiries"
+                 kehte hain. Permission ke naam abhi NAHI badle gaye: wo spec 001 ke
+                 frozen naam hain aur aaj koi route unpe khada nahi hai. Jis din
+                 inbox banegi, dono me se ek naam chunna padega — us din tak ye farq
+                 yahan likha hua hai taaki chup na rahe
 activityLog      userId, action, entityType, entityId, meta, createdAt   (DEFER — Q-4)
 ```
 
-`users` / `roles` / `revisions` / `submissions` / `refreshTokens` / `activityLog` /
-`migrations` pe `siteId` nahi — ye user ya parent entry se derive ho jaate hain.
+`users` / `roles` / `revisions` / `refreshTokens` / `activityLog` / `migrations` pe
+`siteId` nahi — ye user ya parent entry se derive ho jaate hain.
 
 ### 3.1 Day 1 se reserve hone wale fields
 
@@ -270,14 +305,22 @@ taxonomies:    { siteId: 1, type: 1, parentId: 1, order: 1 }        ← tree ki 
 hotels:        { siteId: 1, destinationId: 1, category: 1 }         ← migration 010
 addOns:        { siteId: 1, name: 1 }
 transfers:     { siteId: 1, name: 1 }
+reviews:       { siteId: 1, month: -1, createdAt: -1 }              ← migration 016
+                 disha wahi jo query ki hai — Mongo compound index ulta tabhi
+                 chalata hai jab POORI key ulti ho
 packageDefaults: { siteId: 1 }                             unique   ← singleton
+forms:         { siteId: 1, status: 1, updatedAt: -1 }              ← migration 017
+forms:         { siteId: 1, placement: 1, status: 1, updatedAt: -1 }
+                 ye HAR package page ke render pe chalti hai — bina index ke ek
+                 collection scan har page pe lagta
+enquiries:     { siteId: 1, formId: 1, createdAt: -1 }               ← migration 017
+enquiries:     { siteId: 1, createdAt: -1 }
 menus:         { siteId: 1, locale: 1, key: 1 }            unique   ← locale D-43 me juda
 menus:         { siteId: 1, deletedAt: 1, updatedAt: -1 }
 menuLocations: { siteId: 1, locale: 1, location: 1 }       unique
 contentTypes:  { siteId: 1, key: 1 }                       unique   ← migration 009
 revisions: { entryId: 1, createdAt: -1 }                              ← migration 009
 refreshTokens: { jti: 1 } unique · { userId: 1 } · { expiresAt: 1 } TTL
-submissions:   { expiresAt: 1 } TTL
 ```
 
 > **Text index ka trap:** MongoDB ek collection pe sirf **ek** text index allow karta

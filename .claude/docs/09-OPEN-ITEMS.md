@@ -13,10 +13,14 @@ Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neec
 shuru ho chuka hai** (D-52) — wo har slice ke saath badhega.
 **Slice 5 (Pricing + Hotels) bhi ban gayi** — 27 Aug, **D-56**. Admin ke do naye panel aur
 public page pe price block · catbar · hotels table · add-ons.
-**Agla kaam: Slice 6 ka bacha hua hissa** — sirf `reviews[]` + rating. `goodToKnow[]`
-banega hi nahi (**D-68**, client 31 Aug) — wo content Section Headings ke box me jaata hai.
-⚠️ Slice 6 ka aadha ban chuka hai: Itinerary Images ka pool + gallery Slice 4/D-52 me, aur
-FAQs D-59 me. Ek sawaal khula hai — §9 #8 (rating haath se ya `reviews[]` se).
+**Slice 6 aur 7 ke bache hue section bhi ban gaye (1 Sep)** — Traveller reviews (**D-70**)
+aur Similar itineraries (**D-71**). Dono ke sawaal client ne band kar diye: §9 #8 → rating
+**haath se** (`reviews[]` se gini nahi jaati), §9 #15 → similar **apne aap** chunte hain.
+`goodToKnow[]` banega hi nahi (**D-68**).
+
+**Q-2 ka pehla hissa bhi band (1 Sep — D-72)** — Enquiry Forms + Add New Form ban gaye, aur
+package page ke sidebar me ab ek **sach me chalta hua form** hai. Inbox (All Enquiries ·
+Detail · Export CSV) aur email abhi nahi.
 
 **A-5 band ho gaya (31 Aug)** — `apps/web/.env` ban gayi, revalidate ab configured hai.
 **Q-9 ka bada hissa bhi band (31 Aug — D-65)** — section ke heading aur unke neeche ki lines
@@ -27,8 +31,8 @@ ja hi nahi raha tha.
 editor jo Overview pe hai. Migration **015**. Client (unke senior ka order): textarea me
 bold/heading/list ban hi nahi sakti.
 
-**583 tests passing** (25 files) · lint clean · format clean — 1 Sep ko verify kiya.
-**Last updated:** 1 Sep 2026
+**617 tests passing** (26 files) · lint clean · format clean — 1 Sep ko verify kiya.
+**Last updated:** 1 Sep 2026 (shaam — client ki 15-item list)
 
 ---
 
@@ -309,16 +313,18 @@ dikhta jab koi sidebar me Posts pe click karta.
 **Deadline:** koi nahi — page aaj poora chalta hai, ye sections **render hi nahi hote**
 **Yahan isliye hain ki inhe "TODO" kahin aur nahi likha gaya**
 
-Design (`itinerary-v3.html`) me ye chaar the. **Ek ban gaya (31 Aug — D-67)**, teen baaki:
+Design (`itinerary-v3.html`) me ye chaar the. **Chaaron ban gaye** — ek 31 Aug ko, teen
+1 Sep ko:
 
-| Section | Kya chahiye | Kis sawaal pe ruka |
+| Section | Kya laga | Kab |
 | --- | --- | --- |
-| **Traveller reviews** | `reviews[]` + `ratingValue`/`ratingCount` | §9 #8 — rating haath se ya derive |
-| **Similar itineraries** | koi naya field nahi, sab derived (§6.1) | §9 #15 — apne aap chunein ya haath se |
-| ~~**"Want this trip on your dates?"**~~ | ✅ **ban gaya — D-67** | Q-2 ka atkav khul gaya, neeche |
-| Sidebar ka **price + enquiry widget** | wahi enquiry form | **Q-2** |
+| ~~**Traveller reviews**~~ | ✅ `reviews` collection + `packageDefaults.rating` | **D-70** |
+| ~~**Similar itineraries**~~ | ✅ poori tarah derived, koi field nahi | **D-71** |
+| ~~**"Want this trip on your dates?"**~~ | ✅ button + uska target field | **D-67** |
+| ~~Sidebar ka **price + enquiry widget**~~ | ✅ `forms` module, khol design ka | **D-72** |
 
-Pehle do Slice 6-7 me aayenge.
+> Is section ka kaam khatam ho gaya. Ye heading yahan **itihaas** ke liye hai: yahi wo list
+> thi jo kahin aur "TODO" likhi hi nahi gayi thi, aur usi wajah se do mahine chup padi rahi.
 
 **Q-2 ka atkav is band pe khul gaya (31 Aug).** Client ne teen raaston me se chautha chuna:
 _"button to form par hi jata hai par abhi bana nahi hai to abhi fields bana do jisse bad me
@@ -344,9 +350,9 @@ chhoot jaate the — 26 Aug ko yahi hua.
 | ~~3~~ | ~~#6 · #7 · #9~~ ✅ **teenon band — D-50** |
 | ~~4~~ | ~~#10 · #11~~ ✅ **dono band — D-51** |
 | ~~5~~ | ~~#12 · #13~~ ✅ **dono band — D-53** |
-| 6 | #8 `ratingValue`/`ratingCount` haath se ya `reviews[]` se? |
-| 7 | #15 similar itineraries — apne aap ya haath se? |
-| baad me | #16 Enquiries (Q-2) — `Enq.` column aur booking form iska intezaar kar rahe hain |
+| ~~6~~ | ~~#8 rating haath se ya `reviews[]` se~~ ✅ **D-70** — **haath se** (client, 1 Sep) |
+| ~~7~~ | ~~#15 similar itineraries — apne aap ya haath se~~ ✅ **D-71** — **apne aap** |
+| baad me | #16 Enquiries — **aadha band (D-72)**. Form ban gaya; inbox aur email baaki. `Enq.` column client ne **hata diya** (1 Sep) |
 
 Poora sandarbh: [`specs/007-packages.md`](../specs/007-packages.md) §9
 

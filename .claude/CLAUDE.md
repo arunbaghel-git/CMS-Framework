@@ -5,13 +5,15 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1–5 ban chuki hain**; public package
-page shuru ho chuka hai aur har slice ke saath badh raha hai (**583 tests passing**).
-Agla kaam **Slice 6 ka bacha hua hissa — sirf `reviews[]` + rating**.
+**Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1–7 ban chuki hain** —
+public package page ke **saare** section live hain (**617 tests passing**).
+1 Sep ko client ki 15-item list se: reviews (D-70), similar itineraries (D-71), structured
+data, Enquiry Forms (D-72) aur typography tokens (D-73).
 ⚠️ `goodToKnow[]` **banega hi nahi** (D-68) — uska content har package pe same rehta hai, to
 wo Packages ▸ Section Headings ke "Good to know" wale description box me jaata hai.
-⚠️ Slice 6 ka aadha pehle hi ban chuka hai: **Itinerary Images ka pool + gallery** Slice 4 /
-D-52 me, aur **FAQs** D-59 me. Poora naam padh kar mat chalna.
+⚠️ **`reviews` per-package NAHI hai** (D-70) — wo universal hai, apni collection me, aur
+package usme se kuch chunta nahi. Rating (`4.9` / `412 trips`) usse **gini nahi jaati** —
+wo `packageDefaults.rating` me haath se likhi jaati hai.
 
 Phase 0: setup layer, Zod contract, migration runner, CSS architecture, **auth + RBAC +
 admin shell**, **Users screens**, **role-aware nav + Profile** (D-37), **Settings** (D-40),
@@ -57,7 +59,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-43                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-73                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -229,8 +231,22 @@ wali line hotel ke apne `note` se. **Teen cheezein derive hoti hain, store nahi:
 daam (sabse sasti category), table ka `Nights` (itinerary se), aur `Deluxe category —
 ₹29,499`.
 
-Agla kaam **Slice 6 ka bacha hua hissa** (spec 007 §7) — sirf `reviews[]` + rating.
-Itinerary Images ka pool + gallery (Slice 4 / D-52) aur FAQs (D-59) **ban chuke hain**.
+**1 Sep — client ki 15-item list poori ho gayi.** Public page ke chaaron bache hue section
+ban gaye, aur admin ke chhe fix bhi:
+
+- **Traveller reviews (D-70)** — nayi `reviews` collection (master-lists module ki chauthi
+  list), `Packages ▸ Reviews` screen, aur `Section Headings ▸ Traveller reviews` tab me
+  rating ki jodi. Page pe teen card, uske baad slider
+- **Similar itineraries (D-71)** — wahi nights **aur** days wale package, khud ko chhod kar.
+  Poori tarah derived, koi naya field nahi. Teen-teen ke page, `1 2 3` pagination
+- **Structured data** — reference ka poora `@graph` (breadcrumb · TouristTrip +
+  AggregateOffer + AggregateRating · FAQPage). Trip wala hissa `fields.seoSchema` toggle pe
+  hai — wo Slice 3 se maujood tha aur aaj tak **kuch karta hi nahi tha**
+- **Enquiry Forms (D-72)** — naya `forms` module, admin ki do screens, aur package page ke
+  sidebar me ek sach me chalta hua form. **Inbox aur email nahi** (client ne "only" kaha;
+  SMTP waise bhi blocked hai). Submissions phir bhi `enquiries` me store hoti hain
+- **Typography tokens (D-73)** — har `font-size`/`font-weight` ab `:root` se. Pure
+  refactor: 136 computed value milaayi gayin, ek bhi nahi badli
 
 ⚠️ **`goodToKnow[]` banega hi nahi (D-68).** Client se poochhne pe pata chala ki wo content
 har package pe **same** rehta hai — spec §2.1 ne ulta maan liya tha ("har itinerary ki ferry
@@ -238,7 +254,9 @@ wali majboori alag hoti hai"). Ab wo `Packages ▸ Section Headings` → "Good t
 description box me jaata hai (D-65 me wo box pehle se ban chuka tha). Ek repeater field, ek
 panel aur uske tests bach gaye.
 
-`reviews[]` ek sawaal pe ruka hai — spec 007 §9 #8 (rating haath se ya `reviews[]` se gine).
+⚠️ **`reviews[]` naam ka koi field bana hi nahi** (D-70). §9 #8 ka jawab client ne 1 Sep ko
+diya — rating **haath se** likhi jaati hai, aur reviews khud **universal** hain (apni
+collection, package ka chunav nahi).
 
 **31 Aug — section ke heading aur lines ab admin se (D-65, Q-9 ka bada hissa band):**
 `packageDefaults.sectionLabels` — 7 section, har ek pe `{ heading, description }`. Naya
@@ -265,14 +283,14 @@ thi: dono taraf ka code sahi dikhta hai, bas payload me field chhoot gaya tha.
 build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**. Jo farq abhi liye
 gaye hain wo sab client ke faislon se hain aur `04-ADMIN-UX.md` ke aakhri section me
 table me likhe hain.
-spec 007 §9 ke **6 sawaal** abhi khule hain (#2, #5, #8, #14, #15, #16), par koi bhi plan
+spec 007 §9 ke **3 sawaal** abhi khule hain (#2, #5, #14), par koi bhi plan
 nahi rokta — har ek apne slice pe tay hoga (`09-OPEN-ITEMS.md`).
 
-| #   | Kya                                   | Kab tak                                      |
-| --- | ------------------------------------- | -------------------------------------------- |
-| Q-7 | Logo na mile to header me kya dikhe?  | Client ka faisla (R15) — abhi interim pe hai |
-| Q-2 | Enquiries — Phase 7b ya alag Phase 9? | Phase 7 se pehle                             |
-| Q-3 | Field DSL me `matrix` + `table` types | Phase 5c se pehle                            |
+| #   | Kya                                                                 | Kab tak                                      |
+| --- | ------------------------------------------------------------------- | -------------------------------------------- |
+| Q-7 | Logo na mile to header me kya dikhe?                                | Client ka faisla (R15) — abhi interim pe hai |
+| Q-2 | Enquiries ka **inbox** — forms ban gaye (D-72), All Enquiries baaki | client jab maange                            |
+| Q-3 | Field DSL me `matrix` + `table` types                               | Phase 5c se pehle                            |
 
 **Q-7 ka interim:** logo na mile to header me **kuch render nahi hota** (nav left shift).
 Ye D-42 §2 ka palan hai, koi faisla nahi. Code me `Q-7 INTERIM` comment hai

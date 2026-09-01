@@ -4185,3 +4185,172 @@ nahi.
 > | hamari taraf ki **extra** property | script sirf ref → ours milaati hai, ulta nahi |
 >
 > Dono me se koi bhi ek page-wide layout badal sakta hai.
+
+---
+
+## D-70
+
+**Traveller reviews universal hain, aur rating haath se likhi jaati hai**
+_1 Sep 2026 · client ka faisla — spec 007 §9 #8 band_
+
+### Sawaal
+
+Slice 6 ka bacha hua hissa `reviews[]` + rating tha, aur spec 007 §9 #8 do mahine se khula
+tha: `ratingValue`/`ratingCount` haath se likhe jaayein ya `reviews[]` se gine jaayein?
+
+### Client ka jawab
+
+> _"client review section there will be one menu in sidebar and we can add multiple reviews
+> in that… universal hogi koi chunaw nahi"_
+>
+> _"for this section there will be a tab in section heading in that will have heading 4.9
+> average and count 412 trips it will be universal for all"_
+
+### Faisla — do hisse, do jagah
+
+| Kya | Kahan | Kyun |
+| --- | --- | --- |
+| Reviews (star · month · text · name · last line) | nayi `reviews` collection | ek dohrayi jaati hui cheez, master list jaisi |
+| Rating (`4.9` / `412 trips`) | `packageDefaults.rating` | ek hi jodi, list nahi |
+
+**`entries` pe koi `reviews[]` field nahi bani.** Spec §7 me wo per-package socha gaya tha;
+client ne ulta chuna. Wahi faisla `goodToKnow[]` pe hua tha (D-68) — **jo har package pe same
+chhapta hai, wo package ka data nahi hai.**
+
+**Rating gini nahi jaati.** Ginne ka natija ulta hota: page pe likhi hui teen-chaar review ka
+average dikhta, jabki `412 trips` saalon ka aankda hai. Jo cheez sach me kahin aur se aati
+hai use derive karne ka dikhawa karna sabse mehnga jhooth hai — dikhne me sahi, aur jaanch ka
+koi raasta nahi.
+
+### Aur jo isse nikla
+
+- **`reviews` master-lists module ki chauthi list hai**, apna module nahi (D-48 §1 ka hi
+  tark). Sirf do line judi — service ka registry aur validation ka map
+- **Aadhe taare nahi** — design me sirf bhare/khaali taare hain, `4.5` ka koi roop hi nahi
+- **`month` string hai, `Date` nahi** (`2026-03`). `Date` banate hi timezone 1 taareekh ki
+  raat ko pichhla mahina bana deta. Sort bhi isi pe chalti hai — `YYYY-MM` ka lexical aur
+  chronological kram ek hi hai
+- **`value: 0` = rating dikhani hi nahi** — hero aur section, dono se line gayab (D-30)
+
+---
+
+## D-71
+
+**Similar itineraries apne aap chunte hain — wahi nights AUR days**
+_1 Sep 2026 · client ka faisla — spec 007 §9 #15 band_
+
+### Sawaal
+
+§9 #15: similar itineraries apne aap chunein ya client haath se chune?
+
+### Client ka jawab
+
+> _"similar itinerary ke section me jo cards hai same days bale jitne cards honge like agar
+> 5 night 6 days bale 10 packages hai to abhi jis package ke page par hai bo package card
+> chod kar remaining package of same days bale card visible honge"_
+>
+> Match: _"(5N/6D = 5N/6D) only"_ · Cards: _"Design me 3 cards hain, uske bad 1,2,3 button
+> pagination"_
+
+### Faisla
+
+**Nights aur days dono barabar, khud ko chhod kar.** Sirf days nahi — 4N/6D "same days" hai
+par same trip nahi.
+
+**Koi naya field nahi bana.** Card ka har tukda derive hota hai: route stays se, chips
+nights/days + transfers + meals se, daam sabse sasti category se. Wahi soch jo route strip
+(D-51) aur hotels table (D-58/D-60) pe hai — jo package pe pehle se hai use dobara mat
+poochho. Nateeja: naya package publish karte hi wo purane packages ke page pe apne aap aa
+jaata hai.
+
+**Cap 12** — cap ke bina ek din 60 package wali site pe har package ka payload dus guna ho
+jaata.
+
+⚠️ **Card ka badge (`HONEYMOON`, `2 DIVES`) nahi bana** — client: "abhi chhod do". Uske liye
+ya Package Type se maana nikaalna padta ya ek naya field.
+
+⚠️ **Har card pe rating wahi ek hai.** Reference me har card ka apna number hai (`4.9 ★ 305`,
+`4.8 ★ 158`) — wo per-package rating maan kar likha gaya tha, aur D-70 me client ne ulta
+chuna. Client ko ye batate hue confirm kiya gaya: _"hatega kuch nahi abhi universal kar do"_.
+
+---
+
+## D-72
+
+**Enquiry forms ban gaye — par inbox nahi, aur mail nahi**
+_1 Sep 2026 · client ka faisla — Q-2 ka pehla hissa_
+
+### Sawaal
+
+`admin-design-v2.html` (client ne 1 Sep ko diya) me poora Enquiries module hai — All
+Enquiries, Enquiry Detail, Enquiry Forms, Add New Form, Export CSV. Q-2 do mahine se khula
+tha: Enquiries Phase 7b ho ya alag Phase 9?
+
+### Client ka jawab
+
+> _"banana hai abhi Enquiry Forms, Add New Form only kyuki desing me chahiye itinerary page
+> par"_
+
+Yaani asli maang module nahi, **package page ka chalta hua form** hai — D-67 ka wo hissa jo
+khula reh gaya tha (button ban gaya tha, form nahi).
+
+### Faisla — kya bana, kya nahi
+
+| Cheez | Bana? | Kyun |
+| --- | --- | --- |
+| `forms` collection + builder | ✅ | client ne yahi maanga |
+| Package page pe form | ✅ | asli maang yahi thi |
+| `enquiries` collection | ✅ **client ne nahi maanga** | neeche |
+| All Enquiries / Detail / Export CSV | ❌ | client ne "only" kaha |
+| Email bhejna | ❌ | SMTP Phase 0 se blocked |
+| `Conv.` column | ❌ | client ne mana kiya |
+| Contact page / Popup / Sticky bar placement | ❌ | page builder chahiye (Phase 5) |
+
+**`enquiries` collection bina maange banayi gayi, aur wo jaan-boojh kar hai.** Ek form jo
+bhara jaata hai par kahin store nahi hota, wo client ki asli enquiries chup-chaap kho deta
+hai. Screen baad me ban jaayegi; **kho gaya data nahi banta.** Ye scope badhana nahi hai —
+scope wahi hai, bas uska adhoora roop data kha jaata.
+
+### Ye is repo ka pehla bina-auth likhne wala endpoint hai
+
+Isliye rok teen jagah hai: honeypot (bhara ho to 201, store kuch nahi — error dena bot ko
+ishaara dena hai), rate limit (5/10 min, sirf IP pe), aur service ka apna check (form active
+hai?, required bhare hain?, **koi anjaan key to nahi**). Teesra sabse zyada maayne rakhta
+hai: Zod ne shape rok li (R9 — nested value reject), par naam sirf form ka document jaanta
+hai.
+
+---
+
+## D-73
+
+**Har font-size ab `:root` se — code me tokens, admin me nahi**
+_1 Sep 2026 · client ka faisla_
+
+### Sawaal
+
+> _"check if fontsize, fontface, color, site width and fontweight and other common css can
+> be managed from one location like for h1 size from one location same for other"_
+
+Rang, width, radius, shadow aur font-family **pehle se** tokens me the. **Font-size kahin
+nahi tha** — 81 declaration, 20 alag value. "h1 chhota karo" jaisa sawaal grep se shuru hota
+tha aur har baar ek-do jagah chhoot jaati thi.
+
+### Client ka jawab, jab do raaste diye gaye
+
+> _"Code tokens means code label par admin me nahi"_
+
+Yaani ek Settings ▸ Typography screen **nahi** chahiye — sirf code me ek jagah.
+
+### Faisla
+
+12-step scale (`--fs-5xs` … `--fs-3xl`), paanch clamp wale bade size, role wale
+`--fs-h1`–`--fs-h6` + `--fs-body`, aur paanch weight tokens.
+
+**Role wale token naap wale ko point karte hain, apni value nahi rakhte** — warna `--fs-h5`
+aur `--fs-md` dono 13.5px hote aur ek din chup-chaap alag ho jaate.
+
+Ye **refactor** hai, redesign nahi: 136 selector ki computed value pehle aur baad me milayi
+gayi, ek bhi nahi badli.
+
+⚠️ Teen size literal rahe — 20px (`.faq summary::after`), 30px (`.lbx__nav` ka chevron),
+34px (`.offer__box b`). Wo **glyph** ke naap hain, text scale ka hissa nahi.
