@@ -3,6 +3,7 @@ import { PACKAGE_SECTION_DEFAULTS, isEmptyDoc } from '@cms/shared'
 import { Fragment } from 'react'
 
 import CtaSection from './CtaSection.jsx'
+import EnquiryForm from './EnquiryForm.jsx'
 import Gallery from './Gallery.jsx'
 import Planner from './Planner.jsx'
 import {
@@ -294,6 +295,26 @@ export default function PackagePage({ entry, defaults, settings }) {
    * Yahan koi filter nahi lagta; theme sirf teen-teen ke page banata hai.
    */
   const similar = entry.similar ?? []
+
+  /**
+   * Sidebar ka enquiry form — `packageDefaults` ke saath aata hai (client, 1 Sep).
+   *
+   * Koi active form na ho to `null` — sidebar me sirf "Talk to a planner" rehta hai.
+   */
+  const enquiryForm = defaults?.enquiryForm
+
+  /**
+   * "Package" wale dropdown ke vikalp.
+   *
+   * Design kehta hai `auto-filled from Packages`. Yahan wo **is page ka package aur uske
+   * similar** hain — dono payload me pehle se hain, koi nayi query nahi lagti.
+   *
+   * Poori site ke saare packages jaan-boojh kar nahi: visitor is package ke page pe khada
+   * hai, aur uski enquiry isi ke baare me hai. Saath me wahi vikalp hain jinpe wo abhi
+   * neeche cards me dekh raha hai — yaani wo list jo yahan sach me kaam ki hai. Sabhi
+   * packages bhejne ka matlab hota har package page ke payload me poori catalogue.
+   */
+  const formPackages = [entry.title, ...similar.map((item) => item.title)]
 
   /**
    * Client ne is section ke description box me kuch likha hai?
@@ -701,6 +722,11 @@ export default function PackagePage({ entry, defaults, settings }) {
            * poora data settings me pehle se hai.
            */}
           <aside className="pgl__side">
+            {/*
+             * Enquiry widget sabse upar — reference me bhi wahi kram hai (`#enquiry`, phir
+             * "Talk to a planner"). D-67 ka button isi `#enquiry` pe utarta hai.
+             */}
+            <EnquiryForm form={enquiryForm} packages={formPackages} sourcePath={entry.path} />
             <Planner settings={settings} />
           </aside>
         </div>

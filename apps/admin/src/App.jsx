@@ -13,6 +13,8 @@ import NotBuiltYet from './screens/NotBuiltYet.jsx'
 import Profile from './screens/Profile.jsx'
 import AppearanceFooter from './screens/appearance/Footer.jsx'
 import Menus from './screens/appearance/Menus.jsx'
+import FormBuilder from './screens/forms/FormBuilder.jsx'
+import FormsList from './screens/forms/FormsList.jsx'
 import MasterListScreen from './screens/packages/MasterListScreen.jsx'
 import PackageDefaults from './screens/packages/PackageDefaults.jsx'
 import PackageEdit from './screens/packages/PackageEdit.jsx'
@@ -154,6 +156,15 @@ const APP_ROUTES = [
   { path: '/packages/add-ons', element: <MasterListScreen list="addOns" /> },
   { path: '/packages/transfers', element: <MasterListScreen list="transfers" /> },
   { path: '/packages/reviews', element: <MasterListScreen list="reviews" /> },
+
+  /**
+   * ⚠️ `/enquiries/forms/new` `/enquiries/forms/:id` se **pehle** hai — wahi wajah jo
+   * `/packages/new` pe likhi hai: warna `new` ek form ki id samajh li jaati aur screen
+   * "Form not found" pe khulti.
+   */
+  { path: '/enquiries/forms', element: <FormsList /> },
+  { path: '/enquiries/forms/new', element: <FormBuilder /> },
+  { path: '/enquiries/forms/:id', element: <FormBuilder /> },
   { path: '/packages/whats-included', element: <PackageDefaults section="whatsIncluded" /> },
   { path: '/packages/itinerary-images', element: <PackageDefaults section="itineraryImages" /> },
   { path: '/packages/section-headings', element: <PackageDefaults section="sectionLabels" /> },
@@ -185,7 +196,12 @@ const PENDING_ROUTES = [
    * baaki hain.
    */
   { path: '/packages/*', title: 'Packages', phase: 'Slice 2 ki screens' },
-  { path: '/enquiries/*', title: 'Enquiries', phase: 'Phase 7b' },
+  /**
+   * Enquiry Forms aur Add New Form upar `APP_ROUTES` me hain (1 Sep). Ye splat sirf uske
+   * andar ke baaki teen ke liye hai — All Enquiries, Enquiry Detail aur Export CSV. Unka
+   * data ban chuka hai (`enquiries` collection bhar rahi hai); sirf screens baaki hain.
+   */
+  { path: '/enquiries/*', title: 'Enquiries', phase: 'inbox ki screens' },
   /**
    * Appearance ke bane hue do screens upar `APP_ROUTES` me hain. Ye splat sirf uske
    * andar ke baaki raaston ke liye hai — Homepage Blocks aur Banners & Sliders, jo abhi

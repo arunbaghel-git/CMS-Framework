@@ -2835,6 +2835,183 @@ a.mega__gl:hover {
    Isliye tokens page ke hain, par shakl yahin tay hui hai.
    ================================================================== */
 
+/* ---------- sidebar ka enquiry form ----------
+   Reference: itinerary-v3.html — `.wdg--book` `.bkg__t` `.bkg__b` `.fld`
+
+   Widget ka **khol reference ka hai, fields admin se aate hain**. Reference me saat field
+   hardcoded hain; yahan wo `Enquiries ▸ Enquiry Forms` se aate hain. Yahi Q-9 wali soch hai —
+   dhaancha static, maal admin se. */
+
+.wdg--book {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Neela sar — daam, aur category badalte hi ye bhi badalta hai. */
+.bkg__t {
+  background: linear-gradient(150deg, var(--blue-900), var(--blue-700));
+  padding: 16px 18px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.bkg__t del {
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: var(--fw-semi);
+}
+
+.bkg__t b {
+  display: block;
+  font-size: 30px;
+  font-weight: var(--fw-black);
+  color: #fff;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  margin: 2px 0;
+}
+
+.bkg__t span {
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-bold);
+}
+
+.bkg__t i {
+  font-style: normal;
+  display: inline-block;
+  margin-top: 9px;
+  font-size: var(--fs-4xs);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 4px 9px;
+  border-radius: var(--rf);
+}
+
+.bkg__b {
+  padding: 16px 16px 18px;
+}
+
+.bkg__b .fld {
+  margin-bottom: 13px;
+}
+
+.bkg__b .btn {
+  width: 100%;
+  margin-top: 3px;
+}
+
+/* ---------- form fields ----------
+   Reference ka `.fld`. Ye poore page ke liye hai, sirf is widget ke liye nahi — jis din
+   koi doosra form bane (contact page), wo inhi class pe khada hoga. */
+
+.fld label {
+  display: block;
+  font-size: var(--fs-4xs);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.fld input,
+.fld select,
+.fld textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r2);
+  font: inherit;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semi);
+  color: var(--ink);
+  background: var(--surface);
+  transition: 0.14s;
+}
+
+.fld input:focus,
+.fld select:focus,
+.fld textarea:focus {
+  outline: 0;
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 3px var(--blue-100);
+}
+
+.fld input::placeholder,
+.fld textarea::placeholder {
+  color: var(--faint);
+  font-weight: var(--fw-med);
+}
+
+.fld textarea {
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.5;
+  display: block;
+}
+
+/*
+ * Checkbox wali field — reference me ye hai hi nahi (wahan consent ka field nahi tha), par
+ * admin ke default form me hai. Isliye ye do line hamari hain: checkbox aur uska text ek
+ * line me, aur text upper-case nahi (wo ek label nahi, ek vaakya hai).
+ */
+.fld--check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 13px;
+}
+
+.fld--check input {
+  width: auto;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.fld--check span {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semi);
+  color: var(--body);
+  line-height: 1.5;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.bkg__err {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semi);
+  color: var(--red-500);
+  background: var(--red-100);
+  border-radius: var(--r1);
+  padding: 9px 11px;
+  margin-bottom: 11px;
+}
+
+.bkg__done {
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  color: var(--body);
+  text-align: center;
+  padding: 14px 4px;
+}
+
+/*
+ * Honeypot — asli user ko dikhta hi nahi, bot bhar deta hai.
+ *
+ * `display: none` **nahi** hai jaan-boojh kar: kai bots `display:none` wale khaane pehchan
+ * kar chhod dete hain. Ye screen se bahar khada hai, isliye unhe wo ek asli field lagta hai.
+ * Keyboard aur screen reader dono ise chhod dete hain (`tabindex="-1"` + `aria-hidden`).
+ */
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 /* ---------- similar itineraries ----------
    Reference: itinerary-v3.html — `.sim` `.prow`
 
@@ -2842,9 +3019,19 @@ a.mega__gl:hover {
    ek ke neeche ek rakhta hai. Client ne isi ke aage kaha — "3 cards, uske bad 1,2,3 button
    pagination" — to teen ke baad numbered pagination lagti hai.
 
-   ⚠️ Reference me `.prow` ke liye koi media query nahi hai (wo listing page se aaya hai,
-   jahan column chaudi hoti hai). 238px + 226px ki do tay column patli screen pe beech ka
-   text 100px ka kar deti hain, isliye neeche do breakpoint yahan jode gaye hain. */
+   Responsive reference ka hi hai, aur uski teen seedhiyaan hain — wo dikhne me ajeeb lagti
+   hain par jaan-boojh kar hain:
+
+   | Width | Kya hota hai | Kyun |
+   | --- | --- | --- |
+   | 1180px | 3 column → 2, daam neeche ki patti me | sidebar abhi bhi hai, beech ka column tang ho gaya |
+   | 1024px | **wapas 3 column** | sidebar khud neeche chala gaya, poori chaudai mil gayi |
+   | 760px | 1 column, image 16/9 | phone |
+
+   ⚠️ Beech wali seedhi ulti lagti hai (chhoti screen pe zyada column), aur pehli nazar me
+   maine ise likhne ki galti samajh kar apne do breakpoint laga diye the. Wo galat tha: yahan
+   `.prow` ki chaudai screen se nahi, **uske column** se tay hoti hai, aur 1024px pe sidebar
+   hatne se wo column chauda ho jaata hai. Reference ke naap hi sahi hain. */
 
 .sim {
   display: grid;
@@ -3050,33 +3237,60 @@ a.mega__gl:hover {
   color: #fff;
 }
 
-@media (max-width: 1080px) {
+/* Beech ka column tang ho gaya — daam card ke neeche ek patti ban jaata hai. */
+@media (max-width: 1180px) {
   .prow {
-    /* Price rail apni chaudai chhod deta hai; media aur text ka anupaat wahi rehta hai. */
-    grid-template-columns: 180px minmax(0, 1fr);
+    grid-template-columns: 200px minmax(0, 1fr);
   }
 
   .prow__p {
     grid-column: 1 / -1;
     flex-direction: row;
     align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 14px;
     border-left: 0;
     border-top: 1px solid var(--line-2);
+    text-align: left;
+    padding: 14px clamp(18px, 2vw, 24px);
+    background: var(--blue-50);
   }
 
-  .prow__rt {
-    margin-bottom: 0;
-    margin-right: auto;
-  }
-
+  .prow__rt,
   .prow__go {
-    margin-top: 0;
+    margin: 0;
   }
 }
 
-@media (max-width: 620px) {
+/* Sidebar neeche chala gaya — row ko apni poori teen-column shakl wapas mil gayi. */
+@media (max-width: 1024px) {
+  .prow {
+    grid-template-columns: 238px minmax(0, 1fr) 226px;
+  }
+
+  .prow__p {
+    grid-column: auto;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+    border-left: 1px solid var(--line-2);
+    border-top: 0;
+    text-align: right;
+    padding: 20px clamp(16px, 1.8vw, 22px);
+    background: linear-gradient(180deg, var(--surface), var(--blue-50));
+  }
+
+  .prow__rt {
+    margin-bottom: 8px;
+  }
+
+  .prow__go {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 760px) {
   .prow {
     grid-template-columns: 1fr;
   }
@@ -3084,6 +3298,28 @@ a.mega__gl:hover {
   .prow__m {
     min-height: 0;
     aspect-ratio: 16 / 9;
+  }
+
+  .prow__p {
+    grid-column: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    row-gap: 8px;
+    border-left: 0;
+    border-top: 1px solid var(--line-2);
+    text-align: left;
+    padding: 14px 18px;
+    background: var(--blue-50);
+  }
+
+  .prow__rt {
+    margin: 0;
+  }
+
+  .prow__go {
+    margin: 0 0 0 auto;
   }
 }
 

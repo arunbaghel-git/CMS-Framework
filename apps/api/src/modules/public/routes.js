@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import { badRequest } from '../../core/errors.js'
+import { publicEnquiryRoutes } from '../forms/routes.js'
 import { getPublicMenu } from '../menus/service.js'
 import { getPublicPackageDefaults, getPublicSettings, resolvePublicPath } from './service.js'
 
@@ -13,7 +14,9 @@ import { getPublicPackageDefaults, getPublicSettings, resolvePublicPath } from '
  * Admin aur public routes alag hone ki wajah 02-ARCHITECTURE §10 me hai: public payload
  * ka shape alag hai aur usme kabhi koi admin-only field nahi jaana chahiye.
  *
- * Dono GET hain aur dono sach me read-only hain (R13).
+ * Reads sab GET hain aur sach me read-only hain (R13). **Ek apwaad hai** —
+ * `POST /api/public/enquiries`: wo state badalti hai, isliye POST hai. R13 method ka niyam
+ * hai, path ka nahi.
  */
 export const publicRoutes = Router()
 
@@ -57,6 +60,15 @@ publicRoutes.get('/resolve', async (req, res, next) => {
     next(err)
   }
 })
+
+/**
+ * Enquiry submit — **bina auth ke**, apni rate limit ke saath (`forms/routes.js`).
+ *
+ * Yahan mount hone ki wajah ye hai ki bharne wala site ka visitor hai, admin nahi. Rok
+ * teen jagah hai: honeypot, rate limit, aur service ka apna check (form active hai?,
+ * required bhare hain?, koi anjaan key to nahi?).
+ */
+publicRoutes.use('/enquiries', publicEnquiryRoutes)
 
 /** Packages ke globals — alag endpoint kyunki iska cache tag alag hai (`type:package`). */
 publicRoutes.get('/package-defaults', async (_req, res, next) => {

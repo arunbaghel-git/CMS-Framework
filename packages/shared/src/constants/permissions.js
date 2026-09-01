@@ -97,7 +97,15 @@ export const PERMISSION = Object.freeze({
   REDIRECT_UPDATE: 'redirect.update',
   REDIRECT_DELETE: 'redirect.delete',
 
-  // Forms
+  /**
+   * Forms — spec 001 me ye saat naam Phase 0 me hi likh diye gaye the (ek saath dena aasaan
+   * hai, baad me alag karna poora retrofit).
+   *
+   * **`form.*` chaaron 1 Sep se sach me chalti hain** — `/api/forms` unhi pe khadi hai.
+   * `submission.*` teenon abhi bhi sirf likhi hui hain: bhari hui enquiries ko dekhne ki
+   * koi screen nahi bani (client ne "sirf Enquiry Forms aur Add New Form" kaha). Wo us din
+   * jaagengi jab All Enquiries banegi.
+   */
   FORM_READ: 'form.read',
   FORM_CREATE: 'form.create',
   FORM_UPDATE: 'form.update',
@@ -164,6 +172,12 @@ const READ_ONLY = [
    * aadha content nahi dekh sakta.
    */
   P.REVIEW_READ,
+  /**
+   * Form ki read sabke paas — package editor me aage "Enable enquiry form" wala chunav
+   * aayega, aur uske bina wo dropdown khaali rehta. Khaali dropdown "kuch nahi mila" jaisa
+   * dikhta hai, "aapko permission nahi" jaisa nahi.
+   */
+  P.FORM_READ,
   P.PACKAGE_DEFAULTS_READ,
 ]
 
@@ -210,6 +224,9 @@ const EDITOR = [
   P.REVIEW_CREATE,
   P.REVIEW_UPDATE,
   P.REVIEW_DELETE,
+  P.FORM_CREATE,
+  P.FORM_UPDATE,
+  P.FORM_DELETE,
   P.PACKAGE_DEFAULTS_UPDATE,
   P.MEDIA_UPDATE,
   P.MEDIA_EDIT,

@@ -113,6 +113,17 @@ export const NAV = [
       },
     ],
   },
+  /**
+   * Enquiries — submenu `admin-design-v2.html` (1 Sep) se.
+   *
+   * Design me paanch item hain; **do ban chuke hain** (Enquiry Forms · Add New Form) aur
+   * teen abhi "abhi nahi bana" pe hain (All Enquiries · Enquiry Detail · Export CSV).
+   * Client ne 1 Sep ko sirf do maange the — "banana hai abhi Enquiry Forms, Add New Form
+   * only, kyunki design me chahiye itinerary page par".
+   *
+   * Teenon anbane item phir bhi yahan hain: D-30 — khaali cheez khaali dikhni chahiye,
+   * tooti hui nahi. Menu se hata dene se baad me poora nav dobara likhna padta.
+   */
   {
     id: 'enquiries',
     icon: '✉',
@@ -120,6 +131,8 @@ export const NAV = [
     children: [
       { label: 'All Enquiries', to: '/enquiries' },
       { label: 'Enquiry Detail', to: '/enquiries/detail' },
+      { label: 'Enquiry Forms', to: '/enquiries/forms', permission: PERMISSION.FORM_READ },
+      { label: 'Add New Form', to: '/enquiries/forms/new', permission: PERMISSION.FORM_CREATE },
       { label: 'Export CSV', to: '/enquiries/export' },
     ],
   },

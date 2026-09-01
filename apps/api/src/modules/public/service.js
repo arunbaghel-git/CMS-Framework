@@ -12,6 +12,7 @@ import {
 } from '@cms/shared'
 
 import { Entry } from '../entries/model.js'
+import { getPublicPackageForm } from '../forms/service.js'
 import { AddOn, Hotel, Review, Transfer } from '../master-lists/model.js'
 import { Media } from '../media/model.js'
 import { toPublicMedia } from '../media/service.js'
@@ -721,9 +722,10 @@ async function toPublicEntry(doc, siteId, locale) {
 export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
   const doc = await ensurePackageDefaults(siteId)
 
-  const images = await Promise.all(
-    (doc.itineraryImages ?? []).map((id) => toDisplayImage(id, 'medium', siteId)),
-  )
+  const [images, enquiryForm] = await Promise.all([
+    Promise.all((doc.itineraryImages ?? []).map((id) => toDisplayImage(id, 'medium', siteId))),
+    getPublicPackageForm(siteId),
+  ])
 
   return {
     whatsIncluded: {
@@ -780,6 +782,20 @@ export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
      * jaane pe page ka payload chup-chaap 10x nahi hona chahiye. Ye limit `itineraryImages`
      * wali hi soch hai.
      */
+    /**
+     * Sidebar ka enquiry form — jo form `active` hai aur `packages` pe laga hai.
+     *
+     * ⚠️ Ye `packageDefaults` ka field **nahi** hai; wo apni `forms` collection me hai. Yahan
+     * bhejne ki wajah cache hai: is endpoint ka tag `type:package` hai — theek wahi tag jo
+     * form badalne pe revalidate hota hai — aur har package page pe yahi ek form chhapta hai.
+     * Ek alag endpoint ka matlab hota har page render pe ek aur round trip, us data ke liye
+     * jo isi tag ke saath aata-jaata hai.
+     *
+     * Koi active form na ho to `null` — theme sidebar me sirf "Talk to a planner" dikhata
+     * hai, ek khaali dabba nahi (D-30).
+     */
+    enquiryForm,
+
     reviews: (
       await Review.find({ siteId }).sort({ month: -1, createdAt: -1 }).limit(200).lean()
     ).map((r) => ({

@@ -1,0 +1,69 @@
+/*
+ * Enquiry Forms — `admin-design-v2.html` ke `#s-enquiry-forms` aur `#s-form-builder` se
+ * (client, 1 Sep).
+ *
+ * Yahan sirf wo aata hai jo **in do screens ka apna** hai. Tabs, table, badges, panels aur
+ * `.edit-grid` sab `primitives.css` se pehle se aa rahe hain — unhe dobara likhne ka matlab
+ * hota ki ek din Forms ki table baaki admin se alag dikhne lage.
+ */
+
+/* Design: `.fieldrow .ftype` — field ke naam ke neeche uska type. */
+.field-table .ftype {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.field-table td {
+  vertical-align: middle;
+}
+
+/*
+ * Checkbox wale do column beech me — design me wo `<th style="width:80px">` hain aur
+ * checkbox unke beech baithta hai. Bina iske wo baayein kinare pe chipak jaate hain aur
+ * header ke saath line me nahi dikhte.
+ */
+.field-table td:nth-child(2),
+.field-table td:nth-child(3),
+.field-table th:nth-child(2),
+.field-table th:nth-child(3) {
+  text-align: center;
+}
+
+/*
+ * Dropdown ke vikalp — ek line me ek.
+ *
+ * Chhota rakha hai jaan-boojh kar: ye table ke ek cell ke andar hai, aur poori unchai ka
+ * textarea row ko itna lamba kar deta hai ki uske Show/Required checkbox screen se bahar
+ * chale jaate hain.
+ */
+.options-box {
+  min-height: 64px;
+  margin-top: 8px;
+}
+
+/* Design ka `.addrow` — "Add a field" wali line panel ke foot me. */
+.addrow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Design ka `.sc-box` — form ki id ek copy karne laayak dabbe me. */
+.sc-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sc-box code {
+  flex: 1;
+  background: #f6f7f7;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 6px 9px;
+  font-size: 12px;
+  overflow: auto;
+  white-space: nowrap;
+}

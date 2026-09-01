@@ -70,6 +70,42 @@ export function CategoryProvider({ pricing, currency, children }) {
   return <CategoryContext.Provider value={value}>{children}</CategoryContext.Provider>
 }
 
+/**
+ * Sidebar ke enquiry widget ka neela sar — reference ka `.bkg__t`.
+ *
+ * Wahi `useCategory()` se chalta hai jo hero ka `PriceBlock` chalata hai, isliye category
+ * badalte hi **dono** ek saath badalte hain. Do jagah alag hisaab rakhne ka matlab hota ki
+ * ek din upar kuch aur daam dikhta aur form ke sar pe kuch aur — aur wo customer ko dikhta.
+ *
+ * ⚠️ `save 22%` reference me hai par yahan **derive** hota hai, likha hua nahi:
+ * `(strike − price) / strike`. Kaata hua daam na ho to wo line aati hi nahi — "save 0%"
+ * chhapna adhoora page dikhata hai (D-30).
+ */
+export function PriceHeader() {
+  const { selected, currency, category } = useCategory()
+
+  if (!selected) return null
+
+  const save =
+    selected.strikePrice != null
+      ? Math.round(((selected.strikePrice - selected.priceFrom) / selected.strikePrice) * 100)
+      : 0
+
+  return (
+    <div className="bkg__t">
+      {selected.strikePrice != null && <del>{formatPrice(selected.strikePrice, currency)}</del>}
+      <b>{formatPrice(selected.priceFrom, currency)}</b>
+      {/* Wahi static chhoti line jo hero me hai (client, 27 Aug) — dono ek jaisi rehni chahiye. */}
+      <span>per person · twin sharing</span>
+      {save > 0 && (
+        <i>
+          {HOTEL_CATEGORY_LABEL[category] ?? category} · save {save}%
+        </i>
+      )}
+    </div>
+  )
+}
+
 /** `₹31,999  ₹24,999  per person` — title ke daayin taraf ka column. */
 export function PriceBlock({ ctaLabel = 'Get this itinerary', ctaHref = '#enquiry' }) {
   const { selected, currency } = useCategory()
