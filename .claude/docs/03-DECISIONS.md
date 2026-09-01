@@ -3960,3 +3960,56 @@ sakti ki client ne kaunsi line heading ki tarah likhi thi. Client ko sub-heading
 haath se mark karni hongi. Ye lossy nahi hai (shabd sab bache hain), par batana zaroori hai.
 
 **Nateeja:** 583 tests (2 naye). Migration **015**.
+
+### Amendment — 1 Sep, usi din: tabs, aur block-type dropdown
+
+Client ne editor chalane ke baad do cheezein maangi.
+
+**1. Section Headings ab tabs me hai.**
+
+Saat section ek doosre ke neeche the — ek bahut lambi scroll, aur kis section pe kaam ho
+raha hai wo kho jaata tha. Ab har section ka apna tab hai.
+
+⚠️ Iska ek **aur** faayda hai jo dikhta nahi: **ek waqt pe sirf ek TipTap instance mount
+hota hai.** Chhe editors ek saath chalana muft nahi — har ek apna ProseMirror view aur
+plugins leke aata hai. Ye wahi cheez thi jo D-69 me "keemat" ki tarah likhi gayi thi, aur
+tabs ne use apne aap hal kar diya.
+
+Tab badalne se **kuch nahi khota** — saara data `labels` state me hai; tab sirf ye tay karta
+hai ki kaunsa dikh raha hai, aur Save hamesha **poora** object bhejta hai. Ye Settings wale
+route-based tabs se alag hai: wo alag screens hain, ye ek hi screen ke hisse jo ek saath
+save hote hain.
+
+**2. Block type ab dropdown hai — "Paragraph · Heading · Sub-heading".**
+
+Pehle ek hi toggle button tha ("H3"). Client: _"why there is only h2 or h3 in editor could
+there we all headings and p tag so that i can choose which word will be heading and which
+will text simple"_
+
+Do asli kami thi: **"Paragraph" naam ki koi cheez dikhti hi nahi thi** (heading ko wapas
+paragraph banane ke liye usi button ko dobara dabana padta, jo pata hi nahi chalta), aur ek
+se zyada level chunne ka koi raasta nahi tha.
+
+### ⚠️ "All headings" nahi diye ja sakte — aur wajah sanak nahi hai
+
+| Level | Kyun / kyun nahi |
+| --- | --- |
+| `h1` | Page pe **ek hi** hota hai — package ka title. Doosra `h1` outline tod deta hai |
+| `h2` | Section ka apna heading hai. Description uske **andar** hai, to wahan `h2` uska bhai ban jaata — Overview me theek, sections me galat |
+| `h3` `h4` | Section ke andar sahi nesting. Yahi chahiye the |
+| `h5` `h6` | Theme inhe render hi **nahi** karti — `RichText` level ko 2–4 me clamp karta hai. Dropdown me dena ek jhooth hota |
+
+Isliye `headingLevels` prop: sections pe `[3, 4]`, Overview pe `[2, 3]`.
+
+**Do chhoti cheezein jo isme nikleen:**
+
+- **Dropdown `ToolButton` nahi hai.** Wo `onMouseDown` + `preventDefault` karta hai (taaki
+  selection na khoye) — par `<select>` pe wahi chaal dropdown **khulne hi nahi deti**.
+  Select me selection `onChange` tak bachi rehti hai, isliye wo chaal chahiye bhi nahi.
+- **`.blk h4` ka koi rule tha hi nahi** — reference me `h4` kahin aata hi nahi. Base heading
+  rule sirf weight/colour deta hai, size nahi; yaani `h4` body ke size pe chalta aur `h3` se
+  uska farak sirf spacing ka rehta. Ab 14.5px (h3 15.5 aur body 14 ke beech).
+- **`.tabs` sirf `<a>` pe thi** (Settings ke route-tabs). In-page tabs `<button>` hain, to
+  selector dono ko leta hai — aur button ka apna browser chrome hataana padta hai.
+  ⚠️ `font: inherit` **`font-size` se pehle** likhna padta hai; shorthand baad me aaye to
+  wo size ko reset kar deta hai.

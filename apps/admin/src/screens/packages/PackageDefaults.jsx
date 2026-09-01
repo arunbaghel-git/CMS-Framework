@@ -42,6 +42,8 @@ export default function PackageDefaults({ section }) {
   const [images, setImages] = useState([])
   /** `{ overview: {heading, description}, … }` — Q-9. */
   const [labels, setLabels] = useState({})
+  /** Kaunsa section tab khula hai — sirf dikhawe ka, data poora `labels` me rehta hai. */
+  const [activeSection, setActiveSection] = useState(PACKAGE_SECTIONS[0].key)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -184,8 +186,39 @@ export default function PackageDefaults({ section }) {
           <div className="panel-head">
             <h2>Section Headings</h2>
           </div>
-          <div className="panel-body">
+          {/*
+           * Saat section tabs me hain, ek doosre ke neeche nahi (client, 1 Sep).
+           *
+           * Do wajah. Ek dikhne wali: saat heading + chhe editor ek page pe ek bahut lambi
+           * scroll banate the, aur kis section pe kaam ho raha hai wo kho jaata tha.
+           *
+           * Doosri jo dikhti nahi: **ek waqt pe sirf ek TipTap instance mount hota hai.**
+           * Chhe editors ek saath chalana muft nahi hai — har ek apna ProseMirror view aur
+           * plugins leke aata hai.
+           *
+           * ⚠️ Tab badalne se **kuch nahi khota** — saara data `labels` me hai, jo yahan
+           * upar rehta hai. Tab sirf ye tay karta hai ki kaunsa dikh raha hai; Save
+           * hamesha **poora** object bhejta hai.
+           *
+           * Ye route-based tabs **nahi** hain (jaise Settings ke hain) — wo alag screens
+           * hain, ye ek hi screen ke hisse hain jo ek saath Save hote hain.
+           */}
+          <nav className="tabs" aria-label="Sections">
             {PACKAGE_SECTIONS.map((section) => (
+              <button
+                key={section.key}
+                type="button"
+                className={section.key === activeSection ? 'on' : ''}
+                aria-current={section.key === activeSection ? 'true' : undefined}
+                onClick={() => setActiveSection(section.key)}
+              >
+                {section.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="panel-body">
+            {PACKAGE_SECTIONS.filter((section) => section.key === activeSection).map((section) => (
               <div className="field" key={section.key}>
                 <label>{section.label}</label>
                 <input
@@ -215,7 +248,7 @@ export default function PackageDefaults({ section }) {
                      */}
                     <RichTextEditor
                       label={section.label}
-                      headingLevel={3}
+                      headingLevels={[3, 4]}
                       doc={labels[section.key]?.description}
                       onChange={(doc) =>
                         setLabels((prev) => ({

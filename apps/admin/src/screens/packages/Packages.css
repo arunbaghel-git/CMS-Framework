@@ -210,3 +210,11 @@
 .panel-head .grip:active {
   cursor: grabbing;
 }
+
+/* Section Headings ke tabs panel ke ANDAR hain (head aur body ke beech), route wale tabs ki
+   tarah page pe nahi. Isliye unhe body ki padding se align karna padta hai aur neeche ka
+   margin nahi chahiye — panel-body ka apna padding pehle se hai. */
+.panel > .tabs {
+  margin: 0;
+  padding: 0 12px;
+}

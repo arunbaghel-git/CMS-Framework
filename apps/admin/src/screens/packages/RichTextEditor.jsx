@@ -52,19 +52,24 @@ function ToolButton({ label, title, isActive, onClick }) {
 
 /**
  * @param {object}   props
- * @param {object}   [props.doc]          TipTap ka JSON document
- * @param {string}   [props.label]        Tab pe dikhne wala naam
- * @param {number}   [props.headingLevel] Heading button kaunsa level banaye
+ * @param {object}   [props.doc]           TipTap ka JSON document
+ * @param {string}   [props.label]         Tab pe dikhne wala naam
+ * @param {number[]} [props.headingLevels] Kaunse heading levels chune ja sakte hain
  *
- * ⚠️ `headingLevel` ek asli zaroorat se aaya hai, sajawat se nahi (D-69).
+ * ⚠️ `headingLevels` ek asli zaroorat se aaya hai, sajawat se nahi (D-69).
  *
- * Overview page ka pehla content hai, to uska heading **H2** theek hai. Par section ki
- * description page ke `<h2>` ke **neeche** chhapti hai — wahan aur H2 daalne se document ka
- * outline toot jaata hai (screen reader aur SEO dono uspe chalte hain). Isliye wahan **H3**.
+ * **Har jagah har heading nahi de sakte, aur ye a11y/SEO ki baat hai, sanak nahi:**
  *
- * Button ka label bhi isse hi banta hai, warna wo "H2" likhta aur H3 banata.
+ * | Level | Kyun / kyun nahi |
+ * | --- | --- |
+ * | `h1` | Page pe **ek hi** hota hai — package ka title. Doosra `h1` outline tod deta hai |
+ * | `h2` | Section ka apna heading hai. Description uske **andar** hai, to wahan `h2` uska bhai ban jaata — Overview me theek, sections me galat |
+ * | `h3` `h4` | Section ke andar sahi nesting. Yahi client ko chahiye the |
+ * | `h5` `h6` | Theme inhe render hi nahi karti — `RichText` level ko **2–4 me clamp** karta hai. Dropdown me dena ek jhooth hota |
+ *
+ * Isliye sections pe `[3, 4]` aur Overview pe `[2, 3]`.
  */
-export default function RichTextEditor({ doc, onChange, disabled, label, headingLevel = 2 }) {
+export default function RichTextEditor({ doc, onChange, disabled, label, headingLevels = [2, 3] }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -128,12 +133,38 @@ export default function RichTextEditor({ doc, onChange, disabled, label, heading
             isActive={editor.isActive('italic')}
             onClick={() => editor.chain().focus().toggleItalic().run()}
           />
-          <ToolButton
-            label={`H${headingLevel}`}
-            title="Heading"
-            isActive={editor.isActive('heading', { level: headingLevel })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: headingLevel }).run()}
-          />
+          {/*
+           * Block ka type ek **dropdown** hai, toggle button nahi (client, 1 Sep).
+           *
+           * Pehle ek hi button tha ("H3") jo paragraph aur heading ke beech toggle karta.
+           * Usme do kami thi: "Paragraph" naam ki koi cheez dikhti hi nahi thi (heading
+           * wapas paragraph banane ke liye usi button ko dobara dabana padta, jo pata hi
+           * nahi chalta), aur ek se zyada level chunne ka koi raasta nahi tha.
+           *
+           * ⚠️ Ye `ToolButton` nahi hai kyunki `<select>` ko `onMouseDown` + `preventDefault`
+           * wali chaal se **nuksaan** hota hai — usse dropdown khulta hi nahi. Yahan selection
+           * `onChange` tak bachi rehti hai, isliye wo chaal chahiye bhi nahi.
+           */}
+          <select
+            className="sel editor-block"
+            title="Text style"
+            aria-label="Text style"
+            value={headingLevels.find((level) => editor.isActive('heading', { level })) ?? 'p'}
+            onChange={(e) => {
+              const chain = editor.chain().focus()
+              const value = e.target.value
+
+              if (value === 'p') chain.setParagraph().run()
+              else chain.setNode('heading', { level: Number(value) }).run()
+            }}
+          >
+            <option value="p">Paragraph</option>
+            {headingLevels.map((level, i) => (
+              <option key={level} value={level}>
+                {i === 0 ? 'Heading' : 'Sub-heading'}
+              </option>
+            ))}
+          </select>
           <ToolButton
             label="≡"
             title="Bullet list"

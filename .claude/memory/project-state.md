@@ -259,6 +259,20 @@ hai. Use generic banana blocks ka ghatiya duplicate khada karna hoga.
    `wp_kses` isliye chahiye ki wo HTML store karta hai). Keemat: table/iframe nahi ja sakte.
    Client ne kaha abhi wo kisi design me hai hi nahi.
 
+**Usi din do aur cheezein (client):**
+
+1. **Section Headings ab tabs me hai** — saat section ek doosre ke neeche the. Tabs ka ek
+   chhupa faayda bhi hai: **ek waqt pe sirf ek TipTap mount hota hai** (D-69 me wo "keemat"
+   ki tarah likha tha; tabs ne apne aap hal kar diya). Tab badalne se kuch nahi khota —
+   data `labels` state me hai, Save poora object bhejta hai.
+2. **Block type ab dropdown hai** — Paragraph · Heading · Sub-heading. Pehle ek hi toggle
+   button tha aur "Paragraph" naam ki koi cheez dikhti hi nahi thi.
+
+⚠️ **"All headings" nahi diye ja sakte:** `h1` page pe ek hi hota hai (package ka title),
+`h2` section ka apna heading hai (description uske andar hai), aur `h5`/`h6` theme render
+hi nahi karti — `RichText` level ko **2–4 me clamp** karta hai. Isliye sections pe
+`[3, 4]`, Overview pe `[2, 3]`.
+
 ⚠️ **Client ko ek kaam haath se karna hai:** migration ne har line ko **paragraph** banaya —
 wo pata hi nahi kar sakti ki kaunsi line heading thi. Unhone sub-headings plain lines me
 likhi hain ("The ferries decide this itinerary"); unhe ek baar H3 mark karna hoga. Shabd sab

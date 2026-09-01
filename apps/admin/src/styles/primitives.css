@@ -484,6 +484,16 @@ tr:hover .row-actions {
   border-bottom: 1px solid var(--border-soft);
   background: #fff;
 }
+/* Block-type dropdown — baaki toolbar icons se thoda chaudi, par unhi ki oonchai pe */
+.editor-tools .editor-block {
+  width: auto;
+  min-width: 108px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 12.5px;
+  margin-right: 4px;
+}
+
 .editor-tools i {
   font-style: normal;
   width: 26px;
@@ -593,16 +603,27 @@ tr:hover .row-actions {
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
-.tabs a {
+/* In-page tabs `<button>` hote hain (Section Headings), route wale `<a>` (Settings).
+   Dono ek jaise dikhne chahiye, isliye selector dono ko leta hai — aur button ka apna
+   browser chrome (border, background, font) yahan hataana padta hai. */
+.tabs a,
+.tabs button {
+  /* `font` shorthand pehle — wo `font-size` ko reset kar deta hai, isliye uske BAAD nahi
+     likha ja sakta. Button apna font browser se leta hai, isliye ye reset zaroori hai. */
+  font: inherit;
+  font-size: 14px;
   padding: 9px 15px;
   color: var(--text-muted);
   border: 1px solid transparent;
   border-bottom: none;
-  font-size: 14px;
+  background: none;
+  border-radius: 0;
+  cursor: pointer;
   /* Border-bottom ke upar baithne ke liye — active tab usse juda hua dikhe */
   margin-bottom: -1px;
 }
-.tabs a.on {
+.tabs a.on,
+.tabs button.on {
   background: var(--surface);
   border-color: var(--border-soft);
   color: var(--text);

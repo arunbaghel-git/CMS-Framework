@@ -1444,6 +1444,17 @@ a.mega__gl:hover {
   margin: 18px 0 7px;
 }
 
+/* `h4` reference me kahin nahi tha — wo D-69 ke saath aaya, jab section ki description me
+   "Sub-heading" chunne ka raasta bana.
+
+   Bina is rule ke wo body ke size pe chalta (base heading rule sirf weight/colour deta hai,
+   size nahi) — yaani `h3` aur `h4` me farak sirf spacing ka hota aur hierarchy padhi hi
+   nahi jaati. 14.5px `h3` (15.5) aur body (14) ke beech hai. */
+.blk h4 {
+  font-size: 14.5px;
+  margin: 14px 0 6px;
+}
+
 /*
  * **Ye rule pehle tha hi nahi**, aur uska asar poore page pe tha: har section ka paragraph
  * browser ke default size aur rang pe chal raha tha — 16px kaala, jabki design 14px
