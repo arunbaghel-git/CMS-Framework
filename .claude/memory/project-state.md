@@ -278,7 +278,7 @@ wo pata hi nahi kar sakti ki kaunsi line heading thi. Unhone sub-headings plain 
 likhi hain ("The ferries decide this itinerary"); unhe ek baar H3 mark karna hoga. Shabd sab
 bache hain.
 
-### ✅ A-13 band — `Packages ▸ Booking & Cancellation` (1 Sep)
+### ✅ A-13 band — `Section Headings ▸ Good to know` tab me (1 Sep)
 
 `bookingSteps` aur `cancellationText` poore raaste par pehle se the — schema, model,
 service, public payload, theme, aur API ke test bhi. **Bas bharne ki jagah nahi thi.**
@@ -289,6 +289,24 @@ service, public payload, theme, aur API ke test bhi. **Bas bharne ki jagah nahi 
 > `sectionLabels.booking.description` me type kar di thi, jahan wo saade paragraph ban gaye.
 > Uska ek aur nateeja bhi tha: dono khaali hone se hi 31 Aug wala "Good to know render hi
 > nahi hota" bug bana tha.
+
+⚠️ **Maine pehle iska alag sidebar item banaya tha, aur client ne palta:**
+
+> _"booking and cancellation ka submenu kyu bana diya — look good to know ka single design
+> hai… section heading me good to know ko hi design kar do na"_
+
+Wo sahi hain. Page pe "Good to know before you book" **ek hi section** hai; uska content do
+sidebar items me baantna client se ye ummeed karta tha ki wo **hamara data model** yaad rakhe.
+
+> **Niyam jo isse nikla:** admin ka dhaancha **page ke section** follow karta hai,
+> **collection ke field** nahi. Ye pehle bhi laga tha (D-59 me FAQs/policies alag, D-44 me
+> footer ke columns ek screen pe) par likha nahi gaya tha. Maine yahan ulta kiya — do alag
+> field dekhe aur do alag screen bana di.
+
+⚠️ **Isi tark se A-14 khula hai:** `What's Included` bhi apna sidebar item hai jabki wo bhi
+page ka ek section hai. Abhi nahi kiya — client ne sirf "Good to know" kaha, aur bina
+poochhe doosri screen hatana wahi galti hoti jo D-43 me "Header tab bina poochhe bana diya"
+pe hui thi.
 
 Panel FAQs wale hi pattern pe hai. **Drag zaroori hai, sajawat nahi** — page pe ye ek
 numbered list (`ol.steps`) hai aur number CSS counter se aata hai, to step 2 aur 3 ka kram

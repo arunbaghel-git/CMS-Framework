@@ -26,6 +26,15 @@ import './Packages.css'
  * global list me wo galat ho jaata hai.
  */
 
+/**
+ * Jis section ke saath booking ke steps aur cancellation policy chhapti hai.
+ *
+ * Ye key `PACKAGE_SECTIONS` se hi aati hai (`booking`) — wahi jo page pe
+ * `<section id="booking">` hai. Yahan dobara likhne ke bajaye us list se bandhi hui hai,
+ * taaki naam ek jagah badle to yahan apne aap sahi rahe.
+ */
+const BOOKING_SECTION = 'booking'
+
 /** Textarea me ek line = ek item. Khaali lines gir jaati hain. */
 const toLines = (text) =>
   String(text ?? '')
@@ -161,23 +170,14 @@ export default function PackageDefaults({ section }) {
 
   const isImages = section === 'itineraryImages'
   const isLabels = section === 'sectionLabels'
-  const isBooking = section === 'booking'
 
-  const title = isImages
-    ? 'Itinerary Images'
-    : isLabels
-      ? 'Section Headings'
-      : isBooking
-        ? 'Booking & Cancellation'
-        : "What's Included"
+  const title = isImages ? 'Itinerary Images' : isLabels ? 'Section Headings' : "What's Included"
 
   const subtitle = isImages
     ? 'One global pool — every package page shows a few of these, and they change on refresh.'
     : isLabels
       ? 'These headings print on every package page. Leave a description empty and no line appears under that section.'
-      : isBooking
-        ? 'These print inside "Good to know before you book" on every package page — the numbered steps first, then the cancellation policy.'
-        : 'This same list prints on every package. Keep the lines generic — not about any one package.'
+      : 'This same list prints on every package. Keep the lines generic — not about any one package.'
 
   return (
     <>
@@ -197,31 +197,7 @@ export default function PackageDefaults({ section }) {
         </div>
       )}
 
-      {isBooking ? (
-        <>
-          <BookingPanel
-            steps={booking.bookingSteps}
-            cancellationText={booking.cancellationText}
-            onChange={setBooking}
-            disabled={!canWrite}
-          />
-
-          {canWrite && (
-            <div className="panel">
-              <div className="panel-foot">
-                <button
-                  className="btn btn-primary"
-                  type="button"
-                  disabled={saving}
-                  onClick={() => save(booking)}
-                >
-                  {saving ? 'Saving…' : 'Save'}
-                </button>
-              </div>
-            </div>
-          )}
-        </>
-      ) : isLabels ? (
+      {isLabels ? (
         <div className="panel">
           <div className="panel-head">
             <h2>Section Headings</h2>
@@ -309,6 +285,28 @@ export default function PackageDefaults({ section }) {
                 )}
 
                 {section.hint && <div className="hint">{section.hint}</div>}
+
+                {/*
+                 * "Good to know" ka baaki content **isi tab me** hai — booking ke steps aur
+                 * cancellation policy (client, 1 Sep).
+                 *
+                 * Pehle inka apna sidebar item tha ("Booking & Cancellation"). Wo data ke
+                 * hisaab se theek tha (`packageDefaults` ke do alag field) par **client ke
+                 * hisaab se galat**: page pe "Good to know before you book" ek hi section hai,
+                 * aur uska content do jagah baant dena client se ye ummeed karta tha ki wo
+                 * hamara data model yaad rakhe.
+                 *
+                 * ⚠️ Niyam ab ye hai: **admin ka dhaancha page ke section follow karta hai,
+                 * collection ke field nahi.**
+                 */}
+                {section.key === BOOKING_SECTION && (
+                  <BookingPanel
+                    steps={booking.bookingSteps}
+                    cancellationText={booking.cancellationText}
+                    onChange={setBooking}
+                    disabled={!canWrite}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -318,7 +316,12 @@ export default function PackageDefaults({ section }) {
                 className="btn btn-primary"
                 type="button"
                 disabled={saving}
-                onClick={() => save({ sectionLabels: labels })}
+                /**
+                 * Save **poora** bhejta hai — labels aur booking dono, chahe kaunsa bhi tab
+                 * khula ho. Sirf khule tab ka data bhejna ek chup bug banata: client teen tab
+                 * me kaam karta, Save dabata, aur do ka kaam gayab ho jaata.
+                 */
+                onClick={() => save({ sectionLabels: labels, ...booking })}
               >
                 {saving ? 'Saving…' : 'Save'}
               </button>

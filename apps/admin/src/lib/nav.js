@@ -99,16 +99,6 @@ export const NAV = [
         to: '/packages/section-headings',
         permission: PERMISSION.PACKAGE_DEFAULTS_READ,
       },
-      /**
-       * A-13 — ye do field poore raaste par pehle se the (schema · service · payload ·
-       * theme), bas bharne ki jagah nahi thi. Nateeja: client ne inka content Section
-       * Headings ki description me type kar diya, jahan wo numbered list nahi banta.
-       */
-      {
-        label: 'Booking & Cancellation',
-        to: '/packages/booking',
-        permission: PERMISSION.PACKAGE_DEFAULTS_READ,
-      },
     ],
   },
   {
@@ -244,7 +234,6 @@ export const ROUTE_GUARDS = Object.freeze({
   '/packages/whats-included': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/itinerary-images': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/section-headings': PERMISSION.PACKAGE_DEFAULTS_READ,
-  '/packages/booking': PERMISSION.PACKAGE_DEFAULTS_READ,
 
   '/users': PERMISSION.USER_READ,
   '/users/new': PERMISSION.USER_INVITE,

@@ -4062,3 +4062,43 @@ sahi field me hain. Bina uske wo text page pe **do baar** chhapta — theek wahi
 **Nateeja:** page ka structure ab reference se **node-ke-node** milta hai —
 `h2 · h3 p · h3 p · h3 · ol.steps(4× li>p) · p.muted`. 583 tests · lint · format · admin
 build clean.
+
+### Amendment — 1 Sep: alag submenu **hata diya**, sab "Good to know" tab me
+
+Maine `Packages ▸ Booking & Cancellation` ek **alag sidebar item** banaya tha. Client ne
+turant pakda:
+
+> _"booking and cancellation ka submenu kyu bana diya — look good to know ka single design
+> hai… ye alag se submenu nahi banana tha, section heading me good to know ko hi design kar
+> do na"_
+
+**Wo sahi hain.** Page pe "Good to know before you book" **ek hi section** hai. Uska content
+do sidebar items me baant dena client se ye ummeed karta tha ki wo **hamara data model** yaad
+rakhe — ki heading/description `sectionLabels` me hain aur steps/cancellation
+`packageDefaults` ke apne field hain. Wo baat client ke liye maayne hi nahi rakhti.
+
+Ab sab kuch `Section Headings ▸ Good to know` wale tab me hai: heading, description (rich
+text), booking ke steps, aur cancellation policy. Save ek hi hai.
+
+> ### Niyam jo isse nikla
+>
+> **Admin ka dhaancha page ke section follow karta hai, collection ke field nahi.**
+>
+> Ye is repo me pehle bhi laga tha par likha nahi gaya tha — D-59 me FAQs aur policies alag
+> hue kyunki wo page pe alag cheezein hain, aur D-44 me footer ke columns ek screen pe aaye
+> kyunki page pe wo ek footer hai. Maine yahan ulta kiya: do alag field dekhe aur do alag
+> screen bana di.
+
+**Do chhote nateeje:**
+
+- `BookingPanel` ab apna `.panel` nahi banata — wo doosre panel ke **andar** render hota hai,
+  aur apna card banane se card ke andar card aa jaata (do border, do background). Ab wahi
+  `.field` shape jo baaki controls ka hai.
+- **Save poora bhejta hai** — `sectionLabels` aur booking dono, chahe kaunsa bhi tab khula
+  ho. Sirf khule tab ka data bhejna ek chup bug banata: client teen tab me kaam karta, Save
+  dabata, aur do ka kaam gayab ho jaata.
+
+⚠️ **Isi tark se ek sawaal khula hai:** `What's Included` bhi apna sidebar item hai, jabki
+wo bhi page ka ek section hai (`#included`). Usi niyam se wo bhi apne tab me jaana chahiye.
+Abhi nahi kiya — client ne sirf "Good to know" kaha, aur ye khud ek nayi screen-level tabdeeli
+hai. `09-OPEN-ITEMS` me likha hua hai.

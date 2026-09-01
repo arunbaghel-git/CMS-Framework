@@ -65,16 +65,23 @@ export default function BookingPanel({ steps, cancellationText, onChange, disabl
 
   return (
     <>
-      <div className="panel">
-        <div className="panel-head">
-          <h2>How booking works</h2>
+      {/*
+       * ⚠️ Yahan `.panel` **nahi** hai — ye component ab Section Headings ke panel ke
+       * ANDAR render hota hai (client, 1 Sep). Apna panel banane se card ke andar card
+       * aa jaata: do border, do background, aur ek bina wajah ka nested dabba.
+       *
+       * Isliye wahi `.field` shape jo is panel ke baaki controls ka hai.
+       */}
+      <div className="field">
+        <label>
+          How booking works{' '}
           <span className="muted">
-            {list.length} {list.length === 1 ? 'step' : 'steps'}
-            {list.length > 1 && !disabled && ' · drag to reorder'}
+            ({list.length} {list.length === 1 ? 'step' : 'steps'}
+            {list.length > 1 && !disabled && ' · drag to reorder'})
           </span>
-        </div>
+        </label>
 
-        <div className="panel-body">
+        <div>
           {/*
            * Kram maayne rakhta hai — page pe ye ek numbered list (`ol.steps`) hai aur number
            * CSS counter se aata hai, data se nahi. Isliye yahan drag ka hona zaroori hai:
@@ -161,30 +168,22 @@ export default function BookingPanel({ steps, cancellationText, onChange, disabl
         </div>
       </div>
 
-      <div className="panel">
-        <div className="panel-head">
-          <h2>Cancellation policy</h2>
-        </div>
-        <div className="panel-body">
-          <div className="field">
-            <textarea
-              className="ta"
-              style={{ minHeight: 90 }}
-              value={cancellationText ?? ''}
-              placeholder="Cancellations more than 30 days before travel are refunded minus…"
-              onChange={(e) => onChange({ bookingSteps: list, cancellationText: e.target.value })}
-              disabled={disabled}
-            />
-            {/*
-             * Ye "Good to know" section ke **sabse neeche** chhapti hai, steps ke baad —
-             * isliye panel bhi wahin hai. D-59 me FAQs se ise jaan-boojh kar alag rakha gaya
-             * tha: policy har package pe same hoti hai, FAQ nahi.
-             */}
-            <div className="hint">
-              Prints at the bottom of &ldquo;Good to know before you book&rdquo;, after the steps.
-              Same on every package.
-            </div>
-          </div>
+      <div className="field">
+        <label>Cancellation policy</label>
+        <textarea
+          className="ta"
+          style={{ minHeight: 90 }}
+          value={cancellationText ?? ''}
+          placeholder="Cancellations more than 30 days before travel are refunded minus…"
+          onChange={(e) => onChange({ bookingSteps: list, cancellationText: e.target.value })}
+          disabled={disabled}
+        />
+        {/*
+         * Ye section ke **sabse neeche** chhapti hai, steps ke baad. D-59 me FAQs se ise
+         * jaan-boojh kar alag rakha gaya tha: policy har package pe same hoti hai, FAQ nahi.
+         */}
+        <div className="hint">
+          Prints at the bottom of this section, after the steps. Same on every package.
         </div>
       </div>
     </>

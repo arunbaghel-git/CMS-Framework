@@ -139,6 +139,43 @@ description pe hui thi).
 `h2 · h3 p · h3 p · h3 · ol.steps(4× li>p) · p.muted`. 583 tests · lint · format · admin
 build clean.
 
+### Aur usi din — alag submenu hataya, sab ek tab me
+
+Maine A-13 ke liye ek **alag sidebar item** bana diya tha (`Packages ▸ Booking &
+Cancellation`). Client ne turant pakda:
+
+> _"booking and cancellation ka submenu kyu bana diya — look good to know ka single design
+> hai… ye alag se submenu nahi banana tha, section heading me good to know ko hi design kar
+> do na"_
+
+**Wo sahi hain, aur meri galti ka shape saaf hai:** maine **data model** dekh kar screen
+banayi. `sectionLabels` ek jagah hai aur `bookingSteps`/`cancellationText` doosri, to maine
+do screens bana din. Par page pe "Good to know before you book" **ek hi section** hai —
+client ko wo do jagah dhoondhne ka koi kaaran nahi.
+
+> **Niyam (ab likha hua):** admin ka dhaancha **page ke section** follow karta hai,
+> **collection ke field** nahi.
+>
+> Ye is repo me pehle bhi laga tha, bas naam nahi mila tha: D-59 me FAQs aur policies isliye
+> alag hue ki page pe wo alag cheezein hain, aur D-44 me footer ke columns isliye ek screen
+> pe aaye ki page pe wo ek footer hai. Dono baar tark page se aaya tha, collection se nahi.
+
+Ab sab kuch `Section Headings ▸ Good to know` tab me hai — heading, description, steps,
+cancellation. Ek Save.
+
+**Do chhote nateeje jo isme nikle:**
+
+- `BookingPanel` apna `.panel` banata tha. Ab wo doosre panel ke **andar** hai, to card ke
+  andar card ban jaata — do border, do background. Wrapper `.field` kar diya.
+- **Save poora bhejta hai** (`sectionLabels` + booking dono), chahe kaunsa tab khula ho.
+  Sirf khule tab ka data bhejna ek chup bug banata: client teen tab me kaam karta, Save
+  dabata, aur do ka kaam gayab ho jaata.
+
+⚠️ **Usi niyam se A-14 khula:** `What's Included` bhi apna sidebar item hai jabki wo bhi page
+ka ek section hai (`#included`) — yaani us section ka content abhi bhi do jagah hai. Abhi
+nahi kiya: client ne sirf "Good to know" kaha tha, aur bina poochhe doosri screen hata dena
+wahi galti hoti jo D-43 me "Header tab bina poochhe bana diya" pe hui thi.
+
 ## 2026-08-31 (raat) — `goodToKnow[]` banaya hi nahi gaya (D-68)
 
 **Kya hua**

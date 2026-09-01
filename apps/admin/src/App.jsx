@@ -156,7 +156,6 @@ const APP_ROUTES = [
   { path: '/packages/whats-included', element: <PackageDefaults section="whatsIncluded" /> },
   { path: '/packages/itinerary-images', element: <PackageDefaults section="itineraryImages" /> },
   { path: '/packages/section-headings', element: <PackageDefaults section="sectionLabels" /> },
-  { path: '/packages/booking', element: <PackageDefaults section="booking" /> },
   /**
    * `/packages/:id` sabse **aakhir** me — warna wo `destinations`, `hotels` jaise har
    * static segment ko ek entry id ki tarah padh leta.
