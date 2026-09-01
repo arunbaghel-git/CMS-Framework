@@ -781,7 +781,9 @@ a.mega__gl:hover {
    `ft__col--wide` jaisi class se nahi.
    ============================================================ */
 .ft {
-  margin-top: 64px;
+  /* Client ka tune (1 Sep) — reference me 64px hai. Us gap ke saath footer page se kat-ta
+     hua lagta tha. Reference se "match" karne ke naam pe wapas mat badalna (R15). */
+  margin-top: 0px;
   padding-top: clamp(30px, 4vw, 48px);
   /* Fine print na ho to bhi footer ka neecha saans le — `.ft__fine` apna
      `padding-bottom` khud laata hai, par wo optional field hai */
@@ -1308,7 +1310,8 @@ a.mega__gl:hover {
  * card lage.
  */
 .pkg__gal {
-  padding-top: 20px;
+  /* space kam hai desing me isliye 0px */
+  padding-top: 0px;
 }
 
 .gal {
@@ -2414,6 +2417,9 @@ a.mega__gl:hover {
   font-size: 14.5px;
   font-weight: 900;
   color: var(--ink);
+  /* Client ka tune (1 Sep) — base heading rule ka 1.25 in chhote card labels pe tang tha.
+     Reference me ye line nahi hai; jaan-boojh kar hai (R15). */
+  line-height: 1.55;
   letter-spacing: -0.02em;
 }
 
@@ -2423,6 +2429,8 @@ a.mega__gl:hover {
   font-weight: 700;
   color: var(--muted);
   margin-top: 3px;
+  /* Upar wale `b` ke saath jodi — client ka tune (1 Sep). */
+  line-height: 1.55;
 }
 
 .catbar__g strong {
