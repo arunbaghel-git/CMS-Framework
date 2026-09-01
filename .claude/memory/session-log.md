@@ -91,6 +91,54 @@ ko ek baar haath se lagani hogi.
 **Nateeja:** 583 tests (2 naye) · migration **015** · lint · format · admin build clean.
 Live verify kiya — page pe ab 14 alag paragraph aate hain, ek chipke hue block ki jagah.
 
+### Usi din aage — tabs, poora h1–h6, aur A-13 ka panel
+
+Client ne editor chalane ke baad teen cheezein kahin. Teenon me maine pehle jo choose kiya
+tha wo **kam** nikla, aur client ne theek kiya.
+
+**1. Tabs.** Saat section ek doosre ke neeche the. Ab har section ka apna tab. Ek chhupa
+faayda: **ek waqt pe sirf ek TipTap mount hota hai** — wo cheez D-69 me "keemat" ki tarah
+likhi thi, aur tabs ne apne aap hal kar di.
+
+**2. Dropdown — pehle naam, phir range.** Maine "Heading"/"Sub-heading" likha tha (target
+user non-technical hai) aur range `[3,4]`/`[2,3]` rakhi thi. Client ne dono theek kiye:
+_"html tag jaisa kyu nahi hai"_, phir _"only ese dikhe h1 to h6 and p not heading h3 i need
+all"_.
+
+Mera tark aaj bhi sach hai — page pe `h1` ek hi hona chahiye, aur section ki description
+`h2` ke andar hai. **Par faisla client ka hai**, ye unke apne page ka content hai.
+
+⚠️ **Aur ek cheez ke bina ye feature toota hua hota:** `RichText` level ko **2–4 me clamp**
+karta tha. Us clamp ke rehte editor me H1 dena ek chup jhooth hota — client H1 chunta, page
+pe H2 banta, bina kisi error ke. Isliye usi din renderer ka clamp 1–6 hua, base heading rule
+me `h6` juda (wo `h1…h5` tak hi tha), aur `.blk h1/h5/h6` ki CSS likhi gayi.
+
+> **Sabak:** editor me koi option dena aadha kaam hai. Doosra aadha renderer me hai. Dono ek
+> saath na badlein to option to dikhta hai par karta kuch aur hai — aur wo failure chup hoti
+> hai.
+
+**3. A-13 ka panel ban gaya** — `Packages ▸ Booking & Cancellation`.
+
+`bookingSteps` aur `cancellationText` poore raaste par pehle se the: schema, model, service,
+public payload, theme, aur API ke test bhi. **Bas bharne ki jagah nahi thi.**
+
+> **Sabak (is repo me naya):** field ka poora raasta bana dena kaafi nahi hai. Jab tak use
+> bharne ki **jagah** na ho, wo field khaali rehti hai — aur client wo content kahin aur,
+> galat shakl me daal deta hai.
+
+Client ne screenshot bheja tha jo maine pehle "design theek nahi dikh raha" samajh kar dekha.
+Structure milane pe pata chala ki **wo screenshot hamara page tha hi nahi** — wo reference
+design ka tha. Farak sirf aakhir me tha: reference me `ol.steps` ke chaar numbered cards aur
+cancellation ki line, hamare page pe unki jagah nau saade paragraph.
+
+**Client ka data hilana pada** — description me se wo nau node hataye gaye jo ab sahi field
+me hain. Bina uske wo text page pe **do baar** chhapta (wahi shakl jo 31 Aug ko hotels ki
+description pe hui thi).
+
+**Nateeja:** page ka structure ab reference se **node-ke-node** milta hai —
+`h2 · h3 p · h3 p · h3 · ol.steps(4× li>p) · p.muted`. 583 tests · lint · format · admin
+build clean.
+
 ## 2026-08-31 (raat) — `goodToKnow[]` banaya hi nahi gaya (D-68)
 
 **Kya hua**

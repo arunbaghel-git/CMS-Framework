@@ -4013,3 +4013,52 @@ Isliye `headingLevels` prop: sections pe `[3, 4]`, Overview pe `[2, 3]`.
   selector dono ko leta hai — aur button ka apna browser chrome hataana padta hai.
   ⚠️ `font: inherit` **`font-size` se pehle** likhna padta hai; shorthand baad me aaye to
   wo size ko reset kar deta hai.
+
+### Amendment — 1 Sep: poora `h1`–`h6`, aur A-13 ka panel
+
+**1. Dropdown me sirf tag ke naam, aur poora `h1`–`h6`** (client: _"only ese dikhe h1 to h6
+and p not heading h3 i need all"_).
+
+Pehle maine `[3, 4]` (sections) aur `[2, 3]` (Overview) rakhe the, "Heading"/"Sub-heading"
+ke naam ke saath. Do baar client ne ise theek kiya — pehle naam pe (_"html tag jaisa kyu
+nahi hai"_), phir range pe.
+
+Mera tark aaj bhi sach hai: page pe `h1` ek hi hona chahiye (package ka title), aur section
+ki description uske `h2` ke **andar** hai, to wahan `h2` outline me uska bhai ban jaata hai.
+**Par ye faisla client ka hai** — ye unke apne page ka content hai.
+
+⚠️ **Ek cheez ke bina ye feature toota hua hota.** `RichText` level ko **2–4 me clamp**
+karta tha. Us clamp ke rehte editor me H1 dena ek **chup jhooth** hota: client H1 chunta aur
+page pe H2 banta, bina kisi error ke. Isliye usi din teen cheezein saath badlin —
+
+- renderer ka clamp `1–6` (clamp poori tarah hataya nahi: `<h9>` ek invalid tag hai aur
+  React use chup-chaap render kar deta)
+- base heading rule me `h6` juda (wo `h1…h5` tak hi tha)
+- `.blk h1`, `.blk h5`, `.blk h6` ki CSS — reference me ye teenon kahin aate hi nahi the
+
+⚠️ `.blk h1` jaan-boojh kar `.blk h2` se **chhota** hai: page ka asli `<h1>` package ka
+title hai, aur section ke andar wala `h1` uska muqabla nahi karna chahiye.
+
+**2. A-13 band — `Packages ▸ Booking & Cancellation`.**
+
+`bookingSteps` aur `cancellationText` poore raaste par pehle se the (schema · model ·
+service · public payload · theme), aur API ke test bhi. **Bas bharne ki jagah nahi thi.**
+
+> **Sabak, aur ye is repo me naya hai:** field ka poora raasta bana dena kaafi nahi hai. Jab
+> tak use bharne ki **jagah** na ho, wo field khaali rehti hai — aur client wo content kahin
+> aur, galat shakl me daal deta hai. Yahan client ne chaaron step aur poori cancellation
+> policy `sectionLabels.booking.description` me type kar di, jahan wo saade paragraph ban
+> gaye. Uska ek aur nateeja bhi tha: dono khaali hone se hi 31 Aug wala "Good to know render
+> hi nahi hota" bug bana tha.
+
+Panel FAQs wale hi pattern pe hai — accordion + drag. Drag yahan **zaroori** hai, sajawat
+nahi: page pe ye ek numbered list (`ol.steps`) hai aur number CSS counter se aata hai, to
+step 2 aur 3 ka kram badalne ka koi doosra raasta hi nahi.
+
+**Client ka data hilaya gaya (usi din):** description me se wo nau node hataye gaye jo ab
+sahi field me hain. Bina uske wo text page pe **do baar** chhapta — theek wahi shakl jo
+31 Aug ko hotels ki description pe hui thi.
+
+**Nateeja:** page ka structure ab reference se **node-ke-node** milta hai —
+`h2 · h3 p · h3 p · h3 · ol.steps(4× li>p) · p.muted`. 583 tests · lint · format · admin
+build clean.

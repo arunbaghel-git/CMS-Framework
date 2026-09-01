@@ -5,6 +5,7 @@ import { PACKAGE_SECTIONS, sectionHasDescription } from '@cms/shared'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
+import BookingPanel from './BookingPanel.jsx'
 import RichTextEditor from './RichTextEditor.jsx'
 import { useMediaById } from './usePackages.js'
 import './Packages.css'
@@ -44,6 +45,8 @@ export default function PackageDefaults({ section }) {
   const [labels, setLabels] = useState({})
   /** Kaunsa section tab khula hai — sirf dikhawe ka, data poora `labels` me rehta hai. */
   const [activeSection, setActiveSection] = useState(PACKAGE_SECTIONS[0].key)
+  /** Booking steps + cancellation — A-13 tak inka koi UI hi nahi tha. */
+  const [booking, setBooking] = useState({ bookingSteps: [], cancellationText: '' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -72,6 +75,10 @@ export default function PackageDefaults({ section }) {
          * hai wahi page pe chhapega, aur khaali karoge to wahan kuch nahi aayega.
          */
         setLabels(data.sectionLabels ?? {})
+        setBooking({
+          bookingSteps: data.bookingSteps ?? [],
+          cancellationText: data.cancellationText ?? '',
+        })
       })
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setLoading(false))
@@ -154,14 +161,23 @@ export default function PackageDefaults({ section }) {
 
   const isImages = section === 'itineraryImages'
   const isLabels = section === 'sectionLabels'
+  const isBooking = section === 'booking'
 
-  const title = isImages ? 'Itinerary Images' : isLabels ? 'Section Headings' : "What's Included"
+  const title = isImages
+    ? 'Itinerary Images'
+    : isLabels
+      ? 'Section Headings'
+      : isBooking
+        ? 'Booking & Cancellation'
+        : "What's Included"
 
   const subtitle = isImages
     ? 'One global pool — every package page shows a few of these, and they change on refresh.'
     : isLabels
       ? 'These headings print on every package page. Leave a description empty and no line appears under that section.'
-      : 'This same list prints on every package. Keep the lines generic — not about any one package.'
+      : isBooking
+        ? 'These print inside "Good to know before you book" on every package page — the numbered steps first, then the cancellation policy.'
+        : 'This same list prints on every package. Keep the lines generic — not about any one package.'
 
   return (
     <>
@@ -181,7 +197,31 @@ export default function PackageDefaults({ section }) {
         </div>
       )}
 
-      {isLabels ? (
+      {isBooking ? (
+        <>
+          <BookingPanel
+            steps={booking.bookingSteps}
+            cancellationText={booking.cancellationText}
+            onChange={setBooking}
+            disabled={!canWrite}
+          />
+
+          {canWrite && (
+            <div className="panel">
+              <div className="panel-foot">
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  disabled={saving}
+                  onClick={() => save(booking)}
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : isLabels ? (
         <div className="panel">
           <div className="panel-head">
             <h2>Section Headings</h2>
@@ -238,9 +278,12 @@ export default function PackageDefaults({ section }) {
                     {/*
                      * Textarea se rich text editor (D-69, client ka faisla).
                      *
-                     * ⚠️ **Heading H3 banata hai, H2 nahi.** Ye description page pe section
-                     * ke `<h2>` ke **neeche** chhapti hai; wahan aur H2 daalne se document
-                     * ka outline toot jaata hai.
+                     * ⚠️ Dropdown me poora `H1`–`H6` hai (client, 1 Sep — "i need all").
+                     * Pehle yahan sirf H3/H4 the, is tark se ki ye description page ke
+                     * `<h2>` ke **neeche** chhapti hai aur wahan H1/H2 outline tod dete
+                     * hain. Wo tark aaj bhi sach hai — par ye client ke apne page ka content
+                     * hai, aur kaunsa tag kahan chahiye ye unka faisla hai. Poora tark
+                     * `RichTextEditor` ke `HEADING_LEVELS` pe likha hai.
                      *
                      * ⚠️ Khaali chhodne ka matlab **"line hata do"** hai (D-65) — aur wo
                      * matlab ab bhi zinda hai: khaali editor ek khaali doc bhejta hai, aur
@@ -248,7 +291,6 @@ export default function PackageDefaults({ section }) {
                      */}
                     <RichTextEditor
                       label={section.label}
-                      headingLevels={[3, 4]}
                       doc={labels[section.key]?.description}
                       onChange={(doc) =>
                         setLabels((prev) => ({

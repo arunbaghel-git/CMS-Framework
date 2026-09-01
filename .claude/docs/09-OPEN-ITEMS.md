@@ -139,6 +139,7 @@ bold/heading/list ban hi nahi sakti.
 | --- | --- |
 | **Q-9 section ke heading + lines** | ✅ **Bada hissa band — D-65.** 7 section ke heading aur unke neeche ki lines ab admin se aati hain (`packageDefaults.sectionLabels`, screen **Packages ▸ Section Headings**). Client ne teen raaston me se **#2** chuna, aur har section ko heading **aur** description dono diye — chahe aaj us section pe line ho ya na ho. Khaali `description` line ko **hata** deti hai (khaali `heading` pe theme ka heading wapas aata hai). Chhoti inline lines (`or similar`, `PRICE_NOTE`, `TAB_NOTE`) abhi bhi static — Q-9 usi ke liye khula hai |
 | **`cancellationText` payload me nahi tha** | ✅ **Chup bug, 31 Aug ko pakda aur theek kiya** (D-65). `PackagePage.jsx` do jagah use padhta tha par public projection use bhejti hi nahi thi — client ki likhi cancellation policy page pe **kabhi** nahi aati thi, aur "Good to know" section sirf tab dikhta tha jab booking steps bhi hon. Wahi shakl jo D-64 wale transfer-duration bug ki thi |
+| **A-13 booking steps ka UI** | ✅ **Ban gaya (1 Sep)** — `Packages ▸ Booking & Cancellation`. `bookingSteps` aur `cancellationText` poore raaste par pehle se the (schema · service · payload · theme) par **bharne ki jagah nahi thi**; isliye client ne unka content Section Headings ki description me type kar diya tha, jahan wo numbered list nahi banta. Client ka data bhi hilaya gaya — warna wo text page pe do baar chhapta |
 | **A-5 `apps/web` ki `.env`** | ✅ **Ban gayi — revalidate ab configured hai.** `API_URL=http://localhost:4000` aur `REVALIDATE_SECRET` (`apps/api/.env` se **bilkul same** — verify kiya: dono 42 chars, ek hi fingerprint). Endpoint ab galat secret pe **401** deta hai, `503` nahi — yaani secret load ho chuka hai. `SITE_URL` bhi web pe hi point karta hai (`localhost:3000` API ki CORS allowlist me mila). ⚠️ **Next `.env` sirf boot pe padhta hai** — file banane ke baad web dev server restart karna zaroori hai, warna 503 aata rahega |
 
 ---
@@ -387,40 +388,6 @@ hui lines abhi kisi ne badalne ko kahi nahi, aur unke liye pehle se field bana d
 galti hai jo D-57/D-58 me pakdi gayi thi (jo cheez pehle se hai, use dobara mat poochho).
 Jis din `TAB_NOTE` sach me kisi doosre client pe galat lage, wo apne aap sabse pehla
 candidate hai.
-
----
-
-### A-13 · `bookingSteps` aur `cancellationText` ka admin me **koi UI hai hi nahi**
-
-**Deadline:** koi sakht nahi, par client abhi iske bina kaam chala raha hai
-**1 Sep ko pakda** — client ka likha content padhte waqt
-
-Dono field poore raaste par maujood hain — schema, model, service, public payload, aur theme
-unhe render bhi karti hai ("How booking works" ke numbered steps, aur uske neeche cancellation
-wala paragraph). API ke test bhi hain.
-
-**Bas ek screen nahi hai jahan se inhe bhara jaaye.** `PackageDefaults.jsx` ke teen section
-hain — `whatsIncluded`, `itineraryImages`, `sectionLabels`. Booking steps ka kahin panel nahi.
-
-⚠️ **Nateeja abhi live dikh raha hai:** client ne booking ke chaaron step aur poori
-cancellation policy **"Good to know" ki description me** type kar di, kyunki unhe koi doosri
-jagah mili hi nahi. Wo text ab galat field me baitha hai:
-
-- `bookingSteps` ek **numbered list** ban kar chhapte hain (`ol.steps`, CSS counter ke saath) —
-  description me wo saade paragraph hain
-- `cancellationText` ka apna `<p class="muted">` hai — wahi baat
-- Aur wo dono khaali hone ki wajah se "Good to know" section pehle **render hi nahi ho raha
-  tha** (D-68 ka guard wala bug)
-
-**Kaam:** `PackageDefaults` me ek chautha section — `bookingSteps` ka repeater
-(`{title, text}`, wahi shape jo service `withIds()` se sambhalti hai) aur `cancellationText`
-ka ek box. Pattern maujood hai: FAQs ka panel bilkul yahi karta hai.
-
-⚠️ **Saath me client ka data hilana padega** — description me se wo hissa nikaal kar sahi
-field me. Wo content ka kaam hai, code ka nahi, par isse pehle karna hoga warna wo text page
-pe **do baar** chhapega (wahi shakl jo 31 Aug ko hotels ki description pe hui thi).
-
-**Andaza:** 2-3 ghante.
 
 ---
 

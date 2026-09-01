@@ -57,7 +57,17 @@ function renderNode(node, key) {
     case 'paragraph':
       return <p key={key}>{children}</p>
     case 'heading': {
-      const level = Math.min(Math.max(node.attrs?.level ?? 2, 2), 4)
+      /**
+       * Poora `h1`–`h6` (client, 1 Sep — "i need all").
+       *
+       * ⚠️ Pehle ye `Math.min(Math.max(level ?? 2, 2), 4)` tha, yaani 2–4 me clamp. Us clamp
+       * ke rehte editor me `h1`/`h5`/`h6` dena ek **chup jhooth** hota: client H1 chunta aur
+       * page pe H2 banta, bina kisi error ke. Dropdown badla to ye bhi badalna hi tha.
+       *
+       * Clamp ab bhi hai — par 1–6 pe, sirf isliye ki koi galat `level` DOM me na jaaye
+       * (`<h9>` ek invalid tag hai aur React use chup-chaap render kar deta).
+       */
+      const level = Math.min(Math.max(node.attrs?.level ?? 2, 1), 6)
       const Tag = `h${level}`
       return <Tag key={key}>{children}</Tag>
     }

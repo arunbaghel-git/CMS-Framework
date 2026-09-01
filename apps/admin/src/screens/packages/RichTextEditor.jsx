@@ -51,25 +51,27 @@ function ToolButton({ label, title, isActive, onClick }) {
 }
 
 /**
- * @param {object}   props
- * @param {object}   [props.doc]           TipTap ka JSON document
- * @param {string}   [props.label]         Tab pe dikhne wala naam
- * @param {number[]} [props.headingLevels] Kaunse heading levels chune ja sakte hain
+ * Poora `h1`–`h6` — **client ka faisla** (1 Sep: "i need all").
  *
- * ⚠️ `headingLevels` ek asli zaroorat se aaya hai, sajawat se nahi (D-69).
+ * ⚠️ Maine pehle ise seemit rakha tha (sections pe `[3,4]`, Overview pe `[2,3]`), aur wo
+ * tark aaj bhi sach hai: page pe `h1` ek hi hona chahiye (package ka title), aur section ki
+ * description uske `h2` ke **andar** hai, to wahan `h2` outline me uska bhai ban jaata hai.
  *
- * **Har jagah har heading nahi de sakte, aur ye a11y/SEO ki baat hai, sanak nahi:**
+ * Client ko ye bataya gaya aur unhone poora range maanga. **Faisla unka hai** — ye unke
+ * apne page ka content hai, aur wo kaunsa tag kahan chahte hain ye tay karna unka haq hai.
  *
- * | Level | Kyun / kyun nahi |
- * | --- | --- |
- * | `h1` | Page pe **ek hi** hota hai — package ka title. Doosra `h1` outline tod deta hai |
- * | `h2` | Section ka apna heading hai. Description uske **andar** hai, to wahan `h2` uska bhai ban jaata — Overview me theek, sections me galat |
- * | `h3` `h4` | Section ke andar sahi nesting. Yahi client ko chahiye the |
- * | `h5` `h6` | Theme inhe render hi nahi karti — `RichText` level ko **2–4 me clamp** karta hai. Dropdown me dena ek jhooth hota |
- *
- * Isliye sections pe `[3, 4]` aur Overview pe `[2, 3]`.
+ * **Par ek cheez ke bina ye feature toota hua hota:** `RichText` pehle level ko **2–4 me
+ * clamp** karta tha. Us clamp ke rehte H1 chunne pe page pe H2 banta — bina kisi error ke.
+ * Isliye renderer aur theme ki CSS dono usi din badli gayin (`.blk h1/h5/h6` naye hain).
  */
-export default function RichTextEditor({ doc, onChange, disabled, label, headingLevels = [2, 3] }) {
+const HEADING_LEVELS = [1, 2, 3, 4, 5, 6]
+
+/**
+ * @param {object} props
+ * @param {object} [props.doc]   TipTap ka JSON document
+ * @param {string} [props.label] Tab pe dikhne wala naam
+ */
+export default function RichTextEditor({ doc, onChange, disabled, label }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -149,7 +151,7 @@ export default function RichTextEditor({ doc, onChange, disabled, label, heading
             className="sel editor-block"
             title="Text style"
             aria-label="Text style"
-            value={headingLevels.find((level) => editor.isActive('heading', { level })) ?? 'p'}
+            value={HEADING_LEVELS.find((level) => editor.isActive('heading', { level })) ?? 'p'}
             onChange={(e) => {
               const chain = editor.chain().focus()
               const value = e.target.value
@@ -158,10 +160,18 @@ export default function RichTextEditor({ doc, onChange, disabled, label, heading
               else chain.setNode('heading', { level: Number(value) }).run()
             }}
           >
-            <option value="p">Paragraph</option>
-            {headingLevels.map((level, i) => (
+            {/*
+             * Sirf tag ke naam — `P`, `H1`…`H6` (client, 1 Sep: "only ese dikhe h1 to h6
+             * and p not heading h3 i need all").
+             *
+             * Pehle "Heading"/"Sub-heading" likha tha, is soch se ki CMS ka target user
+             * non-technical hai. Par usse ye pata hi nahi chalta tha ki page pe kaunsa tag
+             * banega — aur wo jagah ke saath badalta tha.
+             */}
+            <option value="p">P</option>
+            {HEADING_LEVELS.map((level) => (
               <option key={level} value={level}>
-                {i === 0 ? 'Heading' : 'Sub-heading'}
+                H{level}
               </option>
             ))}
           </select>

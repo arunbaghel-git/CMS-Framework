@@ -144,7 +144,8 @@ h1,
 h2,
 h3,
 h4,
-h5 {
+h5,
+h6 {
   margin: 0;
   color: var(--ink);
   line-height: 1.25;
@@ -1453,6 +1454,32 @@ a.mega__gl:hover {
 .blk h4 {
   font-size: 14.5px;
   margin: 14px 0 6px;
+}
+
+/* `h1`, `h5` aur `h6` reference me kahin nahi hain — ye D-69 ke saath aaye jab client ne
+   editor me poora `h1`–`h6` maanga (1 Sep).
+
+   Bina size ke ye browser ke defaults pe chalte: `h1` bahut bada (page ke asli `<h1>` se
+   takraata hua) aur `h5`/`h6` body se chhote. Dono galat lagte.
+
+   ⚠️ `h1` yahan jaan-boojh kar `.blk h2` se **chhota** rakha hai. Page ka asli `<h1>`
+   package ka title hai; section ke andar wala `h1` uska muqabla nahi karna chahiye. */
+.blk h1 {
+  font-size: clamp(19px, 2.1vw, 24px);
+  margin: 20px 0 8px;
+}
+
+.blk h5 {
+  font-size: 13.5px;
+  margin: 12px 0 5px;
+}
+
+.blk h6 {
+  font-size: 13px;
+  margin: 12px 0 5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 /*

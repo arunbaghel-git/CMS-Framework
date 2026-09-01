@@ -278,46 +278,45 @@ wo pata hi nahi kar sakti ki kaunsi line heading thi. Unhone sub-headings plain 
 likhi hain ("The ferries decide this itinerary"); unhe ek baar H3 mark karna hoga. Shabd sab
 bache hain.
 
-### 🔴 A-13 — `bookingSteps` aur `cancellationText` ka admin me **koi UI nahi**
+### ✅ A-13 band — `Packages ▸ Booking & Cancellation` (1 Sep)
 
-1 Sep ko client ka data padhte waqt pakda. Dono field schema, service, payload aur theme me
-maujood hain — par bharne ki koi screen nahi. Isiliye client ne booking ke chaaron step aur
-poori cancellation policy **description me** type kar di.
+`bookingSteps` aur `cancellationText` poore raaste par pehle se the — schema, model,
+service, public payload, theme, aur API ke test bhi. **Bas bharne ki jagah nahi thi.**
 
-Wo text ab galat field me hai (numbered list nahi ban raha), aur inke khaali hone se hi
-31 Aug wala "Good to know render hi nahi hota" bug bana tha. Poora tark `09-OPEN-ITEMS` →
-**A-13**. Andaza 2-3 ghante, **aur uske saath client ka data hilana padega**.
+> **Sabak (is repo me naya):** field ka poora raasta bana dena kaafi nahi hai. Jab tak use
+> bharne ki **jagah** na ho, wo field khaali rehti hai — aur client wo content kahin aur,
+> galat shakl me daal deta hai. Yahan client ne chaaron step aur poori cancellation policy
+> `sectionLabels.booking.description` me type kar di thi, jahan wo saade paragraph ban gaye.
+> Uska ek aur nateeja bhi tha: dono khaali hone se hi 31 Aug wala "Good to know render hi
+> nahi hota" bug bana tha.
 
-### 🔴 Yahin se kal shuru karna hai — "Good to know" ka **style**
+Panel FAQs wale hi pattern pe hai. **Drag zaroori hai, sajawat nahi** — page pe ye ek
+numbered list (`ol.steps`) hai aur number CSS counter se aata hai, to step 2 aur 3 ka kram
+badalne ka koi doosra raasta hi nahi.
 
-Client ne 31 Aug ki shaam wo box bhara, text page pe aa gaya, aur phir poochha:
-_"text is coming but what about style — should we make it a text editor instead of a
-description for good to know?"_
+⚠️ **Client ka data hilaya gaya** — description me se wo nau node hataye jo ab sahi field me
+hain. Bina uske wo text page pe **do baar** chhapta (wahi shakl jo 31 Aug ko hotels ki
+description pe hui thi).
 
-**Ye D-68 se alag sawaal hai.** D-68 ne "per-package ya global?" ka jawab diya (global). Ye
-sawaal "**flat text ya structured?**" ka hai — aur wo pehle se nikalta hi nahi. Us waqt maan
-liya gaya tha ki ek plain box kaafi hoga; wahi maan lena ab test ho raha hai.
+**Page ka structure ab reference se node-ke-node milta hai:**
+`h2 · h3 p · h3 p · h3 · ol.steps(4× li>p) · p.muted`
 
-Design me us section ke upar wale do hisse **h3 + paragraph** hain. Aaj wo dono ek hi `<p>`
-me chipak jaate hain — line breaks dikhte hain, par heading, spacing aur bold kuch nahi.
+### ✅ Editor me poora `h1`–`h6` (1 Sep, client)
 
-**Teen raaste (client ko batae ja chuke, jawab abhi nahi aaya):**
+Dropdown me ab sirf tag ke naam hain — `P`, `H1`…`H6`. Maine pehle range seemit rakhi thi
+(`[3,4]` / `[2,3]`) aur naam likhe the ("Heading"); client ne dono theek kiye.
 
-| #   | Kya                                                                                                                                         | Trade-off                                                                                                                                                                                                                                                                                             |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **TipTap rich text** (jaisa Overview me hai)                                                                                                | ⚠️ XSS wala aitraaz yahan **nahi** lagta — TipTap HTML nahi, **JSON doc** store karta hai aur theme use node-by-node render karti hai (Overview pehle se yahi hai). Asli aitraaz doosra: dhaancha client ke haath me chala jaata hai, aur "dhaancha static, maal admin se" (Q-9) ka ulta ho jaata hai |
-| 2   | **Plain text hi, render behtar** — blank line pe alag `<p>`, aur `-` wali line bullet (D-64 wali convention, client pehle se use karta hai) | Sasta, koi schema change nahi. Par `h3` phir bhi nahi milega                                                                                                                                                                                                                                          |
-| 3   | **`packageDefaults.goodToKnow[]`** — repeatable `{heading, text}`, **global**                                                               | Design se bilkul milta hai, dhaancha code me rehta hai, text plain rehta hai. UI ka pattern bhi maujood hai — `bookingSteps` ka repeater **usi screen pe** `{title, text}` ke saath chal raha hai                                                                                                     |
+⚠️ **Iske bina feature toota hua hota:** `RichText` level ko **2–4 me clamp** karta tha —
+H1 chunne pe page pe H2 banta, bina error ke. Usi din teen cheezein saath badlin: renderer
+ka clamp 1–6, base heading rule me `h6` (wo `h1…h5` tak hi tha), aur `.blk h1/h5/h6` ki
+CSS. `.blk h1` jaan-boojh kar `.blk h2` se **chhota** hai — page ka asli `<h1>` package ka
+title hai.
 
-**Mashwara: #3.** ⚠️ Wo D-68 ko **aadha** palatta hai — "field banao hi mat" wala hissa. Uska
-asli hissa (global, per-package nahi) waise ka waisa rehta hai; D-68 galat nahi tha, wo bas
-is doosre sawaal ka jawab nahi de raha tha.
+### ✅ "Good to know" ka style — ho gaya (1 Sep)
 
-**Faisla ek baat pe hai:** client ke content me sub-headings hain ya nahi? Haan → #3.
-Sirf paragraph → #2. Link/bold/list bhi chahiye → #1.
-
-⚠️ **Chahe kuch bhi chunein, #2 ka aadha kaam har haal me karna padega** — abhi poora text ek
-hi `<p>` me chipakta hai aur paragraph ke beech spacing aati hi nahi.
+Ye 31 Aug ki shaam ka khula sawaal tha. Jawab: **rich text editor** (D-69) — teen raaston
+me se #1 aur #3 ka mel. Client ne saath me tabs, poora `h1`–`h6`, aur A-13 ka panel bhi
+maanga; teenon upar likhe hain.
 
 **31 Aug — hero ka lightbox ban gaya (D-66).** Tile pe click → popup, usme **saari** images
 (banner + poora pool), **ek waqt pe ek**, 4 second pe apne aap agli. Hero ka mosaic waisa hi
