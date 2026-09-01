@@ -55,6 +55,21 @@ function renderNode(node, key) {
 
   switch (node.type) {
     case 'paragraph':
+      /**
+       * Khaali paragraph render hi nahi hota.
+       *
+       * ⚠️ TipTap heading ke baad ek **trailing khaali paragraph** chhod deta hai — wo
+       * ProseMirror ka apna vyavhaar hai (heading ke neeche cursor rakhne ki jagah), aur wo
+       * chup-chaap save ho jaata hai. Page pe usse ek khaali `<p>` banta tha jiski
+       * line-height se ~23px ki bina wajah ki jagah aa jaati thi — client ne ise "spacing ka
+       * issue" ki tarah dekha, aur wo theek dekha.
+       *
+       * Write pe bhi trailing khaali paragraph gir jaate hain (`richDocSchema`), par ye
+       * guard yahan bhi hai: purana data pehle se DB me ho sakta hai, aur uske liye migration
+       * likhne se behtar hai ki renderer khud sambhal le.
+       */
+      if (!node.content?.length) return null
+
       return <p key={key}>{children}</p>
     case 'heading': {
       /**

@@ -176,6 +176,57 @@ ka ek section hai (`#included`) — yaani us section ka content abhi bhi do jaga
 nahi kiya: client ne sirf "Good to know" kaha tha, aur bina poochhe doosri screen hata dena
 wahi galti hoti jo D-43 me "Header tab bina poochhe bana diya" pe hui thi.
 
+### "Good to know" ka spacing — teen wajah, aur do blind spot
+
+Client: _"good to know ka design abhi match nahi hua, thik kar spacing ka issue hai"_, saath
+me reference ki file dobara bheji. Wo repo wali se **byte-ke-byte same** nikli — to sawaal
+reference ka tha hi nahi.
+
+Selector-by-selector CSS milane pe dono lagbhag ek jaise the. Farak **base rules** aur
+**markup** me tha:
+
+**1. `p { margin: 0 }` hamare paas tha hi nahi.** Reference ka apna rule hai. Uske bina har
+`<p>` browser ke default `margin: 1em 0` pe chal raha tha — har jagah 16px. Aur ye sirf is
+section ka masla nahi tha: `.blk p`, `.steps p`, `.faq p` — teenon reference me isi reset pe
+tike hain.
+
+Reset lagne ke baad do rules bemaani ho gaye aur hata diye: `.rt p { margin: 0 0 14px;
+line-height: 1.75 }` aur `.rt-sec > *:last-child { margin-bottom: 0 }`. **Dono usi kami ki
+bhurpayi the** — maine wo D-69 me khud likhe the, bina ye jaane ki asli kami kahin aur hai.
+
+**2. TipTap ka trailing khaali paragraph.** DB me description ke aakhir me ek khaali `<p>`
+baitha tha — ProseMirror heading ke baad wo apne aap chhodta hai. Page pe usse ~23px ki bina
+wajah ki jagah banti thi. Ab write pe girta hai (`richDocSchema` ka transform, **sirf
+aakhir se** — beech wala client ka faisla ho sakta hai) aur renderer bhi use skip karta hai
+(purana data ke liye, migration se behtar).
+
+**3. `.steps` ka `padding: 0`.** Client ne ye khud pakda: _"reference me andar hai hamare me
+align ho rha hai"_. Reference me `.steps` pe koi padding likhi hi nahi, aur uska global reset
+sirf `ul` pe hai — `ol` pe nahi. Yaani wahan `<ol>` ka browser default 40px bacha rehta hai.
+Ab wo `padding-left: 40px` likha hua hai (`.itin` bhi yahi karta hai) — browser ke bharose
+nahi chhoda.
+
+### Do blind spot — A-15
+
+> Teenon me se **ek bhi** script se nahi pakda gaya. Dono baar client ne pakda.
+>
+> | Kya chhoot jaata hai                       | Kyun                                                                                          |
+> | ------------------------------------------ | --------------------------------------------------------------------------------------------- |
+> | bare element selectors (`p`, `ul`, `body`) | `css-diff.mjs` me hardcoded class-prefix allowlist; `media-diff.mjs` sirf `@media` dekhti hai |
+> | hamari taraf ki **extra** property         | script sirf ref → ours milaati hai, ulta nahi                                                 |
+>
+> Dono me se koi bhi ek **page-wide** layout badal sakti hai. `09-OPEN-ITEMS` → **A-15**.
+
+### Aur ek sabak — comment ka na hona saboot nahi hai
+
+Maine `.steps b` ka `margin-bottom` 4px se 2px kar diya tha, ye soch kar ki wo drift hai
+"kyunki uspe koi comment nahi tha". Client ne use wapas 4px kiya, ab comment ke saath:
+_"i am doing it 4px dont change it"_.
+
+Wo unka faisla hai (R15). **Comment ka na hona ye saabit nahi karta ki value galti se alag
+hai** — wo sirf itna batata hai ki wajah likhi nahi gayi. Reference se milane se pehle
+poochhna chahiye tha.
+
 ## 2026-08-31 (raat) — `goodToKnow[]` banaya hi nahi gaya (D-68)
 
 **Kya hua**

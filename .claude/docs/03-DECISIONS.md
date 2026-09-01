@@ -4102,3 +4102,86 @@ text), booking ke steps, aur cancellation policy. Save ek hi hai.
 wo bhi page ka ek section hai (`#included`). Usi niyam se wo bhi apne tab me jaana chahiye.
 Abhi nahi kiya — client ne sirf "Good to know" kaha, aur ye khud ek nayi screen-level tabdeeli
 hai. `09-OPEN-ITEMS` me likha hua hai.
+
+### Amendment — 1 Sep: "Good to know" ka spacing, aur ek reset jo kabhi tha hi nahi
+
+Client: _"good to know ka design abhi match nahi hua, thik kar spacing ka issue hai"_ —
+saath me unhone reference ki file dobara bheji. Wo repo wali file se **byte-ke-byte same**
+nikli, to sawaal reference ka nahi tha.
+
+Milaan pe **teen** asli wajah nikleen. Selector-by-selector CSS dono me ek jaisa tha; farak
+markup aur base rules me tha.
+
+**1. `p { margin: 0 }` hamare paas tha hi nahi.**
+
+Reference ka apna rule hai (line 60). Uske bina har `<p>` browser ke default `margin: 1em 0`
+pe chalta tha — **har jagah 16px upar aur neeche**, jo design me hai hi nahi. Aur ye sirf is
+section ka masla nahi tha: `.blk p`, `.steps p` (step cards ke andar) aur `.faq p` — teenon
+reference me isi reset pe tike hain aur apna margin likhte hi nahi.
+
+⚠️ **Ye drift dono check scripts se chhoot gayi thi.** `css-diff.mjs` me ek **hardcoded
+class-prefix allowlist** hai, aur `media-diff.mjs` sirf `@media` blocks dekhti hai — yaani
+bare element selectors (`p`, `ul`, `body`) kisi bhi check me aate hi nahi. Wahi jagah hai
+jahan page-wide reset rehte hain.
+
+Reset lagne ke baad do rules bemaani ho gaye aur hata diye gaye: `.rt p { margin: 0 0 14px;
+line-height: 1.75 }` aur `.rt-sec > *:last-child { margin-bottom: 0 }`. Dono **usi kami ki
+bhurpayi** the — ab spacing wahan se aati hai jahan reference se aati hai (`.blk p + p`,
+`.blk h3` ke apne margins).
+
+⚠️ Reference ka `ul { margin:0; padding:0; list-style:none }` **jaan-boojh kar nahi liya** —
+reference me rich text hai hi nahi, aur wo reset `.rt ul` ke bullets maar deta.
+
+**2. TipTap ka trailing khaali paragraph — asli mujrim.**
+
+DB me description ke aakhir me ek **khaali `<p>`** baitha tha. ProseMirror heading ke baad wo
+apne aap chhodta hai (cursor rakhne ki jagah), aur wo chup-chaap save ho jaata hai. Page pe
+usse line-height jitni — ~23px — bina wajah ki jagah banti thi.
+
+Do jagah theek kiya:
+
+- **Write pe** — `richDocSchema` ab aakhir ke khaali paragraph gira deta hai. **Sirf aakhir
+  se**, beech se nahi: beech ka khaali paragraph client ne jaan-boojh kar chhoda ho sakta hai
+- **Render pe** — khaali paragraph render hi nahi hota. Purana data pehle se DB me ho sakta
+  hai, aur uske liye migration likhne se behtar hai ki renderer khud sambhal le
+
+**3. Do chhoti drift jo saath me mileen.**
+
+- ⚠️ `.steps b` pe maine `margin-bottom` 4px se **2px** kar diya tha (reference ki value),
+  ye soch kar ki wo drift hai kyunki uspe koi comment nahi tha. **Client ne use wapas 4px
+  kiya**, ab comment ke saath: _"i am doing it 4px dont change it"_. Ye unka faisla hai
+  (R15) — client CSS ki values khud tune karta hai, aur wahi "mat badalna" wali list ka
+  pehla niyam hai. **Sabak: comment ka na hona "ye drift hai" ka saboot nahi hai.**
+- cancellation ka paragraph `.muted` class le raha tha jiska theme me **koi rule hai hi
+  nahi** — wo class kuch karti hi nahi thi. Reference me wahan `style="margin-top:12px"` hai;
+  ab wo `.blk__note` hai
+
+**Nateeja:** us section ka markup ab reference se **element-ke-element** ek jaisa hai, aur
+`css-diff` me `.steps b` wali drift bhi khatm. 585 tests (2 naye).
+
+**4. `.steps` ka `padding-left` — client ne pakda ki cards align ho rahe hain.**
+
+> _"reference me andar hai hamare me align ho rha hai"_
+
+Reference me `.steps` pe koi padding likhi hi **nahi** hai, aur uska global reset sirf `ul` pe
+hai — `ol` pe nahi. Yaani wahan `<ol>` ka **browser default 40px** bacha rehta hai aur cards
+andar dikhte hain. Hamare paas `padding: 0` likha tha, isliye wo heading ke saath align ho
+gaye.
+
+Ab `padding-left: 40px` **likha hua** hai, browser ke bharose nahi chhoda — `.itin` (doosra
+`<ol>`) bhi pehle se yahi karta hai. Bharose pe chhodne ka matlab hai ki kal koi
+`ol { padding: 0 }` jaisa reset jode aur ye layout chup-chaap khisak jaaye.
+
+⚠️ **`css-diff.mjs` ka doosra blind spot:** wo reference me maujood properties ko milaata hai,
+aur **hamari taraf ki extra property** uske check me aati hi nahi. `padding: 0` theek wahi
+shakl thi — reference me wo property hai hi nahi, to script ke paas milane ko kuch tha hi
+nahi.
+
+> **Dono blind spot ek saath likhe ja rahe hain**, kyunki aaj dono ne kaata:
+>
+> | Kya chhoot jaata hai | Kyun |
+> | --- | --- |
+> | bare element selectors (`p`, `ul`, `body`) | `css-diff` me hardcoded class-prefix allowlist |
+> | hamari taraf ki **extra** property | script sirf ref → ours milaati hai, ulta nahi |
+>
+> Dono me se koi bhi ek page-wide layout badal sakta hai.

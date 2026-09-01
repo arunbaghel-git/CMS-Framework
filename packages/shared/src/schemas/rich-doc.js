@@ -45,6 +45,28 @@ const MAX_TOP_LEVEL_NODES = 60
  */
 const MAX_DOC_BYTES = 40_000
 
+/**
+ * Aakhir ke khaali paragraph gira do.
+ *
+ * ⚠️ TipTap heading ke baad ek **trailing khaali paragraph** chhod deta hai — ProseMirror ka
+ * apna vyavhaar hai (heading ke neeche cursor rakhne ki jagah). Wo chup-chaap save ho jaata
+ * hai aur page pe ek khaali `<p>` ban kar ~23px ki bina wajah ki jagah bana deta hai.
+ *
+ * **Sirf aakhir se** hataye jaate hain, beech se nahi: beech ka khaali paragraph client ne
+ * jaan-boojh kar chhoda ho sakta hai, aur uska matlab badalna hamara kaam nahi.
+ */
+const trimTrailingEmpty = (doc) => {
+  const nodes = [...(doc.content ?? [])]
+
+  while (nodes.length > 0) {
+    const last = nodes[nodes.length - 1]
+    if (last?.type !== 'paragraph' || last.content?.length) break
+    nodes.pop()
+  }
+
+  return { ...doc, content: nodes }
+}
+
 export const richDocSchema = z
   .object({
     type: z.literal('doc'),
@@ -53,6 +75,7 @@ export const richDocSchema = z
   .refine((doc) => JSON.stringify(doc).length <= MAX_DOC_BYTES, {
     message: `Rich text is too long (max ${MAX_DOC_BYTES / 1000}KB)`,
   })
+  .transform(trimTrailingEmpty)
 
 /** Khaali doc — naya field, aur "line hata do" wala jawab. */
 export const emptyDoc = () => ({ type: 'doc', content: [] })

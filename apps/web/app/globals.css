@@ -140,6 +140,29 @@ body.noscroll {
  * Reference ka rule (line 64) jaisa ka waisa. `font-weight: 800` yahin se aata hai —
  * `.blk h2`/`.blk h3` sirf size batate hain, weight nahi.
  */
+/*
+ * `p { margin: 0 }` — reference ka apna rule (line 60), aur ye **hamare paas tha hi nahi**.
+ *
+ * Iske bina har `<p>` browser ke default `margin: 1em 0` pe chalta tha — yaani har jagah
+ * 16px upar aur neeche, jo design me hai hi nahi. Asar poore page pe tha: `.blk p`,
+ * `.steps p` (step cards ke andar), `.faq p` — teenon reference me is reset pe tike hain aur
+ * apna margin likhte hi nahi.
+ *
+ * ⚠️ **Ye drift dono check scripts se chhoot gayi thi.** `css-diff.mjs` me ek hardcoded
+ * class-prefix allowlist hai, aur `media-diff.mjs` sirf `@media` blocks dekhti hai —
+ * yaani bare element selectors (`p`, `ul`, `body`) kisi bhi check me aate hi nahi. Wahi
+ * jagah hai jahan page-wide reset rehte hain.
+ *
+ * Spacing jahan chahiye wahan **naam se** likhi jaati hai — `.blk p + p` (10px),
+ * `.hpan > p` (14px), `.rt p` (rich text). Wahi model reference ka bhi hai.
+ *
+ * ⚠️ Reference ka `ul { margin:0; padding:0; list-style:none }` yahan **jaan-boojh kar nahi
+ * liya** — reference me rich text hai hi nahi, aur wo reset `.rt ul` ke bullets maar deta.
+ */
+p {
+  margin: 0;
+}
+
 h1,
 h2,
 h3,
@@ -1497,6 +1520,13 @@ a.mega__gl:hover {
   margin-top: 10px;
 }
 
+/* Steps ke baad cancellation ka paragraph — reference me iske liye inline
+   `style="margin-top:12px"` hai. Inline style ki jagah ek class isliye ki wo theme ka
+   hissa hai, content ka nahi. */
+.blk__note {
+  margin-top: 12px;
+}
+
 .blk p b {
   color: var(--ink);
   font-weight: 800;
@@ -1549,10 +1579,10 @@ a.mega__gl:hover {
   color: var(--red-500);
 }
 
-.rt p {
-  line-height: 1.75;
-  margin: 0 0 14px;
-}
+/* Rich text ke paragraph wahi hain jo `.blk p` hain — line-height 1.65 aur do paragraph ke
+   beech 10px (`.blk p + p`), dono reference se. Pehle yahan 1.75 aur 14px likha tha; wo us
+   waqt ki laachari thi jab global `p { margin: 0 }` tha hi nahi. Ab wo apne aap sahi hai,
+   isliye yahan sirf list wala rule bacha hai (neeche). */
 
 .rt ul,
 .rt ol {
@@ -1565,9 +1595,9 @@ a.mega__gl:hover {
  * Ye Overview ke rich text se alag hai: Overview page ka pehla content hai, ye ek `<h2>` ke
  * theek neeche ki baat hai. Isliye pehle paragraph ka upar wala gap heading se aata hai,
  * aur aakhri ka neeche wala gap section ke apne content se pehle nahi chahiye. */
-.rt-sec > *:last-child {
-  margin-bottom: 0;
-}
+/* `.rt-sec > *:last-child { margin-bottom: 0 }` hata diya gaya — wo bhi missing `p` reset
+   ki bhurpayi thi. Ab aakhri `h3` apna 7px rakhta hai (reference jaisa), aur wo `.steps` ke
+   14px se collapse ho kar 14px hi banta hai. */
 
 /* Editor ka heading button yahan H3 banata hai — H2 section ka apna heading hai.
    Reference me `.blk h3` pehle se hai (What's included ke do column), isliye naap wahin se
@@ -1967,13 +1997,28 @@ a.mega__gl:hover {
  * `<ol>` ka apna number chhupa kar counter use karne ki wajah: design me wo number ek
  * **neela circle** hai, aur list-marker ko waisa nahi banaya ja sakta.
  */
+/*
+ * ⚠️ `padding-left: 40px` — reference me cards **andar** hain, kinare pe nahi.
+ *
+ * Yahan pehle `padding: 0` likha tha aur cards heading ke saath align ho jaate the. Reference
+ * me `.steps` pe koi padding likhi hi nahi hai — aur uska global reset sirf `ul` pe hai,
+ * `ol` pe nahi. Yaani wahan `<ol>` ka **browser default 40px** bacha rehta hai.
+ *
+ * 40px yahan **likha hua** hai, browser ke bharose nahi chhoda — `.itin` (doosra `<ol>`) bhi
+ * yahi karta hai. Bharose pe chhodne ka matlab hai ki kal koi `ol { padding: 0 }` jaisa reset
+ * jode aur ye layout chup-chaap khisak jaaye.
+ *
+ * ⚠️ Ye drift `css-diff.mjs` se chhoot gayi thi: wo reference me maujood properties ko
+ * milaati hai, aur **hamari taraf ki extra property** uske check me aati hi nahi. `padding: 0`
+ * theek wahi shakl thi.
+ */
 .steps {
   display: grid;
   gap: 11px;
   margin-top: 14px;
   counter-reset: s;
   list-style: none;
-  padding: 0;
+  padding-left: 40px;
 }
 
 .steps li {
@@ -2006,7 +2051,8 @@ a.mega__gl:hover {
   color: var(--ink);
   font-size: 14px;
   font-weight: 800;
-  margin-bottom: 2px;
+  /* i am doing it 4px dont change it*/
+  margin-bottom: 4px;
 }
 
 .steps p {

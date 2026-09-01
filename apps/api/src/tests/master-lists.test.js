@@ -605,6 +605,60 @@ describe('packageDefaults', () => {
       expect(isEmptyDoc(res.body.data.packageDefaults.sectionLabels.addOns.description)).toBe(true)
     })
 
+    /**
+     * ⚠️ TipTap heading ke baad ek **trailing khaali paragraph** chhod deta hai (ProseMirror
+     * ka apna vyavhaar — heading ke neeche cursor rakhne ki jagah). Wo chup-chaap save ho
+     * jaata hai aur page pe khaali `<p>` ban kar ~23px ki bina wajah ki jagah bana deta hai.
+     *
+     * Client ne ise "spacing ka issue" ki tarah dekha, aur wo theek dekha.
+     */
+    it('aakhir ka khaali paragraph write pe hi gir jaata hai', async () => {
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: {
+          addOns: {
+            heading: 'Popular add-ons',
+            description: {
+              type: 'doc',
+              content: [
+                { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'Hi' }] },
+                { type: 'paragraph' },
+                { type: 'paragraph' },
+              ],
+            },
+          },
+        },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+      const { content } = res.body.data.packageDefaults.sectionLabels.addOns.description
+
+      expect(content).toHaveLength(1)
+      expect(content[0].type).toBe('heading')
+    })
+
+    /** Beech ka khaali paragraph client ka faisla ho sakta hai — wo nahi chhoota. */
+    it('beech ka khaali paragraph bacha rehta hai', async () => {
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: {
+          addOns: {
+            heading: 'Popular add-ons',
+            description: {
+              type: 'doc',
+              content: [
+                { type: 'paragraph', content: [{ type: 'text', text: 'A' }] },
+                { type: 'paragraph' },
+                { type: 'paragraph', content: [{ type: 'text', text: 'B' }] },
+              ],
+            },
+          },
+        },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+
+      expect(res.body.data.packageDefaults.sectionLabels.addOns.description.content).toHaveLength(3)
+    })
+
     it('plain string ab reject hoti hai — description doc hai (D-69)', async () => {
       const res = await authed('patch', '/api/package-defaults', adminJar).send({
         sectionLabels: { addOns: { heading: 'Popular add-ons', description: 'purana shape' } },

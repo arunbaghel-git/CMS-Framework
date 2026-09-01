@@ -391,6 +391,39 @@ candidate hai.
 
 ---
 
+### A-15 · Design-check ki dono script me blind spot hain
+
+**Deadline:** koi nahi — par jo bhi drift inme se guzar jaaye, wo poore page pe hoti hai
+**1 Sep ko dono ne ek saath kaata**
+
+`css-diff.mjs` aur `media-diff.mjs` reference se milaan karti hain, par do kism ka farak
+unke check me **aata hi nahi**:
+
+| Kya chhoot jaata hai | Kyun | 1 Sep ko kya hua |
+| --- | --- | --- |
+| bare element selectors (`p`, `ul`, `body`) | `css-diff.mjs` me ek **hardcoded class-prefix allowlist** hai (`PREFIXES`), aur `media-diff.mjs` sirf `@media` blocks dekhti hai | `p { margin: 0 }` hamare paas tha hi nahi — **har** `<p>` pe 16px extra |
+| hamari taraf ki **extra** property | script sirf `ref → ours` milaati hai; jo property reference me hai hi nahi, uska koi milaan hota hi nahi | `.steps { padding: 0 }` — reference me 40px default bacha rehta hai, hamare cards align ho gaye |
+
+Dono me se koi bhi ek **page-wide** layout badal sakti hai, aur dono baar pakda **client ne**,
+kisi script ne nahi.
+
+**Kaam:**
+
+1. `css-diff.mjs` ka `PREFIXES` allowlist hataa kar ek **denylist** banao — reference ke wo
+   sections chhodo jo hamare paas hain hi nahi (`.hawards`, `.vrail`, `.clogos`…), baaki sab
+   milao. Tab bare element selectors apne aap aa jaayenge.
+2. Ulta milaan bhi karo — **hamari taraf ki extra property** report ho, "sirf hamare paas" ki
+   ek alag list me. Har extra property galat nahi hai (bahut si jaan-boojh kar hain), isliye
+   wo warning ho, error nahi.
+
+⚠️ **Ek shart:** script ko un values pe chup rehna chahiye jinpe **comment likha hai** — wo
+client ke hand-tuned faisle hain (jaise `.steps b` ka 4px, `.btn` ka padding). Warna har run
+pe wahi purani bahas wapas aayegi.
+
+**Andaza:** 2-3 ghante.
+
+---
+
 ### A-14 · `What's Included` bhi apne tab me jaana chahiye
 
 **Deadline:** koi nahi — aaj sab kaam karta hai

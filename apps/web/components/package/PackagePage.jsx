@@ -551,7 +551,17 @@ export default function PackagePage({ entry, defaults, settings }) {
                   </ol>
                 )}
 
-                {defaults?.cancellationText && <p className="muted">{defaults.cancellationText}</p>}
+                {/*
+                 * `.blk__note` — reference me yahan inline `style="margin-top:12px"` hai.
+                 *
+                 * `.muted` yahan pehle likhi thi par uska theme me koi rule hai hi nahi —
+                 * wo class kuch karti hi nahi thi, aur uske hone se ye lagta tha ki rang
+                 * halka ho raha hai. Reference me ye paragraph baaki `.blk p` jaisa hi hai,
+                 * sirf steps se 12px neeche.
+                 */}
+                {defaults?.cancellationText && (
+                  <p className="blk__note">{defaults.cancellationText}</p>
+                )}
               </section>
             )}
 
