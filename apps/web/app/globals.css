@@ -97,10 +97,93 @@
    * shift bhi nahi hota.
    */
   --font: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* ---------- type scale (P4, 1 Sep — client) ----------
+     Pehle poore page me 81 `font-size` bikhri hui thi, 20 alag value me. "h1 chhota karo"
+     jaisa ek sawaal bhi grep se shuru hota tha, aur har baar ek-do jagah chhoot jaati thi.
+
+     Ab har text size **yahin se** aata hai. Do tarah ke naam hain, jaan-boojh kar:
+
+     - `--fs-*`  naap ka naam (`--fs-sm`), jab cheez ka koi role na ho — badge, chip, meta
+     - `--fs-h1` se `--fs-h6` aur `--fs-body` — **role** ka naam. Client ka sawaal isi
+       shakl me aata hai ("h3 bada karo"), to jawab bhi usi shakl me milna chahiye
+
+     ⚠️ Role wale token naap wale token ko **point karte hain**, apni value nahi rakhte —
+     warna `--fs-h5` aur `--fs-md` dono 13.5px hote aur ek din chup-chaap alag ho jaate.
+
+     ⚠️ Ye scale hai, ginti nahi. Naya size chahiye to pehle dekho ki maujooda 12 me se koi
+     chalta hai ya nahi — 13.7px jodna scale ko scale nahi rehne deta. */
+  --fs-5xs: 10.5px;
+  --fs-4xs: 11px;
+  --fs-3xs: 11.5px;
+  --fs-2xs: 12px;
+  --fs-xs: 12.5px;
+  --fs-sm: 13px;
+  --fs-md: 13.5px;
+  --fs-base: 14px;
+  --fs-lg: 14.5px;
+  --fs-xl: 15.5px;
+  --fs-2xl: 16px;
+  --fs-3xl: 17px;
+
+  /* Page ka bada text — teenon screen ke saath badhte hain (`clamp`). */
+  --fs-title: clamp(26px, 3.6vw, 42px);
+  --fs-price: clamp(28px, 3.4vw, 38px);
+  --fs-intro: clamp(15px, 1.6vw, 17px);
+  --fs-display: clamp(21px, 2.6vw, 30px);
+
+  /* Headings — `.blk h1`–`h6` ke saath CTA/offer ka bada heading bhi. */
+  --fs-h1: clamp(19px, 2.1vw, 24px);
+  --fs-h2: clamp(18px, 2vw, 23px);
+  --fs-h3: var(--fs-xl);
+  --fs-h4: var(--fs-lg);
+  --fs-h5: var(--fs-md);
+  --fs-h6: var(--fs-sm);
+
+  /* Body copy — paragraph, list item, jo bhi padha jaata hai (P6: 14px). */
+  --fs-body: var(--fs-base);
+  --fs-lead: var(--fs-lg);
+
+  /* ---------- weights ----------
+     Inter 400-900 load hota hai. In paanch ke bahar koi weight page pe nahi hai. */
+  --fw-normal: 400;
+  --fw-med: 500;
+  --fw-semi: 600;
+  --fw-bold: 700;
+  --fw-heading: 800;
+  --fw-black: 900;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/*
+ * In-page anchor pe **smooth** scroll (client, 1 Sep — "it goes very fast, i want it smooth").
+ *
+ * Ye day-nav (`.dnav a` → `#day3`) pe sabse zyada dikhta hai: pehle click pe page ek frame
+ * me kood jaata tha, aur ye pata hi nahi chalta tha ki hum kahan se kahan aaye. JS ki koi
+ * zaroorat nahi — `scroll-behavior` browser ka apna kaam hai.
+ *
+ * `scroll-padding-top` header ke liye hai. Header **sticky** hai, isliye bina iske target
+ * uske neeche chhup jaata hai. Ye pehle `.itin__d` pe `scroll-margin-top: 90px` ki shakl me
+ * tha — sirf dinon pe. Ab wo yahan hai, ek jagah, aur har anchor pe lagta hai: `#faq`,
+ * `#included`, `#reviews` — sab. Do jagah rakhne pe wo **judte** hain (90 + 90 = 180px), to
+ * naya section jodte waqt uspe scroll-margin mat likhna.
+ */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
+/*
+ * Jinhone system me animation band ki hui hai unke liye smooth scroll motion sickness ka
+ * asli kaaran hai — wo setting ki hi isliye jaati hai. `auto` matlab purana behaviour.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -173,7 +256,7 @@ h6 {
   color: var(--ink);
   line-height: 1.25;
   letter-spacing: -0.02em;
-  font-weight: 800;
+  font-weight: var(--fw-heading);
 }
 
 a {
@@ -215,19 +298,33 @@ a {
    yaad rakhne ki zaroorat nahi. `className` sirf EXTRA styling ke liye bacha hai (R18).
 
    Rang, radius aur shadow client ke behaviour reference se hain (.b / .b-o / .b-b / .b-l).
-   **Padding aur font-size client ne khud tune kiye hain** — reference ka `.b` 11px 20px /
-   14px pe hai; ye usse thode compact hain. Jaan-boojh kar aise hain, reference se wapas
-   milane ki koshish mat karo. */
+
+   **Naap ab aadha reference ka hai, aadha client ka** (client, 1 Sep — "sirf height match ho,
+   padding-x abhi wala rahe"):
+
+   |            | reference `.b` | yahan   |
+   | ---------- | -------------- | ------- |
+   | padding-y  | 11px           | 11px ✅ |
+   | padding-x  | 20px           | 14px    |
+   | font-size  | 14px           | 14px ✅ |
+
+   Height dono me se **teen** cheezon se banti hai — padding-y, font-size aur line-height.
+   Isliye font-size bhi 14px hua: sirf padding badalne se height reference se 1-2px chhoti
+   reh jaati (13px text ki line 14px se neechi hai), aur "match" aankh se pakda hi nahi
+   jaata. Sirf padding-x client ka hai.
+
+   ⚠️ Purana naap (`8px 14px` / 13px) reference ka `.b-s` hai — uska **small** variant.
+   Yaani pehle poore page ke buttons chhote wale naap pe chal rahe the. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 8px 14px;
+  padding: 11px 14px;
   border: 0;
   border-radius: var(--r2);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
   white-space: nowrap;
   transition:
     background 0.16s,
@@ -370,9 +467,9 @@ a {
   height: 100%;
   gap: 5px;
   padding: 0 11px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   /* 700, 600 nahi — reference isi weight pe hai aur nav uske bina halki lagti hai */
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--ink-2);
   white-space: nowrap;
   border-bottom: 2.5px solid transparent;
@@ -422,8 +519,8 @@ a {
 .drop a {
   display: block;
   padding: 7px 14px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-med);
   color: var(--body);
 }
 
@@ -548,8 +645,8 @@ a {
   margin-bottom: 6px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--line-2);
-  font-size: 13.5px;
-  font-weight: 800;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-heading);
   color: var(--ink);
 }
 
@@ -561,8 +658,8 @@ a.mega__gl:hover {
 .mega__group a:not(.mega__gl) {
   display: block;
   padding: 5px 0;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-med);
   line-height: 1.55;
   color: var(--body);
 }
@@ -585,9 +682,9 @@ a.mega__gl:hover {
 }
 
 .mega__cta span {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--muted);
-  font-weight: 600;
+  font-weight: var(--fw-semi);
 }
 
 /* ============================================================
@@ -602,7 +699,7 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   border-radius: var(--r2);
   background: none;
-  font-size: 16px;
+  font-size: var(--fs-2xl);
   cursor: pointer;
 }
 
@@ -672,8 +769,8 @@ a.mega__gl:hover {
   justify-content: space-between;
   padding: 14px 18px;
   border-bottom: 1px solid var(--line-2);
-  font-size: 14.5px;
-  font-weight: 700;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
   color: var(--ink);
   cursor: pointer;
   list-style: none;
@@ -691,7 +788,7 @@ a.mega__gl:hover {
 
 .mnav__acc > summary::after {
   content: '▾';
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   opacity: 0.5;
 }
 
@@ -709,8 +806,8 @@ a.mega__gl:hover {
 .mnav__sub a {
   display: block;
   padding: 7px 0;
-  font-size: 13.5px;
-  font-weight: 500;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-med);
   color: var(--body);
 }
 
@@ -728,9 +825,9 @@ a.mega__gl:hover {
 .mnav__acc--sub > summary {
   padding: 10px 12px;
   border-bottom: 0;
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   /* 800 — group heading baaki headings se bhi bhaari hai (reference ka .gl) */
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   color: var(--ink);
 }
 
@@ -745,13 +842,13 @@ a.mega__gl:hover {
 
 /* Group heading mobile pe bhi heading hi rehti hai — flatten hone par bhi structure dikhe */
 .mnav__gl {
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   display: block;
   margin-top: 12px;
   padding-bottom: 5px;
   border-bottom: 1px solid var(--line-2);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
   color: var(--ink);
 }
 
@@ -790,7 +887,7 @@ a.mega__gl:hover {
   padding-bottom: 20px;
   background: var(--blue-900);
   color: rgb(255 255 255 / 62%);
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 
 /* Reference me ye `grid-template-columns: 1.5fr 1fr 1fr 1fr` hai. Yahan **flex** hai,
@@ -818,8 +915,8 @@ a.mega__gl:hover {
 
 .ft__col h2 {
   margin: 0 0 15px;
-  font-size: 11.5px;
-  font-weight: 900;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-black);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #fff;
@@ -887,8 +984,8 @@ a.mega__gl:hover {
 
 .ft__sup b {
   display: block;
-  font-size: 10.5px;
-  font-weight: 800;
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-heading);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgb(255 255 255 / 45%);
@@ -908,8 +1005,8 @@ a.mega__gl:hover {
   display: block;
   white-space: pre-line;
   color: #fff;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: var(--fw-semi);
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -951,7 +1048,7 @@ a.mega__gl:hover {
   flex-wrap: wrap;
   padding-block: 16px;
   border-top: 1px solid rgb(255 255 255 / 11%);
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
 }
 
 .ft__copy {
@@ -961,7 +1058,7 @@ a.mega__gl:hover {
 .ft__note {
   margin: 0;
   max-width: 52ch;
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   line-height: 1.6;
   color: rgb(255 255 255 / 45%);
 }
@@ -969,7 +1066,7 @@ a.mega__gl:hover {
 /* Fine print bar ke neeche, poori chaudai me — aur bar se bhi halka */
 .ft__fine {
   margin: 0;
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   line-height: 1.6;
   color: rgb(255 255 255 / 38%);
 }
@@ -1097,8 +1194,8 @@ a.mega__gl:hover {
   }
   button[aria-label='Close menu'] {
     span {
-      font-weight: 700;
-      font-size: 14px;
+      font-weight: var(--fw-bold);
+      font-size: var(--fs-base);
     }
   }
 
@@ -1127,7 +1224,7 @@ a.mega__gl:hover {
 
   .hdr__actions .btn {
     padding: 8px 11px;
-    font-size: 12.5px;
+    font-size: var(--fs-xs);
   }
 
   /* Sirf icon — reference me "Awards" mobile pe yahi banta hai */
@@ -1192,7 +1289,7 @@ a.mega__gl:hover {
 .mdrawer__foot .btn {
   width: 100%;
   padding-block: 12px;
-  font-size: 14px;
+  font-size: var(--fs-base);
 }
 
 /* ==================================================================
@@ -1238,8 +1335,8 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
   color: var(--ink-2);
 }
 
@@ -1262,7 +1359,7 @@ a.mega__gl:hover {
  * clamp alag hoga.
  */
 .ptitle h1 {
-  font-size: clamp(26px, 3.6vw, 42px);
+  font-size: var(--fs-title);
   line-height: 1.1;
   letter-spacing: -0.04em;
   text-wrap: balance;
@@ -1275,7 +1372,7 @@ a.mega__gl:hover {
 }
 
 .pintro {
-  font-size: clamp(15px, 1.6vw, 17px);
+  font-size: var(--fs-intro);
   line-height: 1.65;
   color: var(--body);
   margin-top: 14px;
@@ -1288,7 +1385,7 @@ a.mega__gl:hover {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 
 .pkg__bestfor span {
@@ -1299,7 +1396,7 @@ a.mega__gl:hover {
   background: #f1f5f9;
   border-radius: 999px;
   padding: 4px 11px;
-  font-weight: 600;
+  font-weight: var(--fw-semi);
 }
 
 /*
@@ -1373,8 +1470,8 @@ a.mega__gl:hover {
   place-items: center;
   background: rgba(11, 43, 74, 0.55);
   color: #fff;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-heading);
   letter-spacing: 0.04em;
 }
 
@@ -1462,12 +1559,12 @@ a.mega__gl:hover {
  * hai (reference me bhi wahi hota hai).
  */
 .blk h2 {
-  font-size: clamp(18px, 2vw, 23px);
+  font-size: var(--fs-h2);
   margin-bottom: 10px;
 }
 
 .blk h3 {
-  font-size: 15.5px;
+  font-size: var(--fs-h3);
   margin: 18px 0 7px;
 }
 
@@ -1478,7 +1575,7 @@ a.mega__gl:hover {
    size nahi) — yaani `h3` aur `h4` me farak sirf spacing ka hota aur hierarchy padhi hi
    nahi jaati. 14.5px `h3` (15.5) aur body (14) ke beech hai. */
 .blk h4 {
-  font-size: 14.5px;
+  font-size: var(--fs-h4);
   margin: 14px 0 6px;
 }
 
@@ -1491,17 +1588,17 @@ a.mega__gl:hover {
    ⚠️ `h1` yahan jaan-boojh kar `.blk h2` se **chhota** rakha hai. Page ka asli `<h1>`
    package ka title hai; section ke andar wala `h1` uska muqabla nahi karna chahiye. */
 .blk h1 {
-  font-size: clamp(19px, 2.1vw, 24px);
+  font-size: var(--fs-h1);
   margin: 20px 0 8px;
 }
 
 .blk h5 {
-  font-size: 13.5px;
+  font-size: var(--fs-h5);
   margin: 12px 0 5px;
 }
 
 .blk h6 {
-  font-size: 13px;
+  font-size: var(--fs-h6);
   margin: 12px 0 5px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -1514,7 +1611,7 @@ a.mega__gl:hover {
  * `--body` maangta hai.
  */
 .blk p {
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.65;
   color: var(--body);
 }
@@ -1532,12 +1629,12 @@ a.mega__gl:hover {
 
 .blk p b {
   color: var(--ink);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
 }
 
 /** Pehla paragraph — baaki se thoda bada (About ka lead). */
 .blk .lead {
-  font-size: 14.5px;
+  font-size: var(--fs-lead);
 }
 
 /*
@@ -1568,7 +1665,7 @@ a.mega__gl:hover {
   display: flex;
   gap: 9px;
   align-items: flex-start;
-  font-size: 13.5px;
+  font-size: var(--fs-body);
   line-height: 1.55;
 }
 
@@ -1645,8 +1742,8 @@ a.mega__gl:hover {
 }
 
 .route__s span {
-  font-size: 11px;
-  font-weight: 800;
+  font-size: var(--fs-4xs);
+  font-weight: var(--fw-heading);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1654,8 +1751,8 @@ a.mega__gl:hover {
 
 .route__s b {
   display: block;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-heading);
   color: var(--ink);
   letter-spacing: -0.02em;
 }
@@ -1691,8 +1788,8 @@ a.mega__gl:hover {
 
 .atg span {
   display: block;
-  font-size: 10.5px;
-  font-weight: 800;
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-heading);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1700,8 +1797,8 @@ a.mega__gl:hover {
 
 .atg b {
   display: block;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-heading);
   color: var(--ink);
   margin-top: 4px;
   letter-spacing: -0.01em;
@@ -1728,8 +1825,8 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
   background: #fff;
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
   color: var(--body);
 }
 
@@ -1766,7 +1863,6 @@ a.mega__gl:hover {
   grid-template-columns: 100px minmax(0, 1fr);
   gap: clamp(12px, 1.3vw, 16px);
   padding: 22px 0;
-  scroll-margin-top: 90px;
 }
 
 /* Rail — har din ke baayein, poori unchai me. */
@@ -1822,15 +1918,15 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   background: var(--blue-600);
   color: #fff;
-  font-size: 12px;
-  font-weight: 900;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-black);
   letter-spacing: 0.04em;
 }
 
 .itin__k span {
   display: block;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-heading);
   color: var(--muted);
   margin-top: 8px;
 }
@@ -1838,21 +1934,21 @@ a.mega__gl:hover {
 .itin__k em {
   font-style: normal;
   display: block;
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   color: var(--faint);
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   margin-top: 2px;
 }
 
 .itin__c h3 {
-  font-size: 16px;
+  font-size: var(--fs-2xl);
   letter-spacing: -0.02em;
   line-height: 1.35;
   margin: 0 0 7px;
 }
 
 .itin__c p {
-  font-size: 14px;
+  font-size: var(--fs-base);
   line-height: 1.65;
   color: var(--body);
   margin: 0;
@@ -1875,7 +1971,7 @@ a.mega__gl:hover {
   display: flex;
   gap: 9px;
   align-items: flex-start;
-  font-size: 13.5px;
+  font-size: var(--fs-body);
   line-height: 1.55;
   color: var(--body);
 }
@@ -1901,8 +1997,8 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-bold);
   color: var(--ink-2);
   background: var(--line-2);
   padding: 5px 10px;
@@ -1982,8 +2078,8 @@ a.mega__gl:hover {
 }
 
 .inx__c h3 {
-  font-size: 13px;
-  font-weight: 900;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin: 0 0 10px;
@@ -2043,8 +2139,8 @@ a.mega__gl:hover {
   border-radius: 50%;
   background: var(--blue-600);
   color: #fff;
-  font-size: 13px;
-  font-weight: 900;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
   display: grid;
   place-items: center;
 }
@@ -2052,14 +2148,14 @@ a.mega__gl:hover {
 .steps b {
   display: block;
   color: var(--ink);
-  font-size: 14px;
-  font-weight: 800;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-heading);
   /* i am doing it 4px dont change it*/
   margin-bottom: 4px;
 }
 
 .steps p {
-  font-size: 13px;
+  font-size: var(--fs-body);
 }
 
 /*
@@ -2110,8 +2206,8 @@ a.mega__gl:hover {
   align-items: center;
   gap: 7px;
   flex-wrap: wrap;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semi);
   color: var(--muted);
   margin-bottom: 12px;
   padding-top: clamp(14px, 2vw, 22px);
@@ -2135,7 +2231,7 @@ a.mega__gl:hover {
 
 .vcrumb b {
   color: var(--ink-2);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 
 /*
@@ -2202,8 +2298,8 @@ a.mega__gl:hover {
 }
 
 .wdg__h {
-  font-size: 11.5px;
-  font-weight: 800;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-heading);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #64748b;
@@ -2245,15 +2341,15 @@ a.mega__gl:hover {
 }
 
 .wdgc b {
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #64748b;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
 }
 
 .wdgc a {
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: #0f172a;
   text-decoration: none;
   overflow: hidden;
@@ -2322,15 +2418,15 @@ a.mega__gl:hover {
 }
 
 .ptitle__p del {
-  font-size: 14px;
+  font-size: var(--fs-base);
   color: var(--faint);
-  font-weight: 600;
+  font-weight: var(--fw-semi);
 }
 
 .ptitle__p b {
   display: block;
-  font-size: clamp(28px, 3.4vw, 38px);
-  font-weight: 900;
+  font-size: var(--fs-price);
+  font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.045em;
   line-height: 1.05;
@@ -2338,8 +2434,8 @@ a.mega__gl:hover {
 
 .ptitle__p span {
   display: block;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
   color: var(--muted);
   margin-bottom: 12px;
 }
@@ -2369,15 +2465,15 @@ a.mega__gl:hover {
 }
 
 .catbar__h b {
-  font-size: 13px;
-  font-weight: 900;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.01em;
 }
 
 .catbar__h span {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
   color: var(--muted);
 }
 
@@ -2414,8 +2510,8 @@ a.mega__gl:hover {
 
 .catbar__g b {
   display: block;
-  font-size: 14.5px;
-  font-weight: 900;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
   color: var(--ink);
   /* Client ka tune (1 Sep) — base heading rule ka 1.25 in chhote card labels pe tang tha.
      Reference me ye line nahi hai; jaan-boojh kar hai (R15). */
@@ -2425,8 +2521,8 @@ a.mega__gl:hover {
 
 .catbar__g span {
   display: block;
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-bold);
   color: var(--muted);
   margin-top: 3px;
   /* Upar wale `b` ke saath jodi — client ka tune (1 Sep). */
@@ -2435,8 +2531,8 @@ a.mega__gl:hover {
 
 .catbar__g strong {
   display: block;
-  font-size: 17px;
-  font-weight: 900;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.035em;
   margin-top: 10px;
@@ -2495,8 +2591,8 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
   background: var(--surface);
-  font-size: 12.5px;
-  font-weight: 800;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-heading);
   color: var(--ink-2);
   letter-spacing: -0.01em;
   transition:
@@ -2518,8 +2614,8 @@ a.mega__gl:hover {
 }
 
 .htab button span {
-  font-size: 11px;
-  font-weight: 900;
+  font-size: var(--fs-4xs);
+  font-weight: var(--fw-black);
   color: var(--gold);
   letter-spacing: 0;
 }
@@ -2548,13 +2644,13 @@ a.mega__gl:hover {
   background: var(--blue-50);
   border: 1px solid var(--blue-100);
   border-radius: var(--r2);
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
   color: var(--blue-700);
 }
 
 .hpan__note b {
-  font-weight: 900;
+  font-weight: var(--fw-black);
   color: var(--ink);
 }
 
@@ -2576,7 +2672,7 @@ a.mega__gl:hover {
 .tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   background: var(--surface);
   min-width: 520px;
 }
@@ -2586,8 +2682,8 @@ a.mega__gl:hover {
   color: var(--blue-700);
   text-align: left;
   padding: 11px 14px;
-  font-size: 11px;
-  font-weight: 900;
+  font-size: var(--fs-4xs);
+  font-weight: var(--fw-black);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -2602,7 +2698,7 @@ a.mega__gl:hover {
 
 .tbl td b {
   color: var(--ink);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
 }
 
 /*
@@ -2681,8 +2777,8 @@ a.mega__gl:hover {
   list-style: none;
   cursor: pointer;
   padding: 15px 18px;
-  font-size: 14.5px;
-  font-weight: 700;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
   color: var(--ink);
   display: flex;
   justify-content: space-between;
@@ -2697,7 +2793,7 @@ a.mega__gl:hover {
 .faq summary::after {
   content: '+';
   font-size: 20px;
-  font-weight: 400;
+  font-weight: var(--fw-normal);
   color: var(--blue-500);
   line-height: 1;
   flex-shrink: 0;
@@ -2709,7 +2805,7 @@ a.mega__gl:hover {
 
 .faq p {
   padding: 0 18px 17px;
-  font-size: 13.5px;
+  font-size: var(--fs-body);
   line-height: 1.6;
 }
 
@@ -2739,13 +2835,24 @@ a.mega__gl:hover {
    Isliye tokens page ke hain, par shakl yahin tay hui hai.
    ================================================================== */
 
+/*
+ * Popup ka backdrop — pehle `rgba(8, 20, 34, .92)` tha, yaani lagbhag kaala.
+ *
+ * Client ne use "shadow" kaha aur hatane ko bola (1 Sep). Poora transparent **nahi** kiya
+ * gaya: tab peeche ka page image ke aar-paar padha jaane lagta hai aur popup popup nahi
+ * lagta. Ab wo halka safed hai — koi gehra saya nahi, par image ka kinara phir bhi saaf.
+ *
+ * ⚠️ Iske badalne se controls bhi badle. Wo safed-on-transparent the (`rgba(255,255,255,.14)`
+ * pe `#fff`), jo is backdrop pe **bilkul gayab** ho jaate — safed pe safed. Ab wo ink pe
+ * hain. Backdrop dobara gehra karo to controls bhi wapas safed karne padenge.
+ */
 .lbx {
   position: fixed;
   inset: 0;
   z-index: 100;
   display: grid;
   place-items: center;
-  background: rgba(8, 20, 34, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   padding: clamp(12px, 4vw, 48px);
   /* Backdrop khud focus le sakta hai (Esc/arrows ke liye) — par ring nahi dikhni chahiye */
   outline: none;
@@ -2785,8 +2892,8 @@ a.mega__gl:hover {
 .lbx__nav {
   position: absolute;
   border: 0;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: rgba(17, 29, 43, 0.07);
+  color: var(--ink);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -2798,7 +2905,7 @@ a.mega__gl:hover {
 
 .lbx__x:hover,
 .lbx__nav:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(17, 29, 43, 0.14);
 }
 
 .lbx__x {
@@ -2806,7 +2913,7 @@ a.mega__gl:hover {
   right: clamp(10px, 2vw, 22px);
   width: 42px;
   height: 42px;
-  font-size: 17px;
+  font-size: var(--fs-3xl);
 }
 
 .lbx__nav {
@@ -2836,12 +2943,12 @@ a.mega__gl:hover {
   bottom: clamp(12px, 3vw, 26px);
   left: 50%;
   transform: translateX(-50%);
-  color: #fff;
-  background: rgba(0, 0, 0, 0.45);
+  color: var(--ink);
+  background: rgba(17, 29, 43, 0.07);
   padding: 6px 14px;
   border-radius: 999px;
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
   letter-spacing: 0.03em;
 }
 
@@ -2924,8 +3031,8 @@ a.mega__gl:hover {
 
 .offer h2 {
   color: #fff;
-  font-size: clamp(21px, 2.6vw, 30px);
-  font-weight: 900;
+  font-size: var(--fs-display);
+  font-weight: var(--fw-black);
   letter-spacing: -0.03em;
 }
 
@@ -2938,8 +3045,8 @@ a.mega__gl:hover {
   color: #ffc79b;
   padding: 5px 13px;
   border-radius: var(--rf);
-  font-size: 11.5px;
-  font-weight: 800;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-heading);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-bottom: 12px;
@@ -2976,7 +3083,7 @@ a.mega__gl:hover {
   display: flex;
   gap: 9px;
   align-items: flex-start;
-  font-size: 13.5px;
+  font-size: var(--fs-body);
 }
 
 .offer li svg {
@@ -2997,14 +3104,14 @@ a.mega__gl:hover {
 .offer__box b {
   display: block;
   font-size: 34px;
-  font-weight: 900;
+  font-weight: var(--fw-black);
   color: #fff;
   letter-spacing: -0.04em;
   line-height: 1;
 }
 
 .offer__box span {
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   color: rgba(255, 255, 255, 0.7);
   display: block;
   margin: 6px 0 14px;

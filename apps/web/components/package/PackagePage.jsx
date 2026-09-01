@@ -40,6 +40,22 @@ import SectionHead from './SectionHead.jsx'
 const MEAL_LABEL = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 
 /**
+ * Breadcrumb ka beech wala crumb — package archive.
+ *
+ * ⚠️ **Ye Andaman-specific hai, aur jaan-boojh kar** (client, 1 Sep). Pehle ye crumb tha hi
+ * nahi, kyunki archive page Phase 3 me banega aur "ek crumb jo 404 pe le jaaye, wo na hone
+ * se bura hai". Client ne teen raaston me se hardcode chuna.
+ *
+ * Do baatein jo isse judi hain:
+ *
+ * - Naam aur URL dono **is client ke** hain. Doosre instance pe ye galat hoga — wahi haalat
+ *   `TAB_NOTE` ki hai (Q-9, `09-OPEN-ITEMS.md`). Isiliye ye yahan ek constant hai, JSX me
+ *   bikhra hua nahi: badalna ek line ka kaam rahe.
+ * - Jis din archive page bane, iska `href` waise hi rahega — sirf 404 dena band kar dega.
+ */
+const ARCHIVE_CRUMB = { label: 'Andaman Tour Packages', href: '/andaman-tour-packages/' }
+
+/**
  * What's included ke tick aur cross — reference ke inline SVG.
  *
  * Rang inke apne nahi hain: wo `.blk ul.tick svg` (hara) aur `.tick.no svg` (laal) se aata
@@ -280,15 +296,11 @@ export default function PackagePage({ entry, defaults, settings }) {
   return (
     <CategoryProvider pricing={entry.pricing} currency={settings?.currency ?? 'INR'}>
       <main className="pkg">
-        {/*
-         * Order reference ka hai: breadcrumb → .gal → .ptitle → body.
-         *
-         * ⚠️ Beech ka crumb (`Andaman Tour Packages`) abhi **nahi** hai — wo package archive
-         * ka link hoga, aur wo page Phase 3 me banega. Ek crumb jo 404 pe le jaaye, wo na
-         * hone se bura hai.
-         */}
+        {/* Order reference ka hai: breadcrumb → .gal → .ptitle → body. */}
         <nav className="wrap vcrumb" aria-label="Breadcrumb">
           <a href="/">Home</a>
+          <i>›</i>
+          <a href={ARCHIVE_CRUMB.href}>{ARCHIVE_CRUMB.label}</a>
           <i>›</i>
           <b>{entry.title}</b>
         </nav>
