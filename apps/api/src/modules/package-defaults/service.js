@@ -83,12 +83,25 @@ function withIds(steps = []) {
 export async function updatePackageDefaults(input, siteId = DEFAULT_SITE_ID) {
   await ensurePackageDefaults(siteId)
 
+  /**
+   * ⚠️ **Ye whitelist hai — naya field yahan jodna bhool jaana ek chup bug hai.**
+   *
+   * Zod use pass kar deta hai, API 200 deti hai, admin "Saved." dikhata hai, aur value DB
+   * tak pahunchti hi nahi. Rating ke saath theek yahi hua aur test ne pakda (1 Sep) — wahi
+   * shakl jo D-64 (transfer duration), D-65 (`cancellationText`) aur D-68 (section guard)
+   * ki thi: dono taraf ka code sahi dikhta hai, beech me field chhoot jaata hai.
+   *
+   * Whitelist phir bhi hai, `...input` nahi: `req.body` ko seedha `$set` me kholna wahi
+   * raasta hai jispe R9 likha gaya hai.
+   */
   const $set = {}
 
   if (input.whatsIncluded !== undefined) $set.whatsIncluded = input.whatsIncluded
   if (input.cancellationText !== undefined) $set.cancellationText = input.cancellationText
   if (input.bookingSteps !== undefined) $set.bookingSteps = withIds(input.bookingSteps)
   if (input.sectionLabels !== undefined) $set.sectionLabels = input.sectionLabels
+  /** `4.9 average from 412 trips` — hero aur reviews section dono isse chhapte hain. */
+  if (input.rating !== undefined) $set.rating = input.rating
 
   if (input.itineraryImages !== undefined) {
     await assertMediaExists(input.itineraryImages, siteId)

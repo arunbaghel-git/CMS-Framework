@@ -2,12 +2,17 @@ import { Router } from 'express'
 import { PERMISSION } from '@cms/shared'
 
 import { requireAuth, requirePermission } from '../../middleware/auth.js'
-import { addOnController, hotelController, transferController } from './controller.js'
+import {
+  addOnController,
+  hotelController,
+  reviewController,
+  transferController,
+} from './controller.js'
 
 /**
- * `/api/hotels`, `/api/add-ons`, `/api/transfers` — admin side, sab authed.
+ * `/api/hotels`, `/api/add-ons`, `/api/transfers`, `/api/reviews` — admin side, sab authed.
  *
- * Teenon ek hi module se aati hain (dekho `model.js`), par **routes teen alag hain**:
+ * Chaaron ek hi module se aati hain (dekho `model.js`), par **routes chaar alag hain**:
  * client ke liye ye teen alag screens hain aur unki permissions bhi alag (`hotel.*`,
  * `addOn.*`, `transfer.*`). Ek saanjhi `masterList.*` permission rakhne ka matlab hota ki
  * unhe baad me alag karna poora RBAC retrofit ban jaata — spec 001 ka sabse mehnga kaam.
@@ -50,4 +55,11 @@ export const transferRoutes = listRouter(transferController, {
   create: PERMISSION.TRANSFER_CREATE,
   update: PERMISSION.TRANSFER_UPDATE,
   remove: PERMISSION.TRANSFER_DELETE,
+})
+
+export const reviewRoutes = listRouter(reviewController, {
+  read: PERMISSION.REVIEW_READ,
+  create: PERMISSION.REVIEW_CREATE,
+  update: PERMISSION.REVIEW_UPDATE,
+  remove: PERMISSION.REVIEW_DELETE,
 })

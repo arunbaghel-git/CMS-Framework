@@ -54,6 +54,10 @@ export const PERMISSION = Object.freeze({
   TRANSFER_CREATE: 'transfer.create',
   TRANSFER_UPDATE: 'transfer.update',
   TRANSFER_DELETE: 'transfer.delete',
+  REVIEW_READ: 'review.read',
+  REVIEW_CREATE: 'review.create',
+  REVIEW_UPDATE: 'review.update',
+  REVIEW_DELETE: 'review.delete',
   PACKAGE_DEFAULTS_READ: 'packageDefaults.read',
   PACKAGE_DEFAULTS_UPDATE: 'packageDefaults.update',
 
@@ -151,6 +155,15 @@ const READ_ONLY = [
   P.HOTEL_READ,
   P.ADD_ON_READ,
   P.TRANSFER_READ,
+  /**
+   * Reviews ki read baaki master lists ke saath hai, halanki package editor me unka koi
+   * dropdown **nahi** hai — wo universal hain, chuni nahi jaatin (client, 1 Sep).
+   *
+   * Phir bhi read sabke paas isliye hai ki wo public page pe har package ke neeche chhapti
+   * hain: jo user package edit kar raha hai use wo dikhni chahiye, warna wo apne hi page ka
+   * aadha content nahi dekh sakta.
+   */
+  P.REVIEW_READ,
   P.PACKAGE_DEFAULTS_READ,
 ]
 
@@ -194,6 +207,9 @@ const EDITOR = [
   P.TRANSFER_CREATE,
   P.TRANSFER_UPDATE,
   P.TRANSFER_DELETE,
+  P.REVIEW_CREATE,
+  P.REVIEW_UPDATE,
+  P.REVIEW_DELETE,
   P.PACKAGE_DEFAULTS_UPDATE,
   P.MEDIA_UPDATE,
   P.MEDIA_EDIT,

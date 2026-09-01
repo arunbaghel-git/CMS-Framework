@@ -1,4 +1,6 @@
 import { PACKAGE_SECTION_DEFAULTS, isEmptyDoc } from '@cms/shared'
+/** `<Fragment>` sirf hero ke meta list me — wahan har tukde ko key aur ek divider chahiye. */
+import { Fragment } from 'react'
 
 import CtaSection from './CtaSection.jsx'
 import Gallery from './Gallery.jsx'
@@ -11,6 +13,7 @@ import {
   HotelsTag,
   PriceBlock,
 } from './Pricing.jsx'
+import Reviews, { HeroRating, RatingNote } from './Reviews.jsx'
 import RichText from './RichText.jsx'
 import SectionHead from './SectionHead.jsx'
 
@@ -34,7 +37,8 @@ import SectionHead from './SectionHead.jsx'
  * | Gallery strip | ✅ `packageDefaults` ke pool se |
  * | Price, hotel category picker, add-ons | ❌ **Slice 5** |
  * | Questions about this package (FAQs) | ✅ client ne Slice 5 ke saath maanga (D-59) |
- * | Reviews, similar itineraries | ❌ **Slice 6-7** |
+ * | Traveller reviews | ✅ universal reviews + haath se likhi rating (client, 1 Sep) |
+ * | Similar itineraries | ✅ poori tarah derived — wahi nights/days wale package |
  */
 
 const MEAL_LABEL = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
@@ -277,6 +281,13 @@ export default function PackagePage({ entry, defaults, settings }) {
   const labels = defaults?.sectionLabels ?? PACKAGE_SECTION_DEFAULTS
 
   /**
+   * Reviews aur unki rating dono **global** hain (client, 1 Sep) — `packageDefaults` se
+   * aati hain, entry se nahi. Package inme se kuch chunta nahi.
+   */
+  const reviews = defaults?.reviews ?? []
+  const rating = defaults?.rating
+
+  /**
    * Client ne is section ke description box me kuch likha hai?
    *
    * ⚠️ Ye har section ke guard me **zaroori** hai. Pehle guard sirf section ke apne data ko
@@ -317,21 +328,42 @@ export default function PackagePage({ entry, defaults, settings }) {
         <section className="pkg__hero wrap">
           <div className="ptitle">
             <div>
+              {/*
+               * Teen tukde, aur beech me divider — par **koi bhi gayab ho sakta hai**.
+               *
+               * Pehle ye `{a && <i/>}` wali shart se juda hua tha, aur do tukdon pe wo chal
+               * jaata hai. Teesra judte hi wo galat ho jaata: rating ho aur stays na ho to
+               * ek divider bina kisi ke aage-peeche khada dikhta. Isliye ab list se banta hai
+               * — divider **hamesha** do maujood tukdon ke beech aata hai, kyunki khaali
+               * tukde list me pahunchte hi nahi.
+               *
+               * Yahi shakl D-64 wale transfer-chip bug ki thi: shart aur maal ek saath likhe
+               * gaye the.
+               */}
               <div className="pmeta">
-                {/* Rating Slice 6 me aayegi — abhi wo data hai hi nahi */}
-                {stays && (
-                  <span className="t">
-                    <Pin />
-                    {stays}
-                  </span>
-                )}
-                {stays && length && <i className="pmeta__d" />}
-                {length && (
-                  <span className="t">
-                    <Clock />
-                    {length}
-                  </span>
-                )}
+                {[
+                  /** `4.9 ★ 412 traveller reviews` — `packageDefaults.rating` se (client, 1 Sep) */
+                  rating?.value ? <HeroRating key="rating" rating={rating} /> : null,
+                  stays ? (
+                    <span className="t" key="stays">
+                      <Pin />
+                      {stays}
+                    </span>
+                  ) : null,
+                  length ? (
+                    <span className="t" key="length">
+                      <Clock />
+                      {length}
+                    </span>
+                  ) : null,
+                ]
+                  .filter(Boolean)
+                  .map((node, i) => (
+                    <Fragment key={node.key}>
+                      {i > 0 && <i className="pmeta__d" />}
+                      {node}
+                    </Fragment>
+                  ))}
               </div>
 
               {/*
@@ -574,6 +606,20 @@ export default function PackagePage({ entry, defaults, settings }) {
                 {defaults?.cancellationText && (
                   <p className="blk__note">{defaults.cancellationText}</p>
                 )}
+              </section>
+            )}
+
+            {/*
+             * Traveller reviews — reference ka `#reviews`.
+             *
+             * Section tabhi aata hai jab **kuch dikhane ko ho**: reviews, ya rating, ya client
+             * ki likhi hui line. Teenon khaali hon to ye render hi nahi hota — khaali section
+             * "abhi nahi bana" nahi, "toota hua" lagta hai (D-30 ka ulta).
+             */}
+            {(reviews.length > 0 || rating?.value || wrote('reviews')) && (
+              <section className="blk" id="reviews">
+                <SectionHead label={labels.reviews} suffix={<RatingNote rating={rating} />} />
+                <Reviews reviews={reviews} />
               </section>
             )}
 

@@ -134,6 +134,118 @@ export const createTransferSchema = transferSchema
 
 export const updateTransferSchema = createTransferSchema.partial()
 
+// ── reviews ──────────────────────────────────────────────────────────────────
+
+/**
+ * Traveller reviews — **universal**, per-package nahi (client, 1 Sep).
+ *
+ * Ye baaki teen lists jaisi hi hai — flat CRUD, koi URL nahi, koi publish nahi — par ek
+ * baat me alag hai: package inme se kuch **chunta nahi**. Hotels aur Add-ons har package
+ * apne chunta hai; reviews har package ke neeche wahi ki wahi chhapti hain.
+ *
+ * Isliye `entries` pe koi `reviews[]` field nahi bani. Spec 007 §7 me wo per-package
+ * socha gaya tha; client ne 1 Sep ko ulta chuna — "universal hogi, koi chunaw nahi". Wahi
+ * faisla `goodToKnow[]` pe bhi hua tha (D-68).
+ *
+ * ⚠️ Rating (`4.9 average from 412 trips`) yahan **nahi** hai — wo in reviews se **gini
+ * nahi jaati** (spec 007 §9 #8 ka jawab, client 1 Sep: haath se). Wo ek global jodi hai aur
+ * `packageDefaults.rating` me baithti hai. Ginne se wo page pe teen review ka average
+ * dikhata — 412 trips ka nahi.
+ */
+export const reviewSchema = z.object({
+  siteId: z.string().default(DEFAULT_SITE_ID),
+
+  /**
+   * Poore taare — **1 se 5, aadha nahi**.
+   *
+   * Design (`itinerary-v3.html`) me card pe `★★★★★` aur `★★★★☆` hain, yaani bhare ya
+   * khaali. Aadhe taare ka koi glyph us design me hai hi nahi, aur `4.5` ko do adhoore
+   * taare me dikhane ke liye SVG/clip chahiye hota — ek naya visual jo design me nahi hai.
+   *
+   * ⚠️ Ye **card ka** rating hai. Page ke upar wala `4.9` isse alag hai aur wo dashmalav me
+   * hai — wo `packageDefaults.rating.value` hai.
+   */
+  rating: z.coerce.number().int().min(1).max(5),
+
+  /**
+   * Kab gaye the — `2026-03`. Din nahi, sirf **mahina aur saal** (client, 1 Sep).
+   *
+   * Admin me `<input type="month">` hai, aur wo isi shape me value deta hai. Date object
+   * jaan-boojh kar nahi: din us picker me hai hi nahi, aur `Date` banate hi timezone ka
+   * sawaal aa jaata — 1 taareekh ki raat ko wo pichhla mahina ban sakti hai.
+   *
+   * Page pe ye `March 2026` ban kar chhapta hai (theme me format hota hai, stored nahi).
+   */
+  month: z
+    .string()
+    .regex(/^($|\d{4}-(0[1-9]|1[0-2])$)/, 'Month must look like 2026-03')
+    .default(''),
+
+  /** Card ka do-teen line ka text — design me isi lambai pe card ki height baithti hai. */
+  text: z.string().min(1).max(2000),
+
+  /** `Guest name` — card ke neeche mota naam. */
+  name: z.string().min(1).max(200),
+
+  /**
+   * Naam ke neeche ki chhoti line — design me `Travelled 5N / 6D · verified booking`.
+   *
+   * **Free text hai**, derive nahi hoti. Ye review kis package pe thi wo yahan store nahi
+   * hai (reviews universal hain), to `5N / 6D` kahin se nikaala nahi ja sakta — aur client
+   * usme `verified booking` jaisi baat bhi likhta hai jo kisi field se aa hi nahi sakti.
+   */
+  lastLine: z.string().max(300).default(''),
+
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+})
+
+export const createReviewSchema = reviewSchema
+  .omit({ createdAt: true, updatedAt: true })
+  .partial({ siteId: true })
+
+export const updateReviewSchema = createReviewSchema.partial()
+
+/**
+ * `★★★★☆` — review card ka rating.
+ *
+ * **Admin aur theme dono yahi bulate hain.** Do jagah likhne ka matlab hota ki ek din admin
+ * ki list kuch dikhati aur page pe kuch aur chhapta — wahi sabak jo `PACKAGE_SECTIONS` ke
+ * fallback pe likha hai (D-65).
+ *
+ * Aadhe taare nahi hain (dekho `reviewSchema.rating`), isliye ye seedha do characters ka
+ * dohraav hai — koi SVG ya clip nahi.
+ */
+export function starString(rating) {
+  const filled = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)))
+
+  return '★'.repeat(filled) + '☆'.repeat(5 - filled)
+}
+
+/**
+ * `2026-03` → `March 2026`.
+ *
+ * Stored value `YYYY-MM` hai (dekho `reviewSchema.month`); format **yahan** hota hai, DB me
+ * nahi — wahi tark jo `formatPrice()` pe hai.
+ *
+ * `Date` jaan-boojh kar `Date.UTC` se banti hai. Local time se banane pe timezone shift
+ * mahina badal deta hai: `new Date('2026-03-01')` UTC padha jaata hai aur IST se peeche
+ * wale timezone me wo `February` chhap jaata — ek bug jo sirf kuch users ko dikhta.
+ *
+ * Khaali ya galat value pe `''` — theme use render hi nahi karta (D-30).
+ */
+export function formatReviewMonth(month) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(month ?? ''))) return ''
+
+  const [year, m] = String(month).split('-').map(Number)
+
+  return new Date(Date.UTC(year, m - 1, 1)).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
 // ── shared list query ────────────────────────────────────────────────────────
 
 /**

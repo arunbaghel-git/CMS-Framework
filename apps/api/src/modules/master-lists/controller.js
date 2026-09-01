@@ -4,8 +4,8 @@ import { SCHEMAS, masterListQuerySchema } from './validation.js'
 /**
  * Patla controller — validate → service → response (R1).
  *
- * Har handler **list key** leta hai (`hotel` | `addOn` | `transfer`), taaki teenon lists
- * ke liye ek hi handler chale. Key routes se aati hai, `req` se kabhi nahi — warna client
+ * Har handler **list key** leta hai (`hotel` | `addOn` | `transfer` | `review`), taaki
+ * chaaron lists ke liye ek hi handler chale. Key routes se aati hai, `req` se kabhi nahi — warna client
  * `?list=` bhej kar doosri list pe likh sakta, aur uski permission bhi galat check hoti.
  */
 
@@ -61,3 +61,4 @@ const handlers = (key) => ({
 export const hotelController = handlers('hotel')
 export const addOnController = handlers('addOn')
 export const transferController = handlers('transfer')
+export const reviewController = handlers('review')

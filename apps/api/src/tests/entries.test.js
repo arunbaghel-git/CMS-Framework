@@ -10,6 +10,8 @@ import { ContentType } from '../modules/content-types/model.js'
 import { ensureBuiltInContentTypes } from '../modules/content-types/service.js'
 import { Entry, Revision } from '../modules/entries/model.js'
 import { publishDueEntries } from '../modules/entries/service.js'
+import { AddOn, Hotel, Review, Transfer } from '../modules/master-lists/model.js'
+import { PackageDefaults } from '../modules/package-defaults/model.js'
 import { Redirect } from '../modules/redirects/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
@@ -94,6 +96,21 @@ beforeEach(async () => {
     Revision.deleteMany({}),
     Redirect.deleteMany({}),
     Taxonomy.deleteMany({}),
+    /*
+     * ⚠️ Master lists aur `packageDefaults` pehle **saaf hote hi nahi the** — ye file unhe
+     * banati thi (add-ons, hotels) par kabhi hataati nahi thi, aur wo test se test tak bache
+     * rehte the.
+     *
+     * Aaj tak wo chhupa raha kyunki har test sirf apne banaye hue item pe assert karta tha.
+     * Reviews ke saath wo tootta: unka test **poori list** ka kram dekhta hai, aur rating ka
+     * test dekhta hai ki kabhi na likhi gayi rating zero aati hai — pichhle test ki likhi hui
+     * 4.9 wahan bachi rehti to wo test kabhi-kabhi fail hota, aur wajah bilkul dikhti nahi.
+     */
+    Hotel.deleteMany({}),
+    AddOn.deleteMany({}),
+    Transfer.deleteMany({}),
+    Review.deleteMany({}),
+    PackageDefaults.deleteMany({}),
   ])
   invalidateRoleCache()
   await ensureDefaultRoles()
@@ -1750,6 +1767,56 @@ describe('packageDefaults ka payload', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.data.packageDefaults.priceNote).toBeUndefined()
+  })
+
+  /**
+   * Reviews aur rating dono yahin se aate hain, entry ke payload se nahi — wo **universal**
+   * hain (client, 1 Sep) aur unka cache tag `type:package` hai.
+   *
+   * ⚠️ Ye teen test us bug class ke liye hain jo is repo me teen baar ho chuki hai: field
+   * ban jaata hai, admin me bhara dikhta hai, aur **payload me jaata hi nahi** — page pe
+   * kuch nahi aata aur kahin koi error nahi (D-64 ka transfer duration, D-65 ka
+   * `cancellationText`, aur D-68 ka section guard).
+   */
+  it('reviews public payload me jaati hain — nayi trip pehle', async () => {
+    for (const month of ['2025-11', '2026-06']) {
+      await authed('post', '/api/reviews', adminJar).send({
+        rating: 5,
+        month,
+        text: 'Ferries sorted before we landed.',
+        name: month,
+      })
+    }
+
+    const res = await request(app).get('/api/public/package-defaults')
+    const { reviews } = res.body.data.packageDefaults
+
+    expect(reviews.map((r) => r.month)).toEqual(['2026-06', '2025-11'])
+    expect(reviews[0]).toMatchObject({ rating: 5, name: '2026-06' })
+  })
+
+  it('rating payload me jaati hai — reviews se gini nahi jaati (§9 #8)', async () => {
+    // 412 trips ka aankda saalon ka hai; do likhi hui reviews us number ko nahi banatin
+    await authed('post', '/api/reviews', adminJar).send({
+      rating: 4,
+      text: 'Good trip.',
+      name: 'A',
+    })
+    await authed('patch', '/api/package-defaults', adminJar).send({
+      rating: { value: 4.9, count: 412 },
+    })
+
+    const res = await request(app).get('/api/public/package-defaults')
+
+    expect(res.body.data.packageDefaults.rating).toEqual({ value: 4.9, count: 412 })
+  })
+
+  it('rating kabhi likhi hi na ho to zero jaati hai — theme wahan se line hata deta hai', async () => {
+    // `0` ka matlab "dikhani hi nahi" hai (D-30). Purane document me ye key hai hi nahi,
+    // aur dono ka natija ek hi hona chahiye — isiliye migration 016 ne data nahi chhua
+    const res = await request(app).get('/api/public/package-defaults')
+
+    expect(res.body.data.packageDefaults.rating).toEqual({ value: 0, count: 0 })
   })
 })
 

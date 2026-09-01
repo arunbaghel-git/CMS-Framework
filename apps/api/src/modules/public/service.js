@@ -12,7 +12,7 @@ import {
 } from '@cms/shared'
 
 import { Entry } from '../entries/model.js'
-import { AddOn, Hotel, Transfer } from '../master-lists/model.js'
+import { AddOn, Hotel, Review, Transfer } from '../master-lists/model.js'
 import { Media } from '../media/model.js'
 import { toPublicMedia } from '../media/service.js'
 import { getPublicMenuById } from '../menus/service.js'
@@ -622,5 +622,46 @@ export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
     itineraryImages: images.filter(Boolean),
 
     sectionLabels: resolveSectionLabels(doc.sectionLabels),
+
+    /**
+     * `4.9 average from 412 trips` — client haath se likhta hai (spec 007 §9 #8 ka jawab).
+     *
+     * Reviews ginn kar **nahi** banti. Ginne ka natija ulta hota: page pe likhi hui teen-chaar
+     * review ka average dikhta, jabki asli number saalon ki trips ka hai.
+     *
+     * `value: 0` ka matlab hai "rating dikhani hi nahi" — theme dono jagah se line hata deta
+     * hai (hero aur reviews ka heading). Purane document me ye key hai hi nahi, aur wo bhi
+     * yahi natija deta hai — isliye migration 016 ne data ko haath nahi lagaya.
+     */
+    rating: {
+      value: doc.rating?.value ?? 0,
+      count: doc.rating?.count ?? 0,
+    },
+
+    /**
+     * Traveller reviews — **universal**, har package pe wahi (client, 1 Sep).
+     *
+     * Yahan hain, entry ke payload me nahi: ye kisi ek package ka data nahi hai, aur inka
+     * cache tag `type:package` hai — wahi jo baaki globals ka. Entry ke payload me ghusa
+     * dene ka matlab hota ki ek review badalne pe har package ka `entry:{id}` tag alag se
+     * saaf karna padta.
+     *
+     * Kram service ke registry se hi aata hai — **nayi trip pehle** (`month` ulta). Theme
+     * pehle teen card dikhata hai aur baaki slider me; dono ke liye poori list chahiye.
+     *
+     * Cap 200 hai: itni reviews aane par bhi payload ~60KB rehta hai, par ek din list badh
+     * jaane pe page ka payload chup-chaap 10x nahi hona chahiye. Ye limit `itineraryImages`
+     * wali hi soch hai.
+     */
+    reviews: (
+      await Review.find({ siteId }).sort({ month: -1, createdAt: -1 }).limit(200).lean()
+    ).map((r) => ({
+      id: String(r._id),
+      rating: r.rating,
+      month: r.month ?? '',
+      text: r.text,
+      name: r.name,
+      lastLine: r.lastLine ?? '',
+    })),
   }
 }

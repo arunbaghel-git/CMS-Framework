@@ -153,6 +153,7 @@ const APP_ROUTES = [
   { path: '/packages/hotels', element: <MasterListScreen list="hotels" /> },
   { path: '/packages/add-ons', element: <MasterListScreen list="addOns" /> },
   { path: '/packages/transfers', element: <MasterListScreen list="transfers" /> },
+  { path: '/packages/reviews', element: <MasterListScreen list="reviews" /> },
   { path: '/packages/whats-included', element: <PackageDefaults section="whatsIncluded" /> },
   { path: '/packages/itinerary-images', element: <PackageDefaults section="itineraryImages" /> },
   { path: '/packages/section-headings', element: <PackageDefaults section="sectionLabels" /> },

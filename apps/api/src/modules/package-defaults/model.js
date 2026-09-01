@@ -59,6 +59,17 @@ const packageDefaultsSchema = new mongoose.Schema(
     cancellationText: { type: String, default: '' },
 
     /**
+     * `4.9 average from 412 trips` — site ki ek hi jodi (client, 1 Sep).
+     *
+     * Reviews se **derive nahi hoti** (spec 007 §9 #8 ka jawab). `0` ka matlab hai "rating
+     * dikhani hi nahi" — hero aur reviews section, dono se line gayab ho jaati hai.
+     */
+    rating: {
+      value: { type: Number, default: 0 },
+      count: { type: Number, default: 0 },
+    },
+
+    /**
      * Page ke section headings + unke neeche ki lines — Q-9 (client, 31 Aug).
      *
      * `Mixed` wahi tark se jo `bookingSteps` pe hai: har value ek object hai

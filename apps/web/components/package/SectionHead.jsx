@@ -25,12 +25,23 @@ import { RichTextDoc } from './RichText.jsx'
  * spacing overview ke rich text se alag hai (wo page ka pehla content hai, ye ek heading ke
  * neeche ki line).
  */
-export default function SectionHead({ label }) {
+/**
+ * `suffix` heading ke **andar** chhapta hai, uske baad nahi.
+ *
+ * Aaj ek hi jagah lagta hai — reviews ka `— 4.9 average from 412 trips`, jo reference me
+ * bhi `<h2>` ke andar ek `<span>` hai. Prop isliye hai ki us ek section ke liye poora
+ * heading + description ka jodha dobara likhna padta, aur do jagah likhi hui ek cheez is
+ * repo me hamesha ek din alag ho jaati hai (D-43 §2, D-65).
+ */
+export default function SectionHead({ label, suffix }) {
   const description = label?.description
 
   return (
     <>
-      <h2>{label?.heading}</h2>
+      <h2>
+        {label?.heading}
+        {suffix}
+      </h2>
       {!isEmptyDoc(description) && <RichTextDoc doc={description} className="rt rt-sec" />}
     </>
   )

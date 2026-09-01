@@ -130,10 +130,44 @@ export const PACKAGE_SECTIONS = Object.freeze([
     description: '',
   },
   {
+    /**
+     * Traveller reviews — client, 1 Sep.
+     *
+     * Reviews khud `reviews` collection me hain aur **universal** hain (har package pe wahi).
+     * Yahan sirf unke section ka heading aur uske neeche ki line hai — baaki sections jaisa.
+     *
+     * ⚠️ Heading ke saath page pe ek chhoti line lagti hai — `— 4.9 average from 412 trips`.
+     * Wo is heading ka hissa **nahi** hai: wo `packageDefaults.rating` se aati hai, aur
+     * uske do khaane (`value`, `count`) isi tab me hain. Alag isliye ki heading badalne se
+     * number gayab nahi hona chahiye, aur number badalne ke liye heading dobara likhna na
+     * pade.
+     */
+    key: 'reviews',
+    label: 'Traveller reviews',
+    heading: 'Traveller reviews',
+    description: '',
+  },
+  {
     key: 'faq',
     label: 'FAQs',
     heading: 'Questions about this package',
     description: '',
+  },
+  {
+    /**
+     * Similar itineraries — client, 1 Sep (spec 007 §9 #15 ka jawab: **apne aap**).
+     *
+     * Is section ka koi apna content nahi hai — cards poori tarah derive hote hain: wahi
+     * package jinki `nights` **aur** `days` dono is package jaise hain, khud ko chhod kar.
+     * Isliye yahan sirf heading aur line hai.
+     *
+     * Wahi soch jo route strip (D-51) aur hotels table (D-58/D-60) pe hai — jo package pe
+     * pehle se hai use dobara mat poochho.
+     */
+    key: 'similar',
+    label: 'Similar itineraries',
+    heading: 'Similar itineraries',
+    description: 'Same islands, different pace or budget.',
   },
 ])
 

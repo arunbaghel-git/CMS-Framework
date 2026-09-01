@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL } from '@cms/shared'
+import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL, formatReviewMonth, starString } from '@cms/shared'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
@@ -9,11 +9,11 @@ import { useTaxonomyList } from './usePackages.js'
 import './Packages.css'
 
 /**
- * Hotels · Add Ons · Transfer — spec 007 §1.3, §1.4, §1.6.
+ * Hotels · Add Ons · Transfer · Reviews — spec 007 §1.3, §1.4, §1.6, §7.
  *
- * **Ek screen teenon ke liye**, config se. Wahi wajah jo API pe hai (D-48 §1): teenon ka
- * lifecycle bilkul ek jaisa hai — flat CRUD, koi publish nahi, koi trash nahi. Teen alag
- * screens likhne ka matlab hota wahi form, wahi table aur wahi error handling teen jagah,
+ * **Ek screen chaaron ke liye**, config se. Wahi wajah jo API pe hai (D-48 §1): chaaron ka
+ * lifecycle bilkul ek jaisa hai — flat CRUD, koi publish nahi, koi trash nahi. Chaar alag
+ * screens likhne ka matlab hota wahi form, wahi table aur wahi error handling chaar jagah,
  * aur is repo ne do baar dekha hai ki do jagah rakhi hui ek cheez ek din alag ho jaati hai.
  *
  * Layout `#s-taxonomy` wala hi hai — left me form, right me list. Design me in teenon ki
@@ -96,6 +96,47 @@ export const MASTER_LISTS = {
     ],
     columns: ['name', 'icon'],
   },
+
+  /**
+   * Traveller reviews — **universal** (client, 1 Sep).
+   *
+   * Baaki teen liston se ek baat me alag: package inme se kuch **chunta nahi**. Isliye
+   * package editor me iska koi panel ya checklist nahi hai — sirf ye screen.
+   *
+   * ⚠️ `4.9 average from 412 trips` yahan **nahi** hai. Wo ek global jodi hai aur
+   * `Packages ▸ Section Headings ▸ Traveller reviews` tab me baithti hai, kyunki wo in
+   * reviews se gini nahi jaati (spec 007 §9 #8 ka jawab: haath se).
+   */
+  reviews: {
+    endpoint: '/reviews',
+    title: 'Reviews',
+    singular: 'Review',
+    permission: 'review',
+    fields: [
+      { key: 'rating', label: 'Stars', type: 'stars', required: true },
+      {
+        key: 'month',
+        label: 'Month',
+        type: 'month',
+        hint: 'Month and year only — the card shows it as "March 2026"',
+      },
+      {
+        key: 'text',
+        label: 'Review',
+        type: 'textarea',
+        required: true,
+        hint: 'Two or three sentences — that is the length the card is designed around',
+      },
+      { key: 'name', label: 'Guest name', type: 'text', required: true },
+      {
+        key: 'lastLine',
+        label: 'Last line',
+        type: 'text',
+        hint: 'The small line under the name — e.g. Travelled 5N / 6D · verified booking',
+      },
+    ],
+    columns: ['rating', 'month', 'name', 'text'],
+  },
 }
 
 const COLUMN_LABEL = {
@@ -107,6 +148,9 @@ const COLUMN_LABEL = {
   price: 'Price',
   where: 'Where',
   icon: 'Icon',
+  rating: 'Stars',
+  month: 'Month',
+  text: 'Review',
 }
 
 export default function MasterListScreen({ list }) {
@@ -208,6 +252,12 @@ export default function MasterListScreen({ list }) {
   function cell(item, key) {
     if (key === 'destinationId') return destinationName(item[key])
     if (key === 'category') return HOTEL_CATEGORY_LABEL[item[key]] ?? item[key]
+    /*
+     * Stars aur month wahi helpers se bante hain jo public page pe chalte hain — list me
+     * kuch aur dikhna aur page pe kuch aur chhapna is repo ki pehchani hui galti hai.
+     */
+    if (key === 'rating') return starString(item[key])
+    if (key === 'month') return formatReviewMonth(item[key]) || '—'
 
     return item[key] || '—'
   }
@@ -249,6 +299,58 @@ export default function MasterListScreen({ list }) {
             </option>
           ))}
         </select>
+      )
+    }
+
+    /**
+     * 1 se 5 poore taare — dropdown, number input nahi.
+     *
+     * Number input pe `4.5` ya `7` likha ja sakta tha; schema use reject karta, par error
+     * form bharne ke **baad** aata. Paanch tay vikalp me galat value likhi hi nahi ja sakti.
+     */
+    if (field.type === 'stars') {
+      return (
+        <select
+          className="sel"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={field.required}
+        >
+          <option value="">Choose…</option>
+          {[5, 4, 3, 2, 1].map((n) => (
+            <option key={n} value={n}>
+              {starString(n)} — {n}
+            </option>
+          ))}
+        </select>
+      )
+    }
+
+    /**
+     * `<input type="month">` — browser ka apna picker, aur wo seedha `2026-03` deta hai:
+     * bilkul wahi shape jo schema maangta hai. Isiliye month ko string rakha gaya
+     * (dekho `reviewSchema.month`).
+     */
+    if (field.type === 'month') {
+      return (
+        <input
+          className="inp"
+          type="month"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={field.required}
+        />
+      )
+    }
+
+    if (field.type === 'textarea') {
+      return (
+        <textarea
+          className="ta"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={field.required}
+        />
       )
     }
 

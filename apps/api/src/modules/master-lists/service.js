@@ -14,12 +14,12 @@ import { notFound, unprocessable } from '../../core/errors.js'
  * Dono taraf ek-ek sawaal, dono apne ghar me.
  */
 import { taxonomyExists } from '../taxonomies/service.js'
-import { AddOn, Hotel, Transfer } from './model.js'
+import { AddOn, Hotel, Review, Transfer } from './model.js'
 
 /**
  * Master lists ka business logic — R1.
  *
- * **Ek registry, teen lists.** Sab kuch generic hai except do cheezein: kaunse fields
+ * **Ek registry, chaar lists.** Sab kuch generic hai except do cheezein: kaunse fields
  * search/filter hote hain, aur write se pehle kya check karna hai. Wo dono registry me
  * hain, teen jagah copy-paste nahi.
  */
@@ -62,7 +62,7 @@ async function assertDestination(input, siteId) {
 }
 
 /**
- * Teen lists ka registry.
+ * Chaar lists ka registry.
  *
  * `label` sirf error messages ke liye hai — UI me internal naam kabhi nahi dikhta (R11),
  * aur "Hotel not found" "hotels document not found" se behtar padha jaata hai.
@@ -87,6 +87,23 @@ const LISTS = {
     Model: Transfer,
     label: 'Transfer',
     sort: { name: 1 },
+    filters: [],
+    beforeWrite: null,
+  },
+  review: {
+    Model: Review,
+    label: 'Review',
+    /**
+     * Nayi review pehle — baaki teen lists `name` pe sort hoti hain, ye nahi.
+     *
+     * Reviews me kram ka apna matlab hai: page pe pehla card sabse nayi trip ka hona
+     * chahiye. `month` `YYYY-MM` string hai, aur uska lexical kram hi chronological kram
+     * hai, isliye seedha uspe sort chalti hai.
+     *
+     * `createdAt` doosri kunji isliye hai ki ek hi mahine ki kai reviews ho sakti hain —
+     * bina uske unka aapsi kram Mongo ki marzi pe hota aur har call pe badal sakta tha.
+     */
+    sort: { month: -1, createdAt: -1 },
     filters: [],
     beforeWrite: null,
   },

@@ -139,6 +139,35 @@ export const packageDefaultsSchema = z.object({
   cancellationText: z.string().max(5000).default(''),
 
   /**
+   * `4.9 average from 412 trips` — **poori site pe ek hi jodi** (client, 1 Sep).
+   *
+   * Ye spec 007 §9 #8 ka jawab hai: rating `reviews[]` se **gini nahi jaati**, client haath
+   * se likhta hai. Ginne ka natija ulta hota — page pe teen-chaar likhi hui review ka
+   * average dikhta, jabki asli number saalon ki 412 trips ka hai. Jo cheez sach me kahin
+   * aur se aati hai use derive karne ka dikhawa karna sabse mehnga jhooth hai.
+   *
+   * Do jagah chhapti hai, dono me wahi:
+   *
+   * - hero me title ke upar — `4.9 ★ 412 traveller reviews`
+   * - reviews section ke heading ke saath — `— 4.9 average from 412 trips`
+   *
+   * **Khaali `value` (0) ka matlab hai "rating dikhani hi nahi"** — dono jagah se line
+   * gayab ho jaati hai. Wahi model jo pricing pe hai: khaali daam = wo category milti hi
+   * nahi (D-56). Aur wahi D-30: khaali cheez khaali dikhe, tooti hui nahi — `0.0 ★ 0
+   * reviews` chhapna adhoora page dikhata hai.
+   *
+   * `value` dashmalav me hai (`4.9`) aur review card ka apna `rating` poora taara (1-5) —
+   * do alag cheezein hain, isliye do alag jagah.
+   */
+  rating: z
+    .object({
+      value: z.coerce.number().min(0).max(5).default(0),
+      /** `412 trips` — trips ki ginti, likhi hui reviews ki nahi. */
+      count: z.coerce.number().int().min(0).default(0),
+    })
+    .default({ value: 0, count: 0 }),
+
+  /**
    * Page ke section headings aur unke neeche ki lines — Q-9 (client, 31 Aug).
    *
    * `packageDefaults` me hai, package pe nahi: ye har package pe **bilkul same** chhapte
@@ -177,6 +206,8 @@ export function emptyPackageDefaults() {
     itineraryImages: [],
     bookingSteps: [],
     cancellationText: '',
+    /** Khaali — naye instance pe rating ki line dono jagah se gayab rehti hai. */
+    rating: { value: 0, count: 0 },
     /**
      * Khaali — yaani naye instance pe theme ke apne headings chhapte hain. Yahan aaj ka
      * text copy **nahi** kiya jaata: copy karne pe wo DB me jam jaata, aur theme ka default

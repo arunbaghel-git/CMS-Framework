@@ -2835,6 +2835,200 @@ a.mega__gl:hover {
    Isliye tokens page ke hain, par shakl yahin tay hui hai.
    ================================================================== */
 
+/* ---------- traveller reviews ----------
+   Reference: itinerary-v3.html — `.rev` `.revc` `.pmeta__rt`
+
+   Card ka naap reference ka hi hai. Naya sirf **slider** hai: reference me teen card ek
+   grid me khade hain, aur client ne uske aage kaha — "3, uske baad slider" (1 Sep).
+
+   ⚠️ Reference ke responsive rules yahan **jaisa ka waisa nahi** liye gaye. Wahan teen
+   media block hain jo ek doosre ko kaat-te hain: 1180px pe `.rev` ek column ka hota hai,
+   phir 1024px pe **dobara teen** ka, phir 860px pe phir ek ka. Yaani 1024–1180 ke beech ek
+   column aur 860–1024 ke beech teen — jo screen chhoti hone par zyada column deta hai. Wo
+   likhne ki galti lagti hai, faisla nahi. Yahan ek hi lakeer hai: chaudi pe teen, patli pe
+   ek. (Agar wo jaan-boojh kar tha to bata dena — badalna do line ka kaam hai.) */
+
+.rev {
+  margin-top: 16px;
+}
+
+/*
+ * Track khud scroll karta hai — arrows sirf uske upar ki suvidha hain.
+ *
+ * Isliye bina JS ke bhi poori list pahunch me rehti hai: touch pe swipe, keyboard pe arrow
+ * keys, aur trackpad pe do ungliyan. Wahi lakeer jo FAQ ke `<details>` pe hai (D-59) — jo
+ * browser pehle se karta hai use dobara mat likho.
+ */
+.rev__track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 24px) / 3);
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+
+  /*
+   * Scrollbar chhupi hui hai — arrows aur snap dono maujood hain, aur reference me is
+   * section me koi patti nahi hai. Firefox aur WebKit dono ke apne tareeke chahiye.
+   */
+  scrollbar-width: none;
+
+  /* Card ke hover/focus ring ko upar-neeche katne se bachata hai. */
+  padding-block: 2px;
+}
+
+.rev__track::-webkit-scrollbar {
+  display: none;
+}
+
+.rev__track > * {
+  scroll-snap-align: start;
+}
+
+/*
+ * Teen ya kam reviews pe ye bilkul design wala grid hai — na scroll, na snap.
+ *
+ * `grid-auto-flow: column` teen se kam pe card ko poori chaudai me kheench deta, isliye
+ * yahan wapas `repeat(3, 1fr)` hai: do reviews do tihaayi me baithti hain, jaise design me
+ * teen baithti hain.
+ */
+.rev:not(.rev--slider) .rev__track {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(3, 1fr);
+  overflow-x: visible;
+  scroll-snap-type: none;
+}
+
+.revc {
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  padding: 16px 17px;
+  background: var(--surface);
+}
+
+.revc__h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.revc__s {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-heading);
+  color: var(--gold);
+  letter-spacing: 0.08em;
+}
+
+.revc__d {
+  font-size: var(--fs-3xs);
+  color: var(--muted);
+  font-weight: var(--fw-semi);
+}
+
+.revc p {
+  /* Baaki body copy ke saath — 13.5px se 14px (client, 1 Sep — P6). */
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--body);
+}
+
+.revc b {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+  margin-top: 11px;
+}
+
+.revc b span {
+  display: block;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semi);
+  color: var(--muted);
+}
+
+/* Heading ke saath `— 4.9 average from 412 trips` — reference me inline `<span>`. */
+.rev__avg {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+.rev__nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.rev__arrow {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: var(--fs-2xl);
+  line-height: 1;
+  cursor: pointer;
+  color: var(--blue-700);
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--rf);
+  transition:
+    border-color 0.16s,
+    background 0.16s,
+    opacity 0.16s;
+}
+
+.rev__arrow:hover:not(:disabled) {
+  border-color: var(--blue-500);
+  background: var(--blue-50);
+}
+
+/*
+ * Kinare pe pahunch kar arrow **dikhta rehta hai**, gayab nahi hota.
+ *
+ * Gayab hone pe uske bagal wala arrow apni jagah se khisak jaata hai, aur dobara click
+ * karne pe ungli galat jagah padti hai.
+ */
+.rev__arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Hero me title ke upar — `4.9 ★ 412 traveller reviews`. */
+.pmeta__rt {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--muted);
+}
+
+.pmeta__rt b {
+  background: var(--green-600);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: var(--r1);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-heading);
+}
+
+@media (max-width: 1080px) {
+  .rev__track {
+    /* Ek card poori chaudai me, aur agla thoda jhaankta hua — isse scroll dikhai deta hai. */
+    grid-auto-columns: 88%;
+  }
+
+  .rev:not(.rev--slider) .rev__track {
+    grid-template-columns: 1fr;
+  }
+}
+
 /*
  * Popup ka backdrop — pehle `rgba(8, 20, 34, .92)` tha, yaani lagbhag kaala.
  *
@@ -2852,7 +3046,7 @@ a.mega__gl:hover {
   z-index: 100;
   display: grid;
   place-items: center;
-  /* background: rgba(255, 255, 255, 0.94);  */
+  /* background: rgba(255, 255, 255, 0.94); i asked to remove not replace */
   padding: clamp(12px, 4vw, 48px);
   /* Backdrop khud focus le sakta hai (Esc/arrows ke liye) — par ring nahi dikhni chahiye */
   outline: none;

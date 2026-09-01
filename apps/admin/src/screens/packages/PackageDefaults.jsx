@@ -6,6 +6,7 @@ import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
 import BookingPanel from './BookingPanel.jsx'
+import RatingPanel from './RatingPanel.jsx'
 import RichTextEditor from './RichTextEditor.jsx'
 import { useMediaById } from './usePackages.js'
 import './Packages.css'
@@ -35,6 +36,14 @@ import './Packages.css'
  */
 const BOOKING_SECTION = 'booking'
 
+/**
+ * Jis section ke saath rating ki jodi chhapti hai — `4.9 average from 412 trips`.
+ *
+ * `BOOKING_SECTION` wala hi pattern: key `PACKAGE_SECTIONS` se aati hai (`reviews`), aur
+ * wahi key page pe `<section id="reviews">` hai.
+ */
+const REVIEWS_SECTION = 'reviews'
+
 /** Textarea me ek line = ek item. Khaali lines gir jaati hain. */
 const toLines = (text) =>
   String(text ?? '')
@@ -56,6 +65,8 @@ export default function PackageDefaults({ section }) {
   const [activeSection, setActiveSection] = useState(PACKAGE_SECTIONS[0].key)
   /** Booking steps + cancellation — A-13 tak inka koi UI hi nahi tha. */
   const [booking, setBooking] = useState({ bookingSteps: [], cancellationText: '' })
+  /** `4.9` / `412 trips` — Traveller reviews tab me (client, 1 Sep). */
+  const [rating, setRating] = useState({ value: 0, count: 0 })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -88,6 +99,7 @@ export default function PackageDefaults({ section }) {
           bookingSteps: data.bookingSteps ?? [],
           cancellationText: data.cancellationText ?? '',
         })
+        setRating({ value: data.rating?.value ?? 0, count: data.rating?.count ?? 0 })
       })
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setLoading(false))
@@ -307,6 +319,18 @@ export default function PackageDefaults({ section }) {
                     disabled={!canWrite}
                   />
                 )}
+
+                {/*
+                 * Rating ki jodi isi tab me — wahi niyam jo A-13 me bana: **admin ka dhaancha
+                 * page ke section follow karta hai, collection ke field nahi.**
+                 *
+                 * Wo `packageDefaults` pe hai (`sectionLabels` ke bahar) aur reviews `reviews`
+                 * collection me — teen alag jagah ka data, par page pe ek hi section. Client ko
+                 * teenon ek saath milne chahiye.
+                 */}
+                {section.key === REVIEWS_SECTION && (
+                  <RatingPanel rating={rating} onChange={setRating} disabled={!canWrite} />
+                )}
               </div>
             ))}
           </div>
@@ -317,11 +341,11 @@ export default function PackageDefaults({ section }) {
                 type="button"
                 disabled={saving}
                 /**
-                 * Save **poora** bhejta hai — labels aur booking dono, chahe kaunsa bhi tab
-                 * khula ho. Sirf khule tab ka data bhejna ek chup bug banata: client teen tab
-                 * me kaam karta, Save dabata, aur do ka kaam gayab ho jaata.
+                 * Save **poora** bhejta hai — labels, booking aur rating teenon, chahe kaunsa
+                 * bhi tab khula ho. Sirf khule tab ka data bhejna ek chup bug banata: client
+                 * teen tab me kaam karta, Save dabata, aur do ka kaam gayab ho jaata.
                  */
-                onClick={() => save({ sectionLabels: labels, ...booking })}
+                onClick={() => save({ sectionLabels: labels, ...booking, rating })}
               >
                 {saving ? 'Saving…' : 'Save'}
               </button>

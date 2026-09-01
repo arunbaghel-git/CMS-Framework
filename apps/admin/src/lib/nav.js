@@ -84,6 +84,18 @@ export const NAV = [
       { label: 'Hotels', to: '/packages/hotels', permission: PERMISSION.HOTEL_READ },
       { label: 'Add Ons', to: '/packages/add-ons', permission: PERMISSION.ADD_ON_READ },
       { label: 'Transfer', to: '/packages/transfers', permission: PERMISSION.TRANSFER_READ },
+      /**
+       * Reviews — client, 1 Sep. Design me ye item hai hi nahi (na purane
+       * `admin-design.html` me, na 1 Sep wale `admin-design-v2.html` me).
+       *
+       * R15 ke against nahi hai: badlaav **client se** aaya hai, developer se nahi — wahi
+       * raasta jisse spec 007 ne is submenu me paanch item jode the.
+       *
+       * Baaki master lists ke saath rakha hai, kyunki wo wahi cheez hai: ek managed list
+       * jisme se page content banta hai. Farq sirf itna ki package inme se **chunta nahi** —
+       * reviews har package ke neeche wahi ki wahi chhapti hain.
+       */
+      { label: 'Reviews', to: '/packages/reviews', permission: PERMISSION.REVIEW_READ },
       {
         label: "What's Included",
         to: '/packages/whats-included',

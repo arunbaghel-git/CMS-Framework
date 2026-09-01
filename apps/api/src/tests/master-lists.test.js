@@ -9,7 +9,7 @@ import { COOKIE } from '../core/tokens.js'
 import { CSRF_HEADER } from '../middleware/csrf.js'
 import { RefreshToken } from '../modules/auth/model.js'
 import { Media } from '../modules/media/model.js'
-import { AddOn, Hotel, Transfer } from '../modules/master-lists/model.js'
+import { AddOn, Hotel, Review, Transfer } from '../modules/master-lists/model.js'
 import { PackageDefaults } from '../modules/package-defaults/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
@@ -104,6 +104,7 @@ beforeEach(async () => {
     Hotel.deleteMany({}),
     AddOn.deleteMany({}),
     Transfer.deleteMany({}),
+    Review.deleteMany({}),
     PackageDefaults.deleteMany({}),
   ])
   invalidateRoleCache()
@@ -373,6 +374,88 @@ describe('add-ons aur transfers', () => {
 
     expect((await authed('delete', `/api/transfers/${id}`, adminJar)).status).toBe(200)
     expect(await Transfer.findById(id).lean()).toBeNull()
+  })
+})
+
+// ── reviews ──────────────────────────────────────────────────────────────────
+
+describe('reviews', () => {
+  const aReview = (patch = {}) => ({
+    rating: 5,
+    month: '2026-03',
+    text: 'Ferries were sorted before we landed and the Havelock hotel was on the beach.',
+    name: 'Ananya R.',
+    lastLine: 'Travelled 5N / 6D · verified booking',
+    ...patch,
+  })
+
+  it('review bin ti hai aur poore paanch khaane wapas aate hain', async () => {
+    const res = await authed('post', '/api/reviews', adminJar).send(aReview())
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.item).toMatchObject({
+      rating: 5,
+      month: '2026-03',
+      name: 'Ananya R.',
+      lastLine: 'Travelled 5N / 6D · verified booking',
+    })
+  })
+
+  it('rating 1 se 5 ke bahar reject hoti hai — aadhe taare bhi nahi', async () => {
+    // Design me sirf bhare/khaali taare hain, isliye 4.5 ka koi roop hi nahi banta
+    for (const rating of [0, 6, 4.5]) {
+      expect(
+        (await authed('post', '/api/reviews', adminJar).send(aReview({ rating }))).status,
+      ).toBe(400)
+    }
+  })
+
+  it('month YYYY-MM hi hota hai — khaali chalta hai, kachra nahi', async () => {
+    expect(
+      (await authed('post', '/api/reviews', adminJar).send(aReview({ month: '' }))).status,
+    ).toBe(201)
+
+    for (const month of ['March 2026', '2026-13', '2026-03-11']) {
+      expect((await authed('post', '/api/reviews', adminJar).send(aReview({ month }))).status).toBe(
+        400,
+      )
+    }
+  })
+
+  it('list nayi trip pehle deti hai — naam ke kram me nahi', async () => {
+    // Baaki teen lists `name` pe sort hoti hain; reviews pe kram ka matlab waqt hai
+    for (const month of ['2025-11', '2026-06', '2026-01']) {
+      await authed('post', '/api/reviews', adminJar).send(aReview({ month, name: month }))
+    }
+
+    const res = await authed('get', '/api/reviews', adminJar)
+
+    expect(res.body.data.items.map((r) => r.month)).toEqual(['2026-06', '2026-01', '2025-11'])
+  })
+
+  it('editor likh sakta hai, contributor sirf padh sakta hai', async () => {
+    expect((await authed('post', '/api/reviews', editorJar).send(aReview())).status).toBe(201)
+    expect((await authed('post', '/api/reviews', contributorJar).send(aReview())).status).toBe(403)
+    expect((await authed('get', '/api/reviews', contributorJar)).status).toBe(200)
+  })
+
+  it('list pe pagination day 1 se hai (R14)', async () => {
+    for (const n of [1, 2, 3]) {
+      await authed('post', '/api/reviews', adminJar).send(aReview({ name: `Guest ${n}` }))
+    }
+
+    const res = await authed('get', '/api/reviews?limit=2&page=1', adminJar)
+
+    expect(res.body.data.items).toHaveLength(2)
+    expect(res.body.meta).toMatchObject({ page: 1, limit: 2, total: 3 })
+  })
+
+  it('delete permanent hai — master list content nahi hai', async () => {
+    const created = await authed('post', '/api/reviews', adminJar).send(aReview())
+    const { id } = created.body.data.item
+
+    expect((await authed('delete', `/api/reviews/${id}`, adminJar)).status).toBe(200)
+    expect(await Review.findById(id).lean()).toBeNull()
   })
 })
 

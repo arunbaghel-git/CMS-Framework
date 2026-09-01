@@ -3,9 +3,9 @@ import mongoose from 'mongoose'
 import { DEFAULT_SITE_ID, HOTEL_CATEGORIES } from '@cms/shared'
 
 /**
- * `hotels`, `addOns` aur `transfers` — spec 007 §1.3, §1.4, §1.6.
+ * `hotels`, `addOns`, `transfers` aur `reviews` — spec 007 §1.3, §1.4, §1.6 aur §7.
  *
- * **Teenon ek hi module me hain, teen alag module nahi.** Wajah wahi hai jo `menus` +
+ * **Chaaron ek hi module me hain, chaar alag module nahi.** Wajah wahi hai jo `menus` +
  * `menuLocations` ke ek saath hone ki thi, par ek kadam aage: teenon ka lifecycle bilkul
  * ek jaisa hai — flat CRUD, koi publish nahi, koi trash nahi, koi path nahi. Teen alag
  * module ka matlab hota list/pagination/scope wala **wahi code teen jagah**, aur is repo
@@ -70,6 +70,46 @@ const transferSchema = new mongoose.Schema(
   { timestamps: true, collection: 'transfers', minimize: false },
 )
 
+/**
+ * Traveller reviews — **universal** (client, 1 Sep).
+ *
+ * Baaki teen liston se ek baat me alag: package inme se kuch **chunta nahi**. Hotels aur
+ * add-ons har package apne chunta hai; reviews har package ke neeche wahi ki wahi chhapti
+ * hain. Isliye `entries` pe koi `reviews[]` field nahi bani — spec 007 §7 me wo
+ * per-package socha gaya tha, client ne ulta chuna (wahi faisla jo `goodToKnow[]` pe hua,
+ * D-68).
+ *
+ * ⚠️ Rating (`4.9` / `412 trips`) yahan **nahi** hai — wo in reviews se gini nahi jaati
+ * (§9 #8 ka jawab: haath se) aur `packageDefaults.rating` me baithti hai.
+ */
+const reviewSchema = new mongoose.Schema(
+  {
+    siteId: { type: String, required: true, default: DEFAULT_SITE_ID },
+
+    /** Poore taare — 1 se 5. Aadha nahi; design me sirf bhare/khaali taare hain. */
+    rating: { type: Number, required: true },
+
+    /**
+     * `2026-03` — **string hai, Date nahi**.
+     *
+     * Admin me `<input type="month">` hai aur wo isi shape me value deta hai. `Date` banate
+     * hi timezone ka sawaal aa jaata: 1 taareekh ki raat ko wo pichhla mahina ban sakti
+     * hai, aur card pe galat mahina chhap jaata. Sort bhi is string pe theek chalti hai —
+     * `YYYY-MM` ka lexical kram aur chronological kram ek hi hai.
+     */
+    month: { type: String, default: '' },
+
+    text: { type: String, required: true },
+
+    name: { type: String, required: true },
+
+    /** `Travelled 5N / 6D · verified booking` — free text, derive nahi hoti. */
+    lastLine: { type: String, default: '' },
+  },
+  { timestamps: true, collection: 'reviews', minimize: false },
+)
+
 export const Hotel = mongoose.model('Hotel', hotelSchema)
 export const AddOn = mongoose.model('AddOn', addOnSchema)
 export const Transfer = mongoose.model('Transfer', transferSchema)
+export const Review = mongoose.model('Review', reviewSchema)

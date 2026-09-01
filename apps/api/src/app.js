@@ -24,7 +24,12 @@ import { menuLocationRoutes, menuRoutes } from './modules/menus/routes.js'
 import { contentTypeRoutes } from './modules/content-types/routes.js'
 import { entryRoutes } from './modules/entries/routes.js'
 import { taxonomyRoutes } from './modules/taxonomies/routes.js'
-import { addOnRoutes, hotelRoutes, transferRoutes } from './modules/master-lists/routes.js'
+import {
+  addOnRoutes,
+  hotelRoutes,
+  reviewRoutes,
+  transferRoutes,
+} from './modules/master-lists/routes.js'
 import { packageDefaultsRoutes } from './modules/package-defaults/routes.js'
 import { redirectRoutes } from './modules/redirects/routes.js'
 import { publicRoutes } from './modules/public/routes.js'
@@ -182,11 +187,12 @@ export function createApp() {
   app.use('/api/entries', entryRoutes)
   app.use('/api/taxonomies', taxonomyRoutes)
 
-  // Packages ki master lists — teenon ek hi module se, par alag routes aur alag
-  // permissions (spec 007 §1, Slice 2)
+  // Packages ki master lists — chaaron ek hi module se, par alag routes aur alag
+  // permissions (spec 007 §1, Slice 2; reviews 1 Sep)
   app.use('/api/hotels', hotelRoutes)
   app.use('/api/add-ons', addOnRoutes)
   app.use('/api/transfers', transferRoutes)
+  app.use('/api/reviews', reviewRoutes)
   app.use('/api/package-defaults', packageDefaultsRoutes)
 
   // Slice 3 me sirf read + delete — auto-redirects apne aap bante hain, manager Phase 4 me
