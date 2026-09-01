@@ -79,11 +79,22 @@ function renderNode(node, key) {
   }
 }
 
-export default function RichText({ content }) {
-  const block = (content?.blocks ?? []).find((b) => b.type === 'richText')
-  const doc = block?.props?.doc
-
+/**
+ * Ek raw TipTap doc — bina `content` envelope ke.
+ *
+ * Ye D-69 me alag kiya gaya: rich text ab `entry.content` ke bahar bhi hai (section ki
+ * description), aur wahan sirf doc hota hai, block wala envelope nahi. Pehle renderer
+ * `content.blocks[…].props.doc` se hi doc nikaal sakta tha, isliye doosri jagah use karne
+ * ka ek hi raasta bachta — nakli envelope banana, jo har call site pe ek jhooth hota.
+ */
+export function RichTextDoc({ doc, className = 'rt' }) {
   if (!doc?.content?.length) return null
 
-  return <div className="rt">{renderNodes(doc.content)}</div>
+  return <div className={className}>{renderNodes(doc.content)}</div>
+}
+
+export default function RichText({ content }) {
+  const block = (content?.blocks ?? []).find((b) => b.type === 'richText')
+
+  return <RichTextDoc doc={block?.props?.doc} />
 }

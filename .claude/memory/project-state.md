@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 31 Aug 2026 (din ke aakhir me — agla kaam "Good to know ka style", neeche)
+> **Last updated:** 1 Sep 2026 (section description ab rich text — D-69, migration 015)
 
 ---
 
@@ -233,6 +233,46 @@ Build wala aankhon se dekha: API band thi to `next build` `/_not-found` pe teen 
 din koi asli failure bhi ignore ho jaayega (A-11 wali flaky-test chetavni ka bada roop).
 
 Poora tark aur mashwara `09-OPEN-ITEMS.md` → **A-12** me. Andaza: aadha din.
+
+### ✅ 1 Sep — section ki description ab **rich text** hai (D-69, migration 015)
+
+"Good to know ka style" wala sawaal band. Har section pe wahi TipTap editor jo Overview pe
+hai — Bold · Italic · **H3** · bullet list · numbered list · link. `heading` plain hi hai.
+
+**Client ne mera mashwara palta, aur wo sahi the.** Maine "ek jagah rich, baaki plain"
+suggest kiya tha; unka jawab: _"agar 7 section hai to yahi rahenge? aage jake new pages add
+honge… aur senior suggest to use editor for each"_. Meri asymmetry ka koi principled kaaran
+tha hi nahi.
+
+⚠️ **Par "naye pages" iska hal nahi hai** — `sectionLabels` ki keys `PACKAGE_SECTIONS` se
+aati hain, wo is theme ke fixed sections ke liye hai. Naye pages ka jawab **Phase 5 blocks**
+hai. Use generic banana blocks ka ghatiya duplicate khada karna hoga.
+
+**Teen cheezein yaad rakhne laayak:**
+
+1. **`headingLevel` prop** — description page ke `<h2>` ke neeche chhapti hai, to wahan H3.
+   H2 daalne se document ka outline toot-ta hai.
+2. **`isEmptyDoc()`** — D-65 ka "khaali = line hata do" isi pe tika hai. TipTap khaali editor
+   ko `{content:[{type:paragraph}]}` chhod jaata hai, jo `content.length` se "bhari hui"
+   lagti hai. Uska apna test hai.
+3. **Rich text ≠ HTML** — TipTap JSON store karta hai, isliye XSS ban hi nahi sakta (WP ko
+   `wp_kses` isliye chahiye ki wo HTML store karta hai). Keemat: table/iframe nahi ja sakte.
+   Client ne kaha abhi wo kisi design me hai hi nahi.
+
+⚠️ **Client ko ek kaam haath se karna hai:** migration ne har line ko **paragraph** banaya —
+wo pata hi nahi kar sakti ki kaunsi line heading thi. Unhone sub-headings plain lines me
+likhi hain ("The ferries decide this itinerary"); unhe ek baar H3 mark karna hoga. Shabd sab
+bache hain.
+
+### 🔴 A-13 — `bookingSteps` aur `cancellationText` ka admin me **koi UI nahi**
+
+1 Sep ko client ka data padhte waqt pakda. Dono field schema, service, payload aur theme me
+maujood hain — par bharne ki koi screen nahi. Isiliye client ne booking ke chaaron step aur
+poori cancellation policy **description me** type kar di.
+
+Wo text ab galat field me hai (numbered list nahi ban raha), aur inke khaali hone se hi
+31 Aug wala "Good to know render hi nahi hota" bug bana tha. Poora tark `09-OPEN-ITEMS` →
+**A-13**. Andaza 2-3 ghante, **aur uske saath client ka data hilana padega**.
 
 ### 🔴 Yahin se kal shuru karna hai — "Good to know" ka **style**
 

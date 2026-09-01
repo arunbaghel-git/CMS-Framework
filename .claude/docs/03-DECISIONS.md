@@ -3859,3 +3859,104 @@ hai. Naya field jodo to teenon check karo.
 ⚠️ **Iska koi test nahi hai.** `apps/web` pe koi test layer hai hi nahi (25 test files, sab
 API ke). Verify live page se hua. Jab tak theme pe tests nahi aate, ye class dobara bhi
 sirf client hi pakdega.
+
+---
+
+## D-69
+
+**Section ki description ab rich text hai — har section pe editor**
+_1 Sep 2026 · client ka faisla (unke senior ka order)_
+
+### Sawaal
+
+D-68 ke baad client ne "Good to know" ka content us box me likha. Text page pe aaya, aur
+phir seedhi baat aayi:
+
+> _"if I need to style any text how I will style in textarea… why don't we replace it with
+> a text editor so that I can style any text"_
+
+Textarea me bold, heading ya list ban hi nahi sakti. Aur DB dekhne pe saaf ho gaya ki wo
+sach me sub-headings likh rahe the — plain lines me:
+
+```
+The ferries decide this itinerary          ← ye ek heading hai
+Private catamarans open bookings 60–90…
+What the days actually feel like           ← ye bhi
+```
+
+### Client ka dobara jawab, jab maine "sirf ek section rich" ka mashwara diya
+
+> _"agar 7 section hai to yahi rahenge? aage jake new pages add honge aur style bhi change
+> hoga to sabke according banana hoga, itinerary-v3 page akela nahi hai. aur senior suggest
+> to use editor for each"_
+
+Ye sahi hai. Mera mashwara **galat tha** — maine "ek jagah rich, baaki plain" suggest kiya
+tha, aur uska koi principled kaaran nahi tha, sirf ye ki aaj zaroorat ek hi jagah dikhi. Wo
+asymmetry har naye developer ko seekhni padti. `CLAUDE.md` ki pehli line hi framework ka
+vaada hai; sirf `itinerary-v3` ke hisaab se banana usse takraata hai.
+
+### Faisla
+
+`sectionLabels[*].description` — `string` se **TipTap doc**. Saaton section pe (chhe pe —
+Overview pe description hai hi nahi, D-68). Editor wahi jo Overview pe hai.
+
+`heading` **plain hi hai** — ek line ka `<h2>`, usme bold ka koi matlab nahi.
+
+### ⚠️ Ek cheez saaf kar di gayi thi — "naye pages" is se hal NAHI hote
+
+Client ki chinta jayaz thi, par uska jawab ye change nahi hai. `sectionLabels`
+`packageDefaults` pe hai aur uski keys `PACKAGE_SECTIONS` se aati hain — wo **is theme ke
+fixed sections** ke liye hai, aur naye page type pe apne aap nahi failega.
+
+Naye pages ka jawab plan me pehle se hai — **page builder / blocks** (Phase 5,
+`packages/blocks`, `content.blocks`). `sectionLabels` ko generic banane ka matlab hota
+blocks ka ek **ghatiya duplicate** khada karna, aur phir dono ko nibhana.
+
+- **Ye change** → har section ka text style ho sake ✅
+- **Naye pages** → Phase 5 blocks, alag kaam ✅
+
+### Rich text ≠ HTML — aur yahi is faisle ki buniyaad hai
+
+Client ne poochha tha ki WordPress kya use karta hai. WP **HTML store** karta hai (Classic =
+TinyMCE ka Text tab; Gutenberg = HTML + comment delimiters, Custom HTML block) aur usse
+`wp_kses` + `unfiltered_html` capability se sambhalta hai.
+
+TipTap HTML store **nahi** karta — wo nodes ka JSON ped store karta hai, aur theme us ped se
+React elements banati hai (`RichTextDoc`). Kahin `dangerouslySetInnerHTML` hai hi nahi.
+Isliye XSS **filter** nahi hota, wo **ban hi nahi sakta** — hum wo problem paalte hi nahi.
+
+Keemat: aap wahi likh sakte hain jo editor ke schema me hai. **Table, iframe, custom markup
+nahi.** Client (1 Sep): _"abhi to table nahi hai kisi design me but cant say future me ho,
+par abhi is par focus nahi karte"_ — to wo raasta khula chhoda gaya hai, banaya nahi.
+
+### Teen cheezein jo karte waqt nikleen
+
+**1. Heading level.** Editor ka heading button H2 banata tha. Par description page ke `<h2>`
+ke **neeche** chhapti hai — wahan aur H2 daalne se document ka outline toot jaata (screen
+reader aur SEO dono uspe chalte hain). Ab `RichTextEditor` pe `headingLevel` prop hai;
+sections pe **H3**, Overview pe H2. Button ka label bhi wahin se banta hai, warna wo "H2"
+likhta aur H3 banata.
+
+**2. `isEmptyDoc()` — D-65 ka poora niyam isi pe tika hai.**
+String me `''` do-tuk tha. Doc me "khaali" **teen** shakl leta hai, aur teesri TipTap khud
+banata hai: editor kholo aur band kar do → `{content:[{type:'paragraph'}]}`. Wo
+`content.length` dekh kar "bhari hui" lagti hai, jabki page pe usse ek khaali `<p>` ke alawa
+kuch nahi banta. Uska apna test hai.
+
+**3. `RichTextDoc` alag kiya gaya.** Renderer pehle sirf `content.blocks[…].props.doc` se doc
+nikaal sakta tha. Doosri jagah use karne ka ek hi raasta bachta — nakli envelope banana, jo
+har call site pe ek jhooth hota.
+
+### Migration 015
+
+`description` strings → docs, `textToDoc()` se (wahi helper jo defaults pe chalta hai).
+Idempotent: sirf **string** values chhui jaati hain.
+
+`down()` **lossy hai aur hona hi tha** — bold, heading, list aur link plain text me hote hi
+nahi. Wo sirf itna vaada karta hai ki *shabd* wapas aa jaayein.
+
+⚠️ Migration purani lines ko **paragraph** banati hai, heading nahi — wo pata hi nahi kar
+sakti ki client ne kaunsi line heading ki tarah likhi thi. Client ko sub-headings ek baar
+haath se mark karni hongi. Ye lossy nahi hai (shabd sab bache hain), par batana zaroori hai.
+
+**Nateeja:** 583 tests (2 naye). Migration **015**.

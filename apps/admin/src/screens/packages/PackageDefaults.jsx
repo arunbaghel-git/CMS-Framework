@@ -5,6 +5,7 @@ import { PACKAGE_SECTIONS, sectionHasDescription } from '@cms/shared'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
+import RichTextEditor from './RichTextEditor.jsx'
 import { useMediaById } from './usePackages.js'
 import './Packages.css'
 
@@ -200,19 +201,32 @@ export default function PackageDefaults({ section }) {
                 />
 
                 {sectionHasDescription(section) ? (
-                  <textarea
-                    className="ta"
-                    rows={2}
-                    placeholder="Description — leave empty and no line appears"
-                    value={labels[section.key]?.description ?? ''}
-                    onChange={(e) =>
-                      setLabels((prev) => ({
-                        ...prev,
-                        [section.key]: { ...prev[section.key], description: e.target.value },
-                      }))
-                    }
-                    disabled={!canWrite}
-                  />
+                  <>
+                    {/*
+                     * Textarea se rich text editor (D-69, client ka faisla).
+                     *
+                     * ⚠️ **Heading H3 banata hai, H2 nahi.** Ye description page pe section
+                     * ke `<h2>` ke **neeche** chhapti hai; wahan aur H2 daalne se document
+                     * ka outline toot jaata hai.
+                     *
+                     * ⚠️ Khaali chhodne ka matlab **"line hata do"** hai (D-65) — aur wo
+                     * matlab ab bhi zinda hai: khaali editor ek khaali doc bhejta hai, aur
+                     * `isEmptyDoc()` use pehchan leti hai.
+                     */}
+                    <RichTextEditor
+                      label={section.label}
+                      headingLevel={3}
+                      doc={labels[section.key]?.description}
+                      onChange={(doc) =>
+                        setLabels((prev) => ({
+                          ...prev,
+                          [section.key]: { ...prev[section.key], description: doc },
+                        }))
+                      }
+                      disabled={!canWrite}
+                    />
+                    <div className="hint">Leave this empty and no line appears on the page.</div>
+                  </>
                 ) : (
                   <div className="hint">
                     The text under this heading comes from each package&rsquo;s own Overview.

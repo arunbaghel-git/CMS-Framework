@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
 
+import { emptyDoc, isEmptyDoc, textToDoc } from '@cms/shared'
+
 import { createApp } from '../app.js'
 import { connectTestDb, disconnectTestDb } from './db.js'
 import { COOKIE } from '../core/tokens.js'
@@ -463,28 +465,41 @@ describe('packageDefaults', () => {
       /** Overview pe description ka field hi nahi — uska text `entry.content` se aata hai. */
       expect(labels.overview).not.toHaveProperty('description')
       expect(labels.addOns.heading).toBe('Popular add-ons')
-      expect(labels.addOns.description).toBe('Added to your quote only if you want them.')
+      /** Default padhne laayak string hai, par bahar doc ban kar jaati hai (D-69). */
+      expect(labels.addOns.description).toEqual(
+        textToDoc('Added to your quote only if you want them.'),
+      )
     })
 
     it('client ka heading aur description dono public payload me jaate hain', async () => {
+      /** Bold ke saath — yahi is field ke rich hone ki poori wajah hai (D-69). */
+      const doc = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', text: 'Add ' },
+              { type: 'text', marks: [{ type: 'bold' }], text: 'these' },
+              { type: 'text', text: ' to your quote.' },
+            ],
+          },
+        ],
+      }
+
       await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: {
-          addOns: { heading: 'Optional extras', description: 'Add these to your quote.' },
-        },
+        sectionLabels: { addOns: { heading: 'Optional extras', description: doc } },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
       const labels = res.body.data.packageDefaults.sectionLabels
 
-      expect(labels.addOns).toEqual({
-        heading: 'Optional extras',
-        description: 'Add these to your quote.',
-      })
+      expect(labels.addOns).toEqual({ heading: 'Optional extras', description: doc })
     })
 
     it('khaali heading pe theme ka heading wapas aata hai — section bina title ke nahi rehta', async () => {
       await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: { faq: { heading: '', description: '' } },
+        sectionLabels: { faq: { heading: '', description: emptyDoc() } },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
@@ -502,12 +517,12 @@ describe('packageDefaults', () => {
        * jhootha vaada hai ("and on the enquiry form", Q-2).
        */
       await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: { addOns: { heading: 'Popular add-ons', description: '' } },
+        sectionLabels: { addOns: { heading: 'Popular add-ons', description: emptyDoc() } },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
 
-      expect(res.body.data.packageDefaults.sectionLabels.addOns.description).toBe('')
+      expect(isEmptyDoc(res.body.data.packageDefaults.sectionLabels.addOns.description)).toBe(true)
     })
 
     /**
@@ -562,7 +577,40 @@ describe('packageDefaults', () => {
       const res = await authed('get', '/api/package-defaults', adminJar)
       const labels = res.body.data.packageDefaults.sectionLabels
 
-      expect(labels.addOns.description).toBe('Added to your quote only if you want them.')
+      expect(labels.addOns.description).toEqual(
+        textToDoc('Added to your quote only if you want them.'),
+      )
+    })
+
+    /**
+     * ⚠️ TipTap khaali editor ko `{content:[{type:'paragraph'}]}` chhod jaata hai — khaali
+     * array nahi. Client ne box khola, kuch nahi likha, Save dabaya — bas.
+     *
+     * `content.length` dekhne wala koi bhi check ise "bhari hui" maan lega, aur page pe ek
+     * khaali `<p>` chhap jaayega jiska margin heading ke neeche bina wajah ka gap banata
+     * hai. D-65 ka "khaali = line hata do" isi shakl pe toot-ta hai.
+     */
+    it('editor khol kar band karna khaali hi ginta hai — khaali paragraph line nahi banata', async () => {
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: {
+          addOns: {
+            heading: 'Popular add-ons',
+            description: { type: 'doc', content: [{ type: 'paragraph' }] },
+          },
+        },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+
+      expect(isEmptyDoc(res.body.data.packageDefaults.sectionLabels.addOns.description)).toBe(true)
+    })
+
+    it('plain string ab reject hoti hai — description doc hai (D-69)', async () => {
+      const res = await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: { addOns: { heading: 'Popular add-ons', description: 'purana shape' } },
+      })
+
+      expect(res.status).toBe(400)
     })
 
     it('anjaan section key reject hoti hai', async () => {

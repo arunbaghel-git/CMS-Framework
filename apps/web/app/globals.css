@@ -1523,6 +1523,25 @@ a.mega__gl:hover {
   margin: 0 0 14px;
 }
 
+/* ---------- section ki description (D-69) ----------
+ * Ye Overview ke rich text se alag hai: Overview page ka pehla content hai, ye ek `<h2>` ke
+ * theek neeche ki baat hai. Isliye pehle paragraph ka upar wala gap heading se aata hai,
+ * aur aakhri ka neeche wala gap section ke apne content se pehle nahi chahiye. */
+.rt-sec > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Editor ka heading button yahan H3 banata hai — H2 section ka apna heading hai.
+   Reference me `.blk h3` pehle se hai (What's included ke do column), isliye naap wahin se
+   liya hai; sirf upar ka gap chahiye taaki wo paragraph se chipke nahi. */
+.rt-sec h3 {
+  margin-top: 18px;
+}
+
+.rt-sec > h3:first-child {
+  margin-top: 0;
+}
+
 /*
  * Route strip — poori tarah derived (spec 007 §3.1).
  *

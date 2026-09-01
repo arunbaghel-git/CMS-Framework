@@ -1,4 +1,4 @@
-import { PACKAGE_SECTION_DEFAULTS } from '@cms/shared'
+import { PACKAGE_SECTION_DEFAULTS, isEmptyDoc } from '@cms/shared'
 
 import CtaSection from './CtaSection.jsx'
 import Gallery from './Gallery.jsx'
@@ -275,7 +275,7 @@ export default function PackagePage({ entry, defaults, settings }) {
    * (`cancellationText` payload me hi nahi ja raha tha). Teeno baar lakshan ek: **admin me
    * text dikhta hai, page pe kuch nahi, aur kahin koi error nahi.**
    */
-  const wrote = (key) => Boolean(labels[key]?.description)
+  const wrote = (key) => !isEmptyDoc(labels[key]?.description)
 
   return (
     <CategoryProvider pricing={entry.pricing} currency={settings?.currency ?? 'INR'}>

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { DEFAULT_SITE_ID, PACKAGE_SECTIONS, sectionHasDescription } from '../constants/index.js'
+import { emptyDoc, richDocSchema } from './rich-doc.js'
 
 /**
  * `packageDefaults` — Packages ke apne globals (spec 007 §1.8).
@@ -49,16 +50,20 @@ export const bookingStepSchema = z.object({
  */
 const headingSchema = z.string().trim().max(120).default('')
 /**
- * 1000 se 3000 (client, 31 Aug — D-68).
+ * Description ab **rich text** hai, plain string nahi — D-69 (client, 1 Sep).
  *
- * Pehle ye ek intro **line** ke naap ka tha. Ab "Good to know before you book" ka poora
- * content isi box me jaata hai (spec ka `goodToKnow[]` field banaya hi nahi gaya, kyunki
- * wo content har package pe same rehta hai), aur wo do-teen paragraph ka hota hai.
+ * Safar: pehle ye ek intro **line** thi (`max(1000)`). D-68 me "Good to know" ka poora
+ * content isme aa gaya to cap 3000 hua. Phir client ne wo content likhna shuru kiya aur
+ * seedhi baat kahi — _"if I need to style any text how I will style in textarea"_. Textarea
+ * me bold, heading ya list ban hi nahi sakti.
  *
- * `cancellationText` pehle se 5000 pe hai — usi shreni ka content hai, isliye 1000 wahan
- * bhi kam hi lagta.
+ * **Saaton section pe ek jaisa** — chhe pe (Overview pe description hai hi nahi). "Ek jagah
+ * rich, baaki plain" wali asymmetry ka koi principled kaaran nahi tha, sirf ye ki aaj
+ * zaroorat ek hi jagah dikhi. Client ke senior ne bhi yahi kaha: har jagah editor.
+ *
+ * `heading` **plain hi hai** — wo ek line ka `<h2>` hai, usme bold ka koi matlab nahi.
  */
-const descriptionSchema = z.string().trim().max(3000).default('')
+const descriptionSchema = richDocSchema.default(emptyDoc)
 
 /**
  * `{ overview: {...}, itinerary: {...}, ... }` — keys `PACKAGE_SECTIONS` se.

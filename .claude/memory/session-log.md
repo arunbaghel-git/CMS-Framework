@@ -15,6 +15,82 @@ Format:
 
 ---
 
+## 2026-09-01 — Section ki description ab rich text (D-69); do gap pakde
+
+**Kya hua**
+
+Client ne D-68 wale box me content likha aur seedha sawaal poochha: _"if I need to style any
+text how I will style in textarea… why don't we replace it with a text editer"_ — saath me
+ye bhi ki WordPress kaunsa editor use karta hai.
+
+**Maine pehle galat mashwara diya, client ne theek kiya**
+
+Maine suggest kiya tha: `sectionLabels` plain rakho, aur ek alag global rich field bana do —
+yaani "ek jagah rich, baaki plain". Client ka jawab:
+
+> _"agar 7 section hai to yahi rahenge? aage jake new pages add honge aur style bhi change
+> hoga to sabke according banana hoga, itinerary-v3 page akela nahi hai. aur senior suggest
+> to use editor for each"_
+
+Wo sahi hai. Meri asymmetry ka koi principled kaaran tha hi nahi — sirf ye ki aaj zaroorat
+ek hi jagah dikhi. Aur `CLAUDE.md` ki pehli line hi framework ka vaada hai; sirf
+`itinerary-v3` ke hisaab se banana usse takraata hai.
+
+> **Sabak:** "aaj sirf yahan chahiye" ek design principle nahi hai. Jab do jagah ek hi cheez
+> kar rahi hon, unhe alag rakhne ke liye **kaaran** chahiye — "abhi zaroorat nahi thi" kaaran
+> nahi hai.
+
+**Par ek cheez maine saaf ki, aur wo zaroori thi**
+
+Client ki "naye pages aayenge" wali chinta jayaz hai — par uska jawab **ye change nahi hai**.
+`sectionLabels` ki keys `PACKAGE_SECTIONS` se aati hain; wo is theme ke fixed sections ke
+liye hai. Naye pages ka jawab plan me pehle se hai: **Phase 5 blocks**. Use generic banane ka
+matlab hota blocks ka ek ghatiya duplicate khada karna.
+
+**WordPress wala jawab (client ne poochha tha)**
+
+WP **HTML store** karta hai — Classic me TinyMCE ka Text tab, Gutenberg me HTML + comment
+delimiters aur Custom HTML block — aur usse `wp_kses` + `unfiltered_html` capability se
+sambhalta hai.
+
+TipTap HTML store hi nahi karta: JSON ka ped store karta hai aur theme usse React elements
+banati hai. Isliye XSS **filter** nahi hota, wo **ban hi nahi sakta**. Keemat ye hai ki table
+ya iframe nahi ja sakte — client ne kaha abhi wo kisi design me hai hi nahi, to us par focus
+nahi kiya (raasta band nahi kiya).
+
+### Teen cheezein jo karte waqt nikleen
+
+**1. Heading level.** Editor ka heading button H2 banata tha, par description page ke `<h2>`
+ke **neeche** chhapti hai — wahan aur H2 outline tod deta. Ab `headingLevel` prop hai;
+sections pe H3, Overview pe H2. Button ka label bhi wahin se banta hai.
+
+**2. `isEmptyDoc()`.** D-65 ka "khaali = line hata do" string me `''` pe tika tha. Doc me
+"khaali" teen shakl leta hai, aur teesri TipTap khud banata hai — editor kholo aur band kar
+do → `{content:[{type:'paragraph'}]}`. Wo `content.length` dekh kar bhari hui lagti hai.
+Uska apna test hai.
+
+**3. `RichTextDoc` alag kiya.** Renderer pehle sirf envelope se doc nikaal sakta tha; doosri
+jagah use karne ka ek hi raasta bachta — nakli envelope banana.
+
+### Do gap jo client ke data ne dikhaye
+
+**A-13 — `bookingSteps` aur `cancellationText` ka admin me koi UI hai hi nahi.**
+
+DB me client ka content padha to dikha ki unhone booking ke chaaron step aur poori
+cancellation policy **description me** type kar di hai. Wajah saaf hai: dono field schema,
+service, payload aur theme me maujood hain, par **koi screen nahi** jahan se bhare jaayein.
+
+Nateeja live hai — wo text galat field me baitha hai, `ol.steps` ki numbered list nahi ban
+raha, aur inke khaali hone se hi 31 Aug wala "Good to know render hi nahi hota" bug bana tha.
+
+**Aur ek baat jo migration nahi kar sakti** — client ne sub-headings **plain lines** me likhi
+hain ("The ferries decide this itinerary"). Migration har line ko **paragraph** banati hai;
+wo pata hi nahi kar sakti ki kaunsi line heading thi. Shabd sab bache hain, par heading client
+ko ek baar haath se lagani hogi.
+
+**Nateeja:** 583 tests (2 naye) · migration **015** · lint · format · admin build clean.
+Live verify kiya — page pe ab 14 alag paragraph aate hain, ek chipke hue block ki jagah.
+
 ## 2026-08-31 (raat) — `goodToKnow[]` banaya hi nahi gaya (D-68)
 
 **Kya hua**

@@ -23,8 +23,12 @@ FAQs D-59 me. Ek sawaal khula hai — §9 #8 (rating haath se ya `reviews[]` se)
 ab admin se aati hain. Saath me ek chup bug bhi nikla: `cancellationText` public payload me
 ja hi nahi raha tha.
 
-**581 tests passing** (25 files) · lint clean · format clean — 31 Aug ko verify kiya.
-**Last updated:** 31 Aug 2026
+**1 Sep — section ki description ab rich text hai (D-69)** — har section pe wahi TipTap
+editor jo Overview pe hai. Migration **015**. Client (unke senior ka order): textarea me
+bold/heading/list ban hi nahi sakti.
+
+**583 tests passing** (25 files) · lint clean · format clean — 1 Sep ko verify kiya.
+**Last updated:** 1 Sep 2026
 
 ---
 
@@ -383,6 +387,40 @@ hui lines abhi kisi ne badalne ko kahi nahi, aur unke liye pehle se field bana d
 galti hai jo D-57/D-58 me pakdi gayi thi (jo cheez pehle se hai, use dobara mat poochho).
 Jis din `TAB_NOTE` sach me kisi doosre client pe galat lage, wo apne aap sabse pehla
 candidate hai.
+
+---
+
+### A-13 · `bookingSteps` aur `cancellationText` ka admin me **koi UI hai hi nahi**
+
+**Deadline:** koi sakht nahi, par client abhi iske bina kaam chala raha hai
+**1 Sep ko pakda** — client ka likha content padhte waqt
+
+Dono field poore raaste par maujood hain — schema, model, service, public payload, aur theme
+unhe render bhi karti hai ("How booking works" ke numbered steps, aur uske neeche cancellation
+wala paragraph). API ke test bhi hain.
+
+**Bas ek screen nahi hai jahan se inhe bhara jaaye.** `PackageDefaults.jsx` ke teen section
+hain — `whatsIncluded`, `itineraryImages`, `sectionLabels`. Booking steps ka kahin panel nahi.
+
+⚠️ **Nateeja abhi live dikh raha hai:** client ne booking ke chaaron step aur poori
+cancellation policy **"Good to know" ki description me** type kar di, kyunki unhe koi doosri
+jagah mili hi nahi. Wo text ab galat field me baitha hai:
+
+- `bookingSteps` ek **numbered list** ban kar chhapte hain (`ol.steps`, CSS counter ke saath) —
+  description me wo saade paragraph hain
+- `cancellationText` ka apna `<p class="muted">` hai — wahi baat
+- Aur wo dono khaali hone ki wajah se "Good to know" section pehle **render hi nahi ho raha
+  tha** (D-68 ka guard wala bug)
+
+**Kaam:** `PackageDefaults` me ek chautha section — `bookingSteps` ka repeater
+(`{title, text}`, wahi shape jo service `withIds()` se sambhalti hai) aur `cancellationText`
+ka ek box. Pattern maujood hai: FAQs ka panel bilkul yahi karta hai.
+
+⚠️ **Saath me client ka data hilana padega** — description me se wo hissa nikaal kar sahi
+field me. Wo content ka kaam hai, code ka nahi, par isse pehle karna hoga warna wo text page
+pe **do baar** chhapega (wahi shakl jo 31 Aug ko hotels ki description pe hui thi).
+
+**Andaza:** 2-3 ghante.
 
 ---
 

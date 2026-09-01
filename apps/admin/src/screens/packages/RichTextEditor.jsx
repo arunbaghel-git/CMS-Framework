@@ -50,7 +50,21 @@ function ToolButton({ label, title, isActive, onClick }) {
   )
 }
 
-export default function RichTextEditor({ doc, onChange, disabled }) {
+/**
+ * @param {object}   props
+ * @param {object}   [props.doc]          TipTap ka JSON document
+ * @param {string}   [props.label]        Tab pe dikhne wala naam
+ * @param {number}   [props.headingLevel] Heading button kaunsa level banaye
+ *
+ * ⚠️ `headingLevel` ek asli zaroorat se aaya hai, sajawat se nahi (D-69).
+ *
+ * Overview page ka pehla content hai, to uska heading **H2** theek hai. Par section ki
+ * description page ke `<h2>` ke **neeche** chhapti hai — wahan aur H2 daalne se document ka
+ * outline toot jaata hai (screen reader aur SEO dono uspe chalte hain). Isliye wahan **H3**.
+ *
+ * Button ka label bhi isse hi banta hai, warna wo "H2" likhta aur H3 banata.
+ */
+export default function RichTextEditor({ doc, onChange, disabled, label, headingLevel = 2 }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -97,7 +111,7 @@ export default function RichTextEditor({ doc, onChange, disabled }) {
   return (
     <div className="editor-box">
       <div className="editor-tabs">
-        <span className="on">Overview</span>
+        <span className="on">{label ?? 'Overview'}</span>
       </div>
 
       {!disabled && (
@@ -115,10 +129,10 @@ export default function RichTextEditor({ doc, onChange, disabled }) {
             onClick={() => editor.chain().focus().toggleItalic().run()}
           />
           <ToolButton
-            label="H2"
+            label={`H${headingLevel}`}
             title="Heading"
-            isActive={editor.isActive('heading', { level: 2 })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            isActive={editor.isActive('heading', { level: headingLevel })}
+            onClick={() => editor.chain().focus().toggleHeading({ level: headingLevel }).run()}
           />
           <ToolButton
             label="≡"

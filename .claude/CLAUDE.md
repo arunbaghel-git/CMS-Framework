@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1–5 ban chuki hain**; public package
-page shuru ho chuka hai aur har slice ke saath badh raha hai (**581 tests passing**).
+page shuru ho chuka hai aur har slice ke saath badh raha hai (**583 tests passing**).
 Agla kaam **Slice 6 ka bacha hua hissa — sirf `reviews[]` + rating**.
 ⚠️ `goodToKnow[]` **banega hi nahi** (D-68) — uska content har package pe same rehta hai, to
 wo Packages ▸ Section Headings ke "Good to know" wale description box me jaata hai.

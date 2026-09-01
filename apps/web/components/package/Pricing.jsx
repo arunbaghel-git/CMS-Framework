@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo, useState } from 'react'
 
-import { HOTEL_CATEGORY_LABEL, formatPrice } from '@cms/shared'
+import { HOTEL_CATEGORY_LABEL, formatPrice, isEmptyDoc } from '@cms/shared'
 
 import SectionHead from './SectionHead.jsx'
 
@@ -274,7 +274,7 @@ export function HotelsSection({ hotels, label }) {
    * karega. Isiliye ye do alag return hain, ek shart nahi.
    */
   if (tabs.length === 0) {
-    if (!label?.description) return null
+    if (isEmptyDoc(label?.description)) return null
 
     return (
       <section className="blk" id="hotels">
@@ -396,7 +396,7 @@ export function HotelsSection({ hotels, label }) {
  */
 export function AddOns({ addOns, label }) {
   /** Ek bhi add-on na ho aur client ne kuch likha bhi na ho — tabhi poora section chhodo. */
-  if (!addOns?.length && !label?.description) return null
+  if (!addOns?.length && isEmptyDoc(label?.description)) return null
 
   return (
     <section className="blk" id="add-ons">

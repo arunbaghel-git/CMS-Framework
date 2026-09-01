@@ -1,4 +1,13 @@
 /**
+ * ⚠️ Yahan se `schemas/` me import ho raha hai, jo is folder ke liye ulta lagta hai.
+ *
+ * Wajah: `resolveSectionLabels()` ek **function** hai, constant nahi — wo yahan isliye
+ * hai ki uska data (`PACKAGE_SECTIONS`) yahin hai. `rich-doc.js` sirf zod pe depend karti
+ * hai, isliye koi cycle nahi banta (barrel se nahi, seedhi file se import hai).
+ */
+import { textToDoc } from '../schemas/rich-doc.js'
+
+/**
  * Public package page ke sections — har ek ka **heading** aur uske neeche ki **line**.
  *
  * Ye file Q-9 ka jawab hai (client, 31 Aug). Pehle ye saara text theme me hardcoded tha
@@ -140,13 +149,22 @@ export const PACKAGE_SECTION_KEYS = Object.freeze(PACKAGE_SECTIONS.map((section)
 export const sectionHasDescription = (section) => section.hasDescription !== false
 
 /**
- * `key` → `{ heading, description }`.
+ * `key` → `{ heading, description }`, aur `description` yahan **doc** hai (D-69).
  *
- * Theme ka fallback aur admin ka pre-fill **dono** yahi padhte hain.
+ * Ye theme ka aakhri sahara hai — jab `packageDefaults` ka call hi fail ho jaaye. Us haalat
+ * me bhi shape wahi hona chahiye jo API bhejti hai, warna page bina heading ke reh jaata
+ * hai ya render crash karta hai.
+ *
+ * ⚠️ Isiliye yahan `textToDoc()` lagta hai: `PACKAGE_SECTIONS` me defaults padhne laayak
+ * **strings** hain (file khulti hai to text dikhna chahiye, JSON ka ped nahi), par bahar
+ * jaane wala shape doc hai.
  */
 export const PACKAGE_SECTION_DEFAULTS = Object.freeze(
   Object.fromEntries(
-    PACKAGE_SECTIONS.map(({ key, heading, description }) => [key, { heading, description }]),
+    PACKAGE_SECTIONS.map(({ key, heading, description }) => [
+      key,
+      { heading, description: textToDoc(description) },
+    ]),
   ),
 )
 
@@ -160,22 +178,24 @@ export const PACKAGE_SECTION_DEFAULTS = Object.freeze(
  *
  * ## Khaali ke teen alag matlab
  *
- * | Stored            | Nateeja                                          |
- * | ----------------- | ------------------------------------------------ |
- * | key hai hi nahi   | default heading **aur** default line             |
- * | `heading: ''`     | default heading — section bina title ke na rahe  |
- * | `description: ''` | **kuch nahi** — client ne line jaan-boojh kar hatayi |
+ * | Stored                  | Nateeja                                          |
+ * | ----------------------- | ------------------------------------------------ |
+ * | key hai hi nahi         | default heading **aur** default line             |
+ * | `heading: ''`           | default heading — section bina title ke na rahe  |
+ * | `description` khaali doc | **kuch nahi** — client ne line jaan-boojh kar hatayi |
  *
  * Aakhri row is feature ka asli maqsad hai: client ko line **hataane** ka raasta chahiye
- * tha. Isiliye yahan `??` hai `||` nahi — `''` ek asli jawab hai, khaali jagah nahi.
+ * tha. Isiliye shart `=== undefined` hai — khaali doc ek asli jawab hai, khaali jagah nahi.
  *
- * @param {Record<string, {heading?: string, description?: string}>} [stored]
+ * @param {Record<string, {heading?: string, description?: object}>} [stored]
  */
 export function resolveSectionLabels(stored) {
   return Object.fromEntries(
     PACKAGE_SECTIONS.map((section) => {
       const { key, heading, description } = section
       const custom = stored?.[key]
+      /** Default padhne laayak string hai; theme ko hamesha doc chahiye (D-69). */
+      const defaultDoc = () => textToDoc(description)
 
       /**
        * Jis section pe description ka field hi nahi (Overview), uske payload me wo key
@@ -191,14 +211,24 @@ export function resolveSectionLabels(stored) {
       }
 
       /** Kabhi chhua hi nahi — dono default se. */
-      if (!custom) return [key, { heading, description }]
+      if (!custom) return [key, { heading, description: defaultDoc() }]
 
       return [
         key,
         {
           heading: custom.heading?.trim() || heading,
-          /** `??` hai `||` nahi — `''` ek asli jawab hai ("line hata do"), khaali jagah nahi. */
-          description: custom.description?.trim() ?? description,
+          /**
+           * `=== undefined` hi shart hai.
+           *
+           * Stored **khaali doc** ek asli jawab hai — "ye line page se hata do" (D-65). Use
+           * default se bharna client ko us line se kabhi peecha na chhudane deta. Isliye
+           * yahan sirf ye dekha jaata hai ki field **aayi hi nahi**, uske khaali hone se
+           * koi farak nahi padta.
+           *
+           * (Pehle ye `custom.description?.trim() ?? description` tha — string ke zamane
+           * ka. `.trim()` ab doc pe chalta hi nahi.)
+           */
+          description: custom.description === undefined ? defaultDoc() : custom.description,
         },
       ]
     }),
