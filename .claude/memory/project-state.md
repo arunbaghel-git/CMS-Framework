@@ -1,7 +1,44 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 1 Sep 2026 (section description ab rich text — D-69, migration 015)
+> **Last updated:** 1 Sep 2026 (session band — agla kaam sabse upar likha hai)
+
+---
+
+## ⏭️ Nayi session yahan se shuru kare (1 Sep, session band karte waqt)
+
+**Agla bada kaam (client):** _"i want to update whole admin and public site with final
+requirement"_ — final requirements ke hisaab se poora admin + public site update karna.
+Requirements client se aayengi; unke bina shuru mat karna.
+
+### Pehle ye teen, warna waqt zaya hoga
+
+1. **`docker compose up -d mongo` aur `pnpm dev`** — teenon apps. `/api/health` pe
+   `migrations.pending: 0` dikhna chahiye; `14` aaye to API galat Mongo pe hai (Windows ka
+   `mongod` service — `sc.exe config MongoDB start= disabled`).
+2. **API restart pending tha.** `apps/api/.env` me `EXTRA_CORS_ORIGINS` me cloudflared tunnel
+   ka origin jud chuka hai, par API ne use padha nahi (Node `.env` sirf **boot pe** padhta
+   hai — D-33). Restart ke baad admin ka tunnel login 403 ki jagah 401 dega.
+3. **`apps/web/app/globals.css` me client ke uncommitted CSS tweaks hain** — `.ft`,
+   `.pkg__gal`, `.catbar__g`. **Inhe revert mat karna** (memory: client CSS khud tune karta
+   hai). Jispe comment nahi hai wo bhi drift nahi hai — aaj `.steps b` pe yahi galti hui thi.
+
+### Khule items — ginti ke hisaab se
+
+| #           | Kya                                                                                                                  | Andaza     |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- | ---------- |
+| **A-12**    | CI green ho hi nahi sakti — ubuntu pe na Mongo hai na API. **Har commit pe red**, isliye red hona ab koi signal nahi | aadha din  |
+| **A-14**    | `What's Included` bhi apne tab me jaana chahiye — wo bhi page ka ek section hai                                      | 1-2 ghante |
+| **A-15**    | Design-check ki dono script me blind spot — bare element selectors, aur hamari taraf ki extra property               | 2-3 ghante |
+| **Slice 6** | `reviews[]` + rating — spec 007 §9 #8 pe ruka (rating haath se ya derive; **mashwara: haath se**)                    | —          |
+
+### Aaj ka sabse kaam ka sabak
+
+**Admin ka dhaancha page ke section follow karta hai, collection ke field nahi.** Maine
+ulta kiya tha (do field dekhe, do screen bana di) aur client ne palta.
+
+Aur: **teen chup bug** aaj pakde gaye, teenon client ne — kisi test ya script ne nahi.
+Lakshan har baar ek: _admin me text bhara dikhta hai, page pe kuch nahi, koi error nahi._
 
 ---
 
