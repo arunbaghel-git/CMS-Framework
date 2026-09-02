@@ -253,6 +253,18 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
         return
       }
 
+      /**
+       * Bhare hue khaane wapas khaali (client, 2 Sep).
+       *
+       * Enquiry ja chuki hai; unhe bhara hua chhodne ka matlab hai user ko ye lagna ki
+       * shayad wo gayi hi nahi — ya wo dobara Send dabane ki koshish kare.
+       *
+       * ⚠️ Category **reset nahi hoti**, jaan-boojh kar. Uska state form ka hai hi nahi —
+       * wo poore page ka hai (`CategoryProvider`), aur usi se upar ka daam aur catbar chalte
+       * hain. Use saaf karne ka matlab hota ki enquiry bhejte hi page ka daam badal jaaye.
+       */
+      setValues({})
+      setHp('')
       setState({ sending: false, done: true, error: null })
     } catch (err) {
       setState({ sending: false, done: false, error: err.message })
