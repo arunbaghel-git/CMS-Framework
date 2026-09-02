@@ -1,6 +1,7 @@
 import { DEFAULT_SITE_ID, emptyForm } from '@cms/shared'
 
 import { notFound, unprocessable } from '../../core/errors.js'
+import { logger } from '../../core/logger.js'
 import { revalidateTags } from '../../core/revalidate.js'
 import { Enquiry, Form } from './model.js'
 
@@ -254,6 +255,25 @@ export async function submitEnquiry(input, siteId = DEFAULT_SITE_ID) {
     sourcePath: typeof values.sourcePage === 'string' ? values.sourcePage : '',
     values,
   })
+
+  /**
+   * Bhari hui enquiry API ke terminal me — **sirf dev me**.
+   *
+   * Abhi ise dekhne ki koi screen nahi hai (All Enquiries baaki hai, D-72), aur client ko
+   * chahiye ki form bharte hi dikh jaaye ki kya aaya. DB me wo pehle se ja rahi thi; ye sirf
+   * dekhne ka raasta hai.
+   *
+   * ⚠️ **`isProd` ka guard hataana mat.** Isme naam, email aur phone jaate hain — yaani asli
+   * customer ka data. Production me wo har log line ke saath disk pe, aur aage chal kar kisi
+   * log service pe pahunch jaata, jahan se use hataana aasan nahi hota. Dev me terminal
+   * band karte hi khatam.
+   *
+   * ⚠️ Ye All Enquiries screen ki **jagah nahi** hai — wo abhi bhi banni hai. Us din ye chaar
+   * line hat jaayengi.
+   */
+  if (process.env.NODE_ENV !== 'production') {
+    logger.info({ form: form.name, path: doc.sourcePath, values }, 'Nayi enquiry')
+  }
 
   return { ok: true, id: String(doc._id) }
 }
