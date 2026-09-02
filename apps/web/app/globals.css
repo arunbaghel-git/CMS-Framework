@@ -2115,7 +2115,6 @@ a.mega__gl:hover {
 
   .itin__k em {
     display: none;
-    
   }
 }
 
@@ -3775,15 +3774,20 @@ a.mega__gl:hover {
 }
 
 /*
- * Popup ka backdrop — pehle `rgba(8, 20, 34, .92)` tha, yaani lagbhag kaala.
+ * Popup ka backdrop — **gehra** (client, 2 Sep).
  *
- * Client ne use "shadow" kaha aur hatane ko bola (1 Sep). Poora transparent **nahi** kiya
- * gaya: tab peeche ka page image ke aar-paar padha jaane lagta hai aur popup popup nahi
- * lagta. Ab wo halka safed hai — koi gehra saya nahi, par image ka kinara phir bhi saaf.
+ * ⚠️ Iska safar seedha nahi tha, aur wo likhne laayak hai. Shuru me ye `rgba(8,20,34,.92)`
+ * tha. 1 Sep ko client ne use "shadow" kaha aur hatane ko bola, to ye halka safed ho gaya —
+ * aur uske saath controls bhi ink ke ho gaye. 2 Sep ko client ne dekh kar palta: gehra hi
+ * chahiye. Ab wo wapas gehra hai aur controls wapas safed.
  *
- * ⚠️ Iske badalne se controls bhi badle. Wo safed-on-transparent the (`rgba(255,255,255,.14)`
- * pe `#fff`), jo is backdrop pe **bilkul gayab** ho jaate — safed pe safed. Ab wo ink pe
- * hain. Backdrop dobara gehra karo to controls bhi wapas safed karne padenge.
+ * Sabak: "shadow hata do" ka matlab backdrop hatana nahi tha — us waqt controls image se
+ * **door** the, aur wo doori hi bhaari lag rahi thi. Asli ilaaj neeche hai (controls image
+ * ke saath), rang me nahi tha.
+ *
+ * `padding` sirf saans lene ki jagah nahi hai — controls image ke **bahar** baithte hain,
+ * aur unhe yahi jagah milti hai: upar close/counter ke liye, neeche phone ke arrows ke liye,
+ * aur daayein-baayein desktop ke arrows ke liye.
  */
 .lbx {
   position: fixed;
@@ -3791,8 +3795,8 @@ a.mega__gl:hover {
   z-index: 100;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.94);
-  padding: clamp(12px, 4vw, 48px);
+  background: rgba(8, 20, 34, 0.92);
+  padding: 52px clamp(16px, 6vw, 72px) 60px;
   /* Backdrop khud focus le sakta hai (Esc/arrows ke liye) — par ring nahi dikhni chahiye */
   outline: none;
 }
@@ -3818,7 +3822,12 @@ a.mega__gl:hover {
    * `100%` nahi — grid ka track poori height leta hai aur lambi image controls ke neeche
    * chali jaati hai. `vh` se wo hamesha screen ke andar rehti hai.
    */
-  max-height: 86vh;
+  /*
+   * `calc` isliye ki upar-neeche ke controls (`52px` + `60px` padding) bhi screen me hi
+   * rehne chahiye. Sirf `vh` par chhodne se chhoti unchai wali screen pe close button
+   * screen ke bahar chala jaata tha.
+   */
+  max-height: min(80vh, calc(100vh - 140px));
   width: auto;
   height: auto;
   object-fit: contain;
@@ -3836,20 +3845,23 @@ a.mega__gl:hover {
 }
 
 /*
- * Controls ab **image ke upar** baithte hain, backdrop pe nahi — isliye unka rang badla.
+ * Controls image ke **bahar** hain, uske upar nahi (client, 2 Sep) — par uske **saath**:
+ * offsets `.lbx__stage` se nape jaate hain, aur stage ka naap image ka naap hai.
  *
- * Pehle wo halke backdrop pe the aur ink ka rang kaafi tha. Ab wo kisi bhi photo ke upar aa
- * sakte hain — safed reti, kaali chattan, kuch bhi. Isliye safed goli + gehra glyph + ek
- * halki shadow: teenon milkar har photo pe dikhte hain.
+ * Isiliye har offset **negative** hai — wo image ke kinare se bahar ki taraf ginta hai. Screen
+ * ke kinaron se naapne wala purana tareeka hi wo dikkat thi jo client ne pakdi: chaudi screen
+ * pe image beech me chhoti si hoti hai aur buttons usse bahut door pad jaate the.
+ *
+ * Rang gehre backdrop ke hisaab se — safed glyph, halki safed goli. Image ke upar hote to ye
+ * kaam nahi karta (safed photo pe gayab ho jaata), par bahar backdrop hamesha gehra hai.
  */
 .lbx__x,
 .lbx__nav {
   position: absolute;
   z-index: 2;
   border: 0;
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--ink);
-  box-shadow: 0 2px 10px rgb(17 29 43 / 22%);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -3861,15 +3873,15 @@ a.mega__gl:hover {
 
 .lbx__x:hover,
 .lbx__nav:hover {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.28);
 }
 
+/* Image ke upar, daayein kone me — uske bahar. */
 .lbx__x {
-  /* Image ke apne kone se 10px — pehle ye screen ke kone se `clamp(10px, 2vw, 22px)` tha. */
-  top: 10px;
-  right: 10px;
-  width: 38px;
-  height: 38px;
+  top: -44px;
+  right: 0;
+  width: 36px;
+  height: 36px;
   font-size: var(--fs-2xl);
 }
 
@@ -3887,26 +3899,28 @@ a.mega__gl:hover {
   transform: translateY(-50%) scale(1.06);
 }
 
+/* `-52px` = 42px ka button + 10px ki saans. `.lbx` ki side padding isse zyada hai. */
 .lbx__nav--prev {
-  left: 10px;
+  left: -52px;
 }
 
 .lbx__nav--next {
-  right: 10px;
+  right: -52px;
 }
 
+/*
+ * Counter image ke upar-baayein — close ke bilkul saamne.
+ *
+ * Neeche rakhne ka matlab hota phone pe arrows se takrana (wahan wo image ke neeche aate
+ * hain). Upar wo hamesha akela rehta hai.
+ */
 .lbx__count {
   position: absolute;
   z-index: 2;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  /*
-   * Gehri goli, safed text — ulta un buttons se. Ye ek **label** hai, control nahi; safed
-   * goli me wo unhi jaisa dikhta aur click karne laayak lagta.
-   */
-  color: #fff;
-  background: rgb(17 29 43 / 62%);
+  top: -38px;
+  left: 0;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.14);
   padding: 5px 12px;
   border-radius: 999px;
   font-size: var(--fs-xs);
@@ -3915,25 +3929,49 @@ a.mega__gl:hover {
 }
 
 /*
- * Chhoti screen pe sab kuch chhota — par jagah wahi.
+ * Tablet aur phone pe arrows image ke **neeche** — phir bhi uske bahar.
  *
- * ⚠️ Pehle yahan arrows image ke **neeche** ki patti me chale jaate the (prev · counter ·
- * next ek row me). Wo tab zaroori tha jab wo screen ke kinaron pe the aur phone pe image ke
- * upar aa jaate the. Ab wo image ke apne kinaron pe hain, to unhe hilane ki koi wajah nahi —
- * aur unhe neeche le jaana counter ke saath takrav bana deta tha.
+ * Daayein-baayein unke liye jagah hi nahi bachti: 375px ki screen pe image lagbhag poori
+ * chaudai leti hai, aur `-52px` unhe screen se bahar dhakel deta. Neeche wali patti me wo
+ * angoothe ke paas bhi aa jaate hain.
+ *
+ * Counter isse takrata nahi — wo upar-baayein hai, close ke saamne.
  */
-@media (max-width: 560px) {
-  .lbx__x,
+@media (max-width: 1024px) {
   .lbx__nav {
-    width: 34px;
-    height: 34px;
-  }
-
-  .lbx__nav {
+    top: auto;
+    bottom: -50px;
+    transform: none;
+    width: 38px;
+    height: 38px;
     font-size: 24px;
   }
 
+  .lbx__nav:hover {
+    transform: none;
+  }
+
+  .lbx__nav--prev {
+    left: 25%;
+  }
+
+  .lbx__nav--next {
+    right: 25%;
+  }
+}
+
+/* Phone pe sab thoda aur chhota. */
+@media (max-width: 560px) {
+  .lbx__nav {
+    width: 34px;
+    height: 34px;
+    bottom: -46px;
+  }
+
   .lbx__x {
+    width: 32px;
+    height: 32px;
+    top: -40px;
     font-size: var(--fs-lg);
   }
 }
