@@ -2437,7 +2437,11 @@ a.mega__gl:hover {
 }
 
 .wdgc a {
-  font-size: var(--fs-md);
+  /*
+   * 14px — body wala naap (client, 2 Sep). Reference me yahan 13.5px hai, par wo uske apne
+   * `body: 15px` ke saath baithta hai; hamara body 14px hai, to yahan bhi wahi.
+   */
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   color: var(--ink);
   text-decoration: none;

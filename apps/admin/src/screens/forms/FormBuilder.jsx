@@ -61,6 +61,23 @@ const ADDABLE = [
   { value: 'checkbox', patch: { type: 'checkbox' } },
   { value: 'textarea', patch: { type: 'textarea' } },
   { value: 'package', label: 'Package', patch: { type: 'select', source: 'packages' } },
+  {
+    /**
+     * ⚠️ Ye 2 Sep ko juda, aur uski wajah likhne laayak hai.
+     *
+     * `hotelCategory` naye form ke defaults me hai, par **purane form usme nahi uthate** — aur
+     * client ka form us din bana tha jab wo field tha hi nahi. Unke paas use jodne ka koi
+     * raasta nahi bacha tha, to unhone `Package` chun kar ek field bana li aur uske dropdown
+     * me packages aane lage (screenshot, 2 Sep).
+     *
+     * Maine 1 Sep ko poochha tha ki ise bhi dropdown me daalun ya nahi — jawab nahi aaya, aur
+     * maine chhod diya. Sabak: **jab do cheezein ek jaisi hon aur ek ka raasta ban raha ho, to
+     * doosri ka na banana apne aap me ek faisla hai** — aur wo faisla client ko phansa deta hai.
+     */
+    value: 'hotelCategory',
+    label: 'Hotel category',
+    patch: { type: 'select', source: 'categories' },
+  },
 ]
 
 /**

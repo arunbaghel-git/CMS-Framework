@@ -181,6 +181,22 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
   /** Jin fields ki value page ke category state se aati hai, `values` se nahi. */
   const isCategoryField = (field) => field.source === 'categories'
 
+  /**
+   * `hidden` fields jo browser bharta hai — abhi sirf ek, `sourcePage`.
+   *
+   * ⚠️ Ye **form ke fields se** banta hai, hamesha nahi. Pehle `sourcePage` har submit ke
+   * saath chala jaata tha, chahe form me wo field ho ya na ho — aur jis form se client ne use
+   * hata diya, wahan API sahi hi kehti thi: **"This form has no field called sourcePage"**
+   * (client, 2 Sep). Poora form us ek anjaan key pe ruk jaata tha.
+   *
+   * Server ka wo check theek hai aur rehna chahiye (R9) — galti bhejne wale ki thi.
+   */
+  const autoValues = Object.fromEntries(
+    (form.fields ?? [])
+      .filter((field) => field.type === 'hidden' && field.key === 'sourcePage')
+      .map((field) => [field.key, sourcePath]),
+  )
+
   const set = (key, value) => setValues((v) => ({ ...v, [key]: value }))
 
   async function submit(e) {
@@ -220,8 +236,8 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
             ...Object.fromEntries(
               visible.filter(isCategoryField).map((field) => [field.key, category]),
             ),
-            /** `sourcePage` — design me wo "captured automatically" hai. */
-            sourcePage: sourcePath,
+            /** `sourcePage` — design me wo "captured automatically" hai. Ho to hi jaata hai. */
+            ...autoValues,
           },
           hp,
         }),
