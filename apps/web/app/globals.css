@@ -1796,12 +1796,6 @@ a.mega__gl:hover {
   margin-top: 14px;
 }
 
-.route__leg {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-
 .route__s {
   background: var(--blue-50);
   border: 1px solid var(--blue-100);

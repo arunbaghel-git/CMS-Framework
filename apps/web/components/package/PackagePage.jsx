@@ -453,8 +453,20 @@ export default function PackagePage({ entry, defaults, settings }) {
 
               {entry.routeStrip.length > 0 && (
                 <div className="route">
+                  {/*
+                   * ⚠️ Card aur teer **sidhe `.route` ke bachche** hain, kisi wrapper ke andar
+                   * nahi — reference me bhi wahi hai.
+                   *
+                   * Pehle har jodi (teer + card) ek `.route__leg` div me thi. Wo sirf `key`
+                   * rakhne ki suvidha ke liye thi, par usne layout badal diya: `.route` ka
+                   * `flex-wrap` phir **poori jodi** ko ek unit maanta tha, aur mobile pe wo
+                   * jodiyan theek se nahi tootti thin (client, 2 Sep).
+                   *
+                   * `Fragment` se wahi `key` mil jaati hai aur DOM me koi extra box nahi
+                   * banta — har card aur har teer alag-alag wrap hota hai, design ki tarah.
+                   */}
                   {entry.routeStrip.map((leg, i) => (
-                    <div className="route__leg" key={`${leg.stayId}-${leg.from}`}>
+                    <Fragment key={`${leg.stayId}-${leg.from}`}>
                       {/*
                        * Do stay ke beech ka teer. `.route__a` ki CSS pehle se thi par andar
                        * SVG kabhi daala hi nahi gaya — div khaali tha, isliye page pe cards
@@ -471,7 +483,7 @@ export default function PackagePage({ entry, defaults, settings }) {
                         </span>
                         <b>{leg.stay?.name ?? '—'}</b>
                       </div>
-                    </div>
+                    </Fragment>
                   ))}
                 </div>
               )}
