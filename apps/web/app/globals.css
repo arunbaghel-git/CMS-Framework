@@ -313,8 +313,22 @@ a {
    reh jaati (13px text ki line 14px se neechi hai), aur "match" aankh se pakda hi nahi
    jaata. Sirf padding-x client ka hai.
 
-   ⚠️ Purana naap (`8px 14px` / 13px) reference ka `.b-s` hai — uska **small** variant.
-   Yaani pehle poore page ke buttons chhote wale naap pe chal rahe the. */
+   ⚠️ **Ye base HEADER pe nahi lagta** — wahan chhota naap hai, aur wo neeche
+   `.hdr__actions .btn` me likha hai.
+
+   Ye farq reference ka hai, hamara nahi. Design me buttons ke do naap hain aur dono use
+   hote hain:
+
+   | Kahan | Reference me | Naap |
+   | --- | --- | --- |
+   | header (`.hdr__r`) | `b b-o b-s` · `b b-b b-s` | 8px 14px / 13px |
+   | drawer ka foot | `b b-o b-w` · `b b-l b-w` | 11px 20px / 14px |
+   | page ke andar | `b b-b` · `b b-l` | 11px 20px / 14px |
+
+   Pehle poore site ke buttons chhote naap pe the, aur maine 1 Sep ko base bada karte waqt
+   likh diya tha ki "wo galti thi". **Wo galti nahi thi — header ke liye wahi sahi tha.**
+   Client ne turant pakda ("header ka style kyun change kiya, maine nahi bola tha"). Base
+   badalna P7 ka hissa tha; header ko uske saath kheench lena nahi. */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -1186,6 +1200,23 @@ a.mega__gl:hover {
   flex-shrink: 0;
 }
 
+/*
+ * Header ke buttons reference ke **small** variant pe hain — `b-s` (`8px 14px` / 13px).
+ *
+ * Dono designs me header wahi dikhata hai: `<a class="b b-o b-s">Get quote</a>` aur
+ * `<button class="b b-b b-s hawards">`. Wajah sirf dikhawa nahi hai — header sticky hai aur
+ * uski unchai poore page ke scroll offset se judi hui hai (`scroll-padding-top: 90px`).
+ * Bade buttons use lamba kar dete hain, aur phir har anchor thoda galat jagah rukta hai.
+ *
+ * ⚠️ Ye rule 1 Sep ki shaam ko **wapas** aaya. P7 me `.btn` ka base bada hua (client ka
+ * kaha hua), par uske saath header bhi bada ho gaya — jo client ne maanga hi nahi tha.
+ * Base aur header ka naap do alag cheezein hain; reference me bhi wo do alag class hain.
+ */
+.hdr__actions .btn {
+  padding: 8px 14px;
+  font-size: var(--fs-sm);
+}
+
 @media (max-width: 1040px) {
   /* Chhoti screen pe buttons bache rehte hain — wo conversion element hain, nav nahi */
   .hdr__actions {
@@ -1314,7 +1345,7 @@ a.mega__gl:hover {
  * bilkul kinare se chipka hua tha.
  */
 .pkg__hero {
-  padding-block: 20px 8px;
+  padding-block: 28px 8px;
 }
 
 .pmeta {
