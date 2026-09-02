@@ -3561,6 +3561,18 @@ a.mega__gl:hover {
     aspect-ratio: 16 / 9;
   }
 
+  /*
+   * Title ka upar wala margin 18px se 7px (client, 2 Sep).
+   *
+   * 18px `.blk h3` se aata hai — wo prose ke andar do heading ke beech ki saans hai. Card ke
+   * andar wo bahut zyada hai, aur mobile pe uske upar rating bhi aa gayi hai.
+   *
+   * Specificity dono ki barabar hai (0,1,1); ye jeetta hai kyunki file me baad me aata hai.
+   */
+  .prow__b h3 {
+    margin-top: 7px;
+  }
+
   .prow__p {
     grid-column: auto;
     flex-direction: row;
