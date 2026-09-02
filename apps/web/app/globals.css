@@ -193,6 +193,27 @@ body {
   background: var(--surface);
 
   /*
+   * Reference ka `body` line-height — **ye chhoot gaya tha** (1 Sep ko pakda).
+   *
+   * Iske bina browser ka default `normal` chalta tha, jo Inter pe **~1.2** hai. 108 rules
+   * `font-size` set karte hain aur unme se 81 apni line-height likhte hi nahi; unme se kuch
+   * ko cascade se mil jaati hai (`h1…h6` se 1.25, `a` se 1.55), par **~50 jagah** body pe
+   * gir rahi thi — `.tbl`, `.steps p`, `.fld`, `.revc`, `.prow__*`, `.vcrumb`, `.pmeta`,
+   * `.catbar__*`, `.bkg__t`. Wahan text design se tang tha.
+   *
+   * ⚠️ **Ye `css-diff.mjs` ka blind spot hai** (A-15): usme hardcoded class-prefix allowlist
+   * hai, aur `body`/`p`/`ul` jaise **bare element selectors** uske check me aate hi nahi —
+   * theek wahi jagah jahan page-wide reset rehte hain. `p { margin: 0 }` bhi isi wajah se
+   * chhoota tha aur baad me aankh se pakda gaya.
+   *
+   * ⚠️ Reference ke `body` me do aur cheezein hain jo yahan **jaan-boojh kar nahi li gayin**
+   * (client, 1 Sep — "only line height lagao"): `font-size: 15px` (hamare paas browser ka
+   * 16px hai) aur `-webkit-font-smoothing: antialiased`. Dono ka apna asar hai; jis din wo
+   * chahiye, wo alag faisla hai.
+   */
+  line-height: 1.55;
+
+  /*
    * `overflow-x: hidden` reference se — aur ye cosmetic nahi hai.
    *
    * Mobile drawer (`.mdrawer`) hamesha DOM me rehta hai aur band haalat me `translateX(100%)`
