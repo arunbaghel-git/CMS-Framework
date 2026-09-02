@@ -1,7 +1,7 @@
 'use client'
 
 import { HOTEL_CATEGORY_LABEL, formatPrice } from '@cms/shared'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useEnquiryDock } from './EnquiryDock.jsx'
 import { PriceHeader, useCategory } from './Pricing.jsx'
@@ -28,6 +28,28 @@ import { PriceHeader, useCategory } from './Pricing.jsx'
  * hai (server action nahi) kyunki submit seedha API pe jaata hai, `apps/web` ke through
  * nahi — wahi raasta jo baaki public data ka hai.
  */
+
+/** Thank-you kitni der button pe rahe — uske baad wo wapas `Get this itinerary` ban jaata hai. */
+const RESET_AFTER = 6000
+
+/**
+ * Date wale khaane pe **kahin bhi** click karo, calendar khul jaaye (client, 2 Sep).
+ *
+ * Browser ka default sirf us chhote calendar icon pe khulta hai; baaki poora box click karne
+ * pe kuch nahi hota, aur user ko lagta hai ki field kaam hi nahi kar raha.
+ *
+ * ⚠️ `try/catch` zaroori hai, ehtiyaat nahi: `showPicker()` **throw karta hai** jab wo kisi
+ * asli click ke bina bulaya jaaye (browsers use user-gesture ke peeche rakhte hain), aur
+ * purane browsers me wo hai hi nahi. Dono me se kisi bhi soorat me field waise ka waisa
+ * chalta rehna chahiye — type kar ke bharna hamesha kaam karta hai.
+ */
+const openPicker = (event) => {
+  try {
+    event.currentTarget.showPicker?.()
+  } catch {
+    /* Browser ne mana kar diya — user haath se type kar sakta hai, ye rok nahi hai. */
+  }
+}
 
 /** `View itinerary →` wala hi teer. */
 const Arrow = () => (
@@ -113,6 +135,8 @@ function Field({ field, value, onChange, packages, categories }) {
             { email: 'email', phone: 'tel', number: 'number', date: 'date' }[field.type] ?? 'text'
           }
           placeholder={field.placeholder || undefined}
+          /* Date/month pe poora box click karne laayak — dekho `openPicker`. */
+          onClick={['date', 'month'].includes(field.type) ? openPicker : undefined}
           /** Browser ka autofill — sabse bada single UX faayda, aur muft hai. */
           autoComplete={
             { email: 'email', phone: 'tel', text: field.key === 'fullName' ? 'name' : 'off' }[
@@ -176,6 +200,30 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
    * state: user desktop pe kuch bharta, screen chhoti karta, aur bhara hua gayab.
    */
   const dock = useEnquiryDock()
+
+  /**
+   * Thank-you dikhane ke baad button apne aap wapas apni asli haalat me (client, 2 Sep).
+   *
+   * Fields to submit pe hi khaali ho jaate hain, par button "ho gaya" pe atka rehta tha —
+   * yaani ek aur enquiry bhejne ke liye **page refresh** karna padta tha.
+   *
+   * `RESET_AFTER` itna hai ki thank-you padha ja sake, aur itna kam ki agla user intezaar na
+   * kare. Turant reset karne ka matlab hota ki jawab dikhta hi nahi — bhejne wale ko pata hi
+   * na chalta ki gaya ya nahi.
+   *
+   * ⚠️ Is beech button **disabled** rehta hai, aur wo jaan-boojh kar hai: dobara click ka
+   * sabse aam kaaran yahi hota hai ki user ko lagta hai pehli baar gaya hi nahi.
+   */
+  useEffect(() => {
+    if (!state.done) return
+
+    const timer = setTimeout(() => {
+      setState({ sending: false, done: false, error: null })
+    }, RESET_AFTER)
+
+    /** Sheet band ho jaaye ya page badle to timer ke saath jaana chahiye. */
+    return () => clearTimeout(timer)
+  }, [state.done])
 
   if (!form) return null
 
