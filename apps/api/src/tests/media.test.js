@@ -9,6 +9,7 @@ import { createApp } from '../app.js'
 import { COOKIE } from '../core/tokens.js'
 import { CSRF_HEADER } from '../middleware/csrf.js'
 import { Media } from '../modules/media/model.js'
+import { getStorageDriver } from '../modules/media/storage/index.js'
 import { RefreshToken } from '../modules/auth/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
@@ -26,19 +27,31 @@ import { connectTestDb, disconnectTestDb } from './db.js'
 const PASSWORD = 'ek-lamba-sa-passphrase'
 const app = createApp()
 /**
- * ⚠️ **YE ASLI UPLOAD FOLDER HAI, AUR NEECHE `beforeEach` ISE MITA DETA HAI (A-16).**
+ * ✅ A-16 theek ho chuka (2 Sep). Neeche wali `beforeEach` is folder ko **har test se
+ * pehle** `rm -r` karti hai — isliye ye path kya hai, wahi poora bug tha.
  *
- * Yaani jo bhi `pnpm test` chalata hai, uski dev machine se client ki **saari uploaded
- * images ud jaati hain**. DB ke records bache rehte hain, sirf files jaati hain — isiliye
- * admin ki Media list bhari hui dikhti hai aur wahi image page pe 404 deti hai. Client ise
- * kai din "images fir se upload karni padti hain" ki tarah dekh raha tha (2 Sep).
+ * Pehle yahan `path.resolve(process.cwd(), 'apps/api/uploads')` hardcoded tha, yaani dev
+ * ka **asli** upload folder. Har `pnpm test` client ki saari uploaded images le jaata tha.
+ * DB ke records bache rehte the aur sirf files jaati thi, isiliye lakshan galat jagah
+ * dikhta tha: admin ki Media list bhari hui, aur wahi image public page pe 404.
  *
- * Saath wali `storage.test.js` ye galti nahi karti — wo apna `apps/api/.test-uploads`
- * banati hai. Fix wahi hai, aur wo agle session me hoga (client ka faisla).
- *
- * ⛔ Tab tak: ye path **badalna hi fix hai** — ise kisi aur asli folder pe mat le jao.
+ * Ab ye app ke **apne** storage driver se aata hai, hardcoded nahi. Yaani jahan app sach
+ * me likhti hai theek wahi folder saaf hota hai — dono kabhi alag ho hi nahi sakte. Folder
+ * khud `vitest.config.js` ke `UPLOAD_DIR` se aata hai (`./.test-uploads-media`).
  */
-const UPLOAD_ROOT = path.resolve(process.cwd(), 'apps/api/uploads')
+const UPLOAD_ROOT = getStorageDriver().root
+
+/**
+ * Doosri deewar. Agar kisi ne `UPLOAD_DIR` wapas kisi asli folder pe kar diya, to ye file
+ * **chalne se pehle** phat jaayegi — data mit jaane ke baad nahi. Ek `rm -r` wali test ko
+ * apne throwaway folder ke bahar kabhi nahi jaana chahiye.
+ */
+if (!path.basename(UPLOAD_ROOT).startsWith('.test-')) {
+  throw new Error(
+    'media.test.js sirf throwaway upload folder pe chal sakti hai (A-16). ' +
+      `Abhi wo "${UPLOAD_ROOT}" pe hai — vitest.config.js ka UPLOAD_DIR dekho.`,
+  )
+}
 
 function cookieJar(res) {
   const jar = {}
@@ -114,6 +127,8 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  // Throwaway folder peeche mat chhodo — warna wo repo me pada rehta hai
+  await rm(UPLOAD_ROOT, { recursive: true, force: true })
   await disconnectTestDb()
 })
 

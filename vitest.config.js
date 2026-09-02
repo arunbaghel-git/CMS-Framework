@@ -37,7 +37,23 @@ export default defineConfig({
       JWT_REFRESH_SECRET: 'test-secret-at-least-32-characters-long',
       REVALIDATE_SECRET: 'test-secret-at-least-32-characters-long',
       STORAGE_DRIVER: 'local',
-      UPLOAD_DIR: './uploads',
+      /**
+       * ⚠️ Ye **kabhi** `./uploads` nahi hona chahiye — wo dev ka asli folder hai (A-16).
+       *
+       * 2 Sep tak yahan `./uploads` likha tha. Matlab test me chalne wali app bhi
+       * `apps/api/uploads` me hi likhti thi, aur `media.test.js` ki `beforeEach` usi folder
+       * ko `rm -r` karti thi — yaani jo bhi `pnpm test` chalata tha, uski machine se client
+       * ki **saari uploaded images ud jaati thi**.
+       *
+       * Lakshan isliye itna uljha hua tha: DB ke records bache rehte the, sirf files jaati
+       * thi. Admin ki Media list bhari hui dikhti thi aur wahi image page pe 404 deti thi,
+       * to shak "code change" pe jaata tha — jabki wajah change ke **baad chalne wala
+       * test** tha.
+       *
+       * Ab har test apne throwaway folder me likhta hai. `media.test.js` iski jaanch bhi
+       * karta hai: root `.test-` se shuru na ho to wo file chalne se pehle hi fail hoti hai.
+       */
+      UPLOAD_DIR: './.test-uploads-media',
       LOG_LEVEL: 'error',
     },
   },

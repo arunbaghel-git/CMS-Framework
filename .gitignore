@@ -10,6 +10,8 @@ coverage/
 !.env.example
 
 uploads/
+# Tests ke throwaway upload folder (A-16) — crash pe peeche reh jaate hain
+.test-uploads*/
 *.log
 .DS_Store
 Thumbs.db

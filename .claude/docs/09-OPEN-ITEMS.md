@@ -31,8 +31,11 @@ ja hi nahi raha tha.
 editor jo Overview pe hai. Migration **015**. Client (unke senior ka order): textarea me
 bold/heading/list ban hi nahi sakti.
 
-**619 tests passing** (26 files) · lint clean · format clean — 1 Sep ko verify kiya.
-**Last updated:** 1 Sep 2026 (shaam — client ki 15-item list)
+**624 tests passing** (26 files) · lint clean · format clean — 2 Sep ko verify kiya.
+**Last updated:** 2 Sep 2026 (A-16 ka fix — `pnpm test` ab uploads ko haath nahi lagata)
+
+⚠️ 2 Sep ke **29 commit** (mobile/responsive pass + enquiry form ka submit) is doc me abhi
+tak nahi likhe gaye — `project-state.md` bhi 1 Sep pe hi khada hai.
 
 ---
 
@@ -186,28 +189,30 @@ Client se poochhne wala sawaal: **logo na ho to header me uski jagah kya dikhna 
 
 ---
 
-### A-16 · `pnpm test` asli uploads folder mita deta hai (2 Sep)
+### A-16 · `pnpm test` asli uploads folder mita deta tha — ✅ **theek ho gaya (2 Sep)**
 
-**Deadline:** agla session — ye har test run pe client ka data le jaata hai
-**Wajah mil chuki hai, fix jaan-boojh kar rok kar rakha hai** (client ne naye session me
-karwane ko kaha)
+**Code wala hissa band.** Ek hissa abhi baaki hai: `UPLOAD_DIR` repo ke **bahar** (neeche).
 
 Client kai dinon se ye keh raha tha: _"jo images admin me upload karta hu, koi change karne
 ko bolu fir wo frontend par visible kyu nahi hoti, mujhe fir se upload karna padta hai har
 baar."_
 
-Ab wajah pakki hai — `apps/api/src/tests/media.test.js`:
+**Wajah `media.test.js` se bhi badi nikli.** Pehle sirf test ki `beforeEach` par shak tha,
+par asli jad `vitest.config.js` me thi:
 
 ```js
-const UPLOAD_ROOT = path.resolve(process.cwd(), 'apps/api/uploads')   // line 28 — ASLI folder
+// vitest.config.js — har test file pe lagti hai
+UPLOAD_DIR: './uploads',   // ← apps/api/uploads, dev ka ASLI folder
 
+// media.test.js
+const UPLOAD_ROOT = path.resolve(process.cwd(), 'apps/api/uploads')  // hardcoded
 beforeEach(async () => {
-  await rm(UPLOAD_ROOT, { recursive: true, force: true })             // line 108
+  await rm(UPLOAD_ROOT, { recursive: true, force: true })
 ```
 
-Ye dev ka **asli** upload folder hai, aur wo us file ke **har test se pehle** mit jaata hai.
-Yaani jo bhi `pnpm test` chalata hai — developer ho ya koi script — wo client ki saari
-uploaded files le jaata hai.
+Yaani do alag jagah ek hi asli folder pe point kar rahi thi: test me chalne wali **app**
+wahan likhti thi, aur **test** use har baar `rm -r` kar deta tha. Sirf test ka path badalna
+aadha fix hota — app phir bhi asli folder me likhti rehti.
 
 Lakshan isiliye itna uljha hua tha: **DB ke records bache rehte hain**, sirf files jaati
 hain. Admin ki Media list bhari hui dikhti hai, aur frontend pe wahi image 404 deti hai. Aur
@@ -216,24 +221,37 @@ kyunki files sirf tab jaati hain jab koi test chalata hai, client ko lagta tha k
 
 ⚠️ **Pehli theory galat thi.** Is par pehle `git clean -fdx` ka shak likha gaya tha
 (`uploads/` gitignored hai, to theory theek baithti thi). Wo galat tha — wajah repo ke apne
-test me hai. Purani theory par aage koi kaam mat karna.
+test setup me thi. Purani theory par aage koi kaam mat karna.
 
-Saath wali `storage.test.js` ye galti nahi karti — wo apna alag `apps/api/.test-uploads`
-banati hai. `media.test.js` me wahi ehtiyaat chhoot gayi.
+**Kya laga (2 Sep):**
 
-Do kaam karne hain, aur **dono** karne chahiye:
-
-| Kaam | Kyun |
+| Kaam | Kya hua |
 | --- | --- |
-| `media.test.js` ko apna throwaway folder do (jaise `storage.test.js`) | Ye asli bug hai. Test ko kabhi dev ke data ko haath nahi lagana chahiye |
-| `UPLOAD_DIR` repo ke **bahar** rakho (`C:Usersdeepacms-uploads`) | Doosri deewar — uske baad koi test, build ya `git clean` usse chhoo hi nahi sakta. D-41 absolute path pehle se allow karta hai |
+| `vitest.config.js` ka `UPLOAD_DIR` | ab `./.test-uploads-media` — test me chalne wali app asli folder ko chhooti hi nahi |
+| `media.test.js` ka `UPLOAD_ROOT` | ab `getStorageDriver().root` se aata hai, hardcoded nahi — jahan app likhti hai **theek wahi** saaf hota hai, dono drift kar hi nahi sakte |
+| Ek guard | root `.test-` se shuru na ho to file **chalne se pehle** throw karti hai — data mitne ke baad nahi |
+| `afterAll` cleanup | throwaway folder peeche nahi rehta; `.gitignore` me `.test-uploads*/` bhi juda |
 
-⚠️ Jo files ja chuki hain wo **wapas nahi aayengi** — disk se mit chuki hain aur git me thi
-nahi. Fix ke baad ek baar phir upload karni padengi.
+**Verify kiya:** poori suite (26 file · **624 test**) chalane ke baad `apps/api/uploads` ki
+files jaisi ki waisi bachi rahin, aur guard ki dono soorat alag se jaanchi gayi.
+
+**Ab bhi baaki — doosri deewar:** `apps/api/.env` me `UPLOAD_DIR` repo ke **bahar** ho
+(jaise `C:/Users/deepa/cms-uploads`). Uske baad koi test, build ya `git clean` usse chhoo hi
+nahi sakta. D-41 absolute path pehle se allow karta hai. Ye file permissions ki wajah se
+2 Sep ko nahi badli ja saki — client khud badlega, aur purani files nayi jagah move karni
+hongi.
+
+⚠️ Jo files pehle ja chuki hain wo **wapas nahi aayengi** — disk se mit chuki hain aur git
+me thi nahi. Ek baar phir upload karni padengi.
 
 Ek sabak bhi hai, aur wo D-42 §2 se juda hai: public API sirf **DB record** dekh kar `null`
 bhejti hai. Record maujood par file gayab — wo soorat wo pakad hi nahi sakti. Isiliye ye
 failure itni chup thi.
+
+Aur ek: **`storage.test.js` ne yahi galti nahi ki thi** kyunki wo apna folder khud banati
+hai. Farak sirf itna tha ki `media.test.js` app ko `createApp()` se chalati hai, aur app ka
+folder config se aata hai — isliye us file ko config se **judna** padta tha, na ki apna path
+likhna.
 
 ---
 

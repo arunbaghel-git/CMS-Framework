@@ -279,12 +279,17 @@ raha tha, jabki `PackagePage.jsx` use do jagah padhta hai. Client ki likhi cance
 policy page pe **kabhi** nahi aati thi. Wahi shakl jo D-64 wale transfer-duration bug ki
 thi: dono taraf ka code sahi dikhta hai, bas payload me field chhoot gaya tha.
 
-**2 Sep — `pnpm test` client ki uploaded images mita deta hai (A-16).** Wajah mil gayi:
-`media.test.js` ka `UPLOAD_ROOT` **asli** `apps/api/uploads` hai, aur wo har test se pehle
-`rm -r` ho jaata hai. DB ke records bache rehte hain, files jaati hain — isiliye admin me
-image dikhti hai par page pe 404. **Fix abhi kiya nahi gaya** — client ne agle session me
-karwane ko kaha. Do kaam: test ko apna folder do, aur `UPLOAD_DIR` repo ke bahar le jao.
-⚠️ Purani `git clean` wali theory **galat** thi.
+**2 Sep — `pnpm test` client ki uploaded images mita deta tha (A-16). ✅ Theek ho gaya.**
+Asli wajah `media.test.js` se **bhi badi** nikli: `vitest.config.js` har test ke liye
+`UPLOAD_DIR: './uploads'` set karti thi, yaani test me chalne wali app bhi dev ke **asli**
+folder me likhti thi — aur `media.test.js` ki `beforeEach` usi folder ko `rm -r` kar deti
+thi. DB ke records bache rehte the, files jaati thi — isiliye admin me image dikhti thi par
+page pe 404. Ab `UPLOAD_DIR` test me `./.test-uploads-media` hai, aur `media.test.js` ka
+`UPLOAD_ROOT` **app ke apne storage driver se** aata hai (hardcoded nahi) — jahan app
+likhti hai wahi saaf hota hai, dono alag ho hi nahi sakte. Ek guard bhi hai: root `.test-`
+se shuru na ho to file chalne se **pehle** phat-ti hai. ⚠️ Purani `git clean` wali theory
+**galat** thi. ⚠️ Jo files ja chuki hain wo wapas nahi aayengi.
+Doosri deewar abhi baaki hai — `apps/api/.env` me `UPLOAD_DIR` repo ke **bahar**.
 
 **Design frozen hai (R15)**: `docs/reference/admin-design.html` ke hisaab se hi banega, aur
 build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**. Jo farq abhi liye
