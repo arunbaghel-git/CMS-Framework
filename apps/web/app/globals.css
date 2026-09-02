@@ -2002,6 +2002,16 @@ a.mega__gl:hover {
   margin-top: 8px;
 }
 
+/*
+ * Din ka tag — `Arrival day`, `Ferry day`.
+ *
+ * Bracket **CSS se** aati hai, data se nahi (client, 2 Sep). Client admin me sirf
+ * `Arrival day` likhta hai; `(` aur `)` theme ka kaam hai. Data me likhwane ka matlab hota
+ * ki wo har din pe dobara likhi jaaye, aur ek din kisi par chhoot jaaye.
+ *
+ * ⚠️ Bracket `content` me hai, isliye wo **copy nahi hoti** aur screen reader use padhta bhi
+ * nahi — dono theek hai: wo sajaawat hai, matlab ka hissa nahi.
+ */
 .itin__k em {
   font-style: normal;
   display: block;
@@ -2009,6 +2019,14 @@ a.mega__gl:hover {
   color: var(--faint);
   font-weight: var(--fw-semi);
   margin-top: 2px;
+}
+
+.itin__k em::before {
+  content: '(';
+}
+
+.itin__k em::after {
+  content: ')';
 }
 
 .itin__c h3 {
@@ -2113,8 +2131,21 @@ a.mega__gl:hover {
     margin: 0;
   }
 
+  /*
+   * ⚠️ Reference yahan ise **chhupa** deta hai (`itinerary-v3.html` line 1054) — hum bhi
+   * chhupate the. Client ne 2 Sep ko kaha ki ye dikhna chahiye, dono screen pe.
+   *
+   * Chhupane ki wajah samajh aati hai: yahan `.itin__k` khadi list se ek **row** ban jaati
+   * hai, aur teesra tukda use tang kar deta tha. Bracket usi ka jawab hai — `Day 1 · Port
+   * Blair (Arrival day)` ek row me bhi padha jaata hai, kyunki bracket batati hai ki wo ek
+   * alag baat hai.
+   *
+   * `margin-top` hatana zaroori hai: yahan sab ek baseline pe hain, aur wo 2px use neeche
+   * khisak deta.
+   */
   .itin__k em {
-    display: none;
+    display: inline;
+    margin-top: 0;
   }
 }
 
@@ -3109,9 +3140,9 @@ a.mega__gl:hover {
     display: flex;
     flex-direction: column;
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 5px;
+    right: 5px;
+    bottom: 0px;
     z-index: 98;
     /*
      * `88vh` — poori screen nahi. Upar thodi si jhalak bachi rehni chahiye taaki dikhe ki
