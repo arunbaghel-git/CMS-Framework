@@ -139,10 +139,6 @@ export default function Lightbox({ images, startIndex = 0, onClose, title }) {
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <button className="lbx__x" type="button" onClick={onClose} aria-label="Close">
-        ✕
-      </button>
-
       {/*
        * ⚠️ Hover-pause **sirf image pe** hai, backdrop pe nahi.
        *
@@ -166,32 +162,48 @@ export default function Lightbox({ images, startIndex = 0, onClose, title }) {
          * Sirf yahi ek `<img>` hai — client ka faisla: "popup me ek time par ek image".
          */}
         <img key={image.url} src={image.url} alt={image.alt || title} />
+
+        {/*
+         * ⚠️ Saare controls **stage ke andar** hain, `.lbx` ke andar nahi (client, 2 Sep).
+         *
+         * Pehle ye `.lbx` ke seedhe bachche the, aur `.lbx` poori screen ghera hai — yaani
+         * arrows screen ke kinaron pe lagte the aur close upar-daayein kone me. Chaudi screen
+         * pe image beech me chhoti si hoti hai, aur wo buttons usse bahut door pad jaate the:
+         * close to aisa lagta tha jaise kisi aur cheez ka ho.
+         *
+         * Ab `.lbx__stage` positioning ka ghar hai (`position: relative`), aur uska naap
+         * **image ke naap ka** hai — to har button image ke apne kinare pe baithta hai, har
+         * screen pe.
+         */}
+        <button className="lbx__x" type="button" onClick={onClose} aria-label="Close">
+          ✕
+        </button>
+
+        {count > 1 && (
+          <>
+            <button
+              className="lbx__nav lbx__nav--prev"
+              type="button"
+              onClick={() => go(-1)}
+              aria-label="Previous image"
+            >
+              ‹
+            </button>
+            <button
+              className="lbx__nav lbx__nav--next"
+              type="button"
+              onClick={() => go(1)}
+              aria-label="Next image"
+            >
+              ›
+            </button>
+
+            <div className="lbx__count" aria-hidden="true">
+              {index + 1} / {count}
+            </div>
+          </>
+        )}
       </div>
-
-      {count > 1 && (
-        <>
-          <button
-            className="lbx__nav lbx__nav--prev"
-            type="button"
-            onClick={() => go(-1)}
-            aria-label="Previous image"
-          >
-            ‹
-          </button>
-          <button
-            className="lbx__nav lbx__nav--next"
-            type="button"
-            onClick={() => go(1)}
-            aria-label="Next image"
-          >
-            ›
-          </button>
-
-          <div className="lbx__count" aria-hidden="true">
-            {index + 1} / {count}
-          </div>
-        </>
-      )}
     </div>
   )
 }

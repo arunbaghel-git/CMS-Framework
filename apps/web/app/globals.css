@@ -1827,7 +1827,11 @@ a.mega__gl:hover {
   color: var(--faint);
   flex-shrink: 0;
 }
-
+@media (max-width: 760px) {
+  .route__s {
+    min-width: 105px;
+  }
+}
 /*
  * At-a-glance — chaar cell: Duration · Ferries · Hotels · Best season.
  *
@@ -1898,7 +1902,11 @@ a.mega__gl:hover {
   color: var(--blue-600);
   background: var(--blue-50);
 }
-
+@media (max-width: 760px) {
+  .dnav a {
+    padding: 7px 10px;
+  }
+}
 /*
  * Day-by-day timeline — reference (`.itin`) se poori tarah dobara likhi gayi. Pehle yahan
  * ek saadi do-column list thi: na baayin taraf ki rail, na uske circle, na "Day 1" ka neela
@@ -2107,6 +2115,7 @@ a.mega__gl:hover {
 
   .itin__k em {
     display: none;
+    
   }
 }
 
@@ -3789,6 +3798,14 @@ a.mega__gl:hover {
 }
 
 .lbx__stage {
+  /*
+   * ⚠️ Ye `relative` hi wo cheez hai jo controls ko image ke saath baandhti hai.
+   *
+   * Stage ka naap **image ke naap ka** hota hai (grid, `place-items: center`, aur andar ek hi
+   * `<img>`), isliye iske andar ke absolute buttons image ke apne kinaron pe baithte hain —
+   * screen ke kinaron pe nahi.
+   */
+  position: relative;
   max-width: min(1200px, 100%);
   max-height: 100%;
   display: grid;
@@ -3818,12 +3835,21 @@ a.mega__gl:hover {
   }
 }
 
+/*
+ * Controls ab **image ke upar** baithte hain, backdrop pe nahi — isliye unka rang badla.
+ *
+ * Pehle wo halke backdrop pe the aur ink ka rang kaafi tha. Ab wo kisi bhi photo ke upar aa
+ * sakte hain — safed reti, kaali chattan, kuch bhi. Isliye safed goli + gehra glyph + ek
+ * halki shadow: teenon milkar har photo pe dikhte hain.
+ */
 .lbx__x,
 .lbx__nav {
   position: absolute;
+  z-index: 2;
   border: 0;
-  background: rgba(17, 29, 43, 0.07);
+  background: rgba(255, 255, 255, 0.92);
   color: var(--ink);
+  box-shadow: 0 2px 10px rgb(17 29 43 / 22%);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -3835,24 +3861,25 @@ a.mega__gl:hover {
 
 .lbx__x:hover,
 .lbx__nav:hover {
-  background: rgba(17, 29, 43, 0.14);
+  background: #fff;
 }
 
 .lbx__x {
-  top: clamp(10px, 2vw, 22px);
-  right: clamp(10px, 2vw, 22px);
-  width: 42px;
-  height: 42px;
-  font-size: var(--fs-3xl);
+  /* Image ke apne kone se 10px — pehle ye screen ke kone se `clamp(10px, 2vw, 22px)` tha. */
+  top: 10px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  font-size: var(--fs-2xl);
 }
 
 .lbx__nav {
   top: 50%;
   transform: translateY(-50%);
-  width: 48px;
-  height: 48px;
-  /* Chevron glyph optically chhota hota hai — 30px pe wo 42px ke button me bharta hai */
-  font-size: 30px;
+  width: 42px;
+  height: 42px;
+  /* Chevron glyph optically chhota hota hai — 28px pe wo 42px ke button me bharta hai */
+  font-size: 28px;
   line-height: 1;
 }
 
@@ -3861,21 +3888,26 @@ a.mega__gl:hover {
 }
 
 .lbx__nav--prev {
-  left: clamp(8px, 2vw, 26px);
+  left: 10px;
 }
 
 .lbx__nav--next {
-  right: clamp(8px, 2vw, 26px);
+  right: 10px;
 }
 
 .lbx__count {
   position: absolute;
-  bottom: clamp(12px, 3vw, 26px);
+  z-index: 2;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  color: var(--ink);
-  background: rgba(17, 29, 43, 0.07);
-  padding: 6px 14px;
+  /*
+   * Gehri goli, safed text — ulta un buttons se. Ye ek **label** hai, control nahi; safed
+   * goli me wo unhi jaisa dikhta aur click karne laayak lagta.
+   */
+  color: #fff;
+  background: rgb(17 29 43 / 62%);
+  padding: 5px 12px;
   border-radius: 999px;
   font-size: var(--fs-xs);
   font-weight: var(--fw-bold);
@@ -3883,28 +3915,26 @@ a.mega__gl:hover {
 }
 
 /*
- * Chhoti screen pe arrows image ke upar aa jaate hain, isliye wo neeche chale jaate hain —
- * ek row me prev · counter · next. Swipe waise bhi chalta hai.
+ * Chhoti screen pe sab kuch chhota — par jagah wahi.
+ *
+ * ⚠️ Pehle yahan arrows image ke **neeche** ki patti me chale jaate the (prev · counter ·
+ * next ek row me). Wo tab zaroori tha jab wo screen ke kinaron pe the aur phone pe image ke
+ * upar aa jaate the. Ab wo image ke apne kinaron pe hain, to unhe hilane ki koi wajah nahi —
+ * aur unhe neeche le jaana counter ke saath takrav bana deta tha.
  */
 @media (max-width: 560px) {
+  .lbx__x,
   .lbx__nav {
-    top: auto;
-    bottom: clamp(12px, 3vw, 26px);
-    transform: none;
-    width: 42px;
-    height: 42px;
+    width: 34px;
+    height: 34px;
   }
 
-  .lbx__nav:hover {
-    transform: none;
+  .lbx__nav {
+    font-size: 24px;
   }
 
-  .lbx__nav--prev {
-    left: 22%;
-  }
-
-  .lbx__nav--next {
-    right: 22%;
+  .lbx__x {
+    font-size: var(--fs-lg);
   }
 }
 
