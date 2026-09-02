@@ -332,7 +332,16 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
            * | --- | --- | --- |
            * | saada | `Get this itinerary →` | teer sirf yahin — wo "aage badho" kehta hai |
            * | bhej raha | `Sending…` | teer hata, warna wo abhi bhi click karne ko kehta lagta |
-           * | ho gaya | `✓` + admin ka thank-you | `disabled`, taaki dobara na jaaye |
+           * | ho gaya | admin ka thank-you, **jaisa ka waisa** | `disabled`, taaki dobara na jaaye |
+           *
+           * ⚠️ Admin ke likhe text ke aage-peeche theme **kuch nahi jodta** (client, 2 Sep).
+           * Pehle yahan ek `✓` laga diya gaya tha; wo chhoti si cheez thi par ghalat lakeer
+           * pe thi — jo box client ko "Thank-you message" kehke diya gaya hai, usme jo likha
+           * hai wahi chhapna chahiye, na uska kaata hua roop na uska sajaya hua.
+           *
+           * Fallback tabhi chalta hai jab wo box **khaali** ho, aur uska text reference ka
+           * apna hai (`Sent ✓ We will call you shortly`) — us haalat me kuch to kehna hi
+           * padta hai, warna button pe sirf khaali jagah bachti.
            *
            * `btn--sent` sirf ek kaam karta hai — text ko **wrap hone deta hai**. `.btn` pe
            * `white-space: nowrap` hai (label ek shabd ka hota hai), par thank-you ek poora
@@ -344,7 +353,7 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
             disabled={state.sending || state.done}
           >
             {state.done ? (
-              <>✓ {form.afterSubmit?.value || 'Sent — we will call you shortly.'}</>
+              (form.afterSubmit?.value ?? '').trim() || 'Sent ✓ We will call you shortly'
             ) : state.sending ? (
               'Sending…'
             ) : (

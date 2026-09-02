@@ -2330,7 +2330,7 @@ a.mega__gl:hover {
   gap: clamp(18px, 2.4vw, 32px);
   align-items: start;
   /* `.pkg__hero` wali hi wajah — ye bhi `.wrap` hai, isliye shorthand nahi (upar dekho) */
-  padding-block: clamp(18px, 2.4vw, 28px) 64px;
+  padding-block: clamp(18px, 2.4vw, 46px) 46px;
 }
 
 .pgl__main {
@@ -2966,6 +2966,7 @@ a.mega__gl:hover {
 
 .bkg__t span {
   font-size: var(--fs-3xs);
+  display: block;
   font-weight: var(--fw-bold);
 }
 
