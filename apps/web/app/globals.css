@@ -3890,9 +3890,6 @@ a.mega__gl:hover {
   transform: translateY(-50%);
   width: 42px;
   height: 42px;
-  /* Chevron glyph optically chhota hota hai — 28px pe wo 42px ke button me bharta hai */
-  font-size: 28px;
-  line-height: 1;
 }
 
 .lbx__nav:hover {
@@ -3947,7 +3944,6 @@ a.mega__gl:hover {
     transform: none;
     width: 38px;
     height: 38px;
-    font-size: 24px;
   }
 
   .lbx__nav:hover {

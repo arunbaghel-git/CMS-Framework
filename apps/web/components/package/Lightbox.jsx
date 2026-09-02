@@ -3,6 +3,35 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 /**
+ * Prev/next ka teer — **SVG, glyph nahi** (client, 2 Sep: "arrow center me nahi hai").
+ *
+ * Pehle yahan `‹` aur `›` characters the. `place-items: center` unke **box** ko center karta
+ * hai, par glyph us box ke andar khud off-center bana hota hai: in dono characters ke
+ * side-bearings barabar nahi hote, aur unki baseline unhe thoda upar bhi rakhti hai. Nateeja —
+ * gol button me teer hamesha thoda khiska hua dikhta hai, aur wo har font pe alag khiskata
+ * hai.
+ *
+ * SVG me aisa nahi hota: path viewBox ke beech me khud khinchta hai, aur wo har font aur har
+ * platform pe wahi rehta hai. Yahi wajah hai ki poore theme me baaki teer bhi SVG hain
+ * (`.route__a`, `.prow__go`, `Chevron` in `PackagePage`) — ye us kram me aakhri jagah thi.
+ */
+const Chevron = ({ back = false }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d={back ? 'm15 6-6 6 6 6' : 'm9 6 6 6-6 6'} />
+  </svg>
+)
+
+/**
  * Hero ki image pe click karne pe khulne wala popup — client ka faisla, 31 Aug.
  *
  * **Ek waqt pe ek image**, aur 4 second baad apne aap agli. Slide me **saari** images
@@ -187,7 +216,7 @@ export default function Lightbox({ images, startIndex = 0, onClose, title }) {
               onClick={() => go(-1)}
               aria-label="Previous image"
             >
-              ‹
+              <Chevron back />
             </button>
             <button
               className="lbx__nav lbx__nav--next"
@@ -195,7 +224,7 @@ export default function Lightbox({ images, startIndex = 0, onClose, title }) {
               onClick={() => go(1)}
               aria-label="Next image"
             >
-              ›
+              <Chevron />
             </button>
 
             <div className="lbx__count" aria-hidden="true">
