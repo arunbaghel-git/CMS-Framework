@@ -2239,7 +2239,7 @@ a.mega__gl:hover {
  * me is naap pe itinerary ka koi rule hai hi nahi.
  */
 @media (max-width: 760px) {
-  .steps{
+  .steps {
     padding-left: 0px;
   }
   .inx {
@@ -2820,34 +2820,54 @@ a.mega__gl:hover {
  * left-aligned. Isliye teenon 1080px pe hain.
  */
 @media (max-width: 1080px) {
+  /*
+   * Dono daam ek hi line me, aur **asli daam pehle** (client, 2 Sep):
+   *
+   *   ₹24,999  ₹31,499
+   *   per person · twin sharing
+   *   [ Get this itinerary ]
+   *
+   * Yahan `.ptitle` ek column ka ho jaata hai, to price block ko poori chaudai mil jaati hai.
+   * `b` pe `display: block` tha, isliye har tukda apni line leta tha aur chaudi jagah khaali
+   * padi rehti thi.
+   *
+   * ⚠️ **Kram sirf dikhne me palta hai, HTML me nahi.** Markup me aaj bhi `<del>` pehle hai,
+   * phir `<b>` — aur wo sahi hai: padhne ka kram "purana daam, phir naya" hi hona chahiye,
+   * aur screen reader wahi sunayega. Markup palatne se wo kram bhi palat jaata, aur wo
+   * **dono** breakpoint pe lagta — desktop ka stacked roop bhi badal jaata, jo client ne
+   * maanga hi nahi tha.
+   *
+   * `align-items: baseline` isliye ki dono daam ka naap bahut alag hai (38px vs 14px) —
+   * `center` pe chhota wala bade number ke beech me taairta hai.
+   */
   .ptitle__p {
     text-align: left;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+  }
+
+  .ptitle__p b {
+    order: 1;
+  }
+
+  .ptitle__p del {
+    order: 2;
   }
 
   /*
-   * Dono daam **ek hi line me** (client, 2 Sep) — `₹31,499  ₹24,999`.
-   *
-   * Yahan `.ptitle` ek column ka ho jaata hai, to price block ko poori chaudai mil jaati hai.
-   * `b` pe `display: block` tha, isliye kaata hua daam apni line leta tha aur asli daam apni —
-   * chaudi jagah khaali padi rehti thi aur block bekaar lamba ho jaata tha.
-   *
-   * `inline-block` (`inline` nahi) isliye ki `b` ka apna `line-height: 1.05` bana rahe; plain
-   * inline pe wo line box ke saath khinch jaata hai aur bade number ke upar-neeche jagah aa
-   * jaati hai.
-   *
-   * ⚠️ Gap `del + b` pe hai, akele `b` pe nahi — kaata hua daam **optional** hai (jab
-   * `strikePrice` na ho to `<del>` render hi nahi hota), aur tab ek bekaar ka 8px indent
-   * bachta.
+   * `flex-basis: 100%` ise apni poori line de deta hai — yaani daam ke baad wala sab neeche
+   * chala jaata hai. Button ko alag se kuch nahi chahiye: wo iske baad wrap ho kar apni line
+   * pe aa jaata hai, aur `width: auto` se apne content jitna hi chauda rehta hai.
    */
-  .ptitle__p b {
-    display: inline-block;
-  }
-
-  .ptitle__p del + b {
-    margin-left: 8px;
+  .ptitle__p span {
+    order: 3;
+    flex-basis: 100%;
   }
 
   .ptitle__p .btn {
+    order: 4;
     width: auto;
   }
 }
@@ -3768,7 +3788,7 @@ a.mega__gl:hover {
   z-index: 100;
   display: grid;
   place-items: center;
-  /* background: rgba(255, 255, 255, 0.94); i asked to remove not replace */
+  background: rgba(255, 255, 255, 0.94);
   padding: clamp(12px, 4vw, 48px);
   /* Backdrop khud focus le sakta hai (Esc/arrows ke liye) — par ring nahi dikhni chahiye */
   outline: none;
