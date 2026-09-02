@@ -2977,6 +2977,170 @@ a.mega__gl:hover {
    Isliye tokens page ke hain, par shakl yahin tay hui hai.
    ================================================================== */
 
+/* ---------- mobile ki neeche wali patti ----------
+   Reference: itinerary-v3.html — `.mobar`
+
+   Call · WhatsApp · Get free quote — teen cheezein jo phone pe hamesha angoothe ke paas
+   rehni chahiye. 760px se upar ye dikhti hi nahi.
+
+   ⚠️ Reference me classes `.p` aur `.w` hain (ek akshar). Yahan `.mobar__cta` aur
+   `.mobar__wa` hain — wahi lakeer jo `.b` → `.btn` pe li gayi thi: is repo me class ka naam
+   padha jaana chahiye.
+
+   ⚠️ Reference me teenon `<a>` hain. Yahan teesra `<button>` hai, kyunki wo kahin le nahi
+   jaata — wo isi page pe sheet kholta hai. Isiliye selector `> *` hai, `a` nahi. */
+
+.mobar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 96;
+  /* Sirf mobile pe grid banti hai — neeche wali media query me. */
+  display: none;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -4px 18px rgb(17 29 43 / 10%);
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 7px;
+  /*
+   * `env(safe-area-inset-bottom)` — iPhone ke home indicator ki patti. Bina iske aakhri
+   * button us patti ke neeche chala jaata hai aur uspe ungli lagti hi nahi.
+   */
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+}
+
+.mobar > * {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 7px 3px;
+  border: 0;
+  border-radius: var(--r2);
+  font: inherit;
+  font-size: var(--fs-4xs);
+  font-weight: var(--fw-heading);
+  color: var(--ink-2);
+  background: none;
+  cursor: pointer;
+}
+
+/* WhatsApp ka apna hara — brand ka rang hai, theme ka nahi, isliye seedha likha hai. */
+.mobar__wa {
+  background: #25d366;
+  color: #fff;
+}
+
+.mobar__cta {
+  background: var(--orange-500);
+  color: #fff;
+  /* Icon nahi hai, sirf text — isliye ek row me aur thoda bada. */
+  flex-direction: row;
+  gap: 6px;
+  font-size: var(--fs-md);
+}
+
+/* Sheet ke peeche ka parda — Lightbox wale backdrop jaisa hi. */
+.mosheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 97;
+  background: rgb(8 20 34 / 55%);
+}
+
+/* Sheet ka close — sirf mobile pe dikhta hai (JSX hi use tab render karta hai). */
+.wdg__x {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  background: rgb(255 255 255 / 16%);
+  color: #fff;
+}
+
+.wdg__x:hover {
+  background: rgb(255 255 255 / 28%);
+}
+
+@media (max-width: 760px) {
+  .mobar {
+    display: grid;
+  }
+
+  /*
+   * Patti page ke aakhri content ko dhak leti hai — utni jagah neeche chhod do.
+   * Reference me bhi `body { padding-bottom: 70px }` hai.
+   */
+  body {
+    padding-bottom: 70px;
+  }
+
+  /*
+   * "Talk to a planner" chhup jaata hai — uske contact ab patti me hain (client, 2 Sep).
+   *
+   * `:not(.wdg--book)` isliye ki enquiry form bhi `.wdg` hai, aur wo chhupta nahi — wo sheet
+   * ban jaata hai (neeche).
+   */
+  .pgl__side .wdg:not(.wdg--book) {
+    display: none;
+  }
+
+  /*
+   * Form band haalat me **hai hi nahi**, aur khulne pe neeche se ek sheet ban jaata hai.
+   *
+   * ⚠️ Ye wahi ek DOM node hai jo desktop pe sidebar me baithta hai — dobara render nahi
+   * hota. Do copies ka matlab hota do alag form state: user kuch bharta, screen ghumati, aur
+   * bhara hua gayab.
+   */
+  .wdg--book {
+    display: none;
+  }
+
+  .wdg--book.is-open {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 98;
+    /*
+     * `88vh` — poori screen nahi. Upar thodi si jhalak bachi rehni chahiye taaki dikhe ki
+     * ye ek parat hai, aur "peeche wapas jaana hai to yahan tap karo" apne aap samajh aaye.
+     */
+    max-height: 88vh;
+    border-radius: var(--r4) var(--r4) 0 0;
+    box-shadow: 0 -8px 30px rgb(8 20 34 / 28%);
+  }
+
+  /*
+   * Neela sar **chipka rehta hai**, fields uske neeche scroll karte hain.
+   *
+   * Client ne poochha tha ki poora form ek screen me aayega ya nahi — nahi aata (price header
+   * + saat field + button + footnote lagbhag 700-800px hai, aur phone ~640px). To scroll
+   * karna hi tha; sawaal sirf ye tha ki **kya** scroll kare. Daam upar rehna chahiye: wahi wo
+   * cheez hai jiske liye user form bhar raha hai.
+   */
+  .wdg--book.is-open .bkg__t {
+    flex: none;
+  }
+
+  .wdg--book.is-open .bkg__b {
+    overflow-y: auto;
+    /* iPhone ke home indicator ke neeche button chala na jaaye. */
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
 /* ---------- sidebar ka enquiry form ----------
    Reference: itinerary-v3.html — `.wdg--book` `.bkg__t` `.bkg__b` `.fld`
 

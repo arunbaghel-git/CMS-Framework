@@ -3,8 +3,10 @@ import { PACKAGE_SECTION_DEFAULTS, isEmptyDoc } from '@cms/shared'
 import { Fragment } from 'react'
 
 import CtaSection from './CtaSection.jsx'
+import { EnquiryDockProvider } from './EnquiryDock.jsx'
 import EnquiryForm from './EnquiryForm.jsx'
 import Gallery from './Gallery.jsx'
+import MobileBar from './MobileBar.jsx'
 import Planner from './Planner.jsx'
 import {
   AddOns,
@@ -336,427 +338,449 @@ export default function PackagePage({ entry, defaults, settings }) {
 
   return (
     <CategoryProvider pricing={entry.pricing} currency={settings?.currency ?? 'INR'}>
-      <main className="pkg">
-        {/*
-         * Structured data — reference ke `@graph` se (breadcrumb · trip · FAQs).
-         *
-         * `<main>` ke andar hai, `<head>` me nahi: Next ke App Router me `generateMetadata`
-         * se `<script>` nahi nikalti, aur JSON-LD body me bilkul valid hai (Google khud yahi
-         * kehta hai). Yahan hone ka ek faayda aur hai — jo data page render karta hai wahi
-         * schema ko milta hai, do alag fetch nahi.
-         */}
-        <Schema
-          entry={entry}
-          defaults={defaults}
-          settings={settings}
-          breadcrumbs={[
-            { name: 'Home', path: '/' },
-            { name: ARCHIVE_CRUMB.label, path: ARCHIVE_CRUMB.href },
-            { name: entry.title, path: entry.path },
-          ]}
-        />
+      {/*
+       * `EnquiryDockProvider` `<main>` ke **bahar** hai, jaan-boojh kar.
+       *
+       * Mobile pe enquiry form ek sheet ban jaata hai aur use `.mobar` kholti hai — aur wo
+       * bar `<main>` ke bahar baithti hai (wo poore viewport se chipki hui hai, page ke
+       * content ka hissa nahi). Provider ko andar rakhne se bar ko wo state milti hi nahi.
+       */}
+      <EnquiryDockProvider>
+        <main className="pkg">
+          {/*
+           * Structured data — reference ke `@graph` se (breadcrumb · trip · FAQs).
+           *
+           * `<main>` ke andar hai, `<head>` me nahi: Next ke App Router me `generateMetadata`
+           * se `<script>` nahi nikalti, aur JSON-LD body me bilkul valid hai (Google khud yahi
+           * kehta hai). Yahan hone ka ek faayda aur hai — jo data page render karta hai wahi
+           * schema ko milta hai, do alag fetch nahi.
+           */}
+          <Schema
+            entry={entry}
+            defaults={defaults}
+            settings={settings}
+            breadcrumbs={[
+              { name: 'Home', path: '/' },
+              { name: ARCHIVE_CRUMB.label, path: ARCHIVE_CRUMB.href },
+              { name: entry.title, path: entry.path },
+            ]}
+          />
 
-        {/* Order reference ka hai: breadcrumb → .gal → .ptitle → body. */}
-        <nav className="wrap vcrumb" aria-label="Breadcrumb">
-          <a href="/">Home</a>
-          <i>›</i>
-          <a href={ARCHIVE_CRUMB.href}>{ARCHIVE_CRUMB.label}</a>
-          <i>›</i>
-          <b>{entry.title}</b>
-        </nav>
+          {/* Order reference ka hai: breadcrumb → .gal → .ptitle → body. */}
+          <nav className="wrap vcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <i>›</i>
+            <a href={ARCHIVE_CRUMB.href}>{ARCHIVE_CRUMB.label}</a>
+            <i>›</i>
+            <b>{entry.title}</b>
+          </nav>
 
-        <div className="wrap pkg__gal">
-          <Gallery images={gallery} banner={entry.banner} title={entry.title} />
-        </div>
-
-        {/*
-         * Reference me `.ptitle` ek andar ka div hai aur `.catbar` uska **bhai** — dono
-         * hero section ke andar. Pehle `.ptitle` khud section pe tha (tab uske do hi bachche
-         * the); catbar ko us grid ka teesra bachcha banane se do-column layout toot jaata.
-         */}
-        <section className="pkg__hero wrap">
-          <div className="ptitle">
-            <div>
-              {/*
-               * Teen tukde, aur beech me divider — par **koi bhi gayab ho sakta hai**.
-               *
-               * Pehle ye `{a && <i/>}` wali shart se juda hua tha, aur do tukdon pe wo chal
-               * jaata hai. Teesra judte hi wo galat ho jaata: rating ho aur stays na ho to
-               * ek divider bina kisi ke aage-peeche khada dikhta. Isliye ab list se banta hai
-               * — divider **hamesha** do maujood tukdon ke beech aata hai, kyunki khaali
-               * tukde list me pahunchte hi nahi.
-               *
-               * Yahi shakl D-64 wale transfer-chip bug ki thi: shart aur maal ek saath likhe
-               * gaye the.
-               */}
-              <div className="pmeta">
-                {[
-                  /** `4.9 ★ 412 traveller reviews` — `packageDefaults.rating` se (client, 1 Sep) */
-                  rating?.value ? <HeroRating key="rating" rating={rating} /> : null,
-                  stays ? (
-                    <span className="t" key="stays">
-                      <Pin />
-                      {stays}
-                    </span>
-                  ) : null,
-                  length ? (
-                    <span className="t" key="length">
-                      <Clock />
-                      {length}
-                    </span>
-                  ) : null,
-                ]
-                  .filter(Boolean)
-                  .map((node, i) => (
-                    <Fragment key={node.key}>
-                      {i > 0 && <i className="pmeta__d" />}
-                      {node}
-                    </Fragment>
-                  ))}
-              </div>
-
-              {/*
-               * Reference ka title do rang me hai — `Discover Andaman — <em>5 Nights / 6
-               * Days</em>` — aur `<em>` wala hissa **derive** hota hai (`nights`/`days` se),
-               * title field me nahi likha hota. Wahi soch jo D-58/D-60 me hai: jo package pe
-               * pehle se hai use dobara mat poochho.
-               */}
-              <h1>
-                {entry.title}
-                {titleLength && (
-                  <>
-                    {' '}
-                    — <em>{titleLength}</em>
-                  </>
-                )}
-              </h1>
-
-              {fields.shortDescription && <p className="pintro">{fields.shortDescription}</p>}
-
-              {/*
-               * `bestFor` yahan **nahi** hai. Wo listing card ka field hai (`tour-v3.html`) —
-               * `Best for <b>first-timers on a short break</b>` — package page ka nahi (D-55).
-               */}
-            </div>
-
-            <PriceBlock />
+          <div className="wrap pkg__gal">
+            <Gallery images={gallery} banner={entry.banner} title={entry.title} />
           </div>
 
-          <CatBar hotels={entry.hotels} />
-        </section>
-
-        <div className="wrap pgl">
-          <div className="pgl__main">
-            <section className="blk" id="overview">
-              <SectionHead label={labels.overview} />
-              <RichText content={entry.content} />
-
-              {entry.routeStrip.length > 0 && (
-                <div className="route">
-                  {/*
-                   * ⚠️ Card aur teer **sidhe `.route` ke bachche** hain, kisi wrapper ke andar
-                   * nahi — reference me bhi wahi hai.
-                   *
-                   * Pehle har jodi (teer + card) ek `.route__leg` div me thi. Wo sirf `key`
-                   * rakhne ki suvidha ke liye thi, par usne layout badal diya: `.route` ka
-                   * `flex-wrap` phir **poori jodi** ko ek unit maanta tha, aur mobile pe wo
-                   * jodiyan theek se nahi tootti thin (client, 2 Sep).
-                   *
-                   * `Fragment` se wahi `key` mil jaati hai aur DOM me koi extra box nahi
-                   * banta — har card aur har teer alag-alag wrap hota hai, design ki tarah.
-                   */}
-                  {entry.routeStrip.map((leg, i) => (
-                    <Fragment key={`${leg.stayId}-${leg.from}`}>
-                      {/*
-                       * Do stay ke beech ka teer. `.route__a` ki CSS pehle se thi par andar
-                       * SVG kabhi daala hi nahi gaya — div khaali tha, isliye page pe cards
-                       * ek doosre se juda hue nahi, bas alag-alag dikhte the.
-                       */}
-                      {i > 0 && (
-                        <div className="route__a" aria-hidden="true">
-                          <Chevron />
-                        </div>
-                      )}
-                      <div className="route__s">
-                        <span>
-                          {leg.nights === 1 ? `Night ${leg.from}` : `Nights ${leg.from}–${leg.to}`}
-                        </span>
-                        <b>{leg.stay?.name ?? '—'}</b>
-                      </div>
-                    </Fragment>
-                  ))}
-                </div>
-              )}
-
-              <div className="atg">
-                {length && (
-                  <div>
-                    <span>Duration</span>
-                    <b>{length}</b>
-                  </div>
-                )}
-                {fields.ferriesNote && (
-                  <div>
-                    <span>Ferries</span>
-                    <b>{fields.ferriesNote}</b>
-                  </div>
-                )}
-                {entry.pricing?.categoryPricing?.length > 0 && (
-                  <div>
-                    <span>Hotels</span>
-                    {/* Chuni hui category ke saath badalta hai — reference ka `js-cat-tag` */}
-                    <HotelsTag />
-                  </div>
-                )}
-                {fields.bestSeason && (
-                  <div>
-                    <span>Best season</span>
-                    <b>{fields.bestSeason}</b>
-                  </div>
-                )}
+          {/*
+           * Reference me `.ptitle` ek andar ka div hai aur `.catbar` uska **bhai** — dono
+           * hero section ke andar. Pehle `.ptitle` khud section pe tha (tab uske do hi bachche
+           * the); catbar ko us grid ka teesra bachcha banane se do-column layout toot jaata.
+           */}
+          <section className="pkg__hero wrap">
+            <div className="ptitle">
+              <div>
                 {/*
-                 * ⚠️ `Type` reference me **hai hi nahi** — wahan chaar cell hain aur `.atg`
-                 * ka grid `repeat(4, 1fr)` hai. Isliye ye sabse aakhir me hai: pehli row
-                 * hubahu design jaisi rehti hai, aur ye paanchwa cell akela doosri row me
-                 * jaata hai. Client se poochha gaya hai ki ise rakhein ya hata dein.
+                 * Teen tukde, aur beech me divider — par **koi bhi gayab ho sakta hai**.
+                 *
+                 * Pehle ye `{a && <i/>}` wali shart se juda hua tha, aur do tukdon pe wo chal
+                 * jaata hai. Teesra judte hi wo galat ho jaata: rating ho aur stays na ho to
+                 * ek divider bina kisi ke aage-peeche khada dikhta. Isliye ab list se banta hai
+                 * — divider **hamesha** do maujood tukdon ke beech aata hai, kyunki khaali
+                 * tukde list me pahunchte hi nahi.
+                 *
+                 * Yahi shakl D-64 wale transfer-chip bug ki thi: shart aur maal ek saath likhe
+                 * gaye the.
                  */}
-                {entry.packageTypes.length > 0 && (
-                  <div>
-                    <span>Type</span>
-                    <b>{entry.packageTypes.map((t) => t.name).join(' · ')}</b>
-                  </div>
-                )}
+                <div className="pmeta">
+                  {[
+                    /** `4.9 ★ 412 traveller reviews` — `packageDefaults.rating` se (client, 1 Sep) */
+                    rating?.value ? <HeroRating key="rating" rating={rating} /> : null,
+                    stays ? (
+                      <span className="t" key="stays">
+                        <Pin />
+                        {stays}
+                      </span>
+                    ) : null,
+                    length ? (
+                      <span className="t" key="length">
+                        <Clock />
+                        {length}
+                      </span>
+                    ) : null,
+                  ]
+                    .filter(Boolean)
+                    .map((node, i) => (
+                      <Fragment key={node.key}>
+                        {i > 0 && <i className="pmeta__d" />}
+                        {node}
+                      </Fragment>
+                    ))}
+                </div>
+
+                {/*
+                 * Reference ka title do rang me hai — `Discover Andaman — <em>5 Nights / 6
+                 * Days</em>` — aur `<em>` wala hissa **derive** hota hai (`nights`/`days` se),
+                 * title field me nahi likha hota. Wahi soch jo D-58/D-60 me hai: jo package pe
+                 * pehle se hai use dobara mat poochho.
+                 */}
+                <h1>
+                  {entry.title}
+                  {titleLength && (
+                    <>
+                      {' '}
+                      — <em>{titleLength}</em>
+                    </>
+                  )}
+                </h1>
+
+                {fields.shortDescription && <p className="pintro">{fields.shortDescription}</p>}
+
+                {/*
+                 * `bestFor` yahan **nahi** hai. Wo listing card ka field hai (`tour-v3.html`) —
+                 * `Best for <b>first-timers on a short break</b>` — package page ka nahi (D-55).
+                 */}
               </div>
-            </section>
 
-            {(entry.itinerary.length > 0 || wrote('itinerary')) && (
-              <section className="blk" id="itinerary">
-                {/*
-                 * Ye line pehle static thi, aur uspe likha tha: "isme ek vaada hai
-                 * (Replanning is free) jo har client pe sach nahi hoga — jis din ise
-                 * badalne ki zaroorat pade, ye `packageDefaults` ka field banegi."
-                 * Wo din aa gaya (Q-9, 31 Aug) — ab wo field hai.
-                 */}
-                <SectionHead label={labels.itinerary} />
+              <PriceBlock />
+            </div>
 
-                <div className="dnav">
-                  {entry.itinerary.map((day, i) => (
-                    <a href={`#day${i + 1}`} key={day.id ?? i}>
-                      Day {i + 1}
-                      {day.stay ? ` · ${day.stay.name}` : ''}
-                    </a>
-                  ))}
-                </div>
+            <CatBar hotels={entry.hotels} />
+          </section>
 
-                <ol className="itin">
-                  {entry.itinerary.map((day, i) => (
-                    <li className="itin__d" id={`day${i + 1}`} key={day.id ?? i}>
-                      <div className="itin__k">
-                        <b>Day {i + 1}</b>
-                        {day.stay && <span>{day.stay.name}</span>}
-                        {day.dayTag && <em>{day.dayTag}</em>}
-                      </div>
-                      <div className="itin__c">
-                        <h3>{day.title}</h3>
-                        {dayBlocks(day.description).map((block, bi) =>
-                          block.type === 'list' ? (
-                            <ul className="itin__l" key={bi}>
-                              {block.items.map((line) => (
-                                <li key={line}>{line}</li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p key={bi}>{block.text}</p>
-                          ),
-                        )}
+          <div className="wrap pgl">
+            <div className="pgl__main">
+              <section className="blk" id="overview">
+                <SectionHead label={labels.overview} />
+                <RichText content={entry.content} />
 
-                        {dayChips(day).length > 0 && (
-                          <div className="itin__m">
-                            {dayChips(day).map((chip) => (
-                              <span key={chip.text}>
-                                {chip.emoji ? (
-                                  <span aria-hidden="true">{chip.emoji}</span>
-                                ) : (
-                                  <ChipIcon name={chip.icon} />
-                                )}
-                                {chip.text}
-                              </span>
-                            ))}
+                {entry.routeStrip.length > 0 && (
+                  <div className="route">
+                    {/*
+                     * ⚠️ Card aur teer **sidhe `.route` ke bachche** hain, kisi wrapper ke andar
+                     * nahi — reference me bhi wahi hai.
+                     *
+                     * Pehle har jodi (teer + card) ek `.route__leg` div me thi. Wo sirf `key`
+                     * rakhne ki suvidha ke liye thi, par usne layout badal diya: `.route` ka
+                     * `flex-wrap` phir **poori jodi** ko ek unit maanta tha, aur mobile pe wo
+                     * jodiyan theek se nahi tootti thin (client, 2 Sep).
+                     *
+                     * `Fragment` se wahi `key` mil jaati hai aur DOM me koi extra box nahi
+                     * banta — har card aur har teer alag-alag wrap hota hai, design ki tarah.
+                     */}
+                    {entry.routeStrip.map((leg, i) => (
+                      <Fragment key={`${leg.stayId}-${leg.from}`}>
+                        {/*
+                         * Do stay ke beech ka teer. `.route__a` ki CSS pehle se thi par andar
+                         * SVG kabhi daala hi nahi gaya — div khaali tha, isliye page pe cards
+                         * ek doosre se juda hue nahi, bas alag-alag dikhte the.
+                         */}
+                        {i > 0 && (
+                          <div className="route__a" aria-hidden="true">
+                            <Chevron />
                           </div>
                         )}
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
+                        <div className="route__s">
+                          <span>
+                            {leg.nights === 1
+                              ? `Night ${leg.from}`
+                              : `Nights ${leg.from}–${leg.to}`}
+                          </span>
+                          <b>{leg.stay?.name ?? '—'}</b>
+                        </div>
+                      </Fragment>
+                    ))}
+                  </div>
+                )}
 
-            {/*
-             * Kram reference ka hai: day-by-day → hotels → add-ons → what's included.
-             *
-             * Dono apne aap gayab ho jaate hain jab unka data nahi hota — khaali section
-             * "abhi nahi bana" nahi, "toota hua" lagta hai.
-             */}
-            <HotelsSection hotels={entry.hotels} label={labels.hotels} />
-            <AddOns addOns={entry.addOns} label={labels.addOns} />
-
-            {(included.length > 0 || excluded.length > 0 || wrote('included')) && (
-              <section className="blk" id="included">
-                <SectionHead label={labels.included} />
-                <div className="inx">
-                  {included.length > 0 && (
-                    <div className="inx__c">
-                      <h3>Included</h3>
-                      <ul className="tick">
-                        {included.map((line) => (
-                          <li key={line}>
-                            <Tick />
-                            {line}
-                          </li>
-                        ))}
-                      </ul>
+                <div className="atg">
+                  {length && (
+                    <div>
+                      <span>Duration</span>
+                      <b>{length}</b>
                     </div>
                   )}
-                  {excluded.length > 0 && (
-                    <div className="inx__c no">
-                      <h3>Not included</h3>
-                      <ul className="tick no">
-                        {excluded.map((line) => (
-                          <li key={line}>
-                            <Cross />
-                            {line}
-                          </li>
-                        ))}
-                      </ul>
+                  {fields.ferriesNote && (
+                    <div>
+                      <span>Ferries</span>
+                      <b>{fields.ferriesNote}</b>
+                    </div>
+                  )}
+                  {entry.pricing?.categoryPricing?.length > 0 && (
+                    <div>
+                      <span>Hotels</span>
+                      {/* Chuni hui category ke saath badalta hai — reference ka `js-cat-tag` */}
+                      <HotelsTag />
+                    </div>
+                  )}
+                  {fields.bestSeason && (
+                    <div>
+                      <span>Best season</span>
+                      <b>{fields.bestSeason}</b>
+                    </div>
+                  )}
+                  {/*
+                   * ⚠️ `Type` reference me **hai hi nahi** — wahan chaar cell hain aur `.atg`
+                   * ka grid `repeat(4, 1fr)` hai. Isliye ye sabse aakhir me hai: pehli row
+                   * hubahu design jaisi rehti hai, aur ye paanchwa cell akela doosri row me
+                   * jaata hai. Client se poochha gaya hai ki ise rakhein ya hata dein.
+                   */}
+                  {entry.packageTypes.length > 0 && (
+                    <div>
+                      <span>Type</span>
+                      <b>{entry.packageTypes.map((t) => t.name).join(' · ')}</b>
                     </div>
                   )}
                 </div>
               </section>
-            )}
 
-            {(steps.length > 0 || defaults?.cancellationText || wrote('booking')) && (
-              <section className="blk" id="booking">
-                <SectionHead label={labels.booking} />
+              {(entry.itinerary.length > 0 || wrote('itinerary')) && (
+                <section className="blk" id="itinerary">
+                  {/*
+                   * Ye line pehle static thi, aur uspe likha tha: "isme ek vaada hai
+                   * (Replanning is free) jo har client pe sach nahi hoga — jis din ise
+                   * badalne ki zaroorat pade, ye `packageDefaults` ka field banegi."
+                   * Wo din aa gaya (Q-9, 31 Aug) — ab wo field hai.
+                   */}
+                  <SectionHead label={labels.itinerary} />
 
-                {steps.length > 0 && (
-                  <ol className="steps">
-                    {steps.map((step, i) => (
-                      <li key={step.id ?? i}>
-                        {/*
-                         * Number wala neela circle `li::before` se aata hai (CSS counter) —
-                         * isliye `<li>` ka apna content ek div me lapeta hua hai, warna
-                         * flex me title aur text circle ke bagal me alag-alag baith jaate.
-                         */}
-                        <div>
-                          <b>{step.title}</b>
-                          {step.text && <p>{step.text}</p>}
+                  <div className="dnav">
+                    {entry.itinerary.map((day, i) => (
+                      <a href={`#day${i + 1}`} key={day.id ?? i}>
+                        Day {i + 1}
+                        {day.stay ? ` · ${day.stay.name}` : ''}
+                      </a>
+                    ))}
+                  </div>
+
+                  <ol className="itin">
+                    {entry.itinerary.map((day, i) => (
+                      <li className="itin__d" id={`day${i + 1}`} key={day.id ?? i}>
+                        <div className="itin__k">
+                          <b>Day {i + 1}</b>
+                          {day.stay && <span>{day.stay.name}</span>}
+                          {day.dayTag && <em>{day.dayTag}</em>}
+                        </div>
+                        <div className="itin__c">
+                          <h3>{day.title}</h3>
+                          {dayBlocks(day.description).map((block, bi) =>
+                            block.type === 'list' ? (
+                              <ul className="itin__l" key={bi}>
+                                {block.items.map((line) => (
+                                  <li key={line}>{line}</li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p key={bi}>{block.text}</p>
+                            ),
+                          )}
+
+                          {dayChips(day).length > 0 && (
+                            <div className="itin__m">
+                              {dayChips(day).map((chip) => (
+                                <span key={chip.text}>
+                                  {chip.emoji ? (
+                                    <span aria-hidden="true">{chip.emoji}</span>
+                                  ) : (
+                                    <ChipIcon name={chip.icon} />
+                                  )}
+                                  {chip.text}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </li>
                     ))}
                   </ol>
-                )}
+                </section>
+              )}
 
-                {/*
-                 * `.blk__note` — reference me yahan inline `style="margin-top:12px"` hai.
-                 *
-                 * `.muted` yahan pehle likhi thi par uska theme me koi rule hai hi nahi —
-                 * wo class kuch karti hi nahi thi, aur uske hone se ye lagta tha ki rang
-                 * halka ho raha hai. Reference me ye paragraph baaki `.blk p` jaisa hi hai,
-                 * sirf steps se 12px neeche.
-                 */}
-                {defaults?.cancellationText && (
-                  <p className="blk__note">{defaults.cancellationText}</p>
-                )}
-              </section>
-            )}
+              {/*
+               * Kram reference ka hai: day-by-day → hotels → add-ons → what's included.
+               *
+               * Dono apne aap gayab ho jaate hain jab unka data nahi hota — khaali section
+               * "abhi nahi bana" nahi, "toota hua" lagta hai.
+               */}
+              <HotelsSection hotels={entry.hotels} label={labels.hotels} />
+              <AddOns addOns={entry.addOns} label={labels.addOns} />
+
+              {(included.length > 0 || excluded.length > 0 || wrote('included')) && (
+                <section className="blk" id="included">
+                  <SectionHead label={labels.included} />
+                  <div className="inx">
+                    {included.length > 0 && (
+                      <div className="inx__c">
+                        <h3>Included</h3>
+                        <ul className="tick">
+                          {included.map((line) => (
+                            <li key={line}>
+                              <Tick />
+                              {line}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {excluded.length > 0 && (
+                      <div className="inx__c no">
+                        <h3>Not included</h3>
+                        <ul className="tick no">
+                          {excluded.map((line) => (
+                            <li key={line}>
+                              <Cross />
+                              {line}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {(steps.length > 0 || defaults?.cancellationText || wrote('booking')) && (
+                <section className="blk" id="booking">
+                  <SectionHead label={labels.booking} />
+
+                  {steps.length > 0 && (
+                    <ol className="steps">
+                      {steps.map((step, i) => (
+                        <li key={step.id ?? i}>
+                          {/*
+                           * Number wala neela circle `li::before` se aata hai (CSS counter) —
+                           * isliye `<li>` ka apna content ek div me lapeta hua hai, warna
+                           * flex me title aur text circle ke bagal me alag-alag baith jaate.
+                           */}
+                          <div>
+                            <b>{step.title}</b>
+                            {step.text && <p>{step.text}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+
+                  {/*
+                   * `.blk__note` — reference me yahan inline `style="margin-top:12px"` hai.
+                   *
+                   * `.muted` yahan pehle likhi thi par uska theme me koi rule hai hi nahi —
+                   * wo class kuch karti hi nahi thi, aur uske hone se ye lagta tha ki rang
+                   * halka ho raha hai. Reference me ye paragraph baaki `.blk p` jaisa hi hai,
+                   * sirf steps se 12px neeche.
+                   */}
+                  {defaults?.cancellationText && (
+                    <p className="blk__note">{defaults.cancellationText}</p>
+                  )}
+                </section>
+              )}
+
+              {/*
+               * Traveller reviews — reference ka `#reviews`.
+               *
+               * Section tabhi aata hai jab **kuch dikhane ko ho**: reviews, ya rating, ya client
+               * ki likhi hui line. Teenon khaali hon to ye render hi nahi hota — khaali section
+               * "abhi nahi bana" nahi, "toota hua" lagta hai (D-30 ka ulta).
+               */}
+              {(reviews.length > 0 || rating?.value || wrote('reviews')) && (
+                <section className="blk" id="reviews">
+                  <SectionHead label={labels.reviews} suffix={<RatingNote rating={rating} />} />
+                  <Reviews reviews={reviews} />
+                </section>
+              )}
+
+              {/*
+               * "Questions about this package" — reference ka `#faq`.
+               *
+               * `<details>` jaan-boojh kar, koi JS nahi: accordion browser ka apna hai, wo bina
+               * hydration ke chalta hai, aur band accordion ka text bhi Ctrl+F se mil jaata hai.
+               *
+               * **Pehla khula hai**, reference ki tarah — poori band list ke saamne user ko
+               * pata hi nahi chalta ki andar kya hai.
+               */}
+              {(entry.faqs?.length > 0 || wrote('faq')) && (
+                <section className="blk" id="faq">
+                  <SectionHead label={labels.faq} />
+
+                  <div className="faq">
+                    {entry.faqs.map((faq, i) => (
+                      <details key={faq.id ?? i} open={i === 0}>
+                        <summary>{faq.question}</summary>
+                        {faq.answer && <p>{faq.answer}</p>}
+                      </details>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/*
+               * Similar itineraries — reference ka `#similar`.
+               *
+               * Section tabhi aata hai jab sach me koi doosra package usi duration ka ho. Sirf
+               * heading likhi hone se ye nahi khulta: ek "Similar itineraries" heading jiske
+               * neeche kuch na ho, wo D-30 ka ulta hai — khaali nahi, **toota hua** dikhta hai.
+               *
+               * Isiliye yahan `wrote('similar')` ki shart **nahi** hai, jabki reviews aur baaki
+               * sections pe hai. Wahan client ka likha text apne aap me content hota hai; yahan
+               * content sirf cards hain.
+               */}
+              {similar.length > 0 && (
+                <section className="blk" id="similar">
+                  <SectionHead label={labels.similar} />
+                  <Similar items={similar} rating={rating} currency={settings?.currency ?? 'INR'} />
+                </section>
+              )}
+            </div>
 
             {/*
-             * Traveller reviews — reference ka `#reviews`.
+             * Sticky sidebar — reference ka `.pgl__side`.
              *
-             * Section tabhi aata hai jab **kuch dikhane ko ho**: reviews, ya rating, ya client
-             * ki likhi hui line. Teenon khaali hon to ye render hi nahi hota — khaali section
-             * "abhi nahi bana" nahi, "toota hua" lagta hai (D-30 ka ulta).
+             * Isme do widget hain: upar **price + enquiry form**, neeche **"Talk to a planner"**.
+             *
+             * ⚠️ `<StickySide>` ek client component hai, aur wo sirf ek `<aside>` nahi hai:
+             * jab column screen se **lambi** ho jaati hai (form ke saath ho jaati hai) to saada
+             * `position: sticky` uska neeche wala hissa kabhi dikhne hi nahi deta. Reference me
+             * uske liye ek script hai; wahi kaam wahan hota hai.
              */}
-            {(reviews.length > 0 || rating?.value || wrote('reviews')) && (
-              <section className="blk" id="reviews">
-                <SectionHead label={labels.reviews} suffix={<RatingNote rating={rating} />} />
-                <Reviews reviews={reviews} />
-              </section>
-            )}
-
-            {/*
-             * "Questions about this package" — reference ka `#faq`.
-             *
-             * `<details>` jaan-boojh kar, koi JS nahi: accordion browser ka apna hai, wo bina
-             * hydration ke chalta hai, aur band accordion ka text bhi Ctrl+F se mil jaata hai.
-             *
-             * **Pehla khula hai**, reference ki tarah — poori band list ke saamne user ko
-             * pata hi nahi chalta ki andar kya hai.
-             */}
-            {(entry.faqs?.length > 0 || wrote('faq')) && (
-              <section className="blk" id="faq">
-                <SectionHead label={labels.faq} />
-
-                <div className="faq">
-                  {entry.faqs.map((faq, i) => (
-                    <details key={faq.id ?? i} open={i === 0}>
-                      <summary>{faq.question}</summary>
-                      {faq.answer && <p>{faq.answer}</p>}
-                    </details>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/*
-             * Similar itineraries — reference ka `#similar`.
-             *
-             * Section tabhi aata hai jab sach me koi doosra package usi duration ka ho. Sirf
-             * heading likhi hone se ye nahi khulta: ek "Similar itineraries" heading jiske
-             * neeche kuch na ho, wo D-30 ka ulta hai — khaali nahi, **toota hua** dikhta hai.
-             *
-             * Isiliye yahan `wrote('similar')` ki shart **nahi** hai, jabki reviews aur baaki
-             * sections pe hai. Wahan client ka likha text apne aap me content hota hai; yahan
-             * content sirf cards hain.
-             */}
-            {similar.length > 0 && (
-              <section className="blk" id="similar">
-                <SectionHead label={labels.similar} />
-                <Similar items={similar} rating={rating} currency={settings?.currency ?? 'INR'} />
-              </section>
-            )}
+            <StickySide>
+              {/*
+               * Enquiry widget sabse upar — reference me bhi wahi kram hai (`#enquiry`, phir
+               * "Talk to a planner"). D-67 ka button isi `#enquiry` pe utarta hai.
+               */}
+              <EnquiryForm form={enquiryForm} packages={formPackages} sourcePath={entry.path} />
+              {/* Email form ke `emailTo` se — wahi pata jispe enquiries jaani hain (client, 2 Sep) */}
+              <Planner settings={settings} email={enquiryForm?.contactEmail} />
+            </StickySide>
           </div>
 
           {/*
-           * Sticky sidebar — reference ka `.pgl__side`.
+           * Page ka aakhri card — reference ka "CLOSING CTA" (D-67).
            *
-           * Isme do widget hain: upar **price + enquiry form**, neeche **"Talk to a planner"**.
-           *
-           * ⚠️ `<StickySide>` ek client component hai, aur wo sirf ek `<aside>` nahi hai:
-           * jab column screen se **lambi** ho jaati hai (form ke saath ho jaati hai) to saada
-           * `position: sticky` uska neeche wala hissa kabhi dikhne hi nahi deta. Reference me
-           * uske liye ek script hai; wahi kaam wahan hota hai.
+           * `.pgl` grid ke **bahar** hai, kyunki design me ye poori chaudai ka section hai,
+           * main column ka hissa nahi. Admin ne section off kiya ho to component khud `null`
+           * lautata hai.
            */}
-          <StickySide>
-            {/*
-             * Enquiry widget sabse upar — reference me bhi wahi kram hai (`#enquiry`, phir
-             * "Talk to a planner"). D-67 ka button isi `#enquiry` pe utarta hai.
-             */}
-            <EnquiryForm form={enquiryForm} packages={formPackages} sourcePath={entry.path} />
-            {/* Email form ke `emailTo` se — wahi pata jispe enquiries jaani hain (client, 2 Sep) */}
-            <Planner settings={settings} email={enquiryForm?.contactEmail} />
-          </StickySide>
-        </div>
+          <CtaSection cta={settings?.ctaSection} />
+        </main>
 
         {/*
-         * Page ka aakhri card — reference ka "CLOSING CTA" (D-67).
+         * Phone pe neeche chipki patti — Call · WhatsApp · Get free quote (client, 2 Sep).
          *
-         * `.pgl` grid ke **bahar** hai, kyunki design me ye poori chaudai ka section hai,
-         * main column ka hissa nahi. Admin ne section off kiya ho to component khud `null`
-         * lautata hai.
+         * `<main>` ke bahar isliye ki wo page ka content nahi hai; wo viewport se chipki hui
+         * hai aur har section ke upar tairti hai.
+         *
+         * `hasForm` ke bina "Get free quote" ek aisa button hota jo kuch kholta hi nahi —
+         * client ne form draft kar diya ho ya placement hata di ho, dono me wo hota hi nahi.
          */}
-        <CtaSection cta={settings?.ctaSection} />
-      </main>
+        <MobileBar settings={settings} hasForm={Boolean(enquiryForm)} />
+      </EnquiryDockProvider>
     </CategoryProvider>
   )
 }

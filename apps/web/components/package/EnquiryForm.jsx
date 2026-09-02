@@ -3,6 +3,7 @@
 import { HOTEL_CATEGORY_LABEL, formatPrice } from '@cms/shared'
 import { useState } from 'react'
 
+import { useEnquiryDock } from './EnquiryDock.jsx'
 import { PriceHeader, useCategory } from './Pricing.jsx'
 
 /**
@@ -167,6 +168,15 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
    */
   const { rows: categoryRows, category, setCategory, currency } = useCategory()
 
+  /**
+   * Mobile pe ye widget ek **sheet** ban jaata hai, aur use neeche wali `.mobar` kholti hai.
+   *
+   * ⚠️ Form phir bhi **ek hi baar** render hota hai — wo sidebar me hi rehta hai, bas CSS use
+   * fixed sheet bana deti hai. Popup ke liye ek doosra form banane ka matlab hota do alag
+   * state: user desktop pe kuch bharta, screen chhoti karta, aur bhara hua gayab.
+   */
+  const dock = useEnquiryDock()
+
   if (!form) return null
 
   /** `hidden` fields form pe nahi dikhte — unhe browser bharta hai. */
@@ -272,119 +282,153 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
   }
 
   return (
-    <div className="wdg wdg--book" id="enquiry">
-      {/* Neela price header — wahi daam jo hero me hai, chuni hui category ke saath badalta hai */}
-      <PriceHeader />
+    <>
+      {/*
+       * Sheet ke peeche ka parda — sirf mobile pe, aur sirf jab wo khuli ho. Iske bina
+       * peeche ka page padha jaata rehta hai aur sheet sheet nahi lagti.
+       *
+       * Ispe click karne se sheet band — wahi vyavhaar jo Lightbox ke backdrop ka hai.
+       */}
+      {dock?.open && <div className="mosheet-scrim" onClick={dock.close} aria-hidden="true" />}
 
-      <div className="bkg__b">
+      <div className={`wdg wdg--book${dock?.open ? ' is-open' : ''}`} id="enquiry">
         {/*
-         * ⚠️ Submit hone par **form gayab nahi hota** — sirf button ka text badalta hai
-         * (client, 2 Sep). Pehle poora form ek line ke message se badal jaata tha, aur wo do
-         * tarah se bura tha: user ka bhara hua sab kuch aankhon ke saamne se ud jaata tha
-         * (kya bheja, ye dobara dekhne ka koi raasta nahi), aur sidebar achanak sikud kar
-         * poora page hila deta tha.
-         *
-         * Reference bhi yahi karta hai — uska `onsubmit` sirf itna hai:
-         * `this.querySelector('.js-go').textContent = 'Sent ✓ We will call you shortly'`.
+         * Close sirf sheet wali haalat me — sidebar me widget band karne jaisi koi cheez hai
+         * hi nahi, wo wahan hamesha khula rehta hai.
          */}
-        <form onSubmit={submit}>
-          {toRows(visible).map((row) => {
-            const fields = row.map((field) => (
-              <Field
-                key={field.key}
-                field={field}
-                value={isCategoryField(field) ? category : values[field.key]}
-                onChange={(value) =>
-                  isCategoryField(field) ? setCategory(value) : set(field.key, value)
-                }
-                packages={packages}
-                categories={categoryOptions}
-              />
-            ))
-
-            /* Ek akela field seedha, do wale `.bkg__two` ke andar — reference ka grid. */
-            return row.length === 2 ? (
-              <div className="bkg__two" key={row[0].key}>
-                {fields}
-              </div>
-            ) : (
-              fields
-            )
-          })}
-
-          {/*
-           * Honeypot — asli user ise dekh hi nahi sakta, bot bhar deta hai. Bhara hua aaye
-           * to API 200 lautati hai aur kuch store nahi karti.
-           *
-           * `aria-hidden` + `tabIndex={-1}` isliye ki screen reader aur keyboard dono ise
-           * chhod dein — warna ye asli users ke liye ek anjaan khaana ban jaata.
-           */}
-          <div className="hp" aria-hidden="true">
-            <label htmlFor="enq-website">Website</label>
-            <input
-              id="enq-website"
-              type="text"
-              tabIndex={-1}
-              autoComplete="off"
-              value={hp}
-              onChange={(e) => setHp(e.target.value)}
-            />
-          </div>
-
-          {state.error && (
-            <p className="bkg__err" role="alert">
-              {state.error}
-            </p>
-          )}
-
-          {/*
-           * Teen haalat, ek hi button:
-           *
-           * | Haalat | Text | Kyun |
-           * | --- | --- | --- |
-           * | saada | `Get this itinerary →` | teer sirf yahin — wo "aage badho" kehta hai |
-           * | bhej raha | `Sending…` | teer hata, warna wo abhi bhi click karne ko kehta lagta |
-           * | ho gaya | admin ka thank-you, **jaisa ka waisa** | `disabled`, taaki dobara na jaaye |
-           *
-           * ⚠️ Admin ke likhe text ke aage-peeche theme **kuch nahi jodta** (client, 2 Sep).
-           * Pehle yahan ek `✓` laga diya gaya tha; wo chhoti si cheez thi par ghalat lakeer
-           * pe thi — jo box client ko "Thank-you message" kehke diya gaya hai, usme jo likha
-           * hai wahi chhapna chahiye, na uska kaata hua roop na uska sajaya hua.
-           *
-           * Fallback tabhi chalta hai jab wo box **khaali** ho, aur uska text reference ka
-           * apna hai (`Sent ✓ We will call you shortly`) — us haalat me kuch to kehna hi
-           * padta hai, warna button pe sirf khaali jagah bachti.
-           *
-           * `btn--sent` sirf ek kaam karta hai — text ko **wrap hone deta hai**. `.btn` pe
-           * `white-space: nowrap` hai (label ek shabd ka hota hai), par thank-you ek poora
-           * vaakya hai aur wo widget se bahar nikal jaata.
-           */}
+        {dock?.open && (
           <button
-            className={`btn btn--accent${state.done ? ' btn--sent' : ''}`}
-            type="submit"
-            disabled={state.sending || state.done}
+            className="wdg__x"
+            type="button"
+            onClick={dock.close}
+            aria-label="Close enquiry form"
           >
-            {state.done ? (
-              (form.afterSubmit?.value ?? '').trim() || 'Sent ✓ We will call you shortly'
-            ) : state.sending ? (
-              'Sending…'
-            ) : (
-              <>
-                Get this itinerary
-                <Arrow />
-              </>
-            )}
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
           </button>
+        )}
+        {/* Neela price header — wahi daam jo hero me hai, chuni hui category ke saath badalta hai */}
+        <PriceHeader />
 
+        <div className="bkg__b">
           {/*
-           * Button ke neeche ki chhoti line — reference ka `<small>`.
+           * ⚠️ Submit hone par **form gayab nahi hota** — sirf button ka text badalta hai
+           * (client, 2 Sep). Pehle poora form ek line ke message se badal jaata tha, aur wo do
+           * tarah se bura tha: user ka bhara hua sab kuch aankhon ke saamne se ud jaata tha
+           * (kya bheja, ye dobara dekhne ka koi raasta nahi), aur sidebar achanak sikud kar
+           * poora page hila deta tha.
            *
-           * Ye thank-you message se alag hai: wo submit ke **baad** aata hai, ye **pehle** —
-           * jab user abhi soch raha hai ki bharun ya na bharun.
+           * Reference bhi yahi karta hai — uska `onsubmit` sirf itna hai:
+           * `this.querySelector('.js-go').textContent = 'Sent ✓ We will call you shortly'`.
            */}
-          {form.footnote && <small>{form.footnote}</small>}
-        </form>
+          <form onSubmit={submit}>
+            {toRows(visible).map((row) => {
+              const fields = row.map((field) => (
+                <Field
+                  key={field.key}
+                  field={field}
+                  value={isCategoryField(field) ? category : values[field.key]}
+                  onChange={(value) =>
+                    isCategoryField(field) ? setCategory(value) : set(field.key, value)
+                  }
+                  packages={packages}
+                  categories={categoryOptions}
+                />
+              ))
+
+              /* Ek akela field seedha, do wale `.bkg__two` ke andar — reference ka grid. */
+              return row.length === 2 ? (
+                <div className="bkg__two" key={row[0].key}>
+                  {fields}
+                </div>
+              ) : (
+                fields
+              )
+            })}
+
+            {/*
+             * Honeypot — asli user ise dekh hi nahi sakta, bot bhar deta hai. Bhara hua aaye
+             * to API 200 lautati hai aur kuch store nahi karti.
+             *
+             * `aria-hidden` + `tabIndex={-1}` isliye ki screen reader aur keyboard dono ise
+             * chhod dein — warna ye asli users ke liye ek anjaan khaana ban jaata.
+             */}
+            <div className="hp" aria-hidden="true">
+              <label htmlFor="enq-website">Website</label>
+              <input
+                id="enq-website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={hp}
+                onChange={(e) => setHp(e.target.value)}
+              />
+            </div>
+
+            {state.error && (
+              <p className="bkg__err" role="alert">
+                {state.error}
+              </p>
+            )}
+
+            {/*
+             * Teen haalat, ek hi button:
+             *
+             * | Haalat | Text | Kyun |
+             * | --- | --- | --- |
+             * | saada | `Get this itinerary →` | teer sirf yahin — wo "aage badho" kehta hai |
+             * | bhej raha | `Sending…` | teer hata, warna wo abhi bhi click karne ko kehta lagta |
+             * | ho gaya | admin ka thank-you, **jaisa ka waisa** | `disabled`, taaki dobara na jaaye |
+             *
+             * ⚠️ Admin ke likhe text ke aage-peeche theme **kuch nahi jodta** (client, 2 Sep).
+             * Pehle yahan ek `✓` laga diya gaya tha; wo chhoti si cheez thi par ghalat lakeer
+             * pe thi — jo box client ko "Thank-you message" kehke diya gaya hai, usme jo likha
+             * hai wahi chhapna chahiye, na uska kaata hua roop na uska sajaya hua.
+             *
+             * Fallback tabhi chalta hai jab wo box **khaali** ho, aur uska text reference ka
+             * apna hai (`Sent ✓ We will call you shortly`) — us haalat me kuch to kehna hi
+             * padta hai, warna button pe sirf khaali jagah bachti.
+             *
+             * `btn--sent` sirf ek kaam karta hai — text ko **wrap hone deta hai**. `.btn` pe
+             * `white-space: nowrap` hai (label ek shabd ka hota hai), par thank-you ek poora
+             * vaakya hai aur wo widget se bahar nikal jaata.
+             */}
+            <button
+              className={`btn btn--accent${state.done ? ' btn--sent' : ''}`}
+              type="submit"
+              disabled={state.sending || state.done}
+            >
+              {state.done ? (
+                (form.afterSubmit?.value ?? '').trim() || 'Sent ✓ We will call you shortly'
+              ) : state.sending ? (
+                'Sending…'
+              ) : (
+                <>
+                  Get this itinerary
+                  <Arrow />
+                </>
+              )}
+            </button>
+
+            {/*
+             * Button ke neeche ki chhoti line — reference ka `<small>`.
+             *
+             * Ye thank-you message se alag hai: wo submit ke **baad** aata hai, ye **pehle** —
+             * jab user abhi soch raha hai ki bharun ya na bharun.
+             */}
+            {form.footnote && <small>{form.footnote}</small>}
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
