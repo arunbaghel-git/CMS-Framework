@@ -3344,6 +3344,24 @@ a.mega__gl:hover {
   margin-top: 5px;
 }
 
+/*
+ * Route ke neeche ki line — reference ka `.prow__best`.
+ *
+ * ⚠️ `font-size` yahan likhne ka koi asar nahi hai: `#similar` ek `.blk` hai, aur `.blk p`
+ * (0,1,1) is selector (0,1,0) se jeet jaata hai. Sanyog se dono 14px hain, isliye dikhta
+ * kuch nahi — par likhna phir bhi theek hai, taaki kal koi `.blk p` badle to yahan ka iraada
+ * likha hua mile. Wahi haal `.prow__route` ka bhi hai.
+ */
+.prow__best {
+  font-size: var(--fs-body);
+  color: var(--body);
+}
+
+.prow__best b {
+  color: var(--ink);
+  font-weight: var(--fw-heading);
+}
+
 .prow__inc {
   display: flex;
   gap: 6px;

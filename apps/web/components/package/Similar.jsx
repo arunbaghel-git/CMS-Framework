@@ -123,6 +123,19 @@ export default function Similar({ items, rating, currency = 'INR' }) {
                   </p>
                 )}
 
+                {/*
+                 * `Best for <b>first-timers on a short break</b>` — reference ka `.prow__best`.
+                 *
+                 * "Best for" theme me likha hai aur badalne wala hissa hi field se aata hai —
+                 * wahi dhaancha jo poore page pe hai (Q-9). Field khaali ho to poori line
+                 * gayab, sirf "Best for" nahi bachta.
+                 */}
+                {item.bestFor && (
+                  <p className="prow__best">
+                    Best for <b>{item.bestFor}</b>
+                  </p>
+                )}
+
                 {chips.length > 0 && (
                   <div className="prow__inc">
                     {chips.map((chip) => (

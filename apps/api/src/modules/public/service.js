@@ -598,6 +598,15 @@ async function resolveSimilarPackages(doc, siteId, locale) {
 
         /** Image ke upar ka badge — pehla Package Type (`HONEYMOON`, `2 DIVES`). */
         tag: typeById.get((d.taxonomies?.packageTypes ?? [])[0])?.name ?? '',
+
+        /**
+         * `first-timers on a short break` — route ke neeche wali line (client, 2 Sep).
+         *
+         * Ye field D-55 me isi kaam ke liye bana tha ("ye **listing card** pe dikhta hai,
+         * package page pe nahi") — par similar cards bhi wahi listing card hain, aur wahan
+         * ye chhoot gaya tha.
+         */
+        bestFor: fields.bestFor ?? '',
         /** Sabse sasti category — wahi jo us package ke apne page ke upar chhapta hai. */
         from: cheapestPricing(pricing),
       }
