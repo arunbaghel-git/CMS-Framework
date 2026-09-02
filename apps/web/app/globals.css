@@ -355,7 +355,19 @@ a {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 11px 14px;
+  /*
+   * Height **min-height se**, padding-y se nahi (client, 2 Sep).
+   *
+   * Padding se height banane ka matlab tha ki wo teen cheezon ka jod thi — padding,
+   * font-size aur line-height. Font-size ek pixel badla, ya kisi ne body ki line-height chhui,
+   * to har button ka naap chup-chaap khisak jaata tha. **Aur wo hua bhi**: body pe
+   * `line-height: 1.55` lagate hi saare buttons lambe ho gaye the.
+   *
+   * Ab height ek likha hua number hai aur padding sirf daayein-baayein ki jagah deti hai.
+   * 44px wahi hai jo reference ka `.b` (11px padding + 14px/1.55 text) banata tha.
+   */
+  min-height: 44px;
+  padding: 0 14px;
   border: 0;
   border-radius: var(--r2);
   font-size: var(--fs-base);
@@ -1234,7 +1246,9 @@ a.mega__gl:hover {
  * Base aur header ka naap do alag cheezein hain; reference me bhi wo do alag class hain.
  */
 .hdr__actions .btn {
-  padding: 8px 14px;
+  /* Reference ka `.b-s` — 8px padding + 13px/1.55 text = ~36px. */
+  min-height: 36px;
+  padding: 0 14px;
   font-size: var(--fs-sm);
 }
 
@@ -1275,7 +1289,8 @@ a.mega__gl:hover {
   }
 
   .hdr__actions .btn {
-    padding: 8px 11px;
+    /* Height wahi 36px — sirf chaudai aur text chhota hota hai */
+    padding: 0 11px;
     font-size: var(--fs-xs);
   }
 
@@ -1340,7 +1355,8 @@ a.mega__gl:hover {
 /* Drawer me buttons poori chaudai lete hain — header bar wali tangi yahan nahi hai */
 .mdrawer__foot .btn {
   width: 100%;
-  padding-block: 12px;
+  /* Drawer ke buttons page wale se thode bade — 12px padding wala purana naap. */
+  min-height: 46px;
   font-size: var(--fs-base);
 }
 
@@ -2332,6 +2348,16 @@ a.mega__gl:hover {
  * `top` header ki height se thoda neeche — header khud sticky hai (`.hdr`), aur uske bina
  * sidebar uske peeche chala jaata hai.
  */
+/*
+ * ⚠️ `top` yahan sirf **shuruaati** value hai — chalte waqt use `StickySide.jsx` badalta hai.
+ *
+ * Column screen se lambi ho jaaye (enquiry form ke saath ho jaati hai) to saada sticky uska
+ * neeche wala hissa kabhi dikhne nahi deta. Reference me iske liye ek script hai, aur wahi
+ * kaam `StickySide` karta hai: scroll ki disha ke saath `top` khiskata hai.
+ *
+ * 1024px se neeche ye `position: static` ho jaati hai (neeche), aur wahan script `top` ko
+ * haath bhi nahi lagati.
+ */
 .pgl__side {
   position: sticky;
   top: 78px;
@@ -2359,11 +2385,21 @@ a.mega__gl:hover {
   border-bottom: 1px solid #e2e8f0;
 }
 
+/*
+ * ⚠️ Yahan `font-size` tha hi nahi, aur uska nateeja **16px** tha (client, 2 Sep — "font-size
+ * 16px kyu hai, body ka to 14 hai").
+ *
+ * Wajah body pe hai: reference ke `body` me `font-size: 15px` likha hai, hamare paas nahi —
+ * to jo bhi apna size nahi likhta wo browser ke **16px** pe gir jaata hai. Client ne
+ * `font-size: 15px` lene se mana kiya tha (2 Sep, "only line height lagao"), isliye ilaaj
+ * yahan hai: jahan farq dikhe, wahan naap likh do.
+ */
 .wdgc {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 11px 14px;
+  font-size: var(--fs-sm);
 }
 
 .wdgc + .wdgc {
@@ -2401,8 +2437,9 @@ a.mega__gl:hover {
 }
 
 .wdgc a {
-  font-weight: var(--fw-bold);
-  color: #0f172a;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3203,8 +3240,22 @@ a.mega__gl:hover {
   padding: 20px clamp(18px, 2vw, 24px);
 }
 
+/*
+ * Card ka title — **15.5px**, wahi jo reference sach me render karta hai.
+ *
+ * ⚠️ Reference me `.prow__b h3` pe `clamp(17px, 1.8vw, 20px)` **likha** hai, par wo chalta
+ * nahi: `.blk h3` (line 790) uske baad aata hai aur dono ki specificity barabar hai (0,1,1),
+ * to jeet kram se hoti hai. `#similar` khud ek `.blk` hai, isliye wahan title 15.5px hi
+ * chhapta hai.
+ *
+ * Hamare paas kram ulta tha, to hamara title 20px ka ho gaya tha — client ne pakda (2 Sep).
+ * Ab wahi token hai jo `.blk h3` ka hai, yaani dono me se koi bhi jeete, natija ek hi rahega.
+ *
+ * `letter-spacing` aur `line-height` reference ke apne hain — unhe `.blk h3` chhoota hi
+ * nahi, isliye wo dono jagah lagte hain.
+ */
 .prow__b h3 {
-  font-size: clamp(17px, 1.8vw, 20px);
+  font-size: var(--fs-h3);
   letter-spacing: -0.025em;
   line-height: 1.25;
 }

@@ -18,6 +18,7 @@ import Reviews, { HeroRating, RatingNote } from './Reviews.jsx'
 import RichText from './RichText.jsx'
 import Schema from './Schema.jsx'
 import SectionHead from './SectionHead.jsx'
+import StickySide from './StickySide.jsx'
 import Similar from './Similar.jsx'
 
 /**
@@ -717,11 +718,14 @@ export default function PackagePage({ entry, defaults, settings }) {
           {/*
            * Sticky sidebar — reference ka `.pgl__side`.
            *
-           * Isme do widget hain: upar **price + enquiry form** (Slice 5 + Enquiries, Phase 7b)
-           * aur neeche **"Talk to a planner"**. Aaj sirf doosra ban sakta hai, kyunki uska
-           * poora data settings me pehle se hai.
+           * Isme do widget hain: upar **price + enquiry form**, neeche **"Talk to a planner"**.
+           *
+           * ⚠️ `<StickySide>` ek client component hai, aur wo sirf ek `<aside>` nahi hai:
+           * jab column screen se **lambi** ho jaati hai (form ke saath ho jaati hai) to saada
+           * `position: sticky` uska neeche wala hissa kabhi dikhne hi nahi deta. Reference me
+           * uske liye ek script hai; wahi kaam wahan hota hai.
            */}
-          <aside className="pgl__side">
+          <StickySide>
             {/*
              * Enquiry widget sabse upar — reference me bhi wahi kram hai (`#enquiry`, phir
              * "Talk to a planner"). D-67 ka button isi `#enquiry` pe utarta hai.
@@ -729,7 +733,7 @@ export default function PackagePage({ entry, defaults, settings }) {
             <EnquiryForm form={enquiryForm} packages={formPackages} sourcePath={entry.path} />
             {/* Email form ke `emailTo` se — wahi pata jispe enquiries jaani hain (client, 2 Sep) */}
             <Planner settings={settings} email={enquiryForm?.contactEmail} />
-          </aside>
+          </StickySide>
         </div>
 
         {/*
