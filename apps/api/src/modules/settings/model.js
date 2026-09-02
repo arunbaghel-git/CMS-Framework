@@ -29,8 +29,6 @@ const settingsSchema = new mongoose.Schema(
 
     phone: { type: String, default: '' },
     whatsapp: { type: String, default: '' },
-    /** Customer ko dikhne wala email — `adminEmail` se alag (wo login ka pata hai, R10). */
-    contactEmail: { type: String, default: '' },
     address: { type: String, default: '' },
     social: {
       facebook: { type: String, default: '' },

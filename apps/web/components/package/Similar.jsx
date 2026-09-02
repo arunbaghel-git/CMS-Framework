@@ -25,8 +25,6 @@ import { useState } from 'react'
 /** Design me teen card ek page pe — `.sim` unhe ek ke neeche ek rakhta hai. */
 const PER_PAGE = 3
 
-const MEAL_LABEL = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
-
 /** Reference ka pin icon — `.prow__route` ke aage. */
 const Pin = () => (
   <svg
@@ -62,24 +60,26 @@ export default function Similar({ items, rating, currency = 'INR' }) {
       <div className="sim">
         {shown.map((item) => {
           /**
-           * Chips — `5N / 6D` · `Ferry` · `Breakfast`. **Teen, aur har kism ka ek.**
+           * Chips — `5N / 6D` · `Ferry` · `Breakfast` (client, 2 Sep).
            *
-           * ⚠️ Pehle yahan **saare** transfers aur **saare** meals aate the, aur wo galat tha
-           * (client, 2 Sep — "see what tags are coming: days, ferry and breakfast, not
-           * transfer tags"). Jis package me teen alag transfer aur teen meal hon, uspe saat
-           * chip ban jaate the — aur reference me hamesha **teen** hain.
+           * Teenon **haan/na** hain, ginti nahi. Isiliye chip ka text yahan likha hua hai aur
+           * data se nahi banta: server sirf itna batata hai ki wo cheez hai ya nahi.
            *
-           * Niyam ab shakl se bandha hai, ginti se nahi: ek duration, ek safar ka saadhan,
-           * ek khaana. Data kuch bhi ho, card ka roop wahi rehta hai.
+           * | Chip | Kab | Kahan se |
+           * | --- | --- | --- |
+           * | `5N / 6D` | dono bhare hon | `fields.nights` / `fields.days` |
+           * | `Ferry` | `Ferries` bhara ho | `fields.ferriesNote` |
+           * | `Breakfast` | kisi din breakfast ho | itinerary ke `meals` |
            *
-           * ⚠️ "Pehla" transfer aur "pehla" meal itinerary ke kram se aate hain — Day 1 se.
-           * Agar client chahta hai ki hamesha `Ferry` dikhe (chahe wo Day 3 pe ho), to wo ek
-           * content ka faisla hai aur uske liye chunav chahiye hoga.
+           * ⚠️ Pehle yahan **saare transfers** aur **saare meals** aate the — saat chip tak.
+           * Aur Ferry ka chip transfers se banta tha, jo bharosemand nahi: Transfer ek free
+           * list hai (client `Private cab`, `Catamaran`, kuch bhi likh sakta hai). Ab wo
+           * `Ferries` field se aata hai — wahi D-53 wali wajah jiske liye wo field bana tha.
            */
           const chips = [
             item.nights != null && item.days != null ? `${item.nights}N / ${item.days}D` : null,
-            item.transfers?.[0] ?? null,
-            item.meals?.[0] ? (MEAL_LABEL[item.meals[0]] ?? item.meals[0]) : null,
+            item.hasFerries ? 'Ferry' : null,
+            item.hasBreakfast ? 'Breakfast' : null,
           ].filter(Boolean)
 
           return (
@@ -88,10 +88,6 @@ export default function Similar({ items, rating, currency = 'INR' }) {
                 {/*
                  * Image na ho to `<img>` banta hi nahi — D-42 §2 ka invariant. `.prow__m` ka
                  * apna background hai, isliye khaali khaana toota hua nahi lagta.
-                 *
-                 * ⚠️ Reference me yahan ek badge bhi hai (`HONEYMOON`, `2 DIVES`). Wo abhi
-                 * jaan-boojh kar nahi hai — client ne 1 Sep ko "abhi chhod do" kaha, kyunki
-                 * uske liye ya to Package Type se maana nikaalna padta ya ek naya field.
                  */}
                 {item.banner && (
                   <img
@@ -102,6 +98,19 @@ export default function Similar({ items, rating, currency = 'INR' }) {
                     loading="lazy"
                   />
                 )}
+
+                {/*
+                 * Badge — reference ka `.prow__tag` (`HONEYMOON`, `SEA VIEW`, `2 DIVES`).
+                 *
+                 * Ye **Package Type** taxonomy se aata hai (client, 2 Sep). 1 Sep ko client ne
+                 * "abhi chhod do" kaha tha kyunki tab tay nahi tha ki text kahan se aayega;
+                 * ab wo tay hai — package ka pehla type.
+                 *
+                 * ⚠️ Reference me do rang hain (narangi aur hara, `.prow__tag--g`). Kaunsa
+                 * badge kaunsa rang le — uska koi niyam design me likha nahi hai, aur andaaze
+                 * se ek niyam gadhna client ka faisla apne haath lena hota. Isliye sab narangi.
+                 */}
+                {item.tag && <span className="prow__tag">{item.tag}</span>}
               </div>
 
               <div className="prow__b">

@@ -294,19 +294,14 @@ export const settingsSchema = z.object({
   // ── Contact & social ────────────────────────────────────────────────────────
   phone: optionalText(40),
 
-  /**
-   * Customer ko dikhne wala email — sidebar ke "Talk to a planner" widget ka teesra row.
+  /*
+   * ⚠️ Yahan ek `contactEmail` bana diya gaya tha (2 Sep) — **bina poochhe**, aur client ne
+   * turant palta: wo email settings me nahi, **enquiry form ke `emailTo`** me pehle se hai.
+   * Ek hi pata do jagah rakhna hamesha ek din alag ho jaata hai.
    *
-   * ⚠️ Ye `adminEmail` se **alag** hai, aur wo farq jaan-boojh kar hai. `adminEmail` admin
-   * ka **login wala** pata hai; wo public payload se bahar rehta hai (R10) aur usse rehna
-   * chahiye — use site pe chhapna matlab admin ka pata har visitor ko de dena, aur wahi pata
-   * password reset ka bhi hai.
-   *
-   * Reference ke widget me Call · WhatsApp · Email teenon hain. Pehle do settings me pehle
-   * se the, teesra tha hi nahi — isliye wo row page pe kabhi aata hi nahi tha (client ne
-   * 2 Sep ko pakda: "Talk to a planner me email kyu nahi aa raha hai").
+   * Sabak: "email kahan se aayega" ek **content ka sawaal** tha, code ka nahi. Naya field
+   * banane se pehle poochhna tha.
    */
-  contactEmail: z.union([z.literal(''), emailSchema]).default(''),
   whatsapp: optionalText(40),
   address: optionalText(500),
   social: socialSchema.default({}),

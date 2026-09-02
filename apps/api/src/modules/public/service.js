@@ -159,11 +159,6 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
 
     phone: settings.phone,
     whatsapp: settings.whatsapp,
-    /**
-     * ⚠️ `contactEmail` jaata hai, `adminEmail` **nahi** — dono alag cheezein hain (R10).
-     * Admin wala login ka pata hai; ye customer ke liye likha gaya pata hai.
-     */
-    contactEmail: settings.contactEmail ?? '',
     address: settings.address,
     social: settings.social,
 
@@ -553,34 +548,21 @@ async function resolveSimilarPackages(doc, siteId, locale) {
       (day) => day.overnightStayId,
     ),
   )
-  const [stays, transfers] = await Promise.all([
+  /** Har candidate ka pehla Package Type — image ke upar wala badge (client, 2 Sep). */
+  const allTypeIds = docs.flatMap((d) => d.taxonomies?.packageTypes ?? [])
+
+  const [stays, types] = await Promise.all([
     resolveTaxonomies(allStayIds, siteId, locale),
-    Transfer.find({ siteId })
-      .select('name')
-      .lean()
-      .catch(() => []),
+    resolveTaxonomies(allTypeIds, siteId, locale),
   ])
   const stayById = new Map(stays.map((s) => [s.id, s]))
-  const transferNameById = new Map(transfers.map((t) => [String(t._id), t.name]))
+  const typeById = new Map(types.map((t) => [t.id, t]))
 
   return Promise.all(
     docs.map(async (d) => {
       const fields = d.fields ?? {}
       const itinerary = Array.isArray(fields.itinerary) ? fields.itinerary : []
       const pricing = pricingSchema.parse(fields.pricing ?? {})
-
-      /**
-       * Chips — `5N / 6D` · `Ferry` · `Breakfast` (reference ka `.prow__inc`).
-       *
-       * Teenon derived hain. Transfers aur meals `Set` se guzarte hain: ek hi ferry teen din
-       * chal sakti hai, aur card pe "Ferry Ferry Ferry" chhapna bemaani hai.
-       */
-      const transferChips = [
-        ...new Set(itinerary.map((day) => transferNameById.get(day.transferId)).filter(Boolean)),
-      ]
-      const mealChips = [
-        ...new Set(itinerary.flatMap((day) => (Array.isArray(day.meals) ? day.meals : []))),
-      ]
 
       return {
         id: String(d._id),
@@ -594,8 +576,28 @@ async function resolveSimilarPackages(doc, siteId, locale) {
         route: routeStrip(itinerary)
           .map((leg) => stayById.get(leg.stayId)?.name)
           .filter(Boolean),
-        transfers: transferChips,
-        meals: mealChips,
+        /**
+         * `Ferry` ka chip **`ferriesNote` bhare hone pe** aata hai (client, 2 Sep) — itinerary
+         * ke transfers se nahi.
+         *
+         * ⚠️ Pehle ye transfers se banta tha, aur wo galat tha. Transfer ek **free list** hai
+         * (client `Private cab`, `Catamaran`, kuch bhi likh sakta hai), to "ye ferry hai" wahan
+         * se pehchanna bharosemand nahi. `ferriesNote` (`3 legs, included`) client ka saaf
+         * jawab hai ki is package me ferry hai ya nahi — wahi D-53 wali wajah jiske liye wo
+         * field banaya gaya tha.
+         *
+         * Note ka **text** card pe nahi jaata — wo poora vaakya hai aur chip me nahi bharta.
+         * Yahan bas "hai ya nahi" chahiye.
+         */
+        hasFerries: Boolean(fields.ferriesNote?.trim()),
+
+        /** `Breakfast` ka chip — itinerary ke kisi bhi din breakfast ho to. */
+        hasBreakfast: itinerary.some((day) =>
+          (Array.isArray(day.meals) ? day.meals : []).includes('breakfast'),
+        ),
+
+        /** Image ke upar ka badge — pehla Package Type (`HONEYMOON`, `2 DIVES`). */
+        tag: typeById.get((d.taxonomies?.packageTypes ?? [])[0])?.name ?? '',
         /** Sabse sasti category — wahi jo us package ke apne page ke upar chhapta hai. */
         from: cheapestPricing(pricing),
       }

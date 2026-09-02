@@ -7,14 +7,14 @@
  *
  * Reference ke teenon row ab hain — Call · WhatsApp · Email.
  *
- * ⚠️ Email `settings.contactEmail` se aata hai, `adminEmail` se **nahi**. Wo farq zaroori
- * hai: `adminEmail` admin ka **login wala** pata hai aur wo public payload se jaan-boojh kar
- * bahar hai (R10) — use site pe chhapna matlab har visitor ko wo pata de dena jispe password
- * reset jaata hai.
+ * ⚠️ Email **enquiry form ke `emailTo`** se aata hai — settings se nahi.
  *
- * Ye row 1 Sep tak tha hi nahi, kyunki `contactEmail` ka field hi nahi tha. Client ne 2 Sep
- * ko pakda ("Talk to a planner me email kyu nahi aa raha hai") — wo Settings ▸ General me
- * juda, aur bharte hi row aa jaata hai.
+ * Pehle iske liye ek naya `settings.contactEmail` bana diya gaya tha; client ne palta
+ * (2 Sep): wo pata form me pehle se hai. Ek hi cheez do jagah rakhne ka matlab hota ki ek
+ * din wo alag ho jaate — client sales ka pata form me badalta aur ye card purana dikhata.
+ *
+ * `adminEmail` yahan **kabhi nahi** aa sakta: wo admin ka login wala pata hai aur public
+ * payload se jaan-boojh kar bahar hai (R10) — usi pe password reset jaata hai.
  *
  * Koi bhi contact na ho to widget **render hi nahi hota** — ek khaali card "abhi nahi bana"
  * nahi lagta, "toota hua" lagta hai (D-30).
@@ -23,10 +23,10 @@
 /** `+91 98100 66496` → `+919810066496`. `tel:` aur `wa.me` dono ko spaces pasand nahi. */
 const digits = (value) => String(value ?? '').replace(/[^\d+]/g, '')
 
-export default function Planner({ settings }) {
+export default function Planner({ settings, email: formEmail }) {
   const phone = settings?.phone?.trim()
   const whatsapp = settings?.whatsapp?.trim()
-  const email = settings?.contactEmail?.trim()
+  const email = formEmail?.trim()
 
   if (!phone && !whatsapp && !email) return null
 

@@ -3168,6 +3168,32 @@ a.mega__gl:hover {
   transform: scale(1.05);
 }
 
+/*
+ * Image ke upar ka badge — reference ka `.prow__tag`.
+ *
+ * Text **Package Type** taxonomy se aata hai (client, 2 Sep), isliye uski lambai tay nahi
+ * hai — `HONEYMOON` bhi ho sakta hai aur `FAMILY WITH KIDS` bhi. Reference me ye ek chhota
+ * shabd maan kar likha gaya tha; `max-width` + ellipsis isliye jodi gayi hai ki lamba naam
+ * image ko dhak na le.
+ */
+.prow__tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  max-width: calc(100% - 20px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 9px;
+  border-radius: var(--r1);
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-black);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--orange-500);
+  color: #fff;
+}
+
 .prow__b {
   min-width: 0;
   display: flex;

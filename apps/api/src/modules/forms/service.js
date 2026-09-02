@@ -170,6 +170,21 @@ export async function getPublicPackageForm(siteId = DEFAULT_SITE_ID) {
     afterSubmit: doc.afterSubmit ?? { mode: 'message', value: '' },
     /** Button ke neeche ki chhoti line — reference ka `<small>`. */
     footnote: doc.footnote ?? '',
+
+    /**
+     * Sidebar ke "Talk to a planner" card ka email — **form ka `emailTo`** (client, 2 Sep).
+     *
+     * Wahi pata jispe enquiries jaani hain, wahi customer ko dikhta hai. Ek hi cheez do jagah
+     * rakhne ka matlab hota ki ek din wo alag ho jaate — client sales ka pata badalta aur
+     * page purana dikhata rehta.
+     *
+     * ⚠️ **Sirf pehla pata** bahar jaata hai. `emailTo` comma se ek se zyada le sakta hai
+     * (`sales@x.com, ops@x.com`) — wo **routing** ki baat hai, dikhane ki nahi. Poori list
+     * chhapna har us pate ko spam ke saamne khada kar deta jo sirf CC pe tha.
+     */
+    contactEmail: String(doc.emailTo ?? '')
+      .split(',')[0]
+      .trim(),
     fields: (doc.fields ?? [])
       .filter((field) => field.show !== false)
       .map((field) => ({

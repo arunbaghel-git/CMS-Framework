@@ -95,7 +95,6 @@ export default function General() {
       currency: settings.currency,
       phone: settings.phone,
       whatsapp: settings.whatsapp,
-      contactEmail: settings.contactEmail,
       address: settings.address,
       social: settings.social,
     }
@@ -344,29 +343,6 @@ export default function General() {
                   value={settings.whatsapp}
                   onChange={set('whatsapp')}
                 />
-              </div>
-
-              <div className="field">
-                <label htmlFor="s-contact-email">Contact Email</label>
-                <input
-                  id="s-contact-email"
-                  className="inp"
-                  type="email"
-                  value={settings.contactEmail}
-                  onChange={set('contactEmail')}
-                />
-                {/*
-                 * ⚠️ Ye hint zaroori hai, sajawat nahi — is panel ke bahar ek aur email box
-                 * hai (`Admin Email`), aur do email box ek hi screen pe dekh kar client wahi
-                 * pata dono jagah bhar dega.
-                 *
-                 * Dono ka kaam ulta hai: ye **site pe chhapta** hai, wo **login aur password
-                 * reset** ka pata hai aur kabhi public nahi jaata (R10).
-                 */}
-                <div className="hint">
-                  Shown to visitors — on the package page&rsquo;s &ldquo;Talk to a planner&rdquo;
-                  card. This is <b>not</b> the Admin Email above; that one stays private.
-                </div>
               </div>
 
               <div className="field">

@@ -1917,6 +1917,60 @@ describe('similar itineraries (§9 #15 — apne aap)', () => {
     expect(res.body.data.entry.similar).toEqual([])
   })
 
+  it('Ferry ka chip Ferries field se aata hai, transfers se nahi', async () => {
+    /*
+     * Transfer ek **free list** hai (client `Private cab`, `Catamaran`, kuch bhi likh sakta
+     * hai), to "ye ferry hai" wahan se pehchanna bharosemand nahi. `ferriesNote` client ka
+     * saaf jawab hai — wahi D-53 wali wajah jiske liye wo field bana tha.
+     */
+    await publishedPackage('Andaman A', { nights: 5, days: 6 })
+    await publishedPackage('Andaman B', { nights: 5, days: 6, ferriesNote: '3 legs, included' })
+    await publishedPackage('Andaman C', { nights: 5, days: 6 })
+
+    const res = await resolve('andaman-a')
+    const byTitle = Object.fromEntries(res.body.data.entry.similar.map((s) => [s.title, s]))
+
+    expect(byTitle['Andaman B'].hasFerries).toBe(true)
+    expect(byTitle['Andaman C'].hasFerries).toBe(false)
+  })
+
+  it('Breakfast ka chip itinerary ke meals se aata hai', async () => {
+    await publishedPackage('Andaman A', { nights: 5, days: 6 })
+    await publishedPackage('Andaman B', {
+      nights: 5,
+      days: 6,
+      itinerary: [
+        { title: 'Day 1', meals: ['lunch'] },
+        { title: 'Day 2', meals: ['breakfast'] },
+      ],
+    })
+
+    const res = await resolve('andaman-a')
+    const [card] = res.body.data.entry.similar
+
+    expect(card.hasBreakfast).toBe(true)
+  })
+
+  it('image ka badge Package Type se aata hai', async () => {
+    const type = await authed('post', '/api/taxonomies', adminJar).send({
+      type: 'packageType',
+      name: 'Honeymoon',
+    })
+
+    await publishedPackage('Andaman A', { nights: 5, days: 6 })
+    const created = await createEntry(adminJar, {
+      title: 'Andaman B',
+      fields: { nights: 5, days: 6 },
+      taxonomies: { packageTypes: [type.body.data.taxonomy.id] },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await resolve('andaman-a')
+    const [card] = res.body.data.entry.similar
+
+    expect(card.tag).toBe('Honeymoon')
+  })
+
   it('card ka daam sabse sasti category se derive hota hai', async () => {
     await publishedPackage('Andaman A', { nights: 5, days: 6 })
     await publishedPackage('Andaman B', {

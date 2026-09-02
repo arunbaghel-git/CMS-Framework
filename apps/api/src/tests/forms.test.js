@@ -279,6 +279,19 @@ describe('public payload me form', () => {
     expect(enquiryForm.fields).toHaveLength(10)
   })
 
+  it('contactEmail form ke emailTo se aata hai — sirf pehla pata', async () => {
+    /*
+     * "Talk to a planner" ka email yahi hai (client, 2 Sep). Ek se zyada pate **routing** ki
+     * baat hain, dikhane ki nahi — poori list chhapna har us pate ko spam ke saamne khada
+     * kar deta jo sirf CC pe tha.
+     */
+    await makeForm({ emailTo: 'sales@x.com, ops@x.com' })
+
+    const res = await request(app).get('/api/public/package-defaults')
+
+    expect(res.body.data.packageDefaults.enquiryForm.contactEmail).toBe('sales@x.com')
+  })
+
   it('koi active form na ho to null — sidebar me khaali dabba nahi (D-30)', async () => {
     await makeForm({ status: 'draft' })
 

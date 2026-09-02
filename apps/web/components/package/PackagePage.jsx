@@ -727,7 +727,8 @@ export default function PackagePage({ entry, defaults, settings }) {
              * "Talk to a planner"). D-67 ka button isi `#enquiry` pe utarta hai.
              */}
             <EnquiryForm form={enquiryForm} packages={formPackages} sourcePath={entry.path} />
-            <Planner settings={settings} />
+            {/* Email form ke `emailTo` se — wahi pata jispe enquiries jaani hain (client, 2 Sep) */}
+            <Planner settings={settings} email={enquiryForm?.contactEmail} />
           </aside>
         </div>
 

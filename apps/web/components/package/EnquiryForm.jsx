@@ -192,13 +192,22 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         /**
-         * ⚠️ `credentials` jaan-boojh kar **nahi** hai.
+         * `omit` — is request ke saath **koi cookie nahi** jaani chahiye.
          *
-         * Cookie bhejne ka matlab hota ki logged-in admin ke browser se CSRF cookie bhi
-         * jaati, aur API tab `X-CSRF-Token` maangti — jo is public form ke paas hai hi nahi.
-         * Wo bug sirf **admin ke apne browser** me dikhta: visitor ke liye form chalta rehta
-         * aur client ko lagta ki sab theek hai.
+         * ⚠️ Pehle yahan kuch likha hi nahi tha, is galat samajh ke saath ki "kuch na likhne
+         * se cookie nahi jaayegi". `fetch` ka default `same-origin` hai, **`omit` nahi** —
+         * aur ye call same-origin hi hai (`/api/*` Next se API pe rewrite hoti hai, D-12).
+         *
+         * Nateeja: logged-in admin ke browser se CSRF cookie chali jaati thi, API
+         * `X-CSRF-Token` maangti thi, aur form **"CSRF token did not match"** de kar ruk
+         * jaata tha (client, 2 Sep). Enquiry DB tak pahunchti hi nahi thi.
+         *
+         * ⚠️ Cookie port se bandhi nahi hoti — `localhost:5173` (admin) ki cookie
+         * `localhost:3000` (site) pe bhi jaati hai. Isiliye ye sirf admin ke browser me
+         * dikhta tha, aur asli visitor ke liye form chalta rehta — wahi failure jo test se
+         * bhi nahi pakdi ja sakti thi.
          */
+        credentials: 'omit',
         body: JSON.stringify({
           formId: form.id,
           values: {
