@@ -5,10 +5,16 @@
  * page pe wahi hai. Isliye ise package ke payload me daalne ka koi matlab nahi tha; wo har
  * entry ke saath ek hi cheez dohrata.
  *
- * ⚠️ **Email wala row abhi nahi hai.** Reference me Call · WhatsApp · Email teenon hain, par
- * settings me sirf `adminEmail` hai — aur wo **jaan-boojh kar public payload se bahar** hai
- * (R10): wo admin ka login-wala pata hai, customer ko dikhane wala nahi. Uske liye ek alag
- * "contact email" setting chahiye, jo abhi banayi nahi gayi.
+ * Reference ke teenon row ab hain — Call · WhatsApp · Email.
+ *
+ * ⚠️ Email `settings.contactEmail` se aata hai, `adminEmail` se **nahi**. Wo farq zaroori
+ * hai: `adminEmail` admin ka **login wala** pata hai aur wo public payload se jaan-boojh kar
+ * bahar hai (R10) — use site pe chhapna matlab har visitor ko wo pata de dena jispe password
+ * reset jaata hai.
+ *
+ * Ye row 1 Sep tak tha hi nahi, kyunki `contactEmail` ka field hi nahi tha. Client ne 2 Sep
+ * ko pakda ("Talk to a planner me email kyu nahi aa raha hai") — wo Settings ▸ General me
+ * juda, aur bharte hi row aa jaata hai.
  *
  * Koi bhi contact na ho to widget **render hi nahi hota** — ek khaali card "abhi nahi bana"
  * nahi lagta, "toota hua" lagta hai (D-30).
@@ -20,8 +26,9 @@ const digits = (value) => String(value ?? '').replace(/[^\d+]/g, '')
 export default function Planner({ settings }) {
   const phone = settings?.phone?.trim()
   const whatsapp = settings?.whatsapp?.trim()
+  const email = settings?.contactEmail?.trim()
 
-  if (!phone && !whatsapp) return null
+  if (!phone && !whatsapp && !email) return null
 
   return (
     <div className="wdg">
@@ -49,6 +56,16 @@ export default function Planner({ settings }) {
             >
               Chat with us
             </a>
+          </span>
+        </div>
+      )}
+
+      {email && (
+        <div className="wdgc">
+          <span className="wdgc__i">✉</span>
+          <span>
+            <b>Email</b>
+            <a href={`mailto:${email}`}>{email}</a>
           </span>
         </div>
       )}

@@ -62,15 +62,24 @@ export default function Similar({ items, rating, currency = 'INR' }) {
       <div className="sim">
         {shown.map((item) => {
           /**
-           * Chips — `5N / 6D` · `Ferry` · `Breakfast`.
+           * Chips — `5N / 6D` · `Ferry` · `Breakfast`. **Teen, aur har kism ka ek.**
            *
-           * Duration pehla hai (reference ka kram), phir transfers, phir meals. Teenon
-           * server pe derive hote hain; yahan sirf unka label banta hai.
+           * ⚠️ Pehle yahan **saare** transfers aur **saare** meals aate the, aur wo galat tha
+           * (client, 2 Sep — "see what tags are coming: days, ferry and breakfast, not
+           * transfer tags"). Jis package me teen alag transfer aur teen meal hon, uspe saat
+           * chip ban jaate the — aur reference me hamesha **teen** hain.
+           *
+           * Niyam ab shakl se bandha hai, ginti se nahi: ek duration, ek safar ka saadhan,
+           * ek khaana. Data kuch bhi ho, card ka roop wahi rehta hai.
+           *
+           * ⚠️ "Pehla" transfer aur "pehla" meal itinerary ke kram se aate hain — Day 1 se.
+           * Agar client chahta hai ki hamesha `Ferry` dikhe (chahe wo Day 3 pe ho), to wo ek
+           * content ka faisla hai aur uske liye chunav chahiye hoga.
            */
           const chips = [
             item.nights != null && item.days != null ? `${item.nights}N / ${item.days}D` : null,
-            ...(item.transfers ?? []),
-            ...(item.meals ?? []).map((meal) => MEAL_LABEL[meal] ?? meal),
+            item.transfers?.[0] ?? null,
+            item.meals?.[0] ? (MEAL_LABEL[item.meals[0]] ?? item.meals[0]) : null,
           ].filter(Boolean)
 
           return (

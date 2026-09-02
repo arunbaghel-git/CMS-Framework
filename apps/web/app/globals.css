@@ -2936,8 +2936,10 @@ a.mega__gl:hover {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-  padding: 4px 9px;
+  background: rgba(244, 112, 28, 0.24);
+  border: 1px solid rgba(255, 160, 77, 0.42);
+  color: #ffc79b;
+  padding: 4px 10px;
   border-radius: var(--rf);
 }
 
@@ -3762,8 +3764,38 @@ a.mega__gl:hover {
    isliye `.wrap.pkg__cta`.
    ================================================================== */
 
+/*
+ * CTA ka apna **safed band** — reference ka `<section class="sec sec--white">`.
+ *
+ * Reference me poora package page do bands me hai: content `sec--blue` pe (`--blue-50`) aur
+ * CTA `sec--white` pe. Hamare paas wo doosra band tha hi nahi — CTA seedha page ke tinted
+ * background (`.pkg`, `#f4f7fb`) pe baitha tha, aur uske charon taraf wahi neela rang chalta
+ * rehta tha (client, 2 Sep).
+ *
+ * ⚠️ `.wrap` is section pe **nahi** hai, uske andar ek div pe hai. Section pe lagate hi
+ * background bhi 1280px me sikud jaata aur uske dono taraf neela dikhta — yaani band band
+ * hi nahi lagta.
+ *
+ * Padding reference ka `.sec` hai (`clamp(28px, 3.4vw, 46px) 0`), aur wo **dono taraf** hai —
+ * pehle sirf `margin-bottom` tha, to upar wale section se CTA chipka hua tha.
+ */
 .pkg__cta {
-  margin-bottom: clamp(32px, 5vw, 64px);
+  background: var(--surface);
+  padding-block: clamp(28px, 3.4vw, 46px);
+}
+
+/*
+ * CTA hai to page ki apni bottom padding hat jaati hai.
+ *
+ * `.pkg` pe `padding-bottom: 64px` hai, aur wo padding **andar** hoti hai — yaani safed band
+ * ke **neeche** 64px neela reh jaata tha, jaise page khatam hone ke baad ek patti bach gayi
+ * ho. Ab neeche ki jagah band ki apni padding deti hai, aur wo safed hai.
+ *
+ * CTA na ho (client ne section off kiya ho) to `.pkg` ki padding waise hi rehti hai —
+ * warna page footer se chipak jaata.
+ */
+.pkg:has(.pkg__cta) {
+  padding-bottom: 0;
 }
 
 .offer {

@@ -159,6 +159,11 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
 
     phone: settings.phone,
     whatsapp: settings.whatsapp,
+    /**
+     * ⚠️ `contactEmail` jaata hai, `adminEmail` **nahi** — dono alag cheezein hain (R10).
+     * Admin wala login ka pata hai; ye customer ke liye likha gaya pata hai.
+     */
+    contactEmail: settings.contactEmail ?? '',
     address: settings.address,
     social: settings.social,
 
