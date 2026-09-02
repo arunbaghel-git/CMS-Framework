@@ -69,7 +69,13 @@ const enquirySchema = new mongoose.Schema(
      */
     formName: { type: String, default: '' },
 
-    /** Kis page se bhari gayi — `sourcePage` wala hidden field. */
+    /**
+     * Kis page se bhari gayi — `/packages/discover-andaman`.
+     *
+     * ⚠️ Ye payload ke apne khaane se aata hai (`submitEnquirySchema.sourcePath`), form ke
+     * kisi field se nahi. Pehle wo `sourcePage` naam ki `hidden` field pe tika tha, aur jis
+     * client ne wo field apne form se hata di uski har enquiry pe ye khaali reh gaya (2 Sep).
+     */
     sourcePath: { type: String, default: '' },
 
     /**

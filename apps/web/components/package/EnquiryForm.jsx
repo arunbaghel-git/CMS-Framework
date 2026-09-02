@@ -61,8 +61,9 @@ const Arrow = () => (
 /**
  * Ek field → uska input.
  *
- * `hidden` yahan **aata hi nahi** — wo neeche alag se bharta hai (`sourcePage`). Use yahan
- * render karne ka matlab hota ek dikhne wala khaali khaana.
+ * ⚠️ `hidden` type ka field yahan bhi **render nahi hona chahiye** — wo ek dikhne wala khaali
+ * khaana ban jaata. Naya form aisa field banata hi nahi (path ab payload ka apna khaana hai,
+ * 2 Sep), par us badlaav se pehle bane form me wo abhi bhi ho sakta hai.
  */
 function Field({ field, value, onChange, packages, categories }) {
   const id = `enq-${field.key}`
