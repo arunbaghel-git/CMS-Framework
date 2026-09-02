@@ -279,6 +279,13 @@ raha tha, jabki `PackagePage.jsx` use do jagah padhta hai. Client ki likhi cance
 policy page pe **kabhi** nahi aati thi. Wahi shakl jo D-64 wale transfer-duration bug ki
 thi: dono taraf ka code sahi dikhta hai, bas payload me field chhoot gaya tha.
 
+**2 Sep — `pnpm test` client ki uploaded images mita deta hai (A-16).** Wajah mil gayi:
+`media.test.js` ka `UPLOAD_ROOT` **asli** `apps/api/uploads` hai, aur wo har test se pehle
+`rm -r` ho jaata hai. DB ke records bache rehte hain, files jaati hain — isiliye admin me
+image dikhti hai par page pe 404. **Fix abhi kiya nahi gaya** — client ne agle session me
+karwane ko kaha. Do kaam: test ko apna folder do, aur `UPLOAD_DIR` repo ke bahar le jao.
+⚠️ Purani `git clean` wali theory **galat** thi.
+
 **Design frozen hai (R15)**: `docs/reference/admin-design.html` ke hisaab se hi banega, aur
 build ke waqt kuch theek na lage to **pehle poochho, khud mat badlo**. Jo farq abhi liye
 gaye hain wo sab client ke faislon se hain aur `04-ADMIN-UX.md` ke aakhri section me

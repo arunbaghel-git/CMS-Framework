@@ -25,6 +25,19 @@ import { connectTestDb, disconnectTestDb } from './db.js'
 
 const PASSWORD = 'ek-lamba-sa-passphrase'
 const app = createApp()
+/**
+ * ⚠️ **YE ASLI UPLOAD FOLDER HAI, AUR NEECHE `beforeEach` ISE MITA DETA HAI (A-16).**
+ *
+ * Yaani jo bhi `pnpm test` chalata hai, uski dev machine se client ki **saari uploaded
+ * images ud jaati hain**. DB ke records bache rehte hain, sirf files jaati hain — isiliye
+ * admin ki Media list bhari hui dikhti hai aur wahi image page pe 404 deti hai. Client ise
+ * kai din "images fir se upload karni padti hain" ki tarah dekh raha tha (2 Sep).
+ *
+ * Saath wali `storage.test.js` ye galti nahi karti — wo apna `apps/api/.test-uploads`
+ * banati hai. Fix wahi hai, aur wo agle session me hoga (client ka faisla).
+ *
+ * ⛔ Tab tak: ye path **badalna hi fix hai** — ise kisi aur asli folder pe mat le jao.
+ */
 const UPLOAD_ROOT = path.resolve(process.cwd(), 'apps/api/uploads')
 
 function cookieJar(res) {

@@ -186,6 +186,57 @@ Client se poochhne wala sawaal: **logo na ho to header me uski jagah kya dikhna 
 
 ---
 
+### A-16 · `pnpm test` asli uploads folder mita deta hai (2 Sep)
+
+**Deadline:** agla session — ye har test run pe client ka data le jaata hai
+**Wajah mil chuki hai, fix jaan-boojh kar rok kar rakha hai** (client ne naye session me
+karwane ko kaha)
+
+Client kai dinon se ye keh raha tha: _"jo images admin me upload karta hu, koi change karne
+ko bolu fir wo frontend par visible kyu nahi hoti, mujhe fir se upload karna padta hai har
+baar."_
+
+Ab wajah pakki hai — `apps/api/src/tests/media.test.js`:
+
+```js
+const UPLOAD_ROOT = path.resolve(process.cwd(), 'apps/api/uploads')   // line 28 — ASLI folder
+
+beforeEach(async () => {
+  await rm(UPLOAD_ROOT, { recursive: true, force: true })             // line 108
+```
+
+Ye dev ka **asli** upload folder hai, aur wo us file ke **har test se pehle** mit jaata hai.
+Yaani jo bhi `pnpm test` chalata hai — developer ho ya koi script — wo client ki saari
+uploaded files le jaata hai.
+
+Lakshan isiliye itna uljha hua tha: **DB ke records bache rehte hain**, sirf files jaati
+hain. Admin ki Media list bhari hui dikhti hai, aur frontend pe wahi image 404 deti hai. Aur
+kyunki files sirf tab jaati hain jab koi test chalata hai, client ko lagta tha ki wajah
+"code change" hai — jabki wajah change ke **baad chalne wala test** tha.
+
+⚠️ **Pehli theory galat thi.** Is par pehle `git clean -fdx` ka shak likha gaya tha
+(`uploads/` gitignored hai, to theory theek baithti thi). Wo galat tha — wajah repo ke apne
+test me hai. Purani theory par aage koi kaam mat karna.
+
+Saath wali `storage.test.js` ye galti nahi karti — wo apna alag `apps/api/.test-uploads`
+banati hai. `media.test.js` me wahi ehtiyaat chhoot gayi.
+
+Do kaam karne hain, aur **dono** karne chahiye:
+
+| Kaam | Kyun |
+| --- | --- |
+| `media.test.js` ko apna throwaway folder do (jaise `storage.test.js`) | Ye asli bug hai. Test ko kabhi dev ke data ko haath nahi lagana chahiye |
+| `UPLOAD_DIR` repo ke **bahar** rakho (`C:Usersdeepacms-uploads`) | Doosri deewar — uske baad koi test, build ya `git clean` usse chhoo hi nahi sakta. D-41 absolute path pehle se allow karta hai |
+
+⚠️ Jo files ja chuki hain wo **wapas nahi aayengi** — disk se mit chuki hain aur git me thi
+nahi. Fix ke baad ek baar phir upload karni padengi.
+
+Ek sabak bhi hai, aur wo D-42 §2 se juda hai: public API sirf **DB record** dekh kar `null`
+bhejti hai. Record maujood par file gayab — wo soorat wo pakad hi nahi sakti. Isiliye ye
+failure itni chup thi.
+
+---
+
 ### A-11 · Test suite kabhi-kabhi phat-ti hai — Mongo contention
 
 **Deadline:** koi nahi — par har baar shak paida karti hai
