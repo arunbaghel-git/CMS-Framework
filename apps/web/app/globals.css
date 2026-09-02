@@ -3909,16 +3909,19 @@ a.mega__gl:hover {
 }
 
 /*
- * Counter image ke upar-baayein — close ke bilkul saamne.
+ * Counter image ke **neeche**, beech me.
  *
- * Neeche rakhne ka matlab hota phone pe arrows se takrana (wahan wo image ke neeche aate
- * hain). Upar wo hamesha akela rehta hai.
+ * ⚠️ Ise ek baar upar-baayein le jaaya gaya tha, is dar se ki chhoti screen pe arrows bhi
+ * neeche aate hain aur dono takrayenge. Wo dar galat tha: arrows `25%` par hain, yaani
+ * daayein-baayein — aur counter unke **beech** me baithta hai. Nateeja `‹ 3 / 12 ›` — ek
+ * saada row, jo alag-alag rakhne se behtar hai.
  */
 .lbx__count {
   position: absolute;
   z-index: 2;
-  top: -38px;
-  left: 0;
+  bottom: -34px;
+  left: 50%;
+  transform: translateX(-50%);
   color: rgba(255, 255, 255, 0.82);
   background: rgba(255, 255, 255, 0.14);
   padding: 5px 12px;
@@ -3958,6 +3961,17 @@ a.mega__gl:hover {
   .lbx__nav--next {
     right: 25%;
   }
+
+  /*
+   * Counter arrows ke saath ek line me — `‹ 3 / 12 ›`.
+   *
+   * `-44px` isliye ki wo 38px ke arrows ke beech **optically** center dikhe: arrows
+   * `-50px` se shuru hote hain aur counter unse chhota hai, to uska apna bottom thoda upar
+   * rakhna padta hai.
+   */
+  .lbx__count {
+    bottom: -44px;
+  }
 }
 
 /* Phone pe sab thoda aur chhota. */
@@ -3966,6 +3980,10 @@ a.mega__gl:hover {
     width: 34px;
     height: 34px;
     bottom: -46px;
+  }
+
+  .lbx__count {
+    bottom: -42px;
   }
 
   .lbx__x {
