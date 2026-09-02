@@ -265,75 +265,104 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
       <PriceHeader />
 
       <div className="bkg__b">
-        {state.done ? (
-          <p className="bkg__done">
-            {form.afterSubmit?.value || 'Thank you — we will get back to you shortly.'}
-          </p>
-        ) : (
-          <form onSubmit={submit}>
-            {toRows(visible).map((row) => {
-              const fields = row.map((field) => (
-                <Field
-                  key={field.key}
-                  field={field}
-                  value={isCategoryField(field) ? category : values[field.key]}
-                  onChange={(value) =>
-                    isCategoryField(field) ? setCategory(value) : set(field.key, value)
-                  }
-                  packages={packages}
-                  categories={categoryOptions}
-                />
-              ))
-
-              /* Ek akela field seedha, do wale `.bkg__two` ke andar — reference ka grid. */
-              return row.length === 2 ? (
-                <div className="bkg__two" key={row[0].key}>
-                  {fields}
-                </div>
-              ) : (
-                fields
-              )
-            })}
-
-            {/*
-             * Honeypot — asli user ise dekh hi nahi sakta, bot bhar deta hai. Bhara hua aaye
-             * to API 200 lautati hai aur kuch store nahi karti.
-             *
-             * `aria-hidden` + `tabIndex={-1}` isliye ki screen reader aur keyboard dono ise
-             * chhod dein — warna ye asli users ke liye ek anjaan khaana ban jaata.
-             */}
-            <div className="hp" aria-hidden="true">
-              <label htmlFor="enq-website">Website</label>
-              <input
-                id="enq-website"
-                type="text"
-                tabIndex={-1}
-                autoComplete="off"
-                value={hp}
-                onChange={(e) => setHp(e.target.value)}
+        {/*
+         * ⚠️ Submit hone par **form gayab nahi hota** — sirf button ka text badalta hai
+         * (client, 2 Sep). Pehle poora form ek line ke message se badal jaata tha, aur wo do
+         * tarah se bura tha: user ka bhara hua sab kuch aankhon ke saamne se ud jaata tha
+         * (kya bheja, ye dobara dekhne ka koi raasta nahi), aur sidebar achanak sikud kar
+         * poora page hila deta tha.
+         *
+         * Reference bhi yahi karta hai — uska `onsubmit` sirf itna hai:
+         * `this.querySelector('.js-go').textContent = 'Sent ✓ We will call you shortly'`.
+         */}
+        <form onSubmit={submit}>
+          {toRows(visible).map((row) => {
+            const fields = row.map((field) => (
+              <Field
+                key={field.key}
+                field={field}
+                value={isCategoryField(field) ? category : values[field.key]}
+                onChange={(value) =>
+                  isCategoryField(field) ? setCategory(value) : set(field.key, value)
+                }
+                packages={packages}
+                categories={categoryOptions}
               />
-            </div>
+            ))
 
-            {state.error && (
-              <p className="bkg__err" role="alert">
-                {state.error}
-              </p>
+            /* Ek akela field seedha, do wale `.bkg__two` ke andar — reference ka grid. */
+            return row.length === 2 ? (
+              <div className="bkg__two" key={row[0].key}>
+                {fields}
+              </div>
+            ) : (
+              fields
+            )
+          })}
+
+          {/*
+           * Honeypot — asli user ise dekh hi nahi sakta, bot bhar deta hai. Bhara hua aaye
+           * to API 200 lautati hai aur kuch store nahi karti.
+           *
+           * `aria-hidden` + `tabIndex={-1}` isliye ki screen reader aur keyboard dono ise
+           * chhod dein — warna ye asli users ke liye ek anjaan khaana ban jaata.
+           */}
+          <div className="hp" aria-hidden="true">
+            <label htmlFor="enq-website">Website</label>
+            <input
+              id="enq-website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={hp}
+              onChange={(e) => setHp(e.target.value)}
+            />
+          </div>
+
+          {state.error && (
+            <p className="bkg__err" role="alert">
+              {state.error}
+            </p>
+          )}
+
+          {/*
+           * Teen haalat, ek hi button:
+           *
+           * | Haalat | Text | Kyun |
+           * | --- | --- | --- |
+           * | saada | `Get this itinerary →` | teer sirf yahin — wo "aage badho" kehta hai |
+           * | bhej raha | `Sending…` | teer hata, warna wo abhi bhi click karne ko kehta lagta |
+           * | ho gaya | `✓` + admin ka thank-you | `disabled`, taaki dobara na jaaye |
+           *
+           * `btn--sent` sirf ek kaam karta hai — text ko **wrap hone deta hai**. `.btn` pe
+           * `white-space: nowrap` hai (label ek shabd ka hota hai), par thank-you ek poora
+           * vaakya hai aur wo widget se bahar nikal jaata.
+           */}
+          <button
+            className={`btn btn--accent${state.done ? ' btn--sent' : ''}`}
+            type="submit"
+            disabled={state.sending || state.done}
+          >
+            {state.done ? (
+              <>✓ {form.afterSubmit?.value || 'Sent — we will call you shortly.'}</>
+            ) : state.sending ? (
+              'Sending…'
+            ) : (
+              <>
+                Get this itinerary
+                <Arrow />
+              </>
             )}
+          </button>
 
-            <button className="btn btn--accent" type="submit" disabled={state.sending}>
-              {state.sending ? 'Sending…' : 'Get this itinerary'}
-              {!state.sending && <Arrow />}
-            </button>
-
-            {/*
-             * Button ke neeche ki chhoti line — reference ka `<small>`.
-             *
-             * Ye thank-you message se alag hai: wo submit ke **baad** aata hai, ye **pehle** —
-             * jab user abhi soch raha hai ki bharun ya na bharun.
-             */}
-            {form.footnote && <small>{form.footnote}</small>}
-          </form>
-        )}
+          {/*
+           * Button ke neeche ki chhoti line — reference ka `<small>`.
+           *
+           * Ye thank-you message se alag hai: wo submit ke **baad** aata hai, ye **pehle** —
+           * jab user abhi soch raha hai ki bharun ya na bharun.
+           */}
+          {form.footnote && <small>{form.footnote}</small>}
+        </form>
       </div>
     </div>
   )

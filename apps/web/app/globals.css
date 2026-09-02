@@ -367,7 +367,8 @@ a {
    * 44px wahi hai jo reference ka `.b` (11px padding + 14px/1.55 text) banata tha.
    */
   min-height: 44px;
-  padding: 0 14px;
+  /* i did it 20px needed */
+  padding: 0 20px;
   border: 0;
   border-radius: var(--r2);
   font-size: var(--fs-base);
@@ -3119,12 +3120,23 @@ a.mega__gl:hover {
   margin-bottom: 11px;
 }
 
-.bkg__done {
-  font-size: var(--fs-base);
-  line-height: 1.6;
-  color: var(--body);
+/*
+ * Submit ho jaane ke baad ka button — sirf ek kaam: text ko **wrap hone dena**.
+ *
+ * `.btn` pe `white-space: nowrap` hai kyunki label aam taur pe ek-do shabd ka hota hai. Yahan
+ * uski jagah admin ka poora thank-you vaakya aata hai, aur wo widget se bahar nikal jaata.
+ * `min-height` chhoota nahi jaata — button lamba ho sakta hai, chhota nahi.
+ *
+ * Rang wahi narangi rehta hai (reference bhi nahi badalta), bas wo `disabled` hai — dobara
+ * bhejne ka koi raasta nahi bachta.
+ */
+.btn--sent {
+  white-space: normal;
   text-align: center;
-  padding: 14px 4px;
+  line-height: 1.4;
+  padding-block: 10px;
+  /* Ab click karne ko kuch hai hi nahi — haath ka ishara bhi nahi hona chahiye. */
+  cursor: default;
 }
 
 /*
