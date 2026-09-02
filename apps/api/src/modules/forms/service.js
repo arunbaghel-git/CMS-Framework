@@ -252,7 +252,8 @@ export async function submitEnquiry(input, siteId = DEFAULT_SITE_ID) {
     formId: String(form._id),
     /** Naam copy hota hai — form rename ya delete ho jaaye to bhi enquiry apna source jaanti hai. */
     formName: form.name,
-    sourcePath: typeof values.sourcePage === 'string' ? values.sourcePage : '',
+    /** Payload ka apna khaana — form ke fields se aazad (2 Sep). */
+    sourcePath: input.sourcePath ?? '',
     values,
   })
 

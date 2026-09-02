@@ -30,8 +30,13 @@ import { DEFAULT_SITE_ID } from '../constants/index.js'
 /**
  * Design ke builder wale aath type, aur ek nauvaan — `hidden`.
  *
- * `hidden` design me hai (`Source page · Hidden · captured automatically`) par uske
- * dropdown me nahi, kyunki client use haath se nahi jodta. Wo apne aap bharta hai.
+ * ⚠️ `hidden` ab **kisi default field pe nahi** hai. Wo `Source page` ke liye tha, aur wo
+ * field 2 Sep me hat gayi — enquiry ka path ab payload ka apna khaana hai
+ * (`submitEnquirySchema.sourcePath`), kisi field pe tika hua nahi.
+ *
+ * Type phir bhi yahan hai, aur wo jaan-boojh kar hai: us badlaav se **pehle** bane form me wo
+ * field ab bhi ho sakti hai, aur enum se hatane ka matlab hota ki wo form agli Save pe 400
+ * de. Naya form use kabhi nahi banata.
  */
 export const FORM_FIELD_TYPES = Object.freeze([
   'text',
@@ -328,14 +333,6 @@ export const DEFAULT_FORM_FIELDS = Object.freeze([
     placeholder: "Honeymoon, kids' ages, flight timings — anything we should plan around",
   },
   { key: 'consent', label: 'Consent', type: 'checkbox', show: true, required: true },
-  {
-    /** Design: `Hidden · captured automatically`. Browser bharta hai, client nahi. */
-    key: 'sourcePage',
-    label: 'Source page',
-    type: 'hidden',
-    show: true,
-    required: false,
-  },
 ])
 
 /** Naye form ka poora khaali document. */
@@ -378,6 +375,19 @@ export const submitEnquirySchema = z.object({
   formId: z.string().min(1),
 
   values: z.record(z.string().max(60), enquiryValueSchema).default({}),
+
+  /**
+   * Enquiry kis page se aayi — `/packages/discover-andaman`.
+   *
+   * ⚠️ Ye **payload ka apna khaana** hai, form ka field nahi. Pehle ye `values.sourcePage` se
+   * aata tha, yaani ek `hidden` field pe tika hua tha — aur jis client ne wo field apne form
+   * se hata di, uski har enquiry pe path **khaali** aane laga (2 Sep).
+   *
+   * Wo galat dhaancha tha: "ye kis page se aayi" client ki setting nahi hai, wo submission ka
+   * apna sach hai. Use form ke fields pe tikaane ka matlab tha ki ek admin ka chunav data ki
+   * quality tay kar de.
+   */
+  sourcePath: z.string().max(500).default(''),
 
   /**
    * Honeypot — asli user ise kabhi nahi bharta (wo CSS se chhupa hota hai), bot bhar deta

@@ -112,14 +112,20 @@ beforeEach(async () => {
 // ── forms ka CRUD ────────────────────────────────────────────────────────────
 
 describe('enquiry forms', () => {
-  it('naya form bhara hua khulta hai — das dikhne wale field, aur ek chhupa hua', async () => {
+  it('naya form bhara hua khulta hai — nau dikhne wale field, aur ek chhupa hua', async () => {
     // Khaali table dekh kar client ko pehle ye sochna padta ki form me hota kya hai (D-65)
     const form = await makeForm()
 
-    expect(form.fields).toHaveLength(11)
-    expect(form.fields.filter((f) => f.show).map((f) => f.key)).toHaveLength(10)
+    expect(form.fields).toHaveLength(10)
+    expect(form.fields.filter((f) => f.show).map((f) => f.key)).toHaveLength(9)
     expect(form.fields.map((f) => f.key)).toContain('fullName')
     expect(form.fields.find((f) => f.key === 'consent').required).toBe(true)
+
+    /*
+     * `sourcePage` ab default me hai hi nahi — enquiry ka path payload ka apna khaana hai
+     * (`sourcePath`), kisi field pe tika hua nahi (2 Sep).
+     */
+    expect(form.fields.map((f) => f.key)).not.toContain('sourcePage')
 
     /*
      * `hotelCategory` `show: false` pe khulta hai, jaan-boojh kar — har site package pe
@@ -201,6 +207,22 @@ describe('enquiry submit — bina auth ke', () => {
     expect(saved.values).toMatchObject({ fullName: 'Ananya', message: 'Ferry?' })
   })
 
+  it('sourcePath payload se aata hai, form ke kisi field se nahi', async () => {
+    /*
+     * ⚠️ Pehle ye `values.sourcePage` se aata tha, yaani ek `hidden` field pe tika hua tha —
+     * aur jis client ne wo field apne form se hata di, uski har enquiry pe path **khaali**
+     * aane laga (2 Sep). "Ye kis page se aayi" client ki setting nahi hai.
+     */
+    const form = await makeForm()
+
+    await submit({ formId: form.id, sourcePath: '/packages/discover-andaman', values: filled })
+
+    const saved = await Enquiry.findOne({}).lean()
+    expect(saved.sourcePath).toBe('/packages/discover-andaman')
+    /** Wo `values` me nahi ghusta — wahan sirf wo aata hai jo form pe bhara gaya. */
+    expect(saved.values.sourcePage).toBeUndefined()
+  })
+
   it('draft form pe submission nahi hoti', async () => {
     const form = await makeForm({ status: 'draft' })
 
@@ -276,7 +298,7 @@ describe('public payload me form', () => {
     const { enquiryForm } = res.body.data.packageDefaults
 
     expect(enquiryForm.name).toBe('Package Enquiry')
-    expect(enquiryForm.fields).toHaveLength(10)
+    expect(enquiryForm.fields).toHaveLength(9)
   })
 
   it('contactEmail form ke emailTo se aata hai — sirf pehla pata', async () => {
