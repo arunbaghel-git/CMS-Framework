@@ -2005,16 +2005,8 @@ a.mega__gl:hover {
 /*
  * Din ka tag — `Arrival day`, `Ferry day`.
  *
- * ⚠️ Bracket **dono** tag pe hai — `span` (jahan raat hai) aur `em` (din ka tag) — client, 2
- * Sep. Ek pe lagane se wo do ek jaisi cheezein alag-alag dikhne lagti thin, jabki dono `Day 1`
- * ke baare me ek-ek chhoti baat hain.
- *
- * Bracket **CSS se** aati hai, data se nahi. Client admin me sirf `Arrival day` aur stay ka
- * naam likhta hai; `(` aur `)` theme ka kaam hai. Data me likhwane ka matlab hota ki wo har
- * din pe dobara likhi jaaye, aur ek din kisi par chhoot jaaye.
- *
- * ⚠️ Bracket `content` me hai, isliye wo **copy nahi hoti** aur screen reader use padhta bhi
- * nahi — dono theek hai: wo sajaawat hai, matlab ka hissa nahi.
+ * ⚠️ Desktop pe yahan **koi bracket nahi** hai. Bracket sirf 860px se neeche lagti hai, jahan
+ * ye teenon ek row me aa jaate hain — aur uski wajah wahin likhi hai.
  */
 .itin__k em {
   font-style: normal;
@@ -2023,16 +2015,6 @@ a.mega__gl:hover {
   color: var(--faint);
   font-weight: var(--fw-semi);
   margin-top: 2px;
-}
-
-.itin__k span::before,
-.itin__k em::before {
-  content: '(';
-}
-
-.itin__k span::after,
-.itin__k em::after {
-  content: ')';
 }
 
 .itin__c h3 {
@@ -2126,7 +2108,16 @@ a.mega__gl:hover {
   .itin__k {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    /*
+     * `0` — spacing ab separator khud deta hai (` · `), gap nahi. Dono ek saath rakhne se
+     * bracket ke andar 10px ka gap aur ek dot, dono lagte the.
+     */
+    gap: 0;
+  }
+
+  /* Day pill ke baad ki ek saans — pehle ye poore row ka `gap` deta tha. */
+  .itin__k b {
+    margin-right: 10px;
   }
 
   .itin__k::after {
@@ -2138,20 +2129,51 @@ a.mega__gl:hover {
   }
 
   /*
-   * ⚠️ Reference yahan ise **chhupa** deta hai (`itinerary-v3.html` line 1054) — hum bhi
-   * chhupate the. Client ne 2 Sep ko kaha ki ye dikhna chahiye, dono screen pe.
+   * ⚠️ Reference yahan `em` ko **chhupa** deta hai (`itinerary-v3.html` line 1054) — hum bhi
+   * chhupate the. Client ne 2 Sep ko kaha ki wo dikhna chahiye.
    *
    * Chhupane ki wajah samajh aati hai: yahan `.itin__k` khadi list se ek **row** ban jaati
-   * hai, aur teesra tukda use tang kar deta tha. Bracket usi ka jawab hai — `Day 1 (Port
-   * Blair) (Arrival day)` ek row me bhi padha jaata hai, kyunki bracket batati hai ki wo do
-   * alag chhoti baatein hain.
+   * hai, aur teesra tukda use tang kar deta tha. **Ek bracket** usi ka jawab hai — dono tag
+   * uske andar aa jaate hain aur row do hisson me padhi jaati hai:
    *
-   * `margin-top` hatana zaroori hai: yahan sab ek baseline pe hain, aur wo 2px use neeche
+   *   Day 1 (Port Blair · Arrival day)
+   *
+   * `margin-top: 0` isliye ki yahan sab ek baseline pe hain, aur wo 2px `em` ko neeche
    * khisak deta.
    */
   .itin__k em {
     display: inline;
     margin-top: 0;
+  }
+
+  /*
+   * **Ek bracket, dono tag** (client, 2 Sep) — aur wo chaar niyam se banti hai, kyunki dono
+   * tag optional hain:
+   *
+   * | Kya hai | Nateeja |
+   * | --- | --- |
+   * | dono | `(Port Blair · Arrival day)` |
+   * | sirf stay | `(Port Blair)` |
+   * | sirf tag | `(Arrival day)` |
+   * | kuch nahi | kuch nahi |
+   *
+   * ⚠️ Sirf `span::before` pe `(` aur `em::after` pe `)` lagana kaafi **nahi** hota: jis din
+   * pe stay hai par tag nahi, wahan bracket khul kar band hi na hoti. Isiliye `:last-child`
+   * aur `b + em` wale do niyam hain — wo dono adhoore case sambhalte hain.
+   */
+  .itin__k span::before,
+  .itin__k b + em::before {
+    content: '(';
+  }
+
+  .itin__k span:last-child::after,
+  .itin__k em::after {
+    content: ')';
+  }
+
+  /* Dono ke beech — spacing yahi deta hai, `gap` nahi (upar dekho). */
+  .itin__k span + em::before {
+    content: ' · ';
   }
 }
 
