@@ -1686,7 +1686,7 @@ a.mega__gl:hover {
 }
 
 .blk p + p {
-  margin-top: 10px;
+  /* margin-top: 10px; */
 }
 
 /* Steps ke baad cancellation ka paragraph — reference me iske liye inline
@@ -3401,6 +3401,17 @@ a.mega__gl:hover {
   margin-bottom: 8px;
 }
 
+/*
+ * Title ke upar wali rating — **sirf mobile pe** (client, 2 Sep).
+ *
+ * Desktop pe wo daayein wali price rail me hai; wahan ye copy chhupi rehti hai. `display:
+ * none` isliye ki chhupi hui copy screen reader ko bhi na mile — warna rating do baar padhi
+ * jaati.
+ */
+.prow__rt--top {
+  display: none;
+}
+
 .prow__rt b {
   background: var(--green-600);
   color: #fff;
@@ -3566,6 +3577,16 @@ a.mega__gl:hover {
 
   .prow__rt {
     margin: 0;
+  }
+
+  /* Rail wali chhup jaati hai, body wali dikhne lagti hai — jagah badalti hai, ginti nahi. */
+  .prow__p .prow__rt {
+    display: none;
+  }
+
+  .prow__rt--top {
+    display: inline-flex;
+    margin-bottom: 2px;
   }
 
   .prow__go {

@@ -47,6 +47,35 @@ const Arrow = () => (
   </svg>
 )
 
+/**
+ * `4.9 ★ 305 reviews` — reference ka `.prow__rt`.
+ *
+ * ⚠️ Ye card me **do jagah** render hoti hai, aur ek waqt pe sirf ek dikhti hai:
+ *
+ * | Kahan | Kab |
+ * | --- | --- |
+ * | daayein wali price rail me | 760px se upar |
+ * | title ke **upar**, card ke body me | 760px se neeche (client, 2 Sep) |
+ *
+ * Do jagah rakhne ki wajah dhaanche me hai: rail (`.prow__p`) aur body (`.prow__b`) do alag
+ * grid cells hain, aur CSS ek cell se doosre cell me kisi cheez ko nahi bhej sakti. Rating ko
+ * `.prow` ka seedha bachcha banane se wo rail ke apne background aur border ke bahar chali
+ * jaati — yaani desktop pe wo dikhne me alag ho jaati.
+ *
+ * Chhupi hui copy `display: none` pe hai, isliye wo screen reader ko bhi nahi milti — ek hi
+ * baar padhi jaayegi.
+ */
+function Rating({ rating, className = '' }) {
+  if (!rating?.value) return null
+
+  return (
+    <span className={`prow__rt ${className}`.trim()}>
+      <b>{rating.value} ★</b>
+      {rating.count > 0 && <span>{rating.count.toLocaleString('en-IN')} reviews</span>}
+    </span>
+  )
+}
+
 export default function Similar({ items, rating, currency = 'INR' }) {
   const [page, setPage] = useState(0)
 
@@ -114,6 +143,9 @@ export default function Similar({ items, rating, currency = 'INR' }) {
               </div>
 
               <div className="prow__b">
+                {/* Mobile pe title ke upar — desktop pe ye chhupi rehti hai (dekho `Rating`) */}
+                <Rating rating={rating} className="prow__rt--top" />
+
                 <h3>{item.title}</h3>
 
                 {item.route?.length > 0 && (
@@ -155,14 +187,7 @@ export default function Similar({ items, rating, currency = 'INR' }) {
                  * (spec 007 §9 #8: haath se, ek hi). Isliye teenon card pe ek hi number
                  * dikhega.
                  */}
-                {rating?.value > 0 && (
-                  <span className="prow__rt">
-                    <b>{rating.value} ★</b>
-                    {rating.count > 0 && (
-                      <span>{rating.count.toLocaleString('en-IN')} reviews</span>
-                    )}
-                  </span>
-                )}
+                <Rating rating={rating} />
 
                 {item.from?.strikePrice != null && (
                   <del>{formatPrice(item.from.strikePrice, currency)}</del>
