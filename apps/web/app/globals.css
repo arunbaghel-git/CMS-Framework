@@ -2239,6 +2239,9 @@ a.mega__gl:hover {
  * me is naap pe itinerary ka koi rule hai hi nahi.
  */
 @media (max-width: 760px) {
+  .steps{
+    padding-left: 0px;
+  }
   .inx {
     grid-template-columns: 1fr;
   }
@@ -2821,6 +2824,29 @@ a.mega__gl:hover {
     text-align: left;
   }
 
+  /*
+   * Dono daam **ek hi line me** (client, 2 Sep) — `₹31,499  ₹24,999`.
+   *
+   * Yahan `.ptitle` ek column ka ho jaata hai, to price block ko poori chaudai mil jaati hai.
+   * `b` pe `display: block` tha, isliye kaata hua daam apni line leta tha aur asli daam apni —
+   * chaudi jagah khaali padi rehti thi aur block bekaar lamba ho jaata tha.
+   *
+   * `inline-block` (`inline` nahi) isliye ki `b` ka apna `line-height: 1.05` bana rahe; plain
+   * inline pe wo line box ke saath khinch jaata hai aur bade number ke upar-neeche jagah aa
+   * jaati hai.
+   *
+   * ⚠️ Gap `del + b` pe hai, akele `b` pe nahi — kaata hua daam **optional** hai (jab
+   * `strikePrice` na ho to `<del>` render hi nahi hota), aur tab ek bekaar ka 8px indent
+   * bachta.
+   */
+  .ptitle__p b {
+    display: inline-block;
+  }
+
+  .ptitle__p del + b {
+    margin-left: 8px;
+  }
+
   .ptitle__p .btn {
     width: auto;
   }
@@ -3283,7 +3309,7 @@ a.mega__gl:hover {
 
 .prow__route {
   display: flex;
-  align-items: center;
+  align-items: start;
   gap: 6px;
   font-size: var(--fs-sm);
   color: var(--muted);
@@ -3293,6 +3319,7 @@ a.mega__gl:hover {
 .prow__route svg {
   flex-shrink: 0;
   color: var(--blue-500);
+  margin-top: 5px;
 }
 
 .prow__inc {
@@ -3716,7 +3743,7 @@ a.mega__gl:hover {
      * Poore 100% pe slider slider nahi lagta: card screen bhar leta hai aur ye pata hi nahi
      * chalta ki daayein aur bhi kuch hai. Wo jhaankta hua kinara hi ishaara hai.
      */
-    grid-auto-columns: 88%;
+    grid-auto-columns: 95%;
   }
 
   .rev:not(.rev--slider) .rev__track {
