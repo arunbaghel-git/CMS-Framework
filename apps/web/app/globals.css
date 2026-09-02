@@ -2005,9 +2005,13 @@ a.mega__gl:hover {
 /*
  * Din ka tag — `Arrival day`, `Ferry day`.
  *
- * Bracket **CSS se** aati hai, data se nahi (client, 2 Sep). Client admin me sirf
- * `Arrival day` likhta hai; `(` aur `)` theme ka kaam hai. Data me likhwane ka matlab hota
- * ki wo har din pe dobara likhi jaaye, aur ek din kisi par chhoot jaaye.
+ * ⚠️ Bracket **dono** tag pe hai — `span` (jahan raat hai) aur `em` (din ka tag) — client, 2
+ * Sep. Ek pe lagane se wo do ek jaisi cheezein alag-alag dikhne lagti thin, jabki dono `Day 1`
+ * ke baare me ek-ek chhoti baat hain.
+ *
+ * Bracket **CSS se** aati hai, data se nahi. Client admin me sirf `Arrival day` aur stay ka
+ * naam likhta hai; `(` aur `)` theme ka kaam hai. Data me likhwane ka matlab hota ki wo har
+ * din pe dobara likhi jaaye, aur ek din kisi par chhoot jaaye.
  *
  * ⚠️ Bracket `content` me hai, isliye wo **copy nahi hoti** aur screen reader use padhta bhi
  * nahi — dono theek hai: wo sajaawat hai, matlab ka hissa nahi.
@@ -2021,10 +2025,12 @@ a.mega__gl:hover {
   margin-top: 2px;
 }
 
+.itin__k span::before,
 .itin__k em::before {
   content: '(';
 }
 
+.itin__k span::after,
 .itin__k em::after {
   content: ')';
 }
@@ -2136,9 +2142,9 @@ a.mega__gl:hover {
    * chhupate the. Client ne 2 Sep ko kaha ki ye dikhna chahiye, dono screen pe.
    *
    * Chhupane ki wajah samajh aati hai: yahan `.itin__k` khadi list se ek **row** ban jaati
-   * hai, aur teesra tukda use tang kar deta tha. Bracket usi ka jawab hai — `Day 1 · Port
-   * Blair (Arrival day)` ek row me bhi padha jaata hai, kyunki bracket batati hai ki wo ek
-   * alag baat hai.
+   * hai, aur teesra tukda use tang kar deta tha. Bracket usi ka jawab hai — `Day 1 (Port
+   * Blair) (Arrival day)` ek row me bhi padha jaata hai, kyunki bracket batati hai ki wo do
+   * alag chhoti baatein hain.
    *
    * `margin-top` hatana zaroori hai: yahan sab ek baseline pe hain, aur wo 2px use neeche
    * khisak deta.
