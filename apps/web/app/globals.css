@@ -3689,9 +3689,33 @@ a.mega__gl:hover {
   font-weight: var(--fw-heading);
 }
 
+/*
+ * Review cards ki ginti — **teen → do → ek** (client, 2 Sep).
+ *
+ * `grid-auto-columns` slider wale track ke liye hai (jahan cards ek line me khiskte hain), aur
+ * `grid-template-columns` us saade grid ke liye jab teen ya kam reviews hon. Dono ko saath
+ * badalna padta hai, warna teen review pe layout kuch aur dikhta aur chaar pe kuch aur.
+ *
+ * Gap 12px hai, isliye do column pe `(100% - 12px) / 2` — ek gap ghata kar aadha.
+ */
 @media (max-width: 1080px) {
   .rev__track {
-    /* Ek card poori chaudai me, aur agla thoda jhaankta hua — isse scroll dikhai deta hai. */
+    grid-auto-columns: calc((100% - 12px) / 2);
+  }
+
+  .rev:not(.rev--slider) .rev__track {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .rev__track {
+    /*
+     * Ek card poori chaudai me **nahi** — 88%, taaki agla thoda jhaanke.
+     *
+     * Poore 100% pe slider slider nahi lagta: card screen bhar leta hai aur ye pata hi nahi
+     * chalta ki daayein aur bhi kuch hai. Wo jhaankta hua kinara hi ishaara hai.
+     */
     grid-auto-columns: 88%;
   }
 
