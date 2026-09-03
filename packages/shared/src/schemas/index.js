@@ -9,6 +9,7 @@
  * badla hai: `taxonomyRefsSchema` (A-7, **D-49**), jab `entries` me abhi koi asli data
  * tha hi nahi.
  */
+export * from './bulk-import.js'
 export * from './block.js'
 export * from './content.js'
 export * from './rich-html.js'

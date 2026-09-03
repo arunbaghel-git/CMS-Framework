@@ -24,6 +24,7 @@ import { menuLocationRoutes, menuRoutes } from './modules/menus/routes.js'
 import { contentTypeRoutes } from './modules/content-types/routes.js'
 import { entryRoutes } from './modules/entries/routes.js'
 import { taxonomyRoutes } from './modules/taxonomies/routes.js'
+import { bulkImportRoutes } from './modules/bulk-imports/routes.js'
 import { enquiryRoutes, formRoutes } from './modules/forms/routes.js'
 import {
   addOnRoutes,
@@ -197,6 +198,7 @@ export function createApp() {
   app.use('/api/package-defaults', packageDefaultsRoutes)
 
   // Enquiry forms — client, 1 Sep. Submissions ka public raasta `/api/public/enquiries` hai
+  app.use('/api/bulk-imports', bulkImportRoutes)
   app.use('/api/forms', formRoutes)
   // Inbox — 3 Sep. Wahi `forms` module, alag prefix (enquiry form ke bina bemaani hai)
   app.use('/api/enquiries', enquiryRoutes)

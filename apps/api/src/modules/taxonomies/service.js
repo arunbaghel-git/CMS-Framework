@@ -328,3 +328,26 @@ export async function deleteTaxonomy(id, siteId = DEFAULT_SITE_ID, locale = DEFA
 
   return { id: String(id) }
 }
+
+/**
+ * Ek taxonomy type ke saare naam aur id — Bulk Upload ke liye (D-81).
+ *
+ * `listTaxonomies({ q })` yahan kaam nahi karta: uska `q` **substring** hai (`Havelock` se
+ * `Havelock Island` bhi milta hai) aur uska `limit` 200 pe capped hai. Importer ko exact
+ * match chahiye aur poori list chahiye — client ka niyam yahi hai: case aur space maaf,
+ * spelling nahi.
+ *
+ * ⚠️ Naam ki uniqueness **hai hi nahi** — uniqueness `{siteId, locale, type, slug}` pe hai.
+ * Isliye ek hi naam do baar aa sakta hai, aur ye list use chhupati nahi. Aage `buildRefMaps()`
+ * usi par blocker lagata hai, kyunki chup-chaap pehla utha lena galat hotel live kar deta hai.
+ *
+ * @param {string} type `destination` · `packageType` · `category` · `tag`
+ * @returns {Promise<Array<{ id: string, name: string }>>}
+ */
+export async function allTaxonomyNames(type, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const docs = await Taxonomy.find({ ...scope(siteId, locale), type }, { name: 1 })
+    .sort({ name: 1 })
+    .lean()
+
+  return docs.map((doc) => ({ id: String(doc._id), name: doc.name ?? '' }))
+}

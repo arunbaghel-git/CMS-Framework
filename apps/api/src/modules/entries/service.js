@@ -1394,3 +1394,34 @@ export async function restoreRevision(
 
   return toApi(updated)
 }
+
+/**
+ * Ek slug pe kaunsi entry hai — Bulk Upload ke liye (D-81).
+ *
+ * ## Ye importer ke dobara chalne ki poori jaan hai
+ *
+ * Client wahi sheet dobara chalata hai (doc theek karke, ya naya package jod kar). Har baar
+ * naye page banna **bilkul nahi** chahiye. Pehchan slug se hoti hai, aur uske liye ek exact
+ * lookup chahiye — `listEntries()` slug pe filter deta hi nahi.
+ *
+ * ⚠️ **Trashed entry bhi lauti hai, aur wo jaan-boojh kar hai.** `resolveSlugAndPath()` slug ki
+ * ginti karte waqt `deletedAt` **nahi** dekhta (wahan uska apna comment hai) — yaani trash me
+ * padi `andaman-honeymoon` naye import ko chup-chaap `andaman-honeymoon-2` pe dhakel deti hai.
+ * Wo ek naya page hai, jise agla run phir nahi pehchanta, aur har run ek aur duplicate banata
+ * hai. Isliye importer ko trash wali entry **dikhni** chahiye taaki wo saaf bata sake:
+ * "ye URL Trash me hai, use restore ya khaali karo".
+ *
+ * @param {string} type
+ * @param {string} slug
+ * @returns {Promise<object|null>}
+ */
+export async function findEntryBySlug(
+  type,
+  slug,
+  siteId = DEFAULT_SITE_ID,
+  locale = DEFAULT_LOCALE,
+) {
+  if (!slug) return null
+
+  return Entry.findOne({ ...scope(siteId, locale), type, slug }).lean()
+}

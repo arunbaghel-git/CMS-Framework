@@ -240,3 +240,37 @@ export async function deleteItem(key, id, siteId = DEFAULT_SITE_ID) {
 
   return { id: String(id) }
 }
+
+/**
+ * Ek list ke saare naam aur id — Bulk Upload ke liye (D-81).
+ *
+ * ## Ye `listItems()` se kyun nahi ho sakta
+ *
+ * Do wajah, aur dono importer ko chup-chaap todti hain:
+ *
+ * 1. **`listItems({ q })` substring hai, exact nahi.** `q: 'Havelock'` `Havelock Island` ko bhi
+ *    match kar leta hai. Importer ke liye ye khatarnak hai — galat hotel live page pe chala
+ *    jaata aur kisi ko pata bhi nahi chalta.
+ * 2. **`masterListQuerySchema` ka `limit` 200 pe capped hai.** Ek din list 200 paar kar gayi to
+ *    naksha chup-chaap aadha banta aur **sahi naam bhi** "not found" dikhne lagte.
+ *
+ * Isliye yahan pagination hai hi nahi: poori list ek baar aati hai. Ek import me 20 package ×
+ * ~20 reference = 400 query hoti; ye **ek** query hai.
+ *
+ * `destinationId` bhi lautta hai kyunki `fields.hotels[]` ko wo chahiye aur doc me hotel ke
+ * saath destination likha hi nahi hota — wo hotel ke apne record se aata hai.
+ *
+ * @param {string} key `hotel` · `addOn` · `transfer` · `review`
+ * @returns {Promise<Array<{ id: string, name: string, destinationId: string|null }>>}
+ */
+export async function allItemNames(key, siteId = DEFAULT_SITE_ID) {
+  const { Model, sort } = listOf(key)
+
+  const docs = await Model.find(scope(siteId), { name: 1, destinationId: 1 }).sort(sort).lean()
+
+  return docs.map((doc) => ({
+    id: String(doc._id),
+    name: doc.name ?? '',
+    destinationId: doc.destinationId ? String(doc.destinationId) : null,
+  }))
+}

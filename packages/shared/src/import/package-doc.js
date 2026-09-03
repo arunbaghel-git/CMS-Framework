@@ -129,9 +129,15 @@ export const normalizeLabel = (value) => normalizeName(value).replace(/\s*:\s*$/
 /**
  * HTML entity wapas asli character me.
  *
- * Sirf wahi paanch jo Google ke export me sach me aate hain. Poora entity table yahan
- * bekaar hai — aur `&nbsp;` ko asli space banana zaroori hai, warna wo character label ke
- * beech baith kar match todta hai.
+ * `&nbsp;` ko asli space banana zaroori hai, warna wo character label ke beech baith kar
+ * match todta hai.
+ *
+ * ⚠️ **Numeric entities (`&#8377;`) chhod dena ek chup bug tha.** Google `₹` ko `&#8377;` ki
+ * tarah bhejta hai. Bina decode kiye wo text me `&#8377;24,999` reh jaata tha, aur `parseMoney`
+ * saare non-digit hata kar `837724999` bana deta — yaani daam ki jagah ek bemaani number, jo
+ * `pricingSchema` ki hadd paar kar ke poore package ko gira deta. Iska test hai.
+ *
+ * `&amp;` sabse aakhir me hai taaki `&amp;#39;` do baar decode na ho jaaye.
  */
 const decodeEntities = (text) =>
   String(text ?? '')
@@ -139,7 +145,8 @@ const decodeEntities = (text) =>
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&quot;/gi, '"')
-    .replace(/&#3[49];/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
     .replace(/&amp;/gi, '&')
 
 /** Ek block ka padha jaane wala text. */

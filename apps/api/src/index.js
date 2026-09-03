@@ -3,6 +3,7 @@ import { env } from './core/env.js'
 import { logger } from './core/logger.js'
 import { connectDb, disconnectDb } from './core/db.js'
 import { checkPending } from './core/migrations/runner.js'
+import { processImportQueue, reclaimStuckRows } from './modules/bulk-imports/service.js'
 import { publishDueEntries } from './modules/entries/service.js'
 
 await connectDb()
@@ -70,10 +71,43 @@ const scheduledPublishTimer = setInterval(async () => {
 
 scheduledPublishTimer.unref()
 
+/**
+ * Bulk Upload ka worker (D-81).
+ *
+ * Ek tick me **ek** row chalti hai, aur jab tak kaam bacha ho tick apne aap agli row utha leti
+ * hai. Isliye interval chhota (2s) hai: wo "kitni der me shuru ho" tay karta hai, "kitni der me
+ * khatam ho" nahi.
+ *
+ * Rows ek-ek karke isliye chalti hain ki `resolveSlugAndPath()` padho-phir-likho hai — do row
+ * ek saath ek hi slug pe pahunchein to dono duplicate bana deti hain. Google bhi anonymous
+ * export pe throttle karta hai, aur `sharp` isi process ka CPU khaati hai.
+ *
+ * ⚠️ Ye bhi `app.js` me **nahi** hai, `index.js` me hai — wahi wajah jo upar likhi hai: har
+ * test file apna timer chalu kar deti aur vitest kabhi khatam na hota. Tests
+ * `processImportQueue()` ko khud loop me call karti hain, theek jaise `publishDueEntries()` ko.
+ */
+const bulkImportTimer = setInterval(async () => {
+  try {
+    await reclaimStuckRows()
+
+    /** Jab tak kaam hai chalte raho — warna 20 row me 40 second sirf intezaar me jaate. */
+    for (;;) {
+      const { processed } = await processImportQueue()
+      if (!processed) break
+    }
+  } catch (err) {
+    // Fail-soft: ek tick girne se server nahi girna chahiye — agla tick 2s me hai
+    logger.error({ err }, 'Bulk import tick fail hua')
+  }
+}, 2_000)
+
+bulkImportTimer.unref()
+
 /** Graceful shutdown — chalti hui requests poori hone do. */
 async function shutdown(signal) {
   logger.info({ signal }, 'Shutting down')
   clearInterval(scheduledPublishTimer)
+  clearInterval(bulkImportTimer)
   server.close(async () => {
     await disconnectDb()
     process.exit(0)
