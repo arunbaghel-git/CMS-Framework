@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
+import { openPicker } from '../../lib/date-input.js'
 import { ENQUIRY_BADGE, useEnquiries, useFormOptions } from './useEnquiries.js'
 import './Enquiries.css'
 
@@ -286,6 +287,7 @@ export default function EnquiriesList() {
             type="date"
             value={from}
             max={to || undefined}
+            onClick={openPicker}
             onChange={(e) => setFilter({ from: e.target.value })}
             aria-label="From date"
           />
@@ -297,6 +299,7 @@ export default function EnquiriesList() {
             type="date"
             value={to}
             min={from || undefined}
+            onClick={openPicker}
             onChange={(e) => setFilter({ to: e.target.value })}
             aria-label="To date"
           />

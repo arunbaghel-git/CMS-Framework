@@ -100,6 +100,8 @@ Poori list [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) me. Sabse zyada tootne 
 8. **Scheduled publish DB-based**, `setTimeout` kabhi nahi.
 9. **Har list pe server-side pagination**, day 1 se.
 10. **State-changing GET kabhi nahi.**
+11. **Date/time input pe `onClick={openPicker}`** — picker poore box se khule, sirf calendar
+    icon se nahi (R19, client ka niyam). `date` · `datetime-local` · `time` · `month` sab pe.
 
 ---
 

@@ -451,3 +451,40 @@ node .claude/scripts/media-diff.mjs .claude/docs/reference/home-nav-v3.html
 node .claude/scripts/media-diff.mjs .claude/docs/reference/admin-design.html \
   $(find apps/admin/src -name "*.css" | sort)                        # admin (kai files)
 ```
+
+---
+
+### R19 · Date/time input pe poore box se picker khule, sirf icon se nahi
+
+Har `<input>` jiska type `date` · `datetime-local` · `time` · `month` ho, uspe
+`onClick={openPicker}` lagta hai.
+
+```jsx
+import { openPicker } from '../../lib/date-input.js'
+
+// ❌
+<input type="date" value={from} onChange={…} />
+
+// ✅
+<input type="date" value={from} onClick={openPicker} onChange={…} />
+```
+
+**Kyun ye rule hai:** browser ka default picker **sirf us chhote calendar icon** pe khulta
+hai. Baaki poora box click karne pe kuch nahi hota — aur user ko lagta hai ki field kaam hi
+nahi kar raha. Client ne ye pehle public site ke Travel date pe pakda (2 Sep, `63ac46b`),
+phir 3 Sep ko kaha ki ye **hamesha** aise hona chahiye, aage bhi:
+
+> _"date picker must always in future too — datepicker poora button par click karo kahin
+> bhi open hoga"_
+
+**Helper kahan hai:**
+
+| App | File |
+| --- | --- |
+| `apps/admin` | `src/lib/date-input.js` |
+| `apps/web` | `components/package/EnquiryForm.jsx` ka `openPicker` |
+
+⚠️ Helper me `try/catch` **zaroori hai, ehtiyaat nahi**. `showPicker()` throw karta hai jab
+wo kisi asli click ke bina bulaya jaaye (browsers use user-gesture ke peeche rakhte hain),
+aur purane browsers me wo method hai hi nahi. Dono soorat me **type kar ke bharna** chalta
+rehna chahiye — wo raasta kabhi band nahi hona chahiye.

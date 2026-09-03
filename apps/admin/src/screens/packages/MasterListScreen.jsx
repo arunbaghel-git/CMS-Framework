@@ -5,6 +5,7 @@ import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL, formatReviewMonth, starString }
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
+import { openPicker } from '../../lib/date-input.js'
 import { useTaxonomyList } from './usePackages.js'
 import './Packages.css'
 
@@ -337,6 +338,8 @@ export default function MasterListScreen({ list }) {
           className="inp"
           type="month"
           value={value}
+          /** Poore box pe click se picker khule, sirf icon pe nahi — R19 (client, 3 Sep). */
+          onClick={openPicker}
           onChange={(e) => onChange(e.target.value)}
           required={field.required}
         />
