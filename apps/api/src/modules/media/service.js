@@ -135,7 +135,7 @@ export async function createMediaFromUpload(
  * @param {string} [siteId]
  */
 export async function listMedia(query, siteId = DEFAULT_SITE_ID) {
-  const { page, limit, folderId, search, sort, order } = query
+  const { page, limit, folderId, search, from, to, sort, order } = query
 
   const filter = { siteId, deletedAt: null }
   if (folderId) filter.folderId = folderId
@@ -144,6 +144,23 @@ export async function listMedia(query, siteId = DEFAULT_SITE_ID) {
     const safe = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     const rx = new RegExp(safe, 'i')
     filter.$or = [{ filename: rx }, { alt: rx }, { title: rx }, { caption: rx }]
+  }
+
+  /**
+   * Upload ki tareekh ka range (client, 3 Sep).
+   *
+   * ⚠️ `to` **poore din** ko pakadta hai — `$lt` agla din, `$lte` wo din nahi. `03-09`
+   * chunne wala "3 tarikh tak" kehta hai; bina is +1 din ke us din ki saari images chhoot
+   * jaati, aur wo galti chup hoti: filter chalta hua dikhta, data gayab.
+   */
+  if (from || to) {
+    filter.createdAt = {}
+    if (from) filter.createdAt.$gte = new Date(`${from}T00:00:00.000Z`)
+    if (to) {
+      const next = new Date(`${to}T00:00:00.000Z`)
+      next.setUTCDate(next.getUTCDate() + 1)
+      filter.createdAt.$lt = next
+    }
   }
 
   const [docs, total] = await Promise.all([

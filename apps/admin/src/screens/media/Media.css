@@ -5,6 +5,23 @@
  * hai. Baaki sab (`panel`, `field`, `inp`, `btn`, `tablenav`, `pagination`) primitives se.
  */
 
+/* Date range — `From [___] To [___]`, tablenav ke andar (wahi shakl jo Enquiries pe hai) */
+.ml-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.ml-range span {
+  color: var(--muted, #646970);
+  font-size: var(--fs-2xs, 12px);
+}
+
+.ml-range .inp {
+  width: auto;
+}
+
 .ml-grid-wrap {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;

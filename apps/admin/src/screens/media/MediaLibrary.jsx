@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
+import { openPicker } from '../../lib/date-input.js'
 import { largeOf, thumbOf, uploadMedia, useMediaList } from '../../lib/media.js'
 import './Media.css'
 
@@ -25,6 +26,20 @@ import './Media.css'
  *
  * Wahi niyam jo poore admin pe hai: jo kaam karta hi na ho, uska control mat dikhao (D-30).
  */
+
+/**
+ * Sort ke vikalp — API ke `sort` + `order` ki jodi ek hi dropdown me.
+ *
+ * User ke liye "Newest first" ek cheez hai, do nahi. Do alag dropdown (field aur direction)
+ * dena use wo jod khud banwana hota — aur `filename` + `desc` jaisa kombination bemaani
+ * dikhta hai. API ke dono param yahin se bharte hain.
+ */
+const SORTS = {
+  newest: { label: 'Newest first', query: { sort: 'createdAt', order: 'desc' } },
+  oldest: { label: 'Oldest first', query: { sort: 'createdAt', order: 'asc' } },
+  name: { label: 'File name (A–Z)', query: { sort: 'filename', order: 'asc' } },
+  largest: { label: 'Largest first', query: { sort: 'size', order: 'desc' } },
+}
 export default function MediaLibrary() {
   const { can } = useAuth()
   const [params, setParams] = useSearchParams()
@@ -41,10 +56,24 @@ export default function MediaLibrary() {
   const applied = params.get('q') ?? ''
   const [search, setSearch] = useState(applied)
 
+  /** Filters URL me rehte hain — page refresh aur back button dono pe bache rehte hain. */
+  const from = params.get('from') ?? ''
+  const to = params.get('to') ?? ''
+  const sortKey = params.get('sort') ?? 'newest'
+
   const query = useMemo(
-    () => ({ page, limit: 40, ...(applied ? { search: applied } : {}) }),
-    [page, applied],
+    () => ({
+      page,
+      limit: 40,
+      ...(applied ? { search: applied } : {}),
+      ...(from ? { from } : {}),
+      ...(to ? { to } : {}),
+      ...(SORTS[sortKey]?.query ?? SORTS.newest.query),
+    }),
+    [page, applied, from, to, sortKey],
   )
+
+  const hasFilters = Boolean(applied || from || to || sortKey !== 'newest')
   const { data, meta: pageMeta, loading, error, reload } = useMediaList(query)
 
   function setFilter(next) {
@@ -157,12 +186,71 @@ export default function MediaLibrary() {
         >
           <input
             className="inp"
-            style={{ width: 220 }}
+            style={{ width: 200 }}
             placeholder="Search media…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </form>
+
+        {/*
+         * Date range — design me yahan ek month dropdown hai (`All dates` / `August 2026`).
+         * Range usse zyada deta hai (month bhi, "pichhle hafte ki" bhi), aur Enquiries pe
+         * client ne abhi yahi shakl approve ki hai (D-76). Do screens pe do tarah ka date
+         * filter dena khud ek dikkat hai.
+         */}
+        <label className="ml-range">
+          <span>From</span>
+          <input
+            className="inp"
+            type="date"
+            value={from}
+            max={to || undefined}
+            /** R19 — picker poore box se khule, sirf calendar icon se nahi. */
+            onClick={openPicker}
+            onChange={(e) => setFilter({ from: e.target.value })}
+            aria-label="Uploaded from"
+          />
+        </label>
+        <label className="ml-range">
+          <span>To</span>
+          <input
+            className="inp"
+            type="date"
+            value={to}
+            min={from || undefined}
+            onClick={openPicker}
+            onChange={(e) => setFilter({ to: e.target.value })}
+            aria-label="Uploaded until"
+          />
+        </label>
+
+        <select
+          className="sel"
+          style={{ width: 'auto' }}
+          value={sortKey}
+          onChange={(e) => setFilter({ sort: e.target.value === 'newest' ? '' : e.target.value })}
+          aria-label="Sort media"
+        >
+          {Object.entries(SORTS).map(([key, { label }]) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </select>
+
+        {hasFilters && (
+          <button
+            className="btn btn-plain btn-sm"
+            type="button"
+            onClick={() => {
+              setSearch('')
+              setFilter({ q: '', from: '', to: '', sort: '' })
+            }}
+          >
+            Clear filters
+          </button>
+        )}
 
         <div className="spacer" />
 
@@ -208,10 +296,15 @@ export default function MediaLibrary() {
           }}
         >
           {loading && <p className="muted">Loading…</p>}
+          {/*
+           * Khaali list ke do bilkul alag matlab hain, aur user ko wahi batana chahiye:
+           * "abhi kuch upload hi nahi hua" aur "filter se kuch nahi mila". Doosre me user
+           * ka agla kadam Clear filters hai, upload nahi.
+           */}
           {!loading && data.length === 0 && (
             <p className="muted">
-              {applied
-                ? 'No media matches that search.'
+              {hasFilters
+                ? 'No media matches these filters.'
                 : 'No media yet — upload your first image.'}
             </p>
           )}

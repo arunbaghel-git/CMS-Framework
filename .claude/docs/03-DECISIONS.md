@@ -4673,9 +4673,25 @@ Ye us purane comment ka nateeja hai, ittefaq nahi: uss din component alag kiya g
 | --- | --- |
 | `Videos` · `Documents (PDF)` ke tab | Upload sirf **JPG/PNG/WebP** leta hai (`MEDIA_MIME`). Khaali tab dikhana ye batana hai ki wo kism support hai |
 | `Attached` / `Unattached` | **`mediaRefs` backlink index bana hi nahi** — "ye image kahan lagi hai" ka jawab kisi ke paas nahi. Andaaze se filter banana galat data dikhana hota |
-| `All dates` | Ban sakta tha, par client ne nahi maanga. Search filename/alt/title/caption pe pehle se chalti hai |
+| ~~`All dates`~~ | ✅ **ban gaya** — client ne turant maanga ("media me filters to hai hi nahi"). Month dropdown ki jagah **date range** (From/To), wahi shakl jo Enquiries pe hai (D-76) — do screens pe do tarah ka date filter dena khud ek dikkat hai |
 
 Wahi niyam jo poore admin pe hai (D-30): jo kaam karta hi na ho, uska control mat dikhao.
+
+⚠️ **Filters wale hisse ko client ne turant palta** — _"media me filters to hai hi nahi add
+karo"_. Jo ban sakte the wo ban gaye: **date range** (From/To, R19 ke picker ke saath) aur
+**sort** (Newest · Oldest · File name A–Z · Largest). Sort ke liye API pehle se tayyar thi
+(`sort` + `order`), bas UI nahi thi.
+
+Baaki do — `Videos`/`Documents` ke tab aur `Attached`/`Unattached` — **ab bhi nahi bane**. Un
+dono ke peeche **data hi nahi hai**, UI ki kami nahi thi: upload sirf JPG/PNG/WebP leta hai,
+aur "ye image kahan lagi hai" ka jawab kisi ke paas nahi.
+
+`Attached`/`Unattached` chahiye to uske pehle **`mediaRefs` backlink index** banana padega —
+wo apne aap me ek kaam hai, aur uske saath delete-guard bhi apne aap aa jaayega.
+
+**Sort ek hi dropdown me hai, do me nahi** — user ke liye "Newest first" ek cheez hai. Do
+alag dropdown (field aur direction) dena use wo jod khud banwana hota, aur `filename` + `desc`
+jaisa bemaani kombination bhi khul jaata.
 
 ### Delete trash hai, aur file disk pe rehti hai
 

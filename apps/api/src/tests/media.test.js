@@ -331,6 +331,42 @@ describe('POST /api/media', () => {
   })
 })
 
+describe('GET /api/media — filters', () => {
+  it('date range se chhanti hai, aur `to` poore din ko pakadta hai', async () => {
+    await makeMedia({ filename: 'aaj.jpg' })
+    await Media.create({
+      ...(await makeMedia({ filename: 'purani.jpg' })).toObject(),
+      _id: undefined,
+      filename: 'purani.jpg',
+      createdAt: new Date('2026-01-15T10:00:00.000Z'),
+    })
+
+    const jan = await authed('get', '/api/media?from=2026-01-01&to=2026-01-31', adminJar)
+    expect(jan.body.data.map((m) => m.filename)).toEqual(['purani.jpg'])
+
+    /**
+     * ⚠️ 15 Jan ki image `to=2026-01-15` me aani chahiye. Bina us +1 din ke wo chhoot jaati,
+     * aur wo galti **chup** hoti: filter chalta hua dikhta, us din ka data gayab.
+     */
+    const sameDay = await authed('get', '/api/media?from=2026-01-15&to=2026-01-15', adminJar)
+    expect(sameDay.body.data).toHaveLength(1)
+  })
+
+  it('filename se sort hota hai', async () => {
+    await makeMedia({ filename: 'zebra.jpg' })
+    await makeMedia({ filename: 'apple.jpg' })
+
+    const res = await authed('get', '/api/media?sort=filename&order=asc', adminJar)
+
+    expect(res.body.data.map((m) => m.filename)).toEqual(['apple.jpg', 'zebra.jpg'])
+  })
+
+  it('anjaan sort value reject hoti hai — R9', async () => {
+    // `req.query` kabhi seedha Mongoose ke `.sort()` me nahi jaati
+    expect((await authed('get', '/api/media?sort=passwordHash', adminJar)).status).toBe(400)
+  })
+})
+
 describe('DELETE /api/media/:id — trash', () => {
   it('trash me jaata hai — list se gayab, record DB me bacha hua', async () => {
     const media = await makeMedia()
