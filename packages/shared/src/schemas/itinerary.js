@@ -15,6 +15,25 @@ import { htmlSchema } from './rich-html.js'
 
 export const MEALS = Object.freeze(['breakfast', 'lunch', 'dinner'])
 
+/**
+ * Din ke text khaanon ki lambai ki hadd — **yahan se, aur sirf yahan se**.
+ *
+ * ⚠️ Ye constants Bulk Upload (D-81) ke liye nikaale gaye. Importer ko yahi hadd **pehle se**
+ * pata honi chahiye, taaki wo lambi line ko **kaat kar warning** de sake. Bina iske Zod poori
+ * row phenk deta hai aur client ko sirf `String must contain at most 60 character(s)` dikhta
+ * hai — jisse ye pata hi nahi chalta ki galti kis din ke kis khaane me hai.
+ *
+ * Number do jagah likhne ka matlab hota ki ek din wo alag ho jaayein aur importer chup-chaap
+ * galat jagah kaatne lage. Isliye schema bhi inhi ko padhta hai.
+ */
+export const ITINERARY_LIMITS = Object.freeze({
+  title: 300,
+  description: 8000,
+  transferNote: 60,
+  dayTag: 60,
+  note: 200,
+})
+
 export const MEAL_LABEL = Object.freeze({
   breakfast: 'Breakfast',
   lunch: 'Lunch',
@@ -24,7 +43,7 @@ export const MEAL_LABEL = Object.freeze({
 export const itineraryDaySchema = z.object({
   id: z.string().min(1).optional(),
 
-  title: z.string().min(1).max(300),
+  title: z.string().min(1).max(ITINERARY_LIMITS.title),
 
   /**
    * Us raat kahan rukna hai — **Destinations taxonomy ki id**, free text nahi
@@ -61,7 +80,7 @@ export const itineraryDaySchema = z.object({
    * niyam ko render pe lagata tha. Migration 020 ne wo lines asli `<ul><li>` me badal di
    * hain — ab wo convention sirf `textToHtml()` me zinda hai, jahan naya plain text aata hai.
    */
-  description: htmlSchema.pipe(z.string().max(8000)),
+  description: htmlSchema.pipe(z.string().max(ITINERARY_LIMITS.description)),
 
   meals: z.array(z.enum(MEALS)).max(3).default([]),
 
@@ -78,10 +97,10 @@ export const itineraryDaySchema = z.object({
    *
    * Free text hai, number nahi: `90 min`, `2 hrs` aur `overnight` teenon likhe jaate hain.
    */
-  transferNote: z.string().max(60).default(''),
+  transferNote: z.string().max(ITINERARY_LIMITS.transferNote).default(''),
 
   /** Din ke card pe chhota label — `Arrival day`, `Departure`. */
-  dayTag: z.string().max(60).default(''),
+  dayTag: z.string().max(ITINERARY_LIMITS.dayTag).default(''),
 
   /**
    * Ek free-text line jo din ke card pe ek chip banti hai — `Approx. 4 hrs sightseeing`,
@@ -92,7 +111,7 @@ export const itineraryDaySchema = z.object({
    *
    * Icon fixed hai, client nahi chunta: ek line ke liye do field bharwana bhaari hai.
    */
-  note: z.string().max(200).default(''),
+  note: z.string().max(ITINERARY_LIMITS.note).default(''),
 
   /*
    * `hotelCategory` **hata diya gaya** (client, 27 Aug — D-64).
