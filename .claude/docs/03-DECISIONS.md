@@ -4667,31 +4667,50 @@ destination ka banner.
 Ye us purane comment ka nateeja hai, ittefaq nahi: uss din component alag kiya gaya tha
 **isi** din ke liye.
 
-### Design ke teen filter jaan-boojh kar nahi bane
+### Filters — design ke hisaab se (do baar galat karne ke baad)
 
-| Design me | Kyun nahi |
+⚠️ **Filters pe maine do galtiyaan ki, aur client ne dono tok di.**
+
+Pehle maine design ke teenon filter chhod diye aur wajah likh di. Client: _"media me filters
+to hai hi nahi add karo"_. Phir maine month dropdown ki jagah **date range** bana diya aur
+sort ka apna dropdown jod diya — kyunki mujhe wo behtar laga. Client ne dobara tok diya:
+
+> _"filters admin refrence me hai ese lagao by own kyu decide kar rhe ho"_
+
+**Baat sahi hai, aur ye seedha R15 hai.** Ab filters bilkul `#s-media` jaise hain — teen
+dropdown, `Filter` button, spacer, phir search; wahi kram, wahi labels. Grid me har tile ke
+neeche filename ki patti bhi juri (design ka `.cap`, uske apne naapon se).
+
+**Sabak:** "design se behtar" sochna hi wo jagah hai jahan R15 lagta hai. Reference me month
+dropdown tha; date range **zyada kaam ka** ho sakta hai, par wo faisla client ka hai. Jahan
+mujhe design me kami lage, wahan **poochhna** hai — chup-chaap behtar bana dena nahi.
+
+| Design ka filter | Haalat |
 | --- | --- |
-| `Videos` · `Documents (PDF)` ke tab | Upload sirf **JPG/PNG/WebP** leta hai (`MEDIA_MIME`). Khaali tab dikhana ye batana hai ki wo kism support hai |
-| `Attached` / `Unattached` | **`mediaRefs` backlink index bana hi nahi** — "ye image kahan lagi hai" ka jawab kisi ke paas nahi. Andaaze se filter banana galat data dikhana hota |
-| ~~`All dates`~~ | ✅ **ban gaya** — client ne turant maanga ("media me filters to hai hi nahi"). Month dropdown ki jagah **date range** (From/To), wahi shakl jo Enquiries pe hai (D-76) — do screens pe do tarah ka date filter dena khud ek dikkat hai |
+| `All media items · Images · Videos · Documents (PDF)` | ✅ bana. ⚠️ `Videos`/`Documents` **khaali** aayenge — `MEDIA_MIME` sirf JPG/PNG/WebP leta hai. Vikalp phir bhi hain kyunki design me hain |
+| `All dates` / `August 2026` | ✅ bana. Mahine **data se** aate hain (`mediaMonths()`), banaye nahi jaate — jis mahine me kuch hai hi nahi wo dikhta hi nahi |
+| `Unattached` / `Attached` | ❌ **nahi bana — ban hi nahi sakta** (neeche) |
 
-Wahi niyam jo poore admin pe hai (D-30): jo kaam karta hi na ho, uska control mat dikhao.
+**`Filter` button hai, isliye dropdown badalne se list turant nahi badalti** — design me wo
+button hai, aur uska matlab yahi hai ki chunav pehle hote hain, apply baad me. Har dropdown ka
+apna draft state hai; URL me sirf apply hua filter jaata hai.
 
-⚠️ **Filters wale hisse ko client ne turant palta** — _"media me filters to hai hi nahi add
-karo"_. Jo ban sakte the wo ban gaye: **date range** (From/To, R19 ke picker ke saath) aur
-**sort** (Newest · Oldest · File name A–Z · Largest). Sort ke liye API pehle se tayyar thi
-(`sort` + `order`), bas UI nahi thi.
+⚠️ Mahine ki range `$lt` **agle mahine ki 1** pe khatam hoti hai, us mahine ki "31" pe nahi —
+warna February pe wo chup-chaap galat ho jaati (28/29 din). Uska apna test hai.
 
-Baaki do — `Videos`/`Documents` ke tab aur `Attached`/`Unattached` — **ab bhi nahi bane**. Un
-dono ke peeche **data hi nahi hai**, UI ki kami nahi thi: upload sirf JPG/PNG/WebP leta hai,
-aur "ye image kahan lagi hai" ka jawab kisi ke paas nahi.
+### `Unattached`/`Attached` kyun nahi bana — aur ye "maine chhod diya" nahi hai
 
-`Attached`/`Unattached` chahiye to uske pehle **`mediaRefs` backlink index** banana padega —
-wo apne aap me ek kaam hai, aur uske saath delete-guard bhi apne aap aa jaayega.
+Iske liye **`mediaRefs` backlink index** chahiye (Phase 2 ka apna item), jo abhi maujood nahi.
+Bina uske "ye image kahin lagi hai ya nahi" ka jawab **andaaze se** dena padta — har us jagah
+ko haath se scan karke jahan media id store hoti hai (settings ke teen field, entry ka banner,
+itinerary images, taxonomy ka banner…).
 
-**Sort ek hi dropdown me hai, do me nahi** — user ke liye "Newest first" ek cheez hai. Do
-alag dropdown (field aur direction) dena use wo jod khud banwana hota, aur `filename` + `desc`
-jaisa bemaani kombination bhi khul jaata.
+Us andaaze me **ek jagah chhoot jaana kaafi hai**: ek lagi hui image `Unattached` me dikhti,
+koi use delete kar deta, aur wo page chup-chaap adhoora ho jaata (D-42 §2 ki wajah se toota
+`<img>` bhi nahi dikhta). Isliye ye filter **galat data ke saath dena, na dene se bura** hai.
+
+`mediaRefs` banane ka ek bada faayda aur hai: uske aate hi **delete-guard** bhi mil jaata hai
+("ye image 3 pages pe lagi hai"), jo aaj nahi hai. Client se poochha gaya hai.
 
 ### Delete trash hai, aur file disk pe rehti hai
 

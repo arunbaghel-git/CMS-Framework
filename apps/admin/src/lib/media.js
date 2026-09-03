@@ -32,16 +32,29 @@ export function largeOf(media) {
 }
 
 export function useMediaList(query) {
-  const [state, setState] = useState({ data: [], meta: null, loading: true, error: null })
+  const [state, setState] = useState({
+    data: [],
+    /** `All dates` dropdown ke vikalp — data se aate hain, banaye nahi jaate. */
+    months: [],
+    meta: null,
+    loading: true,
+    error: null,
+  })
 
   const load = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }))
 
     try {
       const res = await api.get('/media', { params: query })
-      setState({ data: res.data.data, meta: res.data.meta, loading: false, error: null })
+      setState({
+        data: res.data.data,
+        months: res.data.months ?? [],
+        meta: res.data.meta,
+        loading: false,
+        error: null,
+      })
     } catch (err) {
-      setState({ data: [], meta: null, loading: false, error: errorMessage(err) })
+      setState({ data: [], months: [], meta: null, loading: false, error: errorMessage(err) })
     }
   }, [query])
 

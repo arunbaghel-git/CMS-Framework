@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
-import { openPicker } from '../../lib/date-input.js'
 import { largeOf, thumbOf, uploadMedia, useMediaList } from '../../lib/media.js'
 import './Media.css'
 
@@ -13,33 +12,35 @@ import './Media.css'
  * Phase 2 ka bacha hua hissa. Foundation D-41 me pull-forward ho chuka tha (upload · WebP
  * variants 300/800/1600 · storage driver · magic-byte check · size cap); ye uski screen hai.
  *
- * ## Design ke jo filter yahan nahi hain
+ * ## Filters design ke hisaab se
  *
- * Design me chaar tab hain — `All media items · Images · Videos · Documents (PDF)` — aur do
- * filter (`All dates`, `Unattached/Attached`). Yahan **koi nahi**:
+ * `#s-media` me teen dropdown, ek `Filter` button, phir search hai — aur wahi kram yahan hai.
+ * Pehle maine inme se do apni marzi se badal diye the (month ki jagah date range) aur ek
+ * chhod diya tha; **client ne tok diya** (3 Sep): _"filters admin reference me hai, aise
+ * lagao, by own kyu decide kar rhe ho"_. R15 ka wahi rule.
  *
- * | Design me | Kyun nahi |
- * | --- | --- |
- * | Videos · Documents ke tab | Upload sirf **JPG/PNG/WebP** leta hai (`MEDIA_MIME`). Khaali tab dikhana ye batana hai ki wo kism support hai |
- * | Attached / Unattached | `mediaRefs` backlink index bana hi nahi — "ye image kahan lagi hai" ka jawab kisi ke paas nahi. Andaaze se filter banana galat data dikhana hota |
- * | All dates | Ye ban sakta tha, par client ne nahi maanga. Search filename/alt/title/caption pe pehle se chalti hai |
+ * ⚠️ `Videos` aur `Documents (PDF)` chunne pe list **khaali** aayegi — aaj `MEDIA_MIME` sirf
+ * JPG/PNG/WebP leta hai. Wo vikalp phir bhi hain kyunki design me hain; jis din wo kismein
+ * upload hone lagengi, filter pehle se tayyar milega.
  *
- * Wahi niyam jo poore admin pe hai: jo kaam karta hi na ho, uska control mat dikhao (D-30).
+ * ⚠️ **Teesra dropdown (`Unattached`/`Attached`) abhi nahi bana** — aur ye "maine nahi
+ * banaya" nahi, "ban nahi sakta" hai: uske liye `mediaRefs` backlink index chahiye, jo Phase
+ * 2 ka apna item hai aur abhi maujood nahi. Bina uske "ye image kahin lagi hai ya nahi" ka
+ * jawab **andaaze se** dena padta — aur us andaaze pe koi image delete kar deta. Client se
+ * poochha gaya hai.
  */
 
-/**
- * Sort ke vikalp — API ke `sort` + `order` ki jodi ek hi dropdown me.
- *
- * User ke liye "Newest first" ek cheez hai, do nahi. Do alag dropdown (field aur direction)
- * dena use wo jod khud banwana hota — aur `filename` + `desc` jaisa kombination bemaani
- * dikhta hai. API ke dono param yahin se bharte hain.
- */
-const SORTS = {
-  newest: { label: 'Newest first', query: { sort: 'createdAt', order: 'desc' } },
-  oldest: { label: 'Oldest first', query: { sort: 'createdAt', order: 'asc' } },
-  name: { label: 'File name (A–Z)', query: { sort: 'filename', order: 'asc' } },
-  largest: { label: 'Largest first', query: { sort: 'size', order: 'desc' } },
+/** `2026-08` → `August 2026` — design ke dropdown ka wahi roop. */
+function monthLabel(value) {
+  const [year, mon] = value.split('-').map(Number)
+
+  return new Date(Date.UTC(year, mon - 1, 1)).toLocaleString('en', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
 }
+
 export default function MediaLibrary() {
   const { can } = useAuth()
   const [params, setParams] = useSearchParams()
@@ -56,25 +57,30 @@ export default function MediaLibrary() {
   const applied = params.get('q') ?? ''
   const [search, setSearch] = useState(applied)
 
-  /** Filters URL me rehte hain — page refresh aur back button dono pe bache rehte hain. */
-  const from = params.get('from') ?? ''
-  const to = params.get('to') ?? ''
-  const sortKey = params.get('sort') ?? 'newest'
+  /**
+   * Applied filters URL me rehte hain — refresh aur back button dono pe bache rehte hain.
+   *
+   * ⚠️ Design me ek **`Filter` button** hai, isliye dropdown badalne se list turant nahi
+   * badalti: user teenon chun kar `Filter` dabata hai. Isliye har dropdown ka apna draft
+   * state hai (`draft`), aur URL me sirf wahi jaata hai jo apply hua.
+   */
+  const type = params.get('type') ?? ''
+  const month = params.get('month') ?? ''
+  const [draft, setDraft] = useState({ type, month })
 
   const query = useMemo(
     () => ({
       page,
       limit: 40,
       ...(applied ? { search: applied } : {}),
-      ...(from ? { from } : {}),
-      ...(to ? { to } : {}),
-      ...(SORTS[sortKey]?.query ?? SORTS.newest.query),
+      ...(type ? { type } : {}),
+      ...(month ? { month } : {}),
     }),
-    [page, applied, from, to, sortKey],
+    [page, applied, type, month],
   )
 
-  const hasFilters = Boolean(applied || from || to || sortKey !== 'newest')
-  const { data, meta: pageMeta, loading, error, reload } = useMediaList(query)
+  const hasFilters = Boolean(applied || type || month)
+  const { data, months, meta: pageMeta, loading, error, reload } = useMediaList(query)
 
   function setFilter(next) {
     const merged = { ...Object.fromEntries(params), ...next }
@@ -177,7 +183,64 @@ export default function MediaLibrary() {
         </div>
       )}
 
+      {/*
+       * Filters bilkul design ke `#s-media` ke hisaab se: teen dropdown, `Filter` button,
+       * spacer, phir search. Kram bhi wahi.
+       */}
       <div className="tablenav">
+        <select
+          className="sel"
+          style={{ width: 'auto' }}
+          value={draft.type}
+          onChange={(e) => setDraft({ ...draft, type: e.target.value })}
+          aria-label="Filter by type"
+        >
+          <option value="">All media items</option>
+          <option value="image">Images</option>
+          <option value="video">Videos</option>
+          <option value="document">Documents (PDF)</option>
+        </select>
+
+        <select
+          className="sel"
+          style={{ width: 'auto' }}
+          value={draft.month}
+          onChange={(e) => setDraft({ ...draft, month: e.target.value })}
+          aria-label="Filter by date"
+        >
+          <option value="">All dates</option>
+          {/* Vikalp data se — jis mahine me kuch hai hi nahi, wo dikhta hi nahi */}
+          {months.map((value) => (
+            <option key={value} value={value}>
+              {monthLabel(value)}
+            </option>
+          ))}
+        </select>
+
+        <button
+          className="btn btn-plain"
+          type="button"
+          onClick={() => setFilter({ type: draft.type, month: draft.month })}
+        >
+          Filter
+        </button>
+
+        {hasFilters && (
+          <button
+            className="btn btn-plain"
+            type="button"
+            onClick={() => {
+              setSearch('')
+              setDraft({ type: '', month: '' })
+              setFilter({ q: '', type: '', month: '' })
+            }}
+          >
+            Clear
+          </button>
+        )}
+
+        <div className="spacer" />
+
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -192,67 +255,6 @@ export default function MediaLibrary() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </form>
-
-        {/*
-         * Date range — design me yahan ek month dropdown hai (`All dates` / `August 2026`).
-         * Range usse zyada deta hai (month bhi, "pichhle hafte ki" bhi), aur Enquiries pe
-         * client ne abhi yahi shakl approve ki hai (D-76). Do screens pe do tarah ka date
-         * filter dena khud ek dikkat hai.
-         */}
-        <label className="ml-range">
-          <span>From</span>
-          <input
-            className="inp"
-            type="date"
-            value={from}
-            max={to || undefined}
-            /** R19 — picker poore box se khule, sirf calendar icon se nahi. */
-            onClick={openPicker}
-            onChange={(e) => setFilter({ from: e.target.value })}
-            aria-label="Uploaded from"
-          />
-        </label>
-        <label className="ml-range">
-          <span>To</span>
-          <input
-            className="inp"
-            type="date"
-            value={to}
-            min={from || undefined}
-            onClick={openPicker}
-            onChange={(e) => setFilter({ to: e.target.value })}
-            aria-label="Uploaded until"
-          />
-        </label>
-
-        <select
-          className="sel"
-          style={{ width: 'auto' }}
-          value={sortKey}
-          onChange={(e) => setFilter({ sort: e.target.value === 'newest' ? '' : e.target.value })}
-          aria-label="Sort media"
-        >
-          {Object.entries(SORTS).map(([key, { label }]) => (
-            <option key={key} value={key}>
-              {label}
-            </option>
-          ))}
-        </select>
-
-        {hasFilters && (
-          <button
-            className="btn btn-plain btn-sm"
-            type="button"
-            onClick={() => {
-              setSearch('')
-              setFilter({ q: '', from: '', to: '', sort: '' })
-            }}
-          >
-            Clear filters
-          </button>
-        )}
-
-        <div className="spacer" />
 
         <div className="pagination">
           <span>{pageMeta ? `${pageMeta.total} items` : ''}</span>
@@ -326,6 +328,8 @@ export default function MediaLibrary() {
                 ) : (
                   <span className="ml-blank" />
                 )}
+                {/* Design me har tile ke neeche filename hai (`.cap`) */}
+                <span className="cap">{media.filename}</span>
               </button>
             )
           })}

@@ -128,6 +128,9 @@ export async function createMediaFromUpload(
   return toPublicMedia(media)
 }
 
+/** Design ke pehle dropdown ki kismein → mime ka prefix. */
+const TYPE_PREFIX = { image: /^image\//, video: /^video\//, document: /^application\/pdf$/ }
+
 /**
  * Server-side pagination day 1 se (R14).
  *
@@ -135,10 +138,11 @@ export async function createMediaFromUpload(
  * @param {string} [siteId]
  */
 export async function listMedia(query, siteId = DEFAULT_SITE_ID) {
-  const { page, limit, folderId, search, from, to, sort, order } = query
+  const { page, limit, folderId, search, type, month, sort, order } = query
 
   const filter = { siteId, deletedAt: null }
   if (folderId) filter.folderId = folderId
+  if (type) filter.mime = TYPE_PREFIX[type]
 
   if (search) {
     const safe = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -147,19 +151,16 @@ export async function listMedia(query, siteId = DEFAULT_SITE_ID) {
   }
 
   /**
-   * Upload ki tareekh ka range (client, 3 Sep).
+   * Mahine ka filter — `2026-08` matlab 1 Aug se 1 Sep se **pehle** tak.
    *
-   * ⚠️ `to` **poore din** ko pakadta hai — `$lt` agla din, `$lte` wo din nahi. `03-09`
-   * chunne wala "3 tarikh tak" kehta hai; bina is +1 din ke us din ki saari images chhoot
-   * jaati, aur wo galti chup hoti: filter chalta hua dikhta, data gayab.
+   * Range `$lt` **agle mahine** pe khatam hoti hai, `$lte` us mahine ki 31 pe nahi: mahine
+   * me 28/30/31 din hote hain, aur "31" likh dena February pe chup-chaap galat ho jaata.
    */
-  if (from || to) {
-    filter.createdAt = {}
-    if (from) filter.createdAt.$gte = new Date(`${from}T00:00:00.000Z`)
-    if (to) {
-      const next = new Date(`${to}T00:00:00.000Z`)
-      next.setUTCDate(next.getUTCDate() + 1)
-      filter.createdAt.$lt = next
+  if (month) {
+    const [year, mon] = month.split('-').map(Number)
+    filter.createdAt = {
+      $gte: new Date(Date.UTC(year, mon - 1, 1)),
+      $lt: new Date(Date.UTC(year, mon, 1)),
     }
   }
 
@@ -256,4 +257,24 @@ export async function trashMedia(id, siteId = DEFAULT_SITE_ID) {
   if (!media) throw notFound('Media not found')
 
   return { id: String(media._id) }
+}
+
+/**
+ * Jin mahinon me kuch upload hua — design ke `All dates` dropdown ke liye.
+ *
+ * Vikalp **data se** aate hain, banaye nahi jaate: jis mahine me kuch hai hi nahi, uska
+ * option dikhana user ko ek khaali screen tak le jaata hai. Wahi soch jo poore admin pe hai
+ * (D-30) — jo kaam na kare wo control mat dikhao.
+ *
+ * @param {string} [siteId]
+ * @returns {Promise<string[]>} `['2026-09', '2026-08']` — nayi pehle
+ */
+export async function mediaMonths(siteId = DEFAULT_SITE_ID) {
+  const rows = await Media.aggregate([
+    { $match: { siteId, deletedAt: null } },
+    { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } } } },
+    { $sort: { _id: -1 } },
+  ])
+
+  return rows.map((row) => row._id)
 }

@@ -7,8 +7,17 @@ import { badRequest } from '../../core/errors.js'
 export async function list(req, res, next) {
   try {
     const query = listMediaQuerySchema.parse(req.query)
-    const { data, meta } = await mediaService.listMedia(query)
-    res.json({ data, meta })
+    /**
+     * Months list ke **saath** jaate hain, alag call se nahi — design ka `All dates` dropdown
+     * list ke upar hi render hota hai. Do request ka matlab hota do alag waqt ke jawab (wahi
+     * tark jo `entryCounts()` aur `formCounts()` pe hai).
+     */
+    const [{ data, meta }, months] = await Promise.all([
+      mediaService.listMedia(query),
+      mediaService.mediaMonths(),
+    ])
+
+    res.json({ data, months, meta })
   } catch (err) {
     next(err)
   }

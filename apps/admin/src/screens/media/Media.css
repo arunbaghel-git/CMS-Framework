@@ -5,23 +5,6 @@
  * hai. Baaki sab (`panel`, `field`, `inp`, `btn`, `tablenav`, `pagination`) primitives se.
  */
 
-/* Date range — `From [___] To [___]`, tablenav ke andar (wahi shakl jo Enquiries pe hai) */
-.ml-range {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.ml-range span {
-  color: var(--muted, #646970);
-  font-size: var(--fs-2xs, 12px);
-}
-
-.ml-range .inp {
-  width: auto;
-}
-
 .ml-grid-wrap {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
@@ -52,7 +35,9 @@
   grid-column: 1 / -1;
 }
 
+/* Naap aur shakl design ke `.media-item` se — aspect-ratio 1, radius, overflow hidden */
 .ml-item {
+  position: relative;
   padding: 0;
   border: 2px solid transparent;
   border-radius: 3px;
@@ -60,6 +45,25 @@
   cursor: pointer;
   aspect-ratio: 1;
   overflow: hidden;
+}
+
+/*
+ * Filename ki patti — design ke `.media-item .cap` se hu-ba-hu (rgba(29,35,39,.72), 11px,
+ * 4px 6px, ek line me kata hua).
+ */
+.ml-item .cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(29, 35, 39, 0.72);
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
 }
 
 .ml-item img {

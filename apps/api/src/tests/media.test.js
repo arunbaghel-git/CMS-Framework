@@ -331,38 +331,63 @@ describe('POST /api/media', () => {
   })
 })
 
-describe('GET /api/media — filters', () => {
-  it('date range se chhanti hai, aur `to` poore din ko pakadta hai', async () => {
-    await makeMedia({ filename: 'aaj.jpg' })
-    await Media.create({
-      ...(await makeMedia({ filename: 'purani.jpg' })).toObject(),
-      _id: undefined,
-      filename: 'purani.jpg',
-      createdAt: new Date('2026-01-15T10:00:00.000Z'),
-    })
+describe('GET /api/media — design ke filters', () => {
+  /**
+   * Ek media us tareekh pe.
+   *
+   * ⚠️ `Media.updateOne()` se nahi — schema pe `timestamps: true` hai aur wo `createdAt` ko
+   * update pe **chalne hi nahi deta**. Isliye raw driver (`Media.collection`), jo Mongoose ke
+   * us behaviour ko bypass karta hai. Test ke bahar iski zaroorat kabhi nahi padegi.
+   */
+  async function makeMediaOn(filename, iso) {
+    const base = await makeMedia({ filename })
+    await Media.collection.updateOne({ _id: base._id }, { $set: { createdAt: new Date(iso) } })
 
-    const jan = await authed('get', '/api/media?from=2026-01-01&to=2026-01-31', adminJar)
-    expect(jan.body.data.map((m) => m.filename)).toEqual(['purani.jpg'])
+    return base
+  }
+
+  it('mahine se chhanta hai — aur range agle mahine pe khatam hoti hai', async () => {
+    await makeMediaOn('jan.jpg', '2026-01-31T18:00:00.000Z')
+    await makeMediaOn('feb.jpg', '2026-02-01T02:00:00.000Z')
+
+    const jan = await authed('get', '/api/media?month=2026-01', adminJar)
 
     /**
-     * ⚠️ 15 Jan ki image `to=2026-01-15` me aani chahiye. Bina us +1 din ke wo chhoot jaati,
-     * aur wo galti **chup** hoti: filter chalta hua dikhta, us din ka data gayab.
+     * ⚠️ 31 Jan wali image January me aani chahiye aur 1 Feb wali nahi.
+     *
+     * Range `$lt` **agle mahine ki 1** pe khatam hoti hai, us mahine ki "31" pe nahi —
+     * warna February pe wo chup-chaap galat ho jaata (28/29 din).
      */
-    const sameDay = await authed('get', '/api/media?from=2026-01-15&to=2026-01-15', adminJar)
-    expect(sameDay.body.data).toHaveLength(1)
+    expect(jan.body.data.map((m) => m.filename)).toEqual(['jan.jpg'])
   })
 
-  it('filename se sort hota hai', async () => {
-    await makeMedia({ filename: 'zebra.jpg' })
-    await makeMedia({ filename: 'apple.jpg' })
+  it('mahinon ki list list ke saath aati hai — aur sirf wahi jinme kuch hai', async () => {
+    await makeMediaOn('jan.jpg', '2026-01-15T10:00:00.000Z')
+    await makeMediaOn('sep.jpg', '2026-09-03T10:00:00.000Z')
 
-    const res = await authed('get', '/api/media?sort=filename&order=asc', adminJar)
+    const res = await authed('get', '/api/media', adminJar)
 
-    expect(res.body.data.map((m) => m.filename)).toEqual(['apple.jpg', 'zebra.jpg'])
+    // Nayi pehle — dropdown me wahi kram chahiye
+    expect(res.body.months).toEqual(['2026-09', '2026-01'])
   })
 
-  it('anjaan sort value reject hoti hai — R9', async () => {
-    // `req.query` kabhi seedha Mongoose ke `.sort()` me nahi jaati
+  it('kism se chhanta hai — aur `video` khaali aata hai kyunki wo upload hi nahi hoti', async () => {
+    await makeMedia({ filename: 'photo.jpg' })
+
+    expect((await authed('get', '/api/media?type=image', adminJar)).body.data).toHaveLength(1)
+
+    /**
+     * Design me `Videos` aur `Documents (PDF)` ke vikalp hain, par `MEDIA_MIME` sirf
+     * JPG/PNG/WebP leta hai. Filter chalta hai aur khaali lautta hai — wo vikalp design se
+     * hain, isliye hataye nahi gaye (R15).
+     */
+    expect((await authed('get', '/api/media?type=video', adminJar)).body.data).toHaveLength(0)
+  })
+
+  it('anjaan filter value reject hoti hai — R9', async () => {
+    // `req.query` kabhi seedha Mongoose query me nahi jaati
+    expect((await authed('get', '/api/media?type=exe', adminJar)).status).toBe(400)
+    expect((await authed('get', '/api/media?month=august', adminJar)).status).toBe(400)
     expect((await authed('get', '/api/media?sort=passwordHash', adminJar)).status).toBe(400)
   })
 })
