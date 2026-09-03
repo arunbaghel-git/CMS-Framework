@@ -234,15 +234,22 @@ forms          * siteId, name, emailTo, afterSubmit{mode,value}, placement,
                  placement ke aaj do hi vikalp hain (packages | none); design ke
                  baaki teen (Contact page · Popup · Sticky bar) ko page builder
                  chahiye (Phase 5)
-enquiries      * siteId, formId, formName, sourcePath, values{}, status
+enquiries      * siteId, formId, formName, sourcePath, values{}, status,
+                 notes[], deletedAt, searchText                    ← D-75, 3 Sep
                  formName COPY hota hai, sirf formId nahi — form rename ya delete
                  ho jaaye to bhi enquiry apna source jaanti hai
                  values me sirf string/number/boolean pahunchte hain — ye endpoint
                  BINA AUTH ke hai, isliye R9 yahan sabse zyada maayne rakhta hai
-                 ⚠️ Ise dekhne ki screen ABHI NAHI hai (client ne "only Enquiry
-                 Forms" kaha). Collection phir bhi banayi gayi: ek form jo bhara
-                 jaata hai par store nahi hota, wo asli enquiries chup-chaap kho
-                 deta hai — screen baad me banti hai, kho gaya data nahi (D-72)
+                 status ab ENUM hai (ENQUIRY_STATUSES) — new · contacted · quoted
+                 · negotiating · converted · lost
+                 notes[] internal hain, grahak ko kabhi nahi dikhte
+                 deletedAt — delete = trash (R12), permanent delete ka raasta NAHI
+                 searchText values ka text ek jagah; iske bina search ka matlab
+                 hota Mixed `values` pe regex — wahi R9 wali khatarnaak jagah
+                 ✅ Inbox 3 Sep ko ban gayi (D-75) — All Enquiries · Detail ·
+                 Export CSV. Collection 1 Sep se bhar rahi thi (D-72): ek form jo
+                 bhara jaata hai par store nahi hota, wo asli enquiries chup-chaap
+                 kho deta hai — screen baad me banti hai, kho gaya data nahi
 
                  ⚠️ NAAM KA FARQ, jaan-boojh kar: is doc me pehle ye `submissions`
                  likhi thi (spec 001 ke saath), aur permissions aaj bhi
@@ -315,6 +322,10 @@ forms:         { siteId: 1, placement: 1, status: 1, updatedAt: -1 }
                  collection scan har page pe lagta
 enquiries:     { siteId: 1, formId: 1, createdAt: -1 }               ← migration 017
 enquiries:     { siteId: 1, createdAt: -1 }
+enquiries:     { siteId: 1, deletedAt: 1, createdAt: -1 }            ← migration 018
+enquiries:     { siteId: 1, deletedAt: 1, status: 1, createdAt: -1 }
+               ⚠️ 017 wale do ab kaafi nahi the — har inbox read `deletedAt: null`
+               pe chhanti hai, aur wo key un indexes me hai hi nahi (D-75)
 menus:         { siteId: 1, locale: 1, key: 1 }            unique   ← locale D-43 me juda
 menus:         { siteId: 1, deletedAt: 1, updatedAt: -1 }
 menuLocations: { siteId: 1, locale: 1, location: 1 }       unique

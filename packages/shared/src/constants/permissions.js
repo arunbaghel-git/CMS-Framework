@@ -102,15 +102,20 @@ export const PERMISSION = Object.freeze({
    * hai, baad me alag karna poora retrofit).
    *
    * **`form.*` chaaron 1 Sep se sach me chalti hain** — `/api/forms` unhi pe khadi hai.
-   * `submission.*` teenon abhi bhi sirf likhi hui hain: bhari hui enquiries ko dekhne ki
-   * koi screen nahi bani (client ne "sirf Enquiry Forms aur Add New Form" kaha). Wo us din
-   * jaagengi jab All Enquiries banegi.
+   * **`submission.*` 3 Sep ko jaag gayin** — Enquiries inbox ban gayi (All Enquiries ·
+   * Enquiry Detail · Export CSV), aur wo teenon isi pe khadi hai.
+   *
+   * `submission.update` spec 001 me nahi tha — wo 3 Sep me juda. Wajah: status badalna aur
+   * internal note likhna **write** hai, aur use `submission.read` ke neeche rakhne ka matlab
+   * hota ki har padhne wala enquiry ka lifecycle bhi badal sake. Migration 018 ise built-in
+   * roles pe sync karti hai.
    */
   FORM_READ: 'form.read',
   FORM_CREATE: 'form.create',
   FORM_UPDATE: 'form.update',
   FORM_DELETE: 'form.delete',
   SUBMISSION_READ: 'submission.read',
+  SUBMISSION_UPDATE: 'submission.update',
   SUBMISSION_DELETE: 'submission.delete',
   SUBMISSION_EXPORT: 'submission.export',
 
@@ -253,7 +258,15 @@ const EDITOR = [
   P.FORM_UPDATE,
   P.FORM_DELETE,
   P.SUBMISSION_READ,
+  P.SUBMISSION_UPDATE,
   P.SUBMISSION_EXPORT,
+  /**
+   * ⚠️ `submission.delete` yahan **nahi** hai — wo sirf admin ke paas hai.
+   *
+   * Wahi lakeer jo `entry.purge` pe hai: editor kaam kar sakta hai, mita nahi sakta. Enquiry
+   * client ka business record hai (kisi asli grahak ne bhari hai), aur uska mit-na sabse
+   * mehnga undo hai.
+   */
   P.SETTINGS_READ,
   P.ACTIVITY_READ,
 ]

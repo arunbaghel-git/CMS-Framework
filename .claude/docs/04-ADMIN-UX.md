@@ -478,7 +478,9 @@ me do baar dekha ja chuka hai — wo do jagah ek din alag ho jaati hain.
 | --- | --- |
 | `Code` column nahi hai | Package Code field client ne hata diya (D-50 §2) |
 | `Sold Out` tab nahi hai | `availability` field hi hata di gayi — client ko wo feature chahiye hi nahi (**D-54**, D-50 §1 superseded) |
-| `Enq.` column `—` dikhata hai | Enquiries Phase 7b (D-30, Q-2) |
+| `Enq.` column `—` dikhata hai | Client ne wo column **1 Sep ko hata diya**. Enquiries ka apna module ab bana hua hai (**D-75**), par per-package ginti wo cheez nahi thi jo unhe chahiye thi |
+| **Enquiries ▸ Detail** me Send Quotation · Activity feed · Assign · Priority · Follow-up nahi hain | Har ek kisi na kisi cheez pe ruka hai — SMTP (Phase 0 se blocked), activity log (Q-4 me deferred), aur assignment ke field. Khaali panel dikhane se behtar hai wo panel na dikhna (**D-30**, D-75). Quick Actions (Call · WhatsApp · Email) phir bhi hain — wo **link** hain, hum kuch bhejte hi nahi |
+| **Enquiries ki list** ke column form se **derive** hote hain | Design ki table ke column fixed hain, par form client khud banata hai. Column pehle **key ke naam** se milte hain, phir type se — label se kabhi nahi (label badalta hai, key nahi). Sirf-type wala pehla design client ke asli form pe **chup-chaap galat** tha (**D-75**) |
 | Editor ki WYSIWYG toolbar nahi hai | Ek toolbar jo kuch kare hi na, wo "toota hua" lagta hai. Wahi tark jisse Slice 0 me "Link type" dropdown hataya gaya tha. **TipTap agla kadam** — data ka shape uske liye pehle se sahi hai |
 | **FAQs** panel me policies nahi hain | Design me wo "FAQs & Policies" tha. Policy har package pe same hoti hai aur wo `packageDefaults` me pehle se hai (§2.1) — dono ek panel me rakhne ka matlab hota ki client wahi policy 60 packages pe dobara likhe (**D-59**) |
 | Pricing panel **chaaron category ki fixed table** hai — Category · Price From · Strike-through | Design me ek row thi (`Currency · Price From · Strike-through`). Categories fix chaar hain, to unhe ek-ek karke jodwana bane-banaye sach ko dobara bharwana tha. **Khaali daam = wo category is package pe milti hi nahi** aur page se gayab ho jaati hai (client, 27 Aug — **D-57 §1**) |

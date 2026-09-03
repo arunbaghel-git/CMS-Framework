@@ -94,9 +94,13 @@ Saara data ek page me = admin hang.
 
 ### R15 · Admin ka design badalna client ka kaam hai, developer ka nahi
 
-`docs/reference/admin-design.html` **spec hai**. Layout, colours, spacing, wording —
-sab wahin se aata hai. Build ke waqt kuch theek na lage to **pehle poochho, khud mat
-badlo**.
+`docs/reference/admin-design-v2.html` **spec hai** — **v2, v1 nahi** (D-74). Layout,
+colours, spacing, wording — sab wahin se aata hai. Build ke waqt kuch theek na lage to
+**pehle poochho, khud mat badlo**.
+
+⚠️ Jo screen **design me hai hi nahi** (jaise Bulk Upload), uska look bhi client ka faisla
+hai — R15 wahan bhi lagta hai. Us soorat me pehla draft dikha kar approve karwao, khud
+final mat maan lo.
 
 | Theek hai                              | Theek nahi hai                                     |
 | -------------------------------------- | -------------------------------------------------- |

@@ -13,6 +13,9 @@ import NotBuiltYet from './screens/NotBuiltYet.jsx'
 import Profile from './screens/Profile.jsx'
 import AppearanceFooter from './screens/appearance/Footer.jsx'
 import Menus from './screens/appearance/Menus.jsx'
+import EnquiriesList from './screens/enquiries/EnquiriesList.jsx'
+import EnquiryDetail from './screens/enquiries/EnquiryDetail.jsx'
+import EnquiryExport from './screens/enquiries/EnquiryExport.jsx'
 import FormBuilder from './screens/forms/FormBuilder.jsx'
 import FormsList from './screens/forms/FormsList.jsx'
 import MasterListScreen from './screens/packages/MasterListScreen.jsx'
@@ -169,9 +172,27 @@ const APP_ROUTES = [
    * `/packages/new` pe likhi hai: warna `new` ek form ki id samajh li jaati aur screen
    * "Form not found" pe khulti.
    */
+  { path: '/enquiries', element: <EnquiriesList /> },
+  { path: '/enquiries/export', element: <EnquiryExport /> },
+  /**
+   * ⚠️ `Enquiry Detail` sidebar me ek alag item hai (design ke nav se), par detail page ko
+   * ek enquiry ki **id** chahiye — bina uske wo khule kis pe? Design me wo mockup ki suvidha
+   * lagti hai, asli nav ka item nahi.
+   *
+   * Item hataya **nahi** gaya (wo faisla client ka hai — D-43 wali galti), par use `:id` pe
+   * girne dena "Enquiry not found" dikhata. Tab tak list pe bhej rahe hain: wahan se koi bhi
+   * enquiry khul jaati hai.
+   */
+  { path: '/enquiries/detail', element: <Navigate to="/enquiries" replace /> },
   { path: '/enquiries/forms', element: <FormsList /> },
   { path: '/enquiries/forms/new', element: <FormBuilder /> },
   { path: '/enquiries/forms/:id', element: <FormBuilder /> },
+  /**
+   * ⚠️ `/enquiries/:id` **`forms` waalon ke baad** — warna `forms` ek enquiry ki id samajh
+   * liya jaata aur Enquiry Forms ki screen "Enquiry not found" pe khulti. Wahi kram jo
+   * `/packages/:id` pe hai.
+   */
+  { path: '/enquiries/:id', element: <EnquiryDetail /> },
   { path: '/packages/whats-included', element: <PackageDefaults section="whatsIncluded" /> },
   { path: '/packages/itinerary-images', element: <PackageDefaults section="itineraryImages" /> },
   { path: '/packages/section-headings', element: <PackageDefaults section="sectionLabels" /> },
@@ -204,11 +225,10 @@ const PENDING_ROUTES = [
    */
   { path: '/packages/*', title: 'Packages', phase: 'Slice 2 ki screens' },
   /**
-   * Enquiry Forms aur Add New Form upar `APP_ROUTES` me hain (1 Sep). Ye splat sirf uske
-   * andar ke baaki teen ke liye hai — All Enquiries, Enquiry Detail aur Export CSV. Unka
-   * data ban chuka hai (`enquiries` collection bhar rahi hai); sirf screens baaki hain.
+   * ~~Enquiries ka splat~~ — **3 Sep ko hat gaya.** Inbox ki teenon screens ban chuki hain
+   * (All Enquiries, Enquiry Detail, aur Export CSV jo list ke upar wala button hai), aur
+   * Enquiry Forms pehle se thi. Ab is section me "abhi nahi bana" jaisa kuch bacha hi nahi.
    */
-  { path: '/enquiries/*', title: 'Enquiries', phase: 'inbox ki screens' },
   /**
    * Appearance ke bane hue do screens upar `APP_ROUTES` me hain. Ye splat sirf uske
    * andar ke baaki raaston ke liye hai — Homepage Blocks aur Banners & Sliders, jo abhi

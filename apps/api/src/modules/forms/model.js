@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 
-import { DEFAULT_SITE_ID } from '@cms/shared'
+import { DEFAULT_SITE_ID, ENQUIRY_STATUSES } from '@cms/shared'
 
 /**
  * `forms` + `enquiries` — client, 1 Sep (`admin-design-v2.html`).
@@ -87,11 +87,64 @@ const enquirySchema = new mongoose.Schema(
      */
     values: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 
-    /** `new` se aage ka lifecycle inbox ke saath aayega. */
-    status: { type: String, default: 'new' },
+    /**
+     * Lifecycle — inbox ke saath jaag gaya (3 Sep). Values `ENQUIRY_STATUSES` se aati hain,
+     * jo design ke Manage panel ka hi kram hai.
+     */
+    status: { type: String, enum: ENQUIRY_STATUSES, default: 'new' },
+
+    /**
+     * Internal notes — sirf admin ke liye, grahak ko kabhi nahi dikhte.
+     *
+     * Ye design ka "Activity & Notes" panel **aadha** hai: notes yahan hain, activity feed
+     * nahi. Activity log Q-4 me deferred hai, to uska koi data source hi nahi — aur khaali
+     * feed dikhane se behtar hai wo panel na dikhana (D-30).
+     */
+    notes: {
+      type: [
+        {
+          _id: false,
+          id: { type: String, required: true },
+          text: { type: String, required: true },
+          by: { type: String, default: '' },
+          at: { type: Date, default: Date.now },
+        },
+      ],
+      default: () => [],
+    },
+
+    /** Delete = trash (R12). Permanent delete ka koi raasta abhi nahi hai. */
+    deletedAt: { type: Date, default: null },
+
+    /**
+     * Search ke liye `values` ka saara text ek jagah.
+     *
+     * ⚠️ Iske bina search ka matlab hota `values` (Mixed) pe regex — aur wahi R9 wali sabse
+     * khatarnaak jagah hai. Yahan `entries.searchText` wala hi precedent chal raha hai:
+     * derived text ek saada string field me, jispe normal index lagta hai.
+     */
+    searchText: { type: String, default: '' },
   },
   { timestamps: true, collection: 'enquiries', minimize: false },
 )
+
+/**
+ * `searchText` sirf **pure normalization** hai, isliye hook me hona theek hai (R1).
+ *
+ * ⚠️ Ye `save()` pe chalta hai. Enquiry sirf submit ke waqt banti hai (`Enquiry.create`),
+ * aur uske baad sirf status/notes badalte hain — `values` kabhi update nahi hote. Isliye
+ * yahan `findOneAndUpdate` wala jaal nahi hai jo is repo ka sabse aam bug hai.
+ */
+enquirySchema.pre('validate', function buildSearchText(next) {
+  const parts = [this.formName, this.sourcePath]
+
+  for (const value of Object.values(this.values ?? {})) {
+    if (value !== null && value !== undefined) parts.push(String(value))
+  }
+
+  this.searchText = parts.filter(Boolean).join(' ').slice(0, 4000).toLowerCase()
+  next()
+})
 
 export const Form = mongoose.model('Form', formSchema)
 export const Enquiry = mongoose.model('Enquiry', enquirySchema)

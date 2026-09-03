@@ -30,7 +30,8 @@ Kya pending hai → [`09-OPEN-ITEMS.md`](09-OPEN-ITEMS.md)
 
 **Interactive:**
 
-- 🔒 [`reference/admin-design.html`](reference/admin-design.html) — **admin ka FINAL design** (§11) — build isse hoga
+- 🔒 [`reference/admin-design-v2.html`](reference/admin-design-v2.html) — **admin ka FINAL design** (§11) — build isse hoga (**D-74**)
+- 🗄 [`reference/admin-design.html`](reference/admin-design.html) — v1, **itihaas**. v2 iska poora superset hai
 - [`admin-wireframe.html`](admin-wireframe.html) — purana draft wireframe, sirf reference
 
 Dono browser me kholo.

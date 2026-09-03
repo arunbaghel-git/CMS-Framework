@@ -400,3 +400,131 @@ export const submitEnquirySchema = z.object({
    */
   hp: z.string().max(200).optional(),
 })
+
+// ── enquiry inbox ────────────────────────────────────────────────────────────
+
+/**
+ * Enquiry ka lifecycle — `admin-design-v2.html` ke Enquiry Detail ▸ **Manage** panel se.
+ *
+ * List ke tabs me design sirf paanch dikhata hai (`negotiating` chhod kar), par wo **tab**
+ * ka faisla hai, status ka nahi: `negotiating` Manage me maujood hai, isliye wo ek valid
+ * value hai. Tabs alag se tay hote hain (`ENQUIRY_TABS`).
+ *
+ * Ye ek jagah **teen** kaam karti hai — Zod ki shape, admin ke tabs/badge, aur migration ka
+ * backfill. Wahi pattern jo `package-sections.js` (D-65) pe hai: ek default, teen istemaal.
+ */
+export const ENQUIRY_STATUSES = Object.freeze([
+  'new',
+  'contacted',
+  'quoted',
+  'negotiating',
+  'converted',
+  'lost',
+])
+
+export const ENQUIRY_STATUS_LABEL = Object.freeze({
+  new: 'New',
+  contacted: 'Contacted',
+  quoted: 'Quoted',
+  negotiating: 'Negotiating',
+  converted: 'Converted',
+  lost: 'Lost',
+})
+
+/** List ke upar wale tabs — design ke hisaab se `negotiating` yahan nahi hai. */
+export const ENQUIRY_TABS = Object.freeze(['new', 'contacted', 'quoted', 'converted', 'lost'])
+
+/**
+ * List/detail ke column **key ke naam se, phir type se** nikalte hain — label se kabhi nahi.
+ *
+ * Design ki table ke column fixed hain (Package · Travel date · Pax · Budget), par form
+ * **client khud banata hai**. Fixed key pe seedha baandhna wahi galti hoti jo `sourcePage`
+ * pe hui thi (2 Sep): ek field hatte hi wo khaana hamesha ke liye khaali.
+ *
+ * **Key pe bharosa kyun kiya ja sakta hai:** admin me key badalne ka koi raasta hai hi nahi
+ * (`formFieldSchema` ka comment) — label badalta hai, key nahi. Yaani key ek sthir pehchaan
+ * hai, label ek badalta hua text.
+ *
+ * ⚠️ **Sirf type se kaam nahi chalta, aur ye asli data se pakda gaya (3 Sep).** Client ke
+ * chalte hue form me `mobile` aur `email` dono ka type `text` hai (`phone`/`email` nahi), aur
+ * `guests` ek `select` hai. Sirf type dekhne wala niyam Phone aur Email ko **khaali** chhod
+ * raha tha, aur Budget ke column me **guests** dikha raha tha — chup-chaap galat, kyunki koi
+ * error nahi aata.
+ *
+ * Isiliye har column pehle key ke pattern se dhoondhta hai, phir type se. Kram bhi maayne
+ * rakhta hai: `name` sabse **aakhir** me chalta hai, warna wo `email` (type `text`) utha leta.
+ *
+ * ⚠️ Enquiry ke saath form ke fields ka snapshot store nahi hota (sirf `formName`), isliye
+ * derive **aaj ki** form definition se hota hai. Jo na mile wo column khaali rehta hai — aur
+ * Detail phir bhi `values` ka poora maal dikhati hai, taaki data kabhi chhupe nahi.
+ *
+ * @param {{ fields?: Array<{ key: string, label: string, type: string, source?: string }> }} form
+ */
+export function deriveEnquiryColumns(form) {
+  const fields = form?.fields ?? []
+  const used = new Set()
+
+  /**
+   * Pehle key ka pattern, phir type. Jo field pehle kisi column ne le liya wo dobara nahi
+   * milta — warna ek hi field do khaanon me dikh jaata.
+   */
+  const pick = (keyPattern, typePredicate) => {
+    const free = fields.filter((f) => f && !used.has(f.key))
+    const field =
+      (keyPattern && free.find((f) => keyPattern.test(f.key))) ||
+      (typePredicate && free.find(typePredicate))
+
+    if (field) used.add(field.key)
+
+    return field ? { key: field.key, label: field.label } : null
+  }
+
+  /**
+   * Kram jaan-boojh kar aisa hai — sabse **khaas** pehchaan pehle, sabse dheeli baad me.
+   *
+   * `package` pehle isliye ki `packageName` `name` wale pattern pe bhi baithta hai, aur
+   * `name` aakhir me isliye ki uska type (`text`) sabse aam hai.
+   */
+  const packageColumn = pick(/package/i, (f) => f.type === 'select' && f.source === 'packages')
+  const email = pick(/mail/i, (f) => f.type === 'email')
+  const phone = pick(/phone|mobile|whats/i, (f) => f.type === 'phone')
+  const travelDate = pick(/date/i, (f) => f.type === 'date')
+  const pax = pick(/traveller|traveler|guest|pax|adult|person/i, (f) => f.type === 'number')
+  /** Budget ka koi type nahi hai — `select` maan lena `guests` ko budget bana deta tha. */
+  const budget = pick(/budget|price/i, null)
+  const message = pick(/message|request|comment|note|query/i, (f) => f.type === 'textarea')
+  const name = pick(/name/i, (f) => f.type === 'text')
+
+  return { name, email, phone, package: packageColumn, travelDate, pax, budget, message }
+}
+
+export const listEnquiriesQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(ENQUIRY_STATUSES).optional(),
+  formId: z.string().trim().min(1).max(60).optional(),
+  search: z.string().trim().max(120).optional(),
+  sort: z.enum(['createdAt', 'status']).default('createdAt'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+})
+
+/**
+ * Detail pe do hi cheezein badalti hain — status aur ek naya note.
+ *
+ * `.strict()` isliye ki koi aur khaana chupke se update na ho jaaye: `values` submission ka
+ * sach hai, use admin se badalna nahi chahiye.
+ */
+export const updateEnquirySchema = z
+  .object({
+    status: z.enum(ENQUIRY_STATUSES).optional(),
+    note: z.string().trim().min(1).max(2000).optional(),
+  })
+  .strict()
+
+export const bulkEnquirySchema = z.object({
+  ids: z.array(z.string().min(1)).min(1).max(100),
+  action: z.union([
+    z.enum(ENQUIRY_STATUSES).transform((status) => ({ kind: 'status', status })),
+    z.literal('delete').transform(() => ({ kind: 'delete' })),
+  ]),
+})

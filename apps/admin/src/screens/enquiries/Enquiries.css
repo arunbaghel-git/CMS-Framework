@@ -1,0 +1,115 @@
+/*
+ * Enquiries inbox — client, 3 Sep.
+ *
+ * Yahan sirf wo hai jo `primitives.css` me nahi mila. Table, tabs, tablenav, panel, badge,
+ * button, input — sab wahin se aate hain (R15: design ke apne tokens, nayi shakl nahi).
+ */
+
+/* Contact column me naam ke neeche email · phone — reference ki hi do-line wali row */
+.enq-sub {
+  color: var(--muted, #646970);
+  font-size: var(--fs-2xs, 12px);
+  margin-top: 2px;
+}
+
+/*
+ * Source me poora path aata hai (`/packages/andaman-honeymoon-delights`), aur wo lamba
+ * hota hai. Wrap hone dene se row ki unchai kood-ti hai, isliye ek hi line me kaat diya.
+ */
+.enq-src {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted, #646970);
+  font-size: var(--fs-2xs, 12px);
+}
+
+/* Detail: main column + sidebar — wahi do-column shakl jo package editor pe hai */
+.enq-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+.enq-main,
+.enq-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* 1024px pe sidebar neeche chali jaati hai — wahi breakpoint jo baaki admin pe hai */
+@media (max-width: 1024px) {
+  .enq-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * Bhare hue khaane — label upar, value neeche.
+ *
+ * `dl` isliye ki ye sach me naam-aur-value ki jodi hai; table banane se screen reader ko
+ * jhoothi table milti aur mobile pe wo toot-ti.
+ */
+.enq-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px 20px;
+  margin: 0;
+}
+
+.enq-fields dt {
+  color: var(--muted, #646970);
+  font-size: var(--fs-2xs, 12px);
+  margin-bottom: 2px;
+}
+
+.enq-fields dd {
+  margin: 0;
+  /* Message lamba hota hai aur usme line break hote hain — wo bache rehne chahiye */
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.enq-meta {
+  margin: 16px 0 0;
+  font-size: var(--fs-2xs, 12px);
+}
+
+.enq-notes {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.enq-notes li {
+  border-left: 2px solid var(--line, #dcdcde);
+  padding-left: 10px;
+}
+
+.enq-notes p {
+  margin: 0 0 2px;
+  white-space: pre-wrap;
+}
+
+.enq-notes span {
+  font-size: var(--fs-2xs, 12px);
+}
+
+/* Quick actions — ek ke neeche ek, poori chaudai me */
+.enq-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.enq-actions .btn {
+  text-align: center;
+}

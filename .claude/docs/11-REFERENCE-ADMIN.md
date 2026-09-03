@@ -1,6 +1,11 @@
 # 11 — Admin Design (SPEC)
 
-**File:** [`reference/admin-design.html`](reference/admin-design.html) — browser me kholo
+**File:** [`reference/admin-design-v2.html`](reference/admin-design-v2.html) — browser me kholo
+(**D-74**: v2 spec hai, v1 itihaas)
+
+> ⚠️ Neeche ka poora analysis **v1 padh kar** likha gaya tha (20 Aug). Wo aaj bhi sach hai —
+> v2 me v1 ka kuch hata nahi — par usme **Enquiry Forms** ke screens ka zikr nahi hai, wo
+> baad me jude. Unke liye seedha v2 kholo.
 **Status:** 🔒 **SPEC** — 20 Aug 2026
 
 > ## ⚠️ Ye reference nahi, SPEC hai

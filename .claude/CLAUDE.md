@@ -319,10 +319,15 @@ Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ## Admin design — FROZEN
 
-Admin ka spec [`docs/reference/admin-design.html`](docs/reference/admin-design.html) hai
-(analysis: [`docs/11-REFERENCE-ADMIN.md`](docs/11-REFERENCE-ADMIN.md)).
-**Usi ke hisaab se banega** — layout,
-colours, spacing, wording sab.
+Admin ka spec [`docs/reference/admin-design-v2.html`](docs/reference/admin-design-v2.html)
+hai — **v2, v1 nahi** (client ne 1 Sep ko di, spec 3 Sep ko banayi — **D-74**).
+Analysis: [`docs/11-REFERENCE-ADMIN.md`](docs/11-REFERENCE-ADMIN.md).
+**Usi ke hisaab se banega** — layout, colours, spacing, wording sab.
+
+⚠️ `admin-design.html` (v1) ab **itihaas** hai. v2 uska poora superset hai — v1 ka ek bhi
+screen usme se hata nahi, sirf **Enquiry Forms** ke screens jude (`Enquiry Forms`,
+`Enquiry Form`: Basics · Fields · Where it appears · Save). Purani docs me v1 ka naam mile
+to wo us waqt ka sach hai, use badla nahi gaya.
 
 `docs/04-ADMIN-UX.md` ab secondary hai; conflict ho to design jeetega.
 Design badal sakta hai — par change **client se** aayega, developer se nahi.

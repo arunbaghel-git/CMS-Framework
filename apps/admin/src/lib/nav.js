@@ -141,11 +141,19 @@ export const NAV = [
     icon: '✉',
     label: 'Enquiries',
     children: [
-      { label: 'All Enquiries', to: '/enquiries' },
-      { label: 'Enquiry Detail', to: '/enquiries/detail' },
+      { label: 'All Enquiries', to: '/enquiries', permission: PERMISSION.SUBMISSION_READ },
+      /**
+       * ⚠️ `Enquiry Detail` design ke nav me hai, par detail page ko ek enquiry ki id
+       * chahiye — bina uske wo kis pe khule? Ye item mockup ki suvidha lagta hai.
+       *
+       * Hataya **nahi** gaya (D-43 ka sabak: bina poochhe UI mat hatao) — abhi ye list pe
+       * bhejta hai. Client ke jawab pe ya to hat jaayega, ya waise hi rahega.
+       */
+      { label: 'Enquiry Detail', to: '/enquiries/detail', permission: PERMISSION.SUBMISSION_READ },
       { label: 'Enquiry Forms', to: '/enquiries/forms', permission: PERMISSION.FORM_READ },
       { label: 'Add New Form', to: '/enquiries/forms/new', permission: PERMISSION.FORM_CREATE },
-      { label: 'Export CSV', to: '/enquiries/export' },
+      /** Wahi sawaal jo `Enquiry Detail` pe — design me ye list ke upar ek button bhi hai. */
+      { label: 'Export CSV', to: '/enquiries/export', permission: PERMISSION.SUBMISSION_EXPORT },
     ],
   },
   { separator: true },

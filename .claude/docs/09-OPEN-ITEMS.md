@@ -18,9 +18,9 @@ aur Similar itineraries (**D-71**). Dono ke sawaal client ne band kar diye: §9 
 **haath se** (`reviews[]` se gini nahi jaati), §9 #15 → similar **apne aap** chunte hain.
 `goodToKnow[]` banega hi nahi (**D-68**).
 
-**Q-2 ka pehla hissa bhi band (1 Sep — D-72)** — Enquiry Forms + Add New Form ban gaye, aur
-package page ke sidebar me ab ek **sach me chalta hua form** hai. Inbox (All Enquiries ·
-Detail · Export CSV) aur email abhi nahi.
+**Q-2 poora band ho gaya (3 Sep — D-75).** 1 Sep ko Enquiry Forms + Add New Form bane (D-72)
+aur package page ke sidebar me sach me chalta hua form aaya; **3 Sep ko inbox** — All
+Enquiries · Enquiry Detail · Export CSV. Email ab bhi nahi (SMTP Phase 0 se blocked).
 
 **A-5 band ho gaya (31 Aug)** — `apps/web/.env` ban gayi, revalidate ab configured hai.
 **Q-9 ka bada hissa bhi band (31 Aug — D-65)** — section ke heading aur unke neeche ki lines
@@ -31,11 +31,11 @@ ja hi nahi raha tha.
 editor jo Overview pe hai. Migration **015**. Client (unke senior ka order): textarea me
 bold/heading/list ban hi nahi sakti.
 
-**624 tests passing** (26 files) · lint clean · format clean — 2 Sep ko verify kiya.
-**Last updated:** 2 Sep 2026 (A-16 ka fix — `pnpm test` ab uploads ko haath nahi lagata)
+**636 tests passing** (26 files) · lint clean · format clean — 3 Sep ko verify kiya.
+**Last updated:** 3 Sep 2026 (Enquiries inbox — D-75; Q-2 band)
 
-⚠️ 2 Sep ke **29 commit** (mobile/responsive pass + enquiry form ka submit) is doc me abhi
-tak nahi likhe gaye — `project-state.md` bhi 1 Sep pe hi khada hai.
+⚠️ 2 Sep ke **30 commit** (mobile/responsive pass + enquiry form ka submit + A-16 ka fix)
+`project-state.md` me likhe ja chuke hain, par is doc ki upar wali list me nahi.
 
 ---
 
@@ -563,10 +563,22 @@ kabhi nahi" ka doosra roop: data na mile to page bina us hisse ke bane, poora bu
 
 ---
 
-### Q-2 · Enquiries — Phase 7b ya alag Phase 9?
+### Q-2 · Enquiries — ✅ **band (3 Sep — D-75)**
 
-**Deadline:** Phase 7 se pehle
-`salesAgent` role ke permissions bhi isi pe rukey hain (spec 001 me note hai).
+Do mahine khula raha, aur do kadam me band hua:
+
+- **1 Sep (D-72)** — Enquiry Forms + Add New Form, aur package page pe sach me chalta form
+- **3 Sep (D-75)** — **inbox**: All Enquiries · Enquiry Detail · Export CSV
+
+Client ka scope: _"jo bina blocker ke ban sakta hai — poora"_. Isliye Send Quotation (SMTP),
+activity feed (Q-4), aur assign/priority/follow-up **nahi** bane — unka panel bhi nahi dikhta
+(D-30). Poora hisaab D-75 me.
+
+⚠️ **`salesAgent` ke permissions ab bhi wahin hain** (`ENTRY_READ` + `MEDIA_READ`). Wo role
+enquiries handle karne ke liye bana tha (D-29) par abhi inbox nahi dekh sakta — uske liye
+`submission.*` chahiye. Ye jaan-boojh kar chhoda gaya: client ne assignment wala hissa scope
+se bahar rakha, aur role ke defaults badalna unse poochhe bina karna theek nahi lagta.
+**Client se poochhna hai:** salesAgent ko inbox dikhna chahiye ya nahi?
 
 ---
 

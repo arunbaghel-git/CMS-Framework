@@ -1,12 +1,21 @@
+import { PERMISSION } from '@cms/shared'
+
+import { forbidden } from '../../core/errors.js'
 import * as formService from './service.js'
 import {
+  bulkEnquirySchema,
   createFormSchema,
   formListQuerySchema,
+  listEnquiriesQuerySchema,
   submitEnquirySchema,
+  updateEnquirySchema,
   updateFormSchema,
 } from './validation.js'
 
 /** Patla controller — validate → service → response (R1). */
+
+/** CSV ke shuru me lagne wala byte-order mark — `exportCsv` me kyun, wahin likha hai. */
+const BOM = String.fromCharCode(0xfeff)
 
 export const formController = {
   async list(req, res, next) {
@@ -78,6 +87,90 @@ export const enquiryController = {
       const input = submitEnquirySchema.parse(req.body)
 
       res.status(201).json({ data: await formService.submitEnquiry(input) })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  // ── inbox (authed) ─────────────────────────────────────────────────────────
+
+  async list(req, res, next) {
+    try {
+      const query = listEnquiriesQuerySchema.parse(req.query)
+      const [{ enquiries, meta }, counts] = await Promise.all([
+        formService.listEnquiries(query),
+        formService.enquiryCounts(),
+      ])
+
+      /** Counts list ke saath — do request ka matlab do alag waqt ke jawab (formController.list). */
+      res.json({ data: { enquiries, counts }, meta })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  async get(req, res, next) {
+    try {
+      res.json({ data: await formService.getEnquiry(req.params.id) })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  async update(req, res, next) {
+    try {
+      const input = updateEnquirySchema.parse(req.body)
+
+      res.json({
+        data: { enquiry: await formService.updateEnquiry(req.params.id, input, req.user) },
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  async bulk(req, res, next) {
+    try {
+      const input = bulkEnquirySchema.parse(req.body)
+
+      /**
+       * ⚠️ Bulk do alag kaam karta hai aur unki permission bhi alag hai.
+       *
+       * Route pe sirf `submission.update` lagti hai (status badalna), par isi endpoint se
+       * `delete` bhi ho sakta hai — aur wo editor ke paas hai hi nahi. Bina is check ke
+       * bulk **delete ka pichhla darwaza** ban jaata: gate route pe lagta aur asli kaam usse
+       * bhaari hota. Conditional permission middleware me nahi ho sakti, isliye yahan hai.
+       */
+      if (
+        input.action.kind === 'delete' &&
+        !req.permissions?.includes(PERMISSION.SUBMISSION_DELETE)
+      ) {
+        throw forbidden(`Missing permission: ${PERMISSION.SUBMISSION_DELETE}`)
+      }
+
+      res.json({ data: await formService.bulkEnquiries(input) })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  async exportCsv(req, res, next) {
+    try {
+      const query = listEnquiriesQuerySchema.parse(req.query)
+      const csv = await formService.exportEnquiriesCsv(query)
+      const stamp = new Date().toISOString().slice(0, 10)
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+      res.setHeader('Content-Disposition', `attachment; filename="enquiries-${stamp}.csv"`)
+      /**
+       * Shuru me BOM (U+FEFF) — iske bina Excel CSV ko apni local encoding me kholta hai
+       * aur `₹` jaise chinh aur non-ASCII naam toot kar dikhte hain.
+       *
+       * `fromCharCode` se banaya hai, file me literal character likh kar nahi: wo character
+       * editor me dikhta hi nahi (isliye galti se hat jaana bahut aasaan hai) aur lint use
+       * "irregular whitespace" batata hai.
+       */
+      res.send(BOM + csv)
     } catch (err) {
       next(err)
     }

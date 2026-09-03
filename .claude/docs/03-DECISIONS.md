@@ -4361,3 +4361,132 @@ gayi, ek bhi nahi badli.
 
 ⚠️ Teen size literal rahe — 20px (`.faq summary::after`), 30px (`.lbx__nav` ka chevron),
 34px (`.offer__box b`). Wo **glyph** ke naap hain, text scale ka hissa nahi.
+
+---
+
+## D-74
+
+**Admin ka spec ab `admin-design-v2.html` hai — v1 itihaas ban gayi**
+_3 Sep 2026 · client ka faisla_
+
+### Sawaal
+
+Client ne **1 Sep** ko `admin-design-v2.html` di, aur usi din uske Enquiries wale hisse se
+D-72 bana. Par docs kabhi update nahi hui: `CLAUDE.md`, `07-CONVENTIONS.md` (R15) aur
+`README.md` teenon **v1** ko "FROZEN spec" batate rahe, aur v2 ka zikr poore repo me
+**sirf ek jagah** tha (D-72 ke andar).
+
+2 Sep tak ye chubha nahi kyunki v2 sirf Enquiries ke liye kholi gayi thi. 3 Sep ko client ne
+paanch kaam ki list di (speed · editor · media · enquiries · bulk upload) — aur tab sawaal
+ruk gaya: **kaunsi file spec hai?** R15 kehta hai "design jeetega", par ye likha hi nahi tha
+ki design **kaunsa**.
+
+### Client ka jawab
+
+> _"v2"_
+
+### Faisla
+
+`docs/reference/admin-design-v2.html` **spec hai**. v1 itihaas.
+
+**v2 v1 ka poora superset hai** — dono ke headings milaye gaye: v1 ka **ek bhi** screen v2 me
+se hata nahi, aur v2 me chhe naye headings hain, sab ek hi cheez ke: `Enquiry Forms`,
+`Enquiry Form`, `Basics`, `Fields`, `Where it appears`, `Save`. Sidebar ke `data-screen`
+dono me same hain (dashboard · posts · media · pages · packages · enquiries · appearance ·
+users · settings).
+
+Isliye is faisle se **koi bana hua screen galat nahi hota** — jo v1 ke hisaab se bana hai wo
+v2 me bhi wahi hai.
+
+### Purane references jaan-boojh kar nahi badle
+
+Repo me `admin-design.html` ke **32 zikr** hain, 13 file me. Sirf teen **authority** wali
+jagah badli gayi (`CLAUDE.md`, R15, `README.md`); baaki sab **us waqt ka sach** hain —
+"D-62 ke waqt design me ye tha" jaisi lines ko aaj ki file pe point karna itihaas badalna
+hota. Yahi niyam is doc ka apna hai: purani entry delete nahi hoti, "superseded" likha
+jaata hai.
+
+### Ek cheez jo iske baad bhi khuli hai
+
+**Design me har screen hai nahi.** `Bulk Upload` (client ne 3 Sep ko maanga) v2 me kahin
+nahi hai — na sidebar me, na koi mockup. Us soorat me R15 khatam nahi hota: uska look bhi
+client ka faisla hai, developer ka nahi. R15 me ye ab likha hua hai.
+
+---
+
+## D-75
+
+**Enquiries inbox — column form ke naam se derive hote hain, aur CRM ka aadha hissa nahi bana**
+_3 Sep 2026 · client ka faisla_
+
+### Sawaal
+
+`enquiries` 1 Sep se bhar rahi thi par use dekhne ki screen nahi thi (**D-72**: client ne
+_"only Enquiry Forms"_ kaha tha). 3 Sep ko client ne inbox maanga. Do sawaal khade hue:
+
+1. `admin-design-v2.html` ka Enquiry Detail poora **sales CRM** hai — kitna banega?
+2. Design ki table ke column **fixed** hain (Package · Travel date · Pax · Budget), par form
+   **client khud banata hai**. Column aayenge kahan se?
+
+### Client ka jawab — scope
+
+> _"Jo bina blocker ke ban sakta hai — poora"_
+
+| Bana | Nahi bana, aur kyun |
+| --- | --- |
+| List (tabs · filter · search · bulk · pagination) | **Send Quotation** · auto-reply — SMTP Phase 0 se blocked |
+| Detail (saare khaane · source · time) | **Activity feed** — activity log Q-4 me deferred, data source hi nahi |
+| Status · Internal notes | **Assign · Priority · Follow-up** — field nahi; `salesAgent` ke permissions Phase 7b pe |
+| Export CSV · trash | **UTM · IP · Landing page** — capture hi nahi hote (IP store karna alag faisla) |
+| Quick Actions — Call · WhatsApp · Email | **PDF Itinerary** · `#WD-2026-0138` jaisi ID |
+
+Jo nahi bana uska **panel bhi nahi dikhta** (D-30) — khaali dabba dikhana client ko ye
+batana hai ki wo kaam karta hai.
+
+⚠️ **Quick Actions SMTP pe ruke hue nahi hain** kyunki wo teen **link** hain (`tel:`,
+`wa.me`, `mailto:`) — bhejne ka kaam browser aur client ka apna app karta hai, hum nahi.
+
+### Faisla — column kaise nikalte hain
+
+`deriveEnquiryColumns()` (`packages/shared/src/schemas/form.js`): **pehle key ka pattern,
+phir type.** Label se kabhi nahi.
+
+**Key pe bharosa isliye ho sakta hai** ki admin me use badalne ka koi raasta hai hi nahi
+(`formFieldSchema` ka apna comment) — label badalta hai, key nahi.
+
+⚠️ **Pehla design sirf `type` pe tha, aur wo galat tha — asli data ne pakda.** Client ke
+chalte hue form me `mobile` aur `email` dono ka type **`text`** hai (`phone`/`email` nahi),
+aur `guests` ek `select` hai. Sirf-type wala niyam:
+
+```
+Phone   → khaali          (koi `phone` type field hai hi nahi)
+Email   → khaali          (koi `email` type field hai hi nahi)
+Budget  → "2 adults"      (pehla bina-source `select` = guests)
+```
+
+Teenon galtiyaan **chup** thi — koi error nahi, bas galat khaana. Ye wahi shakl hai jo D-64
+(transfer duration) aur D-65 (`cancellationText`) pe thi. Ab dono form pe sahi chalta hai,
+aur client ke asli form ki shape ka ek **regression test** hai.
+
+### Do aur cheezein
+
+**`submission.update` ek naya permission hai** (spec 001 me nahi tha). Status badalna aur
+note likhna **write** hai; use `submission.read` ke neeche rakhne ka matlab hota ki har
+padhne wala lifecycle bhi badal sake. Migration **018** ise built-in roles pe sync karti hai.
+
+⚠️ **`submission.delete` editor ko nahi mili** — wahi lakeer jo `entry.purge` pe hai. Aur
+`POST /api/enquiries/bulk` route pe sirf `update` maangta hai par usi se `delete` bhi ho
+sakta tha; wo check **controller me** hai, warna bulk delete ka pichhla darwaza ban jaata.
+Uska apna test hai.
+
+**Delete = trash** (R12) — `deletedAt`. Permanent delete ka koi raasta jaan-boojh kar nahi:
+enquiry kisi asli grahak ki bhari hui hai. Client ne reference-check wale gate se **mana kiya**
+("seedha trash me"), aur wo unka faisla hai — trash restorable hai, isliye nuksaan ulta ja
+sakta hai.
+
+### Jo khula hai
+
+Sidebar ke do item design ke nav se aaye hain par ajeeb baithte hain — **`Enquiry Detail`**
+(bina id ke khulega kis pe?) aur **`Export CSV`** (nav se download?). Dono **hataye nahi
+gaye** — D-43 me "bina poochhe UI hatana" ki galti ho chuki hai. Tab tak `Enquiry Detail`
+list pe bhejta hai aur `Export CSV` sach me download shuru karta hai.

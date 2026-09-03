@@ -373,8 +373,13 @@ page pe "Services List" block se dikha de.
 
 ## Phase 7 — Forms, Users, Tools & Polish (2-3 hafte)
 
-- Form builder + submissions inbox + CSV export + honeypot/rate-limit spam guard
-- **Submissions retention + PII policy** (`ip` store hota hai — TTL + export/delete)
+- ~~Form builder + submissions inbox + CSV export + honeypot/rate-limit spam guard~~ →
+  **poora aage aa gaya**: form builder + honeypot + rate limit **1 Sep** (D-72), aur
+  **inbox + CSV export 3 Sep** (D-75). Wahi precedent jo Users (D-34), Settings (D-40) aur
+  Media foundation (D-41) pe laga — phase ka number rok nahi, scope client se aata hai (R15)
+- **Submissions retention + PII policy** — ⚠️ `ip` aaj **store hi nahi hota** (design me wo
+  Enquiry Detail pe hai, par capture nahi hota — D-75). Jis din wo jude, TTL aur
+  export/delete ka sawaal usi din uthega, baad me nahi
 - ~~User management UI~~ → **Phase 0 me aa chuka** (list · add · edit · delete, D-34/D-35)
 - ~~My Profile screen~~ → **Phase 0 me aa raha hai** (D-37). Naam + password editable
   (current password ke saath), baaki read-only. **Avatar** yahin rahega — wo Phase 2

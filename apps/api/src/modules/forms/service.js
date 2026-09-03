@@ -1,4 +1,5 @@
-import { DEFAULT_SITE_ID, emptyForm } from '@cms/shared'
+import { DEFAULT_SITE_ID, ENQUIRY_STATUSES, deriveEnquiryColumns, emptyForm } from '@cms/shared'
+import mongoose from 'mongoose'
 
 import { notFound, unprocessable } from '../../core/errors.js'
 import { logger } from '../../core/logger.js'
@@ -277,4 +278,232 @@ export async function submitEnquiry(input, siteId = DEFAULT_SITE_ID) {
   }
 
   return { ok: true, id: String(doc._id) }
+}
+
+// ── enquiries inbox ──────────────────────────────────────────────────────────
+
+/**
+ * Inbox ke saare read/write yahan hain (R1).
+ *
+ * ⚠️ **Trash hi delete hai** (R12) — har read `deletedAt: null` pe chhanta hai. Permanent
+ * delete ka koi raasta jaan-boojh kar nahi hai: enquiry kisi asli grahak ki bhari hui hai,
+ * aur uska mit-na sabse mehnga undo hota.
+ */
+const liveEnquiries = (siteId) => ({ ...scope(siteId), deletedAt: null })
+
+export async function listEnquiries(query, siteId = DEFAULT_SITE_ID) {
+  const { page, limit, status, formId, search, sort, order } = query
+
+  const filter = liveEnquiries(siteId)
+  // Sirf known keys — `req.query` kabhi seedha query me spread nahi hoti (R9)
+  if (status) filter.status = status
+  if (formId) filter.formId = formId
+  if (search) filter.searchText = new RegExp(escapeRegex(search.toLowerCase()), 'i')
+
+  const [docs, total] = await Promise.all([
+    Enquiry.find(filter)
+      .sort({ [sort]: order === 'asc' ? 1 : -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean(),
+    Enquiry.countDocuments(filter),
+  ])
+
+  /**
+   * Har row ke saath uske **apne form** ke derived column jaate hain.
+   *
+   * Column list me admin nahi nikaalta — wo yahin nikalte hain, taaki list, detail aur CSV
+   * teenon **ek hi niyam** pe chalein. Teen jagah teen shakl banna wahi galti hai jo D-58
+   * (hotels table) me pakdi gayi thi.
+   *
+   * ⚠️ Ek page me kai form ki rows ho sakti hain, isliye ye per-form hai, poori list ke liye
+   * ek nahi. Form fetch **ek hi baar** hoti hai (`$in`), row ke hisaab se nahi — warna 20
+   * rows ki list 20 query maar deti.
+   */
+  const formIds = [...new Set(docs.map((doc) => doc.formId))]
+  const forms = await Form.find({ _id: { $in: formIds }, ...scope(siteId) }).lean()
+  const columnsByForm = new Map(forms.map((form) => [String(form._id), deriveEnquiryColumns(form)]))
+
+  const enquiries = docs.map((doc) => ({
+    ...toApi(doc),
+    /** Form delete ho chuka ho to `null` — row phir bhi dikhti hai, khaane khaali. */
+    columns: columnsByForm.get(String(doc.formId)) ?? null,
+  }))
+
+  return { enquiries, meta: { page, limit, total } }
+}
+
+/**
+ * Har status ki ginti — list ke tabs ke liye, ek hi call me.
+ *
+ * `ENQUIRY_STATUSES` pe ghoomta hai, hardcoded list pe nahi: naya status jodne pe tab apne
+ * aap aa jaayega aur ye jagah chhoot nahi sakti.
+ */
+export async function enquiryCounts(siteId = DEFAULT_SITE_ID) {
+  const base = liveEnquiries(siteId)
+
+  const [all, byStatus] = await Promise.all([
+    Enquiry.countDocuments(base),
+    Enquiry.aggregate([{ $match: base }, { $group: { _id: '$status', n: { $sum: 1 } } }]),
+  ])
+
+  const counts = { all }
+  for (const status of ENQUIRY_STATUSES) counts[status] = 0
+  for (const row of byStatus) {
+    if (row._id in counts) counts[row._id] = row.n
+  }
+
+  return counts
+}
+
+export async function getEnquiry(id, siteId = DEFAULT_SITE_ID) {
+  const doc = await Enquiry.findOne({ _id: id, ...liveEnquiries(siteId) }).lean()
+  if (!doc) throw notFound('Enquiry not found')
+
+  /**
+   * Detail ke khaane form ke **type** se derive hote hain, key/label se nahi
+   * (`deriveEnquiryColumns`). Isliye form bhi saath jaata hai.
+   *
+   * ⚠️ Form delete ho chuka ho to `columns` khaali jaata hai — aur theme/admin phir bhi
+   * `values` ka poora maal dikhati hai. **Data kabhi chhupta nahi**, bas sundar labels nahi
+   * milte.
+   */
+  const form = await Form.findOne({ _id: doc.formId, ...scope(siteId) }).lean()
+
+  return {
+    enquiry: toApi(doc),
+    columns: form ? deriveEnquiryColumns(form) : null,
+    form: form ? { id: String(form._id), name: form.name, fields: form.fields ?? [] } : null,
+  }
+}
+
+/**
+ * Status badlo, ya ek note jodo. `values` yahan se **kabhi** nahi badalte — wo submission ka
+ * apna sach hai (`updateEnquirySchema` `.strict()` hai).
+ */
+export async function updateEnquiry(id, input, actor, siteId = DEFAULT_SITE_ID) {
+  const update = {}
+  if (input.status) update.status = input.status
+
+  const push = input.note
+    ? {
+        $push: {
+          notes: {
+            id: new mongoose.Types.ObjectId().toString(),
+            text: input.note,
+            by: actor?.name || actor?.email || '',
+            at: new Date(),
+          },
+        },
+      }
+    : {}
+
+  const doc = await Enquiry.findOneAndUpdate(
+    { _id: id, ...liveEnquiries(siteId) },
+    { ...(Object.keys(update).length ? { $set: update } : {}), ...push },
+    { new: true },
+  ).lean()
+
+  if (!doc) throw notFound('Enquiry not found')
+
+  return toApi(doc)
+}
+
+/**
+ * Bulk — status badlo ya trash me daalo.
+ *
+ * `/entries/bulk` ka hi shape, taaki admin ka pattern ek jaisa rahe.
+ */
+export async function bulkEnquiries({ ids, action }, siteId = DEFAULT_SITE_ID) {
+  const filter = { _id: { $in: ids }, ...liveEnquiries(siteId) }
+
+  const update =
+    action.kind === 'delete'
+      ? { $set: { deletedAt: new Date() } }
+      : { $set: { status: action.status } }
+
+  const result = await Enquiry.updateMany(filter, update)
+
+  return { matched: result.matchedCount, modified: result.modifiedCount }
+}
+
+/**
+ * CSV export.
+ *
+ * Column wahi hain jo list me dikhte hain (derived), **aur uske baad** har wo field jo form
+ * me hai par kisi derived column me nahi gaya. Yaani export list se zyada deta hai, kam
+ * nahi — spreadsheet me adhoora data bhejna sabse chup nuksaan hota.
+ *
+ * ⚠️ Har cell `csvCell()` se guzarta hai: `=`, `+`, `-`, `@` se shuru hone wali value Excel
+ * me **formula** ban jaati hai (CSV injection). Enquiry ka text bahar se aata hai, isliye ye
+ * ehtiyaat yahan zaroori hai, sundar nahi.
+ */
+function csvCell(value) {
+  const s = value === null || value === undefined ? '' : String(value)
+  const guarded = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s
+
+  return `"${guarded.replace(/"/g, '""')}"`
+}
+
+export async function exportEnquiriesCsv(query, siteId = DEFAULT_SITE_ID) {
+  const filter = liveEnquiries(siteId)
+  if (query.status) filter.status = query.status
+  if (query.formId) filter.formId = query.formId
+
+  const docs = await Enquiry.find(filter).sort({ createdAt: -1 }).limit(5000).lean()
+  const forms = await Form.find(scope(siteId)).lean()
+  const formById = new Map(forms.map((form) => [String(form._id), form]))
+
+  /** Saare forms ke field mila kar ek hi header banti hai — warna do form ki rows na milti. */
+  const extraKeys = []
+  for (const form of forms) {
+    const derived = new Set(
+      Object.values(deriveEnquiryColumns(form))
+        .filter(Boolean)
+        .map((column) => column.key),
+    )
+    for (const field of form.fields ?? []) {
+      if (!derived.has(field.key) && !extraKeys.includes(field.key)) extraKeys.push(field.key)
+    }
+  }
+
+  const header = [
+    'Received',
+    'Status',
+    'Form',
+    'Name',
+    'Email',
+    'Phone',
+    'Package',
+    'Travel date',
+    'Pax',
+    'Budget',
+    'Message',
+    'Source page',
+    ...extraKeys,
+  ]
+
+  const rows = docs.map((doc) => {
+    const form = formById.get(String(doc.formId))
+    const columns = form ? deriveEnquiryColumns(form) : null
+    const at = (name) => (columns?.[name] ? (doc.values?.[columns[name].key] ?? '') : '')
+
+    return [
+      doc.createdAt?.toISOString() ?? '',
+      doc.status ?? '',
+      doc.formName ?? '',
+      at('name'),
+      at('email'),
+      at('phone'),
+      at('package'),
+      at('travelDate'),
+      at('pax'),
+      at('budget'),
+      at('message'),
+      doc.sourcePath ?? '',
+      ...extraKeys.map((key) => doc.values?.[key] ?? ''),
+    ]
+  })
+
+  return [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n')
 }

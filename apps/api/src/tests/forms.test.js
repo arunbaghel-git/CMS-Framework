@@ -375,3 +375,298 @@ describe('public payload me form', () => {
     expect(keys).toContain('fullName')
   })
 })
+
+// ── inbox ────────────────────────────────────────────────────────────────────
+
+/**
+ * Enquiries inbox — client, 3 Sep. Chaar cheezein sabse zyada maayne rakhti hain:
+ *
+ *   1. column form ke **type** se derive hon (label badle to bhi chalein)
+ *   2. trash ke baad enquiry list se gayab ho, par DB me bachi rahe
+ *   3. bulk delete ka **pichhla darwaza** band ho — editor ke paas `submission.delete` nahi
+ *   4. CSV Excel me formula na ban jaaye
+ */
+describe('enquiries inbox', () => {
+  /**
+   * Ek bhari hui enquiry — public raaste se, taaki wo asli shakl me bane.
+   *
+   * Default form me chaar field `required` hain (`fullName · email · phone · consent`),
+   * isliye wo yahan pehle se bhare jaate hain — har test me unhe dohrane ka koi matlab nahi.
+   */
+  async function makeEnquiry(form, values, sourcePath = '/packages/andaman') {
+    const res = await submit({
+      formId: form.id,
+      values: { phone: '9876500000', consent: true, ...values },
+      sourcePath,
+    })
+    expect(res.status).toBe(201)
+    return res.body.data
+  }
+
+  async function firstEnquiryId(jar = adminJar) {
+    const list = await authed('get', '/api/enquiries', jar)
+    return list.body.data.enquiries[0].id
+  }
+
+  it('list nayi enquiry pehle deti hai, counts ke saath', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Priya Menon', email: 'priya@example.com' })
+    await makeEnquiry(form, { fullName: 'Rahul Sethi', email: 'rahul@example.com' })
+
+    const res = await authed('get', '/api/enquiries', adminJar)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.enquiries).toHaveLength(2)
+    expect(res.body.data.enquiries[0].values.fullName).toBe('Rahul Sethi')
+    expect(res.body.data.counts).toMatchObject({ all: 2, new: 2, contacted: 0 })
+    expect(res.body.meta).toMatchObject({ page: 1, limit: 20, total: 2 })
+  })
+
+  it('column form ke type se derive hote hain — label badalne se kuch nahi tootta', async () => {
+    const base = emptyForm()
+    const form = await makeForm({
+      // Wahi fields, par label client ne badal diya — column phir bhi milna chahiye
+      fields: base.fields.map((field) =>
+        field.key === 'travelDate' ? { ...field, label: 'Journey date' } : field,
+      ),
+    })
+    await makeEnquiry(form, {
+      fullName: 'Ann',
+      email: 'ann@example.com',
+      travelDate: '2026-09-12',
+    })
+
+    const res = await authed('get', `/api/enquiries/${await firstEnquiryId()}`, adminJar)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.columns.name.key).toBe('fullName')
+    expect(res.body.data.columns.email.key).toBe('email')
+    expect(res.body.data.columns.travelDate).toMatchObject({
+      key: 'travelDate',
+      label: 'Journey date',
+    })
+  })
+
+  it('search values ke text pe chalti hai', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Priya Menon', email: 'priya@example.com' })
+    await makeEnquiry(form, { fullName: 'Rahul Sethi', email: 'rahul@example.com' })
+
+    const res = await authed('get', '/api/enquiries?search=rahul', adminJar)
+
+    expect(res.body.data.enquiries).toHaveLength(1)
+    expect(res.body.data.enquiries[0].values.fullName).toBe('Rahul Sethi')
+  })
+
+  it('status badalta hai aur note judta hai — par values kabhi nahi badalte', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Priya', email: 'priya@example.com' })
+    const id = await firstEnquiryId()
+
+    const res = await authed('patch', `/api/enquiries/${id}`, adminJar).send({
+      status: 'contacted',
+      note: 'Called, asked for a 4-star quote',
+    })
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.enquiry.status).toBe('contacted')
+    expect(res.body.data.enquiry.notes).toHaveLength(1)
+    expect(res.body.data.enquiry.notes[0].text).toBe('Called, asked for a 4-star quote')
+    // Note ke saath likhne wale ka naam — "kisne kaha tha" baad me sabse zyada poochha jaata hai
+    expect(res.body.data.enquiry.notes[0].by).toBeTruthy()
+    expect(res.body.data.enquiry.values.fullName).toBe('Priya')
+  })
+
+  it('values seedha update nahi ho sakte — schema strict hai', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Priya', email: 'priya@example.com' })
+
+    const res = await authed('patch', `/api/enquiries/${await firstEnquiryId()}`, adminJar).send({
+      values: { fullName: 'Badla hua' },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('bulk se status badalta hai', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'A', email: 'a@example.com' })
+    await makeEnquiry(form, { fullName: 'B', email: 'b@example.com' })
+    const list = await authed('get', '/api/enquiries', adminJar)
+    const ids = list.body.data.enquiries.map((row) => row.id)
+
+    const res = await authed('post', '/api/enquiries/bulk', adminJar).send({
+      ids,
+      action: 'contacted',
+    })
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.modified).toBe(2)
+
+    const after = await authed('get', '/api/enquiries?status=contacted', adminJar)
+    expect(after.body.data.enquiries).toHaveLength(2)
+  })
+
+  it('delete trash hai — list se gayab, DB me bachi hui', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Priya', email: 'priya@example.com' })
+    const id = await firstEnquiryId()
+
+    await authed('post', '/api/enquiries/bulk', adminJar).send({ ids: [id], action: 'delete' })
+
+    const after = await authed('get', '/api/enquiries', adminJar)
+    expect(after.body.data.enquiries).toHaveLength(0)
+    expect(after.body.data.counts.all).toBe(0)
+
+    // ⚠️ Yahi is test ka asli maksad — record mita nahi, sirf chhupa hai (R12)
+    const doc = await Enquiry.findById(id).lean()
+    expect(doc).not.toBeNull()
+    expect(doc.deletedAt).toBeInstanceOf(Date)
+
+    // Aur trash ki hui enquiry detail pe bhi nahi khulti
+    const detail = await authed('get', `/api/enquiries/${id}`, adminJar)
+    expect(detail.status).toBe(404)
+  })
+
+  it('editor status badal sakta hai par delete nahi kar sakta', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Priya', email: 'priya@example.com' })
+    const ids = [await firstEnquiryId(editorJar)]
+
+    const ok = await authed('post', '/api/enquiries/bulk', editorJar).send({
+      ids,
+      action: 'contacted',
+    })
+    expect(ok.status).toBe(200)
+
+    /**
+     * ⚠️ Gate route pe `submission.update` hai, par bulk se `delete` bhi ho sakta tha.
+     * Bina controller wale check ke ye 200 deta — yaani bulk delete ka pichhla darwaza.
+     */
+    const denied = await authed('post', '/api/enquiries/bulk', editorJar).send({
+      ids,
+      action: 'delete',
+    })
+    expect(denied.status).toBe(403)
+  })
+
+  it('contributor inbox dekh hi nahi sakta', async () => {
+    const res = await authed('get', '/api/enquiries', contributorJar)
+
+    expect(res.status).toBe(403)
+  })
+
+  it('CSV me derived column bhare hue aate hain', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, {
+      fullName: 'Priya Menon',
+      email: 'priya@example.com',
+      phone: '9876500000',
+      travellers: 4,
+    })
+
+    const res = await authed('get', '/api/enquiries/export', adminJar)
+
+    expect(res.status).toBe(200)
+    expect(res.headers['content-type']).toMatch(/text\/csv/)
+    expect(res.text).toContain('Priya Menon')
+    expect(res.text).toContain('priya@example.com')
+  })
+
+  it('CSV me = se shuru hone wali value formula nahi banti', async () => {
+    const form = await makeForm()
+    // Classic CSV injection — Excel ise formula maan kar chala deta hai
+    await makeEnquiry(form, { fullName: '=1+1', email: 'x@example.com' })
+
+    const res = await authed('get', '/api/enquiries/export', adminJar)
+
+    expect(res.text).toContain("'=1+1")
+  })
+
+  it('client ke asli form pe bhi sahi column milte hain — type akela kaafi nahi', async () => {
+    /**
+     * ⚠️ Ye 3 Sep ko client ke **chalte hue** form se liya gaya hai, banaya hua nahi.
+     *
+     * Isme teen jaal hain jo sirf-type wale niyam ko harate the:
+     *   `mobile` aur `email` dono ka type `text` hai — `phone`/`email` nahi
+     *   `guests` ek `select` hai, `number` nahi
+     *
+     * Sirf type dekhne pe Phone aur Email khaali aate the, aur Budget ke khaane me `guests`
+     * dikhta tha — poori tarah chup galti.
+     */
+    const form = await makeForm({
+      fields: [
+        { key: 'name', label: 'Name', type: 'text', show: true, required: true, options: [] },
+        {
+          key: 'travelDate',
+          label: 'Travel date',
+          type: 'date',
+          show: true,
+          required: true,
+          options: [],
+        },
+        {
+          key: 'guests',
+          label: 'Guests',
+          type: 'select',
+          show: true,
+          required: true,
+          options: ['2 adults', '3 adults'],
+        },
+        {
+          key: 'hotelCategory',
+          label: 'Hotel category',
+          type: 'select',
+          source: 'categories',
+          show: true,
+          required: true,
+          options: [],
+        },
+        { key: 'mobile', label: 'Mobile', type: 'text', show: true, required: true, options: [] },
+        { key: 'email', label: 'Email', type: 'text', show: true, required: true, options: [] },
+        {
+          key: 'specialRequestOptional',
+          label: 'Special request',
+          type: 'textarea',
+          show: true,
+          required: false,
+          options: [],
+        },
+      ],
+    })
+
+    const res = await submit({
+      formId: form.id,
+      sourcePath: '/packages/discover-andaman',
+      values: {
+        name: 'Arun Baghel',
+        travelDate: '2026-09-20',
+        guests: '2 adults',
+        hotelCategory: 'Deluxe',
+        mobile: '8787878787',
+        email: 'arun@example.com',
+        specialRequestOptional: 'Sea-facing room please',
+      },
+    })
+    expect(res.status).toBe(201)
+
+    const list = await authed('get', '/api/enquiries', adminJar)
+    const { columns } = list.body.data.enquiries[0]
+
+    expect(columns.name.key).toBe('name')
+    // `text` type hone ke bawajood — key se mile
+    expect(columns.email.key).toBe('email')
+    expect(columns.phone.key).toBe('mobile')
+    expect(columns.travelDate.key).toBe('travelDate')
+    expect(columns.pax.key).toBe('guests')
+    expect(columns.message.key).toBe('specialRequestOptional')
+
+    // Is form me hain hi nahi — khaali rehne chahiye, kisi aur field se bhare hue nahi
+    expect(columns.budget).toBeNull()
+    expect(columns.package).toBeNull()
+
+    // `hotelCategory` kisi column me nahi gaya — Detail use "extras" me dikhati hai
+    const detail = await authed('get', `/api/enquiries/${list.body.data.enquiries[0].id}`, adminJar)
+    expect(detail.body.data.enquiry.values.hotelCategory).toBe('Deluxe')
+  })
+})

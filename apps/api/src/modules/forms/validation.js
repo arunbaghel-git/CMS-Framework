@@ -1,7 +1,10 @@
 import {
+  bulkEnquirySchema,
   createFormSchema,
   formListQuerySchema,
+  listEnquiriesQuerySchema,
   submitEnquirySchema,
+  updateEnquirySchema,
   updateFormSchema,
 } from '@cms/shared'
 
@@ -9,4 +12,12 @@ import {
  * Forms ka shape `packages/shared` me hai (R8) — admin ka builder aur API ek hi schema pe.
  * Query params bhi wahin se (R9).
  */
-export { createFormSchema, formListQuerySchema, submitEnquirySchema, updateFormSchema }
+export {
+  bulkEnquirySchema,
+  createFormSchema,
+  formListQuerySchema,
+  listEnquiriesQuerySchema,
+  submitEnquirySchema,
+  updateEnquirySchema,
+  updateFormSchema,
+}
