@@ -114,6 +114,27 @@ export default function EnquiriesList() {
     }
   }
 
+  /** Row ka delete — wahi kaam jo bulk karta hai, bas ek id pe (PackagesList ka pattern). */
+  async function deleteRow(row) {
+    const who = cell(row, 'name')
+    if (!window.confirm(`Delete the enquiry from ${who === '—' ? 'this contact' : who}?`)) return
+
+    setBusy(true)
+    setNotice(null)
+    setActionError(null)
+
+    try {
+      await api.post('/enquiries/bulk', { ids: [row.id], action: 'delete' })
+      setNotice('Enquiry deleted.')
+      setSelected((s) => s.filter((x) => x !== row.id))
+      reload()
+    } catch (err) {
+      setActionError(errorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const TABS = [
     { id: 'all', label: 'All', count: counts?.all },
     ...ENQUIRY_TABS.map((status) => ({
@@ -334,6 +355,25 @@ export default function EnquiriesList() {
                 </Link>
                 <div className="enq-sub">
                   {[cell(row, 'email'), cell(row, 'phone')].filter((v) => v !== '—').join(' · ')}
+                </div>
+                {/*
+                 * Design me yahan chaar hain — View · Reply · Assign · Delete.
+                 *
+                 * `Reply` aur `Assign` nahi hain: pehla SMTP maangta hai (Phase 0 se blocked)
+                 * aur doosre ke liye koi `assignedTo` field hi nahi hai. Jo kaam karta hi na
+                 * ho uska link dikhana client ko ye batana hai ki wo kaam karta hai (D-30).
+                 */}
+                <div className="row-actions">
+                  <span>
+                    <Link to={`/enquiries/${row.id}`}>View</Link>
+                  </span>
+                  {canDelete && (
+                    <span className="del">
+                      <a href="#delete" onClick={(e) => (e.preventDefault(), deleteRow(row))}>
+                        Delete
+                      </a>
+                    </span>
+                  )}
                 </div>
               </td>
               <td>{cell(row, 'package')}</td>

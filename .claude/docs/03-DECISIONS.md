@@ -4484,9 +4484,30 @@ enquiry kisi asli grahak ki bhari hui hai. Client ne reference-check wale gate s
 ("seedha trash me"), aur wo unka faisla hai — trash restorable hai, isliye nuksaan ulta ja
 sakta hai.
 
-### Jo khula hai
+### Sidebar ke do item — client ne usi din tay kar diye
 
-Sidebar ke do item design ke nav se aaye hain par ajeeb baithte hain — **`Enquiry Detail`**
-(bina id ke khulega kis pe?) aur **`Export CSV`** (nav se download?). Dono **hataye nahi
-gaye** — D-43 me "bina poochhe UI hatana" ki galti ho chuki hai. Tab tak `Enquiry Detail`
-list pe bhejta hai aur `Export CSV` sach me download shuru karta hai.
+Dono design ke nav se aaye the aur ajeeb baithte the: **`Enquiry Detail`** (bina id ke
+khulega kis pe?) aur **`Export CSV`** (nav se download?). Maine dono ko **hataya nahi** —
+D-43 me "bina poochhe UI hatana" ki galti ho chuki hai — aur interim daal diya.
+
+**`Enquiry Detail` ka interim galat tha.** Wo list pe bhej deta tha, aur client ne turant
+pakda: _"why enquiry detail submenu also show list of enquiry, it should show enquiry
+details right"_. Baat sahi hai — item ka naam detail kehta hai, to detail hi khulni chahiye.
+Ab wo **sabse nayi** enquiry kholta hai (inbox me sabse aam kaam bhi wahi hai). Ek bhi
+enquiry na ho to ek saaf khaali state.
+
+Sabak: **jab kisi cheez ka interim daalo, to wo cheez ka naam jo vaada karta hai wahi
+nibhaana chahiye.** "List pe bhej do" ne kaam to kiya, par label se jhooth bol raha tha.
+
+`Export CSV` waise hi hai — wo sach me download shuru karta hai, aur wahi uska naam kehta hai.
+
+### Row actions — do, chaar nahi
+
+Design me har row pe chaar hain: `View · Reply · Assign · Delete`. Bane sirf **View** aur
+**Delete**. `Reply` SMTP maangta hai (Phase 0 se blocked) aur `Assign` ke liye koi
+`assignedTo` field hi nahi hai — jo kaam karta hi na ho uska link dikhana client ko ye
+batana hai ki wo kaam karta hai (D-30).
+
+⚠️ Ye `.row-actions` hain, yaani **hover pe dikhte hain** — wahi WordPress wala pattern jo
+Packages list pe pehle se hai. Client ne pehle inhe "aa hi nahi rahe" bataya tha; wo isliye
+ki wo bane hi nahi the (3 Sep me jude).

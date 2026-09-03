@@ -16,6 +16,7 @@ import Menus from './screens/appearance/Menus.jsx'
 import EnquiriesList from './screens/enquiries/EnquiriesList.jsx'
 import EnquiryDetail from './screens/enquiries/EnquiryDetail.jsx'
 import EnquiryExport from './screens/enquiries/EnquiryExport.jsx'
+import EnquiryLatest from './screens/enquiries/EnquiryLatest.jsx'
 import FormBuilder from './screens/forms/FormBuilder.jsx'
 import FormsList from './screens/forms/FormsList.jsx'
 import MasterListScreen from './screens/packages/MasterListScreen.jsx'
@@ -175,15 +176,10 @@ const APP_ROUTES = [
   { path: '/enquiries', element: <EnquiriesList /> },
   { path: '/enquiries/export', element: <EnquiryExport /> },
   /**
-   * ⚠️ `Enquiry Detail` sidebar me ek alag item hai (design ke nav se), par detail page ko
-   * ek enquiry ki **id** chahiye — bina uske wo khule kis pe? Design me wo mockup ki suvidha
-   * lagti hai, asli nav ka item nahi.
-   *
-   * Item hataya **nahi** gaya (wo faisla client ka hai — D-43 wali galti), par use `:id` pe
-   * girne dena "Enquiry not found" dikhata. Tab tak list pe bhej rahe hain: wahan se koi bhi
-   * enquiry khul jaati hai.
+   * `Enquiry Detail` — nav item ke paas koi id nahi hoti, isliye ye **sabse nayi** enquiry
+   * kholta hai (client, 3 Sep: "it should show enquiry details").
    */
-  { path: '/enquiries/detail', element: <Navigate to="/enquiries" replace /> },
+  { path: '/enquiries/detail', element: <EnquiryLatest /> },
   { path: '/enquiries/forms', element: <FormsList /> },
   { path: '/enquiries/forms/new', element: <FormBuilder /> },
   { path: '/enquiries/forms/:id', element: <FormBuilder /> },

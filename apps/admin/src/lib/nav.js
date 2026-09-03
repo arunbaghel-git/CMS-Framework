@@ -143,11 +143,9 @@ export const NAV = [
     children: [
       { label: 'All Enquiries', to: '/enquiries', permission: PERMISSION.SUBMISSION_READ },
       /**
-       * ⚠️ `Enquiry Detail` design ke nav me hai, par detail page ko ek enquiry ki id
-       * chahiye — bina uske wo kis pe khule? Ye item mockup ki suvidha lagta hai.
-       *
-       * Hataya **nahi** gaya (D-43 ka sabak: bina poochhe UI mat hatao) — abhi ye list pe
-       * bhejta hai. Client ke jawab pe ya to hat jaayega, ya waise hi rahega.
+       * `Enquiry Detail` ke paas koi id nahi hoti, isliye wo **sabse nayi** enquiry kholta
+       * hai (client, 3 Sep). Pehle ye list pe bhejta tha — aur wo galat tha: item ka naam
+       * detail kehta hai, to detail hi khulni chahiye.
        */
       { label: 'Enquiry Detail', to: '/enquiries/detail', permission: PERMISSION.SUBMISSION_READ },
       { label: 'Enquiry Forms', to: '/enquiries/forms', permission: PERMISSION.FORM_READ },
