@@ -30,6 +30,27 @@ import './Media.css'
  * poochha gaya hai.
  */
 
+/**
+ * `File URL` me **poora** URL — sirf `/uploads/...` nahi (client, 3 Sep).
+ *
+ * Client ne wo path copy karke browser me khola aur kuch nahi mila. Wajah saaf hai: variant
+ * ki `url` **jaan-boojh kar relative** hoti hai (D-42 §2 wali wahi baat — usme kabhi
+ * `localhost:4000` store nahi hota, warna wo dev hostname DB me baith kar prod me toot-ta).
+ * Relative path browser ke address bar me kuch nahi hai.
+ *
+ * Origin **yahin se** lagta hai, kisi env se nahi: admin aur `/uploads` same-origin pe hain
+ * (02-ARCHITECTURE §1) — dev me Vite proxy se, prod me reverse proxy se. Yaani jo URL admin
+ * ke browser me chalta hai, wahi copy hone laayak hai.
+ *
+ * ⚠️ Prod me CDN aane pe (`CDN_BASE_URL`) variant ki url **absolute** hoti hai — tab use
+ * chhua nahi jaata, warna origin do baar lag jaata.
+ */
+function fullUrl(url) {
+  if (!url) return ''
+
+  return /^https?:\/\//i.test(url) ? url : `${window.location.origin}${url}`
+}
+
 /** `2026-08` → `August 2026` — design ke dropdown ka wahi roop. */
 function monthLabel(value) {
   const [year, mon] = value.split('-').map(Number)
@@ -328,20 +349,32 @@ export default function MediaLibrary() {
                 ) : (
                   <span className="ml-blank" />
                 )}
-                {/* Design me har tile ke neeche filename hai (`.cap`) */}
-                <span className="cap">{media.filename}</span>
               </button>
             )
           })}
         </div>
 
-        <aside className="ml-side">
-          {!selected ? (
-            <p className="muted">Select an image to see its details.</p>
-          ) : (
+        {/*
+         * Panel **tabhi** hota hai jab kuch chuna ho — band hone pe grid poori chaudai le
+         * leta hai (client, 3 Sep: "sidebar close karne ka option hona chahiye jisse only
+         * images show ho").
+         *
+         * Isiliye khaali panel wali "Select an image…" line bhi hat gayi: wo ek khaali dabba
+         * ghere rehti thi jiska kaam sirf ye batana tha ki wo khaali hai.
+         */}
+        {selected && (
+          <aside className="ml-side">
             <section className="panel">
               <div className="panel-head">
                 <h2>Attachment Details</h2>
+                <button
+                  className="ml-x"
+                  type="button"
+                  onClick={() => setSelected(null)}
+                  aria-label="Close details"
+                >
+                  ×
+                </button>
               </div>
               <div className="panel-body">
                 {large && <img className="ml-preview" src={large.url} alt={selected.alt || ''} />}
@@ -408,7 +441,7 @@ export default function MediaLibrary() {
                      * `readOnly`, `disabled` nahi — disabled input ka text copy nahi hota,
                      * aur is box ka poora maksad hi copy karna hai.
                      */}
-                    <input id="ml-url" className="inp" readOnly value={large.url} />
+                    <input id="ml-url" className="inp" readOnly value={fullUrl(large.url)} />
                   </div>
                 )}
 
@@ -424,8 +457,8 @@ export default function MediaLibrary() {
                 )}
               </div>
             </section>
-          )}
-        </aside>
+          </aside>
+        )}
       </div>
 
       <input

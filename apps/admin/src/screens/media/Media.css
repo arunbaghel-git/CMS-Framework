@@ -5,18 +5,40 @@
  * hai. Baaki sab (`panel`, `field`, `inp`, `btn`, `tablenav`, `pagination`) primitives se.
  */
 
+/*
+ * Do column **tabhi** jab detail panel khula ho.
+ *
+ * Panel band hone pe grid poori chaudai le leta hai — client, 3 Sep: "sidebar close karne ka
+ * option hona chahiye jisse only images show ho". `:has()` isliye ki ye poori tarah CSS ka
+ * kaam hai; JSX me ek aur class flag rakhne se do jagah ek hi sach rakhna padta.
+ */
 .ml-grid-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
 
+.ml-grid-wrap:has(.ml-side) {
+  grid-template-columns: minmax(0, 1fr) 320px;
+}
+
 /* 1024px pe detail neeche — wahi breakpoint jo baaki admin pe hai */
 @media (max-width: 1024px) {
-  .ml-grid-wrap {
+  .ml-grid-wrap:has(.ml-side) {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Detail panel band karne ka × — wahi shakl jo MediaPicker ke `.mp-x` pe hai */
+.ml-x {
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted, #646970);
+  padding: 0 2px;
 }
 
 .ml-grid {
@@ -35,7 +57,13 @@
   grid-column: 1 / -1;
 }
 
-/* Naap aur shakl design ke `.media-item` se — aspect-ratio 1, radius, overflow hidden */
+/*
+ * Naap aur shakl design ke `.media-item` se — aspect-ratio 1, radius, overflow hidden.
+ *
+ * ⚠️ Design me har tile pe filename ki patti bhi hai (`.cap`). Wo banayi gayi thi aur client
+ * ne 3 Sep ko **hatane ko kaha** — "image name nahi chahiye image par". Filename detail panel
+ * me pehle se hai.
+ */
 .ml-item {
   position: relative;
   padding: 0;
@@ -45,25 +73,6 @@
   cursor: pointer;
   aspect-ratio: 1;
   overflow: hidden;
-}
-
-/*
- * Filename ki patti — design ke `.media-item .cap` se hu-ba-hu (rgba(29,35,39,.72), 11px,
- * 4px 6px, ek line me kata hua).
- */
-.ml-item .cap {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(29, 35, 39, 0.72);
-  color: #fff;
-  font-size: 11px;
-  padding: 4px 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: left;
 }
 
 .ml-item img {

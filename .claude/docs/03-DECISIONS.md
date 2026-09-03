@@ -4712,6 +4712,40 @@ koi use delete kar deta, aur wo page chup-chaap adhoora ho jaata (D-42 §2 ki wa
 `mediaRefs` banane ka ek bada faayda aur hai: uske aate hi **delete-guard** bhi mil jaata hai
 ("ye image 3 pages pe lagi hai"), jo aaj nahi hai. Client se poochha gaya hai.
 
+
+### Teen aur baatein — client ne screen chala kar (3 Sep)
+
+**1 · Tile pe filename hata diya.** Design me har tile ke neeche `.cap` ki patti hai aur wo
+banayi bhi gayi thi; client: _"image name nahi chahiye image par"_. Filename detail panel me
+pehle se hai, to wo kahin kho nahi raha.
+
+**2 · Detail panel ab band ho sakta hai.** Uska `×` dabate hi grid **poori chaudai** le leta
+hai, aur kisi image pe click karte hi wo wapas khul jaata hai (client: _"jisse only images
+show ho"_). Saath me "Select an image to see its details." wali line bhi hat gayi — wo ek
+khaali dabba ghere rehti thi jiska kaam sirf ye batana tha ki wo khaali hai.
+
+Do column ka switch **CSS se** hai (`:has(.ml-side)`), JSX me koi doosra flag nahi: panel hai
+ya nahi — ye ek hi sach hai, aur use do jagah rakhna hi drift ki shuruaat hoti.
+
+**3 · `File URL` ab poora URL deta hai — ye ek asli bug tha.**
+
+Client ne wo path copy karke browser me khola aur kuch nahi mila:
+
+```
+/uploads/sites/default/media/2026/09/6a982ced…/large.webp     ← aadha
+http://localhost:5173/uploads/sites/default/…/large.webp      ← ab
+```
+
+Wajah wahi hai jo D-42 §2 ke saath likhi gayi thi: variant ki `url` **jaan-boojh kar
+relative** hoti hai — usme kabhi `localhost:4000` store nahi hota, warna wo dev hostname DB
+me baith kar prod me toot-ta. Par ek **copy karne wale box** me relative path bemaani hai.
+
+Origin `window.location.origin` se lagta hai, kisi env se nahi: admin aur `/uploads`
+same-origin pe hain (02-ARCHITECTURE §1) — dev me Vite proxy se, prod me reverse proxy se.
+Verify bhi kiya: `:5173` aur `:4000` dono se wo URL `200 image/webp` deta hai.
+
+⚠️ CDN aane pe (`CDN_BASE_URL`) variant ki url **absolute** hoti hai — tab use chhua nahi
+jaata, warna origin do baar lag jaata.
 ### Delete trash hai, aur file disk pe rehti hai
 
 Client ne Enquiries pe bhi yahi chuna tha ("seedha trash me") — media pe wo aur zaroori hai:
