@@ -4562,3 +4562,130 @@ matlab hota agle developer ke liye ek jhoothi ummeed ("ye kis kaam ka hai?").
 
 `updateEnquirySchema` ab `.strict()` ke saath sirf `status` leta hai, to `note` bhejne pe
 **400** aata hai — dead API chup rehne se behtar hai ki wo saaf mana kare. Uska apna test hai.
+
+---
+
+## D-77
+
+**Editor TinyMCE hoga — GPL wali branding client ko manzoor hai, aur editor har section pe**
+_3 Sep 2026 · client ka faisla_
+
+### Sawaal
+
+Client ki maang thi: Visual aur Text (HTML) do tab, aur Text me `class`/`id`/inline `style`
+likho to **kuch gayab na ho**.
+
+TipTap wo nahi kar sakta aur ye uski kami nahi — wo **schema-based** (ProseMirror) hai: jo
+tag uske schema me nahi, wo hata deta hai, chahe aap HTML tab me khud likho. Schema me tag
+jodte rehne se wo ek **list** hi rahega, "kuch bhi" kabhi nahi banega.
+
+WordPress ye isliye kar leta hai ki wo **TinyMCE** use karta hai, jo DOM-based hai, aur uska
+`post_content` **raw HTML** hi hota hai. Yaani gayab hone ke liye wahan kuch convert hi nahi
+hota.
+
+### Do faisle
+
+**1 · Editor TinyMCE hoga, aur free (GPL) version chalega.**
+
+Maine do kaante saaf-saaf rakhe the: TinyMCE 7 GPL pe hai, aur free me editor ke andar
+**"Powered by Tiny"** branding aati hai — jo client ke admin panel me dikhegi (R15 ke against
+jaati hai). Client ka jawab:
+
+> _"we can use TinyMCE free — bala branding dikhe koi bat nahi"_
+
+Yaani branding manzoor hai. Commercial license nahi lena.
+
+⚠️ Ye **client ka jaan-boojh kar liya gaya faisla** hai, developer ka nahi — R15 ke hisaab se
+aage koi ise "design se match karo" ke naam pe palat na de.
+
+**2 · Editor har section pe lagega, sirf Overview pe nahi.**
+
+> _"editor should be on each section becouse in future user can change text style so we will
+> use editor"_
+
+Aaj kai jagah plain `textarea` hai. Client ki wajah aage ki hai: text ka style badalne ki
+zaroorat kabhi bhi kisi bhi section pe aa sakti hai, aur tab ek-ek karke editor lagana poora
+retrofit ban jaata.
+
+### Iske saath jo badlega — aur wo chhota nahi hai
+
+| Cheez | Aaj | TinyMCE ke baad |
+| --- | --- | --- |
+| Content ka shape | TipTap ka JSON (`props.doc`) | **raw HTML string** |
+| Public render | `RichText.jsx` — node ka whitelist | **sanitized HTML** |
+| Nayi dependency | — | TinyMCE + ek HTML sanitizer |
+| Purana content | — | **migration** — JSON se HTML |
+
+⚠️ `valid_elements: '*[*]'` **zaroori hai** — TinyMCE ka default bhi thodi safai karta hai
+(WordPress ki jaani-pehchani shikayat). Us setting se wo safai band ho jaati hai, aur tab wo
+WordPress se **behtar** behave karta hai, uske barabar nahi.
+
+⚠️ Sanitizer **chhod nahi sakte**: raw HTML store karne ka matlab hai ki `<script>` ya
+`onclick=` ka raasta khul jaata hai. Wo admin-only input hai, par admin ka account bhi churaya
+ja sakta hai.
+
+**Abhi bana nahi hai** — client ne pehle Media section maanga (3 Sep). Ye faisla yahan isliye
+likha hai ki wo khoye nahi.
+
+---
+
+## D-78
+
+**Media Library + MediaPicker ban gaye — Phase 2 ka bacha hua hissa**
+_3 Sep 2026 · client ka faisla_
+
+### Sawaal
+
+`/media` sidebar me tha par `NotBuiltYet` pe jaata tha. Foundation D-41 me pull-forward ho
+chuka tha (upload · WebP variants 300/800/1600 · storage driver · magic-byte check · size
+cap) — sirf screen nahi thi. Client: _"since media ka desision already doc me hai to media
+section bhi bana do"_.
+
+Scope ka faisla pehle hi ho chuka tha: **Library + Picker + editor me image insert** (client,
+3 Sep). Editor wala hissa TinyMCE ke saath aayega (D-77); baaki do ab bane.
+
+### Kya bana
+
+| Cheez | |
+| --- | --- |
+| `Media Library` screen | grid · search · pagination · drag-drop upload · detail panel (Alt/Title/Caption + File URL) |
+| `MediaPicker` component | popup — **Media Library tab default**, `Upload` doosra |
+| `DELETE /api/media/:id` | naya route — **trash** (`media.delete`) |
+
+**Picker ka default tab library hai, upload nahi** — aur wo jaan-boojh kar hai. Client ki
+purani shikayat thi: _"jo images admin me upload karta hu … mujhe fir se upload karna padta
+hai har baar"_. Uska ek hissa A-16 ka bug tha (files mit rahi thi), par **doosra hissa ye tha
+ki pehle se upload ki hui image chunne ka koi raasta hi nahi tha**.
+
+### Picker ek jagah laga, paanch jagah mil gaya
+
+`MediaDrop.jsx` ke apne comment me likha tha: _"jab picker aayega to badalna sirf yahi ek file
+hogi"_. Wahi hua — usme ek optional `onSelect` prop juda, aur ab **paanchon** jagah "Choose
+from library" mil gaya: Settings ka Logo aur Favicon, Footer ka logo, package ka banner, aur
+destination ka banner.
+
+Ye us purane comment ka nateeja hai, ittefaq nahi: uss din component alag kiya gaya tha
+**isi** din ke liye.
+
+### Design ke teen filter jaan-boojh kar nahi bane
+
+| Design me | Kyun nahi |
+| --- | --- |
+| `Videos` · `Documents (PDF)` ke tab | Upload sirf **JPG/PNG/WebP** leta hai (`MEDIA_MIME`). Khaali tab dikhana ye batana hai ki wo kism support hai |
+| `Attached` / `Unattached` | **`mediaRefs` backlink index bana hi nahi** — "ye image kahan lagi hai" ka jawab kisi ke paas nahi. Andaaze se filter banana galat data dikhana hota |
+| `All dates` | Ban sakta tha, par client ne nahi maanga. Search filename/alt/title/caption pe pehle se chalti hai |
+
+Wahi niyam jo poore admin pe hai (D-30): jo kaam karta hi na ho, uska control mat dikhao.
+
+### Delete trash hai, aur file disk pe rehti hai
+
+Client ne Enquiries pe bhi yahi chuna tha ("seedha trash me") — media pe wo aur zaroori hai:
+
+1. **File wapas nahi aati.** Record chhupana ulta ja sakta hai, file mit jaana nahi — **A-16
+   ka poora sabak** yahi tha (`pnpm test` ne client ki images uda di thi).
+2. **`mediaRefs` bana hi nahi**, to file mitana ek aisa page tod sakta hai jispe wo lagi hai —
+   aur wo toot **chup** hoti: D-42 §2 ki wajah se toota `<img>` render hi nahi hota, page bas
+   adhoora dikhta hai.
+
+Isliye `media.purge` ka koi route abhi bhi nahi hai. Button ka label bhi **"Delete"** hai,
+"Delete permanently" nahi — label ko wahi kehna chahiye jo wo sach me karta hai.

@@ -1,0 +1,95 @@
+/*
+ * Media Library — client, 3 Sep.
+ *
+ * Grid + daayein detail panel — wahi do-column shakl jo package editor aur Enquiry Detail pe
+ * hai. Baaki sab (`panel`, `field`, `inp`, `btn`, `tablenav`, `pagination`) primitives se.
+ */
+
+.ml-grid-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* 1024px pe detail neeche — wahi breakpoint jo baaki admin pe hai */
+@media (max-width: 1024px) {
+  .ml-grid-wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ml-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  align-content: start;
+  min-height: 200px;
+}
+
+/*
+ * Loading/empty ki line poori chaudai le — warna wo ek 140px ke khaane me sikud kar
+ * bilkul ek image tile jaisi dikhti hai.
+ */
+.ml-grid > p {
+  grid-column: 1 / -1;
+}
+
+.ml-item {
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 3px;
+  background: var(--bg-soft, #f0f0f1);
+  cursor: pointer;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.ml-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ml-item.on {
+  border-color: var(--link, #2271b1);
+}
+
+.ml-item:focus-visible {
+  outline: 2px solid var(--link, #2271b1);
+  outline-offset: 2px;
+}
+
+/* Variant hi na bane hon — toota `<img>` kabhi nahi (D-42 §2) */
+.ml-blank {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ml-side {
+  min-width: 0;
+}
+
+.ml-preview {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line, #dcdcde);
+  border-radius: 3px;
+  margin-bottom: 10px;
+}
+
+.ml-facts {
+  font-size: var(--fs-2xs, 12px);
+  line-height: 1.6;
+  margin: 0 0 14px;
+  /* Filename lamba ho sakta hai — panel ko chaudai me todne se behtar hai wrap karna */
+  word-break: break-word;
+}
+
+/* File URL padhne ke liye hai, edit karne ke liye nahi */
+#ml-url {
+  font-size: var(--fs-2xs, 12px);
+}

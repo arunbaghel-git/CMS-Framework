@@ -42,7 +42,7 @@ export const NAV = [
       { label: 'Tags', to: '/posts/tags' },
     ],
   },
-  { id: 'media', icon: '▤', label: 'Media', to: '/media' },
+  { id: 'media', icon: '▤', label: 'Media', to: '/media', permission: PERMISSION.MEDIA_READ },
   {
     id: 'pages',
     icon: '▭',

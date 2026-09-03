@@ -649,6 +649,7 @@ export default function PackageEdit() {
                 media={media[form.fields.bannerImage]}
                 uploading={uploading}
                 onUpload={uploadBanner}
+                onSelect={(chosen) => setField('bannerImage', chosen.id)}
                 onClear={() => setField('bannerImage', null)}
               />
             </div>

@@ -1,5 +1,6 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
+import MediaPicker from './MediaPicker.jsx'
 import './MediaDrop.css'
 
 /**
@@ -10,9 +11,10 @@ import './MediaDrop.css'
  * copy karne ka nateeja seedha dikh raha tha: do jagah alag `accept` list, alag preview
  * fallback, aur ek din alag behaviour.
  *
- * **Ye MediaPicker nahi hai.** Picker Phase 2 me aayega (library grid + folders); tab tak
- * har jagah ka live path direct upload hai. Jab picker aayega to badalna sirf yahi ek
- * file hogi — dono screens apne aap "choose or upload" ho jaayengi.
+ * **Picker ab lag chuka hai (3 Sep).** Upar likha tha ki _"jab picker aayega to badalna sirf
+ * yahi ek file hogi"_ — wahi hua: `onSelect` dene bhar se har caller ko "Choose from library"
+ * mil jaata hai. Settings ka Logo/Favicon, Footer ka logo, package ka banner aur destination
+ * ka banner — chaaron ka apna code chhue bina.
  *
  * Upload ka kaam caller karta hai, ye component nahi: caller ke paas hi wo state hai jo
  * upload ke baad set honi hai (`settings.logoMediaId` waghairah), aur uske paas hi error
@@ -24,10 +26,12 @@ import './MediaDrop.css'
  * @param {any} [props.media] Saved media ka public object — `null` = kuch select nahi
  * @param {boolean} [props.uploading]
  * @param {(file: File | undefined) => void} props.onUpload
+ * @param {(media: any) => void} [props.onSelect] Library se chuna — na dene pe wo button nahi dikhta
  * @param {() => void} props.onClear
  */
-export default function MediaDrop({ label, hint, media, uploading, onUpload, onClear }) {
+export default function MediaDrop({ label, hint, media, uploading, onUpload, onSelect, onClear }) {
   const inputRef = useRef(null)
+  const [picking, setPicking] = useState(false)
   const preview =
     media?.variants?.find((variant) => variant.key === 'thumb') ?? media?.variants?.[0]
 
@@ -67,6 +71,11 @@ export default function MediaDrop({ label, hint, media, uploading, onUpload, onC
             event.target.value = ''
           }}
         />
+        {onSelect && (
+          <button className="btn btn-plain" type="button" onClick={() => setPicking(true)}>
+            Choose from library
+          </button>
+        )}
         {media && (
           <button className="btn btn-plain" type="button" onClick={onClear}>
             Remove
@@ -74,6 +83,16 @@ export default function MediaDrop({ label, hint, media, uploading, onUpload, onC
         )}
         {media?.filename && <span className="muted media-drop-name">{media.filename}</span>}
       </div>
+
+      {picking && (
+        <MediaPicker
+          onClose={() => setPicking(false)}
+          onSelect={(chosen) => {
+            setPicking(false)
+            onSelect(chosen)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -210,3 +210,33 @@ export async function updateMedia(id, input, siteId = DEFAULT_SITE_ID) {
 
   return toPublicMedia(media)
 }
+
+/**
+ * Media ko trash me daalo — **file disk se nahi hat-ti** (R12, D-41 §7).
+ *
+ * `deletedAt` set hota hai, bas. Do wajah, aur dono is repo me mehngi pad chuki hain:
+ *
+ * 1. **File wapas nahi aati.** Record chhupana ulta ja sakta hai, file mit jaana nahi —
+ *    A-16 ka poora sabak yahi tha (3 Sep: `pnpm test` ne client ki images uda di thi).
+ * 2. **Kaun use kar raha hai, ye abhi pata nahi chalta.** `mediaRefs` backlink index abhi
+ *    bana hi nahi (Phase 2 ka bacha hua hissa). Us waqt tak file mitana ek aisa page tod
+ *    sakta hai jispe wo lagi hai — aur wo toot chup hoti (D-42 §2 ki wajah se `<img>`
+ *    render hi nahi hota, page bas adhoora dikhta).
+ *
+ * Client ko ye batakar chuna gaya (3 Sep): delete seedha trash me jaata hai, reference ka
+ * koi check nahi. Trash restorable hai, isliye galti ulti ja sakti hai.
+ *
+ * @param {string} id
+ * @param {string} [siteId]
+ */
+export async function trashMedia(id, siteId = DEFAULT_SITE_ID) {
+  const media = await Media.findOneAndUpdate(
+    { _id: id, siteId, deletedAt: null },
+    { $set: { deletedAt: new Date() } },
+    { new: true },
+  ).lean()
+
+  if (!media) throw notFound('Media not found')
+
+  return { id: String(media._id) }
+}

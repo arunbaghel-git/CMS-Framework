@@ -33,8 +33,8 @@ ja hi nahi raha tha.
 editor jo Overview pe hai. Migration **015**. Client (unke senior ka order): textarea me
 bold/heading/list ban hi nahi sakti.
 
-**638 tests passing** (26 files) · lint clean · format clean — 3 Sep ko verify kiya.
-**Last updated:** 3 Sep 2026 (Enquiries inbox — D-75, aur client ka trim — D-76)
+**640 tests passing** (26 files) · lint clean · format clean — 3 Sep ko verify kiya.
+**Last updated:** 3 Sep 2026 (Enquiries inbox D-75/D-76 · editor ka faisla D-77 · Media Library D-78)
 
 ⚠️ 2 Sep ke **30 commit** (mobile/responsive pass + enquiry form ka submit + A-16 ka fix)
 `project-state.md` me likhe ja chuke hain, par is doc ki upar wali list me nahi.
@@ -666,7 +666,12 @@ General ka field, aur D-27 ke done-criteria ("Logo badlo, menu me item add karo,
 text badlo"). Ye wahi precedent hai jo Users (D-34) aur Settings (D-40) pe laga: plan ka
 phase number apne aap koi rok nahi hai, scope client se aata hai (R15).
 
-**Poora Phase 2 nahi ban raha — sirf foundation (~40%):**
+> ✅ **3 Sep — Library aur Picker bhi ban gaye (D-78).** Client ne maanga, aur scope pehle se
+> tay tha. Ab bacha hua Phase 2 ka hissa: folders · `mediaRefs` backlink index (aur uspe
+> tikey `Attached/Unattached` filter aur delete-guard) · crop/rotate · replace file ·
+> `media.purge` ka raasta. Neeche wali "~40%" wali list us waqt ki hai.
+
+**Us waqt poora Phase 2 nahi bana tha — sirf foundation (~40%):**
 
 ```
 media collection + indexes (migration 006)

@@ -16,6 +16,7 @@ import Menus from './screens/appearance/Menus.jsx'
 import EnquiriesList from './screens/enquiries/EnquiriesList.jsx'
 import EnquiryDetail from './screens/enquiries/EnquiryDetail.jsx'
 import FormBuilder from './screens/forms/FormBuilder.jsx'
+import MediaLibrary from './screens/media/MediaLibrary.jsx'
 import FormsList from './screens/forms/FormsList.jsx'
 import MasterListScreen from './screens/packages/MasterListScreen.jsx'
 import PackageDefaults from './screens/packages/PackageDefaults.jsx'
@@ -171,6 +172,9 @@ const APP_ROUTES = [
    * `/packages/new` pe likhi hai: warna `new` ek form ki id samajh li jaati aur screen
    * "Form not found" pe khulti.
    */
+  /** Media Library — Phase 2 ka bacha hua hissa, client ne 3 Sep ko maanga (D-78). */
+  { path: '/media', element: <MediaLibrary /> },
+
   { path: '/enquiries', element: <EnquiriesList /> },
   { path: '/enquiries/forms', element: <FormsList /> },
   { path: '/enquiries/forms/new', element: <FormBuilder /> },
@@ -204,7 +208,6 @@ const APP_ROUTES = [
 const PENDING_ROUTES = [
   { path: '/posts/*', title: 'Posts', phase: 'Phase 1' },
   { path: '/pages/*', title: 'Pages', phase: 'Phase 1' },
-  { path: '/media/*', title: 'Media', phase: 'Phase 2' },
   /**
    * Packages ke bane hue teen screens upar `APP_ROUTES` me hain. Ye splat sirf uske andar
    * ke baaki raaston ke liye hai — Destinations, Package Type, Hotels, Add Ons, Transfer,

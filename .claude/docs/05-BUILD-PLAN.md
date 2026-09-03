@@ -232,6 +232,13 @@ ko ek `richText` block ke andar. Phase 5 me migration nahi likhni padegi.
 - Folders, rename, media trash (`deletedAt`), bulk select
 - **`mediaRefs` backlink index** — save pe refs likho; `GET /media/:id/usage` isi se;
   references hone pe delete block
+> ✅ **3 Sep (D-78)** — admin grid, drag-drop upload, alt/title/caption edit, search aur
+> media trash ban gaye. Bacha hua: folders, `mediaRefs` backlink, crop/rotate, replace file.
+
+> ✅ **3 Sep (D-78)** — admin grid, drag-drop upload, alt/title/caption edit, search,
+> media trash aur **MediaPicker** ban gaye. Bacha hua: folders · `mediaRefs` backlink
+> (aur uspe tikey `Attached/Unattached` filter + delete-guard) · crop/rotate · replace file.
+
 - **Image crop / rotate / scale** admin me
 - **Replace file** — swap ho, URL aur references same rahein
 - Admin grid: drag-drop upload, alt/title/caption edit, search

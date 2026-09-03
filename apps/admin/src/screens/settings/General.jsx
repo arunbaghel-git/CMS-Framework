@@ -139,6 +139,20 @@ export default function General() {
     setMedia(Object.fromEntries(entries.filter(([, item]) => item)))
   }
 
+  /**
+   * Library se chuni hui image — upload wale raaste ka hi doosra sira.
+   *
+   * Wahi do cheezein set hoti hain jo upload ke baad hoti hain (id settings me, poora object
+   * preview ke liye), isliye "Save changes to apply it" wali line bhi wahi rehti hai: chunna
+   * bhi tab tak sirf ek chunav hai jab tak Save na ho.
+   */
+  function pickMedia(key, chosen) {
+    setError(null)
+    setSettings((s) => ({ ...s, [key]: chosen.id }))
+    setMedia((current) => ({ ...current, [key]: chosen }))
+    setNotice(`${key === 'logoMediaId' ? 'Logo' : 'Favicon'} selected. Save changes to apply it.`)
+  }
+
   async function uploadMedia(key, file) {
     if (!file) return
 
@@ -271,6 +285,7 @@ export default function General() {
                   media={media.logoMediaId}
                   uploading={uploading === 'logoMediaId'}
                   onUpload={(file) => uploadMedia('logoMediaId', file)}
+                  onSelect={(chosen) => pickMedia('logoMediaId', chosen)}
                   onClear={() => clearMedia('logoMediaId')}
                 />
                 <MediaDrop
@@ -279,6 +294,7 @@ export default function General() {
                   media={media.faviconMediaId}
                   uploading={uploading === 'faviconMediaId'}
                   onUpload={(file) => uploadMedia('faviconMediaId', file)}
+                  onSelect={(chosen) => pickMedia('faviconMediaId', chosen)}
                   onClear={() => clearMedia('faviconMediaId')}
                 />
               </div>

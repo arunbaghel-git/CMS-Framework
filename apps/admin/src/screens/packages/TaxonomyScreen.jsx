@@ -274,6 +274,7 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
                   media={media[bannerMediaId]}
                   uploading={uploading}
                   onUpload={uploadBanner}
+                  onSelect={(chosen) => setBannerMediaId(chosen.id)}
                   onClear={() => setBannerMediaId(null)}
                 />
               )}

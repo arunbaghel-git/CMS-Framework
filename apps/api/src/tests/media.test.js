@@ -331,9 +331,41 @@ describe('POST /api/media', () => {
   })
 })
 
-describe('D-41 deferred routes', () => {
-  it('delete route abhi nahi hai', async () => {
+describe('DELETE /api/media/:id — trash', () => {
+  it('trash me jaata hai — list se gayab, record DB me bacha hua', async () => {
     const media = await makeMedia()
+
+    const res = await authed('delete', `/api/media/${media._id}`, adminJar)
+    expect(res.status).toBe(200)
+
+    const list = await authed('get', '/api/media', adminJar)
+    expect(list.body.data).toHaveLength(0)
+
+    /**
+     * ⚠️ Yahi is test ka asli maksad. Record **mita nahi** — sirf `deletedAt` laga (R12).
+     *
+     * File bhi disk pe rehti hai: `mediaRefs` backlink index bana hi nahi, to "ye image
+     * kahan lagi hai" ka jawab kisi ke paas nahi. Bina us jawab ke file mitana ek chup
+     * toot hai — aur A-16 ka poora sabak yahi tha ki gayi hui file wapas nahi aati.
+     */
+    const doc = await Media.findById(media._id).lean()
+    expect(doc).not.toBeNull()
+    expect(doc.deletedAt).toBeInstanceOf(Date)
+  })
+
+  it('trash ki hui media dobara delete nahi hoti — 404', async () => {
+    const media = await makeMedia()
+    await authed('delete', `/api/media/${media._id}`, adminJar)
+
     expect((await authed('delete', `/api/media/${media._id}`, adminJar)).status).toBe(404)
+  })
+
+  it('author delete nahi kar sakta — `media.delete` uske paas nahi', async () => {
+    const media = await makeMedia()
+
+    const res = await authed('delete', `/api/media/${media._id}`, authorJar)
+
+    expect(res.status).toBe(403)
+    expect(await Media.findById(media._id).lean()).toMatchObject({ deletedAt: null })
   })
 })

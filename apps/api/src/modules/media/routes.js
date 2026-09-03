@@ -29,3 +29,17 @@ mediaRoutes.patch(
   requirePermission(PERMISSION.MEDIA_UPDATE),
   controller.update,
 )
+
+/**
+ * Delete = **trash** (R12) — file disk pe rehti hai, sirf `deletedAt` lagta hai.
+ *
+ * Permanent delete (`media.purge`) ka koi route abhi nahi hai, aur wo jaan-boojh kar hai:
+ * `mediaRefs` backlink index bana hi nahi, to "ye image kahan lagi hai" ka jawab kisi ke paas
+ * nahi. Bina us jawab ke file mitana ek chup toot hai.
+ */
+mediaRoutes.delete(
+  '/:id',
+  requireAuth,
+  requirePermission(PERMISSION.MEDIA_DELETE),
+  controller.remove,
+)

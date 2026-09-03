@@ -377,6 +377,14 @@ export default function Footer() {
     }
   }
 
+  /** Library se chuna — upload wale raaste ka doosra sira, wahi do state set hoti hain. */
+  function pickFooterLogo(chosen) {
+    setError(null)
+    setSettings((s) => ({ ...s, footerLogoMediaId: chosen.id }))
+    setFooterLogo(chosen)
+    setNotice('Footer logo selected. Save changes to apply it.')
+  }
+
   async function uploadFooterLogo(file) {
     if (!file) return
 
@@ -484,6 +492,7 @@ export default function Footer() {
                   media={footerLogo}
                   uploading={uploading}
                   onUpload={uploadFooterLogo}
+                  onSelect={pickFooterLogo}
                   onClear={clearFooterLogo}
                 />
                 <p className="hint">

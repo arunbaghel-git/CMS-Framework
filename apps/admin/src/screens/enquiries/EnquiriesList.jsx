@@ -432,8 +432,18 @@ export default function EnquiriesList() {
                     <Link to={`/enquiries/${row.id}`}>View</Link>
                   </span>
                   {canDelete && (
-                    <span className="del">
-                      <a href="#delete" onClick={(e) => (e.preventDefault(), deleteRow(row))}>
+                    <span>
+                      {/*
+                       * ⚠️ `del` **`<a>` pe** lagti hai, `<span>` pe nahi — `.row-actions a`
+                       * ka `--link` andar wale link pe jeet jaata hai aur Delete neela reh
+                       * jaata hai. Poore admin me yahi jagah hai (PackagesList, UsersList,
+                       * FormsList sab), aur wahi kram yahan bhi.
+                       */}
+                      <a
+                        className="del"
+                        href="#delete"
+                        onClick={(e) => (e.preventDefault(), deleteRow(row))}
+                      >
                         Delete
                       </a>
                     </span>
