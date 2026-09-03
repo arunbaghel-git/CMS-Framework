@@ -4624,8 +4624,42 @@ WordPress se **behtar** behave karta hai, uske barabar nahi.
 `onclick=` ka raasta khul jaata hai. Wo admin-only input hai, par admin ka account bhi churaya
 ja sakta hai.
 
-**Abhi bana nahi hai** — client ne pehle Media section maanga (3 Sep). Ye faisla yahan isliye
-likha hai ki wo khoye nahi.
+**Ban gaya** — D-80 ke saath, usi din (3 Sep). Content ab HTML hai, sanitizer server pe hai,
+aur editor `HtmlEditor.jsx` me.
+
+### ⚠️ Ek chup failure jo isi me phansi thi — `skin.min.css`, extension ke saath
+
+Pehli baar chalane pe **Visual tab bilkul khaali** aaya: na toolbar, na content, aur console
+me **koi error nahi**. Wajah `TinyMceEditor.jsx` ki ek import line thi:
+
+```js
+import 'tinymce/skins/ui/oxide/skin' // ❌ skin.js pe resolve hui
+import 'tinymce/skins/ui/oxide/skin.min.css' // ✅ asli CSS
+```
+
+Us folder me `skin.js` **aur** `skin.css` dono hain, aur bina extension ke Vite `.js` pehle
+uthata hai. Wo JS file maujood thi aur chal bhi gayi — bas editor ki poori UI CSS kabhi load
+nahi hui. Bina skin ke `.tox-edit-area__iframe` ki oonchai 0 ho jaati hai aur toolbar ke icon
+bhi 0×0 — yaani editor "chal" raha tha, **dikh nahi raha tha**.
+
+**Pakadne ka tareeka:** build ke output me `TinyMceEditor-*.css` chunk hona chahiye (~107 kB).
+Wo chunk na ho to skin load nahi ho rahi, chahe screen pe kuch bhi dikhe.
+
+Wahi shakl jo transfer-duration (D-64), `cancellationText` (D-65) aur migration 020 ke
+`packageDefaults` wale bug ki thi: **dono taraf ka code sahi dikhta hai**, bas beech ka ek naam
+galat hota hai aur failure chup rehti hai.
+
+### Text tab me WordPress wale quicktags
+
+Client ne screenshot bhej kar kaha ki editor "WordPress jaisa" dikhna chahiye. Isliye
+`HtmlEditor.jsx` me Classic Editor ka poora chrome hai: **Add Media** upar-baayein, boxed
+**Visual | Text** tabs upar-daayein, aur Text tab me `b · i · link · b-quote · del · ins · ul ·
+ol · li · code · img · close tags`.
+
+⚠️ Quicktags me **khule tag ka stack** bhi hai — text chune bina `b` dabaao to `<strong>` lagta
+hai aur button `/b` ban jaata hai. Ye WordPress ki nakal nahi, zaroorat hai: iske bina buttons
+sirf tab kaam karte jab pehle se text chuna ho, aur khaali box me kuch likhne ka raasta hi na
+rehta.
 
 ---
 

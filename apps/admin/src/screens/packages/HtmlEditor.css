@@ -1,24 +1,134 @@
 /*
- * HtmlEditor — Visual / Text tabs (D-80).
+ * HtmlEditor — WordPress Classic Editor ki shakl (D-80).
  *
- * Tabs `primitives.css` ke `.subsubsub` se hain, wahi jo har list screen pe hain — editor ke
- * liye ek nayi tab shakl gadhne ka koi kaaran nahi tha.
+ *     [Add Media]                                    [Visual][Text]
+ *     ┌────────────────────────────────────────────────────────────┐
+ *     │ toolbar (Visual)  ya  quicktags (Text)                     │
+ *     ├────────────────────────────────────────────────────────────┤
+ *     │ content                                                    │
+ *
+ * ⚠️ Yahan `.subsubsub` (list screens wale link-tabs) **nahi** hain. Ek baar wo aazmaaye gaye
+ * the — dikhne me wo tabs kam, links zyada lagte hain, aur client ne screenshot bhej kar
+ * WordPress wale dabbe maange. Editor ke tabs ka kaam alag hai: wo neeche wale box se **jude**
+ * dikhne chahiye, taaki pata chale ki wo usi box ka roop badal rahe hain.
  */
 
 .he {
-  border: 1px solid var(--line, #dcdcde);
-  border-radius: 3px;
-  background: #fff;
+  /*
+   * Border ab wrapper pe nahi, har pane pe hai — bar (Add Media + tabs) box ke *bahar*
+   * baithti hai, WordPress ki tarah. Wrapper pe border rakhne se tabs bhi uske andar
+   * aa jaate the aur wo jod dikhta hi nahi tha.
+   */
+  background: transparent;
 }
+
+/* ── upar ki patti ──────────────────────────────────────────────────────── */
+
+.he-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  /* Tabs neeche wale box ki lakeer pe baithte hain, uske upar nahi */
+  margin-bottom: -1px;
+}
+
+.he-bar-l {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+}
+
+.he-media {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Section ka naam tabs ke baayein — Section Headings me saat editor ek jaise dikhte hain */
+.he-label {
+  font-weight: 600;
+  color: var(--text-muted, #646970);
+}
+
+/* ── Visual | Text ──────────────────────────────────────────────────────── */
 
 .he-tabs {
-  margin: 0;
-  padding: 6px 10px 0;
-  border-bottom: 1px solid var(--line, #dcdcde);
+  display: flex;
+  gap: 3px;
 }
 
+.he-tab {
+  border: 1px solid var(--line, #dcdcde);
+  border-bottom: 0;
+  background: #f0f0f1;
+  color: var(--text-muted, #646970);
+  padding: 5px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  cursor: pointer;
+  border-radius: 3px 3px 0 0;
+}
+
+.he-tab:hover {
+  color: var(--text, #1d2327);
+}
+
+/*
+ * Chuna hua tab neeche wale box me **khul** jaata hai.
+ *
+ * Wo lakeer `box-shadow` se mitti hai, `border-bottom: 0` se nahi — border hatane se tab ek
+ * pixel neeche khisak jaata aur dono tab alag oonchai pe dikhte.
+ */
+.he-tab.current {
+  background: #fff;
+  color: var(--text, #1d2327);
+  font-weight: 600;
+  box-shadow: 0 1px 0 0 #fff;
+}
+
+/* ── pane ───────────────────────────────────────────────────────────────── */
+
 .he-pane {
+  border: 1px solid var(--line, #dcdcde);
+  border-radius: 0 3px 3px 3px;
+  background: #fff;
   padding: 0;
+}
+
+/* ── Text tab ke quicktags ──────────────────────────────────────────────── */
+
+.he-qt {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  border-bottom: 1px solid var(--line, #dcdcde);
+  background: #f6f7f7;
+}
+
+.he-qt-btn {
+  border: 1px solid var(--line, #dcdcde);
+  border-radius: 3px;
+  background: #f6f7f7;
+  color: var(--text, #1d2327);
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.he-qt-btn:hover:not(:disabled) {
+  background: #f0f0f1;
+  border-color: var(--text-muted, #646970);
+}
+
+.he-qt-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 /*
@@ -39,7 +149,7 @@
 }
 
 .he-code:focus {
-  /* Border editor ke wrapper pe hai, isliye andar wala outline dobara nahi chahiye */
+  /* Border pane pe hai, isliye andar wala outline dobara nahi chahiye */
   outline: none;
   box-shadow: none;
 }
@@ -49,17 +159,15 @@
   margin: 0;
 }
 
+.he-loading {
+  padding: 12px 10px;
+  margin: 0;
+}
+
 /*
- * TinyMCE apna border khud lagata hai — hamare wrapper ke saath wo do lakeer ban jaati hain.
+ * TinyMCE apna border khud lagata hai — hamare pane ke saath wo do lakeer ban jaati hain.
  */
 .he .tox-tinymce {
   border: 0;
   border-radius: 0;
-}
-
-/* Section ka naam tabs ke baayein — Section Headings me saat editor ek jaise dikhte hain */
-.he-label {
-  font-weight: 600;
-  color: var(--text-muted, #646970);
-  padding-right: 6px;
 }

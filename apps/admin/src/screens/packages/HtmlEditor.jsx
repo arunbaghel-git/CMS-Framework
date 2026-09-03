@@ -28,6 +28,20 @@ const TinyMceEditor = lazy(() => import('./TinyMceEditor.jsx'))
  * WordPress ye isliye kar leta hai ki uska `post_content` **raw HTML** hi hota hai. Isliye
  * yahan bhi ab HTML store hoti hai, aur editor TinyMCE hai — wahi jo WordPress use karta hai.
  *
+ * ## Shakl bhi Classic Editor wali hai, aur wo maang thi
+ *
+ * Client ne WordPress ke editor ki screenshot bheji thi. Uska chrome teen hisson me hai, aur
+ * teenon yahan hain:
+ *
+ *     [Add Media]                                    [Visual][Text]
+ *     ┌────────────────────────────────────────────────────────────┐
+ *     │ toolbar (Visual)  ya  quicktags (Text)                     │
+ *     ├────────────────────────────────────────────────────────────┤
+ *     │ content                                                    │
+ *
+ * ⚠️ **Add Media dono tab me hai, tabs ke bahar.** WordPress me bhi wo editor ke upar baithta
+ * hai, kisi ek tab ke andar nahi — image dono jagah se lagti hai.
+ *
  * ## Do settings jinke bina ye kaam hi nahi karta
  *
  * - **`valid_elements: '*[*]'`** — TinyMCE apni bhi safai karta hai (WordPress ki
@@ -44,9 +58,30 @@ const TinyMceEditor = lazy(() => import('./TinyMceEditor.jsx'))
 const TOOLBAR =
   'blocks | bold italic | link blockquote | strikethrough ins | bullist numlist | cmsimage | code'
 
+/**
+ * Text tab ke quicktags — WordPress ke Classic Editor se, usi kram aur usi naam se.
+ *
+ * `label` wahi chhota naam hai jo WordPress dikhata hai (`b`, `b-quote`), aur `tag` wo asli
+ * HTML hai jo lagti hai. Dono alag isliye hain ki WordPress ka `b` button `<strong>` daalta
+ * hai, `<b>` nahi — bold ka semantic tag wahi hai, aur hum wahi rakh rahe hain.
+ */
+const QUICKTAGS = [
+  { label: 'b', tag: 'strong', title: 'Bold' },
+  { label: 'i', tag: 'em', title: 'Italic' },
+  { label: 'link', tag: 'a', title: 'Insert link' },
+  { label: 'b-quote', tag: 'blockquote', title: 'Blockquote' },
+  { label: 'del', tag: 'del', title: 'Deleted text' },
+  { label: 'ins', tag: 'ins', title: 'Inserted text' },
+  { label: 'ul', tag: 'ul', title: 'Bulleted list' },
+  { label: 'ol', tag: 'ol', title: 'Numbered list' },
+  { label: 'li', tag: 'li', title: 'List item' },
+  { label: 'code', tag: 'code', title: 'Code' },
+]
+
 export default function HtmlEditor({ value, onChange, disabled = false, height = 320, label }) {
   const id = useId()
   const editorRef = useRef(null)
+  const textRef = useRef(null)
   const [tab, setTab] = useState('visual')
   const [picking, setPicking] = useState(false)
   /**
@@ -57,9 +92,87 @@ export default function HtmlEditor({ value, onChange, disabled = false, height =
    * jaati hai — wahi pattern jo search box pe hai.
    */
   const [draft, setDraft] = useState(value ?? '')
+  /**
+   * Jo tag bina selection ke khole gaye hain — WordPress ka wahi vyavhaar.
+   *
+   * Text select kiye bina `b` dabaao to `<strong>` lagta hai aur button `/b` ban jaata hai;
+   * dobara dabane pe `</strong>`. Iske bina quicktags sirf tab kaam karte jab pehle se text
+   * chuna ho, aur khaali box me kuch likhne ka koi raasta hi na rehta.
+   */
+  const [open, setOpen] = useState([])
 
   function pushDraft() {
     if (draft !== value) onChange(draft)
+  }
+
+  /** Textarea me cursor ki jagah text daalo, aur cursor uske baad chhod do. */
+  function insertAtCursor(text) {
+    const el = textRef.current
+    if (!el) return
+
+    const start = el.selectionStart ?? draft.length
+    const end = el.selectionEnd ?? draft.length
+    const next = draft.slice(0, start) + text + draft.slice(end)
+
+    setDraft(next)
+    onChange(next)
+
+    /**
+     * Cursor ko haath se wapas rakhna padta hai.
+     *
+     * React `value` badalne pe textarea dobara render karta hai aur browser cursor ko **ant
+     * me** phenk deta hai. Bina iske har button ke baad likhna aakhir se shuru hota, aur
+     * lagataar do tag lagana namumkin ho jaata.
+     */
+    const caret = start + text.length
+    requestAnimationFrame(() => {
+      el.focus()
+      el.setSelectionRange(caret, caret)
+    })
+  }
+
+  function applyQuicktag({ label: name, tag }) {
+    const el = textRef.current
+    if (!el) return
+
+    const selected = draft.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0)
+
+    /** Link ka `href` — WordPress bhi yahan seedha prompt hi poochta hai. */
+    let attrs = ''
+    if (tag === 'a') {
+      const href = window.prompt('Enter the URL', 'https://')
+      if (!href) return
+      attrs = ` href="${href.replace(/"/g, '&quot;')}"`
+    }
+
+    /** Text chuna hua hai — use lapet do, aur stack ko haath mat lagao. */
+    if (selected) {
+      insertAtCursor(`<${tag}${attrs}>${selected}</${tag}>`)
+      return
+    }
+
+    /** Khula hua hai — band karo. */
+    if (open.includes(name)) {
+      insertAtCursor(`</${tag}>`)
+      setOpen(open.filter((entry) => entry !== name))
+      return
+    }
+
+    insertAtCursor(`<${tag}${attrs}>`)
+    setOpen([...open, name])
+  }
+
+  /** Sab khule tag ulte kram me band — WordPress ka "close tags". */
+  function closeAllTags() {
+    if (open.length === 0) return
+
+    const html = [...open]
+      .reverse()
+      .map((name) => `</${QUICKTAGS.find((quicktag) => quicktag.label === name).tag}>`)
+      .join('')
+
+    insertAtCursor(html)
+    setOpen([])
   }
 
   function insertImage(media) {
@@ -71,44 +184,60 @@ export default function HtmlEditor({ value, onChange, disabled = false, height =
     const alt = (media.alt ?? '').replace(/"/g, '&quot;')
     const html = `<img src="${variant.url}" alt="${alt}" width="${variant.w}" height="${variant.h}" />`
 
-    /**
-     * Visual tab me cursor ki jagah, Text tab me draft ke aakhir me.
-     *
-     * Text tab ek plain textarea hai — usme cursor ki jagah `<img>` ghusane ke liye selection
-     * sambhalni padti; wo abhi zaroorat se zyada hai.
-     */
     if (tab === 'visual' && editorRef.current) {
       editorRef.current.insertContent(html)
     } else {
-      const next = `${draft}${html}`
-      setDraft(next)
-      onChange(next)
+      insertAtCursor(html)
     }
+  }
+
+  function switchTab(key) {
+    if (key === tab) return
+    /** Text se nikalte waqt draft upar bhejo — warna likha hua kho jaata. */
+    if (tab === 'text') pushDraft()
+    if (key === 'text') setDraft(value ?? '')
+    setTab(key)
   }
 
   return (
     <div className="he">
-      <ul className="subsubsub he-tabs">
-        {/* Section ka naam — Section Headings me saaton editor isse hi pehchane jaate hain */}
-        {label && <li className="he-label">{label}</li>}
-        {['visual', 'text'].map((key) => (
-          <li key={key}>
-            <a
-              href={`#${key}`}
-              className={tab === key ? 'current' : ''}
-              onClick={(e) => {
-                e.preventDefault()
-                /** Text se nikalte waqt draft upar bhejo — warna likha hua kho jaata. */
-                if (tab === 'text') pushDraft()
-                if (key === 'text') setDraft(value ?? '')
-                setTab(key)
-              }}
+      {/*
+       * Editor ke upar ki patti — baayein Add Media, daayein tabs.
+       *
+       * ⚠️ Ye tabs `.subsubsub` (list screens wali) **nahi** hain. Wahan tabs ek link-row hote
+       * hain; yahan wo dabbe hain jo neeche wale box se jude dikhte hain, aur wahi WordPress
+       * ki shakl hai jo client ne maangi.
+       */}
+      <div className="he-bar">
+        <div className="he-bar-l">
+          {/* Section ka naam — Section Headings me saaton editor isse hi pehchane jaate hain */}
+          {label && <span className="he-label">{label}</span>}
+          <button
+            type="button"
+            className="btn he-media"
+            disabled={disabled}
+            onClick={() => setPicking(true)}
+          >
+            <MediaIcon />
+            Add Media
+          </button>
+        </div>
+
+        <div className="he-tabs" role="tablist">
+          {['visual', 'text'].map((key) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={tab === key}
+              className={`he-tab${tab === key ? ' current' : ''}`}
+              onClick={() => switchTab(key)}
             >
               {key === 'visual' ? 'Visual' : 'Text'}
-            </a>
-          </li>
-        ))}
-      </ul>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/*
        * Dono tab **hamesha maujood** rehte hain, sirf ek chhupa hota hai.
@@ -152,7 +281,12 @@ export default function HtmlEditor({ value, onChange, disabled = false, height =
               paste_as_text: false,
               paste_data_images: false,
 
-              /** Skin/content CSS bundle se — koi CDN call nahi (self-hosted, D-77). */
+              /**
+               * ⚠️ **`skin: false` ka matlab "skin nahi chahiye" nahi hai** — matlab hai
+               * "skin ki CSS **URL se mat laao**". Wo CSS `TinyMceEditor.jsx` bundle se laata
+               * hai, taaki koi CDN call na ho (self-hosted, D-77). Wahi baat `content_css`
+               * ki: uski CSS iframe ke andar `content_style` se jaati hai.
+               */
               skin: false,
               content_css: false,
               content_style:
@@ -186,7 +320,41 @@ export default function HtmlEditor({ value, onChange, disabled = false, height =
       </div>
 
       <div className="he-pane" hidden={tab !== 'text'}>
+        <div className="he-qt">
+          {QUICKTAGS.map((quicktag) => (
+            <button
+              key={quicktag.label}
+              type="button"
+              className="he-qt-btn"
+              title={quicktag.title}
+              disabled={disabled}
+              onClick={() => applyQuicktag(quicktag)}
+            >
+              {open.includes(quicktag.label) ? `/${quicktag.label}` : quicktag.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="he-qt-btn"
+            title="Insert media"
+            disabled={disabled}
+            onClick={() => setPicking(true)}
+          >
+            img
+          </button>
+          <button
+            type="button"
+            className="he-qt-btn"
+            title="Close all open tags"
+            disabled={disabled || open.length === 0}
+            onClick={closeAllTags}
+          >
+            close tags
+          </button>
+        </div>
+
         <textarea
+          ref={textRef}
           className="inp he-code"
           style={{ height }}
           value={draft}
@@ -204,5 +372,15 @@ export default function HtmlEditor({ value, onChange, disabled = false, height =
 
       {picking && <MediaPicker onSelect={insertImage} onClose={() => setPicking(false)} />}
     </div>
+  )
+}
+
+/** WordPress ke "Add Media" wala do-tasveer icon. */
+function MediaIcon() {
+  return (
+    <svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="currentColor">
+      <path d="M13 4H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1Zm0 10H3l3-4 2 2.5L10 9l3 5Z" />
+      <path d="M17 6v9a1 1 0 0 1-1 1H6v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1Z" />
+    </svg>
   )
 }
