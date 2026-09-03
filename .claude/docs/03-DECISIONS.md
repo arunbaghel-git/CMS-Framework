@@ -4689,7 +4689,7 @@ mujhe design me kami lage, wahan **poochhna** hai — chup-chaap behtar bana den
 | --- | --- |
 | `All media items · Images · Videos · Documents (PDF)` | ✅ bana. ⚠️ `Videos`/`Documents` **khaali** aayenge — `MEDIA_MIME` sirf JPG/PNG/WebP leta hai. Vikalp phir bhi hain kyunki design me hain |
 | `All dates` / `August 2026` | ✅ bana. Mahine **data se** aate hain (`mediaMonths()`), banaye nahi jaate — jis mahine me kuch hai hi nahi wo dikhta hi nahi |
-| `Unattached` / `Attached` | ❌ **nahi bana — ban hi nahi sakta** (neeche) |
+| `Unattached` / `Attached` | ❌ **kabhi nahi banega** — client ne 3 Sep ko `mediaRefs` se hi mana kar diya (**D-79**) |
 
 **`Filter` button hai, isliye dropdown badalne se list turant nahi badalti** — design me wo
 button hai, aur uska matlab yahi hai ki chunav pehle hote hain, apply baad me. Har dropdown ka
@@ -4709,8 +4709,8 @@ Us andaaze me **ek jagah chhoot jaana kaafi hai**: ek lagi hui image `Unattached
 koi use delete kar deta, aur wo page chup-chaap adhoora ho jaata (D-42 §2 ki wajah se toota
 `<img>` bhi nahi dikhta). Isliye ye filter **galat data ke saath dena, na dene se bura** hai.
 
-`mediaRefs` banane ka ek bada faayda aur hai: uske aate hi **delete-guard** bhi mil jaata hai
-("ye image 3 pages pe lagi hai"), jo aaj nahi hai. Client se poochha gaya hai.
+⚠️ **Client ne isse mana kar diya (D-79)** — _"delete to kar sakte hai chahe kahin lagi ho ya
+nahi"_. Isliye ye filter, "Used in" panel aur delete-guard teenon nahi banenge.
 
 
 ### Teen aur baatein — client ne screen chala kar (3 Sep)
@@ -4758,3 +4758,51 @@ Client ne Enquiries pe bhi yahi chuna tha ("seedha trash me") — media pe wo au
 
 Isliye `media.purge` ka koi route abhi bhi nahi hai. Button ka label bhi **"Delete"** hai,
 "Delete permanently" nahi — label ko wahi kehna chahiye jo wo sach me karta hai.
+
+---
+
+## D-79
+
+**`mediaRefs` nahi banega — delete pe koi rok nahi, aur "Used in" panel bhi nahi**
+_3 Sep 2026 · client ka faisla_
+
+### Sawaal
+
+D-78 ke baad ek hi bada item bacha tha: `mediaRefs` backlink index. Uspe **teen** cheezein
+tiki thi — design ka `Unattached`/`Attached` filter, detail panel me "Used in", aur **delete
+pe guard**. Client ko poora hisaab diya gaya: kya milta hai, kitna waqt lagta hai, aur asli
+khatra kya hai (ek save path chhoot jaaye to guard **jhooth** bolega).
+
+### Client ka jawab
+
+> _"delete to kar sakte hai chahe kahin lagi ho ya nahi koi bat nahi, detailed panel ki
+> jarurat nahi hai"_
+
+### Faisla
+
+**`mediaRefs` nahi banega.** Uske saath teenon cheezein bhi nahi banengi:
+
+| Jo nahi banega | |
+| --- | --- |
+| Delete-guard | Delete hamesha chalega — chahe wo image kahin lagi ho |
+| "Used in" panel | Detail me sirf file ki apni jaankari rahegi |
+| `Unattached` / `Attached` filter | Design me hai, par **ab kabhi nahi banega** — uska data hi nahi hoga |
+
+Media ke filters do hi rahenge: **kism** aur **mahina**.
+
+⚠️ **Iska maloom nateeja:** kisi lagi hui image ko delete karne pe wo page se **chup-chaap**
+gayab ho jaayegi — D-42 §2 ki wajah se toota `<img>` bhi nahi dikhta, page bas adhoora ho
+jaata hai. Client ko ye batakar hi faisla liya gaya.
+
+Ek cheez us nuksaan ko halka rakhti hai: **delete = trash** (R12). Record `deletedAt` pe
+jaata hai aur **file disk pe rehti hai** — yaani galti ulti ja sakti hai (DB me `deletedAt`
+hata do). Ye D-78 me pehle se tay tha, aur ab wo aur zyada maayne rakhta hai.
+
+⚠️ Ek kaam ab bhi haath se karna padega: "kaunsi media kahin use nahi ho rahi" — jaise 3 Sep
+ko 183 orphan records mitane se pehle karna pada tha. Wo scan har baar dobara likhna padega.
+
+### Iske saath Phase 2 band
+
+Ye Phase 2 ka aakhri **maanga hua** item tha. Jo aur bacha hai — folders, rename, bulk
+select, crop/rotate, replace file — wo kisi cheez ko rok nahi raha aur client ne maanga nahi.
+Media ab "current scope complete" hai, wahi lakeer jo Settings ▸ General pe D-40 me lagi thi.

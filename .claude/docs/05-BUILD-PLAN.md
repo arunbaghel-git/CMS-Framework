@@ -255,19 +255,24 @@ ko ek `richText` block ke andar. Phase 5 me migration nahi likhni padegi.
 | **Folders** | ❌ — `folderId` field aur uska filter maujood hain, par banane/chunne ki UI nahi |
 | **Rename** | ❌ |
 | **Bulk select** | ❌ |
-| **`mediaRefs` backlink** + `GET /media/:id/usage` + delete-guard | ❌ — **sabse bada bacha hua item** |
+| ~~`mediaRefs` backlink + `GET /media/:id/usage` + delete-guard~~ | ❌ **banega hi nahi — D-79** (client, 3 Sep). Delete pe koi rok nahi; `Attached`/`Unattached` filter bhi isi ke saath gaya |
 | **Crop / rotate / scale** | ❌ |
 | **Replace file** | ❌ |
 | Featured image **entry pe** wire | 🟡 package ka banner ✅; Pages/Posts ki screens hi nahi bani (**A-9**) |
 
-**Done-criteria ke hisaab se: paanch me se do poore.** `folder me organize` aur `ye image
-kahan-kahan use ho rahi hai` — dono baaki hain; `editor se pick` aadha hai (picker chalta hai,
-par editor me image insert TinyMCE ke saath aayega — **D-77**).
+**Done-criteria ke hisaab se: paanch me se do poore, aur ek ab kabhi poora nahi hoga.**
+`folder me organize` baaki hai; `ye image kahan-kahan use ho rahi hai` **client ne mana kar
+diya** (D-79); `editor se pick` aadha hai (picker chalta hai, par editor me image insert
+TinyMCE ke saath aayega — **D-77**).
 
-⚠️ **`mediaRefs` ka na hona sirf ek filter nahi rokta.** Uspe teen cheezein tiki hain:
-`Attached`/`Unattached` filter, `GET /media/:id/usage`, aur **delete-guard**. Aaj delete pe
-koi rok nahi hai — 3 Sep ko 183 orphan records mitane se pehle reference haath se scan karne
-pade the, aur wo scan har baar dobara likhna padega.
+**Media ab "current scope complete" hai** — wahi lakeer jo Settings ▸ General pe D-40 me
+lagi thi. Jo bacha hai (folders · rename · bulk select · crop/rotate · replace file) wo kisi
+cheez ko rok nahi raha aur client ne maanga nahi.
+
+⚠️ **`mediaRefs` banega hi nahi — D-79.** Client ka faisla: _"delete to kar sakte hai chahe
+kahin lagi ho ya nahi"_. Yaani delete pe koi rok nahi, "Used in" panel nahi, aur design ka
+`Attached`/`Unattached` filter bhi kabhi nahi banega. Delete phir bhi **trash** hai (R12) aur
+file disk pe rehti hai, isliye galti ulti ja sakti hai.
 
 **Rule:** original file kabhi serve mat karo, URL hamesha variant ka (SVG exception).
 
