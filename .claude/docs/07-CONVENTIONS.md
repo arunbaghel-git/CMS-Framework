@@ -488,3 +488,62 @@ phir 3 Sep ko kaha ki ye **hamesha** aise hona chahiye, aage bhi:
 wo kisi asli click ke bina bulaya jaaye (browsers use user-gesture ke peeche rakhte hain),
 aur purane browsers me wo method hai hi nahi. Dono soorat me **type kar ke bharna** chalta
 rehna chahiye — wo raasta kabhi band nahi hona chahiye.
+
+---
+
+### R20 · Admin se aayi HTML hamesha **write pe** sanitize hoti hai
+
+Rich text ab HTML string hai (D-80). Har wo field jo HTML rakhta hai, uski safai
+`apps/api/src/core/sanitize-html.js` se, **service layer me, save se pehle**.
+
+```js
+// ❌ kabhi nahi — render pe safai
+<div dangerouslySetInnerHTML={{ __html: sanitize(entry.html) }} />
+
+// ✅ service me, write pe
+const clean = sanitizePackageDefaults(input)
+```
+
+**Kyun write pe, render pe nahi:** render pe saaf karne ka matlab hai ki **zeher DB me pada
+rahe** aur har naya reader use khud bachaye. Ek reader bhoolte hi wo chal jaata hai — aur
+"ek jagah bhool jaana" is repo ka sabse pehchana hua failure mode hai (D-64 · D-65 · D-68 ·
+D-75). Write pe saaf karne se DB me hamesha safe HTML rehti hai aur theme bharosa kar sakti hai.
+
+**Kyun server pe, browser me nahi:** `packages/shared` admin ke browser me bhi chalta hai.
+Sanitizer ka bharosa client-side pe rakhna hi wo galti hai jisse XSS aata hai — attacker admin
+ka JS chhod kar seedha API call kar sakta hai.
+
+⚠️ **"Kaunsa field HTML hai" ka jawab bhi ek hi jagah hai** — `sanitize-html.js` ke
+`sanitizeContent()` / `sanitizeEntryFields()` / `sanitizePackageDefaults()`. Naya HTML field
+jodo to **wahan** jodo, har service me apna sanitize mat likho.
+
+---
+
+### R21 · Migration kabhi shared helper import na kare (constants alag baat hain)
+
+Migration ek **beete hue din** ka data badalti hai. Uska tark uske andar hona chahiye —
+shared helpers badalte rehte hain, migration nahi badalti.
+
+```js
+// ❌ 015 me yahi tha, aur D-80 me toot gaya
+import { textToDoc } from '@cms/shared'
+
+// ✅ helper migration ke andar, poora likha hua
+function textToDoc(text) { … }
+```
+
+**Kya hua tha:** D-80 me `textToDoc()` shared se hat gaya. Migration 015 kab ki chal chuki thi,
+par uska import toot-te hi **poora migration runner** boot pe girne laga — `pnpm cms migrate`
+ek aisi migration ki wajah se ruk gaya jo mahine bhar pehle apply ho chuki thi.
+
+**Apwaad — jo `ROLE_PERMISSIONS` jaisi cheezein import karti hain** (004, 016, 017, 018): wo
+jaan-boojh kar **aaj ki** list chahti hain, kyunki unka kaam hi built-in roles ko current
+permissions pe sync karna hai. Farak saaf hai:
+
+| Import theek hai | Import galat hai |
+| --- | --- |
+| Constant jise migration **jaan-boojh kar aaj ka** chahti hai | **Transform helper** jiska matlab badal sakta hai |
+| `ROLE_PERMISSIONS`, `DEFAULT_SITE_ID` | `textToDoc()`, `slugify()`, koi bhi converter |
+
+⚠️ **Applied migration edit karne pe runner rok deta hai** (checksum). Wo guard sahi hai —
+usse bachne ke liye migration ko aisa likho ki use edit karna hi na pade.

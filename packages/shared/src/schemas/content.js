@@ -29,13 +29,18 @@ export function emptyContent() {
  * Rich text ko content shape me wrap karta hai — Phase 1 ka classic editor isse use
  * karega, taaki Phase 5 me builder wahi data padh sake.
  *
- * @param {unknown} doc TipTap ka JSON document
+ * ⚠️ **`props.html` — pehle `props.doc` tha** (D-80, 3 Sep). Block ka `type` (`richText`)
+ * jaan-boojh kar wahi rakha gaya hai: wo **DB me stored data** hai aur use rename karna R4
+ * ke against jaata. Sirf uske andar ka shape badla hai, aur migration 020 ne purana data
+ * usi key pe le aaya hai.
+ *
+ * @param {string} html Sanitized HTML
  * @param {string} [id]
  */
-export function contentFromRichText(doc, id = 'rt1') {
+export function contentFromRichText(html, id = 'rt1') {
   return {
     version: CURRENT_CONTENT_VERSION,
-    blocks: [{ id, type: 'richText', props: { doc }, children: [] }],
+    blocks: [{ id, type: 'richText', props: { html }, children: [] }],
   }
 }
 

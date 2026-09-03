@@ -11,7 +11,7 @@
  */
 export * from './block.js'
 export * from './content.js'
-export * from './rich-doc.js'
+export * from './rich-html.js'
 export * from './seo.js'
 export * from './entry.js'
 export * from './user.js'

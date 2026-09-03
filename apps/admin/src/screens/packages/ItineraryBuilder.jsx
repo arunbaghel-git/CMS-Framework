@@ -4,6 +4,7 @@ import { MEALS, MEAL_LABEL, routeStrip } from '@cms/shared'
 
 import { confirmRemove } from '../../lib/confirm.js'
 import { useListDrag } from '../../lib/drag-list.js'
+import HtmlEditor from './HtmlEditor.jsx'
 
 /**
  * Itinerary Builder — `admin-design.html` ke `#s-package-edit` wale panel se, spec 007 §3.
@@ -196,21 +197,21 @@ export default function ItineraryBuilder({
 
                   <div className="field">
                     <label>Description</label>
-                    <textarea
-                      className="ta"
+                    {/*
+                     * ⚠️ Ab editor hai, textarea nahi (D-80) — aur uske saath `-` wala niyam
+                     * bhi chala gaya.
+                     *
+                     * Pehle yahan ek hint zaroori thi: "`-` se shuru hone wali line bullet
+                     * banti hai" (D-64), kyunki wo niyam dekh kar pata hi nahi chalta tha.
+                     * Ab bullet banane ka button toolbar me hai, to wo hint apne aap bemaani
+                     * ho gayi — aur ek aisi hint jo ab galat ho, sabse buri hint hai.
+                     */}
+                    <HtmlEditor
+                      height={200}
                       value={day.description}
-                      onChange={(e) => update(index, { description: e.target.value })}
+                      onChange={(html) => update(index, { description: html })}
                       disabled={disabled}
                     />
-                    {/*
-                     * Hint yahan zaroori hai, sajawat nahi: `-` wala niyam dekh kar pata
-                     * nahi chalta. Pehle bullets ka apna field tha (`highlights[]`); ab wo
-                     * isi textarea me hain (D-64).
-                     */}
-                    <div className="hint">
-                      A line starting with <code>-</code> becomes a bullet on the page; everything
-                      else is a paragraph
-                    </div>
                   </div>
 
                   <div className="row3">

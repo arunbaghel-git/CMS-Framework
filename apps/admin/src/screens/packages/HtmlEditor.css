@@ -1,0 +1,65 @@
+/*
+ * HtmlEditor — Visual / Text tabs (D-80).
+ *
+ * Tabs `primitives.css` ke `.subsubsub` se hain, wahi jo har list screen pe hain — editor ke
+ * liye ek nayi tab shakl gadhne ka koi kaaran nahi tha.
+ */
+
+.he {
+  border: 1px solid var(--line, #dcdcde);
+  border-radius: 3px;
+  background: #fff;
+}
+
+.he-tabs {
+  margin: 0;
+  padding: 6px 10px 0;
+  border-bottom: 1px solid var(--line, #dcdcde);
+}
+
+.he-pane {
+  padding: 0;
+}
+
+/*
+ * Text tab ka textarea — monospace, kyunki yahan HTML likhi jaati hai.
+ *
+ * `resize: vertical` jaan-boojh kar: lambi HTML likhte waqt box badhana chahiye, par chaudai
+ * badhne se wo panel ke bahar nikal jaata hai.
+ */
+.he-code {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.he-code:focus {
+  /* Border editor ke wrapper pe hai, isliye andar wala outline dobara nahi chahiye */
+  outline: none;
+  box-shadow: none;
+}
+
+.he-pane .hint {
+  padding: 0 10px 8px;
+  margin: 0;
+}
+
+/*
+ * TinyMCE apna border khud lagata hai — hamare wrapper ke saath wo do lakeer ban jaati hain.
+ */
+.he .tox-tinymce {
+  border: 0;
+  border-radius: 0;
+}
+
+/* Section ka naam tabs ke baayein — Section Headings me saat editor ek jaise dikhte hain */
+.he-label {
+  font-weight: 600;
+  color: var(--text-muted, #646970);
+  padding-right: 6px;
+}

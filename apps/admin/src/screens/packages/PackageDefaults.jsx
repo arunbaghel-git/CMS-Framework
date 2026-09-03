@@ -7,7 +7,7 @@ import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
 import BookingPanel from './BookingPanel.jsx'
 import RatingPanel from './RatingPanel.jsx'
-import RichTextEditor from './RichTextEditor.jsx'
+import HtmlEditor from './HtmlEditor.jsx'
 import { useMediaById } from './usePackages.js'
 import './Packages.css'
 
@@ -270,20 +270,24 @@ export default function PackageDefaults({ section }) {
                      * Pehle yahan sirf H3/H4 the, is tark se ki ye description page ke
                      * `<h2>` ke **neeche** chhapti hai aur wahan H1/H2 outline tod dete
                      * hain. Wo tark aaj bhi sach hai — par ye client ke apne page ka content
-                     * hai, aur kaunsa tag kahan chahiye ye unka faisla hai. Poora tark
-                     * `RichTextEditor` ke `HEADING_LEVELS` pe likha hai.
+                     * hai, aur kaunsa tag kahan chahiye ye unka faisla hai.
+                     *
+                     * ⚠️ D-80 ke baad wo dropdown TinyMCE ka `block_formats` hai, aur usme
+                     * abhi `p · h2 · h3 · h4` hain. Text tab se koi bhi tag likha ja sakta
+                     * hai (`valid_elements: '*[*]'`), isliye ye rok sirf toolbar ki hai.
                      *
                      * ⚠️ Khaali chhodne ka matlab **"line hata do"** hai (D-65) — aur wo
-                     * matlab ab bhi zinda hai: khaali editor ek khaali doc bhejta hai, aur
-                     * `isEmptyDoc()` use pehchan leti hai.
+                     * matlab ab bhi zinda hai: khaali editor ek khaali string bhejta hai, aur
+                     * `isEmptyHtml()` use pehchan leti hai.
                      */}
-                    <RichTextEditor
+                    <HtmlEditor
                       label={section.label}
-                      doc={labels[section.key]?.description}
-                      onChange={(doc) =>
+                      height={220}
+                      value={labels[section.key]?.description}
+                      onChange={(html) =>
                         setLabels((prev) => ({
                           ...prev,
-                          [section.key]: { ...prev[section.key], description: doc },
+                          [section.key]: { ...prev[section.key], description: html },
                         }))
                       }
                       disabled={!canWrite}

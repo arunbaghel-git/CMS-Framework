@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { htmlSchema } from './rich-html.js'
+
 /**
  * Itinerary ka contract — spec 007 §3, Slice 4.
  *
@@ -47,10 +49,19 @@ export const itineraryDaySchema = z.object({
    * Sirf bullets likho to sirf bullets aayenge; paragraph + list dono chaho to wo bhi.
    * Purana `highlights` data migration 014 me isi shape me aa chuka hai.
    *
-   * Ye rich text **nahi** hai, aur wo jaan-boojh kar: har din ka apna block tree matlab
-   * uska versioning aur Phase 5 me uski migration — ek paragraph aur chaar bullet ke liye.
+   * ⚠️ Ab ye **HTML** hai — D-80 (client, 3 Sep). Pehle yahan likha tha:
+   *
+   * > ~~Ye rich text nahi hai, aur wo jaan-boojh kar: har din ka apna block tree matlab uska
+   * > versioning aur Phase 5 me uski migration — ek paragraph aur chaar bullet ke liye.~~
+   *
+   * Wo daam ab lagta hi nahi — rich text ek saada HTML string hai, koi block tree nahi.
+   *
+   * ⚠️ **`-` wala niyam ab data me nahi hai.** D-64 me `-` se shuru hone wali line bullet
+   * banti thi (migration 014 ne purana `highlights[]` isi shape me daala tha), aur theme us
+   * niyam ko render pe lagata tha. Migration 020 ne wo lines asli `<ul><li>` me badal di
+   * hain — ab wo convention sirf `textToHtml()` me zinda hai, jahan naya plain text aata hai.
    */
-  description: z.string().max(5000).default(''),
+  description: htmlSchema.pipe(z.string().max(8000)),
 
   meals: z.array(z.enum(MEALS)).max(3).default([]),
 

@@ -2036,7 +2036,15 @@ a.mega__gl:hover {
  * aur `padding` yahin reset hote hain (reference me ye global `ul` reset se aata hai, jo
  * yahan nahi daala ja sakta: RichText ki list ko uske apne bullet chahiye).
  */
-.itin__l {
+/*
+ * ⚠️ Ye pehle `.itin__l` thi — ek class jo theme khud lagata tha.
+ *
+ * D-80 me din ki description HTML ban gayi, aur editor se aayi `<ul>` pe wo class nahi hoti.
+ * Isliye selector ab **jagah** se bandha hai: `.itin__c` ke andar ki har list. Computed
+ * style bilkul wahi hai (verify kiya) — aur ab client ki banayi nayi list bhi apne aap sahi
+ * dikhti hai, jo class wale raaste me kabhi nahi hoti.
+ */
+.itin__c ul {
   display: grid;
   gap: 7px;
   margin: 11px 0 0;
@@ -2044,7 +2052,7 @@ a.mega__gl:hover {
   list-style: none;
 }
 
-.itin__l li {
+.itin__c ul li {
   display: flex;
   gap: 9px;
   align-items: flex-start;
@@ -2053,7 +2061,7 @@ a.mega__gl:hover {
   color: var(--body);
 }
 
-.itin__l li::before {
+.itin__c ul li::before {
   content: '';
   width: 6px;
   height: 6px;

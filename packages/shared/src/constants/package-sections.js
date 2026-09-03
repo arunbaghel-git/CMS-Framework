@@ -2,10 +2,10 @@
  * ⚠️ Yahan se `schemas/` me import ho raha hai, jo is folder ke liye ulta lagta hai.
  *
  * Wajah: `resolveSectionLabels()` ek **function** hai, constant nahi — wo yahan isliye
- * hai ki uska data (`PACKAGE_SECTIONS`) yahin hai. `rich-doc.js` sirf zod pe depend karti
+ * hai ki uska data (`PACKAGE_SECTIONS`) yahin hai. `rich-html.js` sirf zod pe depend karti
  * hai, isliye koi cycle nahi banta (barrel se nahi, seedhi file se import hai).
  */
-import { textToDoc } from '../schemas/rich-doc.js'
+import { textToHtml } from '../schemas/rich-html.js'
 
 /**
  * Public package page ke sections — har ek ka **heading** aur uske neeche ki **line**.
@@ -189,7 +189,7 @@ export const sectionHasDescription = (section) => section.hasDescription !== fal
  * me bhi shape wahi hona chahiye jo API bhejti hai, warna page bina heading ke reh jaata
  * hai ya render crash karta hai.
  *
- * ⚠️ Isiliye yahan `textToDoc()` lagta hai: `PACKAGE_SECTIONS` me defaults padhne laayak
+ * ⚠️ Isiliye yahan `textToHtml()` lagta hai: `PACKAGE_SECTIONS` me defaults padhne laayak
  * **strings** hain (file khulti hai to text dikhna chahiye, JSON ka ped nahi), par bahar
  * jaane wala shape doc hai.
  */
@@ -197,7 +197,7 @@ export const PACKAGE_SECTION_DEFAULTS = Object.freeze(
   Object.fromEntries(
     PACKAGE_SECTIONS.map(({ key, heading, description }) => [
       key,
-      { heading, description: textToDoc(description) },
+      { heading, description: textToHtml(description) },
     ]),
   ),
 )
@@ -229,7 +229,7 @@ export function resolveSectionLabels(stored) {
       const { key, heading, description } = section
       const custom = stored?.[key]
       /** Default padhne laayak string hai; theme ko hamesha doc chahiye (D-69). */
-      const defaultDoc = () => textToDoc(description)
+      const defaultDoc = () => textToHtml(description)
 
       /**
        * Jis section pe description ka field hi nahi (Overview), uske payload me wo key

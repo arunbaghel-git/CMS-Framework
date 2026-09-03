@@ -13,13 +13,15 @@
     "@cms/blocks": "workspace:*",
     "@cms/shared": "workspace:*",
     "@tanstack/react-query": "5.62.11",
+    "@tinymce/tinymce-react": "6.3.0",
     "@tiptap/extension-link": "3.30.3",
     "@tiptap/react": "3.30.3",
     "@tiptap/starter-kit": "3.30.3",
     "axios": "1.7.9",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-router-dom": "7.1.1"
+    "react-router-dom": "7.1.1",
+    "tinymce": "7.9.3"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "4.3.4",

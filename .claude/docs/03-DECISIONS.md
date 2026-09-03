@@ -4806,3 +4806,113 @@ ko 183 orphan records mitane se pehle karna pada tha. Wo scan har baar dobara li
 Ye Phase 2 ka aakhri **maanga hua** item tha. Jo aur bacha hai — folders, rename, bulk
 select, crop/rotate, replace file — wo kisi cheez ko rok nahi raha aur client ne maanga nahi.
 Media ab "current scope complete" hai, wahi lakeer jo Settings ▸ General pe D-40 me lagi thi.
+
+---
+
+## D-80
+
+**Rich text ab HTML hai, editor TinyMCE — aur iske saath XSS ki problem hum aaj se paal rahe hain**
+_3 Sep 2026 · client ka faisla · spec 002 ka **doosra** badlaav_
+
+### Sawaal
+
+Client ko WordPress ke Classic Editor jaisa chahiye tha: **Visual aur Text (HTML) do tab**, aur
+Text me `class` · `id` · inline `style` likho to **kuch gayab na ho**.
+
+TipTap wo nahi kar sakta, aur ye uski kami nahi. Wo **schema-based** (ProseMirror) hai: jo tag
+uske schema me nahi wo hata deta hai, chahe aap HTML tab me khud likho. Schema me tag jodte
+rehne se wo ek **list** hi rahega — "kuch bhi" kabhi nahi banega. WordPress ye isliye kar leta
+hai ki uska `post_content` **raw HTML** hi hota hai; gayab hone ke liye kuch convert hi nahi hota.
+
+### Ye repo is din ke liye tayyar tha — aur uski keemat pehle se likhi hui thi
+
+`rich-doc.js` me D-69 ke waqt likha gaya tha:
+
+> _"TipTap HTML store nahi karta… kahin `dangerouslySetInnerHTML` hai hi nahi. Nateeja: XSS
+> **filter** nahi hota, wo **ban hi nahi sakta**. WordPress ko `wp_kses` isliye chahiye ki wo
+> HTML string store karta hai; hum wo problem paalte hi nahi… par jis din wo chahiye, ye ek
+> naya faisla hoga (**sanitizer + permission gate**)."_
+
+Wo din aa gaya. Yaani ye faisla ek **maloom** keemat chuka raha hai: **XSS ki problem hum aaj
+se paal rahe hain**, aur uska ilaaj sanitizer hai.
+
+### Client ke chaar faisle
+
+| | |
+| --- | --- |
+| Editor | **TinyMCE 7**, GPL — _"we can use TinyMCE free bala branding dikhe koi bat nahi"_ (D-77) |
+| HTML tab kise | **Sabko** jo content edit kar sakta hai. `unfiltered_html` jaisa role gate nahi |
+| Editor kahan | _"editor will be everywhere"_ — har prose field |
+| Design | _"public site ka design bilkul nahi badlega, baki editor add karna hai"_ |
+
+### Icons theme ke hi rahe — kyunki WordPress bhi yahi karta hai
+
+Beech me ye maana gaya tha ki ✓/✗ ke icons HTML tab me dikhne chahiye ("jo DOM me hai wo HTML
+me dikhega"). **Wo andaaza WordPress pe theek nahi baithta**, aur check karke pata chala:
+
+- WordPress me checkmark list icons **theme aur CSS se** aate hain — `::before` me
+  `content:"\2713"`, block style class (`is-style-check`), Font Awesome, ya Additional CSS
+- Classic Editor ki apni documentation: _"the editor typically displays generic formatting,
+  while the **frontend will apply the full, complete formatting based on the theme**"_
+
+Yaani Text tab me sirf wahi hota hai jo author ne likha. Hamara code **theek yahi** kar raha
+tha (`<li><Tick />{line}</li>`), isliye wo waise ka waisa hai.
+
+Ek keemat bhi bach gayi: icon content hota to kal tick ka design badalne pe wo **har row me**
+haath se badalna padta.
+
+### Scope — kahan editor, kahan nahi
+
+**Poora editor (block HTML):** Overview (`entry.content`) · saaton `sectionLabels[].description`
+· `itinerary[].description` · `faqs[].answer` · `bookingSteps[].text` · `cancellationText`.
+
+**Sirf inline HTML:** `whatsIncluded.included[]` / `.excluded[]` — wo `string[]` hi rehte hain
+(✓/✗ theme lagata hai), par line ke **andar** `<b>`/`<a>`/`<span>` chalta hai. Block tag wahan
+allow **nahi** — `<li>` ke andar `<p>` line ko uske icon se alag kar deta hai. Ye rok design
+ki hai, sirf suraksha ki nahi.
+
+**Plain hi rahe:** `sectionLabels[].heading` · `itinerary[].title` · `transferNote` ·
+`legs[].note` · `bookingSteps[].title` · `faqs[].question` — ek line ke label hain.
+
+### Do purane faisle palat gaye
+
+- **D-59** — FAQ answers plain the ("ek paragraph ke liye ek aur block tree bekaar hai"). Wo
+  tark tab theek tha jab rich text ka matlab block tree tha; ab wo ek saada HTML string hai.
+- **D-64** — `-` se shuru hone wali line bullet banti thi (migration 014 ne data usi shape me
+  daala tha). Ab wo asli `<ul>` hai; convention sirf naye plain text ke converter me zinda hai.
+
+### Suraksha — safai write pe, render pe nahi
+
+`apps/api/src/core/sanitize-html.js` — do profile (block · inline), aur wo **service layer me
+write pe** chalti hai (R1). Isliye DB me kabhi gandi HTML pahunchti hi nahi, aur theme us par
+bharosa kar sakti hai.
+
+**Render pe saaf karna galat hota:** tab zeher DB me pada rehta aur har naya reader ko khud
+bachna padta — ek reader bhoolte hi wo chal jaata.
+
+⚠️ **Browser me sanitize karna sirf dikhawa hai** — koi bhi admin ka JS chhod kar seedha API
+call kar sakta hai. Isliye `packages/shared` me safai **nahi** hai.
+
+⚠️ `svg` allow hai, aur ye D-41 ki "SVG upload block" se **alag** hai: wahan ek **file** thi
+jo apne origin pe chalti; yahan admin ka inline markup hai jo isi sanitizer se guzarta hai.
+
+⚠️ `iframe` sirf `https:` ke saath allow hai — client ne future ke liye maanga. Maloom risk
+(phishing/clickjacking embed); band karna config me ek line hai.
+
+### Migration 020 — teen cheezein jo pakdi gayin
+
+1. **`packageDefaults` camelCase hai.** Pehli baar `packagedefaults` likha tha aur migration ka
+   **aadha hissa chup-chaap chala hi nahi** — Mongo ka collection naam case-sensitive hai, aur
+   galat naam pe `find()` bas khaali cursor deta hai. Migration "✓" dikha kar nikal gayi thi;
+   verification step ne pakda.
+2. **Escape.** Purana text plain tha — `Kids < 5 years free` bilkul theek line thi. HTML me wo
+   ek adhoora tag ban jaati aur uske aage ka sab gayab. Har purani value pehle escape hoti hai.
+3. **Migration 015 ka import toot gaya.** Wo `textToDoc` `@cms/shared` se leti thi; wo helper
+   aaj hat gaya, aur poora migration runner boot pe girne laga. **Sabak:** migration waqt me
+   jama hoti hai — uska tark uske andar hona chahiye. Helper ab 015 me inline hai.
+
+### Bundle — TinyMCE lazy hai
+
+Seedha import karne se admin ka bundle **864 kB → 1,836 kB** ho gaya tha (naapa gaya). Ab
+`TinyMceEditor.jsx` alag file hai aur `React.lazy()` se aati hai: main bundle **480 kB** — yaani
+pehle se bhi halka, kyunki editor ka bhaar sirf package wali screens uthati hain.

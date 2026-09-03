@@ -40,6 +40,22 @@ import { HOTEL_CATEGORY_LABEL } from '@cms/shared'
  */
 const safeJson = (value) => JSON.stringify(value).replace(/</g, '\\u003c')
 
+/**
+ * HTML se plain text — structured data ke liye (D-80).
+ *
+ * Entity ko markup nahi chahiye; use wo text chahiye jo aadmi padhta hai. `&nbsp;` bhi asli
+ * space ban jaata hai, warna schema me wo character jyon ka tyon chala jaata.
+ */
+const stripTags = (html) =>
+  String(html ?? '')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim()
+
 /** Relative path → absolute URL, jab site ka pata configured ho. */
 const absolute = (siteUrl, path) => {
   if (!siteUrl) return undefined
@@ -163,7 +179,16 @@ export default function Schema({ entry, defaults, settings, breadcrumbs }) {
       mainEntity: faqs.map((faq) => ({
         '@type': 'Question',
         name: faq.question,
-        acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+        /**
+         * ⚠️ **Tags yahan hat-te hain** — D-80 me jawab HTML ban gaya, aur bina iske schema me
+         * `<p>…</p>` chhapne lagta tha.
+         *
+         * Google `acceptedAnswer` me kuch HTML allow karta hai, to ye "toota" nahi hota —
+         * par structured data ka kaam **maloomat** dena hai, dikhawa nahi. Aur ye baat is
+         * page ke apne itihaas se bhi milti hai: schema ka poora tark yahi raha hai ki wo
+         * saaf, plain aur bharosemand rahe.
+         */
+        acceptedAnswer: { '@type': 'Answer', text: stripTags(faq.answer) },
       })),
     })
   }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { confirmRemove } from '../../lib/confirm.js'
 import { useListDrag } from '../../lib/drag-list.js'
+import HtmlEditor from './HtmlEditor.jsx'
 
 /**
  * "How booking works" ke steps + cancellation policy — `packageDefaults` (spec 007 §2.1).
@@ -132,12 +133,11 @@ export default function BookingPanel({ steps, cancellationText, onChange, disabl
 
                     <div className="field">
                       <label>Text</label>
-                      <textarea
-                        className="ta"
-                        style={{ minHeight: 60 }}
+                      {/* Ab rich text (D-80) */}
+                      <HtmlEditor
+                        height={160}
                         value={step.text}
-                        placeholder="Dates, nights and who is travelling. No payment, no account."
-                        onChange={(e) => update(index, { text: e.target.value })}
+                        onChange={(html) => update(index, { text: html })}
                         disabled={disabled}
                       />
                     </div>
@@ -170,12 +170,11 @@ export default function BookingPanel({ steps, cancellationText, onChange, disabl
 
       <div className="field">
         <label>Cancellation policy</label>
-        <textarea
-          className="ta"
-          style={{ minHeight: 90 }}
+        {/* Ab rich text (D-80) */}
+        <HtmlEditor
+          height={200}
           value={cancellationText ?? ''}
-          placeholder="Cancellations more than 30 days before travel are refunded minus…"
-          onChange={(e) => onChange({ bookingSteps: list, cancellationText: e.target.value })}
+          onChange={(html) => onChange({ bookingSteps: list, cancellationText: html })}
           disabled={disabled}
         />
         {/*

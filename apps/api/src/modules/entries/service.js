@@ -25,6 +25,7 @@ import {
 
 import { conflict, forbidden, notFound, unprocessable } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
+import { sanitizeContent, sanitizeEntryFields } from '../../core/sanitize-html.js'
 import { requireContentType } from '../content-types/service.js'
 import { recordAutoRedirect, removeRedirectsTo } from '../redirects/service.js'
 /**
@@ -204,7 +205,18 @@ function normalizeFields(fields, contentType) {
     out.faqs = faqs.map((faq) => ({ ...faq, id: faq.id || randomUUID() }))
   }
 
-  return out
+  /**
+   * ⚠️ **HTML ki safai sabse aakhir me — aur ye kram jaan-boojh kar hai** (D-80).
+   *
+   * `itinerary[].description` aur `faqs[].answer` ab HTML hain. Safai pehle likhi gayi thi,
+   * aur wo **chup-chaap bekaar** thi: upar ke `has(...)` blocks `fields.*` (asli input) se
+   * dobara parse karke `out.*` ko overwrite kar dete hain, yaani saaf ki hui value phir se
+   * gandi value se badal jaati.
+   *
+   * Aakhir me rakhne se koi bhi naya `has(...)` block ise bypass nahi kar sakta — safai
+   * hamesha jo bhi bana hai **uske upar** lagti hai.
+   */
+  return sanitizeEntryFields(out)
 }
 
 // ── taxonomy refs ────────────────────────────────────────────────────────────
@@ -789,6 +801,8 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
     slug,
     path,
     status,
+    /** Overview ka rich text — HTML hai, isliye write pe saaf (D-80). */
+    content: sanitizeContent(input.content),
     fields: normalizeFields(input.fields, contentType) ?? {},
     publishAt: null,
     authorId: actor?.user?._id ? String(actor.user._id) : null,
@@ -847,6 +861,8 @@ export async function updateEntry(
   }
 
   if (input.fields !== undefined) $set.fields = normalizeFields(input.fields, contentType)
+  /** Upar wale loop ne `content` set kiya hai — usme HTML hai, isliye yahan saaf (D-80). */
+  if (input.content !== undefined) $set.content = sanitizeContent(input.content)
 
   /**
    * `type` badalna allowed nahi.

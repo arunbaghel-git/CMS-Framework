@@ -4,6 +4,7 @@ import { DEFAULT_SITE_ID, emptyPackageDefaults, resolveSectionLabels } from '@cm
 
 import { unprocessable } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
+import { sanitizePackageDefaults } from '../../core/sanitize-html.js'
 import { mediaExists } from '../media/service.js'
 import { PackageDefaults } from './model.js'
 
@@ -94,12 +95,23 @@ export async function updatePackageDefaults(input, siteId = DEFAULT_SITE_ID) {
    * Whitelist phir bhi hai, `...input` nahi: `req.body` ko seedha `$set` me kholna wahi
    * raasta hai jispe R9 likha gaya hai.
    */
+  /**
+   * ⚠️ **HTML ki safai sabse pehle, ek hi jagah** (D-80).
+   *
+   * Chaar field ab HTML rakhte hain — `whatsIncluded` ki lines (inline), `cancellationText`,
+   * `bookingSteps[].text` aur `sectionLabels[].description`. Kaunsa field HTML hai, iska
+   * jawab `sanitize-html.js` me hai; yahan sirf use guzarna hai.
+   *
+   * Neeche wali whitelist `clean` se padhti hai, `input` se nahi — warna ek line bhi `input`
+   * se uthate hi wo field bina safai ke DB me chala jaata, aur wo bhoolna chup hota.
+   */
+  const clean = sanitizePackageDefaults(input)
   const $set = {}
 
-  if (input.whatsIncluded !== undefined) $set.whatsIncluded = input.whatsIncluded
-  if (input.cancellationText !== undefined) $set.cancellationText = input.cancellationText
-  if (input.bookingSteps !== undefined) $set.bookingSteps = withIds(input.bookingSteps)
-  if (input.sectionLabels !== undefined) $set.sectionLabels = input.sectionLabels
+  if (clean.whatsIncluded !== undefined) $set.whatsIncluded = clean.whatsIncluded
+  if (clean.cancellationText !== undefined) $set.cancellationText = clean.cancellationText
+  if (clean.bookingSteps !== undefined) $set.bookingSteps = withIds(clean.bookingSteps)
+  if (clean.sectionLabels !== undefined) $set.sectionLabels = clean.sectionLabels
   /** `4.9 average from 412 trips` — hero aur reviews section dono isse chhapte hain. */
   if (input.rating !== undefined) $set.rating = input.rating
 

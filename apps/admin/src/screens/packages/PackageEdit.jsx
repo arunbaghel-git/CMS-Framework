@@ -12,7 +12,7 @@ import FaqsPanel from './FaqsPanel.jsx'
 import HotelsPanel from './HotelsPanel.jsx'
 import ItineraryBuilder from './ItineraryBuilder.jsx'
 import PricingPanel from './PricingPanel.jsx'
-import RichTextEditor from './RichTextEditor.jsx'
+import HtmlEditor from './HtmlEditor.jsx'
 import {
   PACKAGE_TYPE,
   useAddOnList,
@@ -147,8 +147,8 @@ export default function PackageEdit() {
     setForm({
       title: entry?.title ?? '',
       slug: entry?.slug ?? '',
-      /** TipTap ka doc — `content.blocks[0].props.doc`. */
-      doc: entry?.content?.blocks?.find((b) => b.type === 'richText')?.props?.doc ?? null,
+      /** Overview ka rich text — ab HTML (D-80), pehle `props.doc` (TipTap JSON) tha. */
+      html: entry?.content?.blocks?.find((b) => b.type === 'richText')?.props?.html ?? '',
       status: entry?.status === 'private' ? 'published' : (entry?.status ?? 'draft'),
       visibility: entry?.status === 'private' ? 'private' : 'public',
       fields: entry?.fields ?? {},
@@ -216,7 +216,7 @@ export default function PackageEdit() {
 
     const payload = {
       title: form.title,
-      content: form.doc ? contentFromRichText(form.doc) : emptyContent(),
+      content: form.html ? contentFromRichText(form.html) : emptyContent(),
       fields: form.fields,
       taxonomies: form.taxonomies,
       seo: form.seo,
@@ -339,7 +339,7 @@ export default function PackageEdit() {
             )}
           </div>
 
-          <RichTextEditor doc={form.doc} onChange={(doc) => set({ doc })} disabled={readOnly} />
+          <HtmlEditor value={form.html} onChange={(html) => set({ html })} disabled={readOnly} />
 
           {/*
            * Ek field — koi panel nahi, koi heading nahi (client, 26 Aug).

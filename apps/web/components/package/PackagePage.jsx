@@ -1,4 +1,4 @@
-import { PACKAGE_SECTION_DEFAULTS, isEmptyDoc } from '@cms/shared'
+import { PACKAGE_SECTION_DEFAULTS, isEmptyHtml } from '@cms/shared'
 /** `<Fragment>` sirf hero ke meta list me — wahan har tukde ko key aur ek divider chahiye. */
 import { Fragment } from 'react'
 
@@ -194,47 +194,6 @@ const ChipIcon = ({ name }) => (
 )
 
 /**
- * Din ka description → paragraph aur list ke blocks (D-64).
- *
- * **Niyam ek hi hai: `-` se shuru hone wali line bullet hai, baaki paragraph.**
- *
- * Pehle bullets ka apna field tha (`highlights[]`) aur client ko har din **do** jagah
- * bharni padti thi. Client ne dono ko ek kar diya; purana data migration 014 me isi shape me
- * aa chuka hai.
- *
- * Lagatar bullet lines **ek hi `<ul>`** me judti hain — warna teen bullet teen alag list
- * ban jaate aur unke beech ka spacing ek jaisa nahi rehta.
- *
- * Ye markdown **nahi** hai aur na banega: yahan sirf ek niyam hai, jo hint me likha hua hai.
- * Poora markdown lagane ka matlab hota ek parser, uski sanitisation, aur wo saara sawaal jo
- * rich text pe pehle hi tay ho chuka hai (D-46 §3 — content TipTap pe hai, ye field nahi).
- *
- * @param {string} [description]
- */
-function dayBlocks(description) {
-  const blocks = []
-
-  for (const raw of String(description ?? '').split('\n')) {
-    const line = raw.trim()
-    if (!line) continue
-
-    const isItem = /^[-•*]\s*/.test(line)
-    const last = blocks[blocks.length - 1]
-
-    if (!isItem) {
-      blocks.push({ type: 'p', text: line })
-      continue
-    }
-
-    const item = line.replace(/^[-•*]\s*/, '')
-    if (last?.type === 'list') last.items.push(item)
-    else blocks.push({ type: 'list', items: [item] })
-  }
-
-  return blocks
-}
-
-/**
  * Din ke card ki chips — sab structured data se, sirf `note` free text hai (D-51 §1).
  *
  * Har chip ke saath uska icon bhi aata hai. Icon chip ke **kism** se tay hota hai, uske text
@@ -334,7 +293,7 @@ export default function PackagePage({ entry, defaults, settings }) {
    * (`cancellationText` payload me hi nahi ja raha tha). Teeno baar lakshan ek: **admin me
    * text dikhta hai, page pe kuch nahi, aur kahin koi error nahi.**
    */
-  const wrote = (key) => !isEmptyDoc(labels[key]?.description)
+  const wrote = (key) => !isEmptyHtml(labels[key]?.description)
 
   return (
     <CategoryProvider pricing={entry.pricing} currency={settings?.currency ?? 'INR'}>
@@ -570,16 +529,15 @@ export default function PackagePage({ entry, defaults, settings }) {
                         </div>
                         <div className="itin__c">
                           <h3>{day.title}</h3>
-                          {dayBlocks(day.description).map((block, bi) =>
-                            block.type === 'list' ? (
-                              <ul className="itin__l" key={bi}>
-                                {block.items.map((line) => (
-                                  <li key={line}>{line}</li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p key={bi}>{block.text}</p>
-                            ),
+                          {/*
+                           * Din ki description ab **HTML** hai (D-80) — pehle yahan
+                           * `dayBlocks()` chalta tha, jo `-` wali line ko bullet banata tha
+                           * (D-64). Wo niyam ab render pe nahi, editor me hai.
+                           *
+                           * Safai write pe ho chuki hai (`core/sanitize-html.js`).
+                           */}
+                          {day.description && (
+                            <div dangerouslySetInnerHTML={{ __html: day.description }} />
                           )}
 
                           {dayChips(day).length > 0 && (
@@ -619,11 +577,22 @@ export default function PackagePage({ entry, defaults, settings }) {
                     {included.length > 0 && (
                       <div className="inx__c">
                         <h3>Included</h3>
+                        {/*
+                         * ⚠️ **`<Tick />` yahin rehta hai — icon theme ka hai, content ka
+                         * nahi** (D-80). WordPress bhi yahi karta hai: theme ka wrapper aur
+                         * icon `post_content` me kabhi nahi jaate, wahan sirf wo hota hai jo
+                         * author ne likha.
+                         *
+                         * Line ab **inline HTML** hai (`<b>Daily</b> breakfast`), aur uska
+                         * `<span>` isliye hai ki icon ke baad ka text ek hi node me rahe —
+                         * `dangerouslySetInnerHTML` `<li>` pe lagane se `<Tick />` hi mit
+                         * jaata.
+                         */}
                         <ul className="tick">
                           {included.map((line) => (
                             <li key={line}>
                               <Tick />
-                              {line}
+                              <span dangerouslySetInnerHTML={{ __html: line }} />
                             </li>
                           ))}
                         </ul>
@@ -636,7 +605,7 @@ export default function PackagePage({ entry, defaults, settings }) {
                           {excluded.map((line) => (
                             <li key={line}>
                               <Cross />
-                              {line}
+                              <span dangerouslySetInnerHTML={{ __html: line }} />
                             </li>
                           ))}
                         </ul>
@@ -661,7 +630,8 @@ export default function PackagePage({ entry, defaults, settings }) {
                            */}
                           <div>
                             <b>{step.title}</b>
-                            {step.text && <p>{step.text}</p>}
+                            {/* Ab HTML (D-80) — safai write pe ho chuki hai */}
+                            {step.text && <div dangerouslySetInnerHTML={{ __html: step.text }} />}
                           </div>
                         </li>
                       ))}
@@ -677,7 +647,10 @@ export default function PackagePage({ entry, defaults, settings }) {
                    * sirf steps se 12px neeche.
                    */}
                   {defaults?.cancellationText && (
-                    <p className="blk__note">{defaults.cancellationText}</p>
+                    <div
+                      className="blk__note"
+                      dangerouslySetInnerHTML={{ __html: defaults.cancellationText }}
+                    />
                   )}
                 </section>
               )}
@@ -713,7 +686,7 @@ export default function PackagePage({ entry, defaults, settings }) {
                     {entry.faqs.map((faq, i) => (
                       <details key={faq.id ?? i} open={i === 0}>
                         <summary>{faq.question}</summary>
-                        {faq.answer && <p>{faq.answer}</p>}
+                        {faq.answer && <div dangerouslySetInnerHTML={{ __html: faq.answer }} />}
                       </details>
                     ))}
                   </div>

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
 
-import { emptyDoc, isEmptyDoc, textToDoc } from '@cms/shared'
+import { emptyHtml, isEmptyHtml, textToHtml } from '@cms/shared'
 
 import { createApp } from '../app.js'
 import { connectTestDb, disconnectTestDb } from './db.js'
@@ -548,41 +548,69 @@ describe('packageDefaults', () => {
       /** Overview pe description ka field hi nahi — uska text `entry.content` se aata hai. */
       expect(labels.overview).not.toHaveProperty('description')
       expect(labels.addOns.heading).toBe('Popular add-ons')
-      /** Default padhne laayak string hai, par bahar doc ban kar jaati hai (D-69). */
+      /** Default padhne laayak string hai, par bahar HTML ban kar jaati hai (D-69, D-80). */
       expect(labels.addOns.description).toEqual(
-        textToDoc('Added to your quote only if you want them.'),
+        textToHtml('Added to your quote only if you want them.'),
       )
     })
 
     it('client ka heading aur description dono public payload me jaate hain', async () => {
-      /** Bold ke saath — yahi is field ke rich hone ki poori wajah hai (D-69). */
-      const doc = {
-        type: 'doc',
-        content: [
-          {
-            type: 'paragraph',
-            content: [
-              { type: 'text', text: 'Add ' },
-              { type: 'text', marks: [{ type: 'bold' }], text: 'these' },
-              { type: 'text', text: ' to your quote.' },
-            ],
-          },
-        ],
-      }
+      /** Bold ke saath — yahi is field ke rich hone ki poori wajah hai (D-69, ab HTML — D-80). */
+      const html = '<p>Add <strong>these</strong> to your quote.</p>'
 
       await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: { addOns: { heading: 'Optional extras', description: doc } },
+        sectionLabels: { addOns: { heading: 'Optional extras', description: html } },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
       const labels = res.body.data.packageDefaults.sectionLabels
 
-      expect(labels.addOns).toEqual({ heading: 'Optional extras', description: doc })
+      expect(labels.addOns).toEqual({ heading: 'Optional extras', description: html })
+    })
+
+    it('class aur inline style bach jaate hain — yahi TinyMCE pe aane ki wajah thi', async () => {
+      /**
+       * ⚠️ **Ye is poore badlaav ka asli test hai.** Client ne TipTap chhodne ko isliye kaha
+       * ki wahan `class` aur `style` chup-chaap gir jaate the (D-77). Agar ye test kabhi
+       * fail ho, to matlab hum wahin wapas pahunch gaye jahan se chale the.
+       */
+      const html = '<h3 class="border-h1" style="font-size:32px">Andaman</h3>'
+
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: { addOns: { heading: 'Optional extras', description: html } },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+
+      expect(res.body.data.packageDefaults.sectionLabels.addOns.description).toBe(html)
+    })
+
+    it('`<script>` write pe hi gir jaata hai — DB me kabhi nahi pahunchta', async () => {
+      /**
+       * TipTap ke saath XSS **ban hi nahi sakta tha** (wo JSON tree tha, `rich-doc.js`).
+       * HTML store karte hi wo khatra asli ho gaya, aur uska ilaaj `core/sanitize-html.js`
+       * hai — **write pe**, render pe nahi.
+       */
+      await authed('patch', '/api/package-defaults', adminJar).send({
+        sectionLabels: {
+          addOns: {
+            heading: 'Optional extras',
+            description: '<p>Safe</p><script>alert(1)</script><img src=x onerror=alert(1)>',
+          },
+        },
+      })
+
+      const res = await request(app).get('/api/public/package-defaults')
+      const { description } = res.body.data.packageDefaults.sectionLabels.addOns
+
+      expect(description).toContain('<p>Safe</p>')
+      expect(description).not.toContain('script')
+      expect(description).not.toContain('onerror')
     })
 
     it('khaali heading pe theme ka heading wapas aata hai — section bina title ke nahi rehta', async () => {
       await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: { faq: { heading: '', description: emptyDoc() } },
+        sectionLabels: { faq: { heading: '', description: emptyHtml() } },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
@@ -600,12 +628,12 @@ describe('packageDefaults', () => {
        * jhootha vaada hai ("and on the enquiry form", Q-2).
        */
       await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: { addOns: { heading: 'Popular add-ons', description: emptyDoc() } },
+        sectionLabels: { addOns: { heading: 'Popular add-ons', description: emptyHtml() } },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
 
-      expect(isEmptyDoc(res.body.data.packageDefaults.sectionLabels.addOns.description)).toBe(true)
+      expect(isEmptyHtml(res.body.data.packageDefaults.sectionLabels.addOns.description)).toBe(true)
     })
 
     /**
@@ -661,37 +689,32 @@ describe('packageDefaults', () => {
       const labels = res.body.data.packageDefaults.sectionLabels
 
       expect(labels.addOns.description).toEqual(
-        textToDoc('Added to your quote only if you want them.'),
+        textToHtml('Added to your quote only if you want them.'),
       )
     })
 
     /**
-     * ⚠️ TipTap khaali editor ko `{content:[{type:'paragraph'}]}` chhod jaata hai — khaali
-     * array nahi. Client ne box khola, kuch nahi likha, Save dabaya — bas.
+     * ⚠️ Khaali editor `'<p></p>'` chhod jaata hai — khaali string nahi. Client ne box khola,
+     * kuch nahi likha, Save dabaya — bas.
      *
-     * `content.length` dekhne wala koi bhi check ise "bhari hui" maan lega, aur page pe ek
+     * `html.length` dekhne wala koi bhi check ise "bhari hui" maan lega, aur page pe ek
      * khaali `<p>` chhap jaayega jiska margin heading ke neeche bina wajah ka gap banata
      * hai. D-65 ka "khaali = line hata do" isi shakl pe toot-ta hai.
      */
     it('editor khol kar band karna khaali hi ginta hai — khaali paragraph line nahi banata', async () => {
       await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: {
-          addOns: {
-            heading: 'Popular add-ons',
-            description: { type: 'doc', content: [{ type: 'paragraph' }] },
-          },
-        },
+        sectionLabels: { addOns: { heading: 'Popular add-ons', description: '<p></p>' } },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
 
-      expect(isEmptyDoc(res.body.data.packageDefaults.sectionLabels.addOns.description)).toBe(true)
+      expect(isEmptyHtml(res.body.data.packageDefaults.sectionLabels.addOns.description)).toBe(true)
     })
 
     /**
-     * ⚠️ TipTap heading ke baad ek **trailing khaali paragraph** chhod deta hai (ProseMirror
-     * ka apna vyavhaar — heading ke neeche cursor rakhne ki jagah). Wo chup-chaap save ho
-     * jaata hai aur page pe khaali `<p>` ban kar ~23px ki bina wajah ki jagah bana deta hai.
+     * ⚠️ Editor content ke aakhir me ek **khaali paragraph** chhod deta hai (cursor rakhne ki
+     * jagah — TipTap bhi karta tha, TinyMCE bhi karta hai). Wo chup-chaap save ho jaata hai
+     * aur page pe khaali `<p>` ban kar ~23px ki bina wajah ki jagah bana deta hai.
      *
      * Client ne ise "spacing ka issue" ki tarah dekha, aur wo theek dekha.
      */
@@ -700,54 +723,44 @@ describe('packageDefaults', () => {
         sectionLabels: {
           addOns: {
             heading: 'Popular add-ons',
-            description: {
-              type: 'doc',
-              content: [
-                { type: 'heading', attrs: { level: 3 }, content: [{ type: 'text', text: 'Hi' }] },
-                { type: 'paragraph' },
-                { type: 'paragraph' },
-              ],
-            },
+            description: '<h3>Hi</h3><p></p><p>&nbsp;</p>',
           },
         },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
-      const { content } = res.body.data.packageDefaults.sectionLabels.addOns.description
 
-      expect(content).toHaveLength(1)
-      expect(content[0].type).toBe('heading')
+      expect(res.body.data.packageDefaults.sectionLabels.addOns.description).toBe('<h3>Hi</h3>')
     })
 
     /** Beech ka khaali paragraph client ka faisla ho sakta hai — wo nahi chhoota. */
     it('beech ka khaali paragraph bacha rehta hai', async () => {
+      const html = '<p>A</p><p></p><p>B</p>'
+
       await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: {
-          addOns: {
-            heading: 'Popular add-ons',
-            description: {
-              type: 'doc',
-              content: [
-                { type: 'paragraph', content: [{ type: 'text', text: 'A' }] },
-                { type: 'paragraph' },
-                { type: 'paragraph', content: [{ type: 'text', text: 'B' }] },
-              ],
-            },
-          },
-        },
+        sectionLabels: { addOns: { heading: 'Popular add-ons', description: html } },
       })
 
       const res = await request(app).get('/api/public/package-defaults')
 
-      expect(res.body.data.packageDefaults.sectionLabels.addOns.description.content).toHaveLength(3)
+      expect(res.body.data.packageDefaults.sectionLabels.addOns.description).toBe(html)
     })
 
-    it('plain string ab reject hoti hai — description doc hai (D-69)', async () => {
+    /**
+     * ⚠️ **D-69 me ye ulta test tha** — "plain string ab reject hoti hai, description doc
+     * hai". D-80 ne wo palat diya: description ab HTML string hai, aur plain text bhi ek
+     * valid HTML string hai. Purana data isi wajah se bina toote chalta rehta hai.
+     */
+    it('plain string ab chalti hai — description HTML hai (D-80)', async () => {
       const res = await authed('patch', '/api/package-defaults', adminJar).send({
-        sectionLabels: { addOns: { heading: 'Popular add-ons', description: 'purana shape' } },
+        sectionLabels: { addOns: { heading: 'Popular add-ons', description: 'sirf ek line' } },
       })
 
-      expect(res.status).toBe(400)
+      expect(res.status).toBe(200)
+
+      const read = await request(app).get('/api/public/package-defaults')
+
+      expect(read.body.data.packageDefaults.sectionLabels.addOns.description).toBe('sirf ek line')
     })
 
     it('anjaan section key reject hoti hai', async () => {

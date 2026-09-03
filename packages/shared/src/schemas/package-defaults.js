@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 import { DEFAULT_SITE_ID, PACKAGE_SECTIONS, sectionHasDescription } from '../constants/index.js'
-import { emptyDoc, richDocSchema } from './rich-doc.js'
+import { emptyHtml, htmlSchema, inlineHtmlSchema } from './rich-html.js'
 
 /**
  * `packageDefaults` — Packages ke apne globals (spec 007 §1.8).
@@ -18,8 +18,18 @@ import { emptyDoc, richDocSchema } from './rich-doc.js'
  * koi `:id` route nahi, aur `ensurePackageDefaults()` use pehli baar bana deta hai.
  */
 
-/** Ek line — "Accommodation on twin sharing with daily breakfast". */
-const lineSchema = z.string().max(500)
+/**
+ * Ek line — "Accommodation on twin sharing with daily breakfast".
+ *
+ * ⚠️ Ab isme **inline HTML** ho sakti hai (D-80): `<b>Daily</b> breakfast`. Block tag yahan
+ * nahi chalte, aur wo suraksha se zyada **design** ki baat hai — ye line theme ke `<li>` ke
+ * andar chhapti hai (`<li><Tick />{line}</li>`), aur `<li>` ke andar `<p>` line ko uske icon
+ * se alag kar deta hai. Rok `sanitize-html.js` ke `inline` profile me lagti hai.
+ *
+ * ✓/✗ ka icon **theme ka hi rehta hai**, content ka nahi — WordPress bhi yahi karta hai
+ * (D-80).
+ */
+const lineSchema = inlineHtmlSchema.pipe(z.string().max(500))
 
 /**
  * "How booking works" ka ek step — spec 007 §2.1.
@@ -29,8 +39,10 @@ const lineSchema = z.string().max(500)
  */
 export const bookingStepSchema = z.object({
   id: z.string().min(1).optional(),
+  /** `title` ek line ka label hai — usme heading ya list ka koi matlab nahi, isliye plain. */
   title: z.string().min(1).max(200),
-  text: z.string().max(1000).default(''),
+  /** Step ka text ab **HTML** hai (D-80). */
+  text: htmlSchema.pipe(z.string().max(2000)),
 })
 
 /**
@@ -63,7 +75,7 @@ const headingSchema = z.string().trim().max(120).default('')
  *
  * `heading` **plain hi hai** — wo ek line ka `<h2>` hai, usme bold ka koi matlab nahi.
  */
-const descriptionSchema = richDocSchema.default(emptyDoc)
+const descriptionSchema = htmlSchema.default(emptyHtml)
 
 /**
  * `{ overview: {...}, itinerary: {...}, ... }` — keys `PACKAGE_SECTIONS` se.
@@ -135,8 +147,12 @@ export const packageDefaultsSchema = z.object({
    * `components/package/Pricing.jsx`) — admin me uske liye ek aur jagah dena bina wajah tha.
    */
 
-  /** "Cancellations more than 30 days before travel…" — spec 007 §2.1. */
-  cancellationText: z.string().max(5000).default(''),
+  /**
+   * "Cancellations more than 30 days before travel…" — spec 007 §2.1.
+   *
+   * Ab **HTML** hai (D-80) — client ne editor har prose field pe maanga.
+   */
+  cancellationText: htmlSchema,
 
   /**
    * `4.9 average from 412 trips` — **poori site pe ek hi jodi** (client, 1 Sep).

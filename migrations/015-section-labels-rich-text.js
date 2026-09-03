@@ -9,9 +9,22 @@
  * ummeed karta hai, aur page pe wo chup-chaap gayab ho jaatin — is repo ka pehchana hua
  * failure mode (D-64, D-65, D-68 ka guard wala).
  *
- * `textToDoc()` wahi helper hai jo defaults pe bhi chalta hai — har line ek paragraph.
- * Do jagah wahi tark likhne ka matlab hota ki ek din wo alag ho jaayein.
+ * ## ⚠️ `textToDoc()` yahan **inline** hai, `@cms/shared` se import nahi — aur ye ek sabak hai
  *
+ * Pehle ye `import { textToDoc } from '@cms/shared'` tha, is tark se ki "do jagah wahi tark
+ * likhne ka matlab hota ki ek din wo alag ho jaayein". Wo tark **normal code ke liye theek
+ * hai, migration ke liye nahi.**
+ *
+ * 3 Sep ko D-80 me rich text TipTap JSON se HTML ban gaya aur `textToDoc()` shared se hat
+ * gaya. Is applied migration ka import turant toot gaya, aur uske saath **poora migration
+ * runner** — `pnpm cms migrate` boot pe hi girne laga, jabki ye migration kab ki chal chuki
+ * thi.
+ *
+ * **Migration waqt me jama hui hoti hai.** Wo ek beete hue din ka data badalti hai, aur us
+ * din ka tark uske andar hona chahiye. Shared helper badalte rehte hain; migration nahi
+ * badalti. Isliye helper yahan poora likha hua hai — aur aage har migration me yahi karna hai.
+ *
+
  * ⚠️ **`heading` ko haath nahi lagta** — wo ek line ka `<h2>` hai aur plain string hi rehta
  * hai. Usme rich text ka koi matlab nahi.
  *
@@ -21,9 +34,29 @@
  * chalane pe kuch match hi nahi karta. Isliye adhoori chali migration bhi surakshit hai.
  */
 
-import { textToDoc } from '@cms/shared'
-
 const COLLECTION = 'packageDefaults'
+
+/**
+ * Saada text → TipTap doc. Har line ek paragraph, khaali line chhod di jaati hai.
+ *
+ * Ye us waqt ke `@cms/shared` ke `textToDoc()` ki hu-ba-hu naql hai (upar dekho ki kyun).
+ */
+function textToDoc(text) {
+  const lines = String(text ?? '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  if (lines.length === 0) return { type: 'doc', content: [] }
+
+  return {
+    type: 'doc',
+    content: lines.map((line) => ({
+      type: 'paragraph',
+      content: [{ type: 'text', text: line }],
+    })),
+  }
+}
 
 /** Sirf strings — doc pehle se ban chuka ho to chhod do. */
 function convert(labels) {

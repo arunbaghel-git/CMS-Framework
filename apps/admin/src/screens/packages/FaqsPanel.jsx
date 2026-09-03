@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { confirmRemove } from '../../lib/confirm.js'
 import { useListDrag } from '../../lib/drag-list.js'
+import HtmlEditor from './HtmlEditor.jsx'
 
 /**
  * FAQs — `admin-design.html` ke "FAQs & Policies" panel se, spec 007 §2.
@@ -99,11 +100,11 @@ export default function FaqsPanel({ faqs, onChange, disabled }) {
 
                 <div className="field">
                   <label>Answer</label>
-                  <textarea
-                    className="ta"
-                    style={{ minHeight: 60 }}
+                  {/* D-59 palat gaya — jawab ab rich text hai (D-80) */}
+                  <HtmlEditor
+                    height={180}
                     value={faq.answer}
-                    onChange={(e) => update(index, { answer: e.target.value })}
+                    onChange={(html) => update(index, { answer: html })}
                     disabled={disabled}
                   />
                 </div>
