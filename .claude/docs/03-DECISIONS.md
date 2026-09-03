@@ -4950,3 +4950,39 @@ jo apne origin pe chalti; yahan admin ka inline markup hai jo isi sanitizer se g
 Seedha import karne se admin ka bundle **864 kB → 1,836 kB** ho gaya tha (naapa gaya). Ab
 `TinyMceEditor.jsx` alag file hai aur `React.lazy()` se aati hai: main bundle **480 kB** — yaani
 pehle se bhi halka, kyunki editor ka bhaar sirf package wali screens uthati hain.
+
+### ✅ Design parity — naapi gayi, maani nahi gayi (3 Sep)
+
+Is poore kaam ki ek hi shart thi: _"public site ka design bilkul nahi badlega"_. Wo shart
+**maap kar** band ki gayi hai, dekh kar nahi.
+
+Chaaron package page migration se **pehle** capture hue the; naye code se dobara capture ho kar
+tag-by-tag mile:
+
+| | `p` | `ul` | `ol` | `li` | `h2` | `h3` | `strong` | `em` | `a` | `img` | `table` | `details` |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| farak | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+Chaaron page pe, teraah tag pe, **ek bhi farak nahi**. Class ki poori list (145 alag-alag
+`class="…"`) me sirf **ek** farak nikla, aur wo jaan-boojh kar tha:
+
+```
+- class="itin__l"        ← theme khud lagata tha, ab lagta hi nahi
+```
+
+Uski CSS ab structure pe bandhi hai (`.itin__c ul` · `.itin__c ul li` · `… li::before`), isliye
+editor se bani saadi `<ul>` ko bhi wahi neele dot wale bullet milte hain. `<ul>` ki ginti dono
+taraf **barabar** hai — list gayab nahi hui, sirf uska class chhoot gaya.
+
+### ⚠️ Ek jhoothi ghabrahat — aur wo kaise bani
+
+Pehli baar ye check chalaya to nateeja darawna tha: **18 `<li>` aur 6 `<ul>` gayab**, teen
+`<h3>` kam. Lagta tha migration ne lists kha li hain.
+
+Wajah check me thi, code me nahi. "After" wala capture `next start` se liya gaya tha jo **subah
+11:54 ke build** pe chal raha tha — yaani **purana compiled renderer** (TipTap ka node-walker)
+**nayi HTML data** padh raha tha. Us jodi me lists ka gayab hona tay tha.
+
+**Sabak:** migration ke baad ka capture hamesha **naye build** se lena. `next start` chup-chaap
+purana bundle serve karta rehta hai — DB naya ho jaata hai, code nahi, aur diff jhooth bolta
+hai. `.next/BUILD_ID` ka waqt dekh lena kaafi hai.
