@@ -141,17 +141,17 @@ export const NAV = [
     icon: '✉',
     label: 'Enquiries',
     children: [
-      { label: 'All Enquiries', to: '/enquiries', permission: PERMISSION.SUBMISSION_READ },
       /**
-       * `Enquiry Detail` ke paas koi id nahi hoti, isliye wo **sabse nayi** enquiry kholta
-       * hai (client, 3 Sep). Pehle ye list pe bhejta tha — aur wo galat tha: item ka naam
-       * detail kehta hai, to detail hi khulni chahiye.
+       * ⚠️ Design ke nav me paanch item hain; yahan **teen** hain — client ka faisla (3 Sep).
+       *
+       * `Enquiry Detail` aur `Export CSV` hata diye gaye. Dono nav ke item ki tarah kaam hi
+       * nahi karte the: detail ko ek enquiry ki id chahiye (nav ke paas hoti nahi), aur
+       * export ek **kaam** hai, ek jagah nahi — wo list ke upar wale button se hota hai,
+       * jahan abhi ke filter (date range samet) uske saath jaate hain.
        */
-      { label: 'Enquiry Detail', to: '/enquiries/detail', permission: PERMISSION.SUBMISSION_READ },
+      { label: 'All Enquiries', to: '/enquiries', permission: PERMISSION.SUBMISSION_READ },
       { label: 'Enquiry Forms', to: '/enquiries/forms', permission: PERMISSION.FORM_READ },
       { label: 'Add New Form', to: '/enquiries/forms/new', permission: PERMISSION.FORM_CREATE },
-      /** Wahi sawaal jo `Enquiry Detail` pe — design me ye list ke upar ek button bhi hai. */
-      { label: 'Export CSV', to: '/enquiries/export', permission: PERMISSION.SUBMISSION_EXPORT },
     ],
   },
   { separator: true },

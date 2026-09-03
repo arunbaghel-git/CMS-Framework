@@ -4511,3 +4511,54 @@ batana hai ki wo kaam karta hai (D-30).
 ⚠️ Ye `.row-actions` hain, yaani **hover pe dikhte hain** — wahi WordPress wala pattern jo
 Packages list pe pehle se hai. Client ne pehle inhe "aa hi nahi rahe" bataya tha; wo isliye
 ki wo bane hi nahi the (3 Sep me jude).
+
+---
+
+## D-76
+
+**Enquiries inbox — client ne usi din kaat kar chhota kar diya**
+_3 Sep 2026 · client ka faisla — D-75 ka amendment_
+
+### Sawaal
+
+D-75 wala inbox banne ke baad client ne use live chala kar ek poora brief diya. Kaafi kuch
+jo maine design se uthaya tha, unhe chahiye hi nahi tha.
+
+### Client ka brief, aur uspe kya hua
+
+| Client ne kaha | Kya kiya |
+| --- | --- |
+| _"in submenu i dont need enquiry detail, export csv"_ | Dono nav item **hat gaye**; `EnquiryLatest.jsx` aur `EnquiryExport.jsx` delete |
+| _"only all enquiries submenu hoga jisme export csv button hoga"_ | Submenu me teen bache — All Enquiries · Enquiry Forms · Add New Form (client ne pushti ki ki baaki do rahenge) |
+| _"export csv me filter based export, from date to this date"_ | **Date range** filter — par wo list pe lagti hai, aur export usi query ko aage bhejta hai |
+| _"i dont need Assigned tab, Budget"_ | `Budget` column hata. **`Assigned` banaya hi nahi tha** — wo design me hai, hamare yahan kabhi nahi tha |
+| _"replace Contact to name and add email tab not below the name"_ | `Contact` → **Name**, aur `Email` + `Phone` apne alag column (pehle wo naam ke neeche ek line me the) |
+| _"buttons will be only view and delete"_ | Wahi do — `Reply`/`Assign` waise bhi nahi bane the |
+| _"only status dropdown, i dont need quick actions, Activity & Notes, Send Quotation"_ | Detail pe sirf **Enquiry Details** + **Status**. Notes ka panel, uska field, API aur test sab gaye (migration **019**) |
+
+### Do baatein likhne laayak
+
+**1 · Date range list pe hai, export pe nahi.** Export apna alag filter nahi rakhta — wo wahi
+query aage bhejta hai jo list chala rahi hai (`enquiryFilter()` ek hi jagah hai). Isse client
+ke liye niyam ek line ka reh jaata hai: **"jo list me dikh raha hai, wahi CSV me aayega."**
+Do jagah do filter rakhne ka matlab hota ki ek din wo alag ho jaate aur CSV chup-chaap kuchh
+aur deta.
+
+⚠️ `to` **poore din** ko pakadta hai (`$lt` agla din, `$lte` wo din nahi). `03-09` likhne
+wala "3 tarikh tak" kehta hai, "3 tarikh ki raat 12:00:00 tak" nahi — bina iske us din ki
+saari enquiries chhoot jaati, aur wo galti chup hoti: filter chalta hua dikhta, data gayab.
+
+**2 · Export ka link ab `query` se banta hai, `window.location.search` se nahi — aur wo ek
+asli bug tha.** URL me `tab=new` hota hai par API `status=new` maangti hai. Yaani status ka
+tab chuna hua ho to bhi CSV me **poori list** aa jaati — koi error nahi, bas galat file.
+Isi kism ki chup galtiyaan is repo me baar-baar mili hain (D-64, D-65, D-75).
+
+### Notes ka field poora hataya gaya — D-54 se ulta
+
+Client ne saaf kaha "poora hata do, field bhi". D-54 me `availability` ka field Mongo me
+chhod diya gaya tha; farak ye hai ki wahan us field me **asli data baith chuka tha**. Notes
+kabhi kisi ne likhe hi nahi the — 018 ne sirf khaali `[]` daala tha. Khaali khaana chhodne ka
+matlab hota agle developer ke liye ek jhoothi ummeed ("ye kis kaam ka hai?").
+
+`updateEnquirySchema` ab `.strict()` ke saath sirf `status` leta hai, to `note` bhejne pe
+**400** aata hai — dead API chup rehne se behtar hai ki wo saaf mana kare. Uska apna test hai.

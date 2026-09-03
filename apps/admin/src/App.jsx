@@ -15,8 +15,6 @@ import AppearanceFooter from './screens/appearance/Footer.jsx'
 import Menus from './screens/appearance/Menus.jsx'
 import EnquiriesList from './screens/enquiries/EnquiriesList.jsx'
 import EnquiryDetail from './screens/enquiries/EnquiryDetail.jsx'
-import EnquiryExport from './screens/enquiries/EnquiryExport.jsx'
-import EnquiryLatest from './screens/enquiries/EnquiryLatest.jsx'
 import FormBuilder from './screens/forms/FormBuilder.jsx'
 import FormsList from './screens/forms/FormsList.jsx'
 import MasterListScreen from './screens/packages/MasterListScreen.jsx'
@@ -174,12 +172,6 @@ const APP_ROUTES = [
    * "Form not found" pe khulti.
    */
   { path: '/enquiries', element: <EnquiriesList /> },
-  { path: '/enquiries/export', element: <EnquiryExport /> },
-  /**
-   * `Enquiry Detail` — nav item ke paas koi id nahi hoti, isliye ye **sabse nayi** enquiry
-   * kholta hai (client, 3 Sep: "it should show enquiry details").
-   */
-  { path: '/enquiries/detail', element: <EnquiryLatest /> },
   { path: '/enquiries/forms', element: <FormsList /> },
   { path: '/enquiries/forms/new', element: <FormBuilder /> },
   { path: '/enquiries/forms/:id', element: <FormBuilder /> },

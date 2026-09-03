@@ -122,7 +122,7 @@ export const enquiryController = {
       const input = updateEnquirySchema.parse(req.body)
 
       res.json({
-        data: { enquiry: await formService.updateEnquiry(req.params.id, input, req.user) },
+        data: { enquiry: await formService.updateEnquiry(req.params.id, input) },
       })
     } catch (err) {
       next(err)

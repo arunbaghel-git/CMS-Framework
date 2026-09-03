@@ -18,9 +18,11 @@ aur Similar itineraries (**D-71**). Dono ke sawaal client ne band kar diye: §9 
 **haath se** (`reviews[]` se gini nahi jaati), §9 #15 → similar **apne aap** chunte hain.
 `goodToKnow[]` banega hi nahi (**D-68**).
 
-**Q-2 poora band ho gaya (3 Sep — D-75).** 1 Sep ko Enquiry Forms + Add New Form bane (D-72)
-aur package page ke sidebar me sach me chalta hua form aaya; **3 Sep ko inbox** — All
-Enquiries · Enquiry Detail · Export CSV. Email ab bhi nahi (SMTP Phase 0 se blocked).
+**Q-2 poora band ho gaya (3 Sep — D-75, phir D-76).** 1 Sep ko Enquiry Forms + Add New Form
+bane (D-72) aur package page ke sidebar me sach me chalta hua form aaya; **3 Sep ko inbox** —
+All Enquiries · Enquiry Detail · Export CSV (date range filter ke saath). Usi din client ne
+use chala kar **chhota bhi kar diya** (D-76): submenu me sirf teen item, detail pe sirf
+Status, aur Notes/Quick Actions dono hat gaye. Email ab bhi nahi (SMTP Phase 0 se blocked).
 
 **A-5 band ho gaya (31 Aug)** — `apps/web/.env` ban gayi, revalidate ab configured hai.
 **Q-9 ka bada hissa bhi band (31 Aug — D-65)** — section ke heading aur unke neeche ki lines
@@ -31,8 +33,8 @@ ja hi nahi raha tha.
 editor jo Overview pe hai. Migration **015**. Client (unke senior ka order): textarea me
 bold/heading/list ban hi nahi sakti.
 
-**636 tests passing** (26 files) · lint clean · format clean — 3 Sep ko verify kiya.
-**Last updated:** 3 Sep 2026 (Enquiries inbox — D-75; Q-2 band)
+**638 tests passing** (26 files) · lint clean · format clean — 3 Sep ko verify kiya.
+**Last updated:** 3 Sep 2026 (Enquiries inbox — D-75, aur client ka trim — D-76)
 
 ⚠️ 2 Sep ke **30 commit** (mobile/responsive pass + enquiry form ka submit + A-16 ka fix)
 `project-state.md` me likhe ja chuke hain, par is doc ki upar wali list me nahi.

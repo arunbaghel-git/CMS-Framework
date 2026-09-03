@@ -504,20 +504,43 @@ export const listEnquiriesQuerySchema = z.object({
   status: z.enum(ENQUIRY_STATUSES).optional(),
   formId: z.string().trim().min(1).max(60).optional(),
   search: z.string().trim().max(120).optional(),
+
+  /**
+   * Date range — `2026-09-01` jaisi `YYYY-MM-DD` string (client, 3 Sep).
+   *
+   * Ye baaki filters ki tarah **list pe** lagti hai, aur export usi query ko aage bhejta hai
+   * — isliye "jo dikh raha hai wahi export hoga" apne aap sach rehta hai. Export ka apna
+   * alag date filter banane ka matlab hota do jagah do niyam, aur ek din wo alag ho jaate.
+   *
+   * `to` **poore din** ko pakadta hai (service usme +1 din karti hai): user `03-09` likhe to
+   * uska matlab "3 tarikh tak", "3 tarikh ki raat 12 baje tak" nahi.
+   */
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+
   sort: z.enum(['createdAt', 'status']).default('createdAt'),
   order: z.enum(['asc', 'desc']).default('desc'),
 })
 
 /**
- * Detail pe do hi cheezein badalti hain — status aur ek naya note.
+ * Detail pe **sirf status** badalta hai (client, 3 Sep).
  *
  * `.strict()` isliye ki koi aur khaana chupke se update na ho jaaye: `values` submission ka
  * sach hai, use admin se badalna nahi chahiye.
+ *
+ * ⚠️ Yahan pehle `note` bhi tha (internal notes, 3 Sep subah). Client ne wo panel hi hata
+ * diya, isliye field, API aur test teenon hat gaye — dead code chhodne se behtar hai use
+ * hatana, aur wapas chahiye ho to D-75 me poora hisaab likha hai.
  */
 export const updateEnquirySchema = z
   .object({
     status: z.enum(ENQUIRY_STATUSES).optional(),
-    note: z.string().trim().min(1).max(2000).optional(),
   })
   .strict()
 

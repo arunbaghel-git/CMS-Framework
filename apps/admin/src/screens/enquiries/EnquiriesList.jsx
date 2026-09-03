@@ -58,6 +58,9 @@ export default function EnquiriesList() {
   const tab = params.get('tab') ?? 'all'
   const page = Number(params.get('page') ?? 1)
   const formId = params.get('formId') ?? ''
+  /** Date range — baaki filters ki tarah URL me, taaki Export CSV inhe apne aap uthaye. */
+  const from = params.get('from') ?? ''
+  const to = params.get('to') ?? ''
 
   /** URL wala search jaata hai, input ka live text nahi — warna har keystroke pe ek call. */
   const appliedSearch = params.get('q') ?? ''
@@ -69,12 +72,32 @@ export default function EnquiriesList() {
       limit: 20,
       ...(tab !== 'all' ? { status: tab } : {}),
       ...(formId ? { formId } : {}),
+      ...(from ? { from } : {}),
+      ...(to ? { to } : {}),
       ...(appliedSearch ? { search: appliedSearch } : {}),
     }),
-    [page, tab, formId, appliedSearch],
+    [page, tab, formId, from, to, appliedSearch],
   )
 
   const { data, counts, meta, loading, error, reload } = useEnquiries(query)
+
+  /**
+   * Export ka link **usi `query` se** banta hai jo list chalati hai — page aur limit chhod kar.
+   *
+   * ⚠️ Pehle ye `window.location.search` se banta tha, aur wo **chup-chaap galat** tha: URL me
+   * `tab=new` hota hai par API `status=new` maangti hai. Yaani status wala tab chuna hua ho to
+   * bhi CSV me poori list aa jaati — koi error nahi, bas galat file. Ek hi jagah se banana is
+   * kism ki galti ko namumkin kar deta hai.
+   */
+  const exportHref = useMemo(() => {
+    const search = new URLSearchParams()
+    for (const [key, value] of Object.entries(query)) {
+      if (key !== 'page' && key !== 'limit' && value) search.set(key, String(value))
+    }
+    const qs = search.toString()
+
+    return `/api/enquiries/export${qs ? `?${qs}` : ''}`
+  }, [query])
 
   function setFilter(next) {
     const merged = { ...Object.fromEntries(params), ...next }
@@ -168,10 +191,7 @@ export default function EnquiriesList() {
           </Link>
         )}
         {can('submission.export') && (
-          <a
-            className="btn page-title-action"
-            href={`/api/enquiries/export${window.location.search}`}
-          >
+          <a className="btn page-title-action" href={exportHref}>
             Export CSV
           </a>
         )}
@@ -254,6 +274,44 @@ export default function EnquiriesList() {
           ))}
         </select>
 
+        {/*
+         * Date range (client, 3 Sep) — ye baaki filters ki tarah **list** pe lagti hai, aur
+         * Export CSV wahi query aage bhej deta hai. Isliye niyam ek line ka rehta hai:
+         * "jo list me dikh raha hai, wahi CSV me aayega."
+         */}
+        <label className="enq-range">
+          <span>From</span>
+          <input
+            className="inp"
+            type="date"
+            value={from}
+            max={to || undefined}
+            onChange={(e) => setFilter({ from: e.target.value })}
+            aria-label="From date"
+          />
+        </label>
+        <label className="enq-range">
+          <span>To</span>
+          <input
+            className="inp"
+            type="date"
+            value={to}
+            min={from || undefined}
+            onChange={(e) => setFilter({ to: e.target.value })}
+            aria-label="To date"
+          />
+        </label>
+
+        {(from || to) && (
+          <button
+            className="btn btn-plain btn-sm"
+            type="button"
+            onClick={() => setFilter({ from: '', to: '' })}
+          >
+            Clear dates
+          </button>
+        )}
+
         <div className="spacer" />
 
         <form
@@ -310,11 +368,17 @@ export default function EnquiriesList() {
                 />
               </th>
             )}
-            <th>Contact</th>
+            {/*
+             * Client ka faisla (3 Sep): `Contact` ki jagah **Name**, aur Email/Phone apne
+             * alag column — pehle wo naam ke neeche ek chhoti line me the. `Budget` hata
+             * diya gaya (unke form me wo field hai bhi nahi).
+             */}
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
             <th>Package</th>
             <th>Travel date</th>
             <th>Pax</th>
-            <th>Budget</th>
             <th>Source</th>
             <th>Status</th>
             <th>Received</th>
@@ -353,9 +417,6 @@ export default function EnquiriesList() {
                 <Link className="row-title" to={`/enquiries/${row.id}`}>
                   {cell(row, 'name')}
                 </Link>
-                <div className="enq-sub">
-                  {[cell(row, 'email'), cell(row, 'phone')].filter((v) => v !== '—').join(' · ')}
-                </div>
                 {/*
                  * Design me yahan chaar hain — View · Reply · Assign · Delete.
                  *
@@ -376,10 +437,11 @@ export default function EnquiriesList() {
                   )}
                 </div>
               </td>
+              <td>{cell(row, 'email')}</td>
+              <td className="nowrap">{cell(row, 'phone')}</td>
               <td>{cell(row, 'package')}</td>
               <td>{cell(row, 'travelDate')}</td>
               <td>{cell(row, 'pax')}</td>
-              <td>{cell(row, 'budget')}</td>
               {/*
                * `Source` design me ek kism hai (Package page / WhatsApp / Phone), par hamare
                * paas sirf wo path hai jahan se form bhara gaya. Path hi dikhaya ja raha hai —

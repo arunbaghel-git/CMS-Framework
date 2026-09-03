@@ -5,11 +5,25 @@
  * button, input — sab wahin se aate hain (R15: design ke apne tokens, nayi shakl nahi).
  */
 
-/* Contact column me naam ke neeche email · phone — reference ki hi do-line wali row */
-.enq-sub {
+/*
+ * Date range — `From [___] To [___]`, tablenav ke andar baaki filters ke saath.
+ *
+ * Ye filter list pe lagta hai aur Export CSV wahi query aage bhejta hai (client, 3 Sep).
+ */
+.enq-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.enq-range span {
   color: var(--muted, #646970);
   font-size: var(--fs-2xs, 12px);
-  margin-top: 2px;
+}
+
+.enq-range .inp {
+  width: auto;
 }
 
 /*
@@ -79,37 +93,8 @@
   font-size: var(--fs-2xs, 12px);
 }
 
-.enq-notes {
-  list-style: none;
-  margin: 0 0 14px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.enq-notes li {
-  border-left: 2px solid var(--line, #dcdcde);
-  padding-left: 10px;
-}
-
-.enq-notes p {
-  margin: 0 0 2px;
-  white-space: pre-wrap;
-}
-
-.enq-notes span {
-  font-size: var(--fs-2xs, 12px);
-}
-
-/* Quick actions — ek ke neeche ek, poori chaudai me */
-.enq-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.enq-actions .btn {
-  text-align: center;
-}
+/*
+ * ⚠️ Yahan `.enq-notes` aur `.enq-actions` the — Internal Notes aur Quick Actions ke liye.
+ * Dono panel client ne 3 Sep ko hata diye, isliye unka CSS bhi gaya. Dead CSS chhodne ka
+ * matlab hota agle developer ko ye sochna padta ki wo kis screen pe lagta hai.
+ */

@@ -1,5 +1,4 @@
 import { DEFAULT_SITE_ID, ENQUIRY_STATUSES, deriveEnquiryColumns, emptyForm } from '@cms/shared'
-import mongoose from 'mongoose'
 
 import { notFound, unprocessable } from '../../core/errors.js'
 import { logger } from '../../core/logger.js'
@@ -291,14 +290,43 @@ export async function submitEnquiry(input, siteId = DEFAULT_SITE_ID) {
  */
 const liveEnquiries = (siteId) => ({ ...scope(siteId), deletedAt: null })
 
-export async function listEnquiries(query, siteId = DEFAULT_SITE_ID) {
-  const { page, limit, status, formId, search, sort, order } = query
-
+/**
+ * List aur export dono ka filter — **ek hi jagah** (client, 3 Sep).
+ *
+ * Export apni query nahi banata, yahi function use karta hai. Isliye "jo list me dikh raha
+ * hai wahi CSV me aayega" apne aap sach rehta hai; do jagah do niyam likhne ka matlab hota
+ * ki ek din wo chup-chaap alag ho jaate.
+ *
+ * ⚠️ `to` ka matlab **poora din** hai. `2026-09-03` likhne wala "3 tarikh tak" kehta hai,
+ * "3 tarikh ki raat 12:00:00 tak" nahi — isliye range me agle din ki subah tak jaate hain
+ * (`$lt`, `$lte` nahi). Bina iske 3 tarikh ki har enquiry chhoot jaati.
+ */
+function enquiryFilter(query, siteId) {
+  const { status, formId, search, from, to } = query
   const filter = liveEnquiries(siteId)
+
   // Sirf known keys — `req.query` kabhi seedha query me spread nahi hoti (R9)
   if (status) filter.status = status
   if (formId) filter.formId = formId
   if (search) filter.searchText = new RegExp(escapeRegex(search.toLowerCase()), 'i')
+
+  if (from || to) {
+    filter.createdAt = {}
+    if (from) filter.createdAt.$gte = new Date(`${from}T00:00:00.000Z`)
+    if (to) {
+      const next = new Date(`${to}T00:00:00.000Z`)
+      next.setUTCDate(next.getUTCDate() + 1)
+      filter.createdAt.$lt = next
+    }
+  }
+
+  return filter
+}
+
+export async function listEnquiries(query, siteId = DEFAULT_SITE_ID) {
+  const { page, limit, sort, order } = query
+
+  const filter = enquiryFilter(query, siteId)
 
   const [docs, total] = await Promise.all([
     Enquiry.find(filter)
@@ -378,29 +406,15 @@ export async function getEnquiry(id, siteId = DEFAULT_SITE_ID) {
 }
 
 /**
- * Status badlo, ya ek note jodo. `values` yahan se **kabhi** nahi badalte — wo submission ka
- * apna sach hai (`updateEnquirySchema` `.strict()` hai).
+ * Sirf **status** badalta hai (client, 3 Sep).
+ *
+ * `values` yahan se **kabhi** nahi badalte — wo submission ka apna sach hai
+ * (`updateEnquirySchema` `.strict()` hai).
  */
-export async function updateEnquiry(id, input, actor, siteId = DEFAULT_SITE_ID) {
-  const update = {}
-  if (input.status) update.status = input.status
-
-  const push = input.note
-    ? {
-        $push: {
-          notes: {
-            id: new mongoose.Types.ObjectId().toString(),
-            text: input.note,
-            by: actor?.name || actor?.email || '',
-            at: new Date(),
-          },
-        },
-      }
-    : {}
-
+export async function updateEnquiry(id, input, siteId = DEFAULT_SITE_ID) {
   const doc = await Enquiry.findOneAndUpdate(
     { _id: id, ...liveEnquiries(siteId) },
-    { ...(Object.keys(update).length ? { $set: update } : {}), ...push },
+    { $set: { status: input.status } },
     { new: true },
   ).lean()
 
@@ -446,9 +460,12 @@ function csvCell(value) {
 }
 
 export async function exportEnquiriesCsv(query, siteId = DEFAULT_SITE_ID) {
-  const filter = liveEnquiries(siteId)
-  if (query.status) filter.status = query.status
-  if (query.formId) filter.formId = query.formId
+  /**
+   * Wahi filter jo list pe lagta hai — date range, status, form aur search sab.
+   *
+   * Isiliye client ke liye niyam saada hai: **jo list me dikh raha hai, wahi CSV me aayega.**
+   */
+  const filter = enquiryFilter(query, siteId)
 
   const docs = await Enquiry.find(filter).sort({ createdAt: -1 }).limit(5000).lean()
   const forms = await Form.find(scope(siteId)).lean()

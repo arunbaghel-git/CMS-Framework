@@ -10,27 +10,22 @@ import './Enquiries.css'
 /**
  * Enquiry Detail — `admin-design-v2.html` ka `#s-enquiry-view` (client, 3 Sep).
  *
- * ## Design ke chaar panel me se do bane hain
+ * ## Sirf do cheezein — client ka faisla
  *
- * | Panel | Haalat |
+ * > _"inside enquiry detail there should be only status dropdown, i dont need quick actions,
+ * > Activity & Notes, Send Quotation — just show Enquiry Details data"_
+ *
+ * | Design me | Yahan |
  * | --- | --- |
  * | Enquiry Details | ✅ |
- * | Manage → sirf **Status** | ✅ (Priority · Assign · Follow-up ke field nahi hain) |
- * | Activity & Notes → sirf **Notes** | ✅ activity feed nahi — log Q-4 me deferred hai |
- * | Send Quotation | ❌ SMTP Phase 0 se blocked |
+ * | Manage | ✅ **sirf Status** — Priority · Assign · Follow-up ke field hi nahi hain |
+ * | Activity & Notes | ❌ client ne hata diya (notes ka field bhi gaya — migration 019) |
+ * | Send Quotation | ❌ SMTP Phase 0 se blocked, aur client ko chahiye bhi nahi |
+ * | Quick Actions | ❌ client ne hata diya |
  *
- * Jo nahi bana uska **khaali dabba bhi nahi dikhta** (D-30): adhoora control dikhana client
- * ko ye batana hai ki wo kaam karta hai.
- *
- * ## Quick Actions bina SMTP ke chalte hain
- *
- * Call · WhatsApp · Email teenon **link** hain (`tel:` · `wa.me` · `mailto:`) — bhejne ka
- * kaam browser aur client ka apna app karta hai, hum nahi. Isiliye ye SMTP pe rukey hue
- * nahi hain. `Generate PDF Itinerary` nahi hai, wo poora naya kaam hai.
+ * ⚠️ Quick Actions (Call · WhatsApp · Email) SMTP pe ruke **nahi** the — wo teen link the aur
+ * chalte the. Ye scope ka faisla hai, kisi rukawat ka nahi. Wapas chahiye to teen `<a>` hain.
  */
-
-/** `wa.me` sirf ank leta hai — `+91 98765 21430` waise bhejna link tod deta hai. */
-const digits = (value) => String(value ?? '').replace(/\D/g, '')
 
 export default function EnquiryDetail() {
   const { id } = useParams()
@@ -38,7 +33,6 @@ export default function EnquiryDetail() {
   const { enquiry, columns, loading, error, reload } = useEnquiry(id)
 
   const [status, setStatus] = useState('')
-  const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [saveError, setSaveError] = useState(null)
 
@@ -55,7 +49,6 @@ export default function EnquiryDetail() {
 
     try {
       await api.patch(`/enquiries/${id}`, patch)
-      setNote('')
       reload()
     } catch (err) {
       setSaveError(errorMessage(err))
@@ -99,9 +92,6 @@ export default function EnquiryDetail() {
   )
   const extras = Object.entries(enquiry.values ?? {}).filter(([key]) => !derivedKeys.has(key))
 
-  const email = at('email')
-  const phone = at('phone')
-
   return (
     <>
       <div className="page-head">
@@ -131,8 +121,8 @@ export default function EnquiryDetail() {
               <dl className="enq-fields">
                 {[
                   ['Name', at('name')],
-                  ['Email', email],
-                  ['Phone', phone],
+                  ['Email', at('email')],
+                  ['Phone', at('phone')],
                   ['Package', at('package')],
                   ['Travel Date', at('travelDate')],
                   ['Travellers', at('pax')],
@@ -160,46 +150,6 @@ export default function EnquiryDetail() {
                 Form: {enquiry.formName || '—'}
                 {enquiry.sourcePath ? ` · Submitted from ${enquiry.sourcePath}` : ''}
               </p>
-            </div>
-          </section>
-
-          <section className="panel">
-            <div className="panel-head">
-              <h2>Internal Notes</h2>
-            </div>
-            <div className="panel-body">
-              {(enquiry.notes ?? []).length === 0 && <p className="muted">No notes yet.</p>}
-
-              <ul className="enq-notes">
-                {(enquiry.notes ?? []).map((entry) => (
-                  <li key={entry.id}>
-                    <p>{entry.text}</p>
-                    <span className="muted">
-                      {entry.by || 'Unknown'} · {new Date(entry.at).toLocaleString()}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              {canEdit && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    if (note.trim()) save({ note: note.trim() })
-                  }}
-                >
-                  <textarea
-                    className="inp"
-                    rows={3}
-                    placeholder="Add an internal note…"
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                  />
-                  <button className="btn" type="submit" disabled={busy || !note.trim()}>
-                    Add Note
-                  </button>
-                </form>
-              )}
             </div>
           </section>
         </div>
@@ -238,35 +188,6 @@ export default function EnquiryDetail() {
               </div>
             </section>
           )}
-
-          <section className="panel">
-            <div className="panel-head">
-              <h2>Quick Actions</h2>
-            </div>
-            <div className="panel-body enq-actions">
-              {phone && (
-                <a className="btn btn-plain" href={`tel:${digits(phone)}`}>
-                  Call {phone}
-                </a>
-              )}
-              {phone && (
-                <a
-                  className="btn btn-plain"
-                  href={`https://wa.me/${digits(phone)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  WhatsApp
-                </a>
-              )}
-              {email && (
-                <a className="btn btn-plain" href={`mailto:${email}`}>
-                  Email
-                </a>
-              )}
-              {!phone && !email && <p className="muted">No contact details in this enquiry.</p>}
-            </div>
-          </section>
         </aside>
       </div>
     </>

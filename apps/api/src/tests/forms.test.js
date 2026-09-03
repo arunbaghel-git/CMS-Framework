@@ -458,23 +458,65 @@ describe('enquiries inbox', () => {
     expect(res.body.data.enquiries[0].values.fullName).toBe('Rahul Sethi')
   })
 
-  it('status badalta hai aur note judta hai — par values kabhi nahi badalte', async () => {
+  it('status badalta hai — par values kabhi nahi badalte', async () => {
     const form = await makeForm()
     await makeEnquiry(form, { fullName: 'Priya', email: 'priya@example.com' })
     const id = await firstEnquiryId()
 
     const res = await authed('patch', `/api/enquiries/${id}`, adminJar).send({
       status: 'contacted',
-      note: 'Called, asked for a 4-star quote',
     })
 
     expect(res.status).toBe(200)
     expect(res.body.data.enquiry.status).toBe('contacted')
-    expect(res.body.data.enquiry.notes).toHaveLength(1)
-    expect(res.body.data.enquiry.notes[0].text).toBe('Called, asked for a 4-star quote')
-    // Note ke saath likhne wale ka naam — "kisne kaha tha" baad me sabse zyada poochha jaata hai
-    expect(res.body.data.enquiry.notes[0].by).toBeTruthy()
     expect(res.body.data.enquiry.values.fullName).toBe('Priya')
+  })
+
+  it('status ke alawa kuch bhej hi nahi sakte — notes wala raasta band ho chuka hai', async () => {
+    /*
+     * Internal notes 3 Sep subah bane the aur usi din client ne wo panel hata diya. Schema
+     * `.strict()` hai, isliye `note` ab 400 deta hai — dead API chhupe rehne se behtar hai
+     * ki wo saaf mana kare.
+     */
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Priya', email: 'priya@example.com' })
+
+    const res = await authed('patch', `/api/enquiries/${await firstEnquiryId()}`, adminJar).send({
+      note: 'Called them',
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('date range se list chhanti hai, aur export wahi filter uthata hai', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Aaj Wali', email: 'aaj@example.com' })
+
+    // Ek purani enquiry — seedha DB me, taaki uski tareekh peeche ki ho
+    const old = await Enquiry.findOne({}).lean()
+    await Enquiry.create({
+      ...old,
+      _id: undefined,
+      values: { fullName: 'Purani Wali', email: 'purani@example.com' },
+      createdAt: new Date('2026-01-15T10:00:00.000Z'),
+    })
+
+    const jan = await authed('get', '/api/enquiries?from=2026-01-01&to=2026-01-31', adminJar)
+    expect(jan.body.data.enquiries).toHaveLength(1)
+    expect(jan.body.data.enquiries[0].values.fullName).toBe('Purani Wali')
+
+    /*
+     * ⚠️ `to` poore din ko pakadta hai. 15 Jan ki enquiry `to=2026-01-15` me aani chahiye —
+     * bina us +1 din ke wo chhoot jaati, aur wo galti chup hoti: filter chalta hua dikhta
+     * par us din ka data gayab.
+     */
+    const sameDay = await authed('get', '/api/enquiries?from=2026-01-15&to=2026-01-15', adminJar)
+    expect(sameDay.body.data.enquiries).toHaveLength(1)
+
+    // Export bhi wahi filter uthata hai — "jo list me dikh raha hai wahi CSV me"
+    const csv = await authed('get', '/api/enquiries/export?from=2026-01-01&to=2026-01-31', adminJar)
+    expect(csv.text).toContain('Purani Wali')
+    expect(csv.text).not.toContain('Aaj Wali')
   })
 
   it('values seedha update nahi ho sakte — schema strict hai', async () => {

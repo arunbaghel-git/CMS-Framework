@@ -94,24 +94,14 @@ const enquirySchema = new mongoose.Schema(
     status: { type: String, enum: ENQUIRY_STATUSES, default: 'new' },
 
     /**
-     * Internal notes — sirf admin ke liye, grahak ko kabhi nahi dikhte.
+     * ⚠️ Yahan `notes[]` tha (3 Sep subah) — internal notes ka panel. Client ne usi din wo
+     * panel hata diya, aur field bhi hatane ko kaha. Migration **019** use purane documents
+     * se `$unset` karti hai.
      *
-     * Ye design ka "Activity & Notes" panel **aadha** hai: notes yahan hain, activity feed
-     * nahi. Activity log Q-4 me deferred hai, to uska koi data source hi nahi — aur khaali
-     * feed dikhane se behtar hai wo panel na dikhana (D-30).
+     * Ye D-54 (`availability`) se ulta faisla hai — wahan field Mongo me chhod diya gaya tha.
+     * Farak ye hai ki wahan wo **apply ho chuki migration** ka hissa tha aur data me baith
+     * chuka tha; yahan notes kabhi kisi ne likhe hi nahi the.
      */
-    notes: {
-      type: [
-        {
-          _id: false,
-          id: { type: String, required: true },
-          text: { type: String, required: true },
-          by: { type: String, default: '' },
-          at: { type: Date, default: Date.now },
-        },
-      ],
-      default: () => [],
-    },
 
     /** Delete = trash (R12). Permanent delete ka koi raasta abhi nahi hai. */
     deletedAt: { type: Date, default: null },
