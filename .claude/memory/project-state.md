@@ -1,13 +1,131 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 1 Sep 2026, raat — 11 commit, saara kaam land ho chuka
+> **Last updated:** 2 Sep 2026, raat — 30 commit, sab push ho chuka (`origin/main` = `f0b7964`)
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (2 Sep)
+## ⏭️ Nayi session yahan se shuru kare (3 Sep)
 
-**Aaj kya hua:** client ne ek 15-item list di (7 public site + 6 admin + reviews + similar +
+**2 Sep me kya hua:** **30 commit**, teen dhaare me — enquiry form ko _sach me_ chalana,
+mobile/responsive pass, aur **A-16 ka fix**. **624 tests pass** (26 file), lint aur format
+clean. Sab **push ho chuka** — `origin/main` = `f0b7964`.
+
+⚠️ **Koi nayi migration nahi judi.** 17/17 applied, `pending: 0` — is baar `pnpm cms migrate`
+chalane ki zaroorat **nahi** hai (pichli baar thi, isliye likha ja raha hai).
+
+### Pehle ye do
+
+**`docker compose up -d mongo` aur `pnpm dev`** — teenon apps. Bas itna hi; migration wala
+kadam is baar nahi hai.
+
+### ✅ A-16 band — `pnpm test` ab uploads ko haath nahi lagata
+
+2 Sep ka sabse zaroori fix, aur **wajah `media.test.js` se badi nikli**. `vitest.config.js`
+har test ke liye `UPLOAD_DIR: './uploads'` set karti thi — yaani test me chalne wali **app
+bhi dev ke asli folder me likhti thi** — aur `media.test.js` usi folder ko har test se pehle
+`rm -r` kar deta tha. **Sirf test ka path badalna aadha fix hota**, app phir bhi wahin likhti.
+
+| Kya laga           |                                                                                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------- |
+| `vitest.config.js` | `UPLOAD_DIR` ab `./.test-uploads-media`                                                            |
+| `media.test.js`    | `UPLOAD_ROOT` ab `getStorageDriver().root` se — hardcoded nahi, to drift ho hi nahi sakta          |
+| Guard              | root `.test-` se shuru na ho to file **chalne se pehle** throw karti hai — data mitne ke baad nahi |
+| Safai              | `afterAll` cleanup + `.gitignore` me `.test-uploads*/`                                             |
+
+**Client ke asli data pe verify kiya:** unhone 7 images upload ki (21 file), poori suite
+chalayi, phir **md5 checksum** milaya — **0 deleted, 0 changed**. Beech me upload hui 4 aur
+images bhi bach gayi.
+
+⚠️ **Ek hissa jaan-boojh kar nahi kiya:** `UPLOAD_DIR` repo ke bahar le jaana. Client ne
+poochha _"why you are suggesting to create new folder?"_ aur baat sahi thi — wo suggestion
+purani A-16 entry se bina jaanche uthaya gaya tha. Jaanchne pe pata chala ki `git clean` is
+repo ki **kisi script/CI me hai hi nahi**, wo sirf manually chalayi jaane wali command hai.
+Isliye wo kaam ab **optional** hai, blocker nahi.
+👉 `09-OPEN-ITEMS.md` me use "optional" mark karna abhi **baaki** hai — client ne haan/na
+nahi kaha.
+
+### 2 Sep ka baaki kaam — do dhaare
+
+#### 1 · Enquiry form ab sach me chalta hai (8 commit)
+
+1 Sep ko form **ban** gaya tha par submit hi nahi hota tha. Do alag jad thi:
+
+- **`credentials` `fetch` me likha hi nahi tha.** `fetch` ka default `omit` nahi,
+  **`same-origin`** hai. To logged-in admin ke browser se CSRF cookie chali jaati thi aur API
+  header maangti thi → _"CSRF token did not match"_. Ab `credentials: 'omit'`.
+  ⚠️ Ye **sirf admin ke apne browser me** dikhta tha (cookie port se bandhi nahi hoti), asli
+  visitor ke liye form chalta rehta — aur test se pakdi hi nahi ja sakti thi. Wahi
+  delivery-layer wala sabak (D-42 §2).
+- **`sourcePage` har submit ke saath jaata tha, chahe form me wo field ho ya na ho.** Client
+  ne wo field hata di aur har submission ruk gayi. Server ka check theek hai aur rehna chahiye
+  (R9) — galti bhejne wale ki thi. Aakhir me `sourcePath` **payload ka apna khaana** ban gaya
+  (`submitEnquirySchema`): ab wo **hamesha** jaata hai, form ke fields se juda hua nahi.
+
+Saath me: submit ke baad form gayab nahi hota (sirf button badalta hai, 6s baad apne aap
+wapas), fields khaali ho jaate hain, thank-you message jaisa ka waisa jaata hai, enquiry dev
+ke terminal me log hoti hai, aur travel-date pe **poora box** click karne laayak hai.
+`hotelCategory` ab `Add a field` ke dropdown me hai.
+
+#### 2 · Mobile / responsive pass (16 commit)
+
+Client phone pe chala kar batata gaya: 1080px se neeche daam ki do line, route strip ka wrap,
+gallery popup (buttons image ke saath · backdrop · SVG teer · counter), similar cards
+(`Best for` line · rating · margin · tablet pe do, phone pe ek), din ke dono tag ek bracket
+me. Do bade kaam:
+
+**Mobile ki sticky patti (`.mobar`)** — Call · WhatsApp · Get free quote, 760px se neeche. Wo
+reference me hamesha thi par **kabhi banayi hi nahi gayi**: `.mobar`/`.float`/`.sidetab` site
+ka global chrome hain, package page ke section nahi — isliye kisi slice ki list me aaye hi
+nahi. Uske saath enquiry form mobile pe ek **sheet** ban gaya, aur wo **wahi ek DOM node** hai
+jo desktop pe sidebar me baithta hai (do copies = do alag form state).
+
+**Sidebar sach me sticky ho gayi** — `position: sticky` ke saath reference ka JS bhi chahiye
+tha (`StickySide.jsx`), warna lambi sidebar ka aakhir kabhi dikhta hi nahi tha. Aur buttons ki
+height ab `min-height` se hai, padding se nahi (padding se banane ka matlab tha wo teen
+cheezon ka jod hai — usi din `line-height: 1.55` lagate hi saare button lambe ho gaye the).
+
+### ⚠️ Do cheezein jo maloom hain aur chuni hui hain
+
+1. **Mobile pe email ka koi option nahi bachta** — wo sirf "Talk to a planner" me tha, jo
+   patti ke aane se chhup jaata hai. Client: _"no email, only mobile and whatsapp"_.
+2. **D-67 wala CTA button mobile pe kahin nahi le jaata** — wo `#enquiry` pe jaata hai, aur
+   mobile pe wo form chhupa hua hai. Client ne us din ke liye chhod diya.
+
+### Khule items — ginti ke hisaab se
+
+| #                          | Kya                                                                              | Andaza     |
+| -------------------------- | -------------------------------------------------------------------------------- | ---------- |
+| **A-12**                   | CI green ho hi nahi sakti — ubuntu pe na Mongo hai na API. **Har commit pe red** | aadha din  |
+| **A-14**                   | `What's Included` bhi apne tab me jaana chahiye                                  | 1-2 ghante |
+| **A-15**                   | Design-check ki dono script me blind spot                                        | 2-3 ghante |
+| **Enquiries inbox**        | All Enquiries · Detail · Export CSV — data bhar raha hai, screen nahi hai        | 1-2 din    |
+| **Q-9**                    | Chhoti inline lines — `TAB_NOTE` (Andaman-specific), catbar ki line              | client     |
+| **A-9**                    | Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe                          | —          |
+| **A-16 ka optional hissa** | `UPLOAD_DIR` repo ke bahar — ab blocker nahi                                     | client     |
+
+⚠️ **A-12 ab pehle se zyada chubhti hai** — 2 Sep ko 30 commit push hue, aur CI un sab pe red
+aayegi. Wo red **environment** ki wajah se hai, code ki nahi (local pe 624 test green the).
+
+### 2 Sep ke teen sabak
+
+**Jawab na aana "na" nahi hota.** `hotelCategory` wala gap maine khud dekha, khud poochha, aur
+jawab na aane pe chhod diya. Client ne usi din wo field `Package` se bana li — aur usme
+packages aane lage. Poochh kar **rukna** aur poochh kar **chhod dena** do alag cheezein hain.
+
+**Base badlo to dekho uspe kaun khada hai.** `.btn` ka base bada karne se header ke buttons
+bhi bade ho gaye, jo client ne maanga hi nahi tha — _"header ka style kyu change kiya kal, i
+didnt ask for that"_. Reference me do class thi (`b` aur `b-s`), hamare paas ek hi.
+
+**Purani doc ki baat bhi jaanch kar hi aage badhao.** A-16 ka "UPLOAD_DIR bahar le jao" wala
+kaam maine bina sawaal kiye aage badha diya kyunki wo doc me likha tha. Client ne poochha
+"kyun?" — aur jaanchne pe wo zaroori nikla hi nahi.
+
+---
+
+## 1 Sep ka handoff (itihaas)
+
+**Us din kya hua:** client ne ek 15-item list di (7 public site + 6 admin + reviews + similar +
 enquiry forms). **Poori list ban gayi**, aur uske baad client ne live chala kar chaar aur
 baatein kahin. Kul **11 commit**. 619 tests pass, lint aur format clean, admin build green.
 
@@ -23,7 +141,10 @@ baatein kahin. Kul **11 commit**. 619 tests pass, lint aur format clean, admin b
    panel bina maange bana diya tha. Hata diya; unhone jo maanga tha (type dropdown me
    `Package`) wahi bana
 
-### Pehle ye do, warna waqt zaya hoga
+### ~~Pehle ye do, warna waqt zaya hoga~~ → ✅ **ho chuka**
+
+> Migration 016 aur 017 **1 Sep ko hi apply ho gayi thi** (17/17, `pending: 0`). Ye kadam
+> ab dobara nahi karna — upar 3 Sep wale section me current haalat likhi hai.
 
 1. **`docker compose up -d mongo` aur `pnpm dev`** — teenon apps. `/api/health` pe
    `migrations.pending: 0` dikhna chahiye. Aaj **do nayi migration** judi hain (016 · 017),
@@ -33,7 +154,11 @@ baatein kahin. Kul **11 commit**. 619 tests pass, lint aur format clean, admin b
    nahi** (migration 004 applied ho chuki hai, to naye permission ka koi aur raasta nahi).
    Ye failure chup hai — koi error nahi aata, bas item gayab rehta hai.
 
-### ⏳ Ek sawaal jiska jawab nahi aaya
+### ~~⏳ Ek sawaal jiska jawab nahi aaya~~ → ✅ **2 Sep ko band** (`41e61f5`)
+
+> Jawab kabhi nahi aaya, aur **chhod dena hi galti thi** — client ne us beech wo field
+> `Package` se bana li aur usme packages aane lage. Ab `Hotel category` dropdown me hai
+> (`source: 'categories'`). Neeche wala text us waqt ka hai.
 
 **`Hotel category` unke form me nahi hai** (wo field baad me juda, aur purane form naye
 default nahi uthate). Maine poochha tha ki use bhi `Add a field` ke dropdown me daal doon
