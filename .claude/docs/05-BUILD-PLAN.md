@@ -232,13 +232,6 @@ ko ek `richText` block ke andar. Phase 5 me migration nahi likhni padegi.
 - Folders, rename, media trash (`deletedAt`), bulk select
 - **`mediaRefs` backlink index** — save pe refs likho; `GET /media/:id/usage` isi se;
   references hone pe delete block
-> ✅ **3 Sep (D-78)** — admin grid, drag-drop upload, alt/title/caption edit, search aur
-> media trash ban gaye. Bacha hua: folders, `mediaRefs` backlink, crop/rotate, replace file.
-
-> ✅ **3 Sep (D-78)** — admin grid, drag-drop upload, alt/title/caption edit, search,
-> media trash aur **MediaPicker** ban gaye. Bacha hua: folders · `mediaRefs` backlink
-> (aur uspe tikey `Attached/Unattached` filter + delete-guard) · crop/rotate · replace file.
-
 - **Image crop / rotate / scale** admin me
 - **Replace file** — swap ho, URL aur references same rahein
 - Admin grid: drag-drop upload, alt/title/caption edit, search
@@ -247,6 +240,34 @@ ko ek `richText` block ke andar. Phase 5 me migration nahi likhni padegi.
 
 **Done kab:** 50 images upload, folder me organize, alt set, editor se pick, aur
 "ye image kahan-kahan use ho rahi hai" ka jawab mile.
+
+### Haalat — 3 Sep (D-41 + D-78)
+
+| Item | |
+| --- | --- |
+| Upload API + variants (300/800/1600 webp) | ✅ D-41 |
+| Storage adapter (`local` / `s3`) | ✅ D-41 |
+| Upload hardening (magic-byte · size cap · filename sanitize) | ✅ D-41 |
+| SVG policy | ✅ D-41 — block |
+| Media trash (`deletedAt`) | ✅ D-78 |
+| Admin grid + drag-drop upload + alt/title/caption + search + filters | ✅ D-78 |
+| `<MediaPicker />` | ✅ D-78 — paanch jagah laga (Settings ×2, Footer, package banner, destination banner) |
+| **Folders** | ❌ — `folderId` field aur uska filter maujood hain, par banane/chunne ki UI nahi |
+| **Rename** | ❌ |
+| **Bulk select** | ❌ |
+| **`mediaRefs` backlink** + `GET /media/:id/usage` + delete-guard | ❌ — **sabse bada bacha hua item** |
+| **Crop / rotate / scale** | ❌ |
+| **Replace file** | ❌ |
+| Featured image **entry pe** wire | 🟡 package ka banner ✅; Pages/Posts ki screens hi nahi bani (**A-9**) |
+
+**Done-criteria ke hisaab se: paanch me se do poore.** `folder me organize` aur `ye image
+kahan-kahan use ho rahi hai` — dono baaki hain; `editor se pick` aadha hai (picker chalta hai,
+par editor me image insert TinyMCE ke saath aayega — **D-77**).
+
+⚠️ **`mediaRefs` ka na hona sirf ek filter nahi rokta.** Uspe teen cheezein tiki hain:
+`Attached`/`Unattached` filter, `GET /media/:id/usage`, aur **delete-guard**. Aaj delete pe
+koi rok nahi hai — 3 Sep ko 183 orphan records mitane se pehle reference haath se scan karne
+pade the, aur wo scan har baar dobara likhna padega.
 
 **Rule:** original file kabhi serve mat karo, URL hamesha variant ka (SVG exception).
 
