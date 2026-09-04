@@ -12,12 +12,44 @@
 const API_BASE = process.env.API_URL ?? 'http://localhost:4000'
 
 /**
+ * Cache ki umr — **tags ke saath, unki jagah nahi** (D-83).
+ *
+ * Asli invalidation `tags` se hoti hai aur wo turant hai: admin me kuch badalta hai, API
+ * `POST /api/revalidate` maarti hai, aur wahi tag saaf ho jaata hai. Ye number us par bharosa
+ * **nahi** karta — wo call jaan-boojh kar fail-soft hai (`core/revalidate.js` girne pe sirf
+ * `logger.warn` karta hai, publish nahi rokta).
+ *
+ * Bina is number ke ek chhooti hui revalidate call ka matlab hota ki wo page **hamesha ke
+ * liye** purana reh jaaye — aur wo failure poori tarah chup hoti: admin me naya content dikhta
+ * hai, site pe purana, aur kahin koi error nahi.
+ *
+ * Ek ghanta isliye ki wo dono taraf sasta hai: normal haalat me tag pehle hi saaf kar chuka
+ * hota hai (yaani ye kabhi lagta hi nahi), aur webhook toota ho to nuksaan ek ghante tak seemit
+ * rehta hai.
+ */
+const CACHE_SECONDS = 3600
+
+/**
  * @param {string} path `/public/...` se shuru
  * @param {string[]} tags is response ke cache tags
  */
 async function getJson(path, tags) {
   try {
-    const res = await fetch(`${API_BASE}/api${path}`, { next: { tags } })
+    /**
+     * ⚠️ **`revalidate` ke bina ye poora cache system chalta hi nahi tha.**
+     *
+     * Next **15** me `fetch` ka default `no-store` hai (14 me `force-cache` tha). Yahan sirf
+     * `{ next: { tags } }` likha tha — aur wo akela **cache karta hi nahi**, wo sirf tag
+     * chipkaata hai. Nateeja: har page load pe chaaron call API tak jaati thi, har baar.
+     *
+     * Aur ye failure sabse chup thi: `revalidate` ka poora dhaancha bana hua tha — route,
+     * `tagsFor()`, `path:` tag (D-52), path badalne pe purane tag ka bhejna — sab. Bas jo
+     * cheez cache hi nahi hui, use invalidate karne ka koi matlab nahi tha. D-14 kaagaz pe
+     * likha raha aur ek din bhi chala nahi.
+     */
+    const res = await fetch(`${API_BASE}/api${path}`, {
+      next: { tags, revalidate: CACHE_SECONDS },
+    })
     if (!res.ok) return null
 
     const body = await res.json()

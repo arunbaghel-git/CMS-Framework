@@ -12,7 +12,7 @@
 
 /* Sheet ka URL lamba hota hai — table ko chaudai me phaila na de */
 .bu-url {
-  max-width: 340px;
+  max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
