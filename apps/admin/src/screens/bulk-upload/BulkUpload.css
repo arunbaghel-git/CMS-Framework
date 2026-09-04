@@ -60,7 +60,76 @@
   color: var(--danger, #b32d2e);
 }
 
-/* Dono mode ek line me — beech me thodi jagah taaki wo do alag chunav lagein */
-.bu-mode {
-  margin-left: 18px;
+/*
+ * Failed ki ginti pe hover — wajah ka popup (client, 4 Sep).
+ *
+ * ⚠️ Ye `admin-design-v2.html` me nahi hai (wo screen hi usme nahi hai). Isliye shakl nayi nahi
+ * gadhi gayi — rang, border aur shadow wahi hain jo `.panel` aur `.notice` pe pehle se hain.
+ */
+.bu-fail {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  /* Number ke neeche halki lakeer — warna pata hi nahi chalta ki yahan kuch hai */
+  border-bottom: 1px dotted var(--danger, #b32d2e);
+  color: var(--danger, #b32d2e);
+}
+
+.bu-pop {
+  display: none;
+  position: absolute;
+  /*
+   * Daayein se khulta hai aur **neeche** ki taraf.
+   *
+   * Failed column table ke daayein kinare ke paas hai; baayein se kholne pe popup screen ke
+   * bahar chala jaata. Neeche isliye ki upar kholne pe pehli row ka popup column headers ko
+   * dhak leta — aur pehli row hi sabse naya import hai, yaani wahi sabse zyada dekha jaata hai.
+   */
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+
+  width: max-content;
+  max-width: 340px;
+  padding: 8px 10px;
+  border: 1px solid var(--line, #dcdcde);
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+
+  color: var(--text, #1d2327);
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 400;
+  white-space: normal;
+  text-align: left;
+}
+
+/* Ek se zyada wajah ho to har ek apni line pe */
+.bu-pop > span {
+  display: block;
+}
+
+.bu-pop > span + span {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line, #dcdcde);
+}
+
+/* `:focus-within` keyboard ke liye — hover akela mouse walon tak seemit rakhta hai */
+.bu-fail:hover .bu-pop,
+.bu-fail:focus-within .bu-pop {
+  display: block;
+}
+
+/*
+ * ⚠️ **Sirf is table pe `overflow` khula hai, aur wo zaroori hai.**
+ *
+ * `table.list` pe `overflow: hidden` hai (rounded corners ke liye), aur wo popup ko table ke
+ * kinare pe **kaat deta** hai — `z-index` se wo nahi bachta, kyunki clipping alag cheez hai.
+ * `primitives.css` badalna har list screen ko chhoo leta, isliye rok yahin hai: ek class pe,
+ * sirf isi table ke liye.
+ */
+.bu-runs {
+  overflow: visible;
 }

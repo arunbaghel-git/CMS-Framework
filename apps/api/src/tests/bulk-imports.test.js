@@ -678,3 +678,49 @@ describe('Past imports — sirf 20 bachte hain (client, 4 Sep)', () => {
     expect(await ImportRun.findById(running._id).lean()).toBeTruthy()
   })
 })
+
+describe('Past imports me fail hone ki wajah (client, 4 Sep)', () => {
+  /**
+   * List payload rows nahi bhejti (20 run x 20 row ka payload bina wajah bhaari hai), par
+   * Failed ke saamne sirf ek number rehne se client ko har run kholna padta tha. Isliye sirf
+   * wajah jaati hai — alag-alag, aur zyada se zyada paanch.
+   */
+  it('list me failedReasons aati hain, par rows nahi', async () => {
+    await runImport({ A: goodDoc('Reason Test', 'reason-test') })
+    await runImport({ A: goodDoc('Reason Test', 'reason-test') })
+
+    const res = await authed('get', '/api/bulk-imports', adminJar)
+    const latest = res.body.data.runs[0]
+
+    expect(latest.rows).toEqual([])
+    expect(latest.counts.failed).toBe(1)
+    expect(latest.failedReasons).toHaveLength(1)
+    expect(latest.failedReasons[0]).toContain('already exists')
+  })
+
+  it('ek hi wajah se kai row fail hon to wo ek hi baar aati hai', async () => {
+    // Client ko das baar wahi vaakya padhna nahi chahiye
+    const docs = {
+      A: goodDoc('Dup One', 'dup-one'),
+      B: goodDoc('Dup Two', 'dup-two'),
+    }
+
+    await runImport(docs)
+    await runImport(docs)
+
+    const res = await authed('get', '/api/bulk-imports', adminJar)
+    const latest = res.body.data.runs[0]
+
+    expect(latest.counts.failed).toBe(2)
+    /** Dono ka message alag hai (alag slug), to do — par dedupe chalti hai */
+    expect(new Set(latest.failedReasons).size).toBe(latest.failedReasons.length)
+  })
+
+  it('kuch fail na ho to list khaali rehti hai', async () => {
+    await runImport({ A: goodDoc('All Fine', 'all-fine') })
+
+    const res = await authed('get', '/api/bulk-imports', adminJar)
+
+    expect(res.body.data.runs[0].failedReasons).toEqual([])
+  })
+})

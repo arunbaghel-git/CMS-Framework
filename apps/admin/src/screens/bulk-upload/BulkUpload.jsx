@@ -148,7 +148,7 @@ export default function BulkUpload() {
         </p>
       )}
 
-      <table className="list">
+      <table className="list bu-runs">
         <thead>
           <tr>
             <th>When</th>
@@ -190,7 +190,9 @@ export default function BulkUpload() {
               <td>{run.counts.updated}</td>
               <td>{run.counts.published}</td>
               <td>{run.counts.draft}</td>
-              <td>{run.counts.failed}</td>
+              <td>
+                <FailedCount run={run} />
+              </td>
               <td>
                 <RunBadge status={run.status} />
               </td>
@@ -199,6 +201,37 @@ export default function BulkUpload() {
         </tbody>
       </table>
     </>
+  )
+}
+
+/**
+ * Failed ki ginti, aur hover pe uski wajah (client, 4 Sep).
+ *
+ * Pehle yahan sirf ek number tha. Wajah dekhne ke liye client ko har run kholna padta tha —
+ * jabki aam sawaal ("kyun fail hua?") uske saamne hi hona chahiye.
+ *
+ * ⚠️ **Popup `<td>` ke andar `position: absolute` hai, aur wo jaan-boojh kar hai.** Ek asli
+ * tooltip library ya portal ka matlab hota ek nayi dependency ya `document.body` me render — do
+ * cheezein jo ek hover text ke liye bhaari hain. Uski keemat ye hai ki popup table ke andar hi
+ * rehta hai, isliye CSS use **daayein se** khol kar upar rakhti hai taaki wo kate nahi.
+ *
+ * ⚠️ `title` yahan **nahi** hai. Dono saath hone pe browser apna tooltip bhi kholta hai aur wo
+ * hamare popup ke upar baith jaata hai — do box, ek hi baat.
+ */
+function FailedCount({ run }) {
+  const reasons = run.failedReasons ?? []
+
+  if (!run.counts.failed || reasons.length === 0) return run.counts.failed
+
+  return (
+    <span className="bu-fail" tabIndex={0}>
+      {run.counts.failed}
+      <span className="bu-pop" role="tooltip">
+        {reasons.map((reason) => (
+          <span key={reason}>{reason}</span>
+        ))}
+      </span>
+    </span>
   )
 }
 

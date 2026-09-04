@@ -628,6 +628,21 @@ const countsOf = (rows) => {
   return counts
 }
 
+/** Ek run me fail hone ki alag-alag wajah — Past imports ke hover ke liye. */
+const MAX_REASONS = 5
+
+function failedReasonsOf(rows = []) {
+  const seen = []
+
+  for (const row of rows) {
+    if (row.status !== IMPORT_ROW_STATUS.FAILED || !row.error) continue
+    if (!seen.includes(row.error)) seen.push(row.error)
+    if (seen.length === MAX_REASONS) break
+  }
+
+  return seen
+}
+
 export async function listImportRuns(query, siteId = DEFAULT_SITE_ID) {
   const { page, limit } = query
   const filter = { siteId }
@@ -643,7 +658,21 @@ export async function listImportRuns(query, siteId = DEFAULT_SITE_ID) {
 
   /** List pe rows nahi jaati — 20 run × 20 row ka payload bina wajah bhaari hai. */
   return {
-    runs: docs.map((run) => ({ ...toApi(run), rows: [] })),
+    /**
+     * ⚠️ **`rows` list me nahi jaati, par fail hone ki wajah jaati hai.**
+     *
+     * Rows isliye giraayi jaati hain ki 20 run × 20 row × unke issues ka payload bina wajah
+     * bhaari hai — us screen pe koi row dikhti hi nahi. Par phir `Failed` ke saamne sirf ek
+     * number rehta tha aur client ko wajah dekhne ke liye har run kholna padta.
+     *
+     * Isliye sirf **wajah** jaati hai: alag-alag, aur zyada se zyada paanch. Ek hi wajah se das
+     * row fail hon to wo ek hi line hai — client ko das baar wahi vaakya padhna nahi chahiye.
+     */
+    runs: docs.map((run) => ({
+      ...toApi(run),
+      rows: [],
+      failedReasons: failedReasonsOf(run.rows),
+    })),
     meta: { page, limit, total },
   }
 }
