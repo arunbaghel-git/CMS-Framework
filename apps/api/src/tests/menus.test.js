@@ -709,6 +709,80 @@ describe('footer columns (D-44)', () => {
     expect((await publicSettings()).footerLogo).toBeNull()
   })
 
+  it('image ke saath uske saare variant srcset me jaate hain', async () => {
+    const admin = await User.findOne({ email: 'admin@test.com' }).lean()
+    const media = await Media.create({
+      siteId: 'default',
+      uploadedBy: admin._id,
+      filename: 'logo.png',
+      mime: 'image/png',
+      size: 100,
+      width: 1600,
+      height: 480,
+      variants: [
+        { key: 'thumb', url: '/uploads/logo-thumb.webp', w: 300, h: 90 },
+        { key: 'medium', url: '/uploads/logo-medium.webp', w: 800, h: 240 },
+        { key: 'large', url: '/uploads/logo-large.webp', w: 1600, h: 480 },
+      ],
+    })
+
+    await authed('patch', '/api/settings', adminJar).send({ logoMediaId: String(media._id) })
+
+    const { logo } = await publicSettings()
+
+    // `src` abhi bhi preferred variant hi hai — srcset uske upar hai, uski jagah nahi
+    expect(logo.url).toBe('/uploads/logo-medium.webp')
+    expect(logo.srcset).toBe(
+      '/uploads/logo-thumb.webp 300w, /uploads/logo-medium.webp 800w, /uploads/logo-large.webp 1600w',
+    )
+  })
+
+  /**
+   * `withoutEnlargement: true` ki wajah se chhoti original pe do variant ek hi chaudai ke
+   * bante hain. Us haalat me srcset me ek hi width do baar jaana bemaani hai.
+   */
+  it('ek hi chaudai ke do variant srcset me ek hi baar jaate hain', async () => {
+    const admin = await User.findOne({ email: 'admin@test.com' }).lean()
+    const media = await Media.create({
+      siteId: 'default',
+      uploadedBy: admin._id,
+      filename: 'small.png',
+      mime: 'image/png',
+      size: 100,
+      width: 500,
+      height: 150,
+      variants: [
+        { key: 'thumb', url: '/uploads/small-thumb.webp', w: 300, h: 90 },
+        { key: 'medium', url: '/uploads/small-medium.webp', w: 500, h: 150 },
+        { key: 'large', url: '/uploads/small-large.webp', w: 500, h: 150 },
+      ],
+    })
+
+    await authed('patch', '/api/settings', adminJar).send({ logoMediaId: String(media._id) })
+
+    expect((await publicSettings()).logo.srcset).toBe(
+      '/uploads/small-thumb.webp 300w, /uploads/small-medium.webp 500w',
+    )
+  })
+
+  it('ek hi variant ho to srcset null rehta hai — wo `src` se alag kuch kehta hi nahi', async () => {
+    const admin = await User.findOne({ email: 'admin@test.com' }).lean()
+    const media = await Media.create({
+      siteId: 'default',
+      uploadedBy: admin._id,
+      filename: 'one.png',
+      mime: 'image/png',
+      size: 100,
+      width: 400,
+      height: 120,
+      variants: [{ key: 'medium', url: '/uploads/one-medium.webp', w: 400, h: 120 }],
+    })
+
+    await authed('patch', '/api/settings', adminJar).send({ logoMediaId: String(media._id) })
+
+    expect((await publicSettings()).logo.srcset).toBeNull()
+  })
+
   it('bottom bar ka note aur disclaimer public payload me jaate hain', async () => {
     await authed('patch', '/api/settings', adminJar).send({
       footerNote: 'Member IATO, TAAI',

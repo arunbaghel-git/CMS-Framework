@@ -82,12 +82,32 @@ export function createApp() {
       )
     }
 
+    /**
+     * **Media ek saal ke liye `immutable` hai — aur ye URL ke shape ki wajah se surakshit hai.**
+     *
+     * `express.static` ka default `max-age=0` hai, yaani browser har page load pe har image
+     * ke liye ek revalidation round trip maarta hai (`304`, par phir bhi network). Client ke
+     * package page pe 12 image hain — wo 12 round trip har visit pe, har visitor ke liye.
+     *
+     * `immutable` tabhi likha ja sakta hai jab us URL ka jawab **kabhi** na badle. Yahan wo
+     * shart poori hoti hai kyunki path me media ki apni id aur variant ka naam dono hain
+     * (`.../media/2026/09/<mediaId>/large.webp` — `buildMediaVariantKey`). Nayi file =
+     * nayi media = nayi id = naya URL. Purani file jagah pe overwrite hoti hi nahi.
+     *
+     * ⚠️ **Jis din "replace file" banega, ye line galat ho jaayegi** (D-79 me wo aaj scope
+     * se bahar hai). Us din do me se ek karna hoga: ya to replace naya `_id` de, ya URL me
+     * ek content hash jude. Bina uske browser purani image saal bhar dikhata rahega aur
+     * uska koi ilaaj server ke paas nahi hoga — `immutable` ka matlab hi yahi hai ki browser
+     * poochhta tak nahi.
+     */
     app.use(
       '/uploads',
       express.static(storage.root, {
         dotfiles: 'deny',
         fallthrough: true,
         index: false,
+        maxAge: '365d',
+        immutable: true,
       }),
     )
   }

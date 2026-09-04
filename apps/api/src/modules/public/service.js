@@ -73,7 +73,42 @@ export async function toDisplayImage(
     width: variant.w ?? media.width ?? null,
     height: variant.h ?? media.height ?? null,
     alt: media.alt || '',
+    srcset: toSrcset(media.variants),
   }
+}
+
+/**
+ * `srcset` — **teenon variant ek hi string me**, theme ke liye ready.
+ *
+ * Yahan tak `url` ek hi variant ki jaati thi, aur wo har jagah ek jaisi thi: phone pe bhi
+ * 800px wali `medium`, jabki similar card ka slot 150px ka hai. Browser ko chunne ka mauka
+ * hi nahi mila tha — aur chunna wahi sabse achha kar sakta hai, kyunki DPR aur asli layout
+ * width sirf usi ko pata hai.
+ *
+ * String yahan (server pe) banti hai, theme me nahi. Wajah wahi hai jo `toSectionLabels()`
+ * (D-65) pe thi: variant ka URL kaise banta hai ye media module ka bhed hai, aur theme ko wo
+ * jodna sikhaane ka matlab hota ki kal variant ka naam badle to do repo badalne padein.
+ *
+ * ⚠️ **Width se dedupe zaroori hai.** `generateWebpVariants` me `withoutEnlargement: true`
+ * hai — yaani 500px chaudi original pe `medium` aur `large` **dono** 500px bante hain. Bina
+ * dedupe ke `srcset` me ek hi width do baar jaati, jo galat to nahi par bemaani hai.
+ *
+ * @param {{ url?: string, w?: number }[]} variants
+ * @returns {string | null} `null` jab jodne laayak ek se kam variant ho
+ */
+function toSrcset(variants) {
+  const seen = new Set()
+  const parts = []
+
+  for (const v of variants ?? []) {
+    if (!v?.url || !v?.w || seen.has(v.w)) continue
+
+    seen.add(v.w)
+    parts.push(`${v.url} ${v.w}w`)
+  }
+
+  // Ek hi variant pe `srcset` dena bekaar hai — `src` wahi kaam kar deta hai
+  return parts.length > 1 ? parts.join(', ') : null
 }
 
 /**
