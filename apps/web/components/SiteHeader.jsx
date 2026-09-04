@@ -1,6 +1,7 @@
 import { HEADER_MENU_LOCATION_ID } from '@cms/shared'
 
 import Icon from './Icon.jsx'
+import Img from './Img.jsx'
 import { getMenu, getSettings } from '../lib/cms.js'
 import MobileNav from './MobileNav.jsx'
 
@@ -178,12 +179,20 @@ export default async function SiteHeader() {
            * badlegi; menu ya settings ka data bilkul nahi.
            */}
           {settings?.logo ? (
-            <img
+            /*
+             * `eager` — logo screen pe pehle se hota hai, isliye lazy usko sirf der karta.
+             * `priority` nahi: hero ki jagah logo ko aage bhejne ka koi matlab nahi.
+             *
+             * `sizes` 200px isliye ki `.brand__img` ki height 42px (mobile pe 34px) pin hai
+             * aur width `auto` — yaani sabse chauda logo bhi ~250px se aage nahi jaata.
+             * Browser is hint pe `thumb` (300w) uthata hai, `medium` (800w) nahi.
+             */
+            <Img
               className="brand__img"
-              src={settings.logo.url}
-              alt={settings.logo.alt || settings.siteName || ''}
-              width={settings.logo.width ?? undefined}
-              height={settings.logo.height ?? undefined}
+              image={settings.logo}
+              alt={settings.siteName || ''}
+              sizes="200px"
+              eager
             />
           ) : null}
         </a>

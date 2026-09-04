@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { telHref } from '../lib/linkify.js'
 import Icon from './Icon.jsx'
+import Img from './Img.jsx'
 
 /**
  * Mobile drawer — **wahi menu data jo desktop use karta hai** (D-43/D9).
@@ -167,7 +168,8 @@ export default function MobileNav({ items, logo, siteName, buttons = [], phone }
           {/* Wahi Q-7 INTERIM — logo na mile to kuch render nahi hota (D-42 §2) */}
           {logo ? (
             <a href="/">
-              <img className="mdrawer__logo" src={logo.url} alt={logo.alt || siteName || ''} />
+              {/* Drawer khulne par hi dikhta hai — lazy, aur `thumb` kaafi hai (34px height) */}
+              <Img className="mdrawer__logo" image={logo} alt={siteName || ''} sizes="200px" />
             </a>
           ) : (
             <span />

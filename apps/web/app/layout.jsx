@@ -14,11 +14,20 @@ import './globals.css'
  *
  * ⚠️ Iska matlab hai ki **build ke waqt internet chahiye**. Offline build karna ho to ye
  * font locally rakhna padega (`next/font/local`).
+ *
+ * ⚠️ **`weight` jaan-boojh kar nahi diya gaya hai** — Inter ek **variable font** hai (D-85).
+ *
+ * Pehle yahan `weight: ['400','500','600','700','800','900']` tha. Uska matlab tha ki
+ * `next/font` chhe **static instances** banata, aur browser unme se do utaarta — naapne pe
+ * wo do file mila kar **133 KB** thin (48 KB + 85 KB), aur doosri 866ms pe aati thi.
+ *
+ * `weight` hataane pe ek hi **variable** file aati hai jisme poora range hota hai. Design me
+ * kuch nahi badalta: `--fw-normal` se `--fw-black` tak jo chhe weight `globals.css` me use
+ * hote hain (D-73), wo sabhi isi ek file se aate hain — aur beech ki value bhi, agar kabhi
+ * chahiye ho.
  */
 const inter = Inter({
   subsets: ['latin'],
-  // Reference me 400 se 900 tak use hote hain — 800 group headings pe lagta hai
-  weight: ['400', '500', '600', '700', '800', '900'],
   variable: '--font-inter',
   display: 'swap',
 })

@@ -3,6 +3,8 @@
 import { formatPrice } from '@cms/shared'
 import { useState } from 'react'
 
+import Img from '../Img.jsx'
+
 /**
  * Similar itineraries — reference ka `#similar` (`itinerary-v3.html`).
  *
@@ -123,18 +125,15 @@ export default function Similar({ items, rating, currency = 'INR', perPage = DEF
             <a className="prow" href={item.path} key={item.id}>
               <div className="prow__m">
                 {/*
-                 * Image na ho to `<img>` banta hi nahi — D-42 §2 ka invariant. `.prow__m` ka
-                 * apna background hai, isliye khaali khaana toota hua nahi lagta.
+                 * Card ka slot: desktop pe teen column (~400px), tablet pe do (~50vw),
+                 * phone pe ek. Pehle yahan har card 800px chaudi `medium` uthata tha —
+                 * teen card yaani teen guna bytes, un pixels ke liye jo dikhte hi nahi.
                  */}
-                {item.banner && (
-                  <img
-                    src={item.banner.url}
-                    alt={item.banner.alt || item.title}
-                    width={item.banner.width ?? undefined}
-                    height={item.banner.height ?? undefined}
-                    loading="lazy"
-                  />
-                )}
+                <Img
+                  image={item.banner}
+                  alt={item.title}
+                  sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 400px"
+                />
 
                 {/*
                  * Badge — reference ka `.prow__tag` (`HONEYMOON`, `SEA VIEW`, `2 DIVES`).

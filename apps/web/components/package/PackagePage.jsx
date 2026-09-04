@@ -2,10 +2,11 @@ import { PACKAGE_SECTION_DEFAULTS, isEmptyHtml } from '@cms/shared'
 /** `<Fragment>` sirf hero ke meta list me — wahan har tukde ko key aur ek divider chahiye. */
 import { Fragment } from 'react'
 
-import CtaSection from './CtaSection.jsx'
+import CtaSection, { hasCtaSection } from './CtaSection.jsx'
 import { EnquiryDockProvider } from './EnquiryDock.jsx'
 import EnquiryForm from './EnquiryForm.jsx'
 import Gallery from './Gallery.jsx'
+import { pickHeroTiles } from '../../lib/hero.js'
 import MobileBar from './MobileBar.jsx'
 import Planner from './Planner.jsx'
 import {
@@ -16,12 +17,40 @@ import {
   HotelsTag,
   PriceBlock,
 } from './Pricing.jsx'
-import Reviews, { HeroRating, RatingNote } from './Reviews.jsx'
+import { HeroRating, RatingNote } from './Rating.jsx'
+import Reviews from './Reviews.jsx'
 import RichText from './RichText.jsx'
 import Schema from './Schema.jsx'
 import SectionHead from './SectionHead.jsx'
-import StickySide from './StickySide.jsx'
 import Similar from './Similar.jsx'
+import StickySide from './StickySide.jsx'
+
+/**
+ * ⚠️ **`Reviews` aur `Similar` ko `next/dynamic` pe daalna aazma kar dekha — kuch nahi hua.**
+ * Ye baat yahan isliye likhi hai ki wo koshish bilkul wajib lagti hai aur koi phir karega.
+ *
+ * Dono client components hain aur fold se bahut neeche hain (mobile pe ~8400px aur ~9500px),
+ * to soch ye thi ki unka JS baad me utre. Naap ne mana kar diya (D-85):
+ *
+ * | | Pehle | `dynamic()` ke saath |
+ * | --- | --- | --- |
+ * | First Load JS | 138 kB | **138 kB** |
+ * | Page pe kul JS | 141 KB | **141 KB** — koi naya chunk bana hi nahi |
+ * | Mobile score (5 run ka median) | 91 | **91** |
+ *
+ * Wajah App Router ke dhaanche me hai: `ssr: false` yahan **daala hi nahi ja sakta** (SEO —
+ * reviews aur similar packages page ka asli content hain, unhe crawler ko dikhna hi chahiye).
+ * Aur `ssr: true` ke saath dono ka HTML server pe banta hai, yaani unka JS **hydration ke liye
+ * chahiye hi chahiye** — Next use route ke bundle me hi rakhta hai. Chunk alag ho bhi jaaye to
+ * wo usi waqt utrega.
+ *
+ * Yaani in dono ka JS bachane ka ek hi asli raasta hai: inhe client components na banana. Aur
+ * wo ho nahi sakta — ek me slider ke arrows ka state hai, doosre me client ki maangi hui
+ * `1 2 3` pagination.
+ *
+ * (`Lightbox` par yahi cheez **sach me** chalti hai — `Gallery.jsx` dekho. Farak ye hai ki wo
+ * `ssr: false` pe hai: uska HTML server pe banta hi nahi, wo sirf click ke baad aata hai.)
+ */
 
 /**
  * Package ka public page — `docs/reference/itinerary-v3.html` se.
@@ -234,7 +263,14 @@ export default function PackagePage({ entry, defaults, settings }) {
   const included = defaults?.whatsIncluded?.included ?? []
   const excluded = defaults?.whatsIncluded?.excluded ?? []
   const steps = defaults?.bookingSteps ?? []
-  const gallery = defaults?.itineraryImages ?? []
+  /**
+   * Hero ke paanch tiles — **har request pe naye** (D-85).
+   *
+   * `Math.random()` yahan server component me chalta hai, aur wo theek hai kyunki ye route
+   * `ƒ Dynamic` hai. Jis din ise static/ISR banaya jaaye, ye randomness jam jaayegi — wo
+   * chetavni `lib/hero.js` me likhi hai.
+   */
+  const hero = pickHeroTiles(entry.banner, defaults?.itineraryImages ?? [])
 
   /**
    * Section ke heading aur lines — admin se (Q-9).
@@ -305,7 +341,11 @@ export default function PackagePage({ entry, defaults, settings }) {
        * content ka hissa nahi). Provider ko andar rakhne se bar ko wo state milti hi nahi.
        */}
       <EnquiryDockProvider>
-        <main className="pkg">
+        {/*
+         * `pkg--cta` server se lagti hai — pehle CSS `.pkg:has(.pkg__cta)` se ye khud
+         * pata karta tha, aur wo page ka sabse mehnga selector tha (D-85).
+         */}
+        <main className={`pkg ${hasCtaSection(settings?.ctaSection) ? 'pkg--cta' : ''}`.trim()}>
           {/*
            * Structured data — reference ke `@graph` se (breadcrumb · trip · FAQs).
            *
@@ -335,7 +375,14 @@ export default function PackagePage({ entry, defaults, settings }) {
           </nav>
 
           <div className="wrap pkg__gal">
-            <Gallery images={gallery} banner={entry.banner} title={entry.title} />
+            {/*
+             * Hero ke tiles **yahan (server pe) chune jaate hain** — D-85.
+             *
+             * Pehle ye chunav `Gallery` ke `useEffect` me hota tha, aur wahi page ka sabse
+             * mehnga hissa tha: browser paanch images utaar chuka hota, phir hydration ke
+             * baad wo paanch **badal** jaati aur sab dobara download hoti.
+             */}
+            <Gallery tiles={hero.tiles} all={hero.all} title={entry.title} />
           </div>
 
           {/*

@@ -5331,3 +5331,301 @@ dikhna chahiye.
   nahi
 - **Enquiry Detail ke khaane ab ek line me ek.** Teen column me aankh naam-mobile-email tak baar
   baar ghoomti thi; enquiry ek **record** hai jise upar se neeche padha jaata hai
+
+---
+
+## D-83
+
+**ISR cache sach me on — `revalidate` tags ke _saath_, unki _jagah_ nahi**
+_4 Sep 2026 · D-14 ka palan, uska badlaav nahi_
+
+### Sawaal
+
+Sawaal poochha hi nahi gaya tha — ye ek chup bug tha jo live check pe nikla. Har page load pe
+`apps/web` ki chaaron public call (settings · menu · resolve · package-defaults) API tak jaa
+rahi thi, **har baar**. Jabki D-14 se ISR ka poora dhaancha maujood tha.
+
+### Wajah
+
+`lib/cms.js` me fetch aisa likha tha:
+
+```js
+fetch(url, { next: { tags } })
+```
+
+Next **15** me `fetch` ka default **`no-store`** hai (14 me `force-cache` tha). Sirf `tags`
+dene se kuch cache hota hi **nahi** — wo bas tag chipkaata hai, jise saaf karne ke liye baad me
+koi aata hai. Yaani ek aisi cheez invalidate ho rahi thi jo kabhi bani hi nahi.
+
+### Faisla
+
+`revalidate: 3600` ab `tags` ke **saath** jaata hai:
+
+```js
+fetch(url, { next: { tags, revalidate: CACHE_SECONDS } })
+```
+
+**Ye D-14 ka badlaav nahi hai.** Asli invalidation aaj bhi **tag** se hoti hai aur turant hoti
+hai — admin me kuch badla, API `POST /api/revalidate` maarti hai, wahi tag saaf. Number us par
+**bharosa nahi** karta; wo ek doosri deewar hai.
+
+### Kyun ek number chahiye tha, jabki tag pehle se hai
+
+`core/revalidate.js` jaan-boojh kar **fail-soft** hai — girne pe sirf `logger.warn`, publish
+nahi rukta (aur wo theek hai: cache ki dikkat content ko bandhak nahi bana sakti). Par uska
+seedha matlab ye hai ki **ek chhooti hui revalidate call** ke baad wo page **hamesha ke liye**
+purana reh jaata.
+
+Aur wo failure poori tarah chup hoti: admin me naya content dikhta, site pe purana, kahin koi
+error nahi. Ek ghanta isliye ki wo dono taraf sasta hai — normal haalat me tag pehle hi saaf
+kar chuka hota hai (yaani ye number kabhi lagta hi nahi), aur webhook toota ho to nuksaan ek
+ghante tak seemit rehta hai.
+
+### Sabak
+
+**Jo cheez cache hui hi nahi, uske invalidation ka koi matlab nahi.** Is repo me revalidate ka
+raasta poora bana hua tha — route, `tagsFor()`, `path:` tag (D-52), path badalne pe purane tag
+ka bhejna. Sab kuch maujood, aur teen hafte tak ek din bhi chala nahi. Iska koi test fail nahi
+ho sakta tha: test cache layer ke aar-paar se guzarte hi nahi.
+
+Yahi shakl D-42 §2 wali hai — **invariant delivery layer pe toot-ta hai**, data layer sahi
+hone ke bawajood.
+
+⚠️ Saath me ek purana diagnosis galat nikla, wo yahin likha ja raha hai: **favicon theek hai.**
+`layout.jsx` use settings se pehle se nikaal raha hai aur page pe `<link>` maujood hai. Wo 404
+tab dekha gaya tha jab favicon upload hi nahi hua tha.
+
+---
+
+## D-84
+
+**Media ek saal ke liye `immutable`, aur `srcset` payload me banti hai — theme me nahi**
+_4 Sep 2026 · performance ka pehla pass_
+
+### Sawaal
+
+Client ka lakshya: _"Make sure it is fast, can serve page from cache and score of 100 in
+Google Page Speed."_ D-83 ne HTML ka cache to on kar diya, par page ka sabse bhaari hissa
+HTML hai hi nahi — **images hain**. Un par do alag galtiyaan chal rahi thi.
+
+### 1 · `Cache-Control: public, max-age=0` — har image, har visit pe
+
+`express.static` ka default yahi hai, aur wo tab tak dikhta nahi jab tak koi naapne na
+jaaye. Nateeja: package page ki **12 image**, har visitor, har baar — baarah revalidation
+round trip, sirf ye poochhne ke liye ki jo file pichli baar mili thi wo abhi bhi wahi hai.
+
+Ab `max-age=31536000, immutable`.
+
+**`immutable` likhne ka haq kahan se aata hai:** us URL ka jawab kabhi badalta hi nahi,
+kyunki path me media ki apni id **aur** variant ka naam dono hain
+(`.../media/2026/09/<mediaId>/large.webp` — `buildMediaVariantKey`). Nayi file = nayi media
+= nayi id = naya URL. Purani file apni jagah pe overwrite hoti hi nahi.
+
+⚠️ **Jis din "replace file" banega, ye line jhooth ho jaayegi.** Wo aaj D-79 me scope se
+bahar hai. Us din do me se ek karna hoga: ya replace naya `_id` de, ya URL me content hash
+jude. Bina uske browser purani image **saal bhar** dikhata rahega, aur server uska kuch nahi
+kar sakta — `immutable` ka matlab hi yahi hai ki browser poochhta tak nahi. Ye chetavni
+`app.js` me us line ke upar bhi likhi hai.
+
+### 2 · Har image ek hi variant — chahe slot kitna bhi chhota ho
+
+D-41 se teen variant bante hain (thumb 300 · medium 800 · large 1600), par payload me
+**ek** jaata tha. Yaani similar card ka 150px ka khaana bhi 800px chaudi `medium` uthata
+tha, phone pe bhi. Browser ke paas chunne ka koi raasta nahi tha — aur chunna wahi sabse
+achha kar sakta hai, kyunki DPR, asli layout width aur network sirf usi ko pata hote hain.
+
+Ab `toDisplayImage` ek **ready `srcset` string** bhi bhejti hai.
+
+**String server pe banti hai, theme me nahi** — wahi tark jo `toSectionLabels()` (D-65) pe
+tha: variant ka URL kaise banta hai ye media module ka bhed hai. Theme ko wo jodna sikhaane
+ka matlab hota ki kal variant ka naam badle to **do repo** badalne padein.
+
+⚠️ **Width se dedupe zaroori hai.** `generateWebpVariants` me `withoutEnlargement: true` hai
+— 500px chaudi original pe `medium` aur `large` **dono** 500px bante hain. Ek hi width do
+baar bhejna galat to nahi, par bemaani hai. Ek hi variant bache to `srcset` `null` jaata
+hai: wo `src` se alag kuch keh hi nahi raha hota.
+
+`sizes` **payload me nahi hai, aur jaan-boojh kar nahi hai** — wo layout ki baat hai, media
+ki nahi. Ek hi image header me 200px me baithti hai aur popup me poori screen leti hai.
+
+### 3 · `<Img>` — teen cheezein jo ab har jagah ek jaisi hain
+
+Har `<img>` ab `components/Img.jsx` se banta hai:
+
+| | Pehle | Ab |
+| --- | --- | --- |
+| `width` / `height` | 12 me se **6** pe | **12/12** — CLS ke liye |
+| `loading` | kahin `lazy`, kahin kuch nahi | LCP wali ke alawa sab `lazy` |
+| `fetchpriority` | kahin nahi | **sirf hero pe** |
+
+`priority` aur `eager` do alag prop hain. Header ka logo `eager` hai par `priority` nahi:
+wo dikhta pehle se hai (isliye `lazy` usko sirf der karta), par usko hero se **aage** bhejne
+ka koi matlab nahi. `fetchpriority="high"` ek page pe kai jagah likh dena use bemaani bana
+deta hai — jab sab kuch zaroori ho to kuch bhi zaroori nahi.
+
+Image na ho to `<Img>` **kuch render hi nahi karta** — D-42 §2 ki doosri deewar.
+
+### 4 · `Lightbox` ab click pe load hota hai
+
+Popup ka poora JS — auto-slide timer, keyboard handlers, swipe, focus trap, scroll lock —
+har visitor utaarta, parse karta aur hydrate karta tha, chahe wo popup kabhi khole hi na.
+Zyadatar kabhi nahi kholte. Ab `next/dynamic` (`ssr: false`) — uska pehla render waise bhi
+click ke baad hi hota tha.
+
+### ⚠️ Jo is pass me naapa **nahi** gaya
+
+Ye saare badlaav **wajah** se liye gaye hain, kisi Lighthouse run se nahi. Us waqt tak
+production build chalana mumkin nahi tha (dev server aur do tunnel chal rahe the), aur
+**dev server pe naapa hua number bemaani hota hai** — na minification, na HTML ka cache, aur
+upar se dev overlay ka apna JS.
+
+Ek daawa jaan-boojh kar wapas liya gaya: hero gallery ka client-side shuffle (26 Aug ka
+client faisla) LCP ko kitna bigaadta hai — ye **theory se** kaha gaya tha aur naapa nahi gaya
+tha. Us feature ko naap se **pehle** chhedna galat hoga.
+
+⚠️ Aur ek scoping ki baat jo `100 on all pages` maangne se pehle jaanni chahiye: is site pe
+aaj **sirf paanch page hain**, paanchon package. `/` khud **404** deta hai (koi home entry
+nahi), aur Pages/Posts ke template abhi bane hi nahi hain (**A-9**).
+
+---
+
+## D-85
+
+**Speed — naap ke saath: mobile 68 → 91, desktop 98**
+_4 Sep 2026 · client ka lakshya: "fast, serve page from cache, score of 100"_
+
+D-84 wajah se liya gaya tha, naap se nahi. Ye uska agla kadam hai — **pehle Lighthouse
+chalayi, phir sirf wahi cheez chhui jo number me dikhi.**
+
+### Naapne ka tareeka (kyunki bina iske number jhooth bolte hain)
+
+| | |
+| --- | --- |
+| Kahan | `next build` + `next start`, **dev server pe nahi** |
+| Kaise | Lighthouse mobile — 412×823, DPR 1.75, 1.6 Mbps, RTT 150ms, **CPU 4× dheema** |
+| Kitni baar | **5 run ka median.** Ek run bekaar hai |
+
+⚠️ **Is machine pe noise bahut hai.** Ek hi build pe TBT 70ms se 1270ms tak aaya. `benchmarkIndex`
+1317 se 2536 tak jhoolta hai — yaani ~2× ka farak. Isliye har number median hai, aur jis run me
+`benchmarkIndex` gir jaaye use padhna bekaar hai. Docker Desktop, VS Code aur do Chrome saath
+chal rahe the.
+
+### Kya nikla — aur kya **nahi** nikla
+
+| Shak | Naap ka jawab |
+| --- | --- |
+| CSS bhaari hai (118 KB) | ❌ **Galat.** Minify + gzip ke baad 10.5 KB. Style recalc kul **62ms** |
+| `:has()` selectors mehnge hain | ❌ **Galat.** Hatane pe Style & Layout **bilkul nahi** ghata |
+| RSC flight data (139 KB inline) parse ho raha hai | ❌ **Galat.** Uska script eval **26ms** |
+| Layout mehnga hai | ✅ **Sahi.** `Layout` 639ms — sirf **8 event**, aur do sabse bade (407ms + 228ms) poore **1366 element** ka full layout |
+
+Teen shak galat nikle, aur teenon pe kaam shuru karne se pehle naap liya gaya. Yahi is
+decision ka asli hissa hai.
+
+### Chaar badlaav, har ek ka apna naap
+
+**1 · Hero ka shuffle server pe (`lib/hero.js`)** — sabse bada.
+
+`Gallery` `useEffect` me shuffle karti thi. Naap me wo aise dikha: 228ms pe paanch image jaati
+thin, aur phir **862ms pe paanch aur** — hydration ke baad wali. LCP wali image inhi doosri
+paanch me se ek thi.
+
+Ab chunav server pe hota hai, **har request pe** — refresh pe hero phir bhi badalta hai (client
+ki 26 Aug wali baat jyon ki tyon), par browser ko wo pehle se HTML me milta hai.
+
+> LCP **6.5s → 3.5s** · CLS **0.147 → 0** (wo shift bhi yahi tha)
+
+⚠️ Ye tabhi chalta hai jab route `ƒ Dynamic` ho. Static/ISR banaane pe randomness **jam
+jaayegi** — chetavni `lib/hero.js` me hai.
+
+**2 · `content-visibility: auto` — `.blk` sections, footer, closing CTA**
+
+Page 9800px lamba hai aur poora layout pehle paint se pehle hota tha.
+
+> TBT **834ms → 128ms** · Style & Layout **2952ms → 1043ms** · score **70 → 84**
+
+⚠️ **Iski ek dikhne wali keemat hai, aur wo client ka faisla hona chahiye:** jab tak koi section
+render nahi hua, uski unchai `contain-intrinsic-size` se **andaazan** hoti hai. Asli sections
+350px se 3145px tak ke hain, isliye pehli baar scroll karte waqt **scrollbar apna naap badalta
+hai** (naapa: mobile ~790px, desktop ~1340px ka farak). Ek baar dikh jaane ke baad browser asli
+naap yaad rakhta hai (`auto` keyword), to ye sirf pehle scroll pe hota hai.
+
+**3 · Ek character — ₹ — 85 KB ka font utaar raha tha**
+
+Inter ke `latin` subset me rupee ka nishan hai hi nahi; wo **latin-ext** me hai. Page pe ₹ **34
+baar** aata hai, aur uske liye browser poori latin-ext file maangta tha — **85 KB**, ek glyph ke
+liye, mobile ke link pe ~425ms bandwidth.
+
+Ab ek `@font-face` hai jo kuch **download nahi karta** (`src: local(...)`) aur `unicode-range`
+se **sirf ₹** tak seemit hai. Baaki har character Inter ka hi rehta hai.
+
+> Font bytes **133 KB → 48 KB** · FCP **1993ms → 1417ms**
+
+⚠️ Dikhne wala asar: ₹ ab machine ke apne font ka hai, Inter ka nahi.
+
+**4 · Inter ab variable font** — `weight: [...]` hata diya. Chhe static instance ki jagah ek
+variable file. Design me kuch nahi badalta (100–900 ka poora range milta hai).
+
+### Nateeja
+
+| | Pehle | Ab |
+| --- | --- | --- |
+| **Mobile** | 68 | **91** (median, 5 run) |
+| **Desktop** | — | **98** |
+| FCP | 2.0s | 1.42s |
+| LCP | 6.5s | 3.35s |
+| TBT | 150ms* | 103ms |
+| CLS | 0.147 | **0** |
+
+\* baseline ka TBT ek hi (noisy) run ka tha.
+
+### ⚠️ 100 abhi nahi mila — aur kyun nahi mila
+
+**Sirf LCP bacha hai** (3.35s, chahiye 2.5s se kam). FCP, TBT, CLS, SI — chaaron ab poore
+number pe hain.
+
+Aur LCP ab **bandwidth ka sawaal** hai, code ka nahi. Emulated 1.6 Mbps par is page ka saara
+saamaan ~440 KB hai: 43 KB HTML + 10 KB CSS + 140 KB JS + 48 KB font + ~200 KB images. Utne
+bytes utarne me hi ~2.2 second lagte hain.
+
+Do raaste bache hain, dono me kuch dena padta hai:
+
+| Raasta | Faayda | Keemat |
+| --- | --- | --- |
+| **Ek naya image variant (~480w)** | ~120 KB kam. Gallery ke chaar chhote tile abhi 800px wali image uthate hain (unhe 320px chahiye) — kyunki `thumb` 300 aur `medium` 800 ke beech kuch hai hi nahi | D-41 ke variants badalne padenge, aur **purani media ka backfill** — original file store hoti hi nahi (sirf variants), to naya variant `large` se banana hoga |
+| **Page chhota karna** | HTML 221 KB aur 1366 element — dono seedha LCP pe lagte hain | Ye **content ka faisla** hai, code ka nahi (R15) |
+
+⚠️ **Aur ek scoping ki baat:** ye poora naap **package page** ka hai. Site pe aaj paanch hi page
+hain, paanchon package. `/` khud 404 deta hai (A-17).
+
+### Ek koshish jo **kaam nahi aayi** — aur wo yahan isliye likhi hai
+
+`Reviews` aur `Similar` ko `next/dynamic` pe daal kar dekha. Dono client components hain aur
+fold se bahut neeche hain (mobile pe ~8400px aur ~9500px), to lagta tha ki unka JS baad me
+utaara ja sakta hai.
+
+| | Pehle | `dynamic()` ke saath |
+| --- | --- | --- |
+| First Load JS | 138 kB | **138 kB** |
+| Page pe kul JS | 141 KB | **141 KB** — koi naya chunk bana hi nahi |
+| Mobile score (5 run ka median) | 91 | **91** |
+
+**Wajah App Router ke dhaanche me hai.** `ssr: false` yahan daala hi nahi ja sakta — reviews
+aur similar packages page ka asli **SEO content** hain, unhe crawler ko dikhna chahiye. Aur
+`ssr: true` ke saath dono ka HTML server pe banta hai, yaani unka JS **hydration ke liye chahiye
+hi chahiye**; Next use route ke bundle me hi rakhta hai.
+
+In dono ka JS bachane ka ek hi asli raasta hai: inhe client components na banana. Aur wo ho nahi
+sakta — ek me slider ke arrows ka state hai, doosre me client ki maangi hui `1 2 3` pagination.
+
+`dynamic()` wapas hata diya gaya (jo cheez daawa kuch kare aur kare kuch na, wo rehni nahi
+chahiye), par **koshish ka record `PackagePage.jsx` me hai** — wo koshish wajib lagti hai aur
+koi phir karega.
+
+⚠️ **`Lightbox` par yahi cheez sach me chalti hai** (`Gallery.jsx`). Farak ye hai ki wo
+`ssr: false` pe hai: uska HTML server pe banta hi nahi, wo sirf click ke baad aata hai.
+
+**Ek cheez phir bhi bachi:** `HeroRating` aur `RatingNote` ab apni file me hain
+(`Rating.jsx`, server components). Wo `Reviews.jsx` me thin — yaani do **pure display**
+component sirf isliye client bundle me ja rahe the ki wo ek client component ki file me baithe
+the. Bachat chhoti hai, par jagah galat thi.

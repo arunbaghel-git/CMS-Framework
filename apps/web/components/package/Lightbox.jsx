@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import Img from '../Img.jsx'
+
 /**
  * Prev/next ka teer — **SVG, glyph nahi** (client, 2 Sep: "arrow center me nahi hai").
  *
@@ -189,8 +191,12 @@ export default function Lightbox({ images, startIndex = 0, onClose, title }) {
          * wahi `<img>` dobara use karta hai aur badlav ekdam jhatke se hota hai.
          *
          * Sirf yahi ek `<img>` hai — client ka faisla: "popup me ek time par ek image".
+         *
+         * `sizes="100vw"` — popup poori screen leta hai, aur **yahi ek jagah hai jahan
+         * `large` (1600w) chahiye**. Baaki page pe wo variant ab kabhi nahi uthta.
+         * `eager`: popup khulne ke baad lazy ka koi matlab nahi, image dikhni hi hai.
          */}
-        <img key={image.url} src={image.url} alt={image.alt || title} />
+        <Img key={image.url} image={image} alt={title} sizes="100vw" eager />
 
         {/*
          * ⚠️ Saare controls **stage ke andar** hain, `.lbx` ke andar nahi (client, 2 Sep).

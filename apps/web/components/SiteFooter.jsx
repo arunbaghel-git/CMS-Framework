@@ -4,6 +4,7 @@ import { getSettings } from '../lib/cms.js'
 import { linkifyParts } from '../lib/linkify.js'
 import FooterColumn from './FooterColumn.jsx'
 import Icon from './Icon.jsx'
+import Img from './Img.jsx'
 import SocialIcon from './SocialIcon.jsx'
 
 /**
@@ -103,12 +104,8 @@ function Brand({ logo, siteName }) {
 
   return (
     <a className="ft__brand" href="/" aria-label="Home">
-      <img
-        src={logo.url}
-        alt={logo.alt || siteName || ''}
-        width={logo.width ?? undefined}
-        height={logo.height ?? undefined}
-      />
+      {/* Footer page ke bilkul neeche hai — yahan lazy hi sahi hai */}
+      <Img image={logo} alt={siteName || ''} sizes="200px" />
     </a>
   )
 }

@@ -1,8 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
+import { useState } from 'react'
 
-import Lightbox from './Lightbox.jsx'
+import { HERO_TILES } from '../../lib/hero.js'
+import Img from '../Img.jsx'
+
+/**
+ * Lightbox **click pe** load hota hai, page ke saath nahi.
+ *
+ * Wo poora ek popup hai — auto-slide ka timer, keyboard handlers, swipe, focus trap, body
+ * scroll lock — aur wo sab tab tak bekaar pada rehta hai jab tak koi tile pe click na kare.
+ * Seedha `import` karne ka matlab tha ki har visitor uska JS **utaare, parse kare aur
+ * hydrate kare**, chahe wo popup kabhi khole hi na. Zyadatar visitor kabhi nahi kholte.
+ *
+ * `ssr: false` isliye ki popup ka pehla render hamesha click ke baad hota hai — server pe
+ * uska HTML banta hi nahi tha.
+ */
+const Lightbox = dynamic(() => import('./Lightbox.jsx'), { ssr: false })
 
 /**
  * Page ka hero — `itinerary-v3.html` ka `.gal` mosaic.
@@ -13,72 +28,34 @@ import Lightbox from './Lightbox.jsx'
  * package ki pehchaan hai, to use har refresh pe badalna galat hoga. Client ne ulta chaha:
  * refresh pe **main image hi** badalni chahiye.
  *
- * Isliye ab banner aur Itinerary Images ka pool **ek hi list** hain, poori list shuffle
- * hoti hai, aur uske pehle paanch tiles bharte hain — bada tile bhi unme se ek.
+ * Isliye banner aur Itinerary Images ka pool **ek hi list** hain, poori list shuffle hoti
+ * hai, aur uske pehle paanch tiles bharte hain — bada tile bhi unme se ek.
  *
- * Banner list me **sabse aage** rakha jaata hai. Iska matlab: chhote pool me (5 se kam
- * images) wo hamesha dikhta hai, aur bade pool me wo baaki images jaisa hi ek hai.
+ * ## Shuffle ab server pe hai (D-85) — behaviour wahi, jagah alag
  *
- * ## Shuffle client-side kyun hai
+ * Ye kaam pehle yahan `useEffect` me hota tha, aur wo **page ka sabse mehnga hissa** nikla:
+ * browser server ki bheji paanch images download kar chuka hota, phir hydration ke baad
+ * `setTiles` paanch **alag** images daal deta aur wo sab dobara download hoti. Lighthouse me
+ * LCP ka 929ms sirf isi "Load Delay" ka tha (naap 4 Sep — D-85).
  *
- * Site Next.js ISR pe hai (D-14) — page ek baar ban kar cache ho jaata hai. Server pe
- * shuffle karne ka koi matlab nahi hota: jo paanch pehli baar chuni gayin, wahi har visitor
- * ko hamesha dikhti rehtin. Isliye server **saari** images bhejta hai (bas strings) aur
- * chunav browser me hota hai — ISR waise ka waisa rehta hai (spec 007 §1.7, D-52).
+ * Ab chunav `lib/hero.js` me hota hai, **har request pe** — refresh pe hero phir bhi badalta
+ * hai (client ki wahi baat), par browser ko wo pehle se HTML me milta hai.
  *
- * ## Shuffle `useEffect` me hai, render me nahi
- *
- * Render ke dauraan shuffle karne ka matlab hai server ka HTML aur client ka HTML alag —
- * yaani hydration mismatch, aur React poora subtree dobara banata hai. Isliye pehla render
- * **stable** hai (list ke pehle paanch), aur mount ke baad shuffle lagta hai.
+ * Yahan ab koi `useState`/`useEffect` tiles ke liye nahi hai. Ye component client isliye
+ * hai ki **popup ka open/close state** chahiye, shuffle ke liye nahi.
  *
  * ⚠️ Client ki ek baat abhi baaki hai — aage chal kar hero me **ek hi image** ho sakti hai,
  * paanch nahi (`09-OPEN-ITEMS.md` **A-10**). Aaj wala paanch-tile mosaic design se hai.
+ *
+ * @param {object} props
+ * @param {object[]} props.tiles mosaic me jo paanch dikhengi — server chun chuka hai
+ * @param {object[]} props.all popup ke liye **poori** list, sirf ye paanch nahi
  */
-
-/** Fisher–Yates — `sort(() => Math.random() - 0.5)` biased hota hai aur kuch images kabhi nahi aatin. */
-function shuffle(items) {
-  const out = [...items]
-
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[out[i], out[j]] = [out[j], out[i]]
-  }
-
-  return out
-}
-
-const SHOWN = 5
-
-export default function Gallery({ images, banner, title }) {
-  /**
-   * Banner aur pool ek hi list — dono shuffle me jaate hain.
-   *
-   * Banner sabse aage isliye hai ki wahi pehla (stable) render banata hai, server aur
-   * client dono pe.
-   */
-  const all = [...(banner ? [banner] : []), ...images]
-
-  /** Pehla render server jaisa — `useEffect` ke baad hi shuffle lagta hai. */
-  const [tiles, setTiles] = useState(() => all.slice(0, SHOWN))
-
+export default function Gallery({ tiles, all, title }) {
   /** Popup band ho to `null`, warna `all` me wo index jisse wo khula hai. */
   const [open, setOpen] = useState(null)
 
-  /**
-   * List ki pehchaan ek string se — array ki identity har render pe nayi hoti hai, aur uspe
-   * depend karne ka matlab hota ki effect har render pe chale aur images phadakti rahein.
-   * Wahi pattern jo admin ke `useMediaById` me hai.
-   */
-  const listKey = all.map((image) => image.url).join(',')
-
-  useEffect(() => {
-    if (all.length <= SHOWN) return
-
-    setTiles(shuffle(all).slice(0, SHOWN))
-  }, [listKey])
-
-  if (tiles.length === 0) return null
+  if (!tiles?.length) return null
 
   const extra = all.length - tiles.length
 
@@ -93,7 +70,11 @@ export default function Gallery({ images, banner, title }) {
 
   return (
     <>
-      <div className="gal">
+      {/*
+       * `gal--few` bhi server se — paanch se kam tiles pe mosaic ki jagah ek saada strip.
+       * Pehle ye CSS `:has()` se pata karta tha (D-85).
+       */}
+      <div className={`gal ${tiles.length < HERO_TILES ? 'gal--few' : ''}`.trim()}>
         {tiles.map((image, i) => (
           /*
            * `<a href>` se `<button>` — pehle click seedha image file kholta tha, ab popup
@@ -104,7 +85,21 @@ export default function Gallery({ images, banner, title }) {
            * teenon haath se banane padte.
            */
           <button key={image.url} type="button" onClick={() => openAt(image)}>
-            <img src={image.url} alt={image.alt || title} loading={i === 0 ? 'eager' : 'lazy'} />
+            {/*
+             * Pehla tile **page ka LCP** hai — grid me wo `2fr` leta hai aur dono row me
+             * phaila hota hai (~640px), mobile pe poori chaudai. Isliye wahi ek image
+             * `priority` hai; baaki chaar `1fr` wale hain (~320px) aur `lazy`.
+             *
+             * ⚠️ `sizes` bina `srcset` ke bemaani hai aur `Img` use tabhi likhta hai jab
+             * payload me srcset ho — chhoti original wali image pe (jiske do variant ek hi
+             * chaudai ke bante hain) wo apne aap gir jaata hai.
+             */}
+            <Img
+              image={image}
+              alt={title}
+              sizes={i === 0 ? '(max-width: 860px) 100vw, 640px' : '(max-width: 860px) 50vw, 320px'}
+              priority={i === 0}
+            />
             {/* `+18 photos` hamesha aakhri tile pe — reference me wahi hai */}
             {i === tiles.length - 1 && extra > 0 && (
               <span className="gal__more">+ {extra} photos</span>

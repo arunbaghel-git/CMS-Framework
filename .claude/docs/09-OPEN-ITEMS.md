@@ -33,12 +33,32 @@ ja hi nahi raha tha.
 editor jo Overview pe hai. Migration **015**. Client (unke senior ka order): textarea me
 bold/heading/list ban hi nahi sakti.
 
-**644 tests passing** (26 files) · lint clean · format clean — 3 Sep ko verify kiya.
-**Last updated:** 3 Sep 2026 (Enquiries inbox D-75/D-76 · editor ka faisla D-77 · Media
-Library D-78 · `mediaRefs` nahi banega D-79)
+**3 Sep — editor ab TinyMCE, saara page content HTML (D-80).** spec 002 ka **doosra** badlaav,
+migration **020**. Client ko Classic Editor jaise **Visual + Text** do tab chahiye the aur
+`class`/`id`/inline `style` likhne pe kuch gayab na ho — TipTap wo kar hi nahi sakta (wo
+schema-based hai). ⚠️ Iske saath **XSS ki problem ab hum paal rahe hain** — keemat `rich-doc.js`
+me D-69 ke waqt pehle se likhi thi.
 
-⚠️ 2 Sep ke **30 commit** (mobile/responsive pass + enquiry form ka submit + A-16 ka fix)
-`project-state.md` me likhe ja chuke hain, par is doc ki upar wali list me nahi.
+**3–4 Sep — Bulk Upload (D-81).** Google Sheet + Docs se package pages, **bina kisi Google
+account ke** (`export?format=csv|html` anonymous 200 deta hai). Migration **021**. 4 Sep ko
+client ki asli sheet pe pehla end-to-end chala.
+
+**4 Sep — Itinerary Settings aur structured data ki teen galtiyaan (D-82).** `aggregateRating`
+ab `Product` node pe (Trip pe wo valid hi nahi tha), har din ek `subTrip`, `stripTags` ka
+vaakya-chipkane wala bug, aur `seoSchema` per-package se hat kar `packageDefaults` me
+(**paanchon package pe `false` mila tha** — feature bana kar rakha gaya aur kabhi chala nahi).
+Migration **022**.
+
+**4 Sep — ISR cache sach me on hua (D-83).** `fetch(url, { next: { tags } })` Next 15 me kuch
+cache karta hi nahi (default `no-store`) — poora revalidate dhaancha teen hafte inert pada tha.
+Ab `revalidate` tags ke **saath** hai, unki jagah nahi.
+
+**764 tests passing** (31 files) · lint clean · format clean — 4 Sep ko verify kiya.
+**Last updated:** 4 Sep 2026 (TinyMCE D-80 · Bulk Upload D-81 · Itinerary Settings +
+structured data D-82 · ISR cache D-83)
+
+⚠️ **Push:** `origin/main` abhi bhi `f0b7964` (2 Sep) pe hai — **28 commit unpushed**. Push se
+pehle A-12 padho: CI un sab pe red aayegi, aur wo red environment ki wajah se hai, code ki nahi.
 
 ---
 
@@ -155,6 +175,65 @@ Library D-78 · `mediaRefs` nahi banega D-79)
 ---
 
 ## 🔴 Ab bhi baaki
+
+### A-17 · Speed — naap ho chuki hai. Mobile **91**, desktop **98** (4 Sep)
+
+> **Update (4 Sep, shaam):** naap ho gayi — **D-85**. Neeche wala "naapa nahi gaya" wala
+> hissa us waqt ka hai jab sirf D-84 hua tha.
+>
+> | | Pehle | Ab |
+> | --- | --- | --- |
+> | Mobile | 68 | **91** |
+> | Desktop | — | **98** |
+> | LCP | 6.5s | 3.35s |
+> | CLS | 0.147 | **0** |
+> | TBT | 150ms | 103ms |
+>
+> **100 abhi nahi mila, aur sirf LCP ki wajah se** (3.35s, chahiye <2.5s). FCP · TBT · CLS · SI
+> chaaron poore number pe hain. LCP ab **bandwidth** ka sawaal hai: emulated 1.6 Mbps par is
+> page ka saara saamaan ~440 KB hai aur utna utarne me hi ~2.2s lagte hain.
+>
+> **Do raaste bache hain, dono me kuch dena padta hai:**
+>
+> | Raasta | Faayda | Keemat |
+> | --- | --- | --- |
+> | Naya **~480w image variant** | ~120 KB kam — gallery ke chaar chhote tile abhi 800px wali image uthate hain jabki unhe 320px chahiye (`thumb` 300 aur `medium` 800 ke beech kuch hai hi nahi) | D-41 ke variants badlenge, aur purani media ka **backfill** — original store hoti hi nahi, to naya variant `large` se banana hoga |
+> | Page chhota karna | HTML 221 KB, 1366 element — dono seedha LCP pe | Ye **content ka faisla** hai, code ka nahi (R15) |
+>
+> ⚠️ **Do badlaav aise hain jinka dikhne wala asar hai — client ko batana zaroori hai:**
+>
+> 1. **`content-visibility`** — pehli baar scroll karte waqt **scrollbar apna naap badalta hai**
+>    (mobile ~790px, desktop ~1340px). Ye TBT ko 834ms se 128ms laata hai
+> 2. **₹ ab machine ke apne font ka hai**, Inter ka nahi — kyunki Inter ka wo glyph 85 KB ki
+>    alag file me hai aur wo ek character 34 baar aata hai
+>
+> ⚠️ **Naapne ka tareeka bhi likh liya jaaye:** `next build` + `next start` par, **5 run ka
+> median**. Is machine pe noise 2× tak hai (`benchmarkIndex` 1317–2536) — ek run ka number
+> bekaar hai, aur **dev server pe naapna to bilkul hi bekaar hai**.
+
+**Deadline:** client khud Lighthouse chala kar number dega
+**Client ka lakshya:** _"Make sure it is fast, can serve page from cache and score of 100 in
+Google Page Speed, All pages."_
+
+**Jo ho chuka (D-84):** media ab `immutable` (pehle `max-age=0` tha — 12 image, 12 round trip,
+har visit), har image pe `srcset` + `sizes`, 12/12 pe `width`/`height` (pehle 6/12 — CLS),
+hero pe `fetchpriority="high"`, aur `Lightbox` click pe load hota hai.
+
+**Jo baaki hai — sirf naapna:**
+
+| Kaam | Kyun |
+| --- | --- |
+| Production build pe Lighthouse | ⚠️ **dev server pe naapa hua number bemaani hai** — na minification, na HTML ka cache, aur dev overlay ka apna JS. Tunnel abhi dev pe hi jaata hai |
+| Uske baad hi hero shuffle ka faisla | Wo LCP bigaadta hai ya nahi — **abhi tak sirf theory hai**, naap nahi. Naap se pehle us feature ko chhedna galat hoga |
+
+⚠️ **Scope ki baat jo "all pages" se pehle jaanni chahiye:** site pe aaj **paanch hi page**
+hain, paanchon package. `/` khud **404** deta hai (koi home entry nahi hai), aur Pages/Posts
+ke template bane hi nahi (**A-9**). "All pages 100" ka matlab aaj paanch package page hai.
+
+⚠️ **Ek maloom trap:** `immutable` sirf isliye likha ja saka ki media ka URL kabhi badalta
+nahi (path me media id + variant ka naam dono hain). **Jis din "replace file" banega** (aaj
+D-79 me scope se bahar), ya to replace naya `_id` de ya URL me content hash jude — warna
+browser purani image saal bhar dikhata rahega aur server uska kuch nahi kar sakta.
 
 ### Q-7 · Logo na mile to header me uski jagah **kya** dikhe?
 
@@ -667,10 +746,17 @@ General ka field, aur D-27 ke done-criteria ("Logo badlo, menu me item add karo,
 text badlo"). Ye wahi precedent hai jo Users (D-34) aur Settings (D-40) pe laga: plan ka
 phase number apne aap koi rok nahi hai, scope client se aata hai (R15).
 
-> ✅ **3 Sep — Library aur Picker bhi ban gaye (D-78).** Client ne maanga, aur scope pehle se
-> tay tha. Ab bacha hua Phase 2 ka hissa: folders · `mediaRefs` backlink index (aur uspe
-> tikey `Attached/Unattached` filter aur delete-guard) · crop/rotate · replace file ·
-> `media.purge` ka raasta. Neeche wali "~40%" wali list us waqt ki hai.
+> ✅ **3 Sep — Library aur Picker bhi ban gaye (D-78), aur usi din Phase 2 band ho gaya
+> (D-79).** Client ne `mediaRefs` mana kar diya — _"delete to kar sakte hai chahe kahin lagi
+> ho ya nahi"_ — aur uske saath teen cheezein hamesha ke liye mar gayin: delete-guard,
+> "Used in" panel, aur design ka `Attached`/`Unattached` filter. Media ke filters do hi
+> rahenge: **kism** aur **mahina**.
+>
+> Jo aur bacha hai — folders · rename · bulk select · crop/rotate · replace file — wo kisi
+> cheez ko rok nahi raha aur **client ne maanga nahi**. Media ab "current scope complete" hai,
+> wahi lakeer jo Settings ▸ General pe D-40 me lagi thi.
+>
+> ⚠️ Neeche ki poori list **us waqt ki hai (~40% wali)** — ab wo itihaas hai, plan nahi.
 
 **Us waqt poora Phase 2 nahi bana tha — sirf foundation (~40%):**
 
@@ -690,8 +776,10 @@ Settings ke Logo/Favicon bhi tab MediaPicker use karenge; current scope me click
 drop-zone direct upload final enough hai. Favicon-specific `512x512` dimension validation
 also deferred to later Media validation work and is not a current General blocker.
 
-**Delete jaan-boojh kar nahi banega.** `mediaRefs` ke bina delete = live page pe toota
-hua image (`08-RISKS` ka documented trap). Delete hi na ho to wo trap lag hi nahi sakta.
+~~**Delete jaan-boojh kar nahi banega.**~~ — **3 Sep ko palat gaya (D-79).** Delete ab hai aur
+**hamesha chalega**, chahe wo image kahin lagi ho. Client ko `08-RISKS` wala trap batakar hi
+faisla liya gaya. Ek cheez nuksaan halka rakhti hai: **delete = trash** (R12) — record
+`deletedAt` pe jaata hai aur **file disk pe rehti hai**, yaani galti ulti ja sakti hai.
 
 **Later phases se takrav nahi hoga, teen shart pe:**
 

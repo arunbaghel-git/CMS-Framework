@@ -5,8 +5,11 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
-**Status:** **Phase 0, Slice 0, aur Phase 1 ki Slice 1–7 ban chuki hain** —
-public package page ke **saare** section live hain (**619 tests passing**).
+**Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
+hain** (**764 tests passing**, 4 Sep). Public package page ke **saare** section live hain.
+Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
+**TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
+(D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
 1 Sep ko client ki 15-item list se: reviews (D-70), similar itineraries (D-71), structured
 data, Enquiry Forms (D-72) aur typography tokens (D-73).
 ⚠️ `goodToKnow[]` **banega hi nahi** (D-68) — uska content har package pe same rehta hai, to
@@ -59,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-73                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-83                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -302,11 +305,11 @@ table me likhe hain.
 spec 007 §9 ke **3 sawaal** abhi khule hain (#2, #5, #14), par koi bhi plan
 nahi rokta — har ek apne slice pe tay hoga (`09-OPEN-ITEMS.md`).
 
-| #   | Kya                                                                 | Kab tak                                      |
-| --- | ------------------------------------------------------------------- | -------------------------------------------- |
-| Q-7 | Logo na mile to header me kya dikhe?                                | Client ka faisla (R15) — abhi interim pe hai |
-| Q-2 | Enquiries ka **inbox** — forms ban gaye (D-72), All Enquiries baaki | client jab maange                            |
-| Q-3 | Field DSL me `matrix` + `table` types                               | Phase 5c se pehle                            |
+| #   | Kya                                                           | Kab tak                                      |
+| --- | ------------------------------------------------------------- | -------------------------------------------- |
+| Q-7 | Logo na mile to header me kya dikhe?                          | Client ka faisla (R15) — abhi interim pe hai |
+| Q-9 | Page ki chhoti inline lines — `TAB_NOTE` Andaman-specific hai | client jab kahe                              |
+| Q-3 | Field DSL me `matrix` + `table` types                         | Phase 5c se pehle                            |
 
 **Q-7 ka interim:** logo na mile to header me **kuch render nahi hota** (nav left shift).
 Ye D-42 §2 ka palan hai, koi faisla nahi. Code me `Q-7 INTERIM` comment hai
@@ -316,6 +319,55 @@ Ye D-42 §2 ka palan hai, koi faisla nahi. Code me `Q-7 INTERIM` comment hai
 bhejti hai, isliye toota `<img>` banta hi nahi. ⚠️ Aur ek sabak: wo invariant **delivery
 layer pe bhi** toot sakta hai — `apps/web` me `/uploads/*` ka rewrite chhoot gaya tha aur
 payload sahi hone ke bawajood logo 404 de raha tha.
+
+**3 Sep — teen bade kaam ek din me:** **Enquiries inbox** (D-75, usi din client ne chala kar
+chhota kiya — D-76), **Media Library + MediaPicker** (D-77, D-78) aur uske turant baad
+**`mediaRefs` ka rad hona** (D-79 — delete ab hamesha chalega, "Used in" panel aur
+`Attached/Unattached` filter kabhi nahi banenge), aur **editor ab TinyMCE** (D-80, spec 002 ka
+doosra badlaav — saara page content ab **HTML** hai).
+⚠️ D-80 ke saath **XSS ki problem ab hum paal rahe hain** — TipTap me wo ban hi nahi sakti thi.
+Har admin-likhi HTML write pe sanitize honi chahiye (R20), render pe kabhi nahi.
+
+**3–4 Sep — Bulk Upload (D-81):** client ki Google Sheet + Docs se package pages banti hain,
+**bina kisi Google account ke** (`export?format=csv|html` anonymous 200 deta hai). Sidebar me
+**top-level** menu. Import ke saath **New / Existing** ka elaan jaata hai — wo filter nahi,
+**assertion** hai: bina uske ek purana `Package URL` nayi sheet me reh jaaye to wo live package
+ko chup-chaap overwrite kar deta.
+
+**4 Sep — D-82 aur D-83, dono live check pe nikle:** structured data ki teen galtiyaan
+(`aggregateRating` ab `Product` node pe, har din ek `subTrip`, `stripTags` ka chipkane wala
+bug) aur `seoSchema` ka per-package se `packageDefaults` me aana — **paanchon package pe wo
+`false` mila tha**, yaani feature bana kar rakha gaya aur teen din chala hi nahi.
+Uske saath **D-83 — ISR cache aaj tak inert pada tha**: Next 15 me `fetch` ka default
+`no-store` hai, to `{ next: { tags } }` akela kuch cache karta hi nahi. Har page load pe chaaron
+public call API tak jaati thi.
+
+⚠️ **Migration ka niyam (D-82):** `pnpm format` **pehle**, `pnpm cms migrate` **baad me**. Do
+baar (020 aur 022) ulta hua aur checksum guard ne pakda.
+
+**4 Sep — speed ka pehla pass (D-84):** media ab **`immutable`** hai (pehle `max-age=0` tha —
+12 image yaani 12 revalidation round trip, har visit pe), har image pe **`srcset`** jaata hai
+(payload me banta hai, theme me nahi — D-65 wala hi tark), `width`/`height` ab 12/12 pe
+(pehle 6/12 — CLS), hero pe `fetchpriority="high"`, aur `Lightbox` **click pe** load hota hai.
+Har `<img>` ab `components/Img.jsx` se banta hai.
+**4 Sep — naap ke saath doosra pass (D-85): mobile 68 → 91, desktop 98.** Chaar badlaav, har ek
+naap se: hero ka shuffle **server pe** (`lib/hero.js` — LCP 6.5s→3.5s, CLS 0.147→0),
+`content-visibility` fold ke neeche (TBT 834ms→128ms), **₹ ka 85 KB font** hataya (FCP
+1993→1417ms), aur Inter ab variable font.
+⚠️ **Teen shak naap me galat nikle** — CSS bhaari hona, `:has()` mehnga hona, aur RSC flight data
+ka parse. Teenon pe kaam shuru karne se pehle naap liya gaya tha; asli mujrim **full-page
+layout** tha (`Layout` 639ms, 8 event, 1366 element).
+⚠️ **Naapna hamesha `next build` + `next start` par, 5 run ka median.** Is machine pe noise 2× tak
+hai — **dev server pe naapa hua number bilkul bemaani hai**.
+⚠️ 100 abhi nahi mila — **sirf LCP** (3.35s) bacha hai, aur wo ab bandwidth ka sawaal hai. Raaste
+aur unki keemat `09-OPEN-ITEMS.md` **A-17** me.
+⚠️ `immutable` ka haq media ke URL se aata hai (path me id + variant). **"Replace file" banaane
+se pehle** ya replace naya `_id` de, ya URL me content hash jude.
+
+⚠️ **Chauthi baar laga hua jaal:** `updatePackageDefaults()` ka `$set` ek **whitelist** hai.
+Naya field schema/model/screen teenon me jod dene ke bawajood wahan na ho to Zod pass karega,
+API 200 degi, admin "Saved." dikhayega, aur DB me purani value rahegi. Naya field jodo to
+whitelist bhi jodo, aur uska test **response nahi, DB** padhe.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

@@ -3,6 +3,15 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@cms/blocks', '@cms/shared'],
 
+  /**
+   * `X-Powered-By: Next.js` har response se hat gaya.
+   *
+   * Do wajah: wo har response me bytes jodta hai bina kuch kiye, aur wo bina maange ye bhi
+   * bata deta hai ki server kis cheez pe chal raha hai. Dono me se koi bhi akela kaafi nahi
+   * tha, par ise rakhne ki bhi koi wajah nahi hai.
+   */
+  poweredByHeader: false,
+
   async rewrites() {
     const apiUrl = process.env.API_URL ?? 'http://localhost:4000'
 

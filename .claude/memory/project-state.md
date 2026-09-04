@@ -1,11 +1,132 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 2 Sep 2026, raat — 30 commit, sab push ho chuka (`origin/main` = `f0b7964`)
+> **Last updated:** 4 Sep 2026 — **169 commit**, **28 unpushed** (`origin/main` abhi bhi
+> `f0b7964` pe), **764 test pass** (31 file), lint + format clean, tree clean.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (3 Sep)
+## ⏭️ Nayi session yahan se shuru kare (5 Sep)
+
+**⚠️ Pehle ek chetavni:** 3 aur 4 Sep ka kaam is file me **do din tak likha hi nahi gaya**.
+Neeche wala "(3 Sep)" wala section 2 Sep ki raat ka hai — usme `origin/main = f0b7964` aur
+"624 test" likha hai, aur wo dono **purane** hain. Ye section usko replace nahi karta, uske
+**upar** baithta hai.
+
+### Abhi ki asli haalat (naapi hui, 4 Sep)
+
+| Kya           | Value                                                             |
+| ------------- | ----------------------------------------------------------------- |
+| Commits       | **169** — `f0b7964` ke baad **28 aur**                            |
+| Push          | ⚠️ **28 unpushed.** `origin/main` abhi bhi `f0b7964` pe khada hai |
+| Tests         | **764 pass**, 31 file (`pnpm test`, exit 0)                       |
+| Lint · Format | dono clean                                                        |
+| Migrations    | **22 files** — 018 se 022 nayi                                    |
+| Decisions     | **D-83** tak                                                      |
+
+### Pehle ye do
+
+```bash
+docker compose up -d mongo
+pnpm cms migrate          # 018–022 me se jo baaki hain
+pnpm dev
+```
+
+⚠️ **Migration ka naya niyam (D-82):** `pnpm format` **pehle**, `pnpm cms migrate` **baad me**.
+Do baar (020 aur 022 pe) migration chalne ke **baad** prettier ne use format kiya aur checksum
+guard ne turant pakda. Dono baar migration idempotent thi isliye data bacha — teesri baar ki
+guarantee nahi hai.
+
+---
+
+## 4 Sep — Bulk Upload ka asli istemaal, structured data, aur cache
+
+**11 commit.** Din ki shakl yahi thi: client ne Bulk Upload **asli sheet aur doc pe** chalaya,
+aur jo toota wo theek hota gaya.
+
+### Bulk Upload sach me chala (D-81 ka doosra din)
+
+- **Pehla asli end-to-end** — client ki apni sheet + doc se _"Andaman Escape 5 Nights"_ ban kar
+  publish hua: 6 din, chaaron daam strike ke saath, chaaron hotel, teen destination, HTML
+  paragraphs aur bullets. Dobara chalane pe wahi package **update** hua, duplicate nahi bana
+- **Banner ka sabse aam URL bahar ka hota hi nahi.** Client ne admin ka "File URL" copy karke
+  doc me chipkaya (`localhost:5173/uploads/…`), importer use bahar ka URL samajh kar download
+  karne gaya, aur **SSRF guard ne localhost ko theek hi roka**. Client ko aisa error mila jo
+  uski galti jaisa lagta tha, jabki usne bilkul sahi image chuni thi. Ab URL pehle **apni hi
+  media** ke liye dekha jaata hai (id URL ke andar hi likhi hoti hai) — koi download nahi, koi
+  duplicate variant nahi
+- **Doc se FAQs** — format client ne chuna: `FAQs` heading, phir `Question` → sawaal →
+  `Answer` → jawab. Parser ab **teen hisson** me chalta hai aur section marker har hisse me
+  pehchane jaate hain; bina uske itinerary ke baad likha "FAQs" ek **din ka label** samajh liya
+  jaata aur poori list chup-chaap itinerary me chali jaati
+- **New / Existing mode** — import ke saath ek **elaan** jaata hai. Ye filter nahi, **assertion**
+  hai: bina iske ek purana `Package URL` nayi sheet me reh jaaye to wo ek live package ko
+  chup-chaap overwrite kar deta. Jaanch `createEntry`/`updateEntry` se **pehle** hoti hai
+- **Past imports** — 20 run ka cap (purane run apni saari rows subdocument me rakhte hain, aur
+  list 20 se aage jaati hi nahi), aur `Failed` pe **hover ka popup** jisme wajah dikhti hai
+- **Result ka page link admin ke port pe khulta tha** — `row.path` seedha `href` me tha. Ab
+  poora URL server se, `env.SITE_URL` se juda hua
+
+### D-82 — structured data ki teen galtiyaan, aur Itinerary Settings
+
+Live check pe **chaar** cheezein nikli:
+
+1. **`aggregateRating` `TouristTrip` pe valid hi nahi tha** — Google ka validator sahi tha. Ab
+   ek **`Product` node** juda aur rating wahan gayi. Do faayde: error gaya, aur rich result ab
+   sach me mil sakta hai (`TouristTrip` khud kisi rich result ko power nahi karta)
+2. **Din ka plan schema me jaata hi nahi tha** — pehle sirf `itinerary` (jagah ka kram). Ab har
+   din ek **`subTrip`** hai. Dono chahiye: `itinerary` batata hai **kahan**, `subTrip` **kya**
+3. **`stripTags` do vaakya chipka deta tha** — `settle in.In the evening`. FAQ ke jawab pe bhi,
+   1 Sep se
+4. **Toggle per-package hone ki wajah se kabhi on hi nahi hua** — paanchon package pe `false`
+   mila. Ek bana-banaya feature teen din bekaar pada raha. Ab `packageDefaults.seoSchema`,
+   default **`true`**, screen **Packages ▸ Itinerary Settings**. Migration 022
+
+Usi screen pe Similar ke do number bhi code se nikal kar settings me aaye (`similar.total`,
+`similar.perPage`) — client ko _"i put 10 and i want to show 5 then pagination"_ chahiye tha.
+
+⚠️ **Whitelist wala jaal chauthi baar laga** — `updatePackageDefaults()` ka `$set` ek whitelist
+hai; `seoSchema` aur `similar` schema/model/screen teenon me jud gaye, whitelist me nahi.
+Client ne 4 bhara, "Saved." dikha, page pe 3 hi rahe. Chetavni us function ke upar **pehle se
+bold me likhi thi** aur phir bhi lagi — isliye ab dono field ka apna test hai jo **response
+nahi, DB** padhta hai.
+
+### Cache sach me on hua (D-83) — aakhri commit, aur sabse chup bug
+
+`lib/cms.js` me `fetch(url, { next: { tags } })` likha tha. Next **15** me `fetch` ka default
+**`no-store`** hai (14 me `force-cache` tha) — sirf tags dene se kuch cache hota hi nahi, wo bas
+tag chipkaata hai. Nateeja: **har page load pe chaaron call API tak jaati thi, har baar.**
+
+Poora ISR dhaancha bana hua tha — route, `tagsFor()`, `path:` tag (D-52), path badalne pe
+purane tag ka bhejna — aur teen hafte tak **ek din bhi chala nahi**. Ab `revalidate: 3600` tags
+ke **saath** hai, unki jagah nahi.
+
+⚠️ Ek purana diagnosis galat nikla: **favicon theek hai.** Wo 404 tab dekha gaya tha jab
+favicon upload hi nahi hua tha.
+
+---
+
+## 3 Sep — Enquiries inbox, Media Library, TinyMCE, Bulk Upload ki neev
+
+**17 commit.** Chaar dhaare:
+
+| Kya                                                                                        | Decision                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Enquiries inbox** — All Enquiries · Detail · Export CSV                                  | **D-75**, usi din client ne chala kar **chhota** kar diya — **D-76** (submenu me teen item, detail pe sirf Status, Notes aur Quick Actions dono hataye). Migration 018 · 019 |
+| **Media Library + MediaPicker**, filters, Delete sach me red                               | **D-77 · D-78**                                                                                                                                                              |
+| **`mediaRefs` nahi banega** — client ka faisla                                             | **D-79** (aur uske saath `Attached`/`Unattached` filter bhi mar gaya, wo usi pe tika tha)                                                                                    |
+| **Editor ab TinyMCE, saara page content HTML**                                             | **D-80** — spec 002 ka **doosra** badlaav. Migration 020                                                                                                                     |
+| **Bulk Upload** — doc parser · Google HTML ki safai · module · worker · admin ke do screen | **D-81**, migration 021                                                                                                                                                      |
+| **Date picker poore box pe khule** — ab ek rule hai                                        | **R19**                                                                                                                                                                      |
+| Design parity naapi — chaaron page, teraah tag, ek bhi farak nahi                          | —                                                                                                                                                                            |
+
+⚠️ **D-80 ke saath XSS ki problem ab hum paal rahe hain.** TipTap schema-based tha isliye XSS
+**ban hi nahi sakta tha**; ab content raw HTML hai. Keemat `rich-doc.js` me D-69 ke waqt pehle
+se likhi hui thi, aur wo din aa gaya — sanitizer + permission gate ab zaroori hain (R20).
+
+---
+
+## 2 Sep ka handoff (itihaas — us waqt "3 Sep ka plan" tha)
 
 **2 Sep me kya hua:** **30 commit**, teen dhaare me — enquiry form ko _sach me_ chalana,
 mobile/responsive pass, aur **A-16 ka fix**. **624 tests pass** (26 file), lint aur format

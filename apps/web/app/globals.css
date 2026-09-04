@@ -9,6 +9,31 @@
    `columnCount` se set hota hai.
    ============================================================ */
 
+/**
+ * ⚠️ **Ek character — ₹ — 85 KB ka font utaar raha tha.**
+ *
+ * Inter ke latin subset me rupee ka nishan hai hi nahi; wo **latin-ext** me hai. Page pe ₹
+ * 34 baar aata hai (har daam pe), aur uske liye browser Inter ki poori latin-ext file
+ * maangta tha — **85 KB**, sirf ek glyph ke liye. Naap me wo mobile ke 1.6 Mbps link pe
+ * ~425ms bandwidth thi, theek us waqt jab LCP wali image aa rahi hoti hai (D-85).
+ *
+ * Ye `@font-face` kuch download **nahi** karta: `src: local(...)` sirf wo font uthata hai jo
+ * machine pe pehle se hai, aur `unicode-range` use **sirf ₹** tak seemit rakhta hai. Baaki
+ * har character waise ka waisa Inter se aata hai.
+ *
+ * Ye stack me **sabse aage** hai, isliye ₹ yahan se milta hai aur Inter ki latin-ext file
+ * ki zaroorat hi nahi padti. Kisi machine pe ye chaaron font na hon to character apne aap
+ * agli family (Inter) pe chala jaata hai — yaani sabse bura nateeja wahi purana vyavhaar hai.
+ *
+ * ⚠️ **Iska ek dikhne wala asar hai:** ₹ ab Inter ka nahi, machine ke apne font ka hota hai.
+ * Daam ka baaki text (ankh, comma) Inter ka hi rehta hai.
+ */
+@font-face {
+  font-family: 'RupeeLocal';
+  src: local('Segoe UI'), local('Roboto'), local('Helvetica Neue'), local('Arial');
+  unicode-range: U+20B9;
+}
+
 :root {
   /* Rang aur font dono client ke behaviour reference se hi liye gaye hain — pehle ye
      andaaze se rakhe the (slate palette) aur isliye design se thoda alag lagte the. */
@@ -96,7 +121,7 @@
    * **self-host** karta hai, isliye runtime pe Google ko koi request nahi jaati aur layout
    * shift bhi nahi hota.
    */
-  --font: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font: 'RupeeLocal', var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* ---------- type scale (P4, 1 Sep — client) ----------
      Pehle poore page me 81 `font-size` bikhri hui thi, 20 alag value me. "h1 chhota karo"
@@ -926,6 +951,13 @@ a.mega__gl:hover {
    `ft__col--wide` jaisi class se nahi.
    ============================================================ */
 .ft {
+  /*
+   * Footer aur closing CTA **hamesha** fold ke neeche hote hain, isliye inka layout pehle
+   * paint se pehle karna bekaar kaam hai (D-85). `.blk` sections pe yahi cheez lagi hai.
+   */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+
   /* Client ka tune (1 Sep) — reference me 64px hai. Us gap ke saath footer page se kat-ta
      hua lagta tha. Reference se "match" karne ke naam pe wapas mat badalna (R15). */
   margin-top: 0px;
@@ -1547,14 +1579,34 @@ a.mega__gl:hover {
 /*
  * Paanch se kam images ho to mosaic ka grid tootta hai — us case me ek saada strip.
  * Client ke pool me 20 images hone chahiye (§1.7), par naya instance khaali hota hai.
+ *
+ * ⚠️ Ye bhi pehle `:has()` tha (`.gal:has(button:nth-child(-n + 4):last-child)`) — dekho
+ * `.pkg--cta` ke upar wali chetavni. `Gallery` ko `tiles.length` pata hai, isliye wo class
+ * ab server se aati hai.
  */
-.gal:has(button:nth-child(-n + 4):last-child) {
+.gal--few {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   grid-template-rows: 1fr;
   height: clamp(200px, 22vw, 300px);
 }
 
-.gal:has(button:nth-child(-n + 4):last-child) button {
+/*
+ * ⚠️ **Teen pseudo-class wale bhai yahan naam se likhne padte hain**, aur ye `:has()` hatane
+ * ka seedha nateeja hai.
+ *
+ * Upar teen rules hain jo desktop mosaic banati hain — `.gal button:first-child`,
+ * `:nth-child(3)` aur `:last-child` — aur teenon ki specificity (0,2,1) hai. Purana
+ * `.gal:has(...) button` (0,3,2) tha, isliye wo teenon ko aasani se haraa deta tha.
+ * `.gal--few button` akela (0,1,1) hai — wo haar jaata, aur 5 se kam image wale pool me
+ * pehla tile dono row me phaila hi rehta.
+ *
+ * Isliye har bhai ka apna jodidaar likha hai: (0,2,1) ki barabari, aur file me baad me —
+ * yaani tie apne aap jeet jaati hai.
+ */
+.gal--few button,
+.gal--few button:first-child,
+.gal--few button:nth-child(3),
+.gal--few button:last-child {
   grid-row: auto;
   border-radius: 10px;
 }
@@ -1567,14 +1619,16 @@ a.mega__gl:hover {
  * chauthe tile se aage sab `display: none` the — yaani phone pe pool ki aadhi tasveerein
  * dikhti hi nahi thin, jabki design me sab dikhti hain.
  *
- * ⚠️ `:has()` wala guard yahan **saath likhna zaroori hai**. `.gal:has(...)` ki specificity
- * `.gal` se zyada hai (`:has()` apne andar ke sabse bhaari selector ki ginti leta hai),
- * isliye wo file me pehle hone ke bawajood in rules ko haraa deta — 5 se kam image wale
- * pool pe mobile layout lagta hi nahi. Dono ko ek saath rakhna hi iska ilaaj hai.
+ * ⚠️ `.gal--few` yahan **saath likhna zaroori hai**. Wo aur `.gal` dono (0,1,0) hain, par
+ * `.gal--few` file me baad me aata hai — yaani tie wo jeet-ta hai, aur bina uske 5 se kam
+ * image wale pool pe mobile layout lagta hi nahi.
+ *
+ * (Pehle ye `.gal:has(...)` tha aur uski specificity `.gal` se **zyada** thi, isliye wajah
+ * alag thi par ilaaj wahi tha — D-85 me jagah badli, ye jodi nahi.)
  */
 @media (max-width: 860px) {
   .gal,
-  .gal:has(button:nth-child(-n + 4):last-child) {
+  .gal--few {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: none;
     height: auto;
@@ -1588,14 +1642,14 @@ a.mega__gl:hover {
    * bhi gol reh jaata — baaki sab seedhe, aur wo ek kona galti jaisa dikhta.
    */
   .gal button,
-  .gal:has(button:nth-child(-n + 4):last-child) button {
+  .gal--few button {
     aspect-ratio: 4 / 3;
     border-radius: 0 !important;
   }
 
   /* Pehla tile poori chaudai me, aur akela hi gol kinaron wala */
   .gal button:first-child,
-  .gal:has(button:nth-child(-n + 4):last-child) button:first-child {
+  .gal--few button:first-child {
     grid-row: auto;
     grid-column: 1 / -1;
     aspect-ratio: 16 / 9;
@@ -1620,6 +1674,32 @@ a.mega__gl:hover {
   border: 1px solid var(--line);
   border-radius: var(--r4);
   padding: clamp(18px, 2.2vw, 28px);
+
+  /*
+   * **Fold ke neeche ka layout paint se pehle mat karo** — D-85.
+   *
+   * Page ~9800px lamba hai aur usme 1366 element hain. Trace me `Layout` ki do sabse badi
+   * ghatnaayein (407ms aur 228ms) **poore** 1366 element ka layout thi, aur wahi LCP ka
+   * "Render Delay" ban rahi thi: image utar chuki hoti thi, par main thread use paint hi nahi
+   * kar paata tha.
+   *
+   * `content-visibility: auto` browser ko kehta hai ki jo section screen ke paas hai hi nahi,
+   * uska andar ka layout abhi rehne do. Naap: TBT **834ms → 128ms**, Style & Layout
+   * **2952ms → 1043ms**.
+   *
+   * ⚠️ **Iski ek dikhne wali keemat hai.** Jab tak section render nahi hua, uski unchai
+   * `contain-intrinsic-size` se **andaazan** hoti hai. Asli sections 350px se 3145px tak ke
+   * hain, isliye pehli baar scroll karte waqt **scrollbar apna naap badalta hai** (naapa:
+   * mobile ~790px, desktop ~1340px ka farak). `auto` keyword ki wajah se browser ek baar
+   * dekhne ke baad asli naap yaad rakh leta hai — yaani ye sirf pehle scroll pe hota hai.
+   *
+   * ⚠️ Aur ek: ye `contain: layout style paint` bhi lagata hai, yaani `.blk` ke bahar
+   * nikalta hua koi bhi hissa **kat jaayega**. Aaj koi nahi nikalta (jaancha: koi negative
+   * margin nahi, koi `overflow: visible` nahi, dono `position: sticky` iske bahar hain).
+   * `.blk` ke andar kabhi tooltip ya popover daalo to ye baat yaad rakhni hogi.
+   */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 700px;
 }
 
 /*
@@ -4111,6 +4191,16 @@ a.mega__gl:hover {
    */
   max-height: min(80vh, calc(100vh - 140px));
   width: auto;
+  /*
+   * `height: auto` yahan **dikhne me kuch nahi badalta** — wo pehle se auto hi tha, kyunki
+   * `<img>` pe `height` attribute tha hi nahi.
+   *
+   * Ab wo attribute hai (CLS ke liye har image pe `width`/`height` jaate hain), aur uske
+   * bina wo presentational hint is rule ke `width: auto` ke saath jud kar image ki unchai
+   * uske intrinsic naap pe pin kar deta. Do me se ek `auto` ho aur doosra nahi — bas wahi
+   * ek soorat hai jisme attribute aur CSS aapas me ladte hain.
+   */
+  height: auto;
   height: auto;
   object-fit: contain;
   border-radius: var(--r4);
@@ -4305,6 +4395,13 @@ a.mega__gl:hover {
 .pkg__cta {
   background: var(--surface);
   padding-block: clamp(28px, 3.4vw, 46px);
+
+  /*
+   * Footer aur closing CTA **hamesha** fold ke neeche hote hain, isliye inka layout pehle
+   * paint se pehle karna bekaar kaam hai (D-85). `.blk` sections pe yahi cheez lagi hai.
+   */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 520px;
 }
 
 /*
@@ -4316,8 +4413,17 @@ a.mega__gl:hover {
  *
  * CTA na ho (client ne section off kiya ho) to `.pkg` ki padding waise hi rehti hai —
  * warna page footer se chipak jaata.
+ *
+ * ⚠️ **Ye pehle `.pkg:has(.pkg__cta)` tha, aur wo page ka sabse mehnga selector nikla**
+ * (D-85). `.pkg` poore page ka `<main>` hai, to `:has()` ka matlab tha: `main` ke andar
+ * kahin bhi DOM badla — jaise React ke hydrate karte waqt — aur browser ko poore document ki
+ * style dobara nikaalni padti. Naap me Style & Layout **2842ms** thi, aur LCP ka 69% hissa
+ * "Render Delay" tha: image utar chuki hoti thi par main thread use paint hi nahi kar paata.
+ *
+ * Ab class server se aati hai. `PackagePage` ko pehle se **pata** hai ki CTA render ho rahi
+ * hai ya nahi — CSS ko wo baat DOM soongh kar pata karne ki zaroorat hi nahi thi.
  */
-.pkg:has(.pkg__cta) {
+.pkg--cta {
   padding-bottom: 0;
 }
 

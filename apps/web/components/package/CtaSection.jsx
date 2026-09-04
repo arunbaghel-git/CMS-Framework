@@ -15,13 +15,30 @@
  * Button bhi API chhaanti hai (label + URL dono chahiye) — yaani jab tak enquiry form nahi
  * bana aur uska URL khaali hai, wo button yahan aata hi nahi (D-30, Q-2).
  */
-export default function CtaSection({ cta }) {
-  if (!cta) return null
+/**
+ * Ye section render hoga ya nahi — **ek hi jagah likha hua sawaal**.
+ *
+ * `PackagePage` ko iska jawab chahiye kyunki `.pkg` ki neeche wali padding is baat pe
+ * badalti hai. Pehle wo baat CSS `.pkg:has(.pkg__cta)` se poochhta tha, aur wo page ka
+ * sabse mehnga selector nikla (D-85): `.pkg` poore page ka `<main>` hai, to uske andar
+ * kahin bhi DOM badalne pe browser ko poore document ki style dobara nikaalni padti thi.
+ *
+ * Ab dono taraf yahi function chalta hai. Do jagah alag-alag shart likhne ka matlab hota ki
+ * kabhi ek badle aur doosri nahi — aur us din padding chup-chaap galat ho jaati.
+ */
+export function hasCtaSection(cta) {
+  if (!cta) return false
 
-  const { badge, heading, bullets = [], boxTitle, boxNote, buttons = [] } = cta
+  const { badge, heading, bullets = [], boxTitle, buttons = [] } = cta
 
   /** Card me kuch bhi na ho to poora section chhod do — khaali gradient patti bemaani hai. */
-  if (!badge && !heading && bullets.length === 0 && !boxTitle && buttons.length === 0) return null
+  return Boolean(badge || heading || bullets.length > 0 || boxTitle || buttons.length > 0)
+}
+
+export default function CtaSection({ cta }) {
+  if (!hasCtaSection(cta)) return null
+
+  const { badge, heading, bullets = [], boxTitle, boxNote, buttons = [] } = cta
 
   /*
    * Reference me ye `.sec.sec--white > .wrap` me baithta hai — yaani ek **poori chaudai ka
