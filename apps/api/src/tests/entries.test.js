@@ -889,7 +889,7 @@ describe('package content type ka shape', () => {
       'bestFor',
       'ferriesNote',
       'featured',
-      'seoSchema',
+      /* 'seoSchema' 4 Sep ko hata — ab wo packageDefaults pe hai, per-package nahi (D-82) */
     ])
     expect(keys).not.toContain('overview')
   })

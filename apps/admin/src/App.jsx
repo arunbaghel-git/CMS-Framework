@@ -21,6 +21,7 @@ import FormBuilder from './screens/forms/FormBuilder.jsx'
 import MediaLibrary from './screens/media/MediaLibrary.jsx'
 import FormsList from './screens/forms/FormsList.jsx'
 import MasterListScreen from './screens/packages/MasterListScreen.jsx'
+import ItinerarySettings from './screens/packages/ItinerarySettings.jsx'
 import PackageDefaults from './screens/packages/PackageDefaults.jsx'
 import PackageEdit from './screens/packages/PackageEdit.jsx'
 import TaxonomyScreen from './screens/packages/TaxonomyScreen.jsx'
@@ -194,6 +195,7 @@ const APP_ROUTES = [
   { path: '/packages/whats-included', element: <PackageDefaults section="whatsIncluded" /> },
   { path: '/packages/itinerary-images', element: <PackageDefaults section="itineraryImages" /> },
   { path: '/packages/section-headings', element: <PackageDefaults section="sectionLabels" /> },
+  { path: '/packages/itinerary-settings', element: <ItinerarySettings /> },
   /**
    * `/packages/:id` sabse **aakhir** me — warna wo `destinations`, `hotels` jaise har
    * static segment ko ek entry id ki tarah padh leta.

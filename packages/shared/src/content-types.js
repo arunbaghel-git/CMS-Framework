@@ -153,12 +153,16 @@ const PACKAGE_FIELDS = [
     label: 'Featured',
     help: 'Homepage aur listings me upar dikhta hai',
   },
-  {
-    key: 'seoSchema',
-    type: 'toggle',
-    label: 'Emit Product + Trip schema',
-    help: 'Search engines ke liye structured data',
-  },
+  /*
+   * `seoSchema` **hata diya gaya** (client, 4 Sep — D-82).
+   *
+   * Wo Slice 3 se yahan tha aur har package pe ek checkbox deta tha. Live dekhne pe do baatein
+   * saaf hui: paanchon package pe wo `false` tha (yaani feature kabhi on hi nahi hua), aur ye
+   * per-package faisla hai bhi nahi — site ya to structured data bhejti hai ya nahi.
+   *
+   * Ab wo `packageDefaults.seoSchema` hai, aur uski screen **Packages ▸ Itinerary Settings**
+   * hai. Migration 022 ne purana field entries se hata diya.
+   */
 ]
 
 /** @type {ReadonlyArray<import('./types.js').ContentTypeSeed>} */

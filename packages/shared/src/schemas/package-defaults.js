@@ -200,6 +200,43 @@ export const packageDefaultsSchema = z.object({
    */
   sectionLabels: z.object(sectionLabelsShape).strict().default({}),
 
+  /**
+   * SEO ka structured data on/off — **ab ek jagah, har package pe nahi** (client, 4 Sep).
+   *
+   * Pehle ye `entry.fields.seoSchema` tha, yaani har package pe ek checkbox. Live dekhne pe
+   * uski do dikkatein saaf hui:
+   *
+   * 1. **Default `false` tha, to wo kabhi on hua hi nahi.** Paanchon package pe `false` mila —
+   *    yaani ek bana-banaya feature teen din bekaar pada raha.
+   * 2. **Ye per-package faisla hai hi nahi.** Site ya to structured data bhejti hai ya nahi;
+   *    "is package pe bhejo, us pe mat bhejo" ka koi matlab nahi banta.
+   *
+   * ⚠️ Default ab **`true`** hai. Ise off rakhne ka koi kaaran hi nahi milta, aur off rehne ki
+   * wajah se hi wo feature itne din so raha tha.
+   */
+  seoSchema: z.boolean().default(true),
+
+  /**
+   * "Similar itineraries" ke card — kitne dhoondhe jaayein aur ek page pe kitne dikhein.
+   *
+   * Dono number pehle **code me gade hue** the: API `limit(12)` pe aur theme `PER_PAGE = 3` pe.
+   * Client ko ye badalne the (_"i put 10 and i want to show 5 then pagination"_), aur uske liye
+   * do alag file chhoona padta.
+   *
+   * ⚠️ Defaults wahi hain jo aaj ka vyavhaar hai (12 aur 3) — is field ke aane bhar se kisi
+   * chalte hue page ka look badalna nahi chahiye.
+   *
+   * `total` par cap zaroori hai: uske bina ek din 60-package wali site pe har package ka
+   * payload chup-chaap dus guna ho jaata. Wahi soch jo `itineraryImages` aur `reviews` pe hai.
+   */
+  similar: z
+    .object({
+      total: z.number().int().min(0).max(60).default(12),
+      perPage: z.number().int().min(1).max(12).default(3),
+    })
+    .strict()
+    .default({}),
+
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
 })

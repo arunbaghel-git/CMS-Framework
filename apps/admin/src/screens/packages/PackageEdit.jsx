@@ -675,15 +675,11 @@ export default function PackageEdit() {
                   disabled={readOnly}
                 />
               </div>
-              <label className="inline-lbl">
-                <input
-                  type="checkbox"
-                  checked={Boolean(form.fields.seoSchema)}
-                  onChange={(e) => setField('seoSchema', e.target.checked)}
-                  disabled={readOnly}
-                />{' '}
-                Emit Product + Trip schema
-              </label>
+              {/*
+                'Emit Product + Trip schema' yahan se hat gaya (client, 4 Sep — D-82).
+                Ab wo site-level hai: Packages ▸ Itinerary Settings. Wajah data se aayi —
+                paanchon package pe wo off tha, yaani feature kabhi chala hi nahi.
+              */}
             </div>
           </Panel>
         </aside>

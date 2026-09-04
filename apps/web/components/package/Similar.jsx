@@ -22,8 +22,15 @@ import { useState } from 'react'
  * hai.
  */
 
-/** Design me teen card ek page pe — `.sim` unhe ek ke neeche ek rakhta hai. */
-const PER_PAGE = 3
+/**
+ * Ek page pe kitne card — ab **Itinerary Settings se** (D-82).
+ *
+ * Pehle ye yahin `const PER_PAGE = 3` tha aur total ka cap API me `limit(12)` pe. Client ko
+ * dono badalne the, aur uske liye do alag file chhoona padta.
+ *
+ * Default 3 hai — design me teen card ek page pe hain, aur config na aaye to look wahi rahe.
+ */
+const DEFAULT_PER_PAGE = 3
 
 /** Reference ka pin icon — `.prow__route` ke aage. */
 const Pin = () => (
@@ -76,13 +83,14 @@ function Rating({ rating, className = '' }) {
   )
 }
 
-export default function Similar({ items, rating, currency = 'INR' }) {
+export default function Similar({ items, rating, currency = 'INR', perPage = DEFAULT_PER_PAGE }) {
   const [page, setPage] = useState(0)
 
   if (!items?.length) return null
 
-  const pages = Math.ceil(items.length / PER_PAGE)
-  const shown = items.slice(page * PER_PAGE, (page + 1) * PER_PAGE)
+  const size = perPage > 0 ? perPage : DEFAULT_PER_PAGE
+  const pages = Math.ceil(items.length / size)
+  const shown = items.slice(page * size, (page + 1) * size)
 
   return (
     <>

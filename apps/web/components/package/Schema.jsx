@@ -15,10 +15,12 @@ import { HOTEL_CATEGORY_LABEL } from '@cms/shared'
  * | --- | --- |
  * | `BreadcrumbList` | hamesha — wo page pe dikh bhi raha hai |
  * | `FAQPage` | jab package ke apne FAQs hon |
- * | `TouristTrip` | jab **Edit Package ▸ SEO ▸ Emit Product + Trip schema** on ho |
+ * | `TouristTrip` + `Product` | jab **Packages ▸ Itinerary Settings ▸ Emit Product + Trip schema** on ho |
  *
- * Teesra gate naya nahi hai — `fields.seoSchema` Slice 3 se maujood hai aur uska label hi
- * yahi kehta hai. Aaj tak wo checkbox kuch karta hi nahi tha; ab karta hai.
+ * ⚠️ Teesra gate pehle **har package pe** tha (`entry.fields.seoSchema`, Slice 3 se). Wo 4 Sep
+ * ko site-level ho gaya (D-82), aur uski wajah data se aayi: paanchon package pe wo `false`
+ * mila — yaani ek bana-banaya feature kabhi on hua hi nahi. Aur ye per-package faisla hai bhi
+ * nahi: site ya to structured data bhejti hai ya nahi.
  *
  * ⚠️ **Structured data wahi kehna chahiye jo page pe dikh raha hai.** Isiliye har number
  * usi source se aata hai jo page render karta hai — rating `packageDefaults.rating` se
@@ -96,7 +98,7 @@ export default function Schema({ entry, defaults, settings, breadcrumbs }) {
   }
 
   // ── trip ───────────────────────────────────────────────────────────────────
-  if (entry.fields?.seoSchema) {
+  if (defaults?.seoSchema !== false) {
     const priced = entry.pricing?.categoryPricing ?? []
     const rating = defaults?.rating
 

@@ -99,6 +99,11 @@ export const NAV = [
         to: '/packages/section-headings',
         permission: PERMISSION.PACKAGE_DEFAULTS_READ,
       },
+      {
+        label: 'Itinerary Settings',
+        to: '/packages/itinerary-settings',
+        permission: PERMISSION.PACKAGE_DEFAULTS_READ,
+      },
     ],
   },
   /**
@@ -301,6 +306,7 @@ export const ROUTE_GUARDS = Object.freeze({
   '/packages/whats-included': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/itinerary-images': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/section-headings': PERMISSION.PACKAGE_DEFAULTS_READ,
+  '/packages/itinerary-settings': PERMISSION.PACKAGE_DEFAULTS_READ,
 
   /**
    * Bulk Upload — dono screen ek hi permission pe.

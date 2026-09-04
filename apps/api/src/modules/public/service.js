@@ -513,7 +513,7 @@ async function resolvePackageExtras(fields, days, siteId, locale) {
  * document pe chalti hai, aur yahan list chahiye. Dono ka matlab ek hi rakha gaya hai —
  * `published`, ya `scheduled` jiska waqt aa chuka (R2 wala self-healing).
  */
-async function resolveSimilarPackages(doc, siteId, locale) {
+async function resolveSimilarPackages(doc, siteId, locale, limit) {
   const { nights, days } = doc.fields ?? {}
 
   /**
@@ -534,7 +534,7 @@ async function resolveSimilarPackages(doc, siteId, locale) {
     $or: [{ status: 'published' }, { status: 'scheduled', publishAt: { $lte: now } }],
   })
     .sort({ updatedAt: -1 })
-    .limit(12)
+    .limit(limit)
     .lean()
 
   if (!docs.length) return []
@@ -618,7 +618,7 @@ async function toPublicEntry(doc, siteId, locale) {
   const fields = doc.fields ?? {}
   const days = Array.isArray(fields.itinerary) ? fields.itinerary : []
 
-  const [destinations, packageTypes, banner, transfers] = await Promise.all([
+  const [destinations, packageTypes, banner, transfers, defaults] = await Promise.all([
     resolveTaxonomies(doc.taxonomies?.destinations, siteId, locale),
     resolveTaxonomies(doc.taxonomies?.packageTypes, siteId, locale),
     toDisplayImage(fields.bannerImage, 'large', siteId),
@@ -626,13 +626,18 @@ async function toPublicEntry(doc, siteId, locale) {
       .select('name icon')
       .lean()
       .catch(() => []),
+    /**
+     * "Similar itineraries" ka cap `packageDefaults` se aata hai (D-82) — pehle wo yahin
+     * `limit(12)` me gada hua tha. Isi Promise.all me hai taaki ek aur round trip na lage.
+     */
+    ensurePackageDefaults(siteId),
   ])
 
   const stayIds = days.map((d) => d.overnightStayId)
   const [stays, extras, similar] = await Promise.all([
     resolveTaxonomies(stayIds, siteId, locale),
     resolvePackageExtras(fields, days, siteId, locale),
-    resolveSimilarPackages(doc, siteId, locale),
+    resolveSimilarPackages(doc, siteId, locale, defaults.similar?.total ?? 12),
   ])
   const stayById = new Map(stays.map((s) => [s.id, s]))
   const transferById = new Map(
@@ -662,7 +667,6 @@ async function toPublicEntry(doc, siteId, locale) {
       bestFor: fields.bestFor ?? '',
       ferriesNote: fields.ferriesNote ?? '',
       featured: Boolean(fields.featured),
-      seoSchema: Boolean(fields.seoSchema),
     },
 
     /** Har din ke references resolve ho kar jaate hain — theme ko lookup nahi karna padta. */
@@ -767,6 +771,12 @@ export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
     itineraryImages: images.filter(Boolean),
 
     sectionLabels: resolveSectionLabels(doc.sectionLabels),
+
+    /** Structured data on/off — ab site-level, har package pe nahi (D-82). */
+    seoSchema: doc.seoSchema !== false,
+
+    /** Similar cards — kitne page pe (theme) aur kitne kul (upar limit me). */
+    similar: { total: doc.similar?.total ?? 12, perPage: doc.similar?.perPage ?? 3 },
 
     /**
      * `4.9 average from 412 trips` — client haath se likhta hai (spec 007 §9 #8 ka jawab).

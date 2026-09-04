@@ -707,7 +707,12 @@ export default function PackagePage({ entry, defaults, settings }) {
               {similar.length > 0 && (
                 <section className="blk" id="similar">
                   <SectionHead label={labels.similar} />
-                  <Similar items={similar} rating={rating} currency={settings?.currency ?? 'INR'} />
+                  <Similar
+                    items={similar}
+                    rating={rating}
+                    currency={settings?.currency ?? 'INR'}
+                    perPage={defaults?.similar?.perPage}
+                  />
                 </section>
               )}
             </div>

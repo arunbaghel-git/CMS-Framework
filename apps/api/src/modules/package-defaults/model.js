@@ -81,6 +81,18 @@ const packageDefaultsSchema = new mongoose.Schema(
      * chhapta tha.
      */
     sectionLabels: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+
+    /** Structured data on/off — ab site-level (D-82). Default on. */
+    seoSchema: { type: Boolean, default: true },
+
+    /**
+     * Similar itineraries ke do number. Shape ka source `packages/shared` hai (R8);
+     * yahan sirf default, taaki purane document padhte waqt undefined na aaye.
+     */
+    similar: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({ total: 12, perPage: 3 }),
+    },
   },
   { timestamps: true, collection: 'packageDefaults', minimize: false },
 )
