@@ -189,7 +189,23 @@ function buildHotels(values, refs, issues) {
     if (!raw) continue
 
     const label = `${category[0].toUpperCase()}${category.slice(1)} Hotel`
-    const { item, issue } = resolveOne(refs.hotels, raw, { label, listName: 'Hotels' })
+
+    /**
+     * ⚠️ **Hotel ka apna record bhi `category` rakhta hai** — Hotels ki list
+     * (destination × category) pe bani hai, isliye ek hi naam kai category pe ho sakta hai.
+     *
+     * Sirf naam se dhoondhne pe wo har baar "ek se zyada mile" ban jaata aur har hotel line
+     * blocker deti. Isliye pehle usi category me dhoondha jaata hai jo doc ke label ne batayi
+     * (`Deluxe Hotel` → deluxe), aur wahan kuch na mile tabhi poori list dekhi jaati hai.
+     */
+    const all = refs.hotels.get(normalizeName(raw)) ?? []
+    const sameCategory = all.filter((hotel) => hotel.category === category)
+    const narrowed = sameCategory.length > 0 ? sameCategory : all
+
+    const { item, issue } = resolveOne(new Map([[normalizeName(raw), narrowed]]), raw, {
+      label,
+      listName: 'Hotels',
+    })
 
     if (issue) {
       issues.push(issue)
@@ -199,6 +215,23 @@ function buildHotels(values, refs, issues) {
     if (!item.destinationId) {
       issues.push(blocker(label, raw, `"${item.name}" has no destination set in the Hotels list.`))
       continue
+    }
+
+    /**
+     * Naam mila par uski apni category doc ke label se alag hai.
+     *
+     * Ye galti bhi ho sakti hai aur jaan-boojh kar bhi (client ne standard hotel ko deluxe
+     * row me dikhana chaha ho). Isliye **note**, blocker nahi — package rukna nahi chahiye,
+     * par client ko dikhna chahiye.
+     */
+    if (item.category && item.category !== category) {
+      issues.push(
+        note(
+          label,
+          raw,
+          `"${item.name}" is listed as a ${item.category} hotel, but it was used for the ${category} row.`,
+        ),
+      )
     }
 
     const pair = `${item.destinationId}:${category}`

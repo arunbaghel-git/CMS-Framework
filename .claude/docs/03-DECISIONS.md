@@ -4986,3 +4986,196 @@ Wajah check me thi, code me nahi. "After" wala capture `next start` se liya gaya
 **Sabak:** migration ke baad ka capture hamesha **naye build** se lena. `next start` chup-chaap
 purana bundle serve karta rehta hai — DB naya ho jaata hai, code nahi, aur diff jhooth bolta
 hai. `.next/BUILD_ID` ka waqt dekh lena kaafi hai.
+
+---
+
+## D-81
+
+**Bulk Upload — Google Sheet se package pages** (client, 3–4 Sep)
+
+Client ke paas 20+ itinerary packages Google Docs me likhe hue hain. Haath se daalne ka matlab
+hai har package pe **38 khaane** bharna — Meta Title se lekar har din ka Title, Meals, Transfer
+aur Description tak. Ab wo sheet ka URL paste karta hai aur package **ban kar publish** ho
+jaate hain.
+
+Sidebar me **top-level** menu hai, submenu nahi — client ne saaf kaha tha:
+_"sidebar me menu banana hai not submenu remember"_.
+
+### ✅ Google ka koi account nahi chahiye — naapa gaya
+
+Shuru me lagta tha ki Drive integration (OAuth ya service account) karna padega. Naap kar dekha:
+
+| Raasta | Nateeja |
+| --- | --- |
+| `docs.google.com/…/export?format=csv` (sheet) | **200** — bina kisi login ke |
+| `docs.google.com/…/export?format=html` (doc) | **200** — bina kisi login ke |
+| `sheets.googleapis.com/v4/…` (asli API) | **403** — _"unregistered callers"_ |
+
+Pehla raasta wahi hai jo browser me **File → Download** dabane pe chalta hai — uspe koi pehchan
+maangi hi nahi jaati. Teesri line batati hai ki **likhna** kabhi anonymous nahi ho sakta, chahe
+file duniya bhar ko dikh rahi ho.
+
+Ye farak isliye maayne rakhta hai ki client ne pehle sheet me `Status`/`Published URL` bharne ki
+baat ki thi, phir palat diya: _"mat likho wapas uspe, apne admin me hi status show karte jao"_.
+Us ek line ne **poora OAuth/service-account ka kaam** scope se bahar kar diya — koi naya env
+var, koi credential, koi nayi dependency nahi.
+
+Status DB me rehta hai (`importRuns`), aur wo sheet se **behtar** nikla: screen band karke wapas
+aao to bhi list bani rehti hai, aur har package ka URL seedha clickable hota hai.
+
+⚠️ Shart ek hi hai: sheet aur docs **"anyone with the link"** pe shared rehne chahiye.
+
+### ⚠️ Google formatting **class** se bhejta hai, tag se — aur ye ek galti thi jo pakdi gayi
+
+Pehle maana gaya tha ki bold inline `style="font-weight:700"` se aata hai, aur uska demo bhi
+"chal gaya" — kyunki demo ka HTML khud likha gaya tha. Asli export aisa hai:
+
+```html
+<style>.c2{font-weight:400}  .c4{font-weight:700}</style>
+<p class="c0"><span class="c4">Port Blair</span> and Neil.</p>
+```
+
+`<strong>` kahin nahi hai — bold ki poori jaankari **`.c4` ke naam me** hai. Seedhe `class` hata
+dene se client ka **saara bold aur italic chup-chaap gir jaata**, aur pata tab chalta jab wo
+live page kholta.
+
+Isliye `core/google-html.js` do kadam me chalti hai aur kram badla nahi ja sakta: pehle
+`<style>` padh kar class ka naksha, phir `<span class="c4">` → asli `<strong>`. Safai uske
+**baad** hoti hai.
+
+⚠️ Iska profile `sanitize-html.js` walon se **alag** hai. `BLOCK` profile `class`/`style`
+jaan-boojh kar allow karta hai (D-80 — client ko HTML tab me apni class likhni thi). Yahan
+source alag hai: ye class client ne nahi likhi, **Google ne thopi** hai.
+**Profile source ke hisaab se chunna chahiye, field ke hisaab se nahi.**
+
+### Teen nateeje — aur `draft` client ka apna faisla hai
+
+| Nateeja | Kab |
+| --- | --- |
+| **Published** | sab kuch resolve ho gaya |
+| **Draft** | package **ban gaya**, par koi reference nahi mila |
+| **Failed** | package ban hi **nahi saka** — naam nahi tha, ya doc nahi khuli |
+
+Client ne kaha tha: _"rok do publish mat karo, aur status me dikhta jayega ki kya choota hai aur
+draft ban jayega"_. Yaani content chala jaana chahiye, sirf publish rukna chahiye.
+
+Matching **case aur extra space maaf** karti hai, spelling nahi — _"case sensitive to use krna
+chahiye ek dum strict nahi karna hai baki spelling mistake hone par rok do"_. `havelock` =
+`Havelock`; `Havelok` rukta hai.
+
+⚠️ **Importer master list me kabhi naya naam nahi banata.** Ek typo `Havelok` us list me ghus
+gaya to wo hamesha ke liye wahan rahega aur usse bane saare page usi galat naam pe rahenge.
+
+⚠️ **Ek naam do jagah milna bhi blocker hai.** Taxonomy ki uniqueness `slug` pe hai, `name` pe
+nahi — do destination ka naam sach me "Havelock" ho sakta hai. Chup-chaap pehla utha lena
+**galat hotel** live page pe daal deta.
+
+### Preview ki screen jaan-boojh kar nahi hai
+
+Ek baar wo plan me thi. Client ne hata di — _"20 packages ka review thodi dekhega"_ — aur wo
+theek tha: preview ka asli kaam content dekhna nahi, **galti pakadna** tha, aur wo import ke
+**baad** wale nateeje me utni hi achhi tarah ho jaata hai. Flow ab do kadam ka hai:
+sheet do → Import → Result.
+
+### Mapper wo data kabhi nahi bhejta jise service thukra degi
+
+`assertPackageRefs()` kuch cheezein **422** ke saath phenkta hai jo Zod me hain hi nahi — ek hi
+category do baar, `strikePrice` jo `priceFrom` se bada na ho, ek hi `destinationId:category`
+jodi do baar. Mapper wo bhej de to **poora package fail** ho jaata, sirf ek daam ki galti pe.
+
+Isliye har aisi shart `mapper.js` me **pehle** dekhi jaati hai aur uska nateeja ek issue banta
+hai, exception nahi. Wahi baat lambai ki hadd pe: line kaat kar note likha jaata hai, kyunki ek
+61 character ki `Transfer Duration` ki wajah se package rukna galat hai.
+
+Iska test mapper ka output **asli Zod schemas se guzarta hai** — aur usi ne ek asli bug pakda:
+`₹` ka entity (`&#8377;`) decode nahi ho raha tha, to `₹24,999` se `837724999` ban raha tha, jo
+`pricingSchema` ki hadd paar kar ke poore package ko giraata.
+
+### Dobara chalana surakshit hai — aur do jaal yahin the
+
+Pehchan **slug** se hoti hai. Do cheezein iske bina toot jaati hain:
+
+1. `createEntry` `status: 'published'` ko **chup-chaap `draft`** kar deta hai — isliye hamesha
+   do call: `createEntry()` phir `publishEntry()`.
+2. `resolveSlugAndPath()` slug ka takrav dekh kar chup-chaap `-2` laga deta hai, **aur trash me
+   padi entry bhi slug pakde rehti hai**. Us `-2` wale page ko agla run pehchanta hi nahi, aur
+   har run ek aur duplicate banata. Isliye slug pehle se dekha jaata hai, aur trash wali entry
+   pe saaf message aata hai.
+
+⚠️ **Pehle se published page dobara publish nahi hota.** Wo `version` phir badha deta, ek aur
+revision likhta, aur `publishAt` ko aaj pe reset kar deta — yaani bees package ki "Published on"
+har import pe badal jaati.
+
+⚠️ **Live page naye blocker ki wajah se neeche nahi laaya jaata.** Ek hotel ke naam ki typo
+bees live page utaar de — wo aapdaa hoti.
+
+⚠️ Din aur hotel ke `id` **tay** hain (`d1`, `dest-pb:standard`), random nahi. `normalizeFields`
+bina `id` wale ko har baar naya `randomUUID()` de deta hai — yaani har import pe har din "naya"
+ban jaata aur revision me poora itinerary badla hua dikhta.
+
+### Kaam ek request me kyun nahi hota
+
+Naapa gaya: ek doc ~**0.5s** me aata hai. 20 doc = ~10s sirf laane me, uske upar create +
+publish + revalidate, aur banner image ki `sharp` processing. Asli kul **30–120 second**.
+
+Ek HTTP request itni der nahi ruk sakti (production ka reverse proxy 60s pe kaat deta hai, aur
+admin ke axios pe koi timeout hai hi nahi). Sabse bura hissa: us waqt tak **kuch import ho chuka
+hota hai** aur client ko pata hi nahi chalta ki kya bana.
+
+Isliye run DB me banta hai aur turant laut jaata hai; rows ek-ek karke chalti hain (`index.js`
+me 2s ka tick, `publishDueEntries()` wala hi claim-loop pattern); admin **poll** karta hai.
+SSE nahi — is codebase me wo hai hi nahi, aur ek chhote feature ke liye naya transport gadhna
+theek nahi tha.
+
+⚠️ Rows ek saath nahi chalti: `resolveSlugAndPath()` padho-phir-likho hai, do row ek saath ek
+slug pe pahunche to dono duplicate bana deti hain. Google bhi anonymous export pe throttle
+karta hai, aur `sharp` isi process ka CPU khaati hai.
+
+⚠️ Timer `app.js` me **nahi** hai — wahi wajah jo scheduled publish pe likhi hai: har test file
+apna timer chalu kar deti aur vitest kabhi khatam na hota.
+
+### Banner image — repo ka pehla user-controlled outbound URL
+
+`Banner Image URL` client ke doc se aata hai, yaani use koi bhi likh sakta hai jise doc pe edit
+ka haq ho. Bina rok ke wo `http://169.254.169.254/…` (cloud metadata) ya `http://localhost:4000/…`
+(hamari apni API, auth ke peeche se) daal sakta hai — ye **SSRF** hai. `core/revalidate.js` pe ye
+khatra nahi tha: uska pata config se aata hai.
+
+Isliye hostname resolve kar ke uska **asli IP** dekha jaata hai (sirf naam dekhna kaafi nahi —
+`evil.example.com` bhi `127.0.0.1` pe point kar sakta hai), `https`/`http` ke alawa kuch nahi,
+`content-type` image hona chahiye, aur byte cap `MAX_UPLOAD_MB` se aata hai.
+
+Drive ka share link (`drive.google.com/file/d/…/view`) **HTML ka page** deta hai, image nahi —
+use `uc?export=download` me badla jaata hai. Phir bhi image na mile to **sirf image fail hoti
+hai, package nahi**.
+
+### Test me network chhua hi nahi jaata
+
+Is repo me HTTP mocking ka koi pattern nahi tha. `vi.stubGlobal('fetch')` chhoda gaya — wo
+global badal deta hai aur uska risaav doosri files tak jaata hai. Uski jagah wahi shakl li gayi
+jo `createMediaFromUpload(input, { storage })` pe pehle se hai: **dependency argument se aati
+hai**. `startImport()` aur `processImportQueue()` `deps.fetchImpl` lete hain.
+
+### Ek aur cheez jo build ke waqt pata chali
+
+**Hotel ka apna record bhi `category` rakhta hai** — Hotels ki list (destination × category) pe
+bani hai, isliye ek hi naam kai category pe ho sakta hai. Sirf naam se dhoondhne pe har hotel
+line "ek se zyada mile" wala blocker deti. Ab pehle usi category me dhoondha jaata hai jo doc ke
+label ne batayi (`Deluxe Hotel` → deluxe). Hotel ki apni category label se alag ho to wo
+**note** hai, blocker nahi — wo galti bhi ho sakti hai aur jaan-boojh kar bhi.
+
+### Client ko batane wali do baatein
+
+- **Template me chaar price line jodni hain** (`Standard Price` … `Luxury Price`). Unke bina
+  page pe **na daam dikhega na koi hotel category** (D-56 — khaali daam ka matlab hai "ye
+  category milti hi nahi")
+- **Hotel ke naam copy-paste karne honge**, type nahi. Asli naam lambe hain (_"Beachfront resort
+  at Laxmanpur or similar"_), aur ek akshar galat hone pe row draft banegi
+
+### Bacha hua
+
+`tools.import` abhi **sirf admin** ke paas hai (migration 021 ne roles sync kiye). Editor ko bhi
+chahiye to wo `ROLE_PERMISSIONS` me ek line aur ek nayi migration hai.
+
+v1 me sirf **packages** import hote hain. Client ne "other pages" bhi kaha tha, par unka koi
+template abhi nahi hai — uske bina parser andaaze pe banta.

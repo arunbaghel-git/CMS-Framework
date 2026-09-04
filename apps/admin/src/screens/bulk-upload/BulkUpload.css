@@ -1,0 +1,61 @@
+/*
+ * Bulk Upload (D-81).
+ *
+ * ⚠️ Yahan **kam se kam** CSS hai, aur wo jaan-boojh kar. Ye screen
+ * `admin-design-v2.html` me hai hi nahi (client ne design ke baad maangi), isliye iska
+ * layout maujooda pattern se udhaar liya gaya hai — `.panel`, `table.list`, `.subsubsub`,
+ * `.badge`. Nayi shakl gadhna R15 ka ulta hota; jo design se aayega wo client se aayega.
+ *
+ * Isi wajah se ye file `primitives.css` me kuch nahi jodti — uska apna niyam hai ki wahan
+ * sirf wo jaaye jo ek se zyada jagah use hota ho.
+ */
+
+/* Sheet ka URL lamba hota hai — table ko chaudai me phaila na de */
+.bu-url {
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted, #646970);
+  font-size: 12.5px;
+}
+
+.bu-note {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line, #dcdcde);
+}
+
+.bu-h2 {
+  margin: 24px 0 8px;
+  font-size: 15px;
+}
+
+/*
+ * Issues ki list.
+ *
+ * Har issue do line ka hai — upar kahan aur kya likha tha, neeche kya karna hai. Ek line me
+ * daalne se lambi list padhi hi nahi jaati, aur yahi wo jagah hai jahan client sabse zyada
+ * waqt bitayega.
+ */
+.bu-issues {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.bu-issues li + li {
+  margin-top: 8px;
+}
+
+/*
+ * Blocker aur note ka farak **rang se** dikhna chahiye.
+ *
+ * Dono ek hi list me hain, par unka matlab ulta hai: blocker ne package rok diya, note ne bas
+ * kuch kaat kar bataya. Bina farak ke client har note ko bhi galti samajh kar dhoondhta rehta.
+ */
+.bu-blocker {
+  color: var(--danger, #b32d2e);
+}

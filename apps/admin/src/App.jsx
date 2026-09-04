@@ -13,6 +13,8 @@ import NotBuiltYet from './screens/NotBuiltYet.jsx'
 import Profile from './screens/Profile.jsx'
 import AppearanceFooter from './screens/appearance/Footer.jsx'
 import Menus from './screens/appearance/Menus.jsx'
+import BulkUpload from './screens/bulk-upload/BulkUpload.jsx'
+import BulkUploadRun from './screens/bulk-upload/BulkUploadRun.jsx'
 import EnquiriesList from './screens/enquiries/EnquiriesList.jsx'
 import EnquiryDetail from './screens/enquiries/EnquiryDetail.jsx'
 import FormBuilder from './screens/forms/FormBuilder.jsx'
@@ -174,6 +176,10 @@ const APP_ROUTES = [
    */
   /** Media Library — Phase 2 ka bacha hua hissa, client ne 3 Sep ko maanga (D-78). */
   { path: '/media', element: <MediaLibrary /> },
+
+  /** Bulk Upload — list, phir ek run ka nateeja. Static segment pehle (D-81). */
+  { path: '/bulk-upload', element: <BulkUpload /> },
+  { path: '/bulk-upload/:id', element: <BulkUploadRun /> },
 
   { path: '/enquiries', element: <EnquiriesList /> },
   { path: '/enquiries/forms', element: <FormsList /> },

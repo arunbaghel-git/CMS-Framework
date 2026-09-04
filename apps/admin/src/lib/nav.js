@@ -154,6 +154,30 @@ export const NAV = [
       { label: 'Add New Form', to: '/enquiries/forms/new', permission: PERMISSION.FORM_CREATE },
     ],
   },
+  /**
+   * Bulk Upload — **top-level, submenu nahi** (client, 3 Sep: _"sidebar me menu banana hai not
+   * submenu remember"_).
+   *
+   * Packages ke theek neeche isliye hai ki ye unhi ko banata hai. Andar do screen hain (list
+   * aur ek run ka nateeja), par nav me ek hi item hai — Media ki tarah: doosri screen kisi run
+   * ki id se khulti hai, aur wo nav ke paas hoti hi nahi. Wahi wajah thi jisse
+   * `Enquiries ▸ Enquiry Detail` bhi nav se hataya gaya tha (D-76).
+   *
+   * ⚠️ **Ye screen `admin-design-v2.html` me nahi hai** — client ne ise design ke baad maanga.
+   * Isliye layout naya nahi gadha gaya; wo maujooda pattern hi dohraata hai (list screen +
+   * panel). Client ko iska apna design chahiye ho to wo **unse** aayega, yahan se nahi (R15).
+   *
+   * ⚠️ `tools.import` `permissions.js` me pehle se tha par kisi role pe nahi — migration 021 ne
+   * roles sync ki. Abhi wo **sirf admin** ke paas hai. Editor ko bhi chahiye to wo ek line
+   * `ROLE_PERMISSIONS` me aur ek nayi migration hai.
+   */
+  {
+    id: 'bulkUpload',
+    icon: '⇪',
+    label: 'Bulk Upload',
+    to: '/bulk-upload',
+    permission: PERMISSION.TOOLS_IMPORT,
+  },
   { separator: true },
   /**
    * Appearance — Slice 0 ke liye **jaan-boojh kar chhota kiya gaya** (24 Aug, user ka
@@ -277,6 +301,16 @@ export const ROUTE_GUARDS = Object.freeze({
   '/packages/whats-included': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/itinerary-images': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/section-headings': PERMISSION.PACKAGE_DEFAULTS_READ,
+
+  /**
+   * Bulk Upload — dono screen ek hi permission pe.
+   *
+   * Nateeje wali screen bhi `tools.import` maangti hai, sirf `read` jaisi koi cheez nahi:
+   * usme client ke package ke naam, unke URL aur unki galtiyaan dikhti hain — yaani wahi
+   * jaankari jo import chalane wale ki hai.
+   */
+  '/bulk-upload': PERMISSION.TOOLS_IMPORT,
+  '/bulk-upload/:id': PERMISSION.TOOLS_IMPORT,
 
   '/users': PERMISSION.USER_READ,
   '/users/new': PERMISSION.USER_INVITE,

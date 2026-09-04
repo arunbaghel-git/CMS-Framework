@@ -266,11 +266,14 @@ export async function deleteItem(key, id, siteId = DEFAULT_SITE_ID) {
 export async function allItemNames(key, siteId = DEFAULT_SITE_ID) {
   const { Model, sort } = listOf(key)
 
-  const docs = await Model.find(scope(siteId), { name: 1, destinationId: 1 }).sort(sort).lean()
+  const docs = await Model.find(scope(siteId), { name: 1, destinationId: 1, category: 1 })
+    .sort(sort)
+    .lean()
 
   return docs.map((doc) => ({
     id: String(doc._id),
     name: doc.name ?? '',
     destinationId: doc.destinationId ? String(doc.destinationId) : null,
+    category: doc.category ?? null,
   }))
 }

@@ -79,14 +79,51 @@ describe('route guards', () => {
    * Sidebar ka har link kisi na kisi guard se mel khaana chahiye — ya to permission
    * wahi ho, ya route khula ho. Ulta hua to menu item dikhta hai aur click karne pe
    * "ye section aapke liye nahi hai" milta hai.
+   *
+   * ⚠️ **Ye test pehle aadha andha tha.** Wo sirf `item.children` ghoomta tha, yaani
+   * **top-level flat item** (jispe seedha `to` aur `permission` hoti hai) kabhi check hota
+   * hi nahi tha. Aisa pehla item Bulk Upload hai; Media aur Reviews pe bhi wahi shakl hai.
+   * Un teenon pe guard aur permission alag ho jaate to ye test khush rehta.
+   *
+   * Aur ye `visibleNav()` pe nahi, seedha `NAV` pe chalta hai: invariant registry ka hai,
+   * kisi ek user ke view ka nahi. `visibleNav(ADMIN)` se chalane pe wahi item chhoot jaate
+   * hain jinki permission us fake `can` me nahi hai — yaani jaanch wahin kamzor pad jaati
+   * hai jahan sabse zaroori hai.
    */
-  it('menu ke link aur route guard ek dusre se takraate nahi', () => {
-    for (const item of visibleNav(ADMIN)) {
-      for (const child of item.children ?? []) {
-        const guard = permissionForRoute(child.to)
-        if (guard) expect(child.permission).toBe(guard)
-      }
+  it('menu ke har link ka permission uske route guard se milta hai', () => {
+    const links = NAV.flatMap((item) => item.children ?? (item.to ? [item] : []))
+
+    expect(links.length).toBeGreaterThan(0)
+
+    for (const link of links) {
+      const guard = permissionForRoute(link.to)
+      if (guard) expect(link.permission, link.to).toBe(guard)
     }
+  })
+})
+
+/**
+ * Bulk Upload — client ka faisla tha "sidebar me menu banana hai **not submenu**" (3 Sep).
+ */
+describe('Bulk Upload ka menu (D-81)', () => {
+  const bulk = (can) => visibleNav(can).find((item) => item.id === 'bulkUpload')
+
+  it('top-level item hai, kisi ka submenu nahi', () => {
+    const item = bulk(canWith(PERMISSION.TOOLS_IMPORT))
+
+    expect(item).toBeTruthy()
+    expect(item.children).toBeUndefined()
+    expect(item.to).toBe('/bulk-upload')
+  })
+
+  it('tools.import na ho to bilkul nahi dikhta', () => {
+    expect(bulk(canWith())).toBeUndefined()
+  })
+
+  it('nateeje wali screen bhi usi permission ke peeche hai', () => {
+    // Wahan client ke package ke naam, URL aur galtiyaan dikhti hain — wo khuli nahi ho sakti
+    expect(permissionForRoute('/bulk-upload')).toBe(PERMISSION.TOOLS_IMPORT)
+    expect(permissionForRoute('/bulk-upload/:id')).toBe(PERMISSION.TOOLS_IMPORT)
   })
 })
 

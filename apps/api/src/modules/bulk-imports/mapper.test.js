@@ -26,9 +26,13 @@ const refs = {
   addOns: mapOf({ snorkelling: [{ id: 'add-sn', name: 'Snorkelling' }] }),
   transfers: mapOf({ 'private ac sedan': [{ id: 'tr-car', name: 'Private AC Sedan' }] }),
   hotels: mapOf({
-    'beach resort': [{ id: 'hot-1', name: 'Beach resort', destinationId: 'dest-hl' }],
-    'city hotel': [{ id: 'hot-2', name: 'City hotel', destinationId: 'dest-pb' }],
-    'no home': [{ id: 'hot-3', name: 'No home', destinationId: null }],
+    'beach resort': [
+      { id: 'hot-1', name: 'Beach resort', destinationId: 'dest-hl', category: 'deluxe' },
+    ],
+    'city hotel': [
+      { id: 'hot-2', name: 'City hotel', destinationId: 'dest-pb', category: 'standard' },
+    ],
+    'no home': [{ id: 'hot-3', name: 'No home', destinationId: null, category: 'standard' }],
   }),
 }
 
