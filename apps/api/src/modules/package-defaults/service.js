@@ -115,6 +115,20 @@ export async function updatePackageDefaults(input, siteId = DEFAULT_SITE_ID) {
   /** `4.9 average from 412 trips` — hero aur reviews section dono isse chhapte hain. */
   if (input.rating !== undefined) $set.rating = input.rating
 
+  /**
+   * Itinerary Settings ke do khaane (D-82).
+   *
+   * ⚠️ **Ye do line pehle chhoot gayi thi, aur upar wali chetavni theek isi ke liye likhi hai.**
+   * Schema me field tha, model me tha, screen me tha — bas yahan nahi. Nateeja: client `4`
+   * bhar kar Save dabata tha, API **200** deti thi, admin **"Saved."** dikhata tha, aur DB me
+   * purani value baithi rehti thi. Client ne page pe 3 card dekh kar bataya, tab pakda gaya.
+   *
+   * Rating ke saath bilkul yahi ho chuka hai (1 Sep). Doosri baar hone ka matlab hai ki
+   * chetavni kaafi nahi thi — isliye ab dono ka apna test hai.
+   */
+  if (input.seoSchema !== undefined) $set.seoSchema = input.seoSchema
+  if (input.similar !== undefined) $set.similar = input.similar
+
   if (input.itineraryImages !== undefined) {
     await assertMediaExists(input.itineraryImages, siteId)
     $set.itineraryImages = input.itineraryImages

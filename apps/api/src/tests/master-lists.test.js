@@ -489,6 +489,44 @@ describe('packageDefaults', () => {
     expect(res.body.data.packageDefaults.whatsIncluded.excluded).toEqual(['Airfare'])
   })
 
+  /**
+   * ⚠️ Ye do test ek **do baar ho chuki** galti ke liye hain (D-82, 4 Sep).
+   *
+   * `updatePackageDefaults()` ek whitelist se chalti hai. Naya field schema, model aur screen
+   * teenon me jod dene ke baad bhi agar wo wahan na jude, to save chup-chaap kuch nahi karta:
+   * API **200** deti hai, admin **"Saved."** dikhata hai, aur DB me purani value baithi rehti hai.
+   *
+   * Pehli baar `rating` ke saath hua (1 Sep), doosri baar `similar` ke saath — client ne 4 bhara
+   * aur page pe 3 card hi dikhte rahe. Chetavni us function ke upar pehle se likhi hui thi,
+   * isliye ab dono ka apna test hai.
+   */
+  it('itinerary settings sach me DB tak pahunchti hain (whitelist wala jaal)', async () => {
+    const res = await authed('patch', '/api/package-defaults', adminJar).send({
+      seoSchema: false,
+      similar: { total: 10, perPage: 4 },
+    })
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.packageDefaults.similar).toEqual({ total: 10, perPage: 4 })
+    expect(res.body.data.packageDefaults.seoSchema).toBe(false)
+
+    /** Response nahi, **DB** — whitelist ka jaal theek yahin chhupta hai. */
+    const saved = await PackageDefaults.findOne({}).lean()
+
+    expect(saved.similar).toEqual({ total: 10, perPage: 4 })
+    expect(saved.seoSchema).toBe(false)
+  })
+
+  it('dobara padhne pe bhi wahi value aati hai', async () => {
+    await authed('patch', '/api/package-defaults', adminJar).send({
+      similar: { total: 8, perPage: 2 },
+    })
+
+    const res = await authed('get', '/api/package-defaults', adminJar)
+
+    expect(res.body.data.packageDefaults.similar).toEqual({ total: 8, perPage: 2 })
+  })
+
   it('booking steps ko stable id milti hai, aur maujood id badalti nahi', async () => {
     const first = await authed('patch', '/api/package-defaults', adminJar).send({
       bookingSteps: [{ title: 'Tell us your dates' }],
