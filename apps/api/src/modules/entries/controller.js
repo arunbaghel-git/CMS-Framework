@@ -1,3 +1,6 @@
+import { ENTRY_STATUS } from '@cms/shared'
+
+import { env } from '../../core/env.js'
 import * as entryService from './service.js'
 import {
   bulkEntrySchema,
@@ -19,12 +22,34 @@ import {
  */
 const actorOf = (req) => ({ user: req.user, permissions: req.permissions ?? [] })
 
+/**
+ * Live page ka **poora** pata — list ke `View` link ke liye (client, 4 Sep).
+ *
+ * ⚠️ Sirf `path` bhejna ek chup bug hai: admin apne hi port pe chalta hai (`:5173`), to browser
+ * `/packages/…` ko **admin ka** pata samajh leta hai aur ek khaali page khulta hai. Public site
+ * alag origin pe hai. Yahi galti Bulk Upload ke result me pehle ho chuki hai (D-81).
+ *
+ * `env.SITE_URL` se banta hai, kisi setting se nahi — wahi pattern jo `settings/controller.js`
+ * me hai (`withReadOnly`). Admin ise settings se nahi le sakta: wo `settings.read` ke peeche
+ * hai, jo author aur contributor ke paas hoti hi nahi — unke liye link chup-chaap toot jaata.
+ *
+ * ⚠️ **Sirf live page ka URL jaata hai.** Draft public site pe hai hi nahi (404 milta), aur
+ * client ne saaf kaha ki draft ka preview nahi chahiye — to jhootha link dena hi galat hota.
+ */
+const withUrl = (entry) => ({
+  ...entry,
+  url:
+    entry.path && entry.status === ENTRY_STATUS.PUBLISHED
+      ? `${env.SITE_URL.replace(/\/$/, '')}${entry.path}`
+      : null,
+})
+
 export async function list(req, res, next) {
   try {
     const query = entryListQuerySchema.parse(req.query)
     const { entries, meta } = await entryService.listEntries(query)
 
-    res.json({ data: { entries }, meta })
+    res.json({ data: { entries: entries.map(withUrl) }, meta })
   } catch (err) {
     next(err)
   }

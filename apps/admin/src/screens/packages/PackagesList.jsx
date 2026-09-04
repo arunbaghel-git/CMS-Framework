@@ -496,6 +496,25 @@ export default function PackagesList() {
                           Trash
                         </a>
                       </span>
+                      {/*
+                        `View` — design ke row-actions me ye shuru se tha (16 jagah) aur hum se
+                        chhoot gaya tha (client, 4 Sep).
+
+                        ⚠️ **Sirf live page pe.** `url` server bhejta hai aur wo published na hone
+                        pe `null` hota hai — draft public site pe hai hi nahi, uska link 404 deta.
+                        Client ne draft ka preview saaf mana kiya, isliye link hi nahi dikhta.
+
+                        ⚠️ Aur ye `entry.path` **nahi** hai: admin apne port pe chalta hai, to
+                        relative path admin me hi khulta — wahi bug Bulk Upload ke result me
+                        pehle ho chuka hai (D-81).
+                      */}
+                      {entry.url && (
+                        <span>
+                          <a href={entry.url} target="_blank" rel="noreferrer">
+                            View
+                          </a>
+                        </span>
+                      )}
                     </>
                   )}
                 </div>

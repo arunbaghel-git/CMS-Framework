@@ -15,10 +15,23 @@ import { htmlSchema } from './rich-html.js'
  * chipak jaati hai.
  */
 
+/**
+ * FAQ ke khaanon ki hadd — **yahan se, aur sirf yahan se**.
+ *
+ * ⚠️ Bulk Upload (D-81) ko ye hadd **pehle se** pata honi chahiye, taaki wo lambi line kaat kar
+ * warning de sake. Bina iske Zod poori row phenk deta hai aur client ko sirf
+ * `String must contain at most 300 character(s)` dikhta hai — jisse ye pata hi nahi chalta ki
+ * galti kis sawaal me thi. Wahi tark jo `ITINERARY_LIMITS` pe hai.
+ */
+export const FAQ_LIMITS = Object.freeze({
+  question: 300,
+  answer: 8000,
+})
+
 export const faqSchema = z.object({
   id: z.string().min(1).optional(),
 
-  question: z.string().min(1).max(300),
+  question: z.string().min(1).max(FAQ_LIMITS.question),
 
   /**
    * Jawab ab **HTML** hai — D-80 (client, 3 Sep).
@@ -31,7 +44,7 @@ export const faqSchema = z.object({
    * daam nahi lagta: rich text ek saada HTML string hai, aur client ne editor har prose
    * field pe maanga. Ek paragraph ke liye alag shape rakhne ka ab koi kaaran nahi bacha.
    */
-  answer: htmlSchema.pipe(z.string().max(8000)),
+  answer: htmlSchema.pipe(z.string().max(FAQ_LIMITS.answer)),
 })
 
 export const faqsSchema = z.array(faqSchema).max(50).default([])

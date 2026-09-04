@@ -263,3 +263,59 @@ describe('ek-ek khaane ko padhna', () => {
     expect(warnings).toEqual([])
   })
 })
+
+describe('FAQs — Question / Answer ki jodi (client, 4 Sep)', () => {
+  const FAQ_DOC = `
+<p>Package Name</p><p>X</p>
+<p>Day wise Itinerary</p>
+<p>Day 1</p><p>Day Title</p><p>Arrive</p>
+<p>FAQs</p>
+<p>Question</p><p>Is the ferry included?</p>
+<p>Answer</p><p>Yes, all three legs.</p><p>Tickets are sent a day before.</p>
+<p>Question</p><p>Can we add scuba?</p>
+<p>Answer</p><ul><li>Try-dive at Havelock</li><li>Certified dives on request</li></ul>
+`
+
+  const { faqs, days, warnings } = parsePackageDoc(FAQ_DOC)
+
+  it('har Question ek naya FAQ shuru karta hai — numbering ki zaroorat nahi', () => {
+    expect(faqs).toHaveLength(2)
+    expect(faqs[0].question.text).toBe('Is the ferry included?')
+    expect(faqs[1].question.text).toBe('Can we add scuba?')
+  })
+
+  it('jawab ke kai paragraph jud jaate hain', () => {
+    expect(faqs[0].answer.html).toContain('Yes, all three legs.')
+    expect(faqs[0].answer.html).toContain('Tickets are sent a day before.')
+  })
+
+  it('jawab me list bhi chalti hai', () => {
+    expect(faqs[1].answer.html).toContain('<li>Try-dive at Havelock</li>')
+  })
+
+  it('FAQs shuru hone ke baad itinerary ke labels nahi lagte', () => {
+    // Warna `FAQs` ek din ka label samajh liya jaata aur poori list itinerary me chali jaati
+    expect(days).toHaveLength(1)
+    expect(days[0].fields.title.text).toBe('Arrive')
+    expect(warnings).toEqual([])
+  })
+
+  it('FAQs itinerary se pehle likhe hon to bhi chalta hai', () => {
+    const before = parsePackageDoc(
+      '<p>FAQs</p><p>Question</p><p>Q1</p><p>Answer</p><p>A1</p>' +
+        '<p>Day wise Itinerary</p><p>Day 1</p><p>Day Title</p><p>D1</p>',
+    )
+
+    expect(before.faqs).toHaveLength(1)
+    expect(before.days[0].fields.title.text).toBe('D1')
+  })
+
+  it('Question se pehle aaya Answer chup-chaap nahi girta', () => {
+    const { faqs: none, warnings: warned } = parsePackageDoc(
+      '<p>FAQs</p><p>Answer</p><p>orphan</p>',
+    )
+
+    expect(none).toEqual([])
+    expect(warned.join(' ')).toContain('before any "Question"')
+  })
+})

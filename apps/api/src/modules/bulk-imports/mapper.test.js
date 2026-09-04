@@ -1,4 +1,10 @@
-import { itinerarySchema, packageHotelsSchema, parsePackageDoc, pricingSchema } from '@cms/shared'
+import {
+  faqsSchema,
+  itinerarySchema,
+  packageHotelsSchema,
+  parsePackageDoc,
+  pricingSchema,
+} from '@cms/shared'
 import { describe, expect, it } from 'vitest'
 
 import { hasBlocker, toEntryInput } from './mapper.js'
@@ -235,5 +241,51 @@ describe('toEntryInput — wo cheezein jo service 422 deti', () => {
 
     expect(input.fields.itinerary[0].meals).toEqual(['breakfast'])
     expect(issues.find((issue) => issue.label === 'Day 1 → Meals').value).toBe('Brunch')
+  })
+})
+
+describe('FAQs', () => {
+  const FAQ_DOC = `
+<p>Package Name</p><p>X</p>
+<p>FAQs</p>
+<p>Question</p><p>Is the ferry included?</p>
+<p>Answer</p><p>Yes, <strong>all three legs</strong>.</p>
+<p>Question</p><p>Can we add scuba?</p>
+<p>Answer</p><ul><li>Try-dive at Havelock</li></ul>
+`
+
+  it('Question/Answer se faqs banti hain — sawaal plain, jawab HTML', () => {
+    const { input } = toEntryInput(doc(FAQ_DOC), refs)
+
+    expect(input.fields.faqs).toHaveLength(2)
+    expect(input.fields.faqs[0].question).toBe('Is the ferry included?')
+    // Sawaal `<summary>` me jaata hai — wahan markup ka koi matlab nahi
+    expect(input.fields.faqs[0].question).not.toContain('<')
+    expect(input.fields.faqs[0].answer).toContain('<strong>all three legs</strong>')
+    expect(input.fields.faqs[1].answer).toContain('<li>Try-dive at Havelock</li>')
+  })
+
+  it('faq ka id tay hota hai, random nahi', () => {
+    // Random hota to dobara import pe har FAQ "naya" ban jaata
+    expect(toEntryInput(doc(FAQ_DOC), refs).input.fields.faqs.map((f) => f.id)).toEqual([
+      'f1',
+      'f2',
+    ])
+  })
+
+  it('bina jawab wala sawaal chhod deta hai — par chup-chaap nahi', () => {
+    const { input, issues } = toEntryInput(
+      doc('<p>FAQs</p><p>Question</p><p>Lonely question</p>'),
+      refs,
+    )
+
+    expect(input.fields.faqs).toEqual([])
+    expect(issues.find((issue) => issue.label === 'FAQ 1').message).toContain('no answer')
+  })
+
+  it('output asli faqsSchema se guzar jaata hai', () => {
+    const { input } = toEntryInput(doc(FAQ_DOC), refs)
+
+    expect(() => faqsSchema.parse(input.fields.faqs)).not.toThrow()
   })
 })

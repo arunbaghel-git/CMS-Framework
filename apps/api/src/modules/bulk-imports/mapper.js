@@ -1,5 +1,6 @@
 import {
   clamp,
+  FAQ_LIMITS,
   HOTEL_CATEGORIES,
   ITINERARY_LIMITS,
   normalizeName,
@@ -248,6 +249,51 @@ function buildHotels(values, refs, issues) {
   return hotels
 }
 
+/**
+ * Doc ke `Question` / `Answer` jodon se `fields.faqs[]` (client, 4 Sep).
+ *
+ * ⚠️ **Sawaal plain text hai, jawab HTML.** `faqSchema` yahi kehta hai, aur page bhi wahi
+ * dikhata hai: sawaal `<summary>` me jaata hai (wahan markup ka koi matlab nahi) aur jawab
+ * `<details>` ke andar, jahan paragraph aur bullets dono chalte hain.
+ *
+ * ⚠️ Bina jawab wala FAQ **chhod diya jaata hai**, chup-chaap nahi — page pe wo ek aisa sawaal
+ * banta jise kholne par kuch milta hi nahi. Schema use rok nahi paata (`answer` ka default
+ * `''` hai), isliye rok yahan lagti hai.
+ *
+ * `id` tay hai (`f1`, `f2`…), random nahi — wahi wajah jo din aur hotel pe hai: `normalizeFields`
+ * bina `id` wale ko har baar naya `randomUUID()` de deta hai, aur dobara import pe har FAQ "naya"
+ * ban jaata.
+ */
+function buildFaqs(faqs, issues) {
+  const out = []
+  const clampWarnings = []
+
+  for (const [index, faq] of (faqs ?? []).entries()) {
+    const number = index + 1
+    const question = String(faq?.question?.text ?? '').trim()
+    const answer = String(faq?.answer?.html ?? '').trim()
+
+    if (!question) continue
+
+    if (!answer) {
+      issues.push(
+        note(`FAQ ${number}`, question, 'This question has no answer, so it was left out.'),
+      )
+      continue
+    }
+
+    out.push({
+      id: `f${number}`,
+      question: clamp(question, FAQ_LIMITS.question, `FAQ ${number} question`, clampWarnings),
+      answer: clamp(answer, FAQ_LIMITS.answer, `FAQ ${number} answer`, clampWarnings),
+    })
+  }
+
+  for (const message of clampWarnings) issues.push(note(message.split(' was ')[0], '', message))
+
+  return out
+}
+
 /** Din ka HTML — hadd se lamba ho to kaat kar batao. */
 function dayDescription(day, number, issues) {
   const html = String(day.fields?.description?.html ?? '').trim()
@@ -400,6 +446,7 @@ export function toEntryInput(parsed, refs) {
       itinerary: buildItinerary(days, refs, issues),
       pricing: buildPricing(values, issues),
       hotels: buildHotels(values, refs, issues),
+      faqs: buildFaqs(parsed.faqs, issues),
       addOns: addOns.ids,
     },
   }

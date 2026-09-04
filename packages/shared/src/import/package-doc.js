@@ -90,8 +90,36 @@ export const DOC_LABELS = Object.freeze({
   'package url': 'packageUrl',
   'short description': 'shortDescription',
   overview: 'overview',
+})
+
+/**
+ * Hisse badalne wale labels — ye **har** hisse me pehchane jaate hain.
+ *
+ * ⚠️ Alag list isliye hai ki itinerary ke baad `FAQs` likha ho to wo ek din ka label samajh
+ * liya jaata (ya kuch bhi nahi) aur poori FAQ list itinerary me chali jaati — chup-chaap.
+ */
+const SECTION_LABELS = Object.freeze({
   'day wise itinerary': 'itineraryStart',
   'daywise itinerary': 'itineraryStart',
+  itinerary: 'itineraryStart',
+  faqs: 'faqStart',
+  faq: 'faqStart',
+  questions: 'faqStart',
+  'frequently asked questions': 'faqStart',
+})
+
+/**
+ * FAQ ke andar ke khaane — client ka faisla (4 Sep): **`Question` / `Answer` ki jodi**.
+ *
+ * Numbering nahi hai (`Day 1` jaisi): har `Question` khud hi naya FAQ shuru kar deta hai.
+ * Client ko har sawaal pe ginti likhna ek aur cheez hoti jo galat ho sakti thi.
+ */
+export const FAQ_LABELS = Object.freeze({
+  question: 'question',
+  q: 'question',
+  answer: 'answer',
+  a: 'answer',
+  ans: 'answer',
 })
 
 /** `Day N` block ke andar ke khaane. */
@@ -115,6 +143,8 @@ const byLongestFirst = (map) => Object.keys(map).sort((a, b) => b.length - a.len
 
 const TOP_LABEL_ORDER = byLongestFirst(DOC_LABELS)
 const DAY_LABEL_ORDER = byLongestFirst(DAY_LABELS)
+const FAQ_LABEL_ORDER = byLongestFirst(FAQ_LABELS)
+const SECTION_ORDER = byLongestFirst(SECTION_LABELS)
 
 /** Naam milane ka ekmatra tareeka — case aur extra space maaf, **spelling nahi** (client). */
 export const normalizeName = (value) =>
@@ -258,6 +288,7 @@ function pushValue(bucket, key, { text, html }) {
  * @returns {{
  *   values: Record<string, { text: string, html: string }>,
  *   days: Array<{ number: number, fields: Record<string, { text: string, html: string }> }>,
+ *   faqs: Array<Record<string, { text: string, html: string }>>,
  *   warnings: string[],
  * }}
  */
@@ -265,12 +296,28 @@ export function parsePackageDoc(html) {
   const blocks = splitBlocks(html)
   const values = {}
   const days = []
+  const faqs = []
   const warnings = []
 
-  let inItinerary = false
+  /**
+   * Doc teen hisson me bantа hai, aur label ka matlab hisse pe nirbhar karta hai.
+   *
+   * ⚠️ Bina iske `Question` aur `Answer` upar wale khaanon se takra sakte the, aur `Day Title`
+   * FAQ ke beech me bhi label ban jaata. Section marker (`Day wise Itinerary`, `FAQs`) hi tay
+   * karta hai ki abhi kaunsi label list padhi jaaye.
+   *
+   * Kram tay **nahi** hai — client FAQs pehle likhe ya baad me, dono chalta hai.
+   */
+  let section = 'top'
   let currentDay = null
+  let currentFaq = null
   let currentKey = null
   let matchedAny = false
+  let sawItinerary = false
+
+  /** Abhi ke hisse ka khaana kahan jaa raha hai. */
+  const bucketOf = () =>
+    section === 'itinerary' ? currentDay?.fields : section === 'faqs' ? currentFaq : values
 
   for (const block of blocks) {
     const plain = textOf(block)
@@ -278,7 +325,7 @@ export function parsePackageDoc(html) {
     if (isEmptyBlock(block)) continue
 
     /** Din ka naya block — iske baad ke labels usi din ke hain. */
-    const dayNumber = inItinerary && plain.match(DAY_NUMBER_RE)
+    const dayNumber = section === 'itinerary' && plain.match(DAY_NUMBER_RE)
     if (dayNumber) {
       currentDay = { number: Number(dayNumber[1]), fields: {} }
       days.push(currentDay)
@@ -286,24 +333,45 @@ export function parsePackageDoc(html) {
       continue
     }
 
-    const order = inItinerary ? DAY_LABEL_ORDER : TOP_LABEL_ORDER
-    const map = inItinerary ? DAY_LABELS : DOC_LABELS
-    const hit = matchLabel(plain, order, map)
+    const [order, map] =
+      section === 'itinerary'
+        ? [DAY_LABEL_ORDER, DAY_LABELS]
+        : section === 'faqs'
+          ? [FAQ_LABEL_ORDER, FAQ_LABELS]
+          : [TOP_LABEL_ORDER, DOC_LABELS]
+
+    /**
+     * Section marker har hisse me pehchana jaana chahiye — warna itinerary ke baad `FAQs`
+     * likha ho to wo ek din ka label samajh liya jaata aur poori FAQ list itinerary me chali
+     * jaati.
+     */
+    const hit = matchLabel(plain, order, map) ?? matchLabel(plain, SECTION_ORDER, SECTION_LABELS)
 
     if (hit) {
       matchedAny = true
 
-      if (hit.key === 'itineraryStart') {
-        inItinerary = true
+      if (hit.key === 'itineraryStart' || hit.key === 'faqStart') {
+        section = hit.key === 'faqStart' ? 'faqs' : 'itinerary'
+        if (section === 'itinerary') sawItinerary = true
         currentKey = null
         continue
       }
 
+      /** Har `Question` ek naya FAQ shuru karta hai — numbering ki zaroorat hi nahi. */
+      if (section === 'faqs' && hit.key === 'question') {
+        currentFaq = {}
+        faqs.push(currentFaq)
+      }
+
       currentKey = hit.key
-      const bucket = inItinerary ? currentDay?.fields : values
+      const bucket = bucketOf()
 
       if (!bucket) {
-        warnings.push(`"${plain}" is inside the itinerary but no "Day N" heading came before it`)
+        warnings.push(
+          section === 'faqs'
+            ? `"${plain}" came before any "Question", so it was skipped`
+            : `"${plain}" is inside the itinerary but no "Day N" heading came before it`,
+        )
         continue
       }
 
@@ -316,7 +384,7 @@ export function parsePackageDoc(html) {
     /** Label nahi hai — to ye pichhle label ki value ka hissa hai. */
     if (!currentKey) continue
 
-    const bucket = inItinerary ? currentDay?.fields : values
+    const bucket = bucketOf()
     if (bucket) pushValue(bucket, currentKey, { text: plain, html: block })
   }
 
@@ -330,11 +398,11 @@ export function parsePackageDoc(html) {
     warnings.push('No known labels were found in this document — check that it uses the template')
   }
 
-  if (!inItinerary) {
+  if (!sawItinerary) {
     warnings.push('No "Day wise Itinerary" heading was found, so no days were imported')
   }
 
-  return { values, days, warnings }
+  return { values, days, faqs, warnings }
 }
 
 /* ── ek-ek khaane ko padhna ───────────────────────────────────────────────── */

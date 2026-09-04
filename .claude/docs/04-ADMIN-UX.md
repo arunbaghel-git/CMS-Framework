@@ -509,3 +509,35 @@ lists judin.
 dono ka target ek hi block hai (§1.5). Do menu item ek hi screen pe le jaate to wo "do alag
 cheezein hain" ka jhootha ishaara deta. spec 007 §9 #2 abhi khula hai; wo sach me alag
 nikla to yahan ek line judegi.
+
+### Preview ka button kahin nahi hai (client, 4 Sep)
+
+Design me `Preview` **teen jagah** hai — `Edit Package` ke header me (line 711), publish box ke
+actions me (622), aur Enquiry Form pe (1210). Hamare paas ek bhi nahi hai, aur ye **client ka
+faisla** hai: _"nahi draft me preview nahi karbana to button bhi mat lagao preview bala"_.
+
+Wajah tark se milti hai: preview ka poora matlab **draft** dekhna hai, aur draft public site pe
+hai hi nahi — uska link 404 deta. Use sach me chalane ke liye `apps/web` me ek token wala route
+chahiye (WordPress jaisa), jo apne aap me ek alag kaam hai. Aadha bana kar 404 pe le jaana usse
+bura hota.
+
+Uski jagah **`View`** aaya — `All Packages` ke row actions me, design ki tarah, par **sirf
+published** package pe. `url` API se aata hai aur draft pe wo `null` hota hai, isliye link
+banta hi nahi.
+
+⚠️ Wo `entry.path` **nahi** hai. Admin apne port pe chalta hai (`:5173`), to relative path admin
+me hi khulta hai — wahi bug Bulk Upload ke result screen pe pehle ho chuka hai (D-81). Poora URL
+`env.SITE_URL` se banta hai, `entries/controller.js` me — wahi pattern jo `settings` pe hai.
+
+### Image ka field ek click me library kholta hai (client, 4 Sep)
+
+Pehle box pe click karne se computer ka **file dialog** khulta tha, aur library ek alag
+**"Choose from library"** button ke peeche thi. Client ne wo button hatane ko kaha — _"sidha
+media gallery open ho, pahle jaise editor me hota hai"_.
+
+Baat data se bhi milti hai: aam kaam **"jo pehle se upload hai wahi chuno"** hai, nayi file
+daalna kabhi-kabhar. Upload ka raasta khota nahi — `MediaPicker` ka apna **Upload** tab hai jo
+file upload karke use turant chun bhi leta hai. Yaani dono cheezein pehle se **kam** click me.
+
+Ye `MediaDrop.jsx` me ek jagah badla, isliye chaaron jagah ek saath — Settings ka Logo/Favicon,
+Footer ka logo, package ka banner aur destination ka banner.

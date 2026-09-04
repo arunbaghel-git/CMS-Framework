@@ -5185,6 +5185,29 @@ line "ek se zyada mile" wala blocker deti. Ab pehle usi category me dhoondha jaa
 label ne batayi (`Deluxe Hotel` → deluxe). Hotel ki apni category label se alag ho to wo
 **note** hai, blocker nahi — wo galti bhi ho sakti hai aur jaan-boojh kar bhi.
 
+
+### FAQs — `Question` / `Answer` ki jodi (client, 4 Sep)
+
+Pehle version me FAQ ka **koi label tha hi nahi**, isliye har imported package pe `faqs: null`
+rehta tha. Client ne format chuna: `FAQs` heading, phir jitni baar chahiye
+`Question` → sawaal → `Answer` → jawab.
+
+Numbering **nahi** hai (`Day 1` jaisi) — har `Question` khud hi naya FAQ shuru kar deta hai.
+Client ko har sawaal pe ginti likhna ek aur cheez hoti jo galat ho sakti thi.
+
+⚠️ **Sawaal plain text hai, jawab HTML.** `faqSchema` yahi kehta hai aur page bhi wahi dikhata
+hai: sawaal `<summary>` me jaata hai (wahan markup ka koi matlab nahi) aur jawab `<details>` ke
+andar, jahan paragraph aur bullets dono chalte hain.
+
+⚠️ Bina jawab wala sawaal **chhod diya jaata hai** — page pe wo ek aisa sawaal banta jise kholne
+par kuch milta hi nahi. Schema use rok nahi paata (`answer` ka default `''` hai), isliye rok
+mapper me hai, ek note ke saath.
+
+Isi ke saath parser ab **teen hisson** me chalta hai (upar ka hissa · itinerary · FAQs), aur
+section marker har hisse me pehchane jaate hain. Bina uske itinerary ke baad likha `FAQs` ek din
+ka label samajh liya jaata aur poori FAQ list chup-chaap itinerary me chali jaati. Kram tay nahi
+hai — client FAQs pehle likhe ya baad me, dono chalta hai.
+
 ### Client ko batane wali do baatein
 
 - **Template me chaar price line jodni hain** (`Standard Price` … `Luxury Price`). Unke bina
