@@ -12,6 +12,7 @@ import { ImportRun } from '../modules/bulk-imports/model.js'
 import { processImportQueue } from '../modules/bulk-imports/service.js'
 import { Entry } from '../modules/entries/model.js'
 import { AddOn, Hotel, Transfer } from '../modules/master-lists/model.js'
+import { Media } from '../modules/media/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
 import { Taxonomy } from '../modules/taxonomies/model.js'
@@ -230,6 +231,7 @@ beforeEach(async () => {
     ContentType.deleteMany({}),
     ImportRun.deleteMany({}),
     Entry.deleteMany({}),
+    Media.deleteMany({}),
     Taxonomy.deleteMany({}),
     Hotel.deleteMany({}),
     AddOn.deleteMany({}),
@@ -366,6 +368,74 @@ describe('import chalana', () => {
 
     expect(run.rows.map((row) => row.status)).toEqual(['published', 'skipped'])
     expect(await Entry.countDocuments()).toBe(1)
+  })
+})
+
+describe('banner image', () => {
+  /**
+   * ⚠️ Ye case asli import pe pakda gaya (4 Sep).
+   *
+   * Client ne admin me apni image ka "File URL" copy kiya aur doc me chipka diya — wo
+   * `http://localhost:5173/uploads/…` tha. Importer use bahar ka URL samajh kar download karne
+   * gaya, aur SSRF guard ne `localhost` ko theek hi roka. Package draft reh gaya aur client ko
+   * ek aisa error mila jo uski galti jaisa lagta tha — jabki usne bilkul sahi image chuni thi.
+   *
+   * Download karna waise bhi galat tha: wo image pehle se Media me hai, aur har run uska ek
+   * **naya** record bana deta.
+   */
+  it('apni hi media ka URL ho to download nahi, wahi media use hoti hai', async () => {
+    const media = await Media.create({
+      filename: 'banner.webp',
+      mime: 'image/webp',
+      size: 1234,
+      width: 1600,
+      height: 900,
+      uploadedBy: (await User.findOne({ email: 'admin@test.com' }).lean())._id,
+      variants: [],
+    })
+
+    const id = String(media._id)
+    const withBanner = doc(
+      [
+        p('Package Name'),
+        p('Banner Test'),
+        p('Package URL'),
+        p('banner-test'),
+        p('Banner Image URL'),
+        p(`http://localhost:5173/uploads/sites/default/media/2026/09/${id}/large.webp`),
+      ].join(''),
+    )
+
+    const run = await runImport({ E: withBanner })
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(entry.fields.bannerImage).toBe(id)
+    /** Naya media record **nahi** banna chahiye — wahi ek jo pehle se tha */
+    expect(await Media.countDocuments()).toBe(1)
+    expect(run.rows[0].status).toBe('published')
+  })
+
+  it('media library me wo image na ho to saaf blocker deta hai', async () => {
+    const withBanner = doc(
+      [
+        p('Package Name'),
+        p('Ghost Banner'),
+        p('Package URL'),
+        p('ghost-banner'),
+        p('Banner Image URL'),
+        p(
+          'http://localhost:5173/uploads/sites/default/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa/large.webp',
+        ),
+      ].join(''),
+    )
+
+    const run = await runImport({ F: withBanner })
+
+    const banner = run.rows[0].issues.find((issue) => issue.label === 'Banner Image URL')
+
+    expect(run.rows[0].status).toBe('draft')
+    expect(banner.level).toBe('blocker')
+    expect(banner.message).toContain('no longer in the Media library')
   })
 })
 

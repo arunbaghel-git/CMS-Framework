@@ -5149,6 +5149,27 @@ Drive ka share link (`drive.google.com/file/d/…/view`) **HTML ka page** deta h
 use `uc?export=download` me badla jaata hai. Phir bhi image na mile to **sirf image fail hoti
 hai, package nahi**.
 
+
+⚠️ **Par sabse aam banner URL bahar ka hota hi nahi — wo hamara apna hota hai.** Ye pehle asli
+import pe pakda gaya (4 Sep): client ne admin me apni image ka **"File URL" copy** kiya aur doc
+me chipka diya —
+
+```
+http://localhost:5173/uploads/sites/default/media/2026/09/6a982ced…/large.webp
+```
+
+Importer use bahar ka URL samajh kar download karne gaya, aur SSRF guard ne `localhost` ko
+**theek hi** roka. Package draft reh gaya aur client ko ek aisa error mila jo uski galti jaisa
+lagta tha — jabki usne bilkul sahi image chuni thi.
+
+Download karna waise bhi galat tha: wo image **pehle se Media me hai**, aur har run uska ek naya
+record aur teen naye WebP variants bana deta.
+
+Ab URL pehle apni hi media ke liye dekha jaata hai. Media ki **id URL ke andar hi likhi hoti
+hai** (`buildMediaVariantKey()` ka format), to use utha liya jaata hai — koi download nahi, koi
+duplicate nahi, aur dev aur production dono me ek jaisa. Media library me wo image na ho to saaf
+blocker milta hai, ek network error nahi.
+
 ### Test me network chhua hi nahi jaata
 
 Is repo me HTTP mocking ka koi pattern nahi tha. `vi.stubGlobal('fetch')` chhoda gaya — wo
