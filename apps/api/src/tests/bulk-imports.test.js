@@ -371,6 +371,33 @@ describe('import chalana', () => {
   })
 })
 
+describe('result ka payload', () => {
+  /**
+   * ⚠️ Ye bug asli import pe pakda gaya (4 Sep).
+   *
+   * Result screen pehle `row.path` ko seedha `href` me daalti thi. Admin `:5173` pe chalta hai,
+   * to browser `/packages/…` ko **admin ka hi** pata samajh leta tha aur ek khaali page khulta
+   * tha. Public site alag origin pe hai, isliye poora URL **server se** aana chahiye — usi ke
+   * paas `SITE_URL` hai.
+   */
+  it('page ka poora URL bhejta hai, sirf path nahi', async () => {
+    const run = await runImport({ A: goodDoc('Url Test', 'url-test') })
+    const { getImportRun } = await import('../modules/bulk-imports/service.js')
+    const api = await getImportRun(String(run._id))
+
+    expect(api.rows[0].path).toBe('/packages/url-test')
+    expect(api.rows[0].url).toBe('http://localhost:3000/packages/url-test')
+  })
+
+  it('page hi na bana ho to URL null rehta hai', async () => {
+    const run = await runImport({ C: namelessDoc })
+    const { getImportRun } = await import('../modules/bulk-imports/service.js')
+    const api = await getImportRun(String(run._id))
+
+    expect(api.rows[0].url).toBeNull()
+  })
+})
+
 describe('banner image', () => {
   /**
    * ⚠️ Ye case asli import pe pakda gaya (4 Sep).

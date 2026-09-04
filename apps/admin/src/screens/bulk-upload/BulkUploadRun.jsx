@@ -132,8 +132,9 @@ export default function BulkUploadRun() {
               </td>
 
               <td className="nowrap">
-                {row.path ? (
-                  <a href={row.path} target="_blank" rel="noreferrer">
+                {row.url ? (
+                  /* href poora URL hai (public site ka origin), text chhota path — admin :5173 pe hai */
+                  <a href={row.url} target="_blank" rel="noreferrer">
                     {row.path}
                   </a>
                 ) : (

@@ -12,6 +12,7 @@ import {
   TAXONOMY_TYPE,
 } from '@cms/shared'
 
+import { env } from '../../core/env.js'
 import { notFound, unprocessable } from '../../core/errors.js'
 import {
   docIdFromUrl,
@@ -504,6 +505,20 @@ const toApi = (run) => ({
     entryId: row.entryId ? String(row.entryId) : null,
     title: row.title ?? '',
     path: row.path ?? '',
+
+    /**
+     * Page ka **poora** pata — admin ise seedha kholta hai.
+     *
+     * ⚠️ Sirf `path` bhejna ek chup bug tha: admin `:5173` pe chalta hai, to browser
+     * `/packages/…` ko **admin ka hi** pata samajh leta hai aur khaali page khulta hai. Public
+     * site alag origin pe hai.
+     *
+     * `env.SITE_URL` se judta hai, kisi setting se nahi — wahi pattern jo
+     * `settings/controller.js` me hai (`withReadOnly`), aur wahi jagah jahan revalidate bhi
+     * jaata hai. Deployment ki config ka ghar wahi ek hona chahiye.
+     */
+    url: row.path ? `${env.SITE_URL.replace(/\/$/, '')}${row.path}` : null,
+
     issues: row.issues ?? [],
     error: row.error ?? null,
   })),
