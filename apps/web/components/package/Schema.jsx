@@ -48,6 +48,15 @@ const safeJson = (value) => JSON.stringify(value).replace(/</g, '\\u003c')
  */
 const stripTags = (html) =>
   String(html ?? '')
+    /**
+     * ⚠️ **Block tag ki jagah ek space aata hai, kuch nahi nahi.**
+     *
+     * Bina iske `…settle in.</p><p>In the evening…` jud kar `settle in.In the evening` ban
+     * jaata tha — do vaakya bina space ke chipke hue. Neeche `\s+` wala step usi ek space ko
+     * saaf kar deta hai, to kahin do space bhi nahi bachte.
+     */
+    .replace(/<\/(p|li|ul|ol|h[1-6]|blockquote|div|tr|td)>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, ' ')
     .replace(/<[^>]*>/g, '')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/g, '&')
@@ -125,6 +134,26 @@ export default function Schema({ entry, defaults, settings, breadcrumbs }) {
         : undefined,
 
       /**
+       * Din-ba-din ka plan — har din ek `subTrip` (client, 4 Sep).
+       *
+       * ⚠️ `itinerary` aur `subTrip` do alag cheezein hain, aur dono chahiye:
+       * `itinerary` **jagah** batata hai (Port Blair → Havelock → Neil), `subTrip` batata hai ki
+       * **har din hota kya hai**. Pehle sirf pehla tha, to schema me trip ka asli plan kahin
+       * jaata hi nahi tha — jabki wahi page ka sabse bada hissa hai.
+       *
+       * ⚠️ Description se tags hat-te hain. Yahi niyam FAQ ke jawab pe bhi hai (neeche):
+       * structured data ka kaam **maloomat** dena hai, dikhawa nahi — aur `<p>` chhap kar
+       * jaana Google ki nazar me kachra hai.
+       */
+      subTrip: (entry.itinerary ?? []).length
+        ? entry.itinerary.map((day, i) => ({
+            '@type': 'Trip',
+            name: `Day ${i + 1}: ${day.title}`,
+            description: stripTags(day.description) || undefined,
+          }))
+        : undefined,
+
+      /**
        * `AggregateOffer` — sirf wahi categories jinka daam bhara hua hai.
        *
        * `pricing.categoryPricing` public payload me pehle se **sasti se mehngi** ke kram me
@@ -148,15 +177,17 @@ export default function Schema({ entry, defaults, settings, breadcrumbs }) {
           }
         : undefined,
 
-      /** Wahi jodi jo hero me aur reviews ke heading pe chhapti hai — 0 ho to bilkul nahi. */
-      aggregateRating: rating?.value
-        ? {
-            '@type': 'AggregateRating',
-            ratingValue: String(rating.value),
-            reviewCount: String(rating.count),
-            bestRating: '5',
-          }
-        : undefined,
+      /*
+       * ⚠️ `aggregateRating` yahan **nahi** hai — wo `Product` node pe gaya (client, 4 Sep).
+       *
+       * Pehle wo yahin tha aur Google ka validator saaf mana kar raha tha:
+       * _"The property aggregateRating is not recognised by the schema for an object of type
+       * TouristTrip."_ Wo sahi tha — schema.org me `aggregateRating` `Product`, `Offer` aur
+       * `Event` jaison pe hai, `Trip` pe hai hi nahi.
+       *
+       * Neeche `Product` node isi liye juda. Us toggle ka apna naam bhi shuru se
+       * **"Emit Product + Trip schema"** tha — Product hissa kabhi bana hi nahi tha.
+       */
 
       provider: settings?.siteName
         ? {
@@ -169,6 +200,51 @@ export default function Schema({ entry, defaults, settings, breadcrumbs }) {
     }
 
     graph.push(trip)
+
+    /**
+     * `Product` — daam aur rating ka sahi ghar (client, 4 Sep).
+     *
+     * ## Ye node kyun chahiye
+     *
+     * Do wajah, aur dono asli hain:
+     *
+     * 1. **`aggregateRating` `Trip` pe valid hi nahi hai.** Google ka validator use saaf
+     *    thukra deta hai. `Product` pe wo valid hai.
+     * 2. **Search me daam aur ⭐ isi se dikhte hain.** `TouristTrip` abhi kisi rich result ko
+     *    power nahi karta; `Product` karta hai. Yaani ye node hi wo cheez hai jiske liye poora
+     *    toggle banaya gaya tha.
+     *
+     * Toggle ka naam bhi shuru se **"Emit Product + Trip schema"** tha — Product wala aadha
+     * hissa kabhi bana hi nahi tha.
+     *
+     * ⚠️ **Daam aur rating wahi hain jo `Trip` pe aur page pe hain** — dobara gine nahi jaate.
+     * Do node ka ek hi source hona zaroori hai: alag ho jaayein to Google ki nazar me wo
+     * "misleading structured data" hai, aur wo manual penalty wali shreni hai.
+     */
+    if (priced.length || rating?.value) {
+      graph.push({
+        '@type': 'Product',
+        name: entry.title,
+        description: trip.description,
+        image: trip.image,
+        url: trip.url,
+
+        /** Brand = wahi travel agency jo `Trip` ki provider hai. */
+        brand: settings?.siteName ? { '@type': 'Brand', name: settings.siteName } : undefined,
+
+        offers: trip.offers,
+
+        /** Wahi jodi jo hero me aur reviews ke heading pe chhapti hai — 0 ho to bilkul nahi. */
+        aggregateRating: rating?.value
+          ? {
+              '@type': 'AggregateRating',
+              ratingValue: String(rating.value),
+              reviewCount: String(rating.count),
+              bestRating: '5',
+            }
+          : undefined,
+      })
+    }
   }
 
   // ── FAQs ───────────────────────────────────────────────────────────────────

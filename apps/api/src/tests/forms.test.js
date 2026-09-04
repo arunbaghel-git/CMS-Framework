@@ -703,11 +703,22 @@ describe('enquiries inbox', () => {
     expect(columns.pax.key).toBe('guests')
     expect(columns.message.key).toBe('specialRequestOptional')
 
-    // Is form me hain hi nahi — khaali rehne chahiye, kisi aur field se bhare hue nahi
+    // Is form me hai hi nahi — khaali rehna chahiye, kisi aur field se bhara hua nahi
     expect(columns.budget).toBeNull()
-    expect(columns.package).toBeNull()
 
-    // `hotelCategory` kisi column me nahi gaya — Detail use "extras" me dikhati hai
+    /**
+     * ⚠️ Ye assertion **palti hai** (client, 4 Sep). Pehle yahan `columns.package` ko `null`
+     * hona chahiye tha, aur wo tab theek tha — is form me `package` naam ka field hai hi nahi.
+     *
+     * Par live dekh kar client ne kaha ki wo column khaali dikhta hai jabki uske form me
+     * `hotelCategory` hai, aur wahi baat batati hai ki visitor ne kaunsa darja poochha.
+     *
+     * Column ka heading field ke apne `label` se banta hai, isliye ab wo **"Hotel category"**
+     * kehta hai — kahin koi hardcoded naam nahi.
+     */
+    expect(columns.package.key).toBe('hotelCategory')
+    expect(columns.package.label).toBe('Hotel category')
+
     const detail = await authed('get', `/api/enquiries/${list.body.data.enquiries[0].id}`, adminJar)
     expect(detail.body.data.enquiry.values.hotelCategory).toBe('Deluxe')
   })

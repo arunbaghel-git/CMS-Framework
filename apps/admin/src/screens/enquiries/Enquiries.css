@@ -68,10 +68,20 @@
  * `dl` isliye ki ye sach me naam-aur-value ki jodi hai; table banane se screen reader ko
  * jhoothi table milti aur mobile pe wo toot-ti.
  */
+/*
+ * Enquiry Detail ke khaane — **ek line me ek** (client, 4 Sep).
+ *
+ * Pehle yahan `repeat(auto-fit, minmax(200px, 1fr))` tha, yaani chaudi screen pe teen-chaar
+ * khaane saath baith jaate the. Wo bharpoor dikhta tha par padhne me ulta pad raha tha: enquiry
+ * ek **record** hai jise upar se neeche padha jaata hai, aur naam-mobile-email tab tak aankh
+ * tin baar aage-peeche ghoomti thi.
+ *
+ * Ek column me har khaana apni line pe rehta hai aur kram wahi rehta hai jo form me tha.
+ */
 .enq-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px 20px;
+  grid-template-columns: 1fr;
+  gap: 14px;
   margin: 0;
 }
 

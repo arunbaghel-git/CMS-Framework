@@ -485,7 +485,20 @@ export function deriveEnquiryColumns(form) {
    * `package` pehle isliye ki `packageName` `name` wale pattern pe bhi baithta hai, aur
    * `name` aakhir me isliye ki uska type (`text`) sabse aam hai.
    */
-  const packageColumn = pick(/package/i, (f) => f.type === 'select' && f.source === 'packages')
+  /**
+   * ⚠️ **Sirf `package` dhoondhna client ke asli form pe khaali column deta tha** (4 Sep).
+   *
+   * Unke form me `package` naam ka koi field hai hi nahi — usme `hotelCategory` hai, aur wahi
+   * baat batati hai ki visitor ne kaunsa darja poochha. Column khaali dikhta tha aur
+   * `hotelCategory` kahin use hi nahi hota tha.
+   *
+   * Column ka **heading field ke apne `label` se** banta hai, isliye ye ek pattern jodne bhar
+   * se column apne aap **"Hotel category"** kehne lagta hai — koi hardcoded naam nahi.
+   */
+  const packageColumn = pick(
+    /package|hotel|category|room/i,
+    (f) => f.type === 'select' && f.source === 'packages',
+  )
   const email = pick(/mail/i, (f) => f.type === 'email')
   const phone = pick(/phone|mobile|whats/i, (f) => f.type === 'phone')
   const travelDate = pick(/date/i, (f) => f.type === 'date')
