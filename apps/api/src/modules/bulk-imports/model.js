@@ -1,5 +1,7 @@
 import {
   DEFAULT_SITE_ID,
+  IMPORT_MODE,
+  IMPORT_MODES,
   IMPORT_ROW_STATUS,
   IMPORT_RUN_STATUS,
   IMPORT_RUN_STATUSES,
@@ -77,6 +79,15 @@ const importRunSchema = new mongoose.Schema(
 
     sheetUrl: { type: String, required: true },
     sheetId: { type: String, required: true },
+
+    /**
+     * Naye package banane aaye the ya purane update karne — client ka apna elaan (D-81).
+     *
+     * Ye filter nahi, **assertion** hai: jo row is baat se alag nikle wo Failed hoti hai.
+     * Bina iske ek purana URL galti se nayi sheet me reh jaaye to wo ek live package ko
+     * chup-chaap overwrite kar deta.
+     */
+    mode: { type: String, enum: IMPORT_MODES, default: IMPORT_MODE.NEW },
 
     status: {
       type: String,

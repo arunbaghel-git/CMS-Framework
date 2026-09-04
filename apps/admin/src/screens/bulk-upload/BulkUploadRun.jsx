@@ -153,13 +153,33 @@ const countFor = (run, key) =>
   key === 'all' ? run.rows.length : run.rows.filter((row) => row.status === key).length
 
 function RowBadge({ row }) {
+  /**
+   * Failed/Skipped pe hover karne se wajah dikhti hai (client, 4 Sep).
+   *
+   * Wajah `What's missing` column me poori likhi hui hai bhi — `title` uske alawa hai, uski
+   * jagah nahi. Client ne badge pe hover maanga tha, aur ek chhoti table me aankh pehle badge
+   * pe hi padti hai.
+   */
+  const why = row.error ?? undefined
+
   if (row.status === IMPORT_ROW_STATUS.PUBLISHED) {
     return <span className="badge b-pub">Published</span>
   }
   if (row.status === IMPORT_ROW_STATUS.DRAFT) return <span className="badge b-draft">Draft</span>
-  if (row.status === IMPORT_ROW_STATUS.FAILED) return <span className="badge b-close">Failed</span>
-  if (row.status === IMPORT_ROW_STATUS.SKIPPED)
-    return <span className="badge b-draft">Skipped</span>
+  if (row.status === IMPORT_ROW_STATUS.FAILED) {
+    return (
+      <span className="badge b-close" title={why}>
+        Failed
+      </span>
+    )
+  }
+  if (row.status === IMPORT_ROW_STATUS.SKIPPED) {
+    return (
+      <span className="badge b-draft" title={why}>
+        Skipped
+      </span>
+    )
+  }
 
   return <span className="badge b-pend">Waiting</span>
 }

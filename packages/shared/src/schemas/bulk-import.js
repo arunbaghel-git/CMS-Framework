@@ -81,9 +81,27 @@ export const importRowSchema = z.object({
  * ke paste karta hai, aur uspe *"Invalid url"* dikhana bemaani hai. Asli jaanch service me
  * hoti hai (`sheetIdFromUrl`), jahan error bhi kaam ka hota hai.
  */
+/**
+ * Import kis iraade se chal raha hai (client, 4 Sep).
+ *
+ * ⚠️ Ye ek **assertion** hai, filter nahi: client keh raha hai ki "is sheet me sirf naye doc
+ * hain" ya "sirf purane". Jo row us baat se alag nikle wo **Failed** hoti hai, wajah ke saath.
+ *
+ * Wajah suraksha ki hai, suvidha ki nahi. Bina iske ek galti chup-chaap nikal jaati: client
+ * naye packages ki sheet chalata hai, usme galti se ek purana URL reh gaya hota hai, aur wo
+ * ek live package ko **chup-chaap overwrite** kar deta. Mode chun lene se wo galti ruk jaati
+ * hai aur dikhti bhi hai.
+ *
+ * `new` default hai — sabse aam kaam yahi hai.
+ */
+export const IMPORT_MODE = Object.freeze({ NEW: 'new', EXISTING: 'existing' })
+
+export const IMPORT_MODES = Object.freeze(Object.values(IMPORT_MODE))
+
 export const startImportSchema = z
   .object({
     sheetUrl: z.string().min(1, 'Paste the Google Sheet link').max(2000),
+    mode: z.enum(IMPORT_MODES).default(IMPORT_MODE.NEW),
   })
   .strict()
 

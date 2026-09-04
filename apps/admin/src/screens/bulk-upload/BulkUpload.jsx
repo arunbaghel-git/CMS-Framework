@@ -27,6 +27,7 @@ export default function BulkUpload() {
   const navigate = useNavigate()
   const { runs, loading, error, reload } = useImportRuns()
   const [sheetUrl, setSheetUrl] = useState('')
+  const [mode, setMode] = useState('new')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState(null)
 
@@ -38,7 +39,7 @@ export default function BulkUpload() {
     setActionError(null)
 
     try {
-      const run = await startImport(sheetUrl.trim())
+      const run = await startImport(sheetUrl.trim(), mode)
       /** Seedha nateeje pe — wahin progress dikhti hai. */
       navigate(`/bulk-upload/${run.id}`)
     } catch (err) {
@@ -79,6 +80,45 @@ export default function BulkUpload() {
               </p>
             </div>
 
+            {/*
+              ⚠️ Ye **radio** hain, checkbox nahi — client ne "do checkbox" kaha tha par matlab
+              ek chunav hai: sheet ya to naye package laa rahi hai ya purane update kar rahi
+              hai. Do checkbox se "dono" aur "koi nahi" wali do aisi haalat ban jaati jinka koi
+              matlab hi nahi hota.
+
+              Ye ek **elaan** hai, filter nahi: jo row is baat se alag nikle wo Failed hoti hai.
+              Bina iske ek purana URL galti se nayi sheet me reh jaaye to wo ek live package ko
+              chup-chaap overwrite kar deta.
+            */}
+            <div className="field">
+              <label>What is in this sheet?</label>
+              <label className="inline-lbl">
+                <input
+                  type="radio"
+                  name="mode"
+                  checked={mode === 'new'}
+                  disabled={busy}
+                  onChange={() => setMode('new')}
+                />{' '}
+                New packages
+              </label>{' '}
+              <label className="inline-lbl bu-mode">
+                <input
+                  type="radio"
+                  name="mode"
+                  checked={mode === 'existing'}
+                  disabled={busy}
+                  onChange={() => setMode('existing')}
+                />{' '}
+                Existing packages
+              </label>
+              <p className="hint">
+                {mode === 'new'
+                  ? 'Any document whose Package URL already exists will be left as Failed, so nothing live is overwritten by mistake.'
+                  : 'Any document whose Package URL does not exist yet will be left as Failed.'}
+              </p>
+            </div>
+
             <button type="submit" className="btn btn-primary" disabled={busy || !sheetUrl.trim()}>
               {busy ? 'Reading sheet…' : 'Import'}
             </button>
@@ -113,6 +153,8 @@ export default function BulkUpload() {
           <tr>
             <th>When</th>
             <th>Sheet</th>
+            <th className="nowrap">New</th>
+            <th className="nowrap">Existing</th>
             <th className="nowrap">Published</th>
             <th className="nowrap">Draft</th>
             <th className="nowrap">Failed</th>
@@ -122,7 +164,7 @@ export default function BulkUpload() {
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={6} className="muted">
+              <td colSpan={8} className="muted">
                 Loading…
               </td>
             </tr>
@@ -130,7 +172,7 @@ export default function BulkUpload() {
 
           {!loading && runs.length === 0 && (
             <tr>
-              <td colSpan={6} className="muted">
+              <td colSpan={8} className="muted">
                 No imports yet.
               </td>
             </tr>
@@ -144,6 +186,8 @@ export default function BulkUpload() {
                 </Link>
               </td>
               <td className="bu-url">{run.sheetUrl}</td>
+              <td>{run.counts.created}</td>
+              <td>{run.counts.updated}</td>
               <td>{run.counts.published}</td>
               <td>{run.counts.draft}</td>
               <td>{run.counts.failed}</td>

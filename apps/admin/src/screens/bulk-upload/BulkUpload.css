@@ -59,3 +59,8 @@
 .bu-blocker {
   color: var(--danger, #b32d2e);
 }
+
+/* Dono mode ek line me — beech me thodi jagah taaki wo do alag chunav lagein */
+.bu-mode {
+  margin-left: 18px;
+}

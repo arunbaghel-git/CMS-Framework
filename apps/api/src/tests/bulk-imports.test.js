@@ -192,7 +192,7 @@ async function drain(deps) {
   throw new Error('Worker 50 baar chalne ke baad bhi khatam nahi hua')
 }
 
-async function runImport(docs, ids = Object.keys(docs)) {
+async function runImport(docs, ids = Object.keys(docs), mode = undefined) {
   const deps = { fetchImpl: fakeFetch(docs, csvOf(ids)) }
 
   /**
@@ -204,7 +204,7 @@ async function runImport(docs, ids = Object.keys(docs)) {
   const user = await User.findOne({ email: 'admin@test.com' }).lean()
   /** `deps` chautha argument hai — teesra `siteId` hai, isliye wo bhi saaf likhna padta hai. */
   const run = await startImport(
-    { sheetUrl: SHEET_URL },
+    { sheetUrl: SHEET_URL, ...(mode ? { mode } : {}) },
     { user, permissions: [] },
     DEFAULT_SITE_ID,
     deps,
@@ -473,7 +473,8 @@ describe('dobara chalana', () => {
     await runImport(docs)
     expect(await Entry.countDocuments()).toBe(1)
 
-    const second = await runImport(docs)
+    /** ⚠️ Doosra run 'existing' me — 'new' mode ab purane package ko jaan-boojh kar rokta hai. */
+    const second = await runImport(docs, undefined, 'existing')
 
     /** Yahi wo bug hai jisse bachna tha: har run pe naya `-2` wala page ban jaana */
     expect(await Entry.countDocuments()).toBe(1)
@@ -487,7 +488,7 @@ describe('dobara chalana', () => {
     const first = await runImport(docs)
     const before = await Entry.findById(first.rows[0].entryId).lean()
 
-    await runImport(docs)
+    await runImport(docs, undefined, 'existing')
     const after = await Entry.findById(first.rows[0].entryId).lean()
 
     /**
@@ -504,7 +505,7 @@ describe('dobara chalana', () => {
     /** Client master list me naam theek karta hai — spelling ab milti hai */
     await Taxonomy.create({ type: 'destination', name: 'Havelok', slug: 'havelok' })
 
-    const second = await runImport({ B: typoDoc })
+    const second = await runImport({ B: typoDoc }, undefined, 'existing')
 
     expect(second.rows[0].status).toBe('published')
     expect(second.rows[0].action).toBe('updated')
@@ -518,11 +519,101 @@ describe('dobara chalana', () => {
     /** Ab hotel hata do — agle run me wo blocker banega */
     await Hotel.deleteMany({})
 
-    const second = await runImport(good)
+    const second = await runImport(good, undefined, 'existing')
     const entry = await Entry.findById(first.rows[0].entryId).lean()
 
     /** Ek hotel ke naam ki galti bees live page utaar de — wo aapdaa hoti */
     expect(entry.status).toBe(ENTRY_STATUS.PUBLISHED)
     expect(second.rows[0].issues.some((issue) => issue.level === 'blocker')).toBe(true)
+  })
+})
+
+/**
+ * New / Existing mode — client ka faisla (4 Sep).
+ *
+ * ⚠️ Ye ek **elaan** hai, filter nahi. Bina iske ek purana Package URL galti se nayi sheet me
+ * reh jaaye to wo ek **live package ko chup-chaap overwrite** kar deta — technically ek sahi
+ * update, par client ke iraade ke bilkul ulta.
+ */
+describe('new / existing mode', () => {
+  const docs = { A: goodDoc('Mode Test', 'mode-test') }
+
+  async function runWithMode(mode, fixtures = docs) {
+    const deps = { fetchImpl: fakeFetch(fixtures, csvOf(Object.keys(fixtures))) }
+    const { startImport } = await import('../modules/bulk-imports/service.js')
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+    const run = await startImport(
+      { sheetUrl: SHEET_URL, mode },
+      { user, permissions: [] },
+      DEFAULT_SITE_ID,
+      deps,
+    )
+
+    await drain(deps)
+
+    return ImportRun.findById(run.id).lean()
+  }
+
+  it('default new hai — mode bheje bina bhi', async () => {
+    const run = await runImport(docs)
+
+    expect(run.mode).toBe('new')
+    expect(run.rows[0].action).toBe('created')
+  })
+
+  it('new mode me purana package rukta hai — live content overwrite nahi hota', async () => {
+    await runWithMode('new')
+    const before = await Entry.findOne({ slug: 'mode-test' }).lean()
+
+    const second = await runWithMode('new')
+
+    expect(second.rows[0].status).toBe('failed')
+    expect(second.rows[0].error).toContain('already exists')
+    /** Sabse zaroori: purana package chhua tak nahi gaya */
+    const after = await Entry.findOne({ slug: 'mode-test' }).lean()
+    expect(after.version).toBe(before.version)
+  })
+
+  it('existing mode me naya doc rukta hai', async () => {
+    const run = await runWithMode('existing')
+
+    expect(run.rows[0].status).toBe('failed')
+    expect(run.rows[0].error).toContain('exists yet')
+    expect(await Entry.countDocuments({ type: 'package' })).toBe(0)
+  })
+
+  it('existing mode purane ko update karta hai', async () => {
+    await runWithMode('new')
+    const run = await runWithMode('existing')
+
+    expect(run.rows[0].status).toBe('published')
+    expect(run.rows[0].action).toBe('updated')
+    expect(await Entry.countDocuments({ type: 'package' })).toBe(1)
+  })
+
+  it('mile-jule sheet me sirf galat row rukti hai, baaki chalti hain', async () => {
+    // Client ka scenario 4: 1 purana + 1 naya, mode = new
+    await runWithMode('new', { A: goodDoc('Mode Test', 'mode-test') })
+
+    const mixed = await runWithMode('new', {
+      A: goodDoc('Mode Test', 'mode-test'),
+      B: goodDoc('Brand New', 'brand-new'),
+    })
+
+    const byDoc = Object.fromEntries(mixed.rows.map((row) => [row.docId, row]))
+
+    expect(byDoc.A.status).toBe('failed')
+    expect(byDoc.B.status).toBe('published')
+  })
+
+  it('counts me created aur updated alag alag aate hain', async () => {
+    await runWithMode('new')
+    const run = await runWithMode('existing')
+
+    const { getImportRun } = await import('../modules/bulk-imports/service.js')
+    const api = await getImportRun(String(run._id))
+
+    expect(api.counts.created).toBe(0)
+    expect(api.counts.updated).toBe(1)
   })
 })

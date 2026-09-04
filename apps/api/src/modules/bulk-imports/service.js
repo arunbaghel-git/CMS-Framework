@@ -3,6 +3,7 @@ import {
   DEFAULT_SITE_ID,
   docUrlsFromSheet,
   ENTRY_STATUS,
+  IMPORT_MODE,
   IMPORT_ROW_STATUS,
   IMPORT_RUN_STATUS,
   MAX_IMPORT_ROWS,
@@ -172,6 +173,7 @@ export async function startImport(input, actor, siteId = DEFAULT_SITE_ID, deps =
     siteId,
     sheetUrl: input.sheetUrl,
     sheetId,
+    mode: input.mode,
     startedBy: actor.user._id,
     warnings,
     rows,
@@ -270,6 +272,29 @@ async function importRow(run, row, refs, actor, deps) {
   if (existing?.deletedAt) {
     throw new Error(
       `A package with the URL "${slug}" is in the Trash. Restore it or empty the trash, then import again.`,
+    )
+  }
+
+  /**
+   * Mode se mel na khaaye to row **yahin** rukti hai (client, 4 Sep).
+   *
+   * ⚠️ Ye jaanch `createEntry`/`updateEntry` se **pehle** honi chahiye, warna nuksaan ho chuka
+   * hota hai: "new" chuna ho aur sheet me galti se ek purana URL reh gaya ho, to us live
+   * package ka poora content overwrite ho jaata — chup-chaap, kyunki technically wo ek sahi
+   * update hai.
+   *
+   * Dono taraf ek hi niyam hai, aur wo jaan-boojh kar hai: mode ek elaan hai, aur ek taraf use
+   * maanna aur doosri taraf nazarandaz karna client ko wahi bharosa nahi deta.
+   */
+  if (run.mode === IMPORT_MODE.NEW && existing) {
+    throw new Error(
+      `A package with the URL "${slug}" already exists. This import was set to "New packages" — choose "Existing packages" to update it.`,
+    )
+  }
+
+  if (run.mode === IMPORT_MODE.EXISTING && !existing) {
+    throw new Error(
+      `No package with the URL "${slug}" exists yet. This import was set to "Existing packages" — choose "New packages" to create it.`,
     )
   }
 
@@ -490,6 +515,7 @@ export async function processImportQueue(deps = {}) {
 const toApi = (run) => ({
   id: String(run._id),
   sheetUrl: run.sheetUrl,
+  mode: run.mode ?? IMPORT_MODE.NEW,
   status: run.status,
   warnings: run.warnings ?? [],
   error: run.error ?? null,
@@ -525,13 +551,31 @@ const toApi = (run) => ({
 })
 
 const countsOf = (rows) => {
-  const counts = { total: rows.length, published: 0, draft: 0, failed: 0, pending: 0 }
+  /**
+   *  aur  client ki maang hai (4 Sep) — Past imports me do naye khaane.
+   *
+   * Ye `row.action` se aate hain, `run.mode` se nahi: mode wo tha jo client ne **kaha**, action
+   * wo hai jo sach me **hua**. Dono ek hi hone chahiye, aur alag ho jaayein to wahi dikhna
+   * chahiye — ginti ko mode se banana us farak ko chhupa deta.
+   */
+  const counts = {
+    total: rows.length,
+    published: 0,
+    draft: 0,
+    failed: 0,
+    pending: 0,
+    created: 0,
+    updated: 0,
+  }
 
   for (const row of rows) {
     if (row.status === IMPORT_ROW_STATUS.PUBLISHED) counts.published += 1
     else if (row.status === IMPORT_ROW_STATUS.DRAFT) counts.draft += 1
     else if (row.status === IMPORT_ROW_STATUS.FAILED) counts.failed += 1
     else if (row.status !== IMPORT_ROW_STATUS.SKIPPED) counts.pending += 1
+
+    if (row.action === 'created') counts.created += 1
+    else if (row.action === 'updated') counts.updated += 1
   }
 
   return counts
