@@ -10,6 +10,7 @@ import {
   normalizeName,
   parseCsv,
   parsePackageDoc,
+  slugify,
   TAXONOMY_TYPE,
 } from '@cms/shared'
 
@@ -308,13 +309,31 @@ async function importRow(run, row, refs, actor, deps) {
   }
 
   /**
-   * ⚠️ Slug ka pehle se milna **zaroori** hai, warna dobara chalane pe duplicate ban jaate hain.
+   * ⚠️ **Dhoondhne ka slug wahi hona chahiye jo save karne ka slug hai** — D-86.
    *
-   * `resolveSlugAndPath()` slug ka takrav dekh kar chup-chaap `-2` laga deta hai — aur trash me
-   * padi entry bhi slug pakde rehti hai. Us `-2` wale page ko agla run phir nahi pehchanta, aur
-   * har run ek aur duplicate banata hai.
+   * Ye do jagah do alag tarah se ban raha tha, aur usi khaayi se har import pe duplicate ban
+   * rahe the:
+   *
+   * | | Pehle | Ab |
+   * | --- | --- | --- |
+   * | save (`resolveSlugAndPath`) | `slugify(Package URL \|\| Package Name)` | wahi |
+   * | dhoondhna (yahan) | `parseSlug(Package URL)` — na `slugify`, na title ka fallback | wahi jo save karta hai |
+   *
+   * Isi ek farak se **teen** cheezein toot rahi thi:
+   *
+   * 1. `Package URL` me ek bada akshar (`Andaman-tour-…`) — Mongo case-sensitive hai, to lookup
+   *    khaali aata tha aur `createEntry` slugify karke lowercase me save kar deta tha. Asli
+   *    data me ye `…-2` se `…-7` tak pahunch gaya tha
+   * 2. `Package URL` doc me hai hi nahi — tab lookup hota hi nahi tha (`slug ? … : null`), aur
+   *    har run ek naya page bana deta tha
+   * 3. Neeche wala Trash wala guard **kabhi chala hi nahi** — `existing` hamesha `null` jo
+   *    aata tha
+   *
+   * `slugify()` wahi function hai jo `resolveSlugAndPath()` use karta hai. Use yahan dobara
+   * likhne ka matlab hota ki kal wo badle aur ye peeche reh jaaye.
    */
-  const existing = slug ? await findEntryBySlug('package', slug, siteId) : null
+  const lookupSlug = slugify(slug || input.title)
+  const existing = lookupSlug ? await findEntryBySlug('package', lookupSlug, siteId) : null
 
   if (existing?.deletedAt) {
     throw new Error(
@@ -373,8 +392,6 @@ async function importRow(run, row, refs, actor, deps) {
     }
   }
 
-  const blocked = hasBlocker(issues)
-
   let entry
   let action
 
@@ -391,6 +408,33 @@ async function importRow(run, row, refs, actor, deps) {
     entry = await createEntry(input, actor, siteId)
     action = 'created'
   }
+
+  /**
+   * **Import me suffix lagna hamesha ek galti ka nishaan hai** — D-86.
+   *
+   * `resolveSlugAndPath()` slug ka takrav dekh kar chup-chaap `-2` laga deta hai. Admin me
+   * haath se page banate waqt wo behaviour theek hai (do page ka naam sach me ek jaisa ho
+   * sakta hai), par import me kabhi nahi: yahan ya to purana package update hona tha, ya sach
+   * me naya banna tha. Beech ka `…-7` kisi ne nahi maanga hota.
+   *
+   * Asli data me yahi hua tha — ek hi doc `…-2` se `…-7` tak saat live page bana chuka tha,
+   * aur har run "Published" bolta raha. Upar wale lookup ka fix us ek wajah ko band karta hai;
+   * ye guard un wajahon ke liye hai **jo abhi hume dikhi hi nahi** — jaise kisi doosre type ke
+   * page ka wahi `path` ghere baithna.
+   *
+   * Blocker hai, `throw` nahi: package ban chuka hai aur uska content bacha rehna chahiye —
+   * wahi niyam jo baaki har blocker pe hai.
+   */
+  if (entry.slug && lookupSlug && entry.slug !== lookupSlug) {
+    issues.push({
+      level: 'blocker',
+      label: 'Package URL',
+      value: lookupSlug,
+      message: `Another package already uses the address "${lookupSlug}", so this one was saved as "${entry.slug}". Set a different Package URL, or run this again in "Existing packages" mode to update the original.`,
+    })
+  }
+
+  const blocked = hasBlocker(issues)
 
   /**
    * Publish ke do niyam:

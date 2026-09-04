@@ -5629,3 +5629,112 @@ koi phir karega.
 (`Rating.jsx`, server components). Wo `Reviews.jsx` me thin — yaani do **pure display**
 component sirf isliye client bundle me ja rahe the ki wo ek client component ki file me baithe
 the. Bachat chhoti hai, par jagah galat thi.
+
+---
+
+## D-86
+
+**Bulk Upload har run pe duplicate bana raha tha — aur `Package URL` ab zaroori hai**
+_4 Sep 2026 · asli data pe pakda gaya · client ka faisla_
+
+### Kaise pakda gaya
+
+Client ne kaha: _"last two imports dekho koi content change nahi hua fir bhi duplicate ban gaye"_.
+DB me dekha to ek hi doc ne **saat live page** bana rakhe the:
+
+```
+13:03:59  created  /packages/andaman-tour-from-dehli-package
+13:06:15  created  /packages/andaman-tour-from-dehli-package-2   ← base tab live tha
+13:07:32  created  ...-3
+13:08:22  created  ...-4
+13:08:44  created  ...-5
+13:20:07  created  ...-6
+13:21:34  created  ...-7
+```
+
+Har run "Published" bolta raha. Aur **usi run me** doosri row (`andaman-escape-5-nights`) theek se
+`Failed` ho rahi thi — _"already exists… choose Existing packages"_. Yahi wo surag tha: guard
+kaam kar raha hai, par is doc pe lag nahi raha.
+
+### Jad — dhoondhne ka slug aur save karne ka slug do alag the
+
+| | Pehle |
+| --- | --- |
+| save (`resolveSlugAndPath`) | `slugify(Package URL \|\| Package Name)` |
+| dhoondhna (`importRow`) | `parseSlug(Package URL)` — na `slugify`, na title ka fallback |
+
+`parseSlug()` sirf URL ka aakhri tukda kaat_ta hai; bade akshar jaise ke waise chhod deta hai.
+Client ne doc me `Andaman-tour-from-dehli-package` likha tha (**bada A**). DB pe chala kar dekha:
+
+```
+findEntryBySlug("Andaman-tour-from-dehli-package")  ->  kuch nahi mila     ← Mongo case-sensitive
+findEntryBySlug("andaman-tour-from-dehli-package")  ->  MILA
+```
+
+Aur us ek `null` se **teen** cheezein ek saath chup ho gayi thi:
+
+1. **New/Existing ka guard** — `existing` khaali, to mode ki jaanch hui hi nahi
+2. **Trash wala guard** — `existing?.deletedAt` kabhi sach hua hi nahi. Wo message shuru se
+   likha tha aur **kisi ne kabhi dekha nahi**
+3. **`createEntry`** ne slugify karke lowercase base maanga, wo pehle se tha, to `-2`… `-7`
+
+Doosri shakl bhi wahi bug thi: `Package URL` doc me ho hi na, to `slug ? … : null` ki wajah se
+**lookup hota hi nahi tha** — har run naya page.
+
+### Fix 1 · Lookup wahi banega jo storage banata hai
+
+```js
+const lookupSlug = slugify(slug || input.title)
+const existing = lookupSlug ? await findEntryBySlug('package', lookupSlug, siteId) : null
+```
+
+`slugify()` wahi function hai jo `resolveSlugAndPath()` chalata hai — dobara likhne ka matlab
+hota ki kal wo badle aur ye peeche reh jaaye. Saath me mapper bhi ab **normalized slug** hi
+bhejta hai (`slugify(parseSlug(...))`), warna `updateEntry` har baar "slug badla" samajhta.
+
+### Fix 2 · `Package URL` ke bina page publish nahi hoga — client ka faisla
+
+> _"agar doc me Package URL na ho to draft bane publish na ho ye thik hai… isse unnecessary page
+> publish nahi honge"_
+
+⚠️ **Dono "zaroori" ek jaise nahi hain, aur ye farak jaan-boojh kar hai:**
+
+| Doc me nahi hai | Nateeja | Package bana? |
+| --- | --- | --- |
+| `Package Name` | **Failed** | ❌ naam ke bina banaya hi nahi ja sakta |
+| `Package URL` | **Draft** | ✅ ban gaya, content poora — sirf publish ruka |
+
+Wahi soch jo poore importer me hai: _content chala jaaye, sirf publish ruke_. Client URL likh kar
+Existing mode me dobara chala de, page live ho jaata hai; uska likha hua kuch nahi khota.
+
+⚠️ Wajah "khaali khaana" nahi, **khaali pehchaan** hai. Fix 1 ke baad bina URL wala doc bhi
+idempotent ho chuka tha — par sirf tab tak jab tak naam na badle. Naam badalte hi derived slug
+badal jaata aur agla import **doosra live page** bana deta, dono theek dikhte hue. Ye us raaste
+ko band karta hai.
+
+### Fix 3 · Import me suffix lagna hamesha galti ka nishaan hai
+
+`resolveSlugAndPath()` takrav pe chup-chaap `-2` laga deta hai. Admin me wo theek hai (do page ka
+naam sach me ek jaisa ho sakta hai), **import me kabhi nahi**: yahan ya to purana update hona tha
+ya sach me naya banna tha — beech ka `…-7` kisi ne maanga hi nahi hota.
+
+Ab resolved slug maange gaye slug se alag ho to wo **blocker** hai (Draft, `throw` nahi — package
+ban chuka hai aur uska content bachna chahiye).
+
+Fix 1 ke baad ye raasta lagbhag band ho chuka hai, isliye ye **un wajahon ke liye hai jo abhi
+dikhi nahi**. Test reserved slug se likha gaya (`Package URL: uploads` → `uploads-2`), kyunki wahi
+gine-chune bache hue raaston me se ek hai.
+
+### Sabak
+
+**Ek hi cheez ke do naam do jagah mat banao.** Yahan identity do jagah bani — ek `parseSlug` se,
+ek `slugify` se — aur beech ki khaayi ne teen guard chup-chaap mar diye. Guard ka na chalna kabhi
+error nahi deta; wo sirf **kuch na hone** jaisa dikhta hai.
+
+⚠️ Aur ek cheez jo isi jaanch me dikhi aur abhi **theek nahi ki gayi**: DB me do collection hain —
+`importRuns` (0 documents) aur `importruns` (20 documents, asli data). Mongoose apne aap lowercase
+karta hai; `importRuns` shayad migration 021 ne banayi. Aaj kuch toot nahi raha, par agar us
+migration ne index **khaali** collection pe banaye hain to asli data bina index ke chal raha hai.
+`09-OPEN-ITEMS.md` **A-18**.
+
+774 tests pass.

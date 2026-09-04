@@ -9,6 +9,7 @@ import {
   parseMoney,
   parseNameList,
   parseSlug,
+  slugify,
 } from '@cms/shared'
 
 /**
@@ -394,7 +395,43 @@ export function toEntryInput(parsed, refs) {
   for (const warning of parsed.warnings ?? []) issues.push(note('Document', '', warning))
 
   const title = textOf(values, 'packageName')
-  const slug = parseSlug(textOf(values, 'packageUrl'))
+
+  /**
+   * ⚠️ `parseSlug()` ke baad `slugify()` **zaroori** hai (D-86).
+   *
+   * `parseSlug()` sirf URL ka aakhri tukda kaat_ta hai — wo bade akshar, space aur nishaan
+   * jaisa ka waisa chhod deta hai. Client ne doc me `Andaman-tour-from-dehli-package` likha
+   * tha, aur wahi aage bhej diya jaata tha; DB me entry lowercase me banti thi. Us farak se
+   * har import ek naya duplicate bana raha tha.
+   *
+   * `slugify()` wahi function hai jo `resolveSlugAndPath()` chalata hai, aur wo idempotent hai
+   * — pehle se saaf slug uske baad bhi wahi rehta hai.
+   */
+  const slug = slugify(parseSlug(textOf(values, 'packageUrl')))
+
+  /**
+   * **`Package URL` ke bina page publish nahi hoga** — client ka faisla (D-86).
+   *
+   * `Package Name` ke bina kuch ban hi nahi sakta, isliye wo `Failed` hai. `Package URL` ke
+   * bina package **ban jaata hai**, bas publish rukta hai — wahi soch jo poore importer me hai:
+   * *content chala jaaye, sirf publish ruke*. Client URL likh kar Existing mode me dobara chala
+   * de, page live ho jaata hai; uska likha hua kuch nahi khota.
+   *
+   * ⚠️ Wajah sirf "khaali khaana" nahi hai. `Package URL` hi wo **ek cheez** hai jo doc ko uske
+   * package se baandhti hai. Uske bina address `Package Name` se banta hai — aur jis din client
+   * naam thoda sa badal de, us doc ka agla import purane page ko pehchanta hi nahi aur ek
+   * **doosra live page** bana deta hai. Wo failure poori tarah chup hoti: dono page live, dono
+   * theek dikhte.
+   */
+  if (!slug) {
+    issues.push(
+      blocker(
+        'Package URL',
+        '',
+        'No Package URL was given, so the address was made from the package name. Add a Package URL — otherwise renaming the package later will create a second page.',
+      ),
+    )
+  }
 
   const destinations = resolveMany(refs.destinations, textOf(values, 'destinations'), {
     label: 'Destinations',

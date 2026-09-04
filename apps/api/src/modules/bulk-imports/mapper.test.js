@@ -181,9 +181,28 @@ describe('toEntryInput — jab naam match na kare', () => {
   })
 
   it('khaali khaana blocker nahi hai — wo bas khaali hai', () => {
-    const { issues } = toEntryInput(doc('<p>Destinations</p><p>Port Blair</p>'), refs)
+    const { issues } = toEntryInput(
+      doc('<p>Package URL</p><p>trip</p><p>Destinations</p><p>Port Blair</p>'),
+      refs,
+    )
 
     expect(issues.filter((issue) => issue.level === 'blocker')).toEqual([])
+  })
+
+  /**
+   * ⚠️ `Package URL` isme **apwaad** hai — baaki har khaali khaana maaf hai, ye nahi (D-86).
+   *
+   * Wajah "khaana khaali hai" nahi, **pehchaan khaali hai**: wahi ek cheez doc ko uske package
+   * se baandhti hai. Uske bina address naam se banta hai, aur naam badalte hi agla import ek
+   * doosra live page bana deta hai.
+   */
+  it('Package URL na ho to wo blocker hai — baaki khaali khaanon se ulta', () => {
+    const { issues } = toEntryInput(doc('<p>Package Name</p><p>Trip One</p>'), refs)
+
+    const found = issues.find((issue) => issue.label === 'Package URL')
+
+    expect(found.level).toBe('blocker')
+    expect(found.message).toContain('renaming the package later will create a second page')
   })
 })
 
@@ -202,7 +221,9 @@ describe('toEntryInput — wo cheezein jo service 422 deti', () => {
   it('ek hi hotel do category pe ho to doosri row girti hai, package nahi', () => {
     // `destinationId:category` jodi do baar bhejne pe service 422 deti hai
     const { input, issues } = toEntryInput(
-      doc('<p>Standard Hotel</p><p>City hotel</p><p>Deluxe Hotel</p><p>City hotel</p>'),
+      doc(
+        '<p>Package URL</p><p>trip</p><p>Standard Hotel</p><p>City hotel</p><p>Deluxe Hotel</p><p>City hotel</p>',
+      ),
       refs,
     )
 

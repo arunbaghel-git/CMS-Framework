@@ -176,6 +176,31 @@ pehle A-12 padho: CI un sab pe red aayegi, aur wo red environment ki wajah se ha
 
 ## 🔴 Ab bhi baaki
 
+### A-18 · `importRuns` aur `importruns` — do collection ban gayi hain (4 Sep)
+
+**Deadline:** koi nahi — aaj kuch toot nahi raha
+**D-86 ki jaanch me dikhi**, us kaam ka hissa nahi thi
+
+```
+importRuns  ->  0 documents
+importruns  -> 20 documents   ← asli data yahin hai
+```
+
+Mongoose collection ka naam apne aap lowercase kar deta hai, isliye service `importruns` me
+likhti hai. `importRuns` shayad **migration 021** ne banayi (wo `db.collection('importRuns')`
+jaisa kuch chalati hogi).
+
+⚠️ **Dekhne wali baat:** agar us migration ne **index** `importRuns` pe banaye hain, to wo
+khaali collection pe pade hain aur **asli data bina index ke** chal raha hai. Aaj 20 hi run
+hain to farak nahi padta; ye tab kaat-ta hai jab list dheemi hone lage aur wajah samajh na aaye.
+
+Karne wala kaam: migration 021 padho, dekho wo kaunsa naam use karti hai, aur ya to naam theek
+karo ya model me `collection: 'importRuns'` pin kar do. Khaali collection tab hata dena.
+
+⚠️ **Data mat hatao pehle** — pehle pakka karo ki `importRuns` sach me khaali hai.
+
+---
+
 ### A-17 · Speed — naap ho chuki hai. Mobile **91**, desktop **98** (4 Sep)
 
 > **Update (4 Sep, shaam):** naap ho gayi — **D-85**. Neeche wala "naapa nahi gaya" wala

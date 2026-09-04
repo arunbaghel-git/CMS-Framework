@@ -364,6 +364,19 @@ aur unki keemat `09-OPEN-ITEMS.md` **A-17** me.
 ⚠️ `immutable` ka haq media ke URL se aata hai (path me id + variant). **"Replace file" banaane
 se pehle** ya replace naya `_id` de, ya URL me content hash jude.
 
+**4 Sep — Bulk Upload har run pe duplicate bana raha tha (D-86).** Ek hi doc ne saat live page
+bana diye the (`…-2` se `…-7`). Jad: **dhoondhne ka slug aur save karne ka slug do alag the** —
+save `slugify(Package URL || Package Name)` se hota tha, dhoondhna `parseSlug(Package URL)` se
+(na `slugify`, na title ka fallback). Client ne doc me **bada akshar** likha tha, Mongo
+case-sensitive hai, lookup hamesha khaali aata tha.
+⚠️ Us ek `null` se **teen guard chup-chaap mar gaye the** — New/Existing ka, Trash wala (uska
+message aaj tak kisi ne dekha hi nahi), aur duplicate se bachne wala.
+⚠️ **Ab `Package URL` zaroori hai — par `Draft`, `Failed` nahi** (client, 4 Sep). Dono "zaroori"
+alag hain: `Package Name` ke bina kuch **banta hi nahi** (Failed), `Package URL` ke bina package
+**ban jaata hai par publish nahi hota** (Draft). Wahi soch — content chala jaaye, sirf publish ruke.
+**Sabak:** ek hi cheez ke do naam do jagah mat banao. Guard ka na chalna kabhi error nahi deta —
+wo sirf "kuch na hone" jaisa dikhta hai.
+
 ⚠️ **Chauthi baar laga hua jaal:** `updatePackageDefaults()` ka `$set` ek **whitelist** hai.
 Naya field schema/model/screen teenon me jod dene ke bawajood wahan na ho to Zod pass karega,
 API 200 degi, admin "Saved." dikhayega, aur DB me purani value rahegi. Naya field jodo to

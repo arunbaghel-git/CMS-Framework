@@ -466,6 +466,109 @@ describe('banner image', () => {
   })
 })
 
+describe('slug ki pehchaan (D-86)', () => {
+  /** Wahi doc jo client ka tha — `Package URL` me bada akshar. */
+  const capsDoc = doc(
+    [p('Package Name'), p('Andaman Tour'), p('Package URL'), p('Andaman-Tour-Package')].join(''),
+  )
+
+  /** `Package URL` hai hi nahi — address naam se banega. */
+  const noUrlDoc = doc([p('Package Name'), p('Andaman Tour')].join(''))
+
+  it('Package URL me bade akshar ho to bhi duplicate nahi banta', async () => {
+    const docs = { A: capsDoc }
+
+    const first = await runImport(docs)
+    expect(first.rows[0].path).toBe('/packages/andaman-tour-package')
+    expect(await Entry.countDocuments()).toBe(1)
+
+    /**
+     * ⚠️ Yahi wo asli bug tha: dhoondha `Andaman-Tour-Package` se jaata tha (jaisa doc me
+     * likha hai) aur save `andaman-tour-package` hota tha. Mongo case-sensitive hai, to
+     * lookup hamesha khaali aata aur har run ek naya `-2`, `-3` … bana deta tha. Asli data
+     * me ye `-7` tak pahunch gaya tha.
+     */
+    const second = await runImport(docs, undefined, 'existing')
+
+    expect(await Entry.countDocuments()).toBe(1)
+    expect(second.rows[0].action).toBe('updated')
+  })
+
+  it('new mode me wahi doc dobara chalane pe ab saaf rukta hai', async () => {
+    const docs = { A: capsDoc }
+
+    await runImport(docs)
+    const second = await runImport(docs)
+
+    /** Pehle ye chup-chaap ek naya page bana deta tha. */
+    expect(second.rows[0].status).toBe('failed')
+    expect(second.rows[0].error).toMatch(/already exists/i)
+    expect(await Entry.countDocuments()).toBe(1)
+  })
+
+  it('Package URL na ho to package banta hai par draft rukta hai', async () => {
+    const { rows } = await runImport({ A: noUrlDoc })
+
+    expect(rows[0].status).toBe('draft')
+    expect(rows[0].action).toBe('created')
+    /** Address naam se bana — kaam khota nahi, sirf publish rukta hai. */
+    expect(rows[0].path).toBe('/packages/andaman-tour')
+    expect(rows[0].issues.some((i) => i.label === 'Package URL' && i.level === 'blocker')).toBe(
+      true,
+    )
+  })
+
+  it('Package URL na ho to bhi dobara chalane pe duplicate nahi banta', async () => {
+    const docs = { A: noUrlDoc }
+
+    await runImport(docs)
+    expect(await Entry.countDocuments()).toBe(1)
+
+    /**
+     * Lookup ab naam se bane slug pe hota hai — wahi jo `resolveSlugAndPath()` banata hai.
+     * Pehle yahan lookup hota hi nahi tha (`slug ? … : null`) aur har run naya page banata tha.
+     */
+    const second = await runImport(docs, undefined, 'existing')
+
+    expect(await Entry.countDocuments()).toBe(1)
+    expect(second.rows[0].action).toBe('updated')
+  })
+
+  it('Trash me pada package ab sach me pakda jaata hai', async () => {
+    const docs = { A: capsDoc }
+
+    const first = await runImport(docs)
+    await Entry.updateOne({ _id: first.rows[0].entryId }, { $set: { deletedAt: new Date() } })
+
+    /**
+     * ⚠️ Ye guard `importRow` me shuru se likha tha par **kabhi chala hi nahi** — lookup ke
+     * case wale bug ki wajah se `existing` hamesha `null` aata tha.
+     */
+    const second = await runImport(docs, undefined, 'existing')
+
+    expect(second.rows[0].status).toBe('failed')
+    expect(second.rows[0].error).toMatch(/Trash/i)
+  })
+
+  it('slug pe suffix lagna pade to publish rukta hai', async () => {
+    /**
+     * `uploads` ek **reserved slug** hai (`RESERVED_SLUGS`), isliye `resolveSlugAndPath()`
+     * use chhod kar `uploads-2` pe chala jaata hai.
+     *
+     * Ye un gine-chune raaston me se ek hai jahan suffix ab bhi lag sakta hai — lookup wala fix
+     * lag jaane ke baad ek jaise slug wali soorat mode guard pe hi ruk jaati hai. Guard yahin ke
+     * liye hai: kisi ne `uploads-2` maanga nahi tha, aur wo chup-chaap live nahi hona chahiye.
+     */
+    const { rows } = await runImport({
+      A: doc([p('Package Name'), p('Trip One'), p('Package URL'), p('uploads')].join('')),
+    })
+
+    expect(rows[0].path).toBe('/packages/uploads-2')
+    expect(rows[0].status).toBe('draft')
+    expect(rows[0].issues.some((i) => /already uses the address/i.test(i.message))).toBe(true)
+  })
+})
+
 describe('dobara chalana', () => {
   it('duplicate package nahi banta — wahi update hota hai', async () => {
     const docs = { A: goodDoc('Andaman Escape', 'andaman-escape') }
