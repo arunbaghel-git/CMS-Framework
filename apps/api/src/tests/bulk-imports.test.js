@@ -617,3 +617,64 @@ describe('new / existing mode', () => {
     expect(api.counts.updated).toBe(1)
   })
 })
+
+describe('Past imports — sirf 20 bachte hain (client, 4 Sep)', () => {
+  it('21 va run banne pe sabse purana hat jaata hai', async () => {
+    const docs = { A: goodDoc('Prune Test', 'prune-test') }
+
+    /**
+     * 20 run seedha DB me — inhe chalane ki zaroorat nahi, sirf ginti chahiye. Har run ko
+     * `done` rakhna zaroori hai: `pruneOldRuns()` chalte hue run ko jaan-boojh kar nahi hataata.
+     */
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+    for (let i = 0; i < 20; i += 1) {
+      await ImportRun.create({
+        sheetUrl: `https://docs.google.com/spreadsheets/d/OLD${i}/edit`,
+        sheetId: `OLD${i}`,
+        startedBy: user._id,
+        status: 'done',
+        rows: [],
+        createdAt: new Date(2020, 0, i + 1),
+      })
+    }
+
+    expect(await ImportRun.countDocuments()).toBe(20)
+
+    const oldest = await ImportRun.findOne({ sheetId: 'OLD0' }).lean()
+    await runImport(docs)
+
+    expect(await ImportRun.countDocuments()).toBe(20)
+    /** Sabse purana gaya, naya aaya */
+    expect(await ImportRun.findById(oldest._id).lean()).toBeNull()
+  })
+
+  it('chalta hua run kabhi nahi hataya jaata', async () => {
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+
+    /** Ek atka hua run, sabse purani tareekh pe — safai ise chhod deni chahiye */
+    const running = await ImportRun.create({
+      sheetUrl: 'https://docs.google.com/spreadsheets/d/BUSY/edit',
+      sheetId: 'BUSY',
+      startedBy: user._id,
+      status: 'running',
+      rows: [],
+      createdAt: new Date(2019, 0, 1),
+    })
+
+    for (let i = 0; i < 20; i += 1) {
+      await ImportRun.create({
+        sheetUrl: `https://docs.google.com/spreadsheets/d/D${i}/edit`,
+        sheetId: `D${i}`,
+        startedBy: user._id,
+        status: 'done',
+        rows: [],
+        createdAt: new Date(2020, 0, i + 1),
+      })
+    }
+
+    await runImport({ A: goodDoc('Keep Running', 'keep-running') })
+
+    // Worker ke haath se uska record beech me gayab nahi hona chahiye
+    expect(await ImportRun.findById(running._id).lean()).toBeTruthy()
+  })
+})

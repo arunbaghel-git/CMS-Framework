@@ -69,6 +69,19 @@ const STUCK_AFTER_MS = 5 * 60 * 1000
 /** Ek row kitni baar koshish kare — iske baad wo `failed` hai, warna wo hamesha ghoomti rahegi. */
 const MAX_ATTEMPTS = 2
 
+/**
+ * Past imports me kitne run bache rahenge — client, 4 Sep (_"i need only 20 past import"_).
+ *
+ * ⚠️ **Screen pehle se sirf 20 dikhati thi; wo hissa theek tha.** Asli dikkat neeche thi: purane
+ * run DB me **hamesha** pade rehte the. Har run apni saari rows aur unke issues apne andar rakhta
+ * hai (subdocument), yaani ek 20-package wala run kai sau KB ka ho sakta hai. Saal bhar chalne
+ * ke baad wo collection bina kisi wajah ke bhaari ho jaati — aur uska koi padhne wala hi nahi
+ * hota, kyunki list 20 se aage jaati hi nahi.
+ *
+ * Isliye naya run banate waqt 20 se puraane hata diye jaate hain.
+ */
+const MAX_KEPT_RUNS = 20
+
 /* ── naam se id ka naksha ─────────────────────────────────────────────────── */
 
 /**
@@ -182,7 +195,41 @@ export async function startImport(input, actor, siteId = DEFAULT_SITE_ID, deps =
       : IMPORT_RUN_STATUS.DONE,
   })
 
+  await pruneOldRuns(siteId)
+
   return toApi(run)
+}
+
+/**
+ * 20 se puraane run hata do.
+ *
+ * ⚠️ **Sirf khatam ho chuke run** hatte hain. Ek chalta hua run (`queued`/`running`) is ginti me
+ * to aata hai par hataya kabhi nahi jaayega — use hataane ka matlab hota ki worker ke haath se
+ * uska record beech me hi gayab ho jaaye, aur wo rows wahin ruk jaayein jahan thi.
+ *
+ * Fail-soft: safai na ho paaye to import phir bhi chalna chahiye. Ye kaam sirf jagah bachaata
+ * hai, aur uske liye ek chalta hua import rok dena galat sauda hai.
+ */
+async function pruneOldRuns(siteId) {
+  try {
+    const keep = await ImportRun.find({ siteId })
+      .sort({ createdAt: -1 })
+      .limit(MAX_KEPT_RUNS)
+      .select('_id')
+      .lean()
+
+    if (keep.length < MAX_KEPT_RUNS) return
+
+    const { deletedCount } = await ImportRun.deleteMany({
+      siteId,
+      _id: { $nin: keep.map((run) => run._id) },
+      status: { $in: [IMPORT_RUN_STATUS.DONE, IMPORT_RUN_STATUS.FAILED] },
+    })
+
+    if (deletedCount > 0) logger.info({ deletedCount }, 'Old import runs removed')
+  } catch (err) {
+    logger.warn({ err }, 'Old import runs saaf nahi ho paaye')
+  }
 }
 
 /* ── ek row chalana ───────────────────────────────────────────────────────── */
