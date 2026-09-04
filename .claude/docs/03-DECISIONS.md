@@ -5223,3 +5223,111 @@ chahiye to wo `ROLE_PERMISSIONS` me ek line aur ek nayi migration hai.
 
 v1 me sirf **packages** import hote hain. Client ne "other pages" bhi kaha tha, par unka koi
 template abhi nahi hai — uske bina parser andaaze pe banta.
+
+---
+
+## D-82
+
+**Itinerary Settings, aur structured data ki teen galtiyaan** (client, 4 Sep)
+
+Live check karte hi chaar cheezein nikli. Teen schema ki thi, ek admin ki.
+
+### 1 · `aggregateRating` `TouristTrip` pe valid hi nahi tha
+
+Google ka validator saaf keh raha tha:
+
+> _"The property aggregateRating is not recognised by the schema for an object of type
+> TouristTrip."_
+
+Wo sahi tha. schema.org me `aggregateRating` `Product`, `Offer` aur `Event` jaison pe hai,
+`Trip` pe hai hi nahi.
+
+Isliye ek **`Product` node** juda, aur rating wahan gayi. Do faayde ek saath:
+
+- **Error chala gaya** — jo tha wo galat markup tha
+- **Rich result ab sach me mil sakta hai** — `TouristTrip` khud kisi rich result ko power nahi
+  karta; `Product` karta hai. Search me daam aur ⭐ isi se dikhte hain
+
+⚠️ Toggle ka naam shuru se **"Emit Product + Trip schema"** tha — yaani Product wala aadha hissa
+kabhi bana hi nahi tha. Naam sahi tha, code adhoora.
+
+⚠️ Daam aur rating dono node pe **ek hi source** se aate hain. Alag ho jaate to wo Google ki
+nazar me "misleading structured data" hai, aur wo manual penalty wali shreni hai.
+
+### 2 · Din ka plan schema me jaata hi nahi tha
+
+Pehle sirf `itinerary` jaata tha — yaani **jagah** ka kram (Port Blair → Havelock → Neil). Ab har
+din ek **`subTrip`** hai, title aur poore description ke saath.
+
+Dono chahiye aur dono alag hain: `itinerary` batata hai **kahan**, `subTrip` batata hai **kya
+hota hai**. Din hi page ka sabse bada hissa hai, aur wo search engine tak pahunch hi nahi raha tha.
+
+### 3 · `stripTags` do vaakya chipka deta tha
+
+Block tag ki jagah **kuch nahi** aata tha, to `…settle in.</p><p>In the evening…` jud kar
+`settle in.In the evening` ban jaata. Ye FAQ ke jawab pe bhi lag raha tha — 1 Sep se.
+
+### 4 · Toggle per-package tha, aur isi wajah se kabhi chala hi nahi
+
+`entry.fields.seoSchema` Slice 3 se tha. Live dekhne pe **paanchon package pe wo `false`** mila —
+yaani ek bana-banaya feature teen din bekaar pada raha, sirf isliye ki default off tha aur kisi
+ne 5 checkbox nahi tick kiye.
+
+Aur wo per-package faisla hai bhi **nahi**: site ya to structured data bhejti hai ya nahi. "Is
+package pe bhejo, us pe mat bhejo" ka koi matlab nahi banta.
+
+Ab wo `packageDefaults.seoSchema` hai, **default `true`**, aur uski screen
+**Packages ▸ Itinerary Settings** hai. Migration 022 ne purana field entries se hata diya.
+
+### Itinerary Settings — do cheezein code se nikal kar settings me aayi
+
+| Pehle | Ab |
+| --- | --- |
+| `entry.fields.seoSchema` | `packageDefaults.seoSchema` |
+| API me `limit(12)` | `packageDefaults.similar.total` |
+| `Similar.jsx` me `const PER_PAGE = 3` | `packageDefaults.similar.perPage` |
+
+Client ko Similar cards ke do number chahiye the (_"i put 10 and i want to show 5 then
+pagination"_), aur uske liye do alag file chhoona padta.
+
+⚠️ **Defaults wahi hain jo aaj ka vyavhaar tha** (12 aur 3). Ek naya field aane bhar se kisi
+chalte hue page ka look nahi badalna chahiye.
+
+Screen alag hai, `PackageDefaults.jsx` me chautha mode nahi joda: wo pehle se teen mode sambhalti
+hai aur 700 line ki hai, jabki in do settings ka usse kuch saanjha nahi.
+
+### ⚠️ Migration format karke chalao, chala kar format mat karo
+
+022 chalne ke **baad** prettier ne use format kiya, aur checksum guard ne turant pakad liya —
+theek wahi jo 020 pe hua tha. Wo migration idempotent thi (`$exists` guard + `$unset`), isliye
+record hata kar dobara chalane se data pe kuch nahi hua.
+
+Do baar ho chuka hai, to niyam likh dena chahiye: **`pnpm format` pehle, `pnpm cms migrate` baad
+me.**
+
+### Bulk Upload me New / Existing mode
+
+Import ke saath ab ek **elaan** jaata hai: sheet me naye package hain ya purane. Default `new`.
+Jo row us baat se alag nikle wo **Failed** hoti hai, wajah ke saath.
+
+Ye filter **nahi** hai, aur wajah suraksha ki hai: bina iske ek purana `Package URL` galti se
+nayi sheet me reh jaaye to wo ek **live package ko chup-chaap overwrite** kar deta — technically
+ek sahi update, par client ke iraade ke bilkul ulta. Jaanch `createEntry`/`updateEntry` se
+**pehle** hoti hai, warna nuksaan ho chuka hota hai.
+
+⚠️ UI me ye **radio** hain, checkbox nahi. Client ne "do checkbox" kaha tha par matlab ek chunav
+hai — do checkbox se "dono" aur "koi nahi" wali do aisi haalat ban jaati jinka koi matlab hi
+nahi hota.
+
+Past imports me **New** aur **Existing** ki ginti judi. Wo `row.action` se aati hai, `run.mode`
+se nahi: mode wo hai jo client ne **kaha**, action wo jo sach me **hua**. Alag ho jaayein to wahi
+dikhna chahiye.
+
+### Enquiries ke do chhote fix
+
+- **Package column khaali aa raha tha.** Client ke form me `package` naam ka field hai hi nahi —
+  usme `hotelCategory` hai. Ab pattern usse bhi milta hai, aur column ka heading field ke apne
+  `label` se banta hai, to wo khud **"Hotel category"** kehne lagta hai. Kahin koi hardcoded naam
+  nahi
+- **Enquiry Detail ke khaane ab ek line me ek.** Teen column me aankh naam-mobile-email tak baar
+  baar ghoomti thi; enquiry ek **record** hai jise upar se neeche padha jaata hai
