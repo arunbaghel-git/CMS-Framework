@@ -258,17 +258,74 @@ export function sanitizeInlineHtml(html) {
  * data gayab hota tha; yahan suraksha ka sawaal hai.
  */
 
-/** `content.blocks[].props.html` — Overview ka rich text. */
+/**
+ * `content.blocks[]` ki saari HTML — D-87 §7.
+ *
+ * Pehle yahan sirf `richText` tha (Overview). Ab page ka content **blocks ki list** hai, aur
+ * unme se chaar ke andar admin ki likhi HTML baithti hai:
+ *
+ * | Block | Kahan |
+ * | --- | --- |
+ * | `richText` | `props.html` — "Text" block |
+ * | `twoColumn` | `props.left` · `props.right` — dono khaane |
+ * | `cards` | `props.items[].text` — **inline** profile |
+ * | `faqs` | `props.items[].answer` |
+ *
+ * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
+ * ki content gir jaayega — wo bilkul theek save hoga, **bina safai ke**, aur page pe
+ * `dangerouslySetInnerHTML` se render ho jaayega (R20). Ye us "whitelist wale jaal" ki ulti
+ * shakl hai jo `updatePackageDefaults()` pe chaar baar laga: wahan bhoolne se content **kho**
+ * jaata tha, yahan bhoolne se content **bach** jaata hai — aur wahi zyada khatarnak hai.
+ *
+ * ⚠️ Card ka text **inline** profile se guzarta hai, block se nahi — wahi wajah jo
+ * `whatsIncluded` ki lines pe hai: wo ek chhoti line hai aur uske andar `<p>` layout tod deta
+ * hai.
+ */
 export function sanitizeContent(content) {
   if (!content?.blocks) return content
 
   return {
     ...content,
-    blocks: content.blocks.map((block) =>
-      block?.type === 'richText' && block.props
-        ? { ...block, props: { ...block.props, html: sanitizeBlockHtml(block.props.html) } }
-        : block,
-    ),
+    blocks: content.blocks.map((block) => {
+      if (!block?.props) return block
+      const p = block.props
+
+      switch (block.type) {
+        case 'richText':
+          return { ...block, props: { ...p, html: sanitizeBlockHtml(p.html) } }
+
+        case 'twoColumn':
+          return {
+            ...block,
+            props: { ...p, left: sanitizeBlockHtml(p.left), right: sanitizeBlockHtml(p.right) },
+          }
+
+        case 'cards':
+          return {
+            ...block,
+            props: {
+              ...p,
+              items: (p.items ?? []).map((item) =>
+                item ? { ...item, text: sanitizeInlineHtml(item.text) } : item,
+              ),
+            },
+          }
+
+        case 'faqs':
+          return {
+            ...block,
+            props: {
+              ...p,
+              items: (p.items ?? []).map((faq) =>
+                faq ? { ...faq, answer: sanitizeBlockHtml(faq.answer) } : faq,
+              ),
+            },
+          }
+
+        default:
+          return block
+      }
+    }),
   }
 }
 
@@ -301,59 +358,13 @@ export function sanitizeEntryFields(fields) {
   /** Page/Tour Page ka sub heading — asli editor hai, plain text nahi (D-87 faisla #3). */
   if (out.subheading !== undefined) out.subheading = sanitizeBlockHtml(out.subheading)
 
-  /**
-   * Blocks ke andar ka HTML — D-87.
+  /*
+   * ⚠️ **Blocks yahan **nahi** hain — 7 Sep ko badla (D-87 §7).**
    *
-   * Block ka **layout** HTML `content` me hai (wo `sanitizeContent()` se guzarta hai); yahan
-   * sirf wo prose hai jo block ke **props** me baithta hai: cards ka text aur FAQs block ke
-   * jawab. Do jagah hone ki wajah D-87 me likhi hai — settings attribute me nahi ja sakti
-   * thi kyunki `COMMON_ATTRS` me `data-*` nahi hai.
-   *
-   * ⚠️ Card ka text **inline** profile se guzarta hai, block se nahi — wahi wajah jo
-   * `whatsIncluded` ki lines pe hai: wo `<p>` ke andar chhapta hai aur wahan ek aur block
-   * tag layout tod deta hai.
+   * Kuch ghante ke liye yahan `fields.blocks` ke andar ka prose saaf hota tha. Ab blocks
+   * `content.blocks[]` me hain, aur unki safai `sanitizeContent()` me — wahi jagah jahan
+   * `richText` pehle se saaf hota tha.
    */
-  if (out.blocks && typeof out.blocks === 'object' && !Array.isArray(out.blocks)) {
-    out.blocks = Object.fromEntries(
-      Object.entries(out.blocks).map(([id, block]) => {
-        if (!block || typeof block !== 'object') return [id, block]
-        const props = block.props
-        if (!props || typeof props !== 'object') return [id, block]
-
-        if (block.type === 'cards' && Array.isArray(props.items)) {
-          return [
-            id,
-            {
-              ...block,
-              props: {
-                ...props,
-                items: props.items.map((item) =>
-                  item ? { ...item, text: sanitizeInlineHtml(item.text) } : item,
-                ),
-              },
-            },
-          ]
-        }
-
-        if (block.type === 'faqs' && Array.isArray(props.items)) {
-          return [
-            id,
-            {
-              ...block,
-              props: {
-                ...props,
-                items: props.items.map((faq) =>
-                  faq ? { ...faq, answer: sanitizeBlockHtml(faq.answer) } : faq,
-                ),
-              },
-            },
-          ]
-        }
-
-        return [id, block]
-      }),
-    )
-  }
 
   return out
 }

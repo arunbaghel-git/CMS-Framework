@@ -10,13 +10,12 @@ import {
   TAXONOMY_REF_KEYS,
   TAXONOMY_TYPE,
   TAXONOMY_TYPE_BY_REF_KEY,
-  collectBlockIdsFromHtml,
   extractBlockText,
   faqsSchema,
   itinerarySchema,
   packageAddOnsSchema,
   packageHotelsSchema,
-  pageBlocksSchema,
+  parseBlockProps,
   pricingSchema,
   ratingSchema,
   statRailSchema,
@@ -223,42 +222,13 @@ function normalizeFields(fields, contentType) {
     out.statRail = stats.map((stat) => ({ ...stat, id: stat.id || randomUUID() }))
   }
 
-  /**
-   * Blocks ki settings (D-87).
+  /*
+   * ⚠️ **`blocks` yahan **nahi** hai — 7 Sep ko badla (D-87 §7).**
    *
-   * ⚠️ Yahan `id` **generate nahi hoti** — aur ye baaki repeaters se ulta hai. Block ki id
-   * admin banata hai kyunki wo **HTML me pehle likhi jaati hai** (`<div id="blk-a1b2">`);
-   * server pe nayi id banane ka matlab hota ki wo HTML wale id se match hi na kare, aur
-   * settings chup-chaap kisi block pe lagti hi nahi.
+   * Kuch ghante ke liye yahan `fields.blocks` ka normalization tha. Client ne demo dekh kar
+   * model palta: blocks ab `content.blocks[]` me hain, aur unka normalization
+   * `normalizeContent()` me hai — `normalizeFields()` me nahi.
    */
-  if (has('blocks')) {
-    const blocks = pageBlocksSchema.parse(fields.blocks)
-    out.blocks = Object.fromEntries(
-      Object.entries(blocks).map(([id, block]) => [
-        id,
-        block.type === 'faqs'
-          ? {
-              ...block,
-              props: {
-                ...block.props,
-                items: block.props.items.map((faq) => ({ ...faq, id: faq.id || randomUUID() })),
-              },
-            }
-          : block.type === 'cards'
-            ? {
-                ...block,
-                props: {
-                  ...block.props,
-                  items: block.props.items.map((item) => ({
-                    ...item,
-                    id: item.id || randomUUID(),
-                  })),
-                },
-              }
-            : block,
-      ]),
-    )
-  }
 
   /**
    * ⚠️ **HTML ki safai sabse aakhir me — aur ye kram jaan-boojh kar hai** (D-80).
@@ -275,38 +245,46 @@ function normalizeFields(fields, contentType) {
 }
 
 /**
- * Un blocks ki settings hata deta hai jinka `<div>` content se ja chuka hai — D-87.
+ * `content.blocks[]` ka normalization — D-87 §7.
  *
- * Client editor me ek block ka wrapper delete kar de to `fields.blocks` me uski entry
- * **bachi reh jaati hai**. Wo apne aap kuch galat nahi karti — theme HTML padhti hai aur
- * sirf wahi blocks banati hai jo wahan hain — par bina safai ke wo hamesha ke liye padi
- * rehti, aur do saal baad koi `fields` khol kar sochta ki page pe teen aur block hain.
+ * Page ka content ab blocks ki **ek list** hai: `richText` (Text), `twoColumn`, `cards`,
+ * `packageList`, `faqs`. Kram wahi hai jo array ka hai — admin drag se badalta hai.
  *
- * ⚠️ **Sach ka source HTML hai, ye naksha nahi.** Isiliye safai ek taraf chalti hai: HTML me
- * jo id nahi, uski settings jaati hain. Ulta kabhi nahi — HTML me ek `id` bina settings ke
- * ho sakti hai (naya block, abhi kuch chuna nahi), aur wo bilkul theek haalat hai.
+ * Yahan teen kaam hote hain, aur teenon wahi hain jo `normalizeFields()` package ke fields pe
+ * karta hai:
  *
- * ⚠️ Ye tabhi chalta hai jab **dono** aaye — `fields` aur `content`. Sirf `content` ka PATCH
- * (block delete kar ke save) orphan chhod jaayega; wo jaan-boojh kar hai, kyunki uske liye
- * `fields` ko bina maange likhna padta. Admin ka form dono saath bhejta hai, aur orphan
- * nuksaandeh hai bhi nahi.
+ * 1. **Props apne type ke schema se validate** — `parseBlockProps()`. Anjaan type ke props
+ *    chhoot jaate hain, girte nahi (spec 002 ka Phase 5 escape hatch).
+ * 2. **Har block ko stable `id`** — bina uske React ki key index ban jaati hai aur reorder pe
+ *    khula hua panel galat block pe chipak jaata (D-43 §5).
+ * 3. **Andar ke repeaters ko bhi id** — cards ke card, FAQs ka sawaal.
  *
- * @param {any} fields normalize ho chuki fields
- * @param {any} content sanitize ho chuka content
+ * ⚠️ HTML ki safai yahan **nahi** hai — wo `sanitizeContent()` me hai, aur wo is function ke
+ * **baad** chalti hai. Wahi kram jo `normalizeFields()` pe hai aur usi wajah se: pehle safai
+ * likhne se koi bhi naya parse step use chup-chaap overwrite kar deta.
+ *
+ * @param {any} content
  */
-function pruneOrphanBlocks(fields, content) {
-  const blocks = fields?.blocks
-  if (!blocks || typeof blocks !== 'object' || Array.isArray(blocks)) return fields
+function normalizeContent(content) {
+  if (!content?.blocks?.length) return content
 
-  const html = (content?.blocks ?? [])
-    .map((block) => (block?.type === 'richText' ? (block.props?.html ?? '') : ''))
-    .join('\n')
+  return {
+    ...content,
+    blocks: content.blocks.map((block) => {
+      if (!block?.type) return block
 
-  const live = collectBlockIdsFromHtml(html)
-  const kept = Object.entries(blocks).filter(([id]) => live.has(id))
+      const props = parseBlockProps(block.type, block.props)
+      const withIds =
+        block.type === 'cards' || block.type === 'faqs'
+          ? {
+              ...props,
+              items: (props.items ?? []).map((item) => ({ ...item, id: item.id || randomUUID() })),
+            }
+          : props
 
-  if (kept.length === Object.keys(blocks).length) return fields
-  return { ...fields, blocks: Object.fromEntries(kept) }
+      return { ...block, id: block.id || randomUUID(), props: withIds }
+    }),
+  }
 }
 
 // ── taxonomy refs ────────────────────────────────────────────────────────────
@@ -885,7 +863,14 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
   const requested = input.status ?? ENTRY_STATUS.DRAFT
   const status = requested === ENTRY_STATUS.PENDING ? ENTRY_STATUS.PENDING : ENTRY_STATUS.DRAFT
 
-  const content = sanitizeContent(input.content)
+  /**
+   * ⚠️ **Kram: pehle normalize, phir safai** (D-87 §7).
+   *
+   * Ulta karne ka matlab hota ki `parseBlockProps()` saaf ki hui HTML ko phir se input wali
+   * gandi value se badal de — theek wahi jaal jo `normalizeFields()` ke aakhir me likha hai
+   * (D-80).
+   */
+  const content = sanitizeContent(normalizeContent(input.content))
 
   const doc = await Entry.create({
     ...input,
@@ -895,13 +880,7 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
     status,
     /** Overview ka rich text — HTML hai, isliye write pe saaf (D-80). */
     content,
-    /**
-     * ⚠️ Orphan safai **saaf ki hui** `content` par chalti hai, `input.content` par nahi.
-     * Sanitizer HTML badal sakta hai (tag gir sakta hai, aur uske saath uski `id` bhi), aur
-     * jo DB me jaa raha hai wo yahi hai — orphan ka faisla usi sach par hona chahiye jo
-     * store ho raha hai, us par nahi jo bheja gaya tha.
-     */
-    fields: pruneOrphanBlocks(normalizeFields(input.fields, contentType), content) ?? {},
+    fields: normalizeFields(input.fields, contentType) ?? {},
     publishAt: null,
     authorId: actor?.user?._id ? String(actor.user._id) : null,
     version: 0,
@@ -959,20 +938,11 @@ export async function updateEntry(
   }
 
   /** Upar wale loop ne `content` set kiya hai — usme HTML hai, isliye yahan saaf (D-80). */
-  if (input.content !== undefined) $set.content = sanitizeContent(input.content)
-
-  if (input.fields !== undefined) {
-    /**
-     * Orphan safai ke liye **wo** content chahiye jo save ke baad DB me hogi — is PATCH me
-     * aayi hui, ya jo pehle se padi hai. `current` lena zaroori hai: sirf `fields` ka PATCH
-     * (jaise sidebar se Featured toggle) warna har block ki settings orphan samajh kar uda
-     * deta, kyunki us request me `content` hai hi nahi.
-     */
-    $set.fields = pruneOrphanBlocks(
-      normalizeFields(input.fields, contentType),
-      $set.content ?? current.content,
-    )
+  if (input.content !== undefined) {
+    $set.content = sanitizeContent(normalizeContent(input.content))
   }
+
+  if (input.fields !== undefined) $set.fields = normalizeFields(input.fields, contentType)
 
   /**
    * `type` badalna allowed nahi.

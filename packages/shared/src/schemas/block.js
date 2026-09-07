@@ -75,7 +75,20 @@ export const blockTypeSchema = z
  */
 export const blockSchema = z.lazy(() =>
   z.object({
-    id: z.string().min(1),
+    /**
+     * ⚠️ **`optional` 7 Sep ko hua (D-87 §7), aur ye shape ka badlaav nahi hai.**
+     *
+     * Paanch keys wahi hain — FROZEN wala vaada `{id, type, props, style, children}` par hai,
+     * uske required hone par nahi. Aaj tak blocks **sirf server pe** bante the
+     * (`contentFromRichText()` ek hi block deta hai, id `rt1`), isliye required rakhna sasta
+     * tha. Ab client dropdown se blocks jodta hai, aur uske paas nayi id banane ki koi wajah
+     * nahi honi chahiye.
+     *
+     * **Stored data me `id` phir bhi hamesha hoti hai** — `normalizeContent()` use write pe
+     * bhar deta hai. Wahi jodi jo `faqSchema` aur `itinerarySchema` pe pehle se hai: input me
+     * optional, DB me hamesha maujood.
+     */
+    id: z.string().min(1).optional(),
     type: blockTypeSchema,
     props: z.record(z.unknown()).default({}),
     style: responsiveStyleSchema.optional(),

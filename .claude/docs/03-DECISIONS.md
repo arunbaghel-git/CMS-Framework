@@ -5808,6 +5808,10 @@ Do types ka ek URL space share karna safe hai: `{siteId, locale, path}` day 1 se
 
 ### §2 — Block ki settings HTML me nahi baith sakti thi
 
+> ⚠️ **Superseded by §7** (usi din, shaam). Client ne demo dekh kar model palta — blocks ab
+> `content.blocks[]` me hain, apne panel ke saath. Neeche wala hissa us waqt ka sach hai; wo
+> kyun likha gaya wo padhna abhi bhi kaam ka hai, par **code ab aisa nahi hai**.
+
 `Package list` block ke apne settings hain (Package Type, Destination, sort, per-duration
 count). Teen raaste the:
 
@@ -5964,6 +5968,110 @@ gira degi (wahi lakshan, alag jagah).
 per-package rating aane ke baad bhi live site pe koi regression nahi.
 
 **804 test pass** (789 baseline + 15).
+
+### §7 — Content ek block list hai (7 Sep shaam — **§2 ka palat**)
+
+> ⚠️ **§2 ab purana hai — Superseded by §7.** Wahan likha tha ki layout ek hi HTML field me
+> rahega aur blocks uske andar `<div id="blk-a1b2">` ki tarah baithenge, settings alag
+> `fields.blocks{}` me. **Wo model client ne demo me dekh kar mana kar diya.**
+
+Client ke shabd:
+
+> _"Two column / Cards wala poora panel hoga, ye nahi ki content editor ke andar hi bana
+> diya. Add kar sake ki 2 column chahiye — dropdown se."_
+
+**Ab `content.blocks[]` hi kram hai.** Har block apna panel hai, `Add block` dropdown se judta
+hai, grip se reorder hota hai. **Normal likhai bhi ek block hai** (`richText`, UI me "Text") —
+ek page pe kai ho sakte hain.
+
+#### Ye sirf UI ki pasand nahi thi
+
+Reference page (`tour-v3.html`) me blocks content ke **beech** me aate hain:
+
+```
+h2 → PACKAGE LIST → h2 → CARDS → h2 → TWO COLUMN → h2 → FAQs
+```
+
+"Ek content editor + neeche alag panels" us page ko bana hi nahi sakta tha. Isliye content
+**khud** blocks ki list hai, aur `richText` unme se ek type.
+
+#### Jo is palat se apne aap khatam ho gaya
+
+| §2 ki keemat | §7 me |
+| --- | --- |
+| settings do jagah — HTML me `id`, `fields.blocks{}` me props | **ek hi jagah** — block ke apne `props` |
+| orphan blocks, aur `pruneOrphanBlocks()` | ban hi nahi sakte |
+| `collectBlockIdsFromHtml()` ka regex | zaroorat nahi |
+| sanitizer me `data-*` ka poora sawaal | uthta hi nahi |
+| TinyMCE me `contenteditable=false` wrapper sambhalna | har Text block ka apna saada editor |
+
+Aur sabse badi baat: ye **`block.js` ka wahi FROZEN `{id, type, props}`** hai jo spec 002 me
+Phase 1 se maujood hai. Yaani hum framework ke apne block model par hain, uske aas-paas ki
+jugaad par nahi — aur Phase 5 ka builder yahi data utha lega. `hasBuilder` ab `page` aur
+`tourPage` dono pe `true` hai, aur wo flag ab **sach me** batata hai ki editor kaisa khulega.
+
+#### `blockSchema.id` ab optional hai — aur wo shape ka badlaav nahi hai
+
+FROZEN wala vaada `{id, type, props, style, children}` **paanch keys** par hai, unke required
+hone par nahi. Aaj tak blocks **sirf server pe** bante the (`contentFromRichText()` ek hi block
+deta hai, id `rt1`), isliye required rakhna sasta tha. Ab client dropdown se blocks jodta hai.
+
+Stored data me `id` phir bhi **hamesha** hoti hai — `normalizeContent()` use write pe bhar deta
+hai. Wahi jodi jo `faqSchema` aur `itinerarySchema` pe pehle se hai: input me optional, DB me
+hamesha maujood.
+
+#### Kram: normalize **pehle**, safai **baad me**
+
+`sanitizeContent(normalizeContent(input.content))`. Ulta karne ka matlab hota ki
+`parseBlockProps()` saaf ki hui HTML ko phir se input wali gandi value se badal de — theek
+wahi jaal jo `normalizeFields()` ke aakhir me likha hai (D-80).
+
+⚠️ **`sanitizeContent()` ab chaar block ki HTML saaf karti hai** — `richText.html`,
+`twoColumn.left`/`.right`, `cards.items[].text` (inline profile), `faqs.items[].answer`. **Naya
+block type jodte waqt use bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi ki content gir
+jaayega — wo bilkul theek save hoga, **bina safai ke** (R20). Ye whitelist wale jaal ki **ulti
+shakl** hai: wahan bhoolne se content kho jaata tha, yahan bhoolne se bach jaata hai.
+
+⚠️ **Anjaan type ke props chhoot jaate hain, girte nahi.** `blockSchema.props`
+`z.record(z.unknown())` hai — spec 002 ka Phase 5 escape hatch, jaan-boojh kar khula. Ek naya
+block type jodne wale ko yaad rehna chahiye: `PAGE_BLOCK_PROP_SCHEMAS` me naam **na** hone ka
+matlab hai "koi validation nahi", "block nahi ban sakta" nahi. Iska apna test hai.
+
+#### Demo aur schema, dono design ke hisaab se theek kiye gaye
+
+Slice A ka schema **plan se** banaya gaya tha, `admin-design-v3.html` se nahi. Milaan pe paanch
+farak nikle, aur design jeeta (R15):
+
+| Demo me | Slice A me tha | Ab |
+| --- | --- | --- |
+| Package list pe `Heading` + `Line under heading` | nahi tha | `heading`, `subheading` |
+| `Featured pehle` **alag checkbox**, Sort me teen option | `sort` enum me `featured` ghusa hua, paanch option | `featuredFirst` boolean + teen ka enum |
+| `Rating aur discount badge dikhayein` | nahi tha | `showBadges` |
+| Cards pe `Tag (optional)` | maine `icon` enum banaya tha | `tag` |
+| FAQs block pe `Heading` | nahi tha | `heading` |
+
+`featuredFirst` sort ke **upar** lagta hai, uski jagah nahi — wo ek tie-break hai jo kisi bhi
+sort ke saath chal sakta hai. Iska apna test hai.
+
+**Duration ki ginti padhne ke liye hai, likhne ke liye nahi** — demo me wo ek editable input
+tha, jise theek kiya gaya. Client ab sirf chunta hai ki **kaunsi durations dikhein**
+(`props.durations`, khaali = sab); ginti server pe hoti hai. Store karne ka matlab hota ki naya
+package publish karte hi har tour page ka number chup-chaap jhootha ho jaaye (D-58 ka hi niyam).
+
+⚠️ Durations ka filter facets se **pehle** lagta hai — ulta karne pe bar me ek pill dikhti
+jiska koi card list me hai hi nahi, aur usse click karne pe page khaali ho jaata.
+
+#### Ek aur cheez jo is jaanch me pakdi gayi — test suite rate limit kha rahi thi
+
+`entries.test.js` ka har test `beforeEach` me chaar login karta hai, aur file ab 168 test ki
+hai — yaani ek minute me global limiter ki 1000-request wali chhat paar. Naye tests **429**
+khaane lage, aur wo failure bilkul logic bug jaisi dikhti hai:
+`Cannot read properties of undefined (reading 'entry')`.
+
+Ab limiter test me band hai (`isTest`, `core/env.js`). ⚠️ **Auth ka apna limiter alag hai aur
+chalta rehta hai** — brute force ka bachav test me bhi test hona chahiye.
+
+**810 test pass** (804 baseline se, purane §2 wale tests hata kar naye jode gaye).
 
 ### Ab bhi khula
 

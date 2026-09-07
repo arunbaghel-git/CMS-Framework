@@ -389,21 +389,42 @@ edit screen** aur layout **content editor ke blocks** se (`Two column` · `Cards
 
 - **`tourPage` naya content type**, par field set `page` ke saath **ek hi constant** hai.
   Alag type sirf isliye ki menu, list aur URL teenon alag maange gaye the
-- **Block ki settings HTML me nahi ja saktin** — `sanitize-html.js` ka `COMMON_ATTRS`
-  `data-*` allow nahi karta. Isliye block ko `id` milti hai aur settings
-  `fields.blocks['blk-a1b2']` me jaati hain. **Sanitizer ko haath nahi lagaya gaya**
+- **Content ab blocks ki ek list hai** (`content.blocks[]`, **§7**) — har block apna
+  **panel**, `Add block` dropdown se, grip se reorder. **Text bhi ek block hai** (`richText`),
+  isliye layout blocks content ke **beech** me aa sakte hain — jaise reference page pe hain
 - **Rating ab per-package (D-70 palta)** — listing page pe chaudah cards pe ek hi
   `4.9 ★ 412 trips` jhootha dikhta hai. ⚠️ Khaali `value` par `packageDefaults.rating`
   chalti hai; package ka number use **override** karta hai, mitata nahi
 - **Trust badges + universal banner → `Settings ▸ Tour settings`** (client, #11)
 
+⚠️ **§2 ka poora model usi din palat gaya (§7).** Kuch ghante ke liye blocks ek hi HTML field
+ke andar `<div id="blk-…">` the aur settings `fields.blocks{}` me. Client ne demo dekh kar mana
+kiya. Us palat se **teen problem apne aap khatam ho gayi**: settings ka do jagah hona, orphan
+blocks, aur sanitizer me `data-*` kholne ka sawaal. Ab hum `block.js` ke FROZEN
+`{id, type, props}` par hain — yaani Phase 5 ka builder yahi data uthayega.
+
+⚠️ **`blockSchema.id` ab input me optional hai** — shape nahi badla (paanch keys wahi), sirf
+required-ness. `normalizeContent()` write pe id bhar deta hai; wahi jodi jo `faqs[]` aur
+`itinerary[]` pe pehle se hai.
+
+⚠️ **Slice A ka schema plan se bana tha, design se nahi** — `admin-design-v3.html` se milaan pe
+paanch farak nikle (Package list ka heading, `featuredFirst` alag checkbox, `showBadges`, cards
+ka `tag` bajaye `icon`, FAQs ka heading). Design jeeta (R15), sab theek kar diye gaye.
+
 ⚠️ **`details`/`summary` sanitizer me the hi nahi** — D-87 ki jaanch me nikla, is kaam ka
 hissa nahi tha. FAQ accordion theme ke JSX me hai isliye aaj tak chala; client editor me khud
 `<details>` likhta to wo **write pe chup-chaap gayab** hota. Wahi shakl jo D-64/D-65 ke bug ki.
 
-⚠️ **`sanitizeEntryFields()` ki list ab ulta jaal hai** — usme naya HTML field jodna bhoolna
-`updatePackageDefaults()` wale whitelist jaal ki **ulti shakl** hai: wahan bhoolne se content
-**kho** jaata tha, yahan bhoolne se content bina safai ke **bach** jaata hai (R20).
+⚠️ **`sanitizeContent()` ab chaar block ki HTML saaf karti hai** — `richText.html`,
+`twoColumn.left`/`.right`, `cards.items[].text`, `faqs.items[].answer`. **Naya block type jodo
+to wahan bhi jodo.** Chhoot jaane ka matlab ye nahi ki content gir jaayega — wo bina safai ke
+**bach** jaayega (R20). Ye `updatePackageDefaults()` wale whitelist jaal ki **ulti shakl** hai:
+wahan bhoolne se content kho jaata tha, yahan bach jaata hai — aur wahi zyada khatarnak hai.
+
+⚠️ **Test suite rate limit kha rahi thi** — `entries.test.js` ka har test `beforeEach` me chaar
+login karta hai, aur file ab 168 test ki hai, yaani 1000 req/min wali chhat paar. Naye tests
+**429** khaate the aur wo failure bilkul logic bug jaisi dikhti thi. Ab global limiter test me
+band hai (`isTest`, `core/env.js`); **auth ka apna limiter chalta rehta hai**.
 
 ⚠️ **Koi migration nahi lagi** — `tourPage` naya type hai aur `ensureBuiltInContentTypes()`
 naye type ko create kar deta hai; `fields` hamesha sync hote hain. Deploy pe **`pnpm seed`**

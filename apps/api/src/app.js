@@ -9,7 +9,7 @@ import rateLimit from 'express-rate-limit'
 import pinoHttp from 'pino-http'
 import mongoose from 'mongoose'
 
-import { env, isProd } from './core/env.js'
+import { env, isProd, isTest } from './core/env.js'
 import { logger } from './core/logger.js'
 import { errorHandler, forbidden, notFoundHandler } from './core/errors.js'
 import { checkPending } from './core/migrations/runner.js'
@@ -175,6 +175,13 @@ export function createApp() {
     rateLimit({
       windowMs: 60_000,
       limit: isProd ? 120 : 1000,
+      /**
+       * Test me limiter band — poora tark `core/env.js` me `isTest` ke upar hai.
+       *
+       * ⚠️ Chhota sa lagta hai, par iske bina naye tests **429** khaate hain aur wo failure
+       * bilkul logic bug jaisi dikhti hai.
+       */
+      skip: () => isTest,
       standardHeaders: 'draft-7',
       legacyHeaders: false,
       message: {

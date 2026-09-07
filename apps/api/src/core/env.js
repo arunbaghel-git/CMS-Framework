@@ -190,3 +190,17 @@ export function loadEnv(source = process.env) {
 export const env = loadEnv()
 export const isProd = env.NODE_ENV === 'production'
 export const isDev = env.NODE_ENV === 'development'
+
+/**
+ * Test run — global rate limiter yahan band rehta hai (D-87 §7 ki jaanch me pakda gaya).
+ *
+ * ⚠️ **Wajah sirf suvidha nahi hai.** `entries.test.js` ka har test `beforeEach` me chaar
+ * login karta hai, aur file ab 175 test ki hai — yaani ek minute me 1000 se zyada request.
+ * Limit lagne pe naye tests **429** khaate hain, aur wo failure bilkul logic bug jaisi dikhti
+ * hai: `Cannot read properties of undefined (reading 'entry')`. Ek poora ghanta usi peechhe
+ * ja sakta tha.
+ *
+ * Auth ka apna limiter (`auth/routes.js`) is se **alag** hai aur chalta rehta hai — brute
+ * force ka bachav test me bhi test hona chahiye.
+ */
+export const isTest = env.NODE_ENV === 'test'

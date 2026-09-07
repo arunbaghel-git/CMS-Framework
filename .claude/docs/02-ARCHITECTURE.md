@@ -147,6 +147,19 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                  contentTypes.fields[] se declared
                  authorId, templateId, version, deletedAt,
                  content { version, blocks: [...] },     page builder tree
+                         package/post: ek hi richText block (D-46 §3)
+                         page/tourPage: BLOCKS KI LIST, aur KRAM YAHI HAI (D-87 §7)
+                         types: richText(Text) twoColumn cards packageList faqs
+                         har block apna panel, dropdown se judta hai, grip se
+                         reorder. blockSchema ka {id,type,props} FROZEN shape hi
+                         hai — Phase 5 ka builder yahi data uthayega
+                         blocks[].id ab INPUT me optional (normalizeContent bharta
+                         hai) — shape nahi badla, sirf required-ness. Wahi jodi jo
+                         faqs[] aur itinerary[] pe hai
+                         props ki validation PAGE_BLOCK_PROP_SCHEMAS se; anjaan
+                         type ke props CHHOOT jaate hain, girte nahi (Phase 5 hatch)
+                         chaaron ki HTML sanitizeContent() me saaf hoti hai —
+                         naya block type jodo to wahan bhi jodo (R20)
                  fields  { ...customFields },            contentType ke fields
                          package ka itinerary[] yahin hai — poora contract
                          packages/shared/schemas/itinerary.js me (D-51).
@@ -165,15 +178,14 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          nahi. Fallback PAYLOAD banate waqt lagta hai, write pe
                          nahi — store wahi jo client ne likha (D-65 wala tark)
                          page + tourPage ke apne: eyebrow, subheading (HTML),
-                         statRail[], blocks{} — contract
+                         statRail[] — contract
                          packages/shared/schemas/page.js me (D-87)
-                         blocks{} me BLOCKS KI LIST NAHI hai — wo id se settings
-                         ka naksha hai. Kram aur layout content ki HTML me hain;
-                         SACH KA SOURCE HTML HAI, ye naksha nahi. Settings HTML
-                         me isliye nahi ja sakti thi ki sanitizer ka COMMON_ATTRS
-                         data-* allow nahi karta (D-87 §2)
-                         orphan (jiska div HTML se ja chuka) pruneOrphanBlocks()
-                         hata deta hai — SIRF tab jab fields aur content dono aayen
+                         ⚠️ blocks yahan NAHI hain — 7 Sep ko wo content.blocks[]
+                         me chale gaye (D-87 §7, §2 ka palat). Kuch ghante ke liye
+                         yahan `blocks{}` tha: id se settings ka naksha, kram HTML
+                         me. Client ne wo mana kiya — har block ab apna PANEL hai,
+                         dropdown se judta hai. Us palat se orphan blocks aur
+                         sanitizer ka data-* wala sawaal dono khatam ho gaye
                  seo     { ... },
                  taxonomies { categories[], tags[],
                               destinations[], packageTypes[] },

@@ -233,20 +233,17 @@ const PAGE_FIELDS = [
     label: 'Stat rail',
     help: 'Hero ke neeche ke chaar number',
   },
-  {
-    /**
-     * Content editor ke blocks ki settings — D-87 ka sabse bada faisla.
-     *
-     * ⚠️ **Ye blocks ki list nahi hai.** Blocks ka kram aur unka layout `content` ki HTML me
-     * hai; ye sirf id se settings ka naksha hai (`fields.blocks['blk-a1b2']`). Settings
-     * HTML me is liye nahi ja sakti thi ki sanitizer ka `COMMON_ATTRS` `data-*` allow nahi
-     * karta — poora tark `schemas/page.js` me hai.
-     */
-    key: 'blocks',
-    type: 'group',
-    label: 'Block settings',
-    help: 'Content ke blocks ki apni settings',
-  },
+  /*
+   * ⚠️ **`blocks` yahan **nahi** hai — aur wo 7 Sep ko badla (D-87 §7).**
+   *
+   * Kuch ghante ke liye yahan ek `blocks` group tha: layout `content` ki HTML me rehta aur
+   * uske andar ke blocks ki settings `fields.blocks['blk-a1b2']` me. Client ne demo dekh kar
+   * wo mana kiya — har block ab **apna panel** hai, dropdown se judta hai.
+   *
+   * Ab kram aur settings dono `content.blocks[]` me hain, yaani spec 002 ke FROZEN
+   * `{id, type, props}` envelope me. Ise `fields` me rakhne ka koi kaaran nahi bacha, aur
+   * rakhne ka matlab hota ek hi cheez do jagah.
+   */
 ]
 
 /** @type {ReadonlyArray<import('./types.js').ContentTypeSeed>} */
@@ -336,14 +333,16 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     icon: 'page',
 
     /**
-     * ⚠️ `false` — aur ye `page` (`true`) se alag hai.
+     * ⚠️ `true` — aur ye **7 Sep ki shaam ko badla** (D-87 §7).
      *
-     * `hasBuilder` Phase 5 ke **block tree** builder ka flag hai (`content.blocks[]`). D-87
-     * ka model wo nahi hai: layout HTML me hai aur blocks uske andar `id` se settings
-     * uthate hain. Ise `true` karne ka matlab hota admin me wo builder khol dena jo abhi
-     * bana hi nahi (`packages/blocks` khaali hai).
+     * Kuch ghante ke liye ye `false` tha, kyunki us waqt ka model layout ko ek hi HTML field
+     * me rakhta tha. Client ne wo mana kiya: ab content **blocks ki list** hai
+     * (`content.blocks[]`), yaani theek wahi cheez jiske liye ye flag hai.
+     *
+     * `package` aur `post` abhi bhi `false` hain — unka content ek hi `richText` block hai
+     * (D-46 §3). Yaani ye flag ab sach me batata hai ki editor kaisa khulega.
      */
-    hasBuilder: false,
+    hasBuilder: true,
 
     hierarchical: false,
     urlPattern: '/{slug}',

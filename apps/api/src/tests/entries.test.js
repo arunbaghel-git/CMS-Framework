@@ -2209,7 +2209,12 @@ describe('GET /api/public/resolve', () => {
   })
 })
 
-// ── Tour Page aur block settings (D-87, 7 Sep) ───────────────────────────────
+// ── Tour Page aur content blocks (D-87, 7 Sep) ───────────────────────────────
+
+/** Ek content tree — blocks jaise ke waise, kram wahi jo diya gaya (D-87 §7). */
+const contentOf = (...blocks) => ({ version: 1, blocks })
+
+const textBlock = (id, html) => ({ id, type: 'richText', props: { html }, children: [] })
 
 describe('Tour Page ka type (D-87)', () => {
   const createTour = (jar, body) =>
@@ -2238,155 +2243,150 @@ describe('Tour Page ka type (D-87)', () => {
     const page = await ContentType.findOne({ key: 'page' }).lean()
     const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
 
-    expect(page.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail', 'blocks'])
+    // `blocks` yahan NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7)
+    expect(page.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail'])
     expect(tour.fields).toEqual(page.fields)
+  })
+
+  it('dono pe hasBuilder true hai, package/post pe nahi', async () => {
+    // Flag ab sach me batata hai ki editor kaisa khulega: block list, ya ek hi richText
+    const byKey = Object.fromEntries(
+      (await ContentType.find({}).lean()).map((t) => [t.key, t.hasBuilder]),
+    )
+
+    expect(byKey).toEqual({ package: false, page: true, post: false, tourPage: true })
   })
 })
 
-describe('block settings — fields.blocks (D-87)', () => {
+describe('content blocks (D-87 §7)', () => {
   const createTour = (jar, body) =>
     authed('post', '/api/entries', jar).send({ type: 'tourPage', ...body })
 
-  /** Ek content tree jisme diye hue block ids ke wrapper hain. */
-  const contentWith = (...ids) => ({
-    version: 1,
-    blocks: [
-      {
-        id: 'rt1',
-        type: 'richText',
-        props: {
-          html: ids.map((id) => `<div class="cms-package-list" id="${id}"></div>`).join(''),
-        },
-        children: [],
-      },
-    ],
-  })
-
-  it('settings id se judti hain, aur defaults bhar kar aati hain', async () => {
+  it('kram wahi rehta hai jo bheja gaya — content.blocks[] hi kram hai', async () => {
     const res = await createTour(adminJar, {
-      title: 'Tour A',
-      content: contentWith('blk-a1b2'),
-      fields: {
-        blocks: { 'blk-a1b2': { type: 'packageList', props: { sort: 'price-asc' } } },
-      },
+      title: 'Kram Test',
+      content: contentOf(
+        textBlock('t1', '<p>Pehla</p>'),
+        { id: 'p1', type: 'packageList', props: {} },
+        textBlock('t2', '<p>Doosra</p>'),
+      ),
     })
 
-    expect(res.status).toBe(201)
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+
+    expect(doc.content.blocks.map((b) => b.type)).toEqual(['richText', 'packageList', 'richText'])
+  })
+
+  it('props apne type ke schema se validate hote hain, aur defaults bharte hain', async () => {
+    const res = await createTour(adminJar, {
+      title: 'Props Test',
+      content: contentOf({ id: 'p1', type: 'packageList', props: { sort: 'price-asc' } }),
+    })
+
     const doc = await Entry.findById(res.body.data.entry.id).lean()
 
     // `.parse()` defaults bhar deta hai, isliye theme ko `?? 14` har jagah nahi likhna padta
-    expect(doc.fields.blocks['blk-a1b2'].props).toMatchObject({
+    expect(doc.content.blocks[0].props).toMatchObject({
       sort: 'price-asc',
       limit: 14,
       showFilters: true,
-      showCounts: true,
+      showBadges: true,
+      featuredFirst: true,
+      durations: [],
       packageTypeId: null,
     })
   })
 
-  it('galat block id 400 pe girti hai — id HTML me jaati hai, isliye shape sakht hai', async () => {
+  it('galat props 400 pe girte hain — chup-chaap store nahi hote', async () => {
     const res = await createTour(adminJar, {
-      title: 'Tour B',
-      content: contentWith('blk-a1b2'),
-      fields: { blocks: { 'evil id': { type: 'packageList', props: {} } } },
+      title: 'Galat Props',
+      content: contentOf({ id: 'p1', type: 'packageList', props: { sort: 'kuch-bhi' } }),
     })
 
     expect(res.status).toBe(400)
   })
 
-  it('anjaan block type 400 deta hai — chup-chaap store nahi hota', async () => {
+  it('anjaan block type ke props chhoot jaate hain, girte nahi', async () => {
+    // `blockSchema.props` `z.record(z.unknown())` hai — Phase 5 ka escape hatch, aur wo
+    // jaan-boojh kar khula hai. Bina is test ke koi use "validation" samajh kar band kar deta
     const res = await createTour(adminJar, {
-      title: 'Tour C',
-      content: contentWith('blk-a1b2'),
-      fields: { blocks: { 'blk-a1b2': { type: 'nope', props: {} } } },
-    })
-
-    expect(res.status).toBe(400)
-  })
-
-  it('orphan settings gir jaati hain — jiska div content me nahi, uski settings bhi nahi', async () => {
-    // Client editor me block ka wrapper delete kar de to `fields` me entry bachi reh jaati
-    // hai. Wo apne aap galat kuch nahi karti (theme HTML padhti hai), par bina safai ke
-    // hamesha padi rehti
-    const res = await createTour(adminJar, {
-      title: 'Tour D',
-      content: contentWith('blk-a1b2'),
-      fields: {
-        blocks: {
-          'blk-a1b2': { type: 'packageList', props: {} },
-          'blk-dead1': { type: 'cards', props: {} },
-        },
-      },
+      title: 'Anjaan Block',
+      content: contentOf({ id: 'x1', type: 'someFutureBlock', props: { kuch: 'bhi' } }),
     })
 
     expect(res.status).toBe(201)
     const doc = await Entry.findById(res.body.data.entry.id).lean()
-
-    expect(Object.keys(doc.fields.blocks)).toEqual(['blk-a1b2'])
+    expect(doc.content.blocks[0].props).toEqual({ kuch: 'bhi' })
   })
 
-  it('sirf fields ka PATCH orphan safai me settings nahi uda deta', async () => {
-    // Ye wo bug hai jo aasani se ban jaata: `content` us request me hai hi nahi, aur agar
-    // safai khaali content pe chale to har block ki settings orphan samajh li jaayein
-    const created = await createTour(adminJar, {
-      title: 'Tour E',
-      content: contentWith('blk-a1b2'),
-      fields: { blocks: { 'blk-a1b2': { type: 'packageList', props: { limit: 8 } } } },
-    })
-    const { id, version } = created.body.data.entry
-
-    const res = await authed('patch', `/api/entries/${id}`, adminJar).send({
-      version,
-      fields: { blocks: { 'blk-a1b2': { type: 'packageList', props: { limit: 9 } } } },
-    })
-
-    expect(res.status).toBe(200)
-    const doc = await Entry.findById(id).lean()
-    expect(doc.fields.blocks['blk-a1b2'].props.limit).toBe(9)
-  })
-
-  it('FAQs block ke har jawab ko stable id milti hai', async () => {
+  it('har block ko stable id milti hai', async () => {
     const res = await createTour(adminJar, {
-      title: 'Tour F',
-      content: contentWith('blk-a1b2'),
-      fields: {
-        blocks: {
-          'blk-a1b2': {
-            type: 'faqs',
-            props: { items: [{ question: 'Kitne din?', answer: '<p>Paanch</p>' }] },
-          },
-        },
-      },
+      title: 'Id Test',
+      content: contentOf({ type: 'cards', props: {} }),
     })
 
     const doc = await Entry.findById(res.body.data.entry.id).lean()
-    expect(doc.fields.blocks['blk-a1b2'].props.items[0].id).toBeTruthy()
+    expect(doc.content.blocks[0].id).toBeTruthy()
   })
 
-  it('block ke andar ka HTML bhi write pe saaf hota hai (R20)', async () => {
+  it('cards aur FAQs ke andar ke items ko bhi apni id milti hai', async () => {
     const res = await createTour(adminJar, {
-      title: 'Tour G',
-      content: contentWith('blk-a1b2'),
-      fields: {
-        blocks: {
-          'blk-a1b2': {
-            type: 'faqs',
-            props: {
-              items: [
-                { question: 'Q?', answer: '<p onclick="steal()">Hi</p><script>bad()</script>' },
-              ],
-            },
-          },
-        },
-      },
+      title: 'Item Id',
+      content: contentOf(
+        { id: 'c1', type: 'cards', props: { items: [{ title: 'Ek' }] } },
+        { id: 'f1', type: 'faqs', props: { items: [{ question: 'Q?', answer: '<p>A</p>' }] } },
+      ),
     })
 
     const doc = await Entry.findById(res.body.data.entry.id).lean()
-    const answer = doc.fields.blocks['blk-a1b2'].props.items[0].answer
 
-    expect(answer).not.toContain('onclick')
-    expect(answer).not.toContain('script')
-    expect(answer).toContain('Hi')
+    expect(doc.content.blocks[0].props.items[0].id).toBeTruthy()
+    expect(doc.content.blocks[1].props.items[0].id).toBeTruthy()
+  })
+
+  it('chaaron block ka HTML write pe saaf hota hai (R20)', async () => {
+    // Is list me naya block jodna bhoolne ka matlab hai ki content bina safai ke BACH jaaye —
+    // whitelist wale jaal ki ulti shakl, aur zyada khatarnak
+    const dirty = '<p onclick="steal()">Hi</p><script>bad()</script>'
+
+    const res = await createTour(adminJar, {
+      title: 'Safai Test',
+      content: contentOf(
+        textBlock('t1', dirty),
+        { id: 'w1', type: 'twoColumn', props: { left: dirty, right: dirty } },
+        { id: 'c1', type: 'cards', props: { items: [{ title: 'Ek', text: dirty }] } },
+        { id: 'f1', type: 'faqs', props: { items: [{ question: 'Q?', answer: dirty }] } },
+      ),
+    })
+
+    const [text, two, cards, faqs] = (await Entry.findById(res.body.data.entry.id).lean()).content
+      .blocks
+
+    for (const html of [
+      text.props.html,
+      two.props.left,
+      two.props.right,
+      cards.props.items[0].text,
+      faqs.props.items[0].answer,
+    ]) {
+      expect(html).not.toContain('onclick')
+      expect(html).not.toContain('script')
+      expect(html).toContain('Hi')
+    }
+  })
+
+  it('normalize safai se PEHLE chalta hai — warna saaf ki hui HTML wapas gandi ho jaati', async () => {
+    // Ulta kram wahi jaal hai jo `normalizeFields()` ke aakhir me likha hai (D-80): parse
+    // input se dobara padhta hai aur saaf ki hui value ko overwrite kar deta
+    const res = await createTour(adminJar, {
+      title: 'Kram Safai',
+      content: contentOf(textBlock('t1', '<p><b>Bold</b><script>x()</script></p>')),
+    })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+
+    expect(doc.content.blocks[0].props.html).toContain('<b>Bold</b>')
+    expect(doc.content.blocks[0].props.html).not.toContain('script')
   })
 })
 
@@ -2447,7 +2447,6 @@ describe('per-package rating (D-87 — D-70 palta)', () => {
 // ── Slice B — Tour Page ka public payload (D-87) ─────────────────────────────
 
 describe('Tour Page ka public payload (D-87)', () => {
-  /** Publish tak le jaane wala chhota helper — public resolve sirf visible entries deta hai. */
   async function publish(id) {
     await authed('post', `/api/entries/${id}/publish`, adminJar).send({})
     return id
@@ -2476,7 +2475,7 @@ describe('Tour Page ka public payload (D-87)', () => {
 
     expect(entry.type).toBe('tourPage')
     expect(entry.byline).toBeDefined()
-    expect(entry.blocks).toEqual({})
+    expect(entry.blocks).toEqual([])
     expect(entry.breadcrumbs).toEqual([])
 
     // Package ke khaane page pe hote hi nahi
@@ -2485,19 +2484,21 @@ describe('Tour Page ka public payload (D-87)', () => {
     expect(entry.similar).toBeUndefined()
   })
 
+  it('kachcha `content` payload me nahi jaata — `blocks` hi wo hai', async () => {
+    // Dono bhejne ka matlab hota ek hi cheez do shakl me, aur theme ek din galti se kachcha
+    // wala padh leti — jisme package list ke cards hote hi nahi
+    await publishedTour('No Raw Content', { content: contentOf(textBlock('t1', '<p>Hi</p>')) })
+
+    const { entry } = (await resolve('/no-raw-content')).body.data
+
+    expect(entry.content).toBeUndefined()
+    expect(entry.blocks).toHaveLength(1)
+    expect(entry.blocks[0].props.html).toBe('<p>Hi</p>')
+  })
+
   it('byline ke teenon hisse derive hote hain — koi field nahi (faisla #9)', async () => {
     await publishedTour('Byline Test', {
-      content: {
-        version: 1,
-        blocks: [
-          {
-            id: 'rt1',
-            type: 'richText',
-            props: { html: `<p>${Array(420).fill('shabd').join(' ')}</p>` },
-            children: [],
-          },
-        ],
-      },
+      content: contentOf(textBlock('t1', `<p>${Array(420).fill('shabd').join(' ')}</p>`)),
     })
 
     const { byline } = (await resolve('/byline-test')).body.data.entry
@@ -2506,6 +2507,17 @@ describe('Tour Page ka public payload (D-87)', () => {
     expect(byline.updatedAt).toBeTruthy()
     // 420 shabd / 200 = 2.1 → 2
     expect(byline.readMinutes).toBe(2)
+  })
+
+  it('read time SAARE text blocks se ginti hai, sirf pehle se nahi', async () => {
+    await publishedTour('Multi Text', {
+      content: contentOf(
+        textBlock('t1', `<p>${Array(200).fill('a').join(' ')}</p>`),
+        textBlock('t2', `<p>${Array(200).fill('b').join(' ')}</p>`),
+      ),
+    })
+
+    expect((await resolve('/multi-text')).body.data.entry.byline.readMinutes).toBe(2)
   })
 
   it('breadcrumb parent chain se banta hai — per-page label field nahi (faisla #12)', async () => {
@@ -2522,8 +2534,7 @@ describe('Tour Page ka public payload (D-87)', () => {
     // nahi. Yahi wo faisla hai jo ARCHIVE_CRUMB ko root pe rakhta hai (D-87 §1).
     //
     // Par `parentId` phir bhi store hota hai, aur breadcrumb usi se banta hai — yaani client
-    // URL badle bina page ko ek jagah "rakh" sakta hai. Do alag cheezein hain, aur ye test
-    // unke alag hone ko pin karta hai
+    // URL badle bina page ko ek jagah "rakh" sakta hai. Do alag cheezein hain
     const { entry } = (await resolve('/tour-packages')).body.data
 
     expect(entry.path).toBe('/tour-packages')
@@ -2554,27 +2565,17 @@ describe('Package list block ka payload (D-87)', () => {
     return created.body.data.entry.id
   }
 
+  /** Ek tour page jisme sirf ek `packageList` block hai — uska resolved payload lauta do. */
   async function tourWithList(title, props = {}) {
     const created = await authed('post', '/api/entries', adminJar).send({
       type: 'tourPage',
       title,
-      content: {
-        version: 1,
-        blocks: [
-          {
-            id: 'rt1',
-            type: 'richText',
-            props: { html: '<div class="cms-package-list" id="blk-list1"></div>' },
-            children: [],
-          },
-        ],
-      },
-      fields: { blocks: { 'blk-list1': { type: 'packageList', props } } },
+      content: contentOf({ id: 'p1', type: 'packageList', props }),
     })
     await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
 
     const res = await request(app).get(`/api/public/resolve?path=${created.body.data.entry.path}`)
-    return res.body.data.entry.blocks['blk-list1']
+    return res.body.data.entry.blocks[0]
   }
 
   const pricing = (price) => ({ categoryPricing: [{ category: 'deluxe', priceFrom: price }] })
@@ -2586,6 +2587,7 @@ describe('Package list block ka payload (D-87)', () => {
 
     const block = await tourWithList('List A')
 
+    expect(block.type).toBe('packageList')
     expect(block.data.cards.map((c) => c.title)).toEqual(['Emerald Andaman'])
     expect(block.data.total).toBe(1)
   })
@@ -2626,29 +2628,58 @@ describe('Package list block ka payload (D-87)', () => {
     expect(block.data.total).toBe(3)
   })
 
+  it('chuni hui durations hi aati hain — aur facets bhi unhi ki', async () => {
+    // Filter facets se PEHLE lagta hai: ulta karne pe bar me ek pill dikhti jiska koi card
+    // list me hai hi nahi, aur usse click karne pe page khaali ho jaata
+    await publishedPackage('Chhota', { nights: 2, days: 3 })
+    await publishedPackage('Bada', { nights: 5, days: 6 })
+
+    const block = await tourWithList('List E', { durations: ['d2'] })
+
+    expect(block.data.cards.map((c) => c.title)).toEqual(['Chhota'])
+    expect(block.data.facets.map((f) => f.key)).toEqual(['d2'])
+    expect(block.data.total).toBe(1)
+  })
+
   it('price-asc sabse saste se lagata hai, aur bina daam wale neeche jaate hain', async () => {
     await publishedPackage('Mehnga', { nights: 2, days: 3, pricing: pricing(40000) })
     await publishedPackage('Sasta', { nights: 2, days: 3, pricing: pricing(11499) })
     await publishedPackage('Bina Daam', { nights: 2, days: 3 })
 
-    const block = await tourWithList('List E', { sort: 'price-asc' })
+    const block = await tourWithList('List F', { sort: 'price-asc', featuredFirst: false })
 
     expect(block.data.cards.map((c) => c.title)).toEqual(['Sasta', 'Mehnga', 'Bina Daam'])
+  })
+
+  it('featuredFirst sort ke UPAR lagta hai, uski jagah nahi', async () => {
+    // Design me "Sort by" aur "Featured packages pehle" do alag control hain — featured ek
+    // tie-break hai jo kisi bhi sort ke saath chal sakta hai
+    await publishedPackage('Sasta', { nights: 2, days: 3, pricing: pricing(11499) })
+    await publishedPackage('Mehnga Featured', {
+      nights: 2,
+      days: 3,
+      pricing: pricing(40000),
+      featured: true,
+    })
+
+    const block = await tourWithList('List G', { sort: 'price-asc', featuredFirst: true })
+
+    expect(block.data.cards.map((c) => c.title)).toEqual(['Mehnga Featured', 'Sasta'])
   })
 
   it('draft package list me nahi aata', async () => {
     await publishedPackage('Live', { nights: 2, days: 3 })
     await createEntry(adminJar, { title: 'Draft', fields: { nights: 2, days: 3 } })
 
-    const block = await tourWithList('List F')
+    const block = await tourWithList('List H')
 
     expect(block.data.cards.map((c) => c.title)).toEqual(['Live'])
   })
 
-  it('showCounts off ho to facets bante hi nahi', async () => {
+  it('showFilters off ho to facets bante hi nahi', async () => {
     await publishedPackage('A', { nights: 2, days: 3 })
 
-    const block = await tourWithList('List G', { showCounts: false })
+    const block = await tourWithList('List I', { showFilters: false })
 
     expect(block.data.facets).toEqual([])
     // ...par cards aur total phir bhi aate hain
@@ -2703,10 +2734,9 @@ describe('rating ka fallback (D-87 §3)', () => {
     await publishedPackage('Card A', { nights: 3, days: 4, rating: { value: 4.7, count: 96 } })
     await publishedPackage('Card B', { nights: 3, days: 4 })
 
-    const { similar } = (await resolve('card-a')).body.data.entry
-    expect(similar[0].rating).toEqual({ value: 4.9, count: 412 })
+    const { entry } = (await resolve('card-a')).body.data
 
-    const { rating } = (await resolve('card-a')).body.data.entry
-    expect(rating).toEqual({ value: 4.7, count: 96 })
+    expect(entry.rating).toEqual({ value: 4.7, count: 96 })
+    expect(entry.similar[0].rating).toEqual({ value: 4.9, count: 412 })
   })
 })

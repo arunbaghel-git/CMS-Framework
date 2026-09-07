@@ -1,7 +1,9 @@
 import {
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
+  LONG_STAY_FROM,
   cheapestPricing,
+  durationBucket,
   extractBlockText,
   htmlToText,
   isPubliclyVisible,
@@ -750,18 +752,14 @@ const PACKAGE_LIST_SCAN_CAP = 200
  * Jis package pe `nights` likhi hi nahi wo kisi pill me nahi jaata (par `All` me ginti hai) —
  * wahi guard jo `resolveSimilarPackages()` pe hai: bina uske `null` khud ek bucket ban jaata.
  */
-const LONG_STAY_FROM = 8
-
 function durationFacets(docs) {
   const buckets = new Map()
 
   for (const doc of docs) {
     const nights = doc.fields?.nights
     const days = doc.fields?.days
-    if (nights == null) continue
-
-    const long = nights >= LONG_STAY_FROM
-    const key = long ? 'd8plus' : `d${nights}`
+    const key = durationBucket(nights)
+    if (!key) continue
 
     const existing = buckets.get(key)
     if (existing) {
@@ -769,6 +767,7 @@ function durationFacets(docs) {
       continue
     }
 
+    const long = key === 'd8plus'
     buckets.set(key, {
       key,
       /**
@@ -786,14 +785,18 @@ function durationFacets(docs) {
   return [...buckets.values()].sort((a, b) => (a.nights ?? 99) - (b.nights ?? 99))
 }
 
-/** `Package list` block ke sort ke paanch tareeke — props ka enum yahi hai (`page.js`). */
+/**
+ * `Package list` block ke sort ke teen tareeke — props ka enum yahi hai (`page.js`).
+ *
+ * ⚠️ `featured` yahan **nahi** hai, aur wo design se aaya hai: usme "Sort by" me teen option
+ * hain aur "Featured packages pehle" ek **alag checkbox**. Wo theek bhi hai — featured ek
+ * *tie-break* hai jo kisi bhi sort ke saath chal sakta hai, uska vikalp nahi.
+ */
 const SORTERS = {
-  featured: (a, b) => Number(b.featured) - Number(a.featured) || b.updatedAt - a.updatedAt,
   recent: (a, b) => b.updatedAt - a.updatedAt,
   duration: (a, b) => (a.nights ?? 999) - (b.nights ?? 999),
   /** Bina daam wale packages hamesha **neeche** — upar aane se list tooti hui lagti hai (D-30). */
   'price-asc': (a, b) => (a.price ?? Infinity) - (b.price ?? Infinity),
-  'price-desc': (a, b) => (b.price ?? -Infinity) - (a.price ?? -Infinity),
 }
 
 /**
@@ -834,10 +837,25 @@ async function resolvePackageListBlock(props, siteId, locale, defaults) {
     filter['taxonomies.destinations'] = props.destinationId
   }
 
-  const docs = await Entry.find(filter).sort({ updatedAt: -1 }).limit(PACKAGE_LIST_SCAN_CAP).lean()
+  const scanned = await Entry.find(filter)
+    .sort({ updatedAt: -1 })
+    .limit(PACKAGE_LIST_SCAN_CAP)
+    .lean()
+
+  /**
+   * Client ne kaunsi duration ki pills chuni — **khaali list ka matlab sab** (design ke
+   * checkboxes).
+   *
+   * ⚠️ Ye filter facets se **pehle** lagta hai. Ulta karne ka matlab hota ki bar me ek pill
+   * dikhe jiska koi card list me hai hi nahi — usse click karne pe page khaali ho jaata.
+   */
+  const wanted = new Set(props.durations ?? [])
+  const docs = wanted.size
+    ? scanned.filter((doc) => wanted.has(durationBucket(doc.fields?.nights)))
+    : scanned
 
   /** Facets **slice se pehle** — poori filtered list pe, warna ginti jhoothi ho jaati hai. */
-  const facets = props.showFilters && props.showCounts ? durationFacets(docs) : []
+  const facets = props.showFilters ? durationFacets(docs) : []
 
   /**
    * Sort ki chaabi pehle nikaali jaati hai, phir sort — comparator ke andar
@@ -852,7 +870,17 @@ async function resolvePackageListBlock(props, siteId, locale, defaults) {
     price: cheapestPricing(pricingSchema.parse(doc.fields?.pricing ?? {}))?.priceFrom ?? null,
   }))
 
-  keyed.sort(SORTERS[props.sort] ?? SORTERS.featured)
+  const compare = SORTERS[props.sort] ?? SORTERS.duration
+
+  /**
+   * `featuredFirst` sort ke **upar** lagta hai, uski jagah nahi — design me wo ek alag
+   * checkbox hai. Isliye pehle featured, phir chuna hua kram.
+   */
+  keyed.sort(
+    props.featuredFirst
+      ? (a, b) => Number(b.featured) - Number(a.featured) || compare(a, b)
+      : compare,
+  )
 
   const cards = await toPackageCards(
     keyed.slice(0, props.limit).map((row) => row.doc),
@@ -866,42 +894,38 @@ async function resolvePackageListBlock(props, siteId, locale, defaults) {
     facets,
     /** `.fbar__c` — `14 packages`. Ye poori filtered list ki ginti hai, dikh rahe cards ki nahi. */
     total: docs.length,
-    showFilters: props.showFilters,
   }
 }
 
 /**
- * Page ke blocks ka payload — id se, D-87 §2.
+ * Page ke blocks ka payload — **kram ke saath**, D-87 §7.
  *
- * ⚠️ **Kram yahan se nahi aata.** Kram HTML me hai (`content`), aur theme wahi padhti hai;
- * ye sirf id se settings ka naksha hai. Isiliye ye ek object lautata hai, array nahi — array
- * lautane ka matlab hota do jagah kram, aur wo do din me alag ho jaate.
+ * ⚠️ Ye ek **array** lautata hai, object nahi. Kuch ghante ke liye ye ulta tha: kram HTML me
+ * rehta aur ye sirf id se settings ka naksha hota. Client ne wo model palta — ab kram
+ * `content.blocks[]` ka hi hai, aur theme use jaise ka waisa chhaap sakti hai.
  *
- * ⚠️ Sirf `packageList` ke liye query lagti hai. Baaki teen ke props apne aap me poore hain,
+ * ⚠️ Sirf `packageList` ke liye query lagti hai. Baaki chaar ke props apne aap me poore hain,
  * par wo bhi yahin se guzarte hain — taaki theme ke liye ek hi shape rahe aur use "kaunsa
  * block resolve hua hai" yaad na rakhna pade.
  */
 async function resolvePageBlocks(blocks, siteId, locale, defaults) {
-  const entries = Object.entries(blocks ?? {})
-  if (!entries.length) return {}
+  if (!blocks?.length) return []
 
-  const resolved = await Promise.all(
-    entries.map(async ([id, block]) => {
-      if (block?.type !== 'packageList') return [id, block]
+  return Promise.all(
+    blocks.map(async (block) => {
+      if (block?.type !== 'packageList') return block
 
       /**
        * `data` `props` ke **saath** jaata hai, uski jagah nahi. Theme ko dono chahiye:
        * `props` batata hai client ne kya chuna (`showFilters` off hai ya nahi), `data` wo hai
        * jo us chunav se nikla.
        */
-      return [
-        id,
-        { ...block, data: await resolvePackageListBlock(block.props, siteId, locale, defaults) },
-      ]
+      return {
+        ...block,
+        data: await resolvePackageListBlock(block.props, siteId, locale, defaults),
+      }
     }),
   )
-
-  return Object.fromEntries(resolved)
 }
 
 /**
@@ -980,7 +1004,7 @@ async function toPublicPage(doc, siteId, locale) {
     (await toDisplayImage(doc.featuredImageId, 'large', siteId)) ??
     (await toDisplayImage(settings.tourSettings?.bannerMediaId, 'large', siteId))
 
-  const blocks = await resolvePageBlocks(fields.blocks, siteId, locale, defaults)
+  const blocks = await resolvePageBlocks(doc.content?.blocks, siteId, locale, defaults)
 
   /**
    * Read time content ke **saare** rich text se ginti hai, sirf pehle block se nahi —
@@ -995,10 +1019,19 @@ async function toPublicPage(doc, siteId, locale) {
     slug: doc.slug,
     path: doc.path,
     excerpt: doc.excerpt ?? '',
-    content: doc.content ?? { version: 1, blocks: [] },
     seo: doc.seo ?? {},
     updatedAt: doc.updatedAt ?? null,
 
+    /**
+     * ⚠️ **`content` yahan jaan-boojh kar nahi hai** — `blocks` hi wo hai (D-87 §7).
+     *
+     * `blocks` `content.blocks[]` se hi banta hai, sirf `packageList` uske andar apna `data`
+     * le kar aata hai. Dono bhejne ka matlab hota ek hi cheez do shakl me — aur theme ek din
+     * galti se kachcha wala padh leti, jisme cards hote hi nahi.
+     *
+     * Package payload me `content` abhi bhi hai, aur wo theek hai: wahan wo ek hi `richText`
+     * block hai (D-46 §3) aur usme resolve karne ko kuch hai hi nahi.
+     */
     banner,
     breadcrumbs,
 

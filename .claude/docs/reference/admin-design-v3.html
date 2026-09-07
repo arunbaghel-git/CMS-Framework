@@ -230,6 +230,29 @@ tr:hover .row-actions{visibility:visible}
 .day-head .dt{flex:1;font-weight:600}
 .day-body{padding:12px}
 .day.closed .day-body{display:none}
+/* ---- content blocks: har block apna panel (client, 7 Sep) ---- */
+.blk{border:1px solid var(--border-soft);border-radius:var(--radius);margin-bottom:12px;background:#fff}
+.blk-head{display:flex;align-items:center;gap:9px;padding:8px 11px;background:#f6f7f7;border-bottom:1px solid var(--border-soft);cursor:pointer}
+.blk-head .grip{color:#a7aaad;cursor:grab}
+.blk-chip{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:3px;border:1px solid;flex:0 0 auto}
+.blk-sum{flex:1;font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blk-x{color:#b32d2e;font-size:12px;flex:0 0 auto}
+.blk-body{padding:12px}
+.blk.closed .blk-body{display:none}
+.blk--text .blk-chip{background:#f0f0f1;border-color:#dcdcde;color:#50575e}
+.blk--two .blk-chip{background:#f2f5f8;border-color:#dde3ea;color:#5b6b80}
+.blk--cards .blk-chip{background:#f3eefd;border-color:#cfc0ee;color:#5b32a8}
+.blk--list .blk-chip{background:#eef4fd;border-color:#b9d4f5;color:#1a56a8}
+.blk--faq .blk-chip{background:#f0f7ee;border-color:#c4dfc0;color:#3d7a42}
+.blk-add{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px dashed #c9d0d8;border-radius:var(--radius);background:#fafbfc;margin-bottom:10px}
+.blk .editor-area{min-height:120px}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.card-edit{border:1px solid var(--border-soft);border-radius:var(--radius);background:#fff;padding:10px}
+.blk-sublabel{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#7b8798;margin:10px 0 6px}
+.dur-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 14px}
+.dur-cnt{display:inline-grid;place-items:center;min-width:20px;height:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:#eef4fd;color:#1a56a8;font-size:10.5px;font-weight:800}
+.dur-cnt.muted{background:#f0f0f1;color:#8c8f94}
 
 /* tabs */
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--border-soft);margin-bottom:16px;flex-wrap:wrap}
@@ -740,8 +763,12 @@ tr:hover .row-actions{visibility:visible}
      SCREEN: PAGE EDITOR  —  EK HI SCREEN, DONO KE LIYE
      Pages aur Tour dono yahi screen use karte hain. Koi template
      dropdown nahi, koi chooser nahi.
-     Content editor me blocks: Single / Two column / Cards /
-     Package list / FAQs.
+
+     Content = blocks ki EK LIST (client, 7 Sep). Har block apna panel
+     hai, "Add block" dropdown se judta hai, grip se reorder hota hai.
+     Types: Text · Two column · Cards · Package list · FAQs.
+     Rich text bhi ek block hai ("Text") — isi se content aur layout
+     blocks ek hi kram me aate hain, jaise reference page pe hain.
      ================================================================== -->
 <section class="screen" id="s-page-edit">
   <div class="page-head"><h1>Edit Page</h1><a class="btn page-title-action" data-go="tour">Back to list</a></div>
@@ -796,126 +823,177 @@ tr:hover .row-actions{visibility:visible}
       </div>
 
       <!-- ---- CONTENT ---- -->
+      <!-- 7 Sep, client ka faisla: blocks content editor ke ANDAR nahi bante.
+           Har block apna PANEL hai, "Add block" dropdown se judta hai, aur grip
+           se reorder hota hai.
+
+           Rich text bhi ek block hai ("Text"). Isi se content aur blocks EK HI
+           KRAM me aa jaate hain — jaise reference page pe hain: heading, phir
+           package list, phir heading, phir cards. Do alag cheezein (ek content
+           editor + neeche blocks) us page ko bana hi nahi saktin. -->
       <div class="panel">
-        <div class="panel-head"><h2>Content</h2><span class="toggle-ico">&#9662;</span></div>
+        <div class="panel-head"><h2>Content</h2><span class="muted">7 blocks</span><span class="toggle-ico">&#9662;</span></div>
         <div class="panel-body">
-          <div class="editor-box">
-            <div class="editor-tabs"><span class="on">Visual</span><span>HTML</span></div>
-            <div class="editor-tools">
-              <i><b>B</b></i><i><em>I</em></i><i>U</i><i>&#8801;</i><i>&#128279;</i><i>&#128444;</i><i>&#9638;</i><i>&lt;/&gt;</i>
-              <span style="width:1px;height:18px;background:#dde3ea;margin:0 6px"></span>
-              <i style="width:auto;padding:0 8px;font-style:normal;font-weight:700;font-size:11.5px">&#9647; Two column</i>
-              <i style="width:auto;padding:0 8px;font-style:normal;font-weight:700;font-size:11.5px;background:#f3eefd;border-color:#cfc0ee;color:#5b32a8">&#9638; Cards</i>
-              <i style="width:auto;padding:0 8px;font-style:normal;font-weight:700;font-size:11.5px;background:#eef4fd;border-color:#b9d4f5;color:#1a56a8">&#9636; Package list</i>
-              <i style="width:auto;padding:0 8px;font-style:normal;font-weight:700;font-size:11.5px;background:#f0f7ee;border-color:#c4dfc0;color:#3d7a42">&#9662; FAQs</i>
-            </div>
-            <div class="editor-area" contenteditable="true" style="min-height:560px">
-              <h2>Andaman tour packages for 2026</h2>
-              <p>Book Andaman tour packages from <b>&#8377;11,499 per person</b>, covering Port Blair (Sri Vijaya Puram), Havelock (Swaraj Dweep) and Neil Island (Shaheed Dweep) &mdash; with hotels, private cabs, ferry tickets and sightseeing included.</p>
-              <h3>What an Andaman trip costs, end to end</h3>
-              <table><thead><tr><th>Component</th><th>Typical range</th></tr></thead><tbody><tr><td><b>Roundtrip flights</b></td><td>&#8377;21,000 &ndash; &#8377;31,000 pp</td></tr><tr><td><b>Package</b></td><td>&#8377;11,499 &ndash; &#8377;52,999 pp</td></tr></tbody></table>
 
-              <!-- ===== PACKAGE LIST BLOCK ===== -->
-              <div contenteditable="false" style="margin:18px 0;border:2px solid #b9d4f5;border-radius:8px;background:#f7fbff;overflow:hidden">
-                <div style="background:#eef4fd;padding:7px 12px;font-size:11.5px;font-weight:800;letter-spacing:.05em;color:#1a56a8;display:flex;align-items:center;gap:8px">&#9636; PACKAGE LIST <span style="margin-left:auto;font-weight:600;color:#4a6f9c">apne aap bharti hai</span></div>
-                <div style="padding:12px">
-                  <div class="row2">
-                    <div class="field"><label>Heading</label><input class="inp" value="Best-selling Andaman packages"></div>
-                    <div class="field"><label>Line under heading</label><input class="inp" value="Filter by duration — every itinerary can be shortened or rerouted"></div>
-                  </div>
-                  <div class="row3">
-                    <div class="field"><label>Package Type</label><select class="sel"><option selected>Any</option><option>Honeymoon</option><option>Family</option><option>Adventure</option><option>Scuba</option><option>Offbeat</option></select></div>
-                    <div class="field"><label>Destination</label><select class="sel"><option selected>Any</option><option>Port Blair</option><option>Havelock (Swaraj Dweep)</option><option>Neil Island (Shaheed Dweep)</option><option>Baratang</option></select></div>
-                    <div class="field"><label>Sort by</label><select class="sel"><option selected>Nights — short to long</option><option>Price — low to high</option><option>Recently updated</option></select></div>
-                  </div>
-                  <label style="display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#7b8798;margin:10px 0 6px">Duration &mdash; kaunsi, aur kitne</label>
-                  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px 14px">
-                    <label class="inline-lbl"><input type="checkbox" checked> 2N / 3D <input class="inp" value="3" style="width:44px;padding:2px 6px;margin-left:4px"></label>
-                    <label class="inline-lbl"><input type="checkbox" checked> 3N / 4D <input class="inp" value="3" style="width:44px;padding:2px 6px;margin-left:4px"></label>
-                    <label class="inline-lbl"><input type="checkbox" checked> 4N / 5D <input class="inp" value="2" style="width:44px;padding:2px 6px;margin-left:4px"></label>
-                    <label class="inline-lbl"><input type="checkbox" checked> 5N / 6D <input class="inp" value="3" style="width:44px;padding:2px 6px;margin-left:4px"></label>
-                    <label class="inline-lbl"><input type="checkbox"> 6N / 7D <input class="inp" placeholder="—" style="width:44px;padding:2px 6px;margin-left:4px"></label>
-                    <label class="inline-lbl"><input type="checkbox"> 7N / 8D <input class="inp" placeholder="—" style="width:44px;padding:2px 6px;margin-left:4px"></label>
-                    <label class="inline-lbl"><input type="checkbox"> 8N+ <input class="inp" placeholder="—" style="width:44px;padding:2px 6px;margin-left:4px"></label>
-                  </div>
-                  <div class="checklist" style="margin-top:9px">
-                    <label class="inline-lbl"><input type="checkbox" checked> Featured packages pehle</label>
-                    <label class="inline-lbl"><input type="checkbox" checked> Duration filter pills dikhayein</label>
-                    <label class="inline-lbl"><input type="checkbox" checked> Rating aur discount badge dikhayein</label>
-                  </div>
-                  <div class="notice" style="margin-bottom:0">Abhi <b>11 packages</b> aayenge. Naya package publish hote hi apne aap jud jaayega. <a href="#" data-go="packages">Packages dekhein &rarr;</a></div>
-                </div>
-              </div>
-
-              <h2>How many days are enough for Andaman?</h2>
-              <p>The honest answer is decided by the ferries, not by how much there is to see.</p>
-
-              <!-- ===== CARDS BLOCK ===== -->
-              <div contenteditable="false" style="margin:18px 0;border:2px solid #cfc0ee;border-radius:8px;background:#fbf9ff;overflow:hidden">
-                <div style="background:#f3eefd;padding:7px 12px;font-size:11.5px;font-weight:800;letter-spacing:.05em;color:#5b32a8;display:flex;align-items:center;gap:8px">&#9638; CARDS
-                  <select class="sel" style="width:auto;height:22px;padding:0 6px;font-size:11px;margin-left:6px"><option>2 columns</option><option selected>3 columns</option><option>4 columns</option></select>
-                  <span style="margin-left:auto"><button class="btn btn-sm">&#65291; Card</button></span></div>
-                <div style="padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-                  <div style="border:1px solid #e4e8ef;border-radius:6px;background:#fff;padding:10px">
-                    <input class="inp" value="2N / 3D — 3N / 4D" style="font-weight:700;margin-bottom:6px">
-                    <textarea class="ta" style="min-height:64px;font-size:12px">Port Blair plus one island. Enough for Cellular Jail, Radhanagar and one water-sports day.</textarea>
-                    <input class="inp" value="Short break" placeholder="Tag (optional)" style="margin-top:6px;font-size:12px">
-                  </div>
-                  <div style="border:1px solid #e4e8ef;border-radius:6px;background:#fff;padding:10px">
-                    <input class="inp" value="5N / 6D — the sweet spot" style="font-weight:700;margin-bottom:6px">
-                    <textarea class="ta" style="min-height:64px;font-size:12px">Port Blair, Havelock and Neil at a pace that leaves two unhurried beach days.</textarea>
-                    <input class="inp" value="Best for first-timers" placeholder="Tag (optional)" style="margin-top:6px;font-size:12px">
-                  </div>
-                  <div style="border:1px solid #e4e8ef;border-radius:6px;background:#fff;padding:10px">
-                    <input class="inp" value="8N / 9D and longer" style="font-weight:700;margin-bottom:6px">
-                    <textarea class="ta" style="min-height:64px;font-size:12px">Adds Baratang's limestone caves, Diglipur's Ross &amp; Smith sandbar or Long Island.</textarea>
-                    <input class="inp" value="Offbeat &amp; repeat visitors" placeholder="Tag (optional)" style="margin-top:6px;font-size:12px">
-                  </div>
-                </div>
-              </div>
-
-              <h2>Which package should you choose?</h2>
-              <table><thead><tr><th>If you are&hellip;</th><th>Choose</th></tr></thead><tbody><tr><td><b>On your honeymoon</b></td><td>4N/5D or 5N/6D honeymoon</td></tr><tr><td><b>On a tight budget</b></td><td>2N/3D or 3N/4D</td></tr></tbody></table>
-
-              <!-- ===== TWO COLUMN BLOCK ===== -->
-              <div contenteditable="false" style="margin:18px 0;border:2px solid #dde3ea;border-radius:8px;background:#fcfdfe;overflow:hidden">
-                <div style="background:#f2f5f8;padding:7px 12px;font-size:11.5px;font-weight:800;letter-spacing:.05em;color:#5b6b80">&#9647; TWO COLUMN</div>
-                <div style="padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                  <div contenteditable="true" style="border:1px dashed #dde3ea;border-radius:6px;background:#fff;padding:10px;font-size:13px">
-                    <h3 style="margin:0 0 6px;font-size:14px">Package with flights</h3>
-                    <p style="margin:0">We quote the fare showing on the day and book it for you at cost.</p>
-                  </div>
-                  <div contenteditable="true" style="border:1px dashed #dde3ea;border-radius:6px;background:#fff;padding:10px;font-size:13px">
-                    <h3 style="margin:0 0 6px;font-size:14px">Land only</h3>
-                    <p style="margin:0">Every price on this page is land only &mdash; flights are booked separately.</p>
-                  </div>
-                </div>
-              </div>
-
-              <h2>What nobody tells you about ferry booking</h2>
-              <p>Port Blair to Havelock is a 90-minute catamaran that runs on fixed morning and afternoon slots.</p>
-
-              <!-- ===== FAQS BLOCK ===== -->
-              <div contenteditable="false" style="margin:18px 0;border:2px solid #c4dfc0;border-radius:8px;background:#f9fdf8;overflow:hidden">
-                <div style="background:#f0f7ee;padding:7px 12px;font-size:11.5px;font-weight:800;letter-spacing:.05em;color:#3d7a42;display:flex;align-items:center;gap:8px">&#9662; FAQs
-                  <span style="margin-left:auto"><button class="btn btn-sm">&#65291; Question</button></span></div>
-                <div style="padding:12px">
-                  <div class="field"><label>Heading</label><input class="inp" value="Andaman package FAQs"></div>
-                  <div class="day">
-                    <div class="day-head"><span class="grip">&#10287;</span><span class="dnum">1</span><span class="dt">How much does an Andaman tour package cost?</span><span class="toggle-ico">&#9662;</span></div>
-                    <div class="day-body">
-                      <div class="field"><label>Question</label><input class="inp" value="How much does an Andaman tour package cost?"></div>
-                      <div class="field"><label>Answer</label><textarea class="ta" style="min-height:64px">Packages start at ₹11,499 per person for 2 nights and 3 days and go up to about ₹52,999 per person for a 12-night trip.</textarea></div>
-                    </div>
-                  </div>
-                  <div class="day closed"><div class="day-head"><span class="grip">&#10287;</span><span class="dnum">2</span><span class="dt">What is included in the package price?</span><span class="toggle-ico">&#9656;</span></div><div class="day-body"><div class="hint">Collapsed.</div></div></div>
-                  <div class="day closed"><div class="day-head"><span class="grip">&#10287;</span><span class="dnum">3</span><span class="dt">When is the best time to visit the Andamans?</span><span class="toggle-ico">&#9656;</span></div><div class="day-body"><div class="hint">Collapsed.</div></div></div>
-                  <div class="hint" style="margin-bottom:0">&#10003; Google ka FAQ schema is block se <b>apne aap</b> ban jaata hai.</div>
+          <!-- ===== TEXT ===== -->
+          <div class="blk blk--text">
+            <div class="blk-head"><span class="grip">&#10287;</span><span class="blk-chip">Text</span>
+              <span class="blk-sum">Andaman tour packages for 2026 &mdash; Book Andaman tour packages from &#8377;11,499 per person&hellip;</span>
+              <span class="toggle-ico">&#9662;</span><span class="blk-x" title="Remove block">&#10005;</span></div>
+            <div class="blk-body">
+              <div class="editor-box">
+                <div class="editor-tabs"><span class="on">Visual</span><span>HTML</span></div>
+                <div class="editor-tools"><i><b>B</b></i><i><em>I</em></i><i>U</i><i>&#8801;</i><i>&#128279;</i><i>&#128444;</i><i>&#9638;</i><i>&lt;/&gt;</i></div>
+                <div class="editor-area" contenteditable="true" style="min-height:170px">
+                  <h2>Andaman tour packages for 2026</h2>
+                  <p>Book Andaman tour packages from <b>&#8377;11,499 per person</b>, covering Port Blair (Sri Vijaya Puram), Havelock (Swaraj Dweep) and Neil Island (Shaheed Dweep) &mdash; with hotels, private cabs, ferry tickets and sightseeing included.</p>
+                  <h3>What an Andaman trip costs, end to end</h3>
+                  <table><thead><tr><th>Component</th><th>Typical range</th></tr></thead><tbody><tr><td><b>Roundtrip flights</b></td><td>&#8377;21,000 &ndash; &#8377;31,000 pp</td></tr><tr><td><b>Package</b></td><td>&#8377;11,499 &ndash; &#8377;52,999 pp</td></tr></tbody></table>
                 </div>
               </div>
             </div>
           </div>
-          <div class="hint">Normal content bas likhte jaayein &mdash; heading, paragraph, bullet, table, quote, image. Layout chahiye to toolbar se block daalein: <b>Two column</b>, <b>Cards</b>, <b>Package list</b>, <b>FAQs</b>. Koi class ya code nahi likhna.</div>
+
+          <!-- ===== PACKAGE LIST ===== -->
+          <div class="blk blk--list">
+            <div class="blk-head"><span class="grip">&#10287;</span><span class="blk-chip">Package list</span>
+              <span class="blk-sum">Best-selling Andaman packages &mdash; Any type &middot; 11 packages</span>
+              <span class="toggle-ico">&#9662;</span><span class="blk-x" title="Remove block">&#10005;</span></div>
+            <div class="blk-body">
+              <div class="row2">
+                <div class="field"><label>Heading</label><input class="inp" value="Best-selling Andaman packages"></div>
+                <div class="field"><label>Line under heading</label><input class="inp" value="Filter by duration — every itinerary can be shortened or rerouted"></div>
+              </div>
+              <div class="row3">
+                <div class="field"><label>Package Type</label><select class="sel"><option selected>Any</option><option>Honeymoon</option><option>Family</option><option>Adventure</option><option>Scuba</option><option>Offbeat</option></select></div>
+                <div class="field"><label>Destination</label><select class="sel"><option selected>Any</option><option>Port Blair</option><option>Havelock (Swaraj Dweep)</option><option>Neil Island (Shaheed Dweep)</option><option>Baratang</option></select></div>
+                <div class="field"><label>Sort by</label><select class="sel"><option selected>Nights &mdash; short to long</option><option>Price &mdash; low to high</option><option>Recently updated</option></select></div>
+              </div>
+              <label class="blk-sublabel">Duration &mdash; kaunsi dikhein</label>
+              <div class="dur-grid">
+                <label class="inline-lbl"><input type="checkbox" checked> 2N / 3D <span class="dur-cnt">3</span></label>
+                <label class="inline-lbl"><input type="checkbox" checked> 3N / 4D <span class="dur-cnt">3</span></label>
+                <label class="inline-lbl"><input type="checkbox" checked> 4N / 5D <span class="dur-cnt">2</span></label>
+                <label class="inline-lbl"><input type="checkbox" checked> 5N / 6D <span class="dur-cnt">3</span></label>
+                <label class="inline-lbl"><input type="checkbox"> 6N / 7D <span class="dur-cnt muted">0</span></label>
+                <label class="inline-lbl"><input type="checkbox"> 7N / 8D <span class="dur-cnt muted">0</span></label>
+                <label class="inline-lbl"><input type="checkbox"> 8N and longer <span class="dur-cnt muted">0</span></label>
+              </div>
+              <div class="hint">Ginti apne aap aati hai &mdash; wo padhne ke liye hai, likhne ke liye nahi.</div>
+              <div class="checklist" style="margin-top:9px">
+                <label class="inline-lbl"><input type="checkbox" checked> Featured packages pehle</label>
+                <label class="inline-lbl"><input type="checkbox" checked> Duration filter pills dikhayein</label>
+                <label class="inline-lbl"><input type="checkbox" checked> Rating aur discount badge dikhayein</label>
+              </div>
+              <div class="notice" style="margin-bottom:0">Abhi <b>11 packages</b> aayenge. Naya package publish hote hi apne aap jud jaayega. <a href="#" data-go="packages">Packages dekhein &rarr;</a></div>
+            </div>
+          </div>
+
+          <!-- ===== TEXT ===== -->
+          <div class="blk blk--text closed">
+            <div class="blk-head"><span class="grip">&#10287;</span><span class="blk-chip">Text</span>
+              <span class="blk-sum">How many days are enough for Andaman? &mdash; The honest answer is decided by the ferries&hellip;</span>
+              <span class="toggle-ico">&#9656;</span><span class="blk-x" title="Remove block">&#10005;</span></div>
+            <div class="blk-body"><div class="hint">Collapsed.</div></div>
+          </div>
+
+          <!-- ===== CARDS ===== -->
+          <div class="blk blk--cards">
+            <div class="blk-head"><span class="grip">&#10287;</span><span class="blk-chip">Cards</span>
+              <span class="blk-sum">3 cards &middot; 3 columns</span>
+              <span class="toggle-ico">&#9662;</span><span class="blk-x" title="Remove block">&#10005;</span></div>
+            <div class="blk-body">
+              <div class="field" style="max-width:200px"><label>Columns</label><select class="sel"><option>2 columns</option><option selected>3 columns</option><option>4 columns</option></select></div>
+              <div class="cards-grid">
+                <div class="card-edit">
+                  <input class="inp" value="2N / 3D — 3N / 4D" style="font-weight:700;margin-bottom:6px">
+                  <textarea class="ta" style="min-height:64px;font-size:12px">Port Blair plus one island. Enough for Cellular Jail, Radhanagar and one water-sports day.</textarea>
+                  <input class="inp" value="Short break" placeholder="Tag (optional)" style="margin-top:6px;font-size:12px">
+                </div>
+                <div class="card-edit">
+                  <input class="inp" value="5N / 6D — the sweet spot" style="font-weight:700;margin-bottom:6px">
+                  <textarea class="ta" style="min-height:64px;font-size:12px">Port Blair, Havelock and Neil at a pace that leaves two unhurried beach days.</textarea>
+                  <input class="inp" value="Best for first-timers" placeholder="Tag (optional)" style="margin-top:6px;font-size:12px">
+                </div>
+                <div class="card-edit">
+                  <input class="inp" value="8N / 9D and longer" style="font-weight:700;margin-bottom:6px">
+                  <textarea class="ta" style="min-height:64px;font-size:12px">Adds Baratang's limestone caves, Diglipur's Ross &amp; Smith sandbar or Long Island.</textarea>
+                  <input class="inp" value="Offbeat &amp; repeat visitors" placeholder="Tag (optional)" style="margin-top:6px;font-size:12px">
+                </div>
+              </div>
+              <button class="btn btn-sm" style="margin-top:10px">&#65291; Card</button>
+            </div>
+          </div>
+
+          <!-- ===== TWO COLUMN ===== -->
+          <div class="blk blk--two">
+            <div class="blk-head"><span class="grip">&#10287;</span><span class="blk-chip">Two column</span>
+              <span class="blk-sum">Package with flights &nbsp;|&nbsp; Land only</span>
+              <span class="toggle-ico">&#9662;</span><span class="blk-x" title="Remove block">&#10005;</span></div>
+            <div class="blk-body">
+              <div class="field" style="max-width:200px"><label>Split</label><select class="sel"><option selected>50 / 50</option><option>60 / 40</option><option>40 / 60</option></select></div>
+              <div class="twocol">
+                <div class="editor-box">
+                  <div class="editor-tools"><i><b>B</b></i><i><em>I</em></i><i>&#8801;</i><i>&#128279;</i></div>
+                  <div class="editor-area" contenteditable="true">
+                    <h3>Package with flights</h3>
+                    <p>We quote the fare showing on the day and book it for you at cost.</p>
+                  </div>
+                </div>
+                <div class="editor-box">
+                  <div class="editor-tools"><i><b>B</b></i><i><em>I</em></i><i>&#8801;</i><i>&#128279;</i></div>
+                  <div class="editor-area" contenteditable="true">
+                    <h3>Land only</h3>
+                    <p>Every price on this page is land only &mdash; flights are booked separately.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== TEXT ===== -->
+          <div class="blk blk--text closed">
+            <div class="blk-head"><span class="grip">&#10287;</span><span class="blk-chip">Text</span>
+              <span class="blk-sum">What nobody tells you about ferry booking &mdash; Port Blair to Havelock is a 90-minute catamaran&hellip;</span>
+              <span class="toggle-ico">&#9656;</span><span class="blk-x" title="Remove block">&#10005;</span></div>
+            <div class="blk-body"><div class="hint">Collapsed.</div></div>
+          </div>
+
+          <!-- ===== FAQs ===== -->
+          <div class="blk blk--faq">
+            <div class="blk-head"><span class="grip">&#10287;</span><span class="blk-chip">FAQs</span>
+              <span class="blk-sum">Andaman package FAQs &mdash; 3 questions</span>
+              <span class="toggle-ico">&#9662;</span><span class="blk-x" title="Remove block">&#10005;</span></div>
+            <div class="blk-body">
+              <div class="field"><label>Heading</label><input class="inp" value="Andaman package FAQs"></div>
+              <div class="day">
+                <div class="day-head"><span class="grip">&#10287;</span><span class="dnum">1</span><span class="dt">How much does an Andaman tour package cost?</span><span class="toggle-ico">&#9662;</span></div>
+                <div class="day-body">
+                  <div class="field"><label>Question</label><input class="inp" value="How much does an Andaman tour package cost?"></div>
+                  <div class="field"><label>Answer</label><textarea class="ta" style="min-height:64px">Packages start at ₹11,499 per person for 2 nights and 3 days and go up to about ₹52,999 per person for a 12-night trip.</textarea></div>
+                </div>
+              </div>
+              <div class="day closed"><div class="day-head"><span class="grip">&#10287;</span><span class="dnum">2</span><span class="dt">What is included in the package price?</span><span class="toggle-ico">&#9656;</span></div><div class="day-body"><div class="hint">Collapsed.</div></div></div>
+              <div class="day closed"><div class="day-head"><span class="grip">&#10287;</span><span class="dnum">3</span><span class="dt">When is the best time to visit the Andamans?</span><span class="toggle-ico">&#9656;</span></div><div class="day-body"><div class="hint">Collapsed.</div></div></div>
+              <button class="btn btn-sm">&#65291; Question</button>
+              <div class="hint" style="margin-bottom:0">&#10003; Google ka FAQ schema is block se <b>apne aap</b> ban jaata hai.</div>
+            </div>
+          </div>
+
+          <!-- ===== ADD BLOCK ===== -->
+          <div class="blk-add">
+            <select class="sel" style="width:auto">
+              <option selected>&#65291; Add block&hellip;</option>
+              <option>Text</option>
+              <option>Two column</option>
+              <option>Cards</option>
+              <option>Package list</option>
+              <option>FAQs</option>
+            </select>
+            <span class="hint" style="margin:0">Naya block sabse neeche judta hai. Kram <span class="grip">&#10287;</span> se badlein.</span>
+          </div>
+
+          <div class="hint">Page pe blocks isi kram me chhapte hain. Text block me normal likhna &mdash; heading, paragraph, bullet, table, quote, image. Koi class ya code nahi likhna.</div>
         </div>
       </div>
     </div>
@@ -1796,8 +1874,17 @@ document.querySelectorAll('.submenu a').forEach(function(a){
   });
 });
 
-/* ---------- accordions (itinerary / faq / menu items) ---------- */
+/* ---------- accordions (itinerary / faq / menu items / content blocks) ---------- */
 document.addEventListener('click', function(e){
+  /* content blocks — har block apna panel hai (client, 7 Sep) */
+  var bh = e.target.closest('.blk-head');
+  if(bh && !e.target.closest('.btn') && !e.target.closest('.blk-x')){
+    var b = bh.parentElement;
+    b.classList.toggle('closed');
+    var bi = bh.querySelector('.toggle-ico');
+    if(bi) bi.textContent = b.classList.contains('closed') ? '▸' : '▾';
+  }
+
   var head = e.target.closest('.day-head');
   if(head && !e.target.closest('.btn')){
     var d = head.parentElement;
