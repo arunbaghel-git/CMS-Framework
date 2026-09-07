@@ -158,3 +158,54 @@ export function textToHtml(text) {
 
   return out.join('')
 }
+
+/**
+ * HTML se plain text — **ek hi jagah** (D-87).
+ *
+ * ⚠️ Ye pehle `apps/web/components/package/Schema.jsx` me `stripTags` naam se rehta tha,
+ * theme ke andar. D-87 me read time ke liye **server pe** bhi wahi chahiye tha, aur us waqt
+ * do copies banana theek wahi galti hoti jo is repo me baar-baar hui hai: `sectionLabels`
+ * ka resolve (D-65), route strip (D-51) aur hotels table (D-58) — teenon ek hi tark pe
+ * server par laaye gaye the, taaki admin, API aur theme ek hi jawab par chalein.
+ *
+ * ⚠️ **Block tag ki jagah ek space aata hai, kuch nahi nahi** — ye D-82 me pakda gaya bug hai.
+ * Bina iske `…settle in.</p><p>In the evening…` jud kar `settle in.In the evening` ban jaata
+ * tha, do vaakya bina space ke chipke hue. Neeche `\s+` wala step usi ek space ko saaf kar
+ * deta hai, to kahin do space bhi nahi bachte.
+ *
+ * @param {string} html
+ * @returns {string}
+ */
+export function htmlToText(html) {
+  return String(html ?? '')
+    .replace(/<\/(p|li|ul|ol|h[1-6]|blockquote|div|tr|td)>/gi, ' ')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * Padhne me kitne minute — byline ka teesra hissa (D-87, client ka faisla #9).
+ *
+ * **Poori tarah automatic hai, koi field nahi.** Client ne byline ke teenon hisse (author,
+ * updatedAt, read time) apne aap chaahe the.
+ *
+ * 200 shabd/minute aam padhne ki raftaar hai. Kam se kam `1` isliye hai ki `0 min read`
+ * chhapna tooti hui cheez jaisa dikhta hai (D-30) — khaali page pe byline hi na aaye, wo
+ * faisla theme ka hai.
+ *
+ * @param {string} text plain text (`htmlToText()` se guzra hua)
+ * @returns {number}
+ */
+export function readingMinutes(text) {
+  const words = String(text ?? '')
+    .split(/\s+/)
+    .filter(Boolean).length
+
+  return words === 0 ? 0 : Math.max(1, Math.round(words / 200))
+}

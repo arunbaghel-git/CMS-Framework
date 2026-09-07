@@ -1,4 +1,4 @@
-import { HOTEL_CATEGORY_LABEL } from '@cms/shared'
+import { HOTEL_CATEGORY_LABEL, htmlToText } from '@cms/shared'
 
 /**
  * Package page ka structured data — reference (`itinerary-v3.html`) ke `@graph` se.
@@ -45,27 +45,13 @@ const safeJson = (value) => JSON.stringify(value).replace(/</g, '\\u003c')
 /**
  * HTML se plain text — structured data ke liye (D-80).
  *
- * Entity ko markup nahi chahiye; use wo text chahiye jo aadmi padhta hai. `&nbsp;` bhi asli
- * space ban jaata hai, warna schema me wo character jyon ka tyon chala jaata.
+ * ⚠️ **Ye ab `packages/shared` me hai** (`htmlToText`, D-87). Pehle iski poori copy yahin
+ * theme ke andar thi; D-87 me read time ke liye server pe bhi wahi chahiye tha, aur do
+ * copies rakhna theek wahi galti hoti jo `sectionLabels` (D-65), route strip (D-51) aur
+ * hotels table (D-58) pe pehle ho chuki hai. D-82 wala "block tag ki jagah ek space" fix
+ * bhi wahin chala gaya hai.
  */
-const stripTags = (html) =>
-  String(html ?? '')
-    /**
-     * ⚠️ **Block tag ki jagah ek space aata hai, kuch nahi nahi.**
-     *
-     * Bina iske `…settle in.</p><p>In the evening…` jud kar `settle in.In the evening` ban
-     * jaata tha — do vaakya bina space ke chipke hue. Neeche `\s+` wala step usi ek space ko
-     * saaf kar deta hai, to kahin do space bhi nahi bachte.
-     */
-    .replace(/<\/(p|li|ul|ol|h[1-6]|blockquote|div|tr|td)>/gi, ' ')
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/\s+/g, ' ')
-    .trim()
+const stripTags = htmlToText
 
 /** Relative path → absolute URL, jab site ka pata configured ho. */
 const absolute = (siteUrl, path) => {

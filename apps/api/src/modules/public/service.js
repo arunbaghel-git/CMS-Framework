@@ -2,11 +2,14 @@ import {
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   cheapestPricing,
+  extractBlockText,
+  htmlToText,
   isPubliclyVisible,
   nightsByStay,
   normalizePath,
   pricedCategories,
   pricingSchema,
+  readingMinutes,
   resolveSectionLabels,
   routeStrip,
 } from '@cms/shared'
@@ -21,6 +24,8 @@ import { ensurePackageDefaults } from '../package-defaults/service.js'
 import { findRedirect } from '../redirects/service.js'
 import { getSettings } from '../settings/service.js'
 import { Taxonomy } from '../taxonomies/model.js'
+/** Byline ka author — sirf `name`, aur wo bhi D-87 ke faisle #9 ke liye (R10). */
+import { User } from '../users/model.js'
 
 /**
  * Public read ka business logic — R1.
@@ -268,6 +273,20 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
     footerNote: settings.footerNote,
     footerDisclaimer: settings.footerDisclaimer,
 
+    /**
+     * Hero ke neeche ki trust line — `.vhero__trust`, `Settings ▸ Tour settings` se (D-87 #11).
+     *
+     * **`settings` me hai kyunki client ne ise global kaha** — wahi lakeer jo `ctaSection`
+     * (D-67) pe hai. Isiliye ye page ke payload me **nahi** jaata: hero package page pe bhi
+     * hai, aur dono jagah bhejne ka matlab hota ek hi cheez do jagah.
+     *
+     * Filter yahan lagta hai, theme me nahi — bina text wala badge ek khaali `<span>` banata
+     * hai jiske dono taraf separator dikhte hain (wahi soch jo `headerButtons` pe hai).
+     */
+    trustBadges: (settings.tourSettings?.trustBadges ?? [])
+      .filter((badge) => badge?.text)
+      .map(({ id, icon, text }) => ({ id, icon, text })),
+
     timezone: settings.timezone,
     dateFormat: settings.dateFormat,
     currency: settings.currency,
@@ -325,8 +344,27 @@ export async function resolvePublicPath(
    */
   if (!isPubliclyVisible(entry)) return null
 
-  return { kind: 'entry', entry: await toPublicEntry(entry, siteId, locale) }
+  /**
+   * Type ke hisaab se do alag projection — D-87.
+   *
+   * ⚠️ **Pehle ye branch thi hi nahi**, aur `toPublicEntry()` har type pe chalti thi. Wo poori
+   * tarah package-shaped hai: ek `page` resolve karne pe bhi chaar taxonomy query, ek
+   * `Transfer.find()` aur `resolveSimilarPackages()` ka poora daur chalta tha — sirf khaali
+   * arrays banane ke liye. Aaj tak wo chhupa raha kyunki `page` ka koi template hi nahi tha
+   * (A-9), to us payload ko koi padhta hi nahi tha.
+   *
+   * Naye types ke liye `PAGE_TYPES` me jodna hai — `type === 'page'` jaisa check har jagah
+   * bikhraana wahi hardcoding hai jise D-09 ne mana kiya tha.
+   */
+  const entryPayload = PAGE_TYPES.has(entry.type)
+    ? await toPublicPage(entry, siteId, locale)
+    : await toPublicEntry(entry, siteId, locale)
+
+  return { kind: 'entry', entry: entryPayload }
 }
+
+/** Wo types jinka payload page-shaped hai, package-shaped nahi (D-87). */
+const PAGE_TYPES = new Set(['page', 'tourPage'])
 
 /**
  * Mongo id ka shape sahi hai? `$in` me bekaar string CastError phenkti hai, aur wo public
@@ -548,7 +586,7 @@ async function resolvePackageExtras(fields, days, siteId, locale) {
  * document pe chalti hai, aur yahan list chahiye. Dono ka matlab ek hi rakha gaya hai —
  * `published`, ya `scheduled` jiska waqt aa chuka (R2 wala self-healing).
  */
-async function resolveSimilarPackages(doc, siteId, locale, limit) {
+async function resolveSimilarPackages(doc, siteId, locale, limit, defaultRating) {
   const { nights, days } = doc.fields ?? {}
 
   /**
@@ -574,10 +612,24 @@ async function resolveSimilarPackages(doc, siteId, locale, limit) {
 
   if (!docs.length) return []
 
-  /**
-   * Saare candidates ke stays **ek query me** — har card ke liye alag call ka matlab hota
-   * bara round trip ek page render pe. Wahi tark jo `findItemsByIds()` pe likha hai.
-   */
+  return toPackageCards(docs, siteId, locale, defaultRating)
+}
+
+/**
+ * Package docs ki list → listing cards (`.prow`).
+ *
+ * ⚠️ **Ye `resolveSimilarPackages` ke andar se nikaala gaya hai** (D-87). Wahan ye inline tha
+ * aur theek chalta tha — par tour page ka `Package list` block **bilkul wahi card** chahta
+ * hai, aur do copies rakhne ka matlab hota ki kal koi ek jagah `bestFor` jode aur doosri
+ * jagah bhool jaaye. Theek wahi ho chuka hai: `bestFor` similar cards pe **chhoot gaya tha**
+ * aur 2 Sep ko alag se jodna pada.
+ *
+ * Stays aur types **ek-ek query me** aate hain, har card ke liye alag nahi — wahi tark jo
+ * `findItemsByIds()` pe likha hai.
+ */
+async function toPackageCards(docs, siteId, locale, defaultRating) {
+  if (!docs.length) return []
+
   const allStayIds = docs.flatMap((d) =>
     (Array.isArray(d.fields?.itinerary) ? d.fields.itinerary : []).map(
       (day) => day.overnightStayId,
@@ -644,9 +696,337 @@ async function resolveSimilarPackages(doc, siteId, locale, limit) {
         bestFor: fields.bestFor ?? '',
         /** Sabse sasti category — wahi jo us package ke apne page ke upar chhapta hai. */
         from: cheapestPricing(pricing),
+
+        /**
+         * `4.8 ★ 214 reviews` — package ki apni, warna site wali (D-87 §3).
+         *
+         * Fallback **yahan** lagta hai, write pe nahi: store wahi hota hai jo client ne likha,
+         * warna default badalne pe purane package apni purani value pe atke rehte (D-65).
+         */
+        rating: resolveRating(fields.rating, defaultRating),
       }
     }),
   )
+}
+
+/**
+ * Package ki apni rating, warna site wali — D-87 §3.
+ *
+ * ⚠️ **Khaali `value` (0) "mat dikhao" nahi hai, "site wali chalao" hai.** D-70 me wo "mat
+ * dikhao" tha, aur wo matlab per-package field pe nahi chal sakta: paanchon live package pe
+ * `fields.rating` hai hi nahi, aur us matlab ka nateeja hota ki deploy karte hi paanchon page
+ * se rating gayab ho jaaye. Dono khaali hon tabhi line gayab hoti hai.
+ */
+function resolveRating(own, fallback) {
+  const value = Number(own?.value) || 0
+  if (value > 0) return { value, count: Number(own?.count) || 0 }
+
+  return { value: Number(fallback?.value) || 0, count: Number(fallback?.count) || 0 }
+}
+
+/**
+ * `Package list` block ek baar me kitne packages **dekhta** hai (cards se alag).
+ *
+ * Cards `props.limit` (max 60) tak hi jaate hain, par facets ki ginti poori filtered list pe
+ * honi chahiye — warna `2N / 3D [3]` jhootha ho jaata jab chauthaa package limit se bahar
+ * chhoot jaaye. Isliye query pehle sab uthati hai, phir ginti hoti hai, phir slice.
+ *
+ * 200 ek chhat hai, target nahi: site pe aaj **paanch** package hain. Iske bina ek din
+ * 5000-package wali site pe ek page render poora collection memory me le aata.
+ */
+const PACKAGE_LIST_SCAN_CAP = 200
+
+/**
+ * Duration ke pills aur unki ginti — `.fbar` (client ka faisla #8).
+ *
+ * ⚠️ **Ginti derive hoti hai, store nahi** — wahi niyam jo hotels table (D-58) aur upar ke
+ * daam (D-56) pe hai. Store karne ka matlab hota ki naya package publish karte hi har tour
+ * page ka number chup-chaap jhootha ho jaaye.
+ *
+ * ⚠️ **`8N and longer` ek hi bucket hai**, aur wo reference se aaya hai — `tour-v3.html` me
+ * literally `data-f="d8,d9,d12"` likha hai. Bina is bucket ke ek 8N, ek 9N aur ek 12N package
+ * teen alag pills bana dete aur bar lambi hoti chali jaati.
+ *
+ * Jis package pe `nights` likhi hi nahi wo kisi pill me nahi jaata (par `All` me ginti hai) —
+ * wahi guard jo `resolveSimilarPackages()` pe hai: bina uske `null` khud ek bucket ban jaata.
+ */
+const LONG_STAY_FROM = 8
+
+function durationFacets(docs) {
+  const buckets = new Map()
+
+  for (const doc of docs) {
+    const nights = doc.fields?.nights
+    const days = doc.fields?.days
+    if (nights == null) continue
+
+    const long = nights >= LONG_STAY_FROM
+    const key = long ? 'd8plus' : `d${nights}`
+
+    const existing = buckets.get(key)
+    if (existing) {
+      existing.count += 1
+      continue
+    }
+
+    buckets.set(key, {
+      key,
+      /**
+       * ⚠️ Label bucket ke **pehle** package ke days se banta hai. Aam taur pe wo `nights + 1`
+       * hota hai (`2N / 3D`), par wo ek niyam nahi hai — client 3N/5D bhi likh sakta hai. Aisi
+       * soorat me ek hi pill do alag durations ko dikhati hai, aur wo dikhne wali cheez hai,
+       * chhupi hui nahi.
+       */
+      label: long ? `${LONG_STAY_FROM}N and longer` : `${nights}N / ${days ?? nights + 1}D`,
+      nights: long ? null : nights,
+      count: 1,
+    })
+  }
+
+  return [...buckets.values()].sort((a, b) => (a.nights ?? 99) - (b.nights ?? 99))
+}
+
+/** `Package list` block ke sort ke paanch tareeke — props ka enum yahi hai (`page.js`). */
+const SORTERS = {
+  featured: (a, b) => Number(b.featured) - Number(a.featured) || b.updatedAt - a.updatedAt,
+  recent: (a, b) => b.updatedAt - a.updatedAt,
+  duration: (a, b) => (a.nights ?? 999) - (b.nights ?? 999),
+  /** Bina daam wale packages hamesha **neeche** — upar aane se list tooti hui lagti hai (D-30). */
+  'price-asc': (a, b) => (a.price ?? Infinity) - (b.price ?? Infinity),
+  'price-desc': (a, b) => (b.price ?? -Infinity) - (a.price ?? -Infinity),
+}
+
+/**
+ * `Package list` block — page ka asli maal (`.prows` + `.fbar`), D-87 faisla #6.
+ *
+ * ⚠️ **Naya endpoint jaan-boojh kar nahi banaya.** List `resolve` ke payload me hi jaati hai,
+ * `similar[]` ki tarah — usse `path:` cache tag (D-52) aur ISR (D-83) dono muft mil jaate
+ * hain. Alag endpoint ka matlab hota ki wo call cache ke bahar rehti aur har page load pe
+ * API tak jaati — theek wahi bug jo D-83 me teen hafte chhupa raha.
+ *
+ * ⚠️ Sort **JS me** hota hai, Mongo me nahi, aur wo majboori hai: `price-asc`/`price-desc`
+ * `cheapestPricing()` se aate hain, jo ek derived value hai (`categoryPricing[]` me sabse
+ * sasta bhara hua daam). Use Mongo me sort karne ka matlab hota ya to use store karna — aur
+ * phir wo har pricing edit pe stale ho jaata — ya ek aggregation pipeline jo usi ginti ko
+ * dobara likhti.
+ */
+async function resolvePackageListBlock(props, siteId, locale, defaults) {
+  const now = new Date()
+
+  const filter = {
+    siteId,
+    locale,
+    type: 'package',
+    deletedAt: null,
+    $or: [{ status: 'published' }, { status: 'scheduled', publishAt: { $lte: now } }],
+  }
+
+  /**
+   * Taxonomy ka filter — `entry.taxonomies` ki apni key pe (D-49).
+   *
+   * `isObjectId` ka pehra zaroori hai: bekaar string `$in` me CastError phenkti hai aur wo
+   * public page pe **500** ban jaati, jabki wo sirf ek purana reference hai.
+   */
+  if (props.packageTypeId && isObjectId(props.packageTypeId)) {
+    filter['taxonomies.packageTypes'] = props.packageTypeId
+  }
+  if (props.destinationId && isObjectId(props.destinationId)) {
+    filter['taxonomies.destinations'] = props.destinationId
+  }
+
+  const docs = await Entry.find(filter).sort({ updatedAt: -1 }).limit(PACKAGE_LIST_SCAN_CAP).lean()
+
+  /** Facets **slice se pehle** — poori filtered list pe, warna ginti jhoothi ho jaati hai. */
+  const facets = props.showFilters && props.showCounts ? durationFacets(docs) : []
+
+  /**
+   * Sort ki chaabi pehle nikaali jaati hai, phir sort — comparator ke andar
+   * `cheapestPricing()` chalane ka matlab hota use har comparison pe dobara ginna
+   * (O(n log n) baar), aur wo har baar `pricingSchema.parse()` bhi chalata.
+   */
+  const keyed = docs.map((doc) => ({
+    doc,
+    featured: Boolean(doc.fields?.featured),
+    updatedAt: new Date(doc.updatedAt ?? 0).getTime(),
+    nights: doc.fields?.nights ?? null,
+    price: cheapestPricing(pricingSchema.parse(doc.fields?.pricing ?? {}))?.priceFrom ?? null,
+  }))
+
+  keyed.sort(SORTERS[props.sort] ?? SORTERS.featured)
+
+  const cards = await toPackageCards(
+    keyed.slice(0, props.limit).map((row) => row.doc),
+    siteId,
+    locale,
+    defaults.rating,
+  )
+
+  return {
+    cards,
+    facets,
+    /** `.fbar__c` — `14 packages`. Ye poori filtered list ki ginti hai, dikh rahe cards ki nahi. */
+    total: docs.length,
+    showFilters: props.showFilters,
+  }
+}
+
+/**
+ * Page ke blocks ka payload — id se, D-87 §2.
+ *
+ * ⚠️ **Kram yahan se nahi aata.** Kram HTML me hai (`content`), aur theme wahi padhti hai;
+ * ye sirf id se settings ka naksha hai. Isiliye ye ek object lautata hai, array nahi — array
+ * lautane ka matlab hota do jagah kram, aur wo do din me alag ho jaate.
+ *
+ * ⚠️ Sirf `packageList` ke liye query lagti hai. Baaki teen ke props apne aap me poore hain,
+ * par wo bhi yahin se guzarte hain — taaki theme ke liye ek hi shape rahe aur use "kaunsa
+ * block resolve hua hai" yaad na rakhna pade.
+ */
+async function resolvePageBlocks(blocks, siteId, locale, defaults) {
+  const entries = Object.entries(blocks ?? {})
+  if (!entries.length) return {}
+
+  const resolved = await Promise.all(
+    entries.map(async ([id, block]) => {
+      if (block?.type !== 'packageList') return [id, block]
+
+      /**
+       * `data` `props` ke **saath** jaata hai, uski jagah nahi. Theme ko dono chahiye:
+       * `props` batata hai client ne kya chuna (`showFilters` off hai ya nahi), `data` wo hai
+       * jo us chunav se nikla.
+       */
+      return [
+        id,
+        { ...block, data: await resolvePackageListBlock(block.props, siteId, locale, defaults) },
+      ]
+    }),
+  )
+
+  return Object.fromEntries(resolved)
+}
+
+/**
+ * Breadcrumb — parent chain se, **server pe** (client ka faisla #12).
+ *
+ * Client ne per-page "breadcrumb label" wala field **hataya** — wo parent se apne aap banta
+ * hai. Yahi `resolvePath()` wala hi tark hai: ek hi cheez do jagah likhne ka matlab hota ki
+ * ek din URL kuch aur kahe aur breadcrumb kuch aur.
+ *
+ * ⚠️ Depth ki chhat 10 hai. Loop `parentId` pe chalta hai, aur ek toota hua chain (A → B → A)
+ * bina chhat ke poora page hang kar deta. `entries` service aisa chain banne nahi deti, par
+ * wo guard **write** pe hai — ye read hai, aur read ko apne bharose pe khada hona chahiye.
+ */
+async function resolveBreadcrumbs(doc, siteId, locale) {
+  const trail = []
+  let current = doc
+  let depth = 0
+
+  while (current?.parentId && depth < 10) {
+    const parent = await Entry.findOne({
+      _id: current.parentId,
+      siteId,
+      locale,
+      deletedAt: null,
+    })
+      .select('title path parentId')
+      .lean()
+
+    if (!parent) break
+
+    trail.unshift({ name: parent.title, path: parent.path })
+    current = parent
+    depth += 1
+  }
+
+  return trail
+}
+
+/**
+ * Page aur Tour Page ka public payload — D-87.
+ *
+ * ⚠️ **Ye branch pehle thi hi nahi.** `toPublicEntry()` har type ke liye chalti thi aur wo
+ * poori tarah **package-shaped** hai: itinerary, pricing, hotels, add-ons, similar. Ek `page`
+ * resolve karne pe wo saara kaam chalta tha aur khaali jawab deta tha — chaar taxonomy query,
+ * ek `Transfer.find()`, aur `resolveSimilarPackages()` ka poora daur, sirf khaali arrays
+ * banane ke liye.
+ */
+async function toPublicPage(doc, siteId, locale) {
+  const fields = doc.fields ?? {}
+
+  const [defaults, settings, author, breadcrumbs] = await Promise.all([
+    ensurePackageDefaults(siteId),
+    getSettings(siteId),
+    /**
+     * Byline ka author — **poori tarah automatic** (client ka faisla #9), koi field nahi.
+     *
+     * ⚠️ Sirf `name` jaata hai. Email, username aur role public payload me kabhi nahi ja
+     * sakte (R10) — wahi wajah jiske liye ye module admin API se alag hai (§10).
+     */
+    doc.authorId
+      ? User.findById(doc.authorId)
+          .select('name')
+          .lean()
+          .catch(() => null)
+      : null,
+    resolveBreadcrumbs(doc, siteId, locale),
+  ])
+
+  /**
+   * Hero ka banner — page ka apna Featured image **jeet-ta hai** (client ka faisla #10).
+   *
+   * Settings wala universal banner sirf fallback hai. Wahi shakl jo rating (D-87 §3) aur
+   * `sectionLabels` (D-65) pe hai: site ki default niche, page ka apna upar.
+   */
+  const banner =
+    (await toDisplayImage(doc.featuredImageId, 'large', siteId)) ??
+    (await toDisplayImage(settings.tourSettings?.bannerMediaId, 'large', siteId))
+
+  const blocks = await resolvePageBlocks(fields.blocks, siteId, locale, defaults)
+
+  /**
+   * Read time content ke **saare** rich text se ginti hai, sirf pehle block se nahi —
+   * `extractBlockText()` poore tree se text nikalta hai (wahi jo `searchText` bharta hai).
+   */
+  const readMinutes = readingMinutes(htmlToText(extractBlockText(doc.content?.blocks ?? [])))
+
+  return {
+    id: String(doc._id),
+    type: doc.type,
+    title: doc.title,
+    slug: doc.slug,
+    path: doc.path,
+    excerpt: doc.excerpt ?? '',
+    content: doc.content ?? { version: 1, blocks: [] },
+    seo: doc.seo ?? {},
+    updatedAt: doc.updatedAt ?? null,
+
+    banner,
+    breadcrumbs,
+
+    fields: {
+      eyebrow: fields.eyebrow ?? '',
+      subheading: fields.subheading ?? '',
+      /** Khaali `value` wale cards gir jaate hain — khaali cheez khaali dikhe, tooti hui nahi (D-30). */
+      statRail: (Array.isArray(fields.statRail) ? fields.statRail : []).filter((s) => s?.value),
+    },
+
+    /**
+     * Byline — teenon hisse derive hote hain, ek bhi field nahi (client ka faisla #9).
+     */
+    byline: {
+      author: author?.name ?? '',
+      updatedAt: doc.updatedAt ?? null,
+      readMinutes,
+    },
+
+    /**
+     * ⚠️ **Trust badges yahan jaan-boojh kar nahi hain** — wo `getPublicSettings()` me hain.
+     *
+     * Wo global hain (client ka faisla #11) aur hero package page pe bhi hai. Dono payload me
+     * bhejne ka matlab hota ek hi cheez do jagah, aur ek din wo do alag ho jaate — theek wahi
+     * jo `sectionLabels` aur route strip pe hone se bachaya gaya tha (D-65, D-51).
+     */
+    blocks,
+  }
 }
 
 async function toPublicEntry(doc, siteId, locale) {
@@ -672,7 +1052,7 @@ async function toPublicEntry(doc, siteId, locale) {
   const [stays, extras, similar] = await Promise.all([
     resolveTaxonomies(stayIds, siteId, locale),
     resolvePackageExtras(fields, days, siteId, locale),
-    resolveSimilarPackages(doc, siteId, locale, defaults.similar?.total ?? 12),
+    resolveSimilarPackages(doc, siteId, locale, defaults.similar?.total ?? 12, defaults.rating),
   ])
   const stayById = new Map(stays.map((s) => [s.id, s]))
   const transferById = new Map(
@@ -703,6 +1083,15 @@ async function toPublicEntry(doc, siteId, locale) {
       ferriesNote: fields.ferriesNote ?? '',
       featured: Boolean(fields.featured),
     },
+
+    /**
+     * Rating — package ki apni, warna `packageDefaults` wali (D-87 §3).
+     *
+     * `fields` ke **bahar** hai, jaan-boojh kar: `fields` wo hai jo entry pe jaisa ka waisa
+     * likha hai, aur ye us se alag hai — isme site ki default ghuli hui ho sakti hai. Wahi
+     * lakeer jo `pricing`/`hotels`/`similar` pe khinchi hai.
+     */
+    rating: resolveRating(fields.rating, defaults.rating),
 
     /** Har din ke references resolve ho kar jaate hain — theme ko lookup nahi karna padta. */
     itinerary: days.map((day) => ({

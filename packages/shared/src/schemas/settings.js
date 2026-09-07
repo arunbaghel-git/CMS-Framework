@@ -146,6 +146,50 @@ export const MAX_CTA_BUTTONS = 2
 export const MAX_CTA_BULLETS = 6
 
 /**
+ * `Settings ▸ Tour settings` — trust badges aur universal banner (D-87, client 7 Sep).
+ *
+ * ## `settings` me kyun, `packageDefaults` me nahi
+ *
+ * Client ne dono ko **global** kaha (faisle #10 aur #11). Wahi lakeer jo `ctaSection` (D-67)
+ * pe khinchi thi: jo cheez sirf package ki nahi, wo `settings` me rehti hai. Trust badges
+ * hero pe chhapte hain aur wo hero package page pe bhi hai aur tour page pe bhi — unhe
+ * `packageDefaults` me daalne ka matlab hota ki tour page apne badges package ke globals se
+ * uthaye, jo padhne me ulta lagta.
+ *
+ * ⚠️ **Tab ka naam client ka hai, aur wo content se thoda tang hai** — badges aur banner
+ * dono package page pe bhi chalte hain, sirf Tour pages pe nahi. Naam client ne chuna (R15);
+ * ye chetavni isliye hai ki koi ise "sirf tourPage ka" samajh kar wahan gate na laga de.
+ */
+export const trustBadgeSchema = z.object({
+  id: z.string().min(1).optional(),
+  /**
+   * Icon enum hai, SVG string nahi — wahi tark jo `cards` block ke icon pe hai (D-87) aur
+   * footer column ki `width` pe (D-44): non-technical client se SVG type karwana wahi bojh
+   * hai jise ye CMS hataane ke liye bana hai.
+   *
+   * Teen icon reference ke `.vhero__trust` se hi aaye hain — shield, pin, doc.
+   */
+  icon: z.enum(['none', 'shield', 'pin', 'doc', 'star', 'clock', 'check']).default('none'),
+  text: z.string().trim().max(120).default(''),
+})
+
+export const MAX_TRUST_BADGES = 6
+
+export const tourSettingsSchema = z.object({
+  /**
+   * Har page ka default hero banner (faisla #10).
+   *
+   * ⚠️ **Page ka apna Featured image ise jeet-ta hai.** Client ne yahi kaha: _"Page pe
+   * Featured image daali ho to wo use hogi."_ Yaani ye fallback hai, override nahi — wahi
+   * shakl jo rating (D-87 §3) aur `sectionLabels` (D-65) pe hai.
+   */
+  bannerMediaId: z.string().nullable().default(null),
+
+  /** `.vhero__trust` — hero ke neeche ki line. Khaali list pe wo poori line render hi nahi hoti. */
+  trustBadges: z.array(trustBadgeSchema).max(MAX_TRUST_BADGES).default([]),
+})
+
+/**
  * Page ka aakhri CTA card — design ka `.offer` (`itinerary-v3.html`), D-67.
  *
  * **`settings` me hai, `packageDefaults` me nahi** — client ka faisla: _"dusre pages par
@@ -365,6 +409,15 @@ export const settingsSchema = z.object({
    * nahi, uska palan hai: jo cheez sirf package ki nahi, wo yahin rehni chahiye.
    */
   ctaSection: ctaSectionSchema.default({}),
+
+  /**
+   * `Settings ▸ Tour settings` — trust badges + universal banner (D-87, client #10/#11).
+   *
+   * Poora tark `tourSettingsSchema` ke upar hai. Screen Slice C me banegi; schema pehle isliye
+   * hai ki public payload me iska raasta abhi se sach ho — warna wahan ek aisi field padhi
+   * jaati jo maujood hi nahi.
+   */
+  tourSettings: tourSettingsSchema.default({}),
 
   /**
    * `{year}` placeholder theme replace karta hai, taaki har 1 January ko client ko

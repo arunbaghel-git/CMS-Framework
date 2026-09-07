@@ -5907,8 +5907,65 @@ naye type ko **create** kar deta hai (`urlPattern` ka "sirf create pe" wala niya
 nahi hai — wo maujooda type badalne par lagta hai). `rating`/`PAGE_FIELDS` `fields` me hain, jo
 **hamesha** sync hote hain. Deploy pe `pnpm seed` chahiye, `pnpm cms migrate` nahi.
 
+### §6 — Public payload (Slice B)
+
+**`toPublicEntry()` har type pe chalti thi, aur wo poori tarah package-shaped hai.** Ek `page`
+resolve karne pe chaar taxonomy query, ek `Transfer.find()` aur `resolveSimilarPackages()` ka
+poora daur chalta tha — sirf khaali arrays banane ke liye. Aaj tak wo chhupa raha kyunki
+`page` ka koi template hi nahi tha (A-9), to us payload ko koi padhta hi nahi tha.
+
+Ab `PAGE_TYPES` (`page`, `tourPage`) ke liye `toPublicPage()` alag hai. Set isliye, `type ===
+'page'` jaisa check bikhraana wahi hardcoding hai jise D-09 ne mana kiya tha.
+
+**Card builder `resolveSimilarPackages()` se bahar nikla** — `toPackageCards()`. Tour page ka
+`Package list` **bilkul wahi card** chahta hai, aur do copies rakhne ka nateeja pehle ho chuka
+hai: `bestFor` similar cards pe **chhoot gaya tha** aur 2 Sep ko alag se jodna pada.
+
+⚠️ **Naya endpoint jaan-boojh kar nahi banaya.** List `resolve` ke payload me hi jaati hai,
+`similar[]` ki tarah — usse `path:` cache tag (D-52) aur ISR (D-83) dono muft milte hain. Alag
+endpoint ka matlab hota ki wo call cache ke bahar rehti aur har page load pe API tak jaati —
+theek wahi bug jo D-83 me teen hafte chhupa raha.
+
+⚠️ **Facets `limit` se pehle ginte hain.** `2N / 3D [3]` poori filtered list ki ginti hai,
+dikh rahe cards ki nahi — warna chauthaa package limit se bahar chhootte hi number jhootha ho
+jaata.
+
+⚠️ **`8N and longer` ek hi bucket hai** — reference me literally `data-f="d8,d9,d12"` likha
+hai. Bina uske ek 8N, ek 9N aur ek 12N package teen alag pills bana dete.
+
+⚠️ **Sort JS me hota hai, Mongo me nahi**, aur wo majboori hai: `price-asc`/`price-desc`
+`cheapestPricing()` se aate hain, jo derived hai. Mongo me sort karne ka matlab hota ya to use
+store karna — aur phir wo har pricing edit pe stale — ya wahi ginti aggregation me dobara
+likhna. Isliye `PACKAGE_LIST_SCAN_CAP = 200` ki chhat hai (site pe aaj **paanch** package hain).
+
+⚠️ **Breadcrumb `parentId` se banta hai, path se nahi** — aur ye do alag cheezein hain.
+`tourPage` `hierarchical: false` hai, isliye uska URL flat rehta hai (`/tour-packages`), par
+`parentId` phir bhi store hota hai aur breadcrumb usi se banta hai. Yaani client URL badle
+bina page ko ek jagah "rakh" sakta hai. Iska apna test hai.
+
+**`htmlToText()` `packages/shared` me aa gaya.** Wo pehle `Schema.jsx` me `stripTags` tha —
+theme ke andar. Read time ke liye server pe bhi wahi chahiye tha, aur do copies banana theek
+wahi galti hoti jo `sectionLabels` (D-65), route strip (D-51) aur hotels table (D-58) pe
+bachayi gayi thi. D-82 wala "block tag ki jagah ek space" fix bhi wahin chala gaya.
+
+**`Settings ▸ Tour settings` ka schema bhi ab hai** (`tourSettings`) — screen Slice C me
+banegi. Schema pehle isliye ki payload me uska raasta abhi se sach ho, warna wahan ek aisi
+field padhi jaati jo maujood hi nahi.
+
+⚠️ **Trust badges `getPublicSettings()` me hain, page ke payload me nahi.** Wo global hain
+(#11) aur hero package page pe bhi hai; dono jagah bhejne ka matlab hota ek hi cheez do jagah.
+
+⚠️ `updateSettings()` me whitelist wala jaal **nahi** hai — wo input pe loop karta hai. Par gate
+Zod pe khisak jaata hai: field `settings.js` ke schema me na ho to validation use chup-chaap
+gira degi (wahi lakshan, alag jagah).
+
+**Live check (D-82/D-83 wala sabak):** `/packages/discover-andaman` asli DB pe resolve kiya —
+6 din, 4 similar cards, aur rating `packageDefaults` se **4.9 / 412** par gir rahi hai. Yaani
+per-package rating aane ke baad bhi live site pe koi regression nahi.
+
+**804 test pass** (789 baseline + 15).
+
 ### Ab bhi khula
 
-- Trust badges + universal banner ke **field** — `Settings ▸ Tour settings` tay ho gaya (#11),
-  uske andar kya-kya, wo Slice C me
-- Slice B (API payload) · C (admin screens) · D (theme) · E (`Appearance ▸ Sidebar`)
+- `Settings ▸ Tour settings` ke andar kya-kya dikhega — schema ban chuka, **screen Slice C me**
+- Slice C (admin screens) · D (theme) · E (`Appearance ▸ Sidebar`, faisla #14)

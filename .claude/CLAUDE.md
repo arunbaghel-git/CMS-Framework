@@ -409,8 +409,30 @@ hissa nahi tha. FAQ accordion theme ke JSX me hai isliye aaj tak chala; client e
 naye type ko create kar deta hai; `fields` hamesha sync hote hain. Deploy pe **`pnpm seed`**
 chahiye, `pnpm cms migrate` nahi.
 
-Baaki slices: **B** (API payload) · **C** (admin screens + `Settings ▸ Tour settings`) ·
-**D** (theme) · **E** (`Appearance ▸ Sidebar`, faisla #14).
+**Slice B (public payload) bhi ban gayi.** `toPublicEntry()` **har** type pe chalti thi aur wo
+poori tarah package-shaped hai — ek `page` resolve karne pe `resolveSimilarPackages()` ka poora
+daur chalta tha, sirf khaali arrays banane ke liye. Ab `page`/`tourPage` ke liye
+`toPublicPage()` alag hai.
+
+- **Card builder bahar nikla** (`toPackageCards()`) — tour page ka `Package list` bilkul wahi
+  card chahta hai. Do copies ka nateeja pehle ho chuka hai: `bestFor` similar cards pe
+  **chhoot gaya tha**
+- ⚠️ **Naya endpoint nahi banaya** — list `resolve` ke payload me hai, taaki `path:` tag aur
+  ISR muft milein. Alag endpoint wahi D-83 wala bug dobara banata
+- ⚠️ **Facets `limit` se pehle ginte hain** — warna `2N / 3D [3]` jhootha ho jaata
+- ⚠️ **Sort JS me** hai, Mongo me nahi — `price-asc` `cheapestPricing()` se aata hai jo derived
+  hai. Isliye `PACKAGE_LIST_SCAN_CAP = 200` ki chhat hai
+- **`htmlToText()` ab `packages/shared` me hai** — wo `Schema.jsx` me `stripTags` tha; read time
+  ke liye server pe bhi wahi chahiye tha, aur do copies wahi galti hoti jo D-65/D-51/D-58 pe
+  bachayi gayi thi
+- **`tourSettings` ka schema bhi ban gaya** — screen Slice C me
+
+**Live check:** `/packages/discover-andaman` asli DB pe resolve kiya — rating `packageDefaults`
+se **4.9 / 412** par gir rahi hai, yaani per-package rating aane ke baad bhi koi regression
+nahi. **804 test pass.**
+
+Baaki slices: **C** (admin screens + `Settings ▸ Tour settings`) · **D** (theme) ·
+**E** (`Appearance ▸ Sidebar`, faisla #14).
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

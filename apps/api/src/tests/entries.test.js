@@ -2443,3 +2443,270 @@ describe('per-package rating (D-87 — D-70 palta)', () => {
     expect(res.status).toBe(400)
   })
 })
+
+// ── Slice B — Tour Page ka public payload (D-87) ─────────────────────────────
+
+describe('Tour Page ka public payload (D-87)', () => {
+  /** Publish tak le jaane wala chhota helper — public resolve sirf visible entries deta hai. */
+  async function publish(id) {
+    await authed('post', `/api/entries/${id}/publish`, adminJar).send({})
+    return id
+  }
+
+  async function publishedTour(title, { fields, content, parentId } = {}) {
+    const created = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
+      title,
+      ...(parentId ? { parentId } : {}),
+      ...(content ? { content } : {}),
+      ...(fields ? { fields } : {}),
+    })
+    return publish(created.body.data.entry.id)
+  }
+
+  const resolve = (path) => request(app).get(`/api/public/resolve?path=${path}`)
+
+  it('page-shaped payload aata hai, package-shaped nahi', async () => {
+    // Pehle `toPublicEntry()` HAR type pe chalti thi: ek page resolve karne pe chaar taxonomy
+    // query, ek Transfer.find() aur resolveSimilarPackages() ka poora daur chalta tha, sirf
+    // khaali arrays banane ke liye. Aaj tak wo chhupa raha kyunki page ka template hi nahi tha
+    await publishedTour('Andaman Tour Packages')
+
+    const { entry } = (await resolve('/andaman-tour-packages')).body.data
+
+    expect(entry.type).toBe('tourPage')
+    expect(entry.byline).toBeDefined()
+    expect(entry.blocks).toEqual({})
+    expect(entry.breadcrumbs).toEqual([])
+
+    // Package ke khaane page pe hote hi nahi
+    expect(entry.itinerary).toBeUndefined()
+    expect(entry.pricing).toBeUndefined()
+    expect(entry.similar).toBeUndefined()
+  })
+
+  it('byline ke teenon hisse derive hote hain — koi field nahi (faisla #9)', async () => {
+    await publishedTour('Byline Test', {
+      content: {
+        version: 1,
+        blocks: [
+          {
+            id: 'rt1',
+            type: 'richText',
+            props: { html: `<p>${Array(420).fill('shabd').join(' ')}</p>` },
+            children: [],
+          },
+        ],
+      },
+    })
+
+    const { byline } = (await resolve('/byline-test')).body.data.entry
+
+    expect(byline.author).toBe('boss')
+    expect(byline.updatedAt).toBeTruthy()
+    // 420 shabd / 200 = 2.1 → 2
+    expect(byline.readMinutes).toBe(2)
+  })
+
+  it('breadcrumb parent chain se banta hai — per-page label field nahi (faisla #12)', async () => {
+    const parent = await authed('post', '/api/entries', adminJar).send({
+      type: 'page',
+      title: 'Andaman',
+    })
+    await publish(parent.body.data.entry.id)
+
+    await publishedTour('Tour Packages', { parentId: parent.body.data.entry.id })
+
+    // ⚠️ URL FLAT rehta hai (`/tour-packages`, `/andaman/tour-packages` nahi) — `tourPage`
+    // `hierarchical: false` hai, isliye uska path `urlPattern` se banta hai, parent chain se
+    // nahi. Yahi wo faisla hai jo ARCHIVE_CRUMB ko root pe rakhta hai (D-87 §1).
+    //
+    // Par `parentId` phir bhi store hota hai, aur breadcrumb usi se banta hai — yaani client
+    // URL badle bina page ko ek jagah "rakh" sakta hai. Do alag cheezein hain, aur ye test
+    // unke alag hone ko pin karta hai
+    const { entry } = (await resolve('/tour-packages')).body.data
+
+    expect(entry.path).toBe('/tour-packages')
+    expect(entry.breadcrumbs).toEqual([{ name: 'Andaman', path: '/andaman' }])
+  })
+
+  it('stat rail me khaali value wale cards gir jaate hain (D-30)', async () => {
+    await publishedTour('Rail Test', {
+      fields: {
+        statRail: [
+          { value: '40+', label: 'Itineraries' },
+          { value: '', label: 'Khaali' },
+        ],
+      },
+    })
+
+    const { statRail } = (await resolve('/rail-test')).body.data.entry.fields
+
+    expect(statRail).toHaveLength(1)
+    expect(statRail[0].label).toBe('Itineraries')
+  })
+})
+
+describe('Package list block ka payload (D-87)', () => {
+  async function publishedPackage(title, fields) {
+    const created = await createEntry(adminJar, { title, fields })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+    return created.body.data.entry.id
+  }
+
+  async function tourWithList(title, props = {}) {
+    const created = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
+      title,
+      content: {
+        version: 1,
+        blocks: [
+          {
+            id: 'rt1',
+            type: 'richText',
+            props: { html: '<div class="cms-package-list" id="blk-list1"></div>' },
+            children: [],
+          },
+        ],
+      },
+      fields: { blocks: { 'blk-list1': { type: 'packageList', props } } },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get(`/api/public/resolve?path=${created.body.data.entry.path}`)
+    return res.body.data.entry.blocks['blk-list1']
+  }
+
+  const pricing = (price) => ({ categoryPricing: [{ category: 'deluxe', priceFrom: price }] })
+
+  it('cards resolve ke payload me aate hain — koi naya endpoint nahi', async () => {
+    // Naya endpoint hota to wo call cache ke bahar rehti aur har page load pe API tak jaati —
+    // theek wahi bug jo D-83 me teen hafte chhupa raha
+    await publishedPackage('Emerald Andaman', { nights: 2, days: 3 })
+
+    const block = await tourWithList('List A')
+
+    expect(block.data.cards.map((c) => c.title)).toEqual(['Emerald Andaman'])
+    expect(block.data.total).toBe(1)
+  })
+
+  it('har duration ka apna count aata hai (faisla #8)', async () => {
+    await publishedPackage('A', { nights: 2, days: 3 })
+    await publishedPackage('B', { nights: 2, days: 3 })
+    await publishedPackage('C', { nights: 5, days: 6 })
+
+    const block = await tourWithList('List B')
+
+    expect(block.data.facets).toEqual([
+      { key: 'd2', label: '2N / 3D', nights: 2, count: 2 },
+      { key: 'd5', label: '5N / 6D', nights: 5, count: 1 },
+    ])
+  })
+
+  it('8N aur usse lambe ek hi bucket me jaate hain — reference ka data-f="d8,d9,d12"', async () => {
+    await publishedPackage('Long A', { nights: 8, days: 9 })
+    await publishedPackage('Long B', { nights: 12, days: 13 })
+
+    const block = await tourWithList('List C')
+
+    expect(block.data.facets).toEqual([
+      { key: 'd8plus', label: '8N and longer', nights: null, count: 2 },
+    ])
+  })
+
+  it('ginti limit se pehle hoti hai — warna count jhootha ho jaata', async () => {
+    await publishedPackage('A', { nights: 2, days: 3 })
+    await publishedPackage('B', { nights: 2, days: 3 })
+    await publishedPackage('C', { nights: 2, days: 3 })
+
+    const block = await tourWithList('List D', { limit: 1 })
+
+    expect(block.data.cards).toHaveLength(1)
+    expect(block.data.facets[0].count).toBe(3)
+    expect(block.data.total).toBe(3)
+  })
+
+  it('price-asc sabse saste se lagata hai, aur bina daam wale neeche jaate hain', async () => {
+    await publishedPackage('Mehnga', { nights: 2, days: 3, pricing: pricing(40000) })
+    await publishedPackage('Sasta', { nights: 2, days: 3, pricing: pricing(11499) })
+    await publishedPackage('Bina Daam', { nights: 2, days: 3 })
+
+    const block = await tourWithList('List E', { sort: 'price-asc' })
+
+    expect(block.data.cards.map((c) => c.title)).toEqual(['Sasta', 'Mehnga', 'Bina Daam'])
+  })
+
+  it('draft package list me nahi aata', async () => {
+    await publishedPackage('Live', { nights: 2, days: 3 })
+    await createEntry(adminJar, { title: 'Draft', fields: { nights: 2, days: 3 } })
+
+    const block = await tourWithList('List F')
+
+    expect(block.data.cards.map((c) => c.title)).toEqual(['Live'])
+  })
+
+  it('showCounts off ho to facets bante hi nahi', async () => {
+    await publishedPackage('A', { nights: 2, days: 3 })
+
+    const block = await tourWithList('List G', { showCounts: false })
+
+    expect(block.data.facets).toEqual([])
+    // ...par cards aur total phir bhi aate hain
+    expect(block.data.cards).toHaveLength(1)
+    expect(block.data.total).toBe(1)
+  })
+})
+
+describe('rating ka fallback (D-87 §3)', () => {
+  const resolve = (slug) => request(app).get(`/api/public/resolve?path=/packages/${slug}`)
+
+  async function publishedPackage(title, fields) {
+    const created = await createEntry(adminJar, { title, fields })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+    return created.body.data.entry.id
+  }
+
+  const setDefaultRating = (rating) =>
+    authed('patch', '/api/package-defaults', adminJar).send({ rating })
+
+  it('package ki apni rating site wali ko override karti hai', async () => {
+    await setDefaultRating({ value: 4.9, count: 412 })
+    await publishedPackage('Apni Rating', { rating: { value: 4.8, count: 214 } })
+
+    const { rating } = (await resolve('apni-rating')).body.data.entry
+
+    expect(rating).toEqual({ value: 4.8, count: 214 })
+  })
+
+  it('khaali rating par site wali chalti hai — package se gayab nahi hoti', async () => {
+    // D-70 me khaali ka matlab "mat dikhao" tha. Per-package field pe wo matlab nahi chal
+    // sakta: paanchon live package pe fields.rating hai hi nahi, aur us matlab ka nateeja
+    // hota ki deploy karte hi paanchon page se rating gayab ho jaaye
+    await setDefaultRating({ value: 4.9, count: 412 })
+    await publishedPackage('Bina Rating', {})
+
+    const { rating } = (await resolve('bina-rating')).body.data.entry
+
+    expect(rating).toEqual({ value: 4.9, count: 412 })
+  })
+
+  it('dono khaali hon to rating zero rehti hai — tab line gayab hoti hai', async () => {
+    await publishedPackage('Dono Khaali', {})
+
+    const { rating } = (await resolve('dono-khaali')).body.data.entry
+
+    expect(rating).toEqual({ value: 0, count: 0 })
+  })
+
+  it('listing card pe bhi wahi fallback lagta hai', async () => {
+    await setDefaultRating({ value: 4.9, count: 412 })
+    await publishedPackage('Card A', { nights: 3, days: 4, rating: { value: 4.7, count: 96 } })
+    await publishedPackage('Card B', { nights: 3, days: 4 })
+
+    const { similar } = (await resolve('card-a')).body.data.entry
+    expect(similar[0].rating).toEqual({ value: 4.9, count: 412 })
+
+    const { rating } = (await resolve('card-a')).body.data.entry
+    expect(rating).toEqual({ value: 4.7, count: 96 })
+  })
+})

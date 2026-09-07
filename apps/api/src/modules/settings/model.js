@@ -84,6 +84,9 @@ const settingsSchema = new mongoose.Schema(
      */
     ctaSection: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 
+    /** `Settings ▸ Tour settings` — trust badges + universal banner (D-87). */
+    tourSettings: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+
     footerColumns: {
       type: [
         new mongoose.Schema(
