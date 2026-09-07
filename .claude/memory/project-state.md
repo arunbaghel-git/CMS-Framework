@@ -1,12 +1,145 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 7 Sep 2026 — **172 commit**, **0 unpushed** (`origin/main` = `d7efd37`),
-> **774 test pass** (31 file), lint + format clean, tree clean.
+> **Last updated:** 7 Sep 2026 (raat) — **179 commit**, **0 unpushed** (`origin/main` =
+> `02d2e83`), **810 test pass** (31 file), lint + format clean, tree clean.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (7 Sep)
+## ⏭️ Nayi session yahan se shuru kare (7 Sep, raat)
+
+### Abhi ki asli haalat (naapi hui)
+
+| Kya           | Value                                                           |
+| ------------- | --------------------------------------------------------------- |
+| Commits       | **179**                                                         |
+| Push          | ✅ **0 unpushed** — `origin/main` = `HEAD` = `02d2e83`          |
+| Tests         | **810 pass**, 31 file (`pnpm test`, exit 0)                     |
+| Admin build   | ✅ `vite build` pass                                            |
+| Lint · Format | dono clean                                                      |
+| Tree          | clean                                                           |
+| Migrations    | **22 files**, 22/22 applied — **koi nayi nahi lagi**            |
+| Decisions     | **D-87** tak                                                    |
+| DB            | 5 package · 4 content type (`package` `page` `post` `tourPage`) |
+
+### Pehle ye do
+
+```bash
+docker compose up -d mongo
+pnpm seed          # ⚠️ ZAROORI — tourPage type isi se banta hai
+pnpm dev
+```
+
+⚠️ **`pnpm cms migrate` ki zaroorat nahi** — D-87 me koi migration nahi lagi. `tourPage` naya
+type hai aur `ensureBuiltInContentTypes()` naye type ko **create** kar deta hai; `fields` hamesha
+sync hote hain. Naye instance pe sirf `pnpm seed` chahiye.
+
+---
+
+## 7 Sep — Tour Page (D-87). Slice A · B · C ban gayi
+
+**8 commit.** Client ne `tour-v3.html` di (package **listing** page) aur din me **do baar
+palta** — dono baar model badla, dono baar code uske peechhe gaya.
+
+### Client ke faisle jo code me hain
+
+| #   | Faisla                                                                  | Kahan                            |
+| --- | ----------------------------------------------------------------------- | -------------------------------- |
+| 1   | Tour ka **apna top-level menu**                                         | `nav.js`                         |
+| 2   | Koi template nahi — **ek hi edit screen**                               | `PageEdit.jsx`                   |
+| 3   | Title · Eyebrow · Sub heading · Stat rail · Content                     | wahi                             |
+| 4   | Content me **blocks** — Text · Two column · Cards · Package list · FAQs | `PageBlocks.jsx`                 |
+| 7   | FAQ ka schema **us block se**                                           | `faqsPropsSchema.emitSchema`     |
+| 8   | Duration filter, har ek ki apni ginti                                   | `durationFacets()` — **derived** |
+| 9   | Byline poori tarah **automatic**                                        | `toPublicPage().byline`          |
+| 10  | Banner Settings me, Featured image jeet-ti hai                          | `Settings ▸ Tour settings`       |
+| 11  | Trust badges → **`Settings ▸ Tour settings`**                           | wahi                             |
+| 12  | Breadcrumb **parent se auto**                                           | `resolveBreadcrumbs()`           |
+| 13  | Eyebrow per-page                                                        | `fields.eyebrow`                 |
+
+### ⚠️ Sabse zaroori: §2 ka model usi din palat gaya (§7)
+
+Kuch ghante ke liye blocks ek hi HTML field ke andar `<div id="blk-…">` the aur settings
+`fields.blocks{}` me. **Client ne demo dekh kar mana kiya** — "poora panel hoga, dropdown se add
+kare". Ab **`content.blocks[]` hi kram hai**, aur Text bhi ek block hai.
+
+Us palat se **teen problem apne aap khatam** ho gayi: settings ka do jagah hona, orphan blocks,
+aur sanitizer me `data-*` kholne ka sawaal. Ab hum `block.js` ke FROZEN `{id, type, props}` par
+hain — Phase 5 ka builder yahi data uthayega.
+
+⚠️ `blockSchema.id` ab **input me optional** hai (shape nahi badla). `normalizeContent()` write
+pe bhar deta hai — wahi jodi jo `faqs[]` aur `itinerary[]` pe hai.
+
+### ⚠️ Rating ab per-package — D-70 palta
+
+Listing page pe chaudah cards pe ek hi `4.9 ★ 412 trips` **jhootha** dikhta hai.
+
+**Khaali `value` par `packageDefaults.rating` chalti hai** — package ka number use _override_
+karta hai, mitata nahi. Fallback **payload banate waqt** lagta hai, write pe nahi. Isiliye
+paanchon live package pe aaj bhi 4.9/412 chal raha hai (live check kiya).
+
+### Do chupe hue bug jo raaste me mile
+
+1. **`details`/`summary` sanitizer me the hi nahi.** FAQ accordion theme ke JSX me hai isliye
+   aaj tak chala; client editor me khud `<details>` likhta to wo **write pe chup-chaap gayab**
+   hota. Wahi shakl jo D-64/D-65 ke bug ki thi.
+2. **Test suite rate limit kha rahi thi.** `entries.test.js` ka har test `beforeEach` me chaar
+   login karta hai; file 168 test ki hui aur 1000 req/min ki chhat paar ho gayi. Naye tests
+   **429** khaate the aur wo failure bilkul logic bug jaisi dikhti thi
+   (`Cannot read properties of undefined`). Ab limiter test me band hai (`isTest`) — **auth ka
+   apna limiter chalta rehta hai**.
+
+### ⚠️ Slice A ka schema plan se bana tha, design se nahi
+
+`admin-design-v3.html` se milaan pe **paanch farak** nikle aur design jeeta (R15): Package list
+ka heading + line, `featuredFirst` alag checkbox (sort me teen hi option), `showBadges`, cards pe
+`tag` bajaye `icon`, FAQs ka heading. **Sabak:** schema design se milao, plan se nahi.
+
+### Live check — asli DB pe (D-82/D-83 wala sabak)
+
+Ek tour page banaya → publish → resolve → **hata diya**. Blocks kram me, byline apne aap, kachcha
+`content` payload me nahi, list ne 5 me se 3 cards diye, facets `5N/6D[5]`, rating
+`packageDefaults` se. `tourSettings` alag se **DB se** padha gaya (response se nahi). Dono ke
+baad DB waisi ki waisi.
+
+⚠️ Ek fail hui run ka draft DB me reh gaya tha aur usse agla page `-2` pe chala gaya — wo bhi
+saaf kiya. **Sabak: e2e script ka cleanup `finally` me hona chahiye.**
+
+---
+
+## ⏭️ Agla kaam — Slice D (theme)
+
+`apps/web` ka catch-all abhi **har** payload `PackagePage` pe bhejta hai; usme page-shaped branch
+chahiye. Naye CSS: `.vhero*` (7) · `.vrail*` (4) · `.fbar`+`.dpill` · `.prows` · `.prow__off` ·
+`.dcard`/`.dgrid` · two-column · `.toc` · `.ctastrip`.
+
+**`.prow` poora bana hua hai** — `globals.css:3544–3766` (23 rule) + `Similar.jsx`. Sirf
+`.prow__off` naya.
+
+⚠️ **Maloom kaante:**
+
+- `.pgl` package page pe sidebar **right** rakhta hai; tour page pe wo ulta hai. `.pgl` **badla to
+  package detail page tootega** — `.pgl--sideleft` modifier chahiye
+- `.b` / `.b-o` / `.b-wa` hamare paas **nahi** hain — `.btn--outline` / `.btn--accent` hain.
+  `.sec--blue` bhi nahi — `.pkg` / `.pkg__cta` hain (`globals.css:4376`)
+- `.blk` pe `content-visibility` + `contain: paint` hai — sticky filter bar `.blk` ke **andar
+  nahi** rakhni (D-85)
+- `PackagePage.jsx:95` ka `ARCHIVE_CRUMB` `/andaman-tour-packages/` pe link karta hai aur wo
+  **abhi bhi 404** deta hai. Client jis din wo tour page banayega, wo apne aap theek ho jaayega —
+  koi code change nahi
+
+Uske baad **Slice E** — `Appearance ▸ Sidebar` (faisla #14). Wo `forms.placement` ka gap bhi
+bharta hai (`form.js:152`: paanch placement design hui thin, do hi bani).
+
+### Slice C ka ek adhoora hissa
+
+**Tour list ka `Packages` column** abhi **blocks ki ginti** dikhata hai, packages ki nahi. Design
+me wahan `11` jaisa number hai — wo live packages pe depend karta hai, isliye server pe hi ban
+sakta hai aur uske liye list endpoint ko per-row query karni padegi.
+
+---
+
+## ⏭️ (purana) Nayi session yahan se shuru kare (7 Sep, subah)
 
 ### Abhi ki asli haalat (naapi hui, 7 Sep)
 
