@@ -4193,6 +4193,15 @@ nahi.
 **Traveller reviews universal hain, aur rating haath se likhi jaati hai**
 _1 Sep 2026 · client ka faisla — spec 007 §9 #8 band_
 
+> ⚠️ **Rating wala hissa Superseded by D-87** (7 Sep). Rating ab **per-package** hai —
+> `tour-v3.html` ek listing page hai, aur wahan chaudah cards pe ek hi `4.9 ★ 412 trips`
+> jhootha dikhta hai. `packageDefaults.rating` **rehta hai**, par ab wo _default_ hai:
+> khaali `fields.rating` par wahi chalti hai.
+>
+> **`reviews` wala hissa waisa ka waisa hai** — wo aaj bhi universal hai, apni collection me,
+> aur package usme se kuch chunta nahi. "Haath se likhi jaati hai" bhi waisa hi hai — rating
+> aaj bhi `reviews[]` se **gini nahi jaati**, sirf uski _jagah_ badli hai.
+
 ### Sawaal
 
 Slice 6 ka bacha hua hissa `reviews[]` + rating tha, aur spec 007 §9 #8 do mahine se khula
@@ -5738,3 +5747,168 @@ migration ne index **khaali** collection pe banaye hain to asli data bina index 
 `09-OPEN-ITEMS.md` **A-18**.
 
 774 tests pass.
+
+---
+
+## D-87
+
+**Tour Page — ek edit screen, blocks content editor me, aur rating per-package**
+_7 Sep 2026 · client ka faisla · Slice A (neev) ban chuki hai_
+
+### Sandarbh
+
+Client ne teen nayi design reference di — `tour-v3.html` (package listing page),
+`page-template.html` (14-block palette) aur `page-template-text.html` (text-first page).
+`page-template.html` **scope se bahar** hai: wo Phase 5 ka block builder hai aur
+`packages/blocks` abhi khaali (`export {}`).
+
+Din bhar baat hui aur client **do baar palta**. Pehle "do template" tay hua tha — Text
+article aur Package archive, ek chooser ke saath. Phir usne wo poora rad kiya:
+
+> **Koi template nahi.** Ek hi edit screen, aur layout content editor ke blocks se aayega.
+
+### Client ke 14 faisle
+
+| # | Faisla |
+| --- | --- |
+| 1 | Tour ka **apna top-level menu**, Pages ke submenu me nahi |
+| 2 | Koi template nahi — ek hi edit screen. Chooser, dropdown, switch-confirm sab rad |
+| 3 | Edit screen: Title · Eyebrow · **Sub heading (editor)** · Stat rail · Content |
+| 4 | Content editor me **blocks** — `Two column` · `Cards` · `Package list` · `FAQs` |
+| 5 | Cards editor ke **andar**, alag panel nahi |
+| 6 | Package list bhi editor ka block — jahan chaahein wahan |
+| 7 | FAQs bhi block, aur uska **schema server pe us block se** banega |
+| 8 | Package list ke filter: Package Type · Duration, **har duration ka apna count** |
+| 9 | Byline poori tarah **automatic** — author · updatedAt · read time. Koi field nahi |
+| 10 | Banner image Settings me universal. Page pe Featured image ho to wo jeetegi |
+| 11 | Trust badges → **`Settings ▸ Tour settings`** |
+| 12 | Breadcrumb label hataya — parent se auto |
+| 13 | Eyebrow line rahegi — per-page |
+| 14 | Sidebar + form placement per-page se hat kar **`Appearance ▸ Sidebar`** me |
+
+### §1 — Do content type, ek field set
+
+`page` aur `tourPage` do **alag types** hain, par unka field set **ek hi constant** hai
+(`PAGE_FIELDS`). Alag type isliye ki client ne teen cheezein alag maangi (#1): apna menu,
+apni list, apna URL — aur teenon `type` se hi aati hain.
+
+Ek hi type me `isTour` jaisa flag rakhne ka matlab hota ki **har** list query, **har** nav
+item aur **har** permission check us flag ko yaad rakhe. Ek jagah bhoolte hi Tour Pages
+`All Pages` me chhap jaate.
+
+Field set do copies me **nahi** rakha gaya, aur wo bhi soch kar: do copies ka matlab hota
+ki kal koi ek me field jode aur doosre me bhool jaaye, aur wo farak **sirf ek type ke edit
+screen pe** dikhe.
+
+⚠️ `tourPage` bhi `/{slug}` par hai, `page` ki tarah — `/tours/{slug}` par nahi.
+`PackagePage.jsx:95` ka `ARCHIVE_CRUMB` `/andaman-tour-packages/` pe link karta hai aur wo
+aaj **404 deta hai**. Root pe hone se wo link bina kisi redirect ke sach ho jaata hai.
+Do types ka ek URL space share karna safe hai: `{siteId, locale, path}` day 1 se unique hai
+(§3.1), isliye dusra write duplicate key pe girta hai — chup-chaap overwrite nahi hota.
+
+### §2 — Block ki settings HTML me nahi baith sakti thi
+
+`Package list` block ke apne settings hain (Package Type, Destination, sort, per-duration
+count). Teen raaste the:
+
+| Raasta | Faisla |
+| --- | --- |
+| `data-*` attribute | ❌ `sanitize-html.js` ka `COMMON_ATTRS` sirf `class·id·style·title·dir·lang` deta hai. `data-*` kholna matlab sanitizer ka daayra **har** profile pe badhana (Overview, FAQ answer, itinerary din, cancellation policy) — R20 ka ulta |
+| class name me encode | ❌ Nazuk aur padhne me bura; per-duration count jaisi nested setting isme aati hi nahi |
+| **`id` + alag `fields`** | ✅ **Chuna gaya** |
+
+Block ko `id` milti hai (`<div class="cms-package-list" id="blk-a1b2">`) aur settings
+`fields.blocks['blk-a1b2']` me jaati hain. Do faayde: **sanitizer ko haath nahi lagta**, aur
+shape `block.js` ke FROZEN `{id, type, props}` se hi aata hai — yaani Phase 5 ka asli
+registry aane pe takrav nahi hoga.
+
+⚠️ **Keemat maan li gayi hai:** settings do jagah hain. Client editor me wrapper delete kar
+de to `fields` me entry bachi reh jaati hai. Wo apne aap galat kuch nahi karti — theme HTML
+padhti hai aur sirf wahi blocks banati hai jo wahan hain — par safai `pruneOrphanBlocks()`
+me hoti hai, aur wo **saaf ki hui** `content` par chalti hai, `input.content` par nahi.
+
+⚠️ Safai **ek taraf** chalti hai: HTML me jo `id` nahi, uski settings jaati hain. Ulta kabhi
+nahi — HTML me ek `id` bina settings ke ho sakti hai (naya block, abhi kuch chuna nahi), aur
+wo bilkul theek haalat hai.
+
+⚠️ Sirf `fields` ka PATCH (jaise sidebar se Featured toggle) `current.content` padhta hai,
+warna wo request har block ki settings orphan samajh kar uda deti — us request me `content`
+hai hi nahi. Iska apna test hai.
+
+### §3 — Rating ab per-package (D-70 palta)
+
+**D-70 → Superseded by D-87.**
+
+1 Sep ko rating **universal** tay hui thi — poori site pe ek jodi, `packageDefaults.rating`
+me haath se likhi. Wo faisla sirf **package detail page** dekh kar liya gaya tha, jahan wo do
+jagah chhapti hai aur dono jagah wahi number theek lagta hai.
+
+7 Sep ko `tour-v3.html` aayi — ek **listing** page, jahan chaudah package ek doosre ke neeche
+khade hote hain. Wahan har card pe ek hi `4.9 ★ 412 trips` sirf galat nahi dikhta, wo
+**jhootha** dikhta hai: teen alag package, teen alag safar, ek hi ginti.
+
+⚠️ **Khaali ka matlab yahan D-70 se alag hai.** Wahan khaali `value` (0) = "rating dikhani hi
+nahi". Per-package field pe wo matlab nahi chalta: paanchon live package pe aaj
+`fields.rating` hai hi nahi, aur us matlab ka nateeja hota ki deploy karte hi paanchon page se
+rating **gayab** ho jaaye — jabki client ne wo `packageDefaults` me likhi hui hai aur wo aaj
+chhap rahi hai.
+
+Niyam: **khaali `value` par `packageDefaults.rating` chalti hai.** Package ka apna number usko
+_override_ karta hai, mitata nahi. Dono khaali hon tabhi line gayab hoti hai.
+
+⚠️ Fallback **payload banate waqt** lagta hai, write pe nahi — store wahi hota hai jo client ne
+likha. Warna default badalne pe purane package apni purani value pe atke rehte. Wahi tark jo
+`sectionLabels` ke resolve pe hai (D-65).
+
+⚠️ Ek nateeja maan lena chahiye: client "is package ki rating **mat** dikhao" nahi keh sakta jab
+tak site-level wali khaali na ho. Aaj wo kisi ne maanga nahi. Jis din maange, uske liye
+`value: -1` jaisa sentinel **mat** banana — ek alag `hideRating` toggle sasta aur saaf rahega.
+
+### §4 — `details`/`summary` sanitizer me nahi the
+
+D-87 ki jaanch me ek **chupa hua bug** nikla, jo is kaam ka hissa nahi tha.
+
+Package page ka FAQ accordion `<details>` se banta hai (D-59: _"koi JS nahi"_) — par wo theme
+ke JSX me likha hai, isliye sanitizer se guzarta hi nahi. Jis din client editor me khud
+`<details>` likhta, wo **write pe chup-chaap gayab** ho jaata: 200 aata, "Saved." dikhta, aur
+content ka wo hissa DB tak pahunchta hi nahi.
+
+Wahi shakl jo `cancellationText` (D-65) aur transfer duration (D-64) ke bug ki thi. FAQs block
+inhi se accordion banata hai, isliye ab dono `BLOCK` profile me hain.
+
+⚠️ `open` attribute jaan-boojh kar **nahi** diya — wo layout faisla hai (kaunsa FAQ khula
+khule), aur wo theme ka kaam hai, client ki HTML ka nahi.
+
+### §5 — `sanitizeEntryFields()` ki list ab ulta jaal hai
+
+`fields.subheading` aur blocks ke andar ka prose bhi ab us list me hain.
+
+⚠️ **Is list me naya field jodna bhoolna ek chup-chaap XSS hai** (R20). Ye us "whitelist wale
+jaal" ki **ulti shakl** hai jo `updatePackageDefaults()` pe chaar baar laga: wahan bhoolne se
+content **kho** jaata tha, yahan bhoolne se content **bach** jaata hai, bina safai ke — aur
+wahi zyada khatarnak hai.
+
+Card ka text **inline** profile se guzarta hai, block se nahi — wahi wajah jo `whatsIncluded`
+ki lines pe hai: wo `<p>` ke andar chhapta hai aur wahan ek aur block tag layout tod deta hai.
+
+### Kya ban chuka hai (Slice A)
+
+| | |
+| --- | --- |
+| `packages/shared/src/schemas/page.js` | naya — block settings, stat rail, eyebrow, sub heading, `collectBlockIdsFromHtml()` |
+| `content-types.js` | `PAGE_FIELDS` (dono types), naya `tourPage` type, package pe `rating` |
+| `package-defaults.js` | `ratingSchema` alag nikla — ab do jagah lagta hai |
+| `sanitize-html.js` | `details`/`summary`; `sanitizeEntryFields()` me `subheading` + blocks |
+| `entries/service.js` | `rating` · `statRail` · `blocks` ka normalization, `pruneOrphanBlocks()` |
+| Tests | **789 pass** (774 baseline + 15) |
+
+⚠️ **Koi migration nahi lagi.** `tourPage` naya type hai, aur `ensureBuiltInContentTypes()`
+naye type ko **create** kar deta hai (`urlPattern` ka "sirf create pe" wala niyam yahan rukavat
+nahi hai — wo maujooda type badalne par lagta hai). `rating`/`PAGE_FIELDS` `fields` me hain, jo
+**hamesha** sync hote hain. Deploy pe `pnpm seed` chahiye, `pnpm cms migrate` nahi.
+
+### Ab bhi khula
+
+- Trust badges + universal banner ke **field** — `Settings ▸ Tour settings` tay ho gaya (#11),
+  uske andar kya-kya, wo Slice C me
+- Slice B (API payload) · C (admin screens) · D (theme) · E (`Appearance ▸ Sidebar`)

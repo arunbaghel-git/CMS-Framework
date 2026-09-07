@@ -10,12 +10,16 @@ import {
   TAXONOMY_REF_KEYS,
   TAXONOMY_TYPE,
   TAXONOMY_TYPE_BY_REF_KEY,
+  collectBlockIdsFromHtml,
   extractBlockText,
   faqsSchema,
   itinerarySchema,
   packageAddOnsSchema,
   packageHotelsSchema,
+  pageBlocksSchema,
   pricingSchema,
+  ratingSchema,
+  statRailSchema,
   isReservedSlug,
   rebasePath,
   resolvePath,
@@ -206,6 +210,57 @@ function normalizeFields(fields, contentType) {
   }
 
   /**
+   * Package ki apni rating (D-87). Khaali chhodne pe `packageDefaults.rating` chalti hai —
+   * wo fallback **payload banate waqt** lagta hai, yahan nahi: store wahi hona chahiye jo
+   * client ne likha, warna default badalne pe purane packages usi purani value pe atke
+   * rehte. Wahi tark jo `sectionLabels` ke resolve pe hai (D-65).
+   */
+  if (has('rating')) out.rating = ratingSchema.parse(fields.rating)
+
+  /** `.vrail` ke chaar cards — har card ki apni stable `id` (D-43 §5 wali wajah). */
+  if (has('statRail')) {
+    const stats = statRailSchema.parse(fields.statRail)
+    out.statRail = stats.map((stat) => ({ ...stat, id: stat.id || randomUUID() }))
+  }
+
+  /**
+   * Blocks ki settings (D-87).
+   *
+   * ⚠️ Yahan `id` **generate nahi hoti** — aur ye baaki repeaters se ulta hai. Block ki id
+   * admin banata hai kyunki wo **HTML me pehle likhi jaati hai** (`<div id="blk-a1b2">`);
+   * server pe nayi id banane ka matlab hota ki wo HTML wale id se match hi na kare, aur
+   * settings chup-chaap kisi block pe lagti hi nahi.
+   */
+  if (has('blocks')) {
+    const blocks = pageBlocksSchema.parse(fields.blocks)
+    out.blocks = Object.fromEntries(
+      Object.entries(blocks).map(([id, block]) => [
+        id,
+        block.type === 'faqs'
+          ? {
+              ...block,
+              props: {
+                ...block.props,
+                items: block.props.items.map((faq) => ({ ...faq, id: faq.id || randomUUID() })),
+              },
+            }
+          : block.type === 'cards'
+            ? {
+                ...block,
+                props: {
+                  ...block.props,
+                  items: block.props.items.map((item) => ({
+                    ...item,
+                    id: item.id || randomUUID(),
+                  })),
+                },
+              }
+            : block,
+      ]),
+    )
+  }
+
+  /**
    * ⚠️ **HTML ki safai sabse aakhir me — aur ye kram jaan-boojh kar hai** (D-80).
    *
    * `itinerary[].description` aur `faqs[].answer` ab HTML hain. Safai pehle likhi gayi thi,
@@ -217,6 +272,41 @@ function normalizeFields(fields, contentType) {
    * hamesha jo bhi bana hai **uske upar** lagti hai.
    */
   return sanitizeEntryFields(out)
+}
+
+/**
+ * Un blocks ki settings hata deta hai jinka `<div>` content se ja chuka hai — D-87.
+ *
+ * Client editor me ek block ka wrapper delete kar de to `fields.blocks` me uski entry
+ * **bachi reh jaati hai**. Wo apne aap kuch galat nahi karti — theme HTML padhti hai aur
+ * sirf wahi blocks banati hai jo wahan hain — par bina safai ke wo hamesha ke liye padi
+ * rehti, aur do saal baad koi `fields` khol kar sochta ki page pe teen aur block hain.
+ *
+ * ⚠️ **Sach ka source HTML hai, ye naksha nahi.** Isiliye safai ek taraf chalti hai: HTML me
+ * jo id nahi, uski settings jaati hain. Ulta kabhi nahi — HTML me ek `id` bina settings ke
+ * ho sakti hai (naya block, abhi kuch chuna nahi), aur wo bilkul theek haalat hai.
+ *
+ * ⚠️ Ye tabhi chalta hai jab **dono** aaye — `fields` aur `content`. Sirf `content` ka PATCH
+ * (block delete kar ke save) orphan chhod jaayega; wo jaan-boojh kar hai, kyunki uske liye
+ * `fields` ko bina maange likhna padta. Admin ka form dono saath bhejta hai, aur orphan
+ * nuksaandeh hai bhi nahi.
+ *
+ * @param {any} fields normalize ho chuki fields
+ * @param {any} content sanitize ho chuka content
+ */
+function pruneOrphanBlocks(fields, content) {
+  const blocks = fields?.blocks
+  if (!blocks || typeof blocks !== 'object' || Array.isArray(blocks)) return fields
+
+  const html = (content?.blocks ?? [])
+    .map((block) => (block?.type === 'richText' ? (block.props?.html ?? '') : ''))
+    .join('\n')
+
+  const live = collectBlockIdsFromHtml(html)
+  const kept = Object.entries(blocks).filter(([id]) => live.has(id))
+
+  if (kept.length === Object.keys(blocks).length) return fields
+  return { ...fields, blocks: Object.fromEntries(kept) }
 }
 
 // ── taxonomy refs ────────────────────────────────────────────────────────────
@@ -795,6 +885,8 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
   const requested = input.status ?? ENTRY_STATUS.DRAFT
   const status = requested === ENTRY_STATUS.PENDING ? ENTRY_STATUS.PENDING : ENTRY_STATUS.DRAFT
 
+  const content = sanitizeContent(input.content)
+
   const doc = await Entry.create({
     ...input,
     ...scope(siteId, locale),
@@ -802,8 +894,14 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
     path,
     status,
     /** Overview ka rich text — HTML hai, isliye write pe saaf (D-80). */
-    content: sanitizeContent(input.content),
-    fields: normalizeFields(input.fields, contentType) ?? {},
+    content,
+    /**
+     * ⚠️ Orphan safai **saaf ki hui** `content` par chalti hai, `input.content` par nahi.
+     * Sanitizer HTML badal sakta hai (tag gir sakta hai, aur uske saath uski `id` bhi), aur
+     * jo DB me jaa raha hai wo yahi hai — orphan ka faisla usi sach par hona chahiye jo
+     * store ho raha hai, us par nahi jo bheja gaya tha.
+     */
+    fields: pruneOrphanBlocks(normalizeFields(input.fields, contentType), content) ?? {},
     publishAt: null,
     authorId: actor?.user?._id ? String(actor.user._id) : null,
     version: 0,
@@ -860,9 +958,21 @@ export async function updateEntry(
     if (input[key] !== undefined) $set[key] = input[key]
   }
 
-  if (input.fields !== undefined) $set.fields = normalizeFields(input.fields, contentType)
   /** Upar wale loop ne `content` set kiya hai — usme HTML hai, isliye yahan saaf (D-80). */
   if (input.content !== undefined) $set.content = sanitizeContent(input.content)
+
+  if (input.fields !== undefined) {
+    /**
+     * Orphan safai ke liye **wo** content chahiye jo save ke baad DB me hogi — is PATCH me
+     * aayi hui, ya jo pehle se padi hai. `current` lena zaroori hai: sirf `fields` ka PATCH
+     * (jaise sidebar se Featured toggle) warna har block ki settings orphan samajh kar uda
+     * deta, kyunki us request me `content` hai hi nahi.
+     */
+    $set.fields = pruneOrphanBlocks(
+      normalizeFields(input.fields, contentType),
+      $set.content ?? current.content,
+    )
+  }
 
   /**
    * `type` badalna allowed nahi.

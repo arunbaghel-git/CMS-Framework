@@ -128,12 +128,23 @@ contentTypes   * siteId, key(package|page|post|service…), label, labelPlural, 
                  tha. Client ka custom type bhi nested ho sakta hai.
                  locale yahan NAHI hai — type site ka structure hai, uska
                  content nahi. Translate label hoti hai, key nahi (D-46)
-                 package | page | post CODE-OWNED hain, seed sync karta hai
-                 (D-46, wahi model jo built-in roles pe hai — D-36)
+                 package | page | post | tourPage CODE-OWNED hain, seed sync
+                 karta hai (D-46, wahi model jo built-in roles pe hai — D-36)
+                 tourPage D-87 me juda — package LISTING page (tour-v3.html).
+                 page se alag type isliye ki menu, list aur URL teenon alag
+                 maange gaye the (client #1); FIELD SET DONO KA EK HI HAI
+                 (PAGE_FIELDS). Ek type me isTour flag rakhne ka matlab hota
+                 ki har list query aur har nav item us flag ko yaad rakhe
+                 tourPage bhi /{slug} par hai, /tours/{slug} par nahi —
+                 PackagePage.jsx ka ARCHIVE_CRUMB root pe link karta hai.
+                 Do type ek URL space share karte hain: safe hai kyunki
+                 {siteId, locale, path} unique hai (§3.1) — dusra write
+                 duplicate key pe girta hai, chup-chaap overwrite nahi hota
 
 entries        * siteId, locale, type, title, slug, path, status, publishAt,
-                 type: package | page | post — package pehla asli type hai (D-46),
-                 uska maal fields{} me, contentTypes.fields[] se declared
+                 type: package | page | post | tourPage — package pehla asli
+                 type hai (D-46), uska maal fields{} me,
+                 contentTypes.fields[] se declared
                  authorId, templateId, version, deletedAt,
                  content { version, blocks: [...] },     page builder tree
                  fields  { ...customFields },            contentType ke fields
@@ -148,6 +159,21 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          inhi se banta hai. pricing me SIRF categoryPricing[]
                          hai — currency settings.currency se (D-56 §2), aur
                          basis/GST/advance client ne hata diye (D-57 §3)
+                         package pe rating{value,count} bhi — D-87 (D-70 palta).
+                         KHAALI value par packageDefaults.rating chalti hai;
+                         package ka apna number use OVERRIDE karta hai, mitata
+                         nahi. Fallback PAYLOAD banate waqt lagta hai, write pe
+                         nahi — store wahi jo client ne likha (D-65 wala tark)
+                         page + tourPage ke apne: eyebrow, subheading (HTML),
+                         statRail[], blocks{} — contract
+                         packages/shared/schemas/page.js me (D-87)
+                         blocks{} me BLOCKS KI LIST NAHI hai — wo id se settings
+                         ka naksha hai. Kram aur layout content ki HTML me hain;
+                         SACH KA SOURCE HTML HAI, ye naksha nahi. Settings HTML
+                         me isliye nahi ja sakti thi ki sanitizer ka COMMON_ATTRS
+                         data-* allow nahi karta (D-87 §2)
+                         orphan (jiska div HTML se ja chuka) pruneOrphanBlocks()
+                         hata deta hai — SIRF tab jab fields aur content dono aayen
                  seo     { ... },
                  taxonomies { categories[], tags[],
                               destinations[], packageTypes[] },

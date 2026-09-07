@@ -139,13 +139,15 @@ describe('built-in content types', () => {
     const keys = res.body.data.contentTypes.map((t) => t.key).sort()
 
     expect(res.status).toBe(200)
-    expect(keys).toEqual(['package', 'page', 'post'])
+    // `tourPage` D-87 me juda (7 Sep) — package listing page. `page` se alag type isliye
+    // hai ki menu, list aur URL teenon alag maange gaye the; field set dono ka ek hi hai
+    expect(keys).toEqual(['package', 'page', 'post', 'tourPage'])
   })
 
   it('dobara chalne pe duplicate nahi banta — seed idempotent hai', async () => {
     const result = await ensureBuiltInContentTypes()
 
-    expect(await ContentType.countDocuments({})).toBe(3)
+    expect(await ContentType.countDocuments({})).toBe(4)
     expect(result.every((r) => r.action === 'up-to-date')).toBe(true)
   })
 
@@ -888,6 +890,10 @@ describe('package content type ka shape', () => {
       'faqs',
       'bestFor',
       'ferriesNote',
+      // D-87 (7 Sep) — D-70 palta. Listing page pe chaudah package ek doosre ke neeche
+      // khade hote hain, aur wahan har card pe ek hi rating jhoothi dikhti hai. Khaali
+      // chhodne pe `packageDefaults.rating` chalti hai — field mitata nahi, override karta hai
+      'rating',
       'featured',
       /* 'seoSchema' 4 Sep ko hata — ab wo packageDefaults pe hai, per-package nahi (D-82) */
     ])
@@ -2200,5 +2206,240 @@ describe('GET /api/public/resolve', () => {
   it('anjaan path pe 404, aur bina path ke 400', async () => {
     expect((await resolve('/kuch-bhi')).status).toBe(404)
     expect((await request(app).get('/api/public/resolve')).status).toBe(400)
+  })
+})
+
+// ── Tour Page aur block settings (D-87, 7 Sep) ───────────────────────────────
+
+describe('Tour Page ka type (D-87)', () => {
+  const createTour = (jar, body) =>
+    authed('post', '/api/entries', jar).send({ type: 'tourPage', ...body })
+
+  it('tourPage root pe baithta hai — /andaman-tour-packages, /tours/... nahi', async () => {
+    // `PackagePage.jsx` ka ARCHIVE_CRUMB is URL pe link karta hai aur wo aaj 404 deta hai.
+    // Tour page root pe hone se wo link bina kisi redirect ke sach ho jaata hai
+    const res = await createTour(adminJar, { title: 'Andaman Tour Packages' })
+
+    expect(res.status).toBe(201)
+    expect(await pathOf(res.body.data.entry.id)).toBe('/andaman-tour-packages')
+  })
+
+  it('page aur tourPage ek hi URL space share karte hain — dusra takrata hai, overwrite nahi', async () => {
+    // {siteId, locale, path} day 1 se unique hai (§3.1). Ye test us guarantee ko pin karta
+    // hai: bina uske ek Tour Page chup-chaap ek maujooda Page ka URL le leta
+    await createPage(adminJar, { title: 'Andaman Tour Packages' })
+    const tour = await createTour(adminJar, { title: 'Andaman Tour Packages' })
+
+    expect(tour.status).toBe(201)
+    expect(await pathOf(tour.body.data.entry.id)).toBe('/andaman-tour-packages-2')
+  })
+
+  it('dono types ka field set bilkul ek hai — ek hi edit screen chalti hai', async () => {
+    const page = await ContentType.findOne({ key: 'page' }).lean()
+    const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
+
+    expect(page.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail', 'blocks'])
+    expect(tour.fields).toEqual(page.fields)
+  })
+})
+
+describe('block settings — fields.blocks (D-87)', () => {
+  const createTour = (jar, body) =>
+    authed('post', '/api/entries', jar).send({ type: 'tourPage', ...body })
+
+  /** Ek content tree jisme diye hue block ids ke wrapper hain. */
+  const contentWith = (...ids) => ({
+    version: 1,
+    blocks: [
+      {
+        id: 'rt1',
+        type: 'richText',
+        props: {
+          html: ids.map((id) => `<div class="cms-package-list" id="${id}"></div>`).join(''),
+        },
+        children: [],
+      },
+    ],
+  })
+
+  it('settings id se judti hain, aur defaults bhar kar aati hain', async () => {
+    const res = await createTour(adminJar, {
+      title: 'Tour A',
+      content: contentWith('blk-a1b2'),
+      fields: {
+        blocks: { 'blk-a1b2': { type: 'packageList', props: { sort: 'price-asc' } } },
+      },
+    })
+
+    expect(res.status).toBe(201)
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+
+    // `.parse()` defaults bhar deta hai, isliye theme ko `?? 14` har jagah nahi likhna padta
+    expect(doc.fields.blocks['blk-a1b2'].props).toMatchObject({
+      sort: 'price-asc',
+      limit: 14,
+      showFilters: true,
+      showCounts: true,
+      packageTypeId: null,
+    })
+  })
+
+  it('galat block id 400 pe girti hai — id HTML me jaati hai, isliye shape sakht hai', async () => {
+    const res = await createTour(adminJar, {
+      title: 'Tour B',
+      content: contentWith('blk-a1b2'),
+      fields: { blocks: { 'evil id': { type: 'packageList', props: {} } } },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('anjaan block type 400 deta hai — chup-chaap store nahi hota', async () => {
+    const res = await createTour(adminJar, {
+      title: 'Tour C',
+      content: contentWith('blk-a1b2'),
+      fields: { blocks: { 'blk-a1b2': { type: 'nope', props: {} } } },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('orphan settings gir jaati hain — jiska div content me nahi, uski settings bhi nahi', async () => {
+    // Client editor me block ka wrapper delete kar de to `fields` me entry bachi reh jaati
+    // hai. Wo apne aap galat kuch nahi karti (theme HTML padhti hai), par bina safai ke
+    // hamesha padi rehti
+    const res = await createTour(adminJar, {
+      title: 'Tour D',
+      content: contentWith('blk-a1b2'),
+      fields: {
+        blocks: {
+          'blk-a1b2': { type: 'packageList', props: {} },
+          'blk-dead1': { type: 'cards', props: {} },
+        },
+      },
+    })
+
+    expect(res.status).toBe(201)
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+
+    expect(Object.keys(doc.fields.blocks)).toEqual(['blk-a1b2'])
+  })
+
+  it('sirf fields ka PATCH orphan safai me settings nahi uda deta', async () => {
+    // Ye wo bug hai jo aasani se ban jaata: `content` us request me hai hi nahi, aur agar
+    // safai khaali content pe chale to har block ki settings orphan samajh li jaayein
+    const created = await createTour(adminJar, {
+      title: 'Tour E',
+      content: contentWith('blk-a1b2'),
+      fields: { blocks: { 'blk-a1b2': { type: 'packageList', props: { limit: 8 } } } },
+    })
+    const { id, version } = created.body.data.entry
+
+    const res = await authed('patch', `/api/entries/${id}`, adminJar).send({
+      version,
+      fields: { blocks: { 'blk-a1b2': { type: 'packageList', props: { limit: 9 } } } },
+    })
+
+    expect(res.status).toBe(200)
+    const doc = await Entry.findById(id).lean()
+    expect(doc.fields.blocks['blk-a1b2'].props.limit).toBe(9)
+  })
+
+  it('FAQs block ke har jawab ko stable id milti hai', async () => {
+    const res = await createTour(adminJar, {
+      title: 'Tour F',
+      content: contentWith('blk-a1b2'),
+      fields: {
+        blocks: {
+          'blk-a1b2': {
+            type: 'faqs',
+            props: { items: [{ question: 'Kitne din?', answer: '<p>Paanch</p>' }] },
+          },
+        },
+      },
+    })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+    expect(doc.fields.blocks['blk-a1b2'].props.items[0].id).toBeTruthy()
+  })
+
+  it('block ke andar ka HTML bhi write pe saaf hota hai (R20)', async () => {
+    const res = await createTour(adminJar, {
+      title: 'Tour G',
+      content: contentWith('blk-a1b2'),
+      fields: {
+        blocks: {
+          'blk-a1b2': {
+            type: 'faqs',
+            props: {
+              items: [
+                { question: 'Q?', answer: '<p onclick="steal()">Hi</p><script>bad()</script>' },
+              ],
+            },
+          },
+        },
+      },
+    })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+    const answer = doc.fields.blocks['blk-a1b2'].props.items[0].answer
+
+    expect(answer).not.toContain('onclick')
+    expect(answer).not.toContain('script')
+    expect(answer).toContain('Hi')
+  })
+})
+
+describe('page ke apne fields (D-87)', () => {
+  it('sub heading HTML rakhta hai aur write pe saaf hota hai', async () => {
+    const res = await createPage(adminJar, {
+      title: 'About',
+      fields: { subheading: '<p>Hello <b>there</b><script>bad()</script></p>' },
+    })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+
+    expect(doc.fields.subheading).toContain('<b>there</b>')
+    expect(doc.fields.subheading).not.toContain('script')
+  })
+
+  it('stat rail ke har card ko stable id milti hai', async () => {
+    const res = await createPage(adminJar, {
+      title: 'Stats',
+      fields: { statRail: [{ value: '40+', label: 'Itineraries' }] },
+    })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+    expect(doc.fields.statRail[0].id).toBeTruthy()
+  })
+})
+
+describe('per-package rating (D-87 — D-70 palta)', () => {
+  it('package apni rating rakh sakta hai', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Emerald Andaman',
+      fields: { rating: { value: 4.8, count: 214 } },
+    })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+    expect(doc.fields.rating).toEqual({ value: 4.8, count: 214 })
+  })
+
+  it('rating na likhi ho to field store hi nahi hoti — default payload me lagta hai', async () => {
+    // Store wahi hona chahiye jo client ne likha. `packageDefaults.rating` ka fallback
+    // payload banate waqt lagta hai, warna default badalne pe purane package atke rehte
+    const res = await createEntry(adminJar, { title: 'Bina Rating' })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+    expect(doc.fields.rating).toBeUndefined()
+  })
+
+  it('5 se upar ki rating 400 pe girti hai', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Galat Rating',
+      fields: { rating: { value: 9, count: 1 } },
+    })
+
+    expect(res.status).toBe(400)
   })
 })

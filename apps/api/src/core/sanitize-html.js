@@ -80,6 +80,22 @@ const BLOCK = {
     'header',
     'footer',
     'aside',
+
+    /**
+     * `details`/`summary` — accordion **bina JS ke** (D-87, D-59 ka hi tark).
+     *
+     * ⚠️ Ye 7 Sep tak yahan **nahi** the, aur wo ek chupa hua bug tha. Package page ka FAQ
+     * accordion `<details>` se banta hai (D-59: "koi JS nahi") — par wo theme ke JSX me likha
+     * hai, isliye sanitizer se guzarta hi nahi. Jis din client editor me khud `<details>`
+     * likhta, wo **write pe chup-chaap gayab** ho jaata: 200 aata, "Saved." dikhta, aur
+     * content ka wo hissa DB tak pahunchta hi nahi. Wahi shakl jo `cancellationText` (D-65)
+     * aur transfer duration (D-64) ke bug ki thi.
+     *
+     * `open` attribute jaan-boojh kar **nahi** diya gaya: wo ek layout faisla hai (kaunsa
+     * FAQ khula khule), aur wo theme ka kaam hai, client ki HTML ka nahi.
+     */
+    'details',
+    'summary',
     /**
      * ⚠️ `svg` allow hai, aur ye D-41 ki "SVG upload block" wali baat se **alag** hai.
      * Wahan ek **file** thi jo browser me apne origin pe chalti (aur usme `<script>` chal
@@ -256,7 +272,15 @@ export function sanitizeContent(content) {
   }
 }
 
-/** `entries.fields` ke do HTML field — itinerary ka din, aur FAQ ka jawab. */
+/**
+ * `entries.fields` ki saari HTML jagah.
+ *
+ * ⚠️ **Is list me naya field jodna bhoolna ek chup-chaap XSS hai** (R20). Yahan na hone ka
+ * matlab ye nahi ki content gir jaayega — wo bilkul theek save hoga, **bina safai ke**, aur
+ * page pe `dangerouslySetInnerHTML` se render ho jaayega. Ye us "whitelist wale jaal" ki ulti
+ * shakl hai jo `updatePackageDefaults()` pe chaar baar laga: wahan bhoolne se content **kho**
+ * jaata tha, yahan bhoolne se content **bach** jaata hai — aur wahi zyada khatarnak hai.
+ */
 export function sanitizeEntryFields(fields) {
   if (!fields) return fields
 
@@ -271,6 +295,63 @@ export function sanitizeEntryFields(fields) {
   if (Array.isArray(out.faqs)) {
     out.faqs = out.faqs.map((faq) =>
       faq ? { ...faq, answer: sanitizeBlockHtml(faq.answer) } : faq,
+    )
+  }
+
+  /** Page/Tour Page ka sub heading — asli editor hai, plain text nahi (D-87 faisla #3). */
+  if (out.subheading !== undefined) out.subheading = sanitizeBlockHtml(out.subheading)
+
+  /**
+   * Blocks ke andar ka HTML — D-87.
+   *
+   * Block ka **layout** HTML `content` me hai (wo `sanitizeContent()` se guzarta hai); yahan
+   * sirf wo prose hai jo block ke **props** me baithta hai: cards ka text aur FAQs block ke
+   * jawab. Do jagah hone ki wajah D-87 me likhi hai — settings attribute me nahi ja sakti
+   * thi kyunki `COMMON_ATTRS` me `data-*` nahi hai.
+   *
+   * ⚠️ Card ka text **inline** profile se guzarta hai, block se nahi — wahi wajah jo
+   * `whatsIncluded` ki lines pe hai: wo `<p>` ke andar chhapta hai aur wahan ek aur block
+   * tag layout tod deta hai.
+   */
+  if (out.blocks && typeof out.blocks === 'object' && !Array.isArray(out.blocks)) {
+    out.blocks = Object.fromEntries(
+      Object.entries(out.blocks).map(([id, block]) => {
+        if (!block || typeof block !== 'object') return [id, block]
+        const props = block.props
+        if (!props || typeof props !== 'object') return [id, block]
+
+        if (block.type === 'cards' && Array.isArray(props.items)) {
+          return [
+            id,
+            {
+              ...block,
+              props: {
+                ...props,
+                items: props.items.map((item) =>
+                  item ? { ...item, text: sanitizeInlineHtml(item.text) } : item,
+                ),
+              },
+            },
+          ]
+        }
+
+        if (block.type === 'faqs' && Array.isArray(props.items)) {
+          return [
+            id,
+            {
+              ...block,
+              props: {
+                ...props,
+                items: props.items.map((faq) =>
+                  faq ? { ...faq, answer: sanitizeBlockHtml(faq.answer) } : faq,
+                ),
+              },
+            },
+          ]
+        }
+
+        return [id, block]
+      }),
     )
   }
 

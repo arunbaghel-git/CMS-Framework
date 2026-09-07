@@ -19,6 +19,47 @@ import { emptyHtml, htmlSchema, inlineHtmlSchema } from './rich-html.js'
  */
 
 /**
+ * `4.9 ★ 412 trips` — rating ki jodi.
+ *
+ * **Do jagah lagti hai, aur wo D-87 ka badlaav hai:** `packageDefaults.rating` (site ki
+ * default) aur `entry.fields.rating` (ek package ki apni).
+ *
+ * ## D-70 kyun palta
+ *
+ * 1 Sep ko client ne kaha tha ki rating **universal** hai — poori site pe ek hi jodi, haath
+ * se likhi hui. Wo faisla us waqt sirf **package detail page** ko dekh kar liya gaya tha,
+ * jahan wo do jagah chhapti hai aur dono jagah wahi number theek lagta hai.
+ *
+ * 7 Sep ko `tour-v3.html` aayi — ek **listing** page, jahan chaudah package ek doosre ke
+ * neeche khade hain. Wahan har card pe ek hi `4.9 ★ 412 trips` chhapna sirf galat nahi
+ * dikhta, wo **jhootha** dikhta hai: teen alag package, teen alag safar, ek hi ginti. Isliye
+ * D-70 ab **Superseded by D-87** hai.
+ *
+ * ## Khaali ka matlab yahan alag hai
+ *
+ * ⚠️ D-70 me khaali `value` (0) ka matlab tha **"rating dikhani hi nahi"**. Per-package field
+ * pe wo matlab nahi chalta: paanchon live package pe aaj `fields.rating` hai hi nahi, aur us
+ * matlab ka nateeja hota ki deploy karte hi paanchon page se rating **gayab** ho jaaye —
+ * jabki client ne wo `packageDefaults` me likhi hui hai aur wo aaj chhap rahi hai.
+ *
+ * Isliye niyam ye hai: **khaali `value` par `packageDefaults.rating` chalti hai.** Package ka
+ * apna number usko *override* karta hai, mitata nahi. Dono khaali hon tabhi line gayab hoti
+ * hai — yaani D-70 wala "khaali = gayab" ab site-level pe hai, package pe nahi.
+ *
+ * ⚠️ Iska ek nateeja maan lena chahiye: client "is package ki rating **mat** dikhao" nahi keh
+ * sakta jab tak site-level wali khaali na ho. Wo aaj kisi ne maanga nahi hai; jis din maange,
+ * uske liye `value: -1` jaisa sentinel **mat** banana — ek alag `hideRating` toggle sasta aur
+ * padhne me saaf rahega.
+ */
+export const ratingSchema = z
+  .object({
+    value: z.coerce.number().min(0).max(5).default(0),
+    /** `412 trips` — trips ki ginti, likhi hui reviews ki nahi. */
+    count: z.coerce.number().int().min(0).default(0),
+  })
+  .default({ value: 0, count: 0 })
+
+/**
  * Ek line — "Accommodation on twin sharing with daily breakfast".
  *
  * ⚠️ Ab isme **inline HTML** ho sakti hai (D-80): `<b>Daily</b> breakfast`. Block tag yahan
@@ -155,33 +196,32 @@ export const packageDefaultsSchema = z.object({
   cancellationText: htmlSchema,
 
   /**
-   * `4.9 average from 412 trips` — **poori site pe ek hi jodi** (client, 1 Sep).
+   * `4.9 average from 412 trips` — **site ki default jodi** (client, 1 Sep; D-87 me badli).
    *
    * Ye spec 007 §9 #8 ka jawab hai: rating `reviews[]` se **gini nahi jaati**, client haath
    * se likhta hai. Ginne ka natija ulta hota — page pe teen-chaar likhi hui review ka
    * average dikhta, jabki asli number saalon ki 412 trips ka hai. Jo cheez sach me kahin
    * aur se aati hai use derive karne ka dikhawa karna sabse mehnga jhooth hai.
    *
-   * Do jagah chhapti hai, dono me wahi:
+   * ⚠️ **"Poori site pe ek hi jodi" ab sach nahi hai** — D-87 (7 Sep) ne wo palta. Ye ab
+   * **default** hai: jis package pe apni rating likhi ho wo yahan se nahi aati. Poora tark
+   * `ratingSchema` ke upar likha hai.
+   *
+   * Jahan ye chalti hai (jab package ki apni khaali ho):
    *
    * - hero me title ke upar — `4.9 ★ 412 traveller reviews`
    * - reviews section ke heading ke saath — `— 4.9 average from 412 trips`
+   * - listing card pe — `4.9 ★ 412 trips`
    *
-   * **Khaali `value` (0) ka matlab hai "rating dikhani hi nahi"** — dono jagah se line
-   * gayab ho jaati hai. Wahi model jo pricing pe hai: khaali daam = wo category milti hi
-   * nahi (D-56). Aur wahi D-30: khaali cheez khaali dikhe, tooti hui nahi — `0.0 ★ 0
-   * reviews` chhapna adhoora page dikhata hai.
+   * **Khaali `value` (0) yahan bhi "rating dikhani hi nahi"** — par ab wo sirf tab lagta hai
+   * jab package ki apni bhi khaali ho. Wahi model jo pricing pe hai: khaali daam = wo
+   * category milti hi nahi (D-56). Aur wahi D-30: khaali cheez khaali dikhe, tooti hui
+   * nahi — `0.0 ★ 0 reviews` chhapna adhoora page dikhata hai.
    *
    * `value` dashmalav me hai (`4.9`) aur review card ka apna `rating` poora taara (1-5) —
    * do alag cheezein hain, isliye do alag jagah.
    */
-  rating: z
-    .object({
-      value: z.coerce.number().min(0).max(5).default(0),
-      /** `412 trips` — trips ki ginti, likhi hui reviews ki nahi. */
-      count: z.coerce.number().int().min(0).default(0),
-    })
-    .default({ value: 0, count: 0 }),
+  rating: ratingSchema,
 
   /**
    * Page ke section headings aur unke neeche ki lines — Q-9 (client, 31 Aug).

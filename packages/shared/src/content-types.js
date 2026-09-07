@@ -148,6 +148,22 @@ const PACKAGE_FIELDS = [
     help: 'Jaise: 3 legs, included',
   },
   {
+    /**
+     * Is package ki apni rating — `4.8 ★ 214 reviews` (D-87, client 7 Sep).
+     *
+     * **D-70 yahin palta.** Wo faisla ("rating universal hai") sirf package detail page dekh
+     * kar liya gaya tha; `tour-v3.html` ek **listing** page hai jahan chaudah package ek
+     * doosre ke neeche khade hote hain, aur wahan har card pe ek hi number jhootha dikhta hai.
+     *
+     * ⚠️ **Khaali chhodna ise mitata nahi** — `packageDefaults.rating` chalti rahegi. Poora
+     * tark `schemas/package-defaults.js` me `ratingSchema` ke upar hai.
+     */
+    key: 'rating',
+    type: 'group',
+    label: 'Rating',
+    help: 'Is package ki apni rating. Khaali chhodo to site wali chalegi.',
+  },
+  {
     key: 'featured',
     type: 'toggle',
     label: 'Featured',
@@ -163,6 +179,74 @@ const PACKAGE_FIELDS = [
    * Ab wo `packageDefaults.seoSchema` hai, aur uski screen **Packages ▸ Itinerary Settings**
    * hai. Migration 022 ne purana field entries se hata diya.
    */
+]
+
+/**
+ * `page` aur `tourPage` — **dono ka ek hi field set** (D-87, client 7 Sep).
+ *
+ * Client ne 7 Sep ko do baar palta. Pehle "do template" tay hua tha (Text article + Package
+ * archive), phir wo poora rad hua: **koi template hai hi nahi**, ek hi edit screen hai, aur
+ * layout content editor ke blocks se aata hai.
+ *
+ * Isliye do content type hone ke bawajood field set ek hi hai — aur wo jaan-boojh kar ek hi
+ * constant hai, do copies nahi. Do copies rakhne ka matlab hota ki kal koi ek me field jode
+ * aur doosre me bhool jaaye, aur wo farak **sirf ek type ke edit screen pe** dikhe.
+ *
+ * Jo farak hai wo neeche type ki definition me hai — menu, list aur URL. Wahi teen cheezein
+ * client ne alag maangi thi (faisla #1).
+ */
+const PAGE_FIELDS = [
+  {
+    /**
+     * Title ke upar ki chhoti line (faisla #13).
+     *
+     * ⚠️ Ye breadcrumb ka label **nahi** hai — wo parent chain se auto banta hai (faisla #12,
+     * `resolvePath()`). Dono dikhne me ek jaise lagte hain aur design me paas-paas hain,
+     * isliye ye chetavni yahan likhi hai.
+     */
+    key: 'eyebrow',
+    type: 'text',
+    label: 'Eyebrow',
+    help: 'Title ke upar ki chhoti line',
+  },
+  {
+    /**
+     * Title ke neeche ka sub heading — **asli editor**, plain text nahi (faisla #3).
+     *
+     * Client ne isme bold/link maange the, isliye ye `textarea` nahi hai. Safai
+     * `sanitizeEntryFields()` me hoti hai (R20).
+     */
+    key: 'subheading',
+    type: 'richText',
+    label: 'Sub heading',
+    help: 'Title ke neeche ka paragraph',
+  },
+  {
+    /**
+     * `.vrail` — chaar stat cards, pehla highlighted (`--p`).
+     *
+     * Haath se likha jaata hai, derive nahi hota. Poora tark `schemas/page.js` me
+     * `statRailSchema` ke upar hai.
+     */
+    key: 'statRail',
+    type: 'repeater',
+    label: 'Stat rail',
+    help: 'Hero ke neeche ke chaar number',
+  },
+  {
+    /**
+     * Content editor ke blocks ki settings — D-87 ka sabse bada faisla.
+     *
+     * ⚠️ **Ye blocks ki list nahi hai.** Blocks ka kram aur unka layout `content` ki HTML me
+     * hai; ye sirf id se settings ka naksha hai (`fields.blocks['blk-a1b2']`). Settings
+     * HTML me is liye nahi ja sakti thi ki sanitizer ka `COMMON_ATTRS` `data-*` allow nahi
+     * karta — poora tark `schemas/page.js` me hai.
+     */
+    key: 'blocks',
+    type: 'group',
+    label: 'Block settings',
+    help: 'Content ke blocks ki apni settings',
+  },
 ]
 
 /** @type {ReadonlyArray<import('./types.js').ContentTypeSeed>} */
@@ -214,7 +298,64 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     /** Pages classify nahi hote — unka structure parent chain se aata hai. */
     taxonomyTypes: [],
 
-    fields: [],
+    fields: PAGE_FIELDS,
+  },
+
+  {
+    /**
+     * Tour Page — package **listing** page (`tour-v3.html`), D-87.
+     *
+     * ## Ye `page` se alag type kyun hai jab field set ek hi hai
+     *
+     * Client ne teen cheezein alag maangi (faisla #1): **apna top-level menu**, **apni
+     * list**, aur apna URL. Teenon `type` se hi aati hain — ek hi type me `isTour` jaisa
+     * flag rakhne ka matlab hota ki har list query, har nav item aur har permission check
+     * us flag ko yaad rakhe, aur ek jagah bhoolte hi Tour Pages `All Pages` me chhap jaayein.
+     *
+     * ## `/{slug}` — `page` ke saath hi, aur wo jaan-boojh kar hai
+     *
+     * `PackagePage.jsx` ka `ARCHIVE_CRUMB` `/andaman-tour-packages/` pe link karta hai aur
+     * wo aaj **404 deta hai** — koi archive page hai hi nahi. Tour page root pe hone se wo
+     * link bina kisi redirect ke sach ho jaata hai.
+     *
+     * ⚠️ **Do type ek hi URL space share karte hain**, aur wo safe hai: `{siteId, locale,
+     * path}` day 1 se unique hai (§3.1), isliye ek Page aur ek Tour Page kabhi ek hi URL
+     * claim nahi kar sakte — dusra write duplicate key pe girta hai, chup-chaap overwrite
+     * nahi hota.
+     *
+     * ⚠️ `hierarchical: false` — Tour pages nested nahi hote. `page` `true` hai (D-09,
+     * `/about/team`), par ek listing page ka koi parent nahi hota aur nesting se uska URL
+     * `/x/andaman-tour-packages` ban jaata, jo `ARCHIVE_CRUMB` ko phir se tod deta.
+     *
+     * ⚠️ `hasArchive: false` — Tour page **khud** ek archive hai. Uska apna archive banane ka
+     * matlab hota "listings ki listing", jo kisi ne maangi nahi.
+     */
+    key: 'tourPage',
+    label: 'Tour Page',
+    labelPlural: 'Tour Pages',
+    icon: 'page',
+
+    /**
+     * ⚠️ `false` — aur ye `page` (`true`) se alag hai.
+     *
+     * `hasBuilder` Phase 5 ke **block tree** builder ka flag hai (`content.blocks[]`). D-87
+     * ka model wo nahi hai: layout HTML me hai aur blocks uske andar `id` se settings
+     * uthate hain. Ise `true` karne ka matlab hota admin me wo builder khol dena jo abhi
+     * bana hi nahi (`packages/blocks` khaali hai).
+     */
+    hasBuilder: false,
+
+    hierarchical: false,
+    urlPattern: '/{slug}',
+    archiveBase: null,
+    hasArchive: false,
+
+    supports: [S.TITLE, S.EDITOR, S.FEATURED_IMAGE, S.SEO, S.REVISIONS],
+
+    /** Tour page khud packages ko filter karta hai; wo apne aap classify nahi hota. */
+    taxonomyTypes: [],
+
+    fields: PAGE_FIELDS,
   },
 
   {

@@ -382,6 +382,36 @@ Naya field schema/model/screen teenon me jod dene ke bawajood wahan na ho to Zod
 API 200 degi, admin "Saved." dikhayega, aur DB me purani value rahegi. Naya field jodo to
 whitelist bhi jodo, aur uska test **response nahi, DB** padhe.
 
+**7 Sep — Tour Page shuru (D-87), Slice A ban gayi.** Client ne `tour-v3.html` di (package
+**listing** page) aur din me **do baar palta**: pehle "do template", phir wo rad — ab **ek hi
+edit screen** aur layout **content editor ke blocks** se (`Two column` · `Cards` ·
+`Package list` · `FAQs`).
+
+- **`tourPage` naya content type**, par field set `page` ke saath **ek hi constant** hai.
+  Alag type sirf isliye ki menu, list aur URL teenon alag maange gaye the
+- **Block ki settings HTML me nahi ja saktin** — `sanitize-html.js` ka `COMMON_ATTRS`
+  `data-*` allow nahi karta. Isliye block ko `id` milti hai aur settings
+  `fields.blocks['blk-a1b2']` me jaati hain. **Sanitizer ko haath nahi lagaya gaya**
+- **Rating ab per-package (D-70 palta)** — listing page pe chaudah cards pe ek hi
+  `4.9 ★ 412 trips` jhootha dikhta hai. ⚠️ Khaali `value` par `packageDefaults.rating`
+  chalti hai; package ka number use **override** karta hai, mitata nahi
+- **Trust badges + universal banner → `Settings ▸ Tour settings`** (client, #11)
+
+⚠️ **`details`/`summary` sanitizer me the hi nahi** — D-87 ki jaanch me nikla, is kaam ka
+hissa nahi tha. FAQ accordion theme ke JSX me hai isliye aaj tak chala; client editor me khud
+`<details>` likhta to wo **write pe chup-chaap gayab** hota. Wahi shakl jo D-64/D-65 ke bug ki.
+
+⚠️ **`sanitizeEntryFields()` ki list ab ulta jaal hai** — usme naya HTML field jodna bhoolna
+`updatePackageDefaults()` wale whitelist jaal ki **ulti shakl** hai: wahan bhoolne se content
+**kho** jaata tha, yahan bhoolne se content bina safai ke **bach** jaata hai (R20).
+
+⚠️ **Koi migration nahi lagi** — `tourPage` naya type hai aur `ensureBuiltInContentTypes()`
+naye type ko create kar deta hai; `fields` hamesha sync hote hain. Deploy pe **`pnpm seed`**
+chahiye, `pnpm cms migrate` nahi.
+
+Baaki slices: **B** (API payload) · **C** (admin screens + `Settings ▸ Tour settings`) ·
+**D** (theme) · **E** (`Appearance ▸ Sidebar`, faisla #14).
+
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
 ---
