@@ -31,6 +31,7 @@ import PageEdit from './screens/pages/PageEdit.jsx'
 import TourList from './screens/pages/TourList.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import General from './screens/settings/General.jsx'
+import TourSettings from './screens/settings/TourSettings.jsx'
 import DeleteUser from './screens/users/DeleteUser.jsx'
 import UserForm from './screens/users/UserForm.jsx'
 import UsersList from './screens/users/UsersList.jsx'
@@ -217,6 +218,7 @@ const APP_ROUTES = [
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
   { path: '/settings/cta', element: <CtaSection /> },
+  { path: '/settings/tour', element: <TourSettings /> },
   { path: '/appearance/menus', element: <Menus /> },
   { path: '/appearance/footer', element: <AppearanceFooter /> },
 ]

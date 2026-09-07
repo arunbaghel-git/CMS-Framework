@@ -6073,7 +6073,111 @@ chalta rehta hai** — brute force ka bachav test me bhi test hona chahiye.
 
 **810 test pass** (804 baseline se, purane §2 wale tests hata kar naye jode gaye).
 
+### §8 — Admin ki screens (Slice C)
+
+**Paanch screens:** `Pages` list · `Tour Pages` list · **ek hi** edit screen (dono ke liye) ·
+`Settings ▸ Tour settings`.
+
+#### A-9 band ho gaya
+
+`entries` engine 26 Aug se `page` type sambhal raha hai (D-46) aur wo seed me register bhi hai,
+par admin me uska koi raasta nahi tha — nav ke links `NotBuiltYet` pe jaate the. Yaani **API se
+page banaya ja sakta tha, client se nahi.**
+
+#### Do list, ek component
+
+`admin-design-v3.html` ke `#s-pages` aur `#s-tour` ek hi table hain; teen cheezein alag hain —
+heading, "Add New" ka text, aur teesra column (Pages pe `Author`, Tour pe `Packages`). Isliye
+`EntriesList.jsx` ek hai aur do patle wrapper.
+
+⚠️ **`PackagesList.jsx` isme nahi ghusaya gaya**, aur wo jaan-boojh kar hai: us screen ke apne
+filter (Destination, Package Type), apna `From price` column aur apne bulk action (Featured)
+hain. Unhe props se on/off karna wahi component banata hai jise koi chhoona nahi chahta.
+
+⚠️ Tour list ka `Packages` column abhi **blocks ki ginti** dikhata hai, packages ki nahi. Design
+me wahan `11` jaisa number hai jo us page ke `Package list` block se aane wale packages ka hai —
+wo ginti live packages pe depend karti hai, isliye server pe hi ban sakti hai aur uske liye list
+endpoint ko per-row query karni padegi. Wo alag se hoga; tab tak wahi dikhta hai jo sach me pata
+hai (D-30).
+
+#### Generic hooks `lib/use-entries.js` me nikal gaye
+
+List, counts, ek entry, content type, media aur currency — ye chhe kisi bhi content type pe ek
+jaise hain. `usePackages.js` ab unhi ka **patla wrapper** hai; uske exported naam wahi rakhe gaye
+(`usePackages`, `usePackage`, `usePackageCounts`, `usePackageType`), isliye Slice 3-6 ki paanch
+screens ko haath nahi lagana pada.
+
+Copy karna sasta dikhta tha. Is repo me wo galti **do baar** ho chuki hai aur dono baar shakl ek
+thi: `bestFor` similar cards pe chhoot gaya tha (2 Sep), aur Bulk Upload ka slug do jagah do
+tarah se banta tha (D-86) — us ek `null` se **teen guard** chup-chaap mar gaye the.
+
+#### Blocks ka editor
+
+Har block apna panel: rangeen chip, ek line ka summary (**band hone pe bhi**), ⌃⌄ se reorder,
+✕ se remove (confirmation ke saath). Neeche `＋ Add block…` dropdown.
+
+Paanch editors — Text (`HtmlEditor`), Two column (do **alag** editor), Cards (title · text ·
+`Tag (optional)`), Package list (heading · filters · durations · teen checkbox · limit), FAQs
+(heading · sawaal-jawab · schema toggle).
+
+⚠️ **Duration ki ginti admin me dikhti hi nahi.** Demo me har pill ke aage ek editable input tha;
+wo padhne ki cheez hai, likhne ki nahi. Client sirf chunta hai ki **kaunsi** durations dikhein —
+ginti page pe server se aati hai. Store karne ka matlab hota ki naya package publish karte hi wo
+chup-chaap jhoothi ho jaaye (D-58 ka hi niyam).
+
+⚠️ **Anjaan block type pe editor nahi khulta, par uska content chhoota bhi nahi.** Phase 5 ka koi
+block ya purana data yahan aa sakta hai; uske props server pe bhi chhoot jaate hain, isliye admin
+bhi use waise ka waisa chhod deta hai aur ek hint dikhata hai.
+
+#### Permissions — pehli baar
+
+⚠️ **Slice C se pehle Pages ke dono nav link pe `permission` thi hi nahi**, aur `ROUTE_GUARDS` me
+`/pages` tha hi nahi. Yaani menu **sabko** dikhta tha. Ab dono jagah lagi hui hai, `/tour` ke
+saath.
+
+#### `Settings ▸ Tour settings`
+
+Client ka faisla #11. Do panel: universal banner (`MediaDrop`) aur trust badges (icon enum +
+text, max 6).
+
+⚠️ **Tab ka naam client ka hai aur wo content se thoda tang hai** — dono cheezein package page pe
+bhi chalti hain, sirf Tour pages pe nahi.
+
+⚠️ **Whitelist wala jaal yahan nahi hai** — `updateSettings()` input pe loop karta hai. Par gate
+Zod pe khisak jaata hai: field `settings.js` ke schema me na ho to validation use chup-chaap gira
+degi (wahi lakshan, alag jagah). Isliye live check DB se padha gaya, response se nahi.
+
+#### Live check — asli DB pe (D-82/D-83 wala sabak)
+
+Ek Tour Page banaya, publish kiya, resolve kiya, phir **hata diya**:
+
+```
+path      : /zz-claude-e2e-check
+byline    : {"author":"Arun","readMinutes":1}      ← apne aap
+content?  : payload me nahi jaata (sahi)
+blocks    : richText → packageList → faqs          ← kram waisa hi
+  cards   : 3 (limit 3), price-asc pe
+  facets  : 5N / 6D[5]
+  total   : 5
+  rating  : {"value":4.9,"count":412}              ← packageDefaults se
+  faq id  : mil gayi
+```
+
+`tourSettings` alag se DB me likh kar padha gaya, aur khaali text wala badge public payload se
+chhant gaya. Dono ke baad DB **waisi ki waisi** — paanchon package, koi test data nahi.
+
+⚠️ Ek chhoti si baat sikhne wali: pehli koshish me `publishEntry` ne **403** diya kyunki fake
+actor ke paas asli permission strings nahi thi — guard theek chala. Par us fail hui run ka draft
+DB me reh gaya tha aur usse agla page `-2` pe chala gaya. Wo bhi saaf kiya gaya.
+
+**810 test pass**, admin build pass, lint + format clean.
+
 ### Ab bhi khula
 
-- `Settings ▸ Tour settings` ke andar kya-kya dikhega — schema ban chuka, **screen Slice C me**
-- Slice C (admin screens) · D (theme) · E (`Appearance ▸ Sidebar`, faisla #14)
+- **Slice D** — theme (`.vhero` · `.vrail` · `.fbar`/`.dpill` · `.prows` · `.dcard` · two-column
+  · `.toc` · `.ctastrip`), aur `apps/web` ka catch-all page-shaped payload padhna
+- **Slice E** — `Appearance ▸ Sidebar` (faisla #14). Wo `forms.placement` ka wo gap bhi bharta
+  hai jo `form.js:152` pe likha hai: paanch placement design hui thin, do hi bani
+- **Tour list ka `Packages` column** — abhi **blocks ki ginti** hai, packages ki nahi. Design me
+  wahan `11` jaisa number hai; wo live packages pe depend karta hai, isliye server pe hi ban
+  sakta hai aur uske liye list endpoint ko per-row query karni padegi

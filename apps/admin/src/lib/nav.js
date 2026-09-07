@@ -272,6 +272,11 @@ export const NAV = [
        * hain, ye yahan.
        */
       { label: 'CTA Section', to: '/settings/cta', permission: PERMISSION.SETTINGS_READ },
+      {
+        label: 'Tour settings',
+        to: '/settings/tour',
+        permission: PERMISSION.SETTINGS_READ,
+      },
       { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
       { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
       {
@@ -370,6 +375,7 @@ export const ROUTE_GUARDS = Object.freeze({
    */
   '/settings': PERMISSION.SETTINGS_READ,
   '/settings/cta': PERMISSION.SETTINGS_READ,
+  '/settings/tour': PERMISSION.SETTINGS_READ,
   /**
    * Menus screen khud `menu.update` na hone pe form disable kar deti hai — `author` aur
    * `contributor` menu **dekh** sakte hain (link banate waqt ye kaam ka hai), badal nahi.

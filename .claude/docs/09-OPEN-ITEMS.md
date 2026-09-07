@@ -449,7 +449,19 @@ jeetega jab tak client saaf na kahe.
 
 ---
 
-### A-9 · Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe hain
+### A-9 · Pages ki screens — ✅ **ban gayi (7 Sep, D-87 Slice C)**, Posts abhi baaki
+
+> ✅ **Pages ka hissa band.** `All Pages`, `Add New` aur edit screen teenon ban gaye, aur unke
+> saath `Tour Pages` ka apna menu bhi. Nav ke links ab `NotBuiltYet` pe nahi jaate, aur dono pe
+> `permission` + `ROUTE_GUARDS` bhi lag gaye — pehle wo **the hi nahi**, yaani menu sabko dikhta
+> tha aur contributor click karne pe ek toota hua screen paata.
+>
+> ⚠️ **Posts abhi bhi khula hai** — `/posts`, `/posts/new`, `/posts/categories`, `/posts/tags`
+> chaaron `NotBuiltYet` pe hain. Engine unhe pehle se sambhalta hai; sirf screens baaki hain,
+> aur ab unka saancha bhi maujood hai (`EntriesList.jsx` + `lib/use-entries.js`) — Posts ki list
+> Pages ki list se lagbhag ek jaisi hogi, sirf `Categories`/`Tags` ka filter jodna hoga.
+
+<details><summary>Purana text (7 Sep se pehle)</summary>
 
 **Deadline:** koi sakht nahi — par ye **engine ka bacha hua kaam** hai, naya feature nahi
 **Kuch toota nahi hai** — sirf ek gap hai jiska kahin record nahi tha
@@ -481,6 +493,17 @@ packages flat hain. Ye copy-paste se nahi aayega.
 **Ye yahan isliye likha hai ki ye chup-chaap gayab ho raha tha.** Slice 1 se Slice 4 tak ka
 poora kaam Packages pe kendrit raha, aur is gap ka kisi list me zikr nahi tha — wo sirf tab
 dikhta jab koi sidebar me Posts pe click karta.
+
+</details>
+
+⚠️ **Upar wale purane text ka ek andaza galat nikla.** Usme likha tha ki ye "Packages ki screens
+ka hi doosra roop" hoga aur `PackagesList`/`PackageEdit` `type` se chal jaayengi. Asli kaam ulta
+hua: un screens ko **chhua hi nahi gaya**. Unke apne filter, `From price` column aur Featured
+wale bulk action package ke domain ki cheezein hain — unhe props se on/off karna wahi component
+banata jise koi chhoona nahi chahta. Jo sach me share hua wo **data hooks** the
+(`lib/use-entries.js`), screens nahi.
+
+Parent dropdown wali chetavni sahi thi aur wo `PageEdit` me bana hua hai.
 
 ---
 

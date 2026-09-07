@@ -452,8 +452,26 @@ daur chalta tha, sirf khaali arrays banane ke liye. Ab `page`/`tourPage` ke liye
 se **4.9 / 412** par gir rahi hai, yaani per-package rating aane ke baad bhi koi regression
 nahi. **804 test pass.**
 
-Baaki slices: **C** (admin screens + `Settings ▸ Tour settings`) · **D** (theme) ·
-**E** (`Appearance ▸ Sidebar`, faisla #14).
+**Slice C (admin screens) bhi ban gayi — aur usne A-9 band kar diya.** `Pages` list ·
+`Tour Pages` list · **ek hi** edit screen · `Settings ▸ Tour settings`. `entries` engine 26 Aug
+se `page` sambhal raha tha, par admin me uska koi raasta nahi tha — nav ke links `NotBuiltYet`
+pe jaate the.
+
+- **Blocks ka editor** — har block apna panel, `＋ Add block…` dropdown, ⌃⌄ se reorder, band
+  hone pe bhi ek line ka summary
+- **Generic entry hooks `lib/use-entries.js` me nikle** — `usePackages.js` ab unka patla wrapper
+  hai (naam wahi, isliye paanch purani screens ko haath nahi laga)
+- ⚠️ **Duration ki ginti admin me dikhti hi nahi** — wo padhne ki cheez hai, likhne ki nahi.
+  Client sirf chunta hai ki kaunsi durations dikhein; ginti page pe server se aati hai
+- ⚠️ **Pages ke nav links pe pehle `permission` thi hi nahi** — menu sabko dikhta tha. Ab dono
+  jagah lagi hai (`NAV` + `ROUTE_GUARDS`), `/tour` ke saath
+
+**Live check asli DB pe:** ek tour page banaya → publish → resolve → **hata diya**. Blocks kram
+me (`richText → packageList → faqs`), byline apne aap, kachcha `content` payload me nahi, list
+ne 5 me se 3 cards diye, facets `5N/6D[5]`, rating `packageDefaults` se. `tourSettings` alag se
+DB me likh kar padha gaya. Dono ke baad DB waisi ki waisi.
+
+Baaki slices: **D** (theme) · **E** (`Appearance ▸ Sidebar`, faisla #14).
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
