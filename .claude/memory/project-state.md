@@ -1,12 +1,54 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 4 Sep 2026 — **169 commit**, **28 unpushed** (`origin/main` abhi bhi
-> `f0b7964` pe), **764 test pass** (31 file), lint + format clean, tree clean.
+> **Last updated:** 7 Sep 2026 — **172 commit**, **0 unpushed** (`origin/main` = `d7efd37`),
+> **774 test pass** (31 file), lint + format clean, tree clean.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (5 Sep)
+## ⏭️ Nayi session yahan se shuru kare (7 Sep)
+
+### Abhi ki asli haalat (naapi hui, 7 Sep)
+
+| Kya           | Value                                                  |
+| ------------- | ------------------------------------------------------ |
+| Commits       | **172**                                                |
+| Push          | ✅ **0 unpushed** — `origin/main` = `HEAD` = `d7efd37` |
+| Tests         | **774 pass**, 31 file (`pnpm test`, exit 0)            |
+| Lint · Format | dono clean                                             |
+| Tree          | clean                                                  |
+| Migrations    | **22 files**, 22/22 applied, pending 0                 |
+| Decisions     | **D-86** tak                                           |
+
+⚠️ Neeche wala "(5 Sep)" wala section **purana** hai — usme 169 commit, 28 unpushed aur 764
+test likhe hain. Wo 4 Sep ki raat ka sach tha; uske baad **teen commit** aur hue (D-84 media
+`immutable` + `srcset`, D-85 speed 68→91/98, D-86 Bulk Upload ka duplicate bug) **aur sab push
+ho chuka**. Ye section usko replace nahi karta, uske **upar** baithta hai.
+
+### 7 Sep — koi code nahi likha, sirf design tay hua
+
+Client ne teen nayi reference di — `tour-v3.html` (package archive/listing page),
+`page-template.html` (14-block palette) aur `page-template-text.html` (text-first page).
+`page-template.html` **scope se bahar** hai (`packages/blocks` khaali hai, wo Phase 5 hai).
+
+Din bhar design pe baat hui aur **do baar palTa**: pehle "do template" (Text article +
+Package archive), phir client ne wo rad karke **ek hi edit screen + content editor me blocks**
+tay kiya. Ek admin mockup bana kar dikhaya gaya
+(`C:\Users\deepa\Downloads\travel-cms-admin.html` — repo ke bahar, `admin-design.html` v1 ki
+copy pe).
+
+**Poora plan aur saare faisle yahan hain:**
+`C:\Users\deepa\.claude\plans\c-users-deepa-downloads-tour-v3-html-tod-vivid-wave.md`
+
+⚠️ **Repo me ek bhi file nahi badli** — `git status` khaali, HEAD wahi `d7efd37`.
+⚠️ Client senior se confirm kar raha hai; kaam uske baad shuru hoga.
+⚠️ Teen sawaal khule hain: block ke settings kahan rahenge (`id` + alag `fields` ka mashwara),
+rating universal rahe ya per-package (D-70 palTe ya nahi), aur trust badges + universal banner
+image Settings ke kaunse tab me.
+
+---
+
+## ⏭️ (purana) Nayi session yahan se shuru kare (5 Sep)
 
 **⚠️ Pehle ek chetavni:** 3 aur 4 Sep ka kaam is file me **do din tak likha hi nahi gaya**.
 Neeche wala "(3 Sep)" wala section 2 Sep ki raat ka hai — usme `origin/main = f0b7964` aur
