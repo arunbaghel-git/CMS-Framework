@@ -109,3 +109,6 @@
  * Dono panel client ne 3 Sep ko hata diye, isliye unka CSS bhi gaya. Dead CSS chhodne ka
  * matlab hota agle developer ko ye sochna padta ki wo kis screen pe lagta hai.
  */
+#enq-status {
+  margin: 10px 0px;
+}
