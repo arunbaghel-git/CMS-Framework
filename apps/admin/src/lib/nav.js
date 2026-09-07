@@ -48,8 +48,28 @@ export const NAV = [
     icon: '▭',
     label: 'Pages',
     children: [
-      { label: 'All Pages', to: '/pages' },
-      { label: 'Add New', to: '/pages/new' },
+      { label: 'All Pages', to: '/pages', permission: PERMISSION.ENTRY_READ },
+      { label: 'Add New', to: '/pages/new', permission: PERMISSION.ENTRY_CREATE },
+    ],
+  },
+  /**
+   * Tour — **apna top-level menu**, Pages ka submenu nahi (client ka faisla #1, D-87).
+   *
+   * Wahi wajah jiske liye `tourPage` ek alag content type hai: menu, list aur URL teenon alag
+   * maange gaye the. **Edit screen dono ka ek hi hai** (`/pages/:id` aur `/tour/:id` ek hi
+   * component pe jaate hain).
+   *
+   * ⚠️ Dono par `permission` ab lagi hui hai. Slice C se pehle Pages ke dono link pe wo thi
+   * hi nahi — yaani menu **sabko** dikhta tha, aur contributor click karne pe ek toota hua
+   * screen paata. Wahi galti jo Settings pe pehle ho chuki thi (21 Aug).
+   */
+  {
+    id: 'tour',
+    icon: '🏝',
+    label: 'Tour',
+    children: [
+      { label: 'All Tour Pages', to: '/tour', permission: PERMISSION.ENTRY_READ },
+      { label: 'Add New', to: '/tour/new', permission: PERMISSION.ENTRY_CREATE },
     ],
   },
   { separator: true },
@@ -307,6 +327,23 @@ export const ROUTE_GUARDS = Object.freeze({
   '/packages/itinerary-images': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/section-headings': PERMISSION.PACKAGE_DEFAULTS_READ,
   '/packages/itinerary-settings': PERMISSION.PACKAGE_DEFAULTS_READ,
+
+  /**
+   * Pages aur Tour Pages — wahi jodi jo Packages pe hai (D-87, Slice C).
+   *
+   * ⚠️ **Slice C se pehle in dono ka koi guard tha hi nahi** — `/pages/*` `NotBuiltYet` pe
+   * jaata tha aur `NAV` me uske links pe `permission` bhi nahi thi, yaani menu **sabko**
+   * dikhta tha. Ab dono jagah lag gayi hai.
+   *
+   * Edit screen dono ke liye ek hi component hai, par guard alag-alag path pe likha hai —
+   * `permissionForRoute()` exact pattern se milaata hai, prefix se nahi.
+   */
+  '/pages': PERMISSION.ENTRY_READ,
+  '/pages/new': PERMISSION.ENTRY_CREATE,
+  '/pages/:id': PERMISSION.ENTRY_READ,
+  '/tour': PERMISSION.ENTRY_READ,
+  '/tour/new': PERMISSION.ENTRY_CREATE,
+  '/tour/:id': PERMISSION.ENTRY_READ,
 
   /**
    * Bulk Upload — dono screen ek hi permission pe.

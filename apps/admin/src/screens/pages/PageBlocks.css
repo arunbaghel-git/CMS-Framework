@@ -1,0 +1,183 @@
+/*
+ * Content ke blocks — `admin-design-v3.html` ke `.blk*` se (D-87 §7).
+ *
+ * Rang design se hi liye gaye hain: Text slaty, Two column grey, Cards baingani, Package list
+ * neela, FAQs hara. Har block ka apna rang isliye hai ki ek lambi page pe client ek nazar me
+ * dekh sake ki kahan kya hai — chip band block pe bhi dikhti hai.
+ */
+
+.blk {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  background: #fff;
+}
+
+.blk-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  background: #f6f7f7;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.blk-move {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.blk-move button {
+  border: 1px solid var(--border-soft);
+  background: #fff;
+  border-radius: 2px;
+  width: 20px;
+  height: 13px;
+  line-height: 1;
+  font-size: 9px;
+  color: #50575e;
+  cursor: pointer;
+  padding: 0;
+}
+
+.blk-move button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.blk-chip {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid;
+  flex: 0 0 auto;
+}
+
+/*
+ * Summary ek button hai, `<span>` nahi — collapse/expand keyboard se bhi chalna chahiye.
+ * Dikhne me wo saada text hi rehta hai.
+ */
+.blk-sum {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blk-x {
+  border: 0;
+  background: none;
+  color: #b32d2e;
+  font-size: 12px;
+  cursor: pointer;
+  flex: 0 0 auto;
+  padding: 2px 4px;
+}
+
+.blk-body {
+  padding: 12px;
+}
+
+.blk--text .blk-chip {
+  background: #f0f0f1;
+  border-color: #dcdcde;
+  color: #50575e;
+}
+
+.blk--two .blk-chip {
+  background: #f2f5f8;
+  border-color: #dde3ea;
+  color: #5b6b80;
+}
+
+.blk--cards .blk-chip {
+  background: #f3eefd;
+  border-color: #cfc0ee;
+  color: #5b32a8;
+}
+
+.blk--list .blk-chip {
+  background: #eef4fd;
+  border-color: #b9d4f5;
+  color: #1a56a8;
+}
+
+.blk--faq .blk-chip {
+  background: #f0f7ee;
+  border-color: #c4dfc0;
+  color: #3d7a42;
+}
+
+.blk-add {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px dashed #c9d0d8;
+  border-radius: var(--radius);
+  background: #fafbfc;
+  margin-bottom: 10px;
+}
+
+.blk-sublabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7b8798;
+  margin: 10px 0 6px;
+}
+
+.twocol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Columns ka chunav preview me bhi dikhe — grid `--cols` se banti hai. */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 3), 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.card-edit {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.dur-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px 14px;
+}
+
+@media (max-width: 900px) {
+  .twocol,
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dur-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
