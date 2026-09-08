@@ -361,6 +361,47 @@ describe('page ke payload me sidebar (D-88 §3)', () => {
   })
 })
 
+describe('sidebarId ka write path — API se, seedha Mongoose se nahi', () => {
+  /**
+   * ⚠️ **Ye test isliye hai ki baaki tests entries `Entry.create()` se banate hain, yaani
+   * service ko bypass karte hain.**
+   *
+   * `normalizeFields()` ka `has()` **`declares()` pe gated hai** — field content type me
+   * declared hona chahiye, warna uski `.parse()` chup-chaap skip ho jaati hai. Ye theek wahi
+   * shakl hai jo `updatePackageDefaults()` ke whitelist jaal ki hai, jo chaar baar laga: API
+   * 200 deti hai, admin "Saved." dikhata hai, aur DB me kuch aur pada rehta hai.
+   *
+   * Isliye jaanch **DB pe** hai, response pe nahi.
+   */
+  it('API se bheja hua sidebarId DB tak pahunchta hai', async () => {
+    const created = await createSidebar(adminJar, { name: 'S', widgets: [] })
+    const sidebarId = created.body.data.sidebar.id
+
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
+      title: 'Sidebar wala tour page',
+      fields: { sidebar: 'left', sidebarId },
+    })
+
+    expect(res.status).toBe(201)
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+
+    expect(doc.fields.sidebar).toBe('left')
+    expect(doc.fields.sidebarId).toBe(sidebarId)
+  })
+
+  it('galat sidebar value 400 deti hai — theme isse seedha class me badalti hai', async () => {
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
+      title: 'Bad',
+      fields: { sidebar: 'top' },
+    })
+
+    expect(res.status).toBe(400)
+  })
+})
+
 describe('enquiryForm widget ka resolve', () => {
   it('chuna hua form poora payload me aata hai — theme ko id nahi milti', async () => {
     const formId = await makeForm()
