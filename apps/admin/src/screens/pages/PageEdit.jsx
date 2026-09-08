@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
+import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { useEntry, useEntryList, useMediaById } from '../../lib/use-entries.js'
@@ -286,10 +287,7 @@ export default function PageEdit({ type = 'tourPage' }) {
           </div>
 
           {/* ---- PAGE HEADER ---- */}
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Page header</h2>
-            </div>
+          <Panel title="Page header">
             <div className="panel-body">
               {/* Eyebrow `tour-v3.html` ke hero se aata hai — saade page pe wo nahi hai. */}
               {config.hero && (
@@ -318,20 +316,30 @@ export default function PageEdit({ type = 'tourPage' }) {
                 own Featured image uses that instead.
               </div>
             </div>
-          </div>
+          </Panel>
 
           {/* ---- STAT RAIL ---- reference ka `.vrail`, sirf Tour page pe ---- */}
           {config.hero && (
-            <div className="panel">
-              <div className="panel-head">
-                <h2>Stat rail</h2>
+            /*
+             * ⚠️ **Design me ye band khulta hai** (`#s-page-edit` me `▸` aur
+             * `panel-body style="display:none"`). Chaar row hamesha dikhti hain aur wo poori
+             * screen ghere rehti — jabki client aksar unhe ek baar bhar kar chhod deta hai.
+             *
+             * Head pe summary rehti hai (`₹11,499 · 40+ · 2–13`), isliye band hone pe bhi pata
+             * chalta hai ki andar kya hai.
+             */
+            <Panel
+              title="Stat rail"
+              defaultOpen={false}
+              aside={
                 <span className="muted">
                   {stats
                     .map((s) => s?.value)
                     .filter(Boolean)
                     .join(' · ') || '—'}
                 </span>
-              </div>
+              }
+            >
               <div className="panel-body">
                 {Array.from({ length: 4 }, (_, i) => {
                   const row = stats[i] ?? {}
@@ -372,15 +380,11 @@ export default function PageEdit({ type = 'tourPage' }) {
                   Leave all four empty and this rail does not appear on the page.
                 </div>
               </div>
-            </div>
+            </Panel>
           )}
 
           {/* ---- CONTENT ---- */}
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Content</h2>
-              <span className="muted">{form.blocks.length} blocks</span>
-            </div>
+          <Panel title="Content" aside={<span className="muted">{form.blocks.length} blocks</span>}>
             <div className="panel-body">
               <PageBlocks
                 blocks={form.blocks}
@@ -395,15 +399,41 @@ export default function PageEdit({ type = 'tourPage' }) {
                 headings, paragraphs, bullets, tables, quotes, images. No classes or code.
               </div>
             </div>
-          </div>
+          </Panel>
         </div>
 
         {/* ================= SIDEBAR ================= */}
         <aside>
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Publish</h2>
-            </div>
+          {/*
+           * ⚠️ **Save/Trash `footer` me hain, body me nahi** — `Panel` ka apna niyam: body band
+           * hone pe render hi nahi hoti, aur Save chhup jaane ka matlab hota ki user ko lage
+           * kaam bachane ka raasta hi nahi bacha. Ek panel band karna Save chhupane ki keemat
+           * pe nahi hona chahiye.
+           */}
+          <Panel
+            title="Publish"
+            footer={
+              <div className="panel-foot">
+                {id && !readOnly ? (
+                  <button className="btn btn-sm btn-danger" type="button" onClick={trash}>
+                    Trash
+                  </button>
+                ) : (
+                  <span />
+                )}
+                {!readOnly && (
+                  <button
+                    className="btn btn-primary"
+                    type="button"
+                    onClick={save}
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving…' : id ? 'Update' : 'Save'}
+                  </button>
+                )}
+              </div>
+            }
+          >
             <div className="panel-body">
               <div className="field">
                 <label>Status</label>
@@ -434,31 +464,10 @@ export default function PageEdit({ type = 'tourPage' }) {
                 The byline on the page (<i>author · Updated · min read</i>) is built from these{' '}
                 <b>automatically</b> — there is no field for it.
               </div>
-
-              <div className="pub-actions">
-                {id && !readOnly && (
-                  <button className="btn btn-sm btn-danger" type="button" onClick={trash}>
-                    Trash
-                  </button>
-                )}
-                {!readOnly && (
-                  <button
-                    className="btn btn-primary"
-                    type="button"
-                    onClick={save}
-                    disabled={saving}
-                  >
-                    {saving ? 'Saving…' : id ? 'Update' : 'Save'}
-                  </button>
-                )}
-              </div>
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Page settings</h2>
-            </div>
+          <Panel title="Page settings">
             <div className="panel-body">
               {/*
                * Sidebar — **sirf layout aur visibility** (client, 8 Sep).
@@ -520,12 +529,9 @@ export default function PageEdit({ type = 'tourPage' }) {
                 onClear={() => set({ featuredImageId: null })}
               />
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>SEO</h2>
-            </div>
+          <Panel title="SEO" defaultOpen={false}>
             <div className="panel-body">
               <div className="field">
                 <label>SEO Title</label>
@@ -551,7 +557,7 @@ export default function PageEdit({ type = 'tourPage' }) {
                 from the page&rsquo;s parent.
               </div>
             </div>
-          </div>
+          </Panel>
         </aside>
       </div>
     </>

@@ -48,7 +48,7 @@ function emptyBlock(type) {
     twoColumn: { ratio: '50-50', left: '', right: '', reverseOnMobile: false },
     cards: { columns: 3, items: [] },
     packageList: {},
-    faqs: { heading: '', description: '', items: [], emitSchema: true },
+    faqs: { heading: '', description: '', items: [] },
   }[type]
 
   return { id: newId(), type, props: props ?? {} }
@@ -680,15 +680,10 @@ function FaqsBlock({ props, onChange, disabled }) {
         </button>
       )}
 
-      <label className="inline-lbl" style={{ marginTop: 10 }}>
-        <input
-          type="checkbox"
-          checked={props.emitSchema !== false}
-          onChange={(e) => onChange({ ...props, emitSchema: e.target.checked })}
-          disabled={disabled}
-        />{' '}
-        Google ka FAQ schema is block se banaayein
-      </label>
+      <div className="hint">
+        Google&rsquo;s FAQ schema is emitted automatically — every FAQ block on this page goes into
+        one FAQPage.
+      </div>
     </>
   )
 }

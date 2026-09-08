@@ -276,10 +276,20 @@ export const packageListPropsSchema = z.object({
  * FAQ ka shape `faq.js` se hi aata hai, dobara likha nahi gaya: package page ka
  * `Questions about this package` aur ye ek hi cheez hain, sirf jagah alag hai.
  *
- * ⚠️ `emitSchema` **is block pe** hai, site-level toggle pe nahi. Wajah D-82 ki ulti hai:
- * `seoSchema` per-package tha aur wo galat tha kyunki site ya to structured data bhejti hai
- * ya nahi. Yahan sawaal alag hai — **ek page pe do FAQ block** ho sakte hain (jaise "Booking
- * FAQs" aur "Ferry FAQs"), aur Google ko ek page pe ek hi `FAQPage` chahiye.
+ * ## ⚠️ `emitSchema` ka toggle hata diya gaya (client, 8 Sep)
+ *
+ * Client ne poochha: _"do I need this checkbox?"_ — aur jawab **nahi** tha.
+ *
+ * Wo toggle is dar se bana tha ki ek page pe **do FAQ block** ho sakte hain aur Google ko ek
+ * page pe ek hi `FAQPage` chahiye — to client chunta ki kaunsa block schema de. Par wo sawaal
+ * hi galat tha: sahi jawab ye hai ki **page ke saare FAQ blocks milaa kar ek hi `FAQPage`**
+ * banti hai. Google ko yahi chahiye, aur client ko kuch chunna hi nahi padta.
+ *
+ * Wahi tark jo `showBadges` pe laga (usi din): **jo cheez apne aap sahi ho sakti hai, uspe
+ * toggle rakhna client ko ek aisa faisla dena hai jo uska hai hi nahi.** Aur har toggle ek
+ * aisi haalat banata hai jisme koi use band karke bhool jaata hai.
+ *
+ * ⚠️ Schema banana **Slice D** ka kaam hai (theme). Tab tak ye block sirf content rakhta hai.
  */
 export const faqsPropsSchema = z.object({
   heading: z.string().trim().max(200).default(''),
@@ -298,7 +308,6 @@ export const faqsPropsSchema = z.object({
   description: htmlSchema.pipe(z.string().max(2000)).default(''),
 
   items: z.array(faqSchema).max(50).default([]),
-  emitSchema: z.boolean().default(true),
 })
 
 /**
