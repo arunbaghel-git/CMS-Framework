@@ -16,6 +16,35 @@
  * wale icons rakhne se har context ke liye alag file rakhni padti.
  */
 const PATHS = {
+  /*
+   * ⚠️ **`shield` · `pin` · `doc` · `check` yahan 8 Sep me jude, aur unka na hona ek chup bug
+   * tha.**
+   *
+   * `trustBadgeSchema` ka enum inhe **shuru se** deta hai (`none · shield · pin · doc · star ·
+   * clock · check`) aur admin ka dropdown inhe dikhata hai — par yahan sirf `star` aur `clock`
+   * the. Yaani client `shield` chunta, save hota, aur page pe **kuch na dikhta**: `Icon` anjaan
+   * naam pe `null` lauta deta hai.
+   *
+   * Wahi shakl jo baar-baar pakdi ja rahi hai — feature ka aadha hissa bana hota hai aur uska
+   * na chalna kabhi error nahi deta, sirf "kuch na hone" jaisa dikhta hai (D-86).
+   *
+   * Teenon path reference ke `.vhero__trust` se hi liye gaye hain (`tour-v3.html:1385`).
+   */
+  shield: <path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" />,
+  pin: (
+    <>
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </>
+  ),
+  doc: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+    </>
+  ),
+  check: <path d="m5 13 4 4L19 7" />,
+
   award: (
     <>
       <circle cx="12" cy="8" r="6" />

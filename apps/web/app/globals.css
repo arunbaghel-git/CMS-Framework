@@ -3236,8 +3236,16 @@ a.mega__gl:hover {
    *
    * `:not(.wdg--book)` isliye ki enquiry form bhi `.wdg` hai, aur wo chhupta nahi — wo sheet
    * ban jaata hai (neeche).
+   *
+   * ⚠️ **`.pgl:not(.pgl--tour)` 8 Sep me juda, aur uske bina ye rule tour page ko kaat raha
+   * tha.** Wahan sidebar ke teenon widget `.wdg` hain aur enquiry form `.wdg--cta` hai,
+   * `.wdg--book` nahi — yaani mobile pe **poori sidebar gayab** ho jaati, form samet.
+   *
+   * Ye rule sirf isliye theek hai ki package page pe wo contact `.mobar` me chale jaate hain.
+   * **Tour page pe koi `.mobar` hai hi nahi**, to chhupane ka matlab hota unhe kahin na dikhana.
+   * Wahan sidebar mobile pe content ke neeche baith jaati hai aur wahi sahi hai.
    */
-  .pgl__side .wdg:not(.wdg--book) {
+  .pgl:not(.pgl--tour) .pgl__side .wdg:not(.wdg--book) {
     display: none;
   }
 
@@ -5102,4 +5110,99 @@ a.mega__gl:hover {
   .dgrid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---------- hero trust badges ---------- */
+
+/*
+ * `Settings ▸ Tour settings` ke badges (client ka faisla #11).
+ *
+ * ⚠️ Ye CSS aur uska render dono 8 Sep tak the hi nahi — schema, admin screen aur payload
+ * teenon bane hue the, par theme me koi padhta hi nahi tha. Client ne khud pakda.
+ */
+.vhero__trust {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.vhero__trust span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.vhero__trust svg {
+  color: #7cc7ff;
+  flex-shrink: 0;
+}
+
+/* Separator — ek chhota dot, text nahi. Aakhri badge ke baad nahi aata. */
+.vhero__trust b {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  align-self: center;
+}
+
+/* ---------- sidebar ka CTA form ---------- */
+
+/*
+ * `.wdg--cta` — tour page ka enquiry widget (`tour-v3.html:1890`).
+ *
+ * ⚠️ Package page wala `.wdg--book` safed hai aur uske sar pe neela price header hota hai.
+ * Ye poora **neela** hai aur usme price header hai hi nahi — tour page pe koi ek package hota
+ * hi nahi.
+ *
+ * ⚠️ Ye rule 8 Sep tak chhoot gaya tha: markup `wdg--cta` chhaap raha tha par CSS thi hi nahi,
+ * to form design ke neele card ki jagah ek saada safed dabba dikhta tha. Screenshot se pakda.
+ */
+.wdg--cta {
+  background: linear-gradient(150deg, var(--blue-900), var(--blue-700));
+  border-color: transparent;
+  padding: 18px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.wdg--cta h3 {
+  color: #fff;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.wdg--cta p {
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+
+/*
+ * ⚠️ Andar ka form `.bkg__b` me lipta hai (`EnquiryForm` dono variant pe wahi markup deta hai),
+ * aur uska apna padding hai — yahan wo hata diya jaata hai, warna `.wdg--cta` ka 18px uske
+ * upar chad jaata aur field kinaare se bahut door ho jaate.
+ */
+.wdg--cta .bkg__b {
+  padding: 0;
+}
+
+.wdg--cta .fld {
+  margin-bottom: 9px;
+}
+
+.wdg--cta .fld label {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* Footnote — button ke neeche ki chhoti line (form ka `footnote`) */
+.wdg--cta small {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 9px;
 }

@@ -70,6 +70,22 @@ export const NAV = [
     children: [
       { label: 'All Tour Pages', to: '/tour', permission: PERMISSION.ENTRY_READ },
       { label: 'Add New', to: '/tour/new', permission: PERMISSION.ENTRY_CREATE },
+      /**
+       * ⚠️ **Ye 8 Sep ko `Settings ▸ Tour settings` se yahan aaya** (client).
+       *
+       * Storage abhi bhi `settings` document me hai (`settings.tourSettings`) aur permission
+       * bhi wahi (`settings.read`) — sirf **menu me jagah** badli hai. UI ki jagah aur storage
+       * ki jagah alag hone me koi dikkat nahi; wahi baat `Appearance ▸ Footer` pe pehle se
+       * likhi hai, jo likhta `settings` me hi hai.
+       *
+       * Client ka tark seedha hai: ye Tour page ki cheezein hain (banner, trust badges), to wo
+       * Tour ke neeche milni chahiye — wahan nahi jahan site ke settings hain.
+       */
+      {
+        label: 'Tour settings',
+        to: '/tour/settings',
+        permission: PERMISSION.SETTINGS_READ,
+      },
     ],
   },
   { separator: true },
@@ -280,11 +296,7 @@ export const NAV = [
        * hain, ye yahan.
        */
       { label: 'CTA Section', to: '/settings/cta', permission: PERMISSION.SETTINGS_READ },
-      {
-        label: 'Tour settings',
-        to: '/settings/tour',
-        permission: PERMISSION.SETTINGS_READ,
-      },
+      /* `Tour settings` yahan se **Tour ke submenu** me chala gaya (client, 8 Sep) — upar dekho. */
       { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
       { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
       {
@@ -389,7 +401,11 @@ export const ROUTE_GUARDS = Object.freeze({
    */
   '/settings': PERMISSION.SETTINGS_READ,
   '/settings/cta': PERMISSION.SETTINGS_READ,
-  '/settings/tour': PERMISSION.SETTINGS_READ,
+  /**
+   * ⚠️ Menu me ye ab **Tour** ke neeche hai (client, 8 Sep), par guard `settings.read` hi rahi —
+   * storage `settings.tourSettings` me hai. Jagah badalne se permission nahi badalti.
+   */
+  '/tour/settings': PERMISSION.SETTINGS_READ,
   /**
    * Menus screen khud `menu.update` na hone pe form disable kar deti hai — `author` aur
    * `contributor` menu **dekh** sakte hain (link banate waqt ye kaam ka hai), badal nahi.

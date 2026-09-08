@@ -134,6 +134,13 @@ function Shell({ children }) {
 const APP_ROUTES = [
   { path: '/tour', element: <TourList /> },
   { path: '/tour/new', element: <PageEdit /> },
+  /**
+   * ⚠️ `/tour/:id` se **pehle** — React Router static segment ko waise bhi upar rakhta hai, par
+   * kram me saaf likha hona is baat ko padhne wale ke liye bhi saaf rakhta hai.
+   *
+   * Ye pehle `/settings/tour` tha; 8 Sep ko client ne ise Tour ke submenu me bhej diya.
+   */
+  { path: '/tour/settings', element: <TourSettings /> },
   { path: '/tour/:id', element: <PageEdit /> },
   { path: '/packages', element: <PackagesList /> },
   /**
@@ -216,7 +223,6 @@ const APP_ROUTES = [
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
   { path: '/settings/cta', element: <CtaSection /> },
-  { path: '/settings/tour', element: <TourSettings /> },
   { path: '/appearance/menus', element: <Menus /> },
   { path: '/appearance/sidebars', element: <Sidebars /> },
   { path: '/appearance/sidebars/:id', element: <SidebarEdit /> },

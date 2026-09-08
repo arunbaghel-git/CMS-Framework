@@ -1,3 +1,6 @@
+import { Fragment } from 'react'
+
+import Icon from '../Icon.jsx'
 import Img from '../Img.jsx'
 import { EnquiryDockProvider } from '../package/EnquiryDock.jsx'
 import Blocks from './Blocks.jsx'
@@ -118,6 +121,37 @@ export default function TourPage({ entry, settings }) {
           {fields.subheading && (
             <div className="vhero__sub" dangerouslySetInnerHTML={{ __html: fields.subheading }} />
           )}
+
+          {/*
+           * Trust badges — `Settings ▸ Tour settings` se (client ka faisla #11).
+           *
+           * ⚠️ **Ye 8 Sep tak kahin render hote hi nahi the.** Schema, admin screen aur public
+           * payload teenon Slice C me ban gaye the, par theme me inhe padhne wala koi nahi tha —
+           * yaani client jo bharta tha wo kabhi dikhta hi nahi. Client ne khud ye pakda.
+           *
+           * Wahi shakl jo D-82 me `seoSchema` pe thi (feature bana kar rakha gaya aur teen din
+           * chala hi nahi) aur D-65 me `cancellationText` pe (payload me field chhoot gaya tha).
+           *
+           * ⚠️ **Page ke payload me ye nahi hain, `settings` me hain** — hero package page pe bhi
+           * hai, aur dono jagah bhejne ka matlab hota ek hi cheez do jagah. Khaali text wale
+           * badge server pe hi chhan chuke hote hain.
+           *
+           * `<b>` ek separator dot hai, text nahi — reference me bhi wahi hai, aur wo aakhri
+           * badge ke baad nahi aata.
+           */}
+          {settings?.trustBadges?.length > 0 && (
+            <div className="vhero__trust">
+              {settings.trustBadges.map((badge, i) => (
+                <Fragment key={badge.id ?? i}>
+                  {i > 0 && <b />}
+                  <span>
+                    <Icon name={badge.icon} size={13} strokeWidth={2.6} />
+                    {badge.text}
+                  </span>
+                </Fragment>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -150,7 +184,16 @@ export default function TourPage({ entry, settings }) {
            * `grid-template-columns` seedha badalne ka matlab hota us page ka layout tod dena —
            * ye Slice D ka pehle se likha hua maloom kaanta tha.
            */}
-          <div className={`pgl${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}>
+          {/*
+           * ⚠️ `pgl--tour` **hamesha** lagti hai, `pgl--sideleft` sirf left pe.
+           *
+           * Wo mobile ke ek rule ke liye chahiye: package page pe `.pgl__side` ke widgets
+           * chhup jaate hain (unke contact `.mobar` me chale jaate hain), par tour page pe koi
+           * `.mobar` hai hi nahi — wahan chhupane ka matlab hota poori sidebar gayab, form samet.
+           */}
+          <div
+            className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
+          >
             <div className="pgl__main">
               <Byline byline={byline} />
               <Blocks blocks={entry.blocks ?? []} />

@@ -6,7 +6,6 @@ import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
 import { useMediaById } from '../../lib/use-entries.js'
-import SettingsTabs from './SettingsTabs.jsx'
 import './Settings.css'
 
 /**
@@ -30,7 +29,8 @@ import './Settings.css'
 
 /** Icon ek enum hai, SVG nahi — wahi tark jo footer column ki `width` pe hai (D-44). */
 const ICON_LABEL = {
-  none: '— koi nahi —',
+  /* ⚠️ Ye pehle `— koi nahi —` tha — R17 (UI ka text English me). 8 Sep ko pakda. */
+  none: '— none —',
   shield: 'Shield',
   pin: 'Location pin',
   doc: 'Document',
@@ -115,10 +115,17 @@ export default function TourSettings() {
 
   return (
     <>
+      {/*
+       * ⚠️ Heading `Tour` hai aur `SettingsTabs` **hata di gayi** — 8 Sep ko client ne is screen
+       * ko `Settings ▸ Tour settings` se `Tour ▸ Tour settings` me bhej diya.
+       *
+       * Tabs chhodne ka matlab hota ki Tour ke neeche khuli screen Settings ke tabs dikhati —
+       * yaani nav kuch aur kehti aur screen kuch aur. Storage wahi hai (`settings.tourSettings`),
+       * sirf jagah badli hai.
+       */}
       <div className="page-head">
-        <h1>Settings</h1>
+        <h1>Tour</h1>
       </div>
-      <SettingsTabs />
 
       <p className="subtitle">
         The trust line under the hero, and the default banner image. Both are used on every page — a
