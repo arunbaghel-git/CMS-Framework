@@ -15,6 +15,7 @@ import {
   itinerarySchema,
   packageAddOnsSchema,
   packageHotelsSchema,
+  durationQuery,
   parseBlockProps,
   pricingSchema,
   ratingSchema,
@@ -786,6 +787,15 @@ export async function listEntries(query, siteId = DEFAULT_SITE_ID, locale = DEFA
   for (const key of TAXONOMY_REF_KEYS) {
     if (filters[key]) filter[`taxonomies.${key}`] = filters[key]
   }
+
+  /**
+   * Duration ka bucket — `fields.nights` pe (D-87, client 8 Sep).
+   *
+   * ⚠️ Query ka shape `durationQuery()` banati hai, yahan nahi. Bucket ka matlab (khaas kar
+   * `d8plus` = 8 aur usse zyada) ek hi jagah likha hona chahiye — dono taraf likhne ka matlab
+   * hota ki kal `LONG_STAY_FROM` badle aur ek taraf purana 8 rah jaaye.
+   */
+  Object.assign(filter, durationQuery(filters.duration) ?? {})
 
   /**
    * Search `searchText` pe chalti hai, `$text` pe nahi.

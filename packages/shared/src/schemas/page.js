@@ -132,6 +132,24 @@ export function durationBucket(nights) {
 }
 
 /**
+ * Bucket se Mongo ka filter — `entries` list ke `duration` param ke liye.
+ *
+ * ⚠️ **Yahi jagah bucket ka matlab tay karti hai, dono taraf ke liye.** `durationBucket()`
+ * padhne ka raasta hai (nights → bucket) aur ye likhne ka (bucket → query). Do jagah likhne ka
+ * matlab hota ki kal `LONG_STAY_FROM` badle aur ek taraf 8 rah jaaye — theek wahi shakl jo D-86
+ * ke slug pe thi, jahan dhoondhne aur save karne ka tareeka alag ho gaya tha.
+ *
+ * @param {string | null | undefined} bucket
+ * @returns {object | null} `fields.nights` ka filter, ya `null` jab bucket hi galat ho
+ */
+export function durationQuery(bucket) {
+  if (!bucket || !DURATION_BUCKETS.includes(bucket)) return null
+  if (bucket === 'd8plus') return { 'fields.nights': { $gte: LONG_STAY_FROM } }
+
+  return { 'fields.nights': Number(bucket.slice(1)) }
+}
+
+/**
  * **Do alag filter hain, aur unka kaam bilkul alag hai** (client, 8 Sep — doosra pass).
  *
  * Pehle ek hi radio tha jo dono kaam karta tha: admin me list chhoti karta tha, **aur** page pe
@@ -154,11 +172,20 @@ export function durationBucket(nights) {
 /**
  * Baayen column ko chhota karne ke tareeke.
  *
- * ⚠️ `duration` yahan **nahi** hai, aur wo jaan-boojh kar hai: `nights` `fields` ke andar baithi
- * hai aur list endpoint uspe filter nahi karta, to wo option baayen kuch narrow karta hi nahi.
- * Use rakhne ka matlab hota ek aisa radio jo dabaane pe kuch na kare.
+ * ⚠️ `duration` yahan **wapas aaya hai** (client, 8 Sep). Pehle use nikaal diya gaya tha kyunki
+ * `nights` `fields` ke andar baithi hai aur list endpoint uspe filter nahi karta tha — yaani wo
+ * radio dabaane pe kuch hota hi nahi.
+ *
+ * Client ne poochha ki use hataya kyun; aur wo theek tha — **option hatane ki jagah use chalana
+ * chahiye tha.** Ab `entryListQuerySchema` me `duration` param hai aur service bucket ko Mongo
+ * filter me badalti hai (`durationQuery()`).
  */
-export const PACKAGE_BROWSE_FILTERS = Object.freeze(['all', 'packageType', 'destination'])
+export const PACKAGE_BROWSE_FILTERS = Object.freeze([
+  'all',
+  'packageType',
+  'destination',
+  'duration',
+])
 
 /**
  * Page pe visitor ko kaunsi filter bar milegi — **ek hi, ya koi nahi**.
@@ -198,6 +225,8 @@ export const packageListPropsSchema = z.object({
   /** `browseBy` ki value. Taxonomy ki `id`, uska naam nahi (D-49). */
   packageTypeId: z.string().nullable().default(null),
   destinationId: z.string().nullable().default(null),
+  /** `browseBy: 'duration'` ki value — bucket ki key (`d2` … `d8plus`). */
+  browseDuration: z.enum(DURATION_BUCKETS).nullable().default(null),
 
   /**
    * **Page pe visitor ko kaunsi filter bar milegi** — `.fbar`.
@@ -206,6 +235,19 @@ export const packageListPropsSchema = z.object({
    * hi set ke do roop hone chahiye, warna ek pill pe click karne pe page khaali ho jaata hai.
    */
   pageFilter: z.enum(PACKAGE_PAGE_FILTERS).default('none'),
+
+  /*
+   * ⚠️ **`showBadges` hata diya gaya** (client, 8 Sep): _"rating aur discount badge wala
+   * checkbox hatao — default package me hoga to automatically aayega hi."_
+   *
+   * Wo theek tha. Rating aur discount **derived** hain — rating `fields.rating` ya
+   * `packageDefaults.rating` se aati hai, discount `strikePrice` se. Jo cheez hai wo dikhegi,
+   * jo nahi hai wo apne aap gayab hai. Uske upar ek toggle rakhne ka matlab tha **do jagah se
+   * "nahi dikhana"** — aur do me se ek hi yaad rehta.
+   *
+   * Wahi soch jo pricing (D-56) aur stat rail pe hai: khaali daam = wo category milti hi nahi;
+   * koi alag "ye category chhupao" wala switch nahi hai.
+   */
 
   /**
    * **Is page pe kaunse packages, aur kis kram me** — client ka faisla (8 Sep).
@@ -226,9 +268,6 @@ export const packageListPropsSchema = z.object({
    * rehta hai jahan cheez rehti hai, kisi alag `order` field me nahi.
    */
   packageIds: z.array(z.string()).max(60).default([]),
-
-  /** Card pe rating aur discount ka badge — design ka checkbox. Filter nahi hai, isliye bacha. */
-  showBadges: z.boolean().default(true),
 })
 
 /**

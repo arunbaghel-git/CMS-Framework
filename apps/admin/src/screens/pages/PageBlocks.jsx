@@ -230,6 +230,17 @@ function CardsBlock({ props, onChange, disabled }) {
   )
 }
 
+/** Duration ke pills ke naam — reference se hi (`tour-v3.html`). */
+const DURATION_LABEL = {
+  d2: '2N / 3D',
+  d3: '3N / 4D',
+  d4: '4N / 5D',
+  d5: '5N / 6D',
+  d6: '6N / 7D',
+  d7: '7N / 8D',
+  d8plus: '8N and longer',
+}
+
 /** Picker me naam ke aage chhota meta — `5N / 6D`. Dono me se ek bhi na ho to khaali. */
 function durationOf(fields) {
   const nights = fields?.nights
@@ -311,6 +322,7 @@ function PackageListBlock({ props, onChange, disabled }) {
     ...(browseBy === 'destination' && props.destinationId
       ? { destinations: props.destinationId }
       : {}),
+    ...(browseBy === 'duration' && props.browseDuration ? { duration: props.browseDuration } : {}),
   })
 
   /** Daayen wali list ka kram — `packageIds` hi kram hai, isliye reorder yahin hota hai. */
@@ -335,6 +347,7 @@ function PackageListBlock({ props, onChange, disabled }) {
       browseBy: next,
       ...(next === 'packageType' ? {} : { packageTypeId: null }),
       ...(next === 'destination' ? {} : { destinationId: null }),
+      ...(next === 'duration' ? {} : { browseDuration: null }),
     })
 
   /**
@@ -351,6 +364,7 @@ function PackageListBlock({ props, onChange, disabled }) {
     { key: 'all', label: 'All' },
     { key: 'packageType', label: 'Package Type' },
     { key: 'destination', label: 'Destination' },
+    { key: 'duration', label: 'Day wise' },
   ]
 
   const PAGE_FILTERS = [
@@ -444,6 +458,28 @@ function PackageListBlock({ props, onChange, disabled }) {
                 {destinations.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/*
+             * Day wise — filter **server pe** lagta hai (`duration` param → `fields.nights`).
+             * Pehle ye option hata diya gaya tha kyunki list endpoint uspe filter nahi karta
+             * tha; client ne poochha ki kyun hataya, aur wo theek tha — option hatane ki jagah
+             * use chalana chahiye tha.
+             */}
+            {browseBy === 'duration' && (
+              <select
+                className="sel"
+                value={props.browseDuration ?? ''}
+                onChange={(e) => onChange({ ...props, browseDuration: e.target.value || null })}
+                disabled={disabled}
+              >
+                <option value="">— choose —</option>
+                {Object.entries(DURATION_LABEL).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
                   </option>
                 ))}
               </select>
@@ -562,16 +598,6 @@ function PackageListBlock({ props, onChange, disabled }) {
           </ul>
         </div>
       </div>
-
-      <label className="inline-lbl" style={{ marginTop: 10 }}>
-        <input
-          type="checkbox"
-          checked={props.showBadges !== false}
-          onChange={(e) => onChange({ ...props, showBadges: e.target.checked })}
-          disabled={disabled}
-        />{' '}
-        Show the rating and discount badge
-      </label>
     </>
   )
 }

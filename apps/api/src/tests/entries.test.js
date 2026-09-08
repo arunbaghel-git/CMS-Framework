@@ -2299,7 +2299,6 @@ describe('content blocks (D-87 §7)', () => {
       pageFilter: 'duration',
       browseBy: 'all',
       packageIds: [],
-      showBadges: true,
       packageTypeId: null,
       destinationId: null,
     })
@@ -2660,6 +2659,34 @@ describe('Package list block ka payload (D-87)', () => {
     const block = await tourWithList('List E', { pageFilter: 'duration', packageIds: [a] })
 
     expect(block.data.facets).toEqual([{ key: 'd2', label: '2N / 3D', nights: 2, count: 1 }])
+  })
+
+  it('list ka duration param bucket se chalta hai — d8plus ek range hai', async () => {
+    // ⚠️ Ye param picker ke baayen column ke liye hai (`browseBy: 'duration'`). Wo option ek
+    // baar hata diya gaya tha kyunki list uspe filter nahi karti thi; client ne poochha ki
+    // kyun hataya — aur wo theek tha, option hatane ki jagah use chalana chahiye tha.
+    //
+    // `d8plus` sirf ek aur bucket nahi hai, wo ek RANGE hai (8 aur usse zyada). Uska matlab
+    // `durationQuery()` me ek jagah likha hai, taaki `LONG_STAY_FROM` badle to dono taraf
+    // ek saath badle
+    await publishedPackage('Chhota', { nights: 2, days: 3 })
+    await publishedPackage('Aath', { nights: 8, days: 9 })
+    await publishedPackage('Baarah', { nights: 12, days: 13 })
+
+    const list = async (duration) =>
+      (
+        await authed('get', `/api/entries?type=package&duration=${duration}`, adminJar)
+      ).body.data.entries.map((e) => e.title)
+
+    expect(await list('d2')).toEqual(['Chhota'])
+    expect((await list('d8plus')).sort()).toEqual(['Aath', 'Baarah'])
+    expect(await list('d5')).toEqual([])
+  })
+
+  it('galat duration bucket 400 deta hai — req.query kabhi seedha Mongo me nahi jaati (R9)', async () => {
+    const res = await authed('get', '/api/entries?type=package&duration=kuch-bhi', adminJar)
+
+    expect(res.status).toBe(400)
   })
 
   it('browseBy ka page pe koi asar nahi — wo sirf admin ke picker ke liye hai', async () => {

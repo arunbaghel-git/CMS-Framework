@@ -7,6 +7,7 @@ import {
   TAXONOMY_REF_KEYS,
 } from '../constants/index.js'
 import { contentSchema, emptyContent } from './content.js'
+import { DURATION_BUCKETS } from './page.js'
 import { emptySeo, seoSchema } from './seo.js'
 
 /**
@@ -185,6 +186,17 @@ export const entryListQuerySchema = z.object({
    */
   ...Object.fromEntries(TAXONOMY_REF_KEYS.map((key) => [key, z.string().optional()])),
   parentId: z.string().optional(),
+  /**
+   * Duration ka bucket — `d2` … `d8plus` (D-87, client 8 Sep).
+   *
+   * ⚠️ Ye `fields.nights` pe filter karta hai, jo `Mixed` ke andar hai. Value ka shape
+   * `durationQuery()` tay karti hai, yahan nahi — `req.query` kabhi seedha Mongo query me nahi
+   * jaati (R9).
+   *
+   * Naam `duration` hai, `nights` nahi: bucket ek **range** ho sakta hai (`d8plus` = 8 aur
+   * usse zyada), aur `nights=8plus` jaisa param padhne me jhootha lagta.
+   */
+  duration: z.enum(DURATION_BUCKETS).optional(),
   trashed: z.coerce.boolean().default(false),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(ENTRY_LIST_MAX_LIMIT).default(20),
