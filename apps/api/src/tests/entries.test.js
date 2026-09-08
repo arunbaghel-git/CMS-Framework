@@ -2367,9 +2367,17 @@ describe('content blocks (D-87 §7)', () => {
       title: 'Safai Test',
       content: contentOf(
         textBlock('t1', dirty),
-        { id: 'w1', type: 'twoColumn', props: { left: dirty, right: dirty } },
-        { id: 'c1', type: 'cards', props: { items: [{ title: 'Ek', text: dirty }] } },
-        { id: 'f1', type: 'faqs', props: { items: [{ question: 'Q?', answer: dirty }] } },
+        { id: 'w1', type: 'twoColumn', props: { description: dirty, left: dirty, right: dirty } },
+        {
+          id: 'c1',
+          type: 'cards',
+          props: { description: dirty, items: [{ title: 'Ek', text: dirty }] },
+        },
+        {
+          id: 'f1',
+          type: 'faqs',
+          props: { description: dirty, items: [{ question: 'Q?', answer: dirty }] },
+        },
       ),
     })
 
@@ -2378,9 +2386,13 @@ describe('content blocks (D-87 §7)', () => {
 
     for (const html of [
       text.props.html,
+      // `description` teenon pe D-88 §9 me juda — safai bhi teenon pe lagni chahiye
+      two.props.description,
       two.props.left,
       two.props.right,
+      cards.props.description,
       cards.props.items[0].text,
+      faqs.props.description,
       faqs.props.items[0].answer,
     ]) {
       expect(html).not.toContain('onclick')

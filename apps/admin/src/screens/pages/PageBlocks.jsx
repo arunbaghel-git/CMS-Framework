@@ -45,8 +45,15 @@ const newId = () =>
 function emptyBlock(type) {
   const props = {
     richText: { html: '' },
-    twoColumn: { ratio: '50-50', left: '', right: '', reverseOnMobile: false },
-    cards: { columns: 3, items: [] },
+    twoColumn: {
+      heading: '',
+      description: '',
+      ratio: '50-50',
+      left: '',
+      right: '',
+      reverseOnMobile: false,
+    },
+    cards: { heading: '', description: '', columns: 3, items: [] },
     packageList: {},
     faqs: { heading: '', description: '', items: [] },
   }[type]
@@ -69,10 +76,14 @@ function summarize(block) {
         .trim()
       return text ? text.slice(0, 90) + (text.length > 90 ? '…' : '') : 'Empty'
     }
+    /*
+     * Heading ab in dono pe bhi hai (D-88 §9), aur band panel pe wahi sabse kaam ki cheez hai —
+     * client section ko uske naam se pehchanta hai, uske `50-50` ya `3 columns` se nahi.
+     */
     case 'twoColumn':
-      return p.ratio ?? '50-50'
+      return p.heading || (p.ratio ?? '50-50')
     case 'cards':
-      return `${(p.items ?? []).length} card(s) · ${p.columns ?? 3} columns`
+      return `${p.heading ? `${p.heading} — ` : ''}${(p.items ?? []).length} card(s) · ${p.columns ?? 3} columns`
     case 'packageList':
       return p.heading || 'Package list'
     case 'faqs':
@@ -98,6 +109,9 @@ function TextBlock({ props, onChange, disabled }) {
 function TwoColumnBlock({ props, onChange, disabled }) {
   return (
     <>
+      {/* Cards wali hi wajah — D-88 §9. Design ke panel me sirf `Split` tha. */}
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+
       <div className="field" style={{ maxWidth: 200 }}>
         <label>Split</label>
         <select
@@ -151,6 +165,43 @@ function TwoColumnBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * Section ka heading + uske neeche ki line — **Cards, Two column aur FAQs teenon pe wahi**.
+ *
+ * ⚠️ Alag component isliye ki ye teen jagah bilkul ek jaisa hai, aur is repo me teen copies ka
+ * nateeja pehle ho chuka hai (D-65/D-51/D-58, aur `bestFor` similar cards pe chhoot jaana).
+ *
+ * Description ek **asli editor** hai, plain text nahi (client, 8 Sep) — wahi jodi jo
+ * `packageDefaults.sectionLabels` pe hai (D-65/D-69): client ko usme bold aur link chahiye
+ * hote hain.
+ */
+function SectionHeadingFields({ props, onChange, disabled }) {
+  return (
+    <>
+      <div className="field">
+        <label>Heading</label>
+        <input
+          className="inp"
+          value={props.heading ?? ''}
+          onChange={(e) => onChange({ ...props, heading: e.target.value })}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="field">
+        <label>Description</label>
+        <HtmlEditor
+          value={props.description ?? ''}
+          onChange={(description) => onChange({ ...props, description })}
+          disabled={disabled}
+          height={130}
+        />
+        <div className="hint">Leave it empty and the line does not appear on the page.</div>
+      </div>
+    </>
+  )
+}
+
 function CardsBlock({ props, onChange, disabled }) {
   const items = props.items ?? []
   const setItems = (next) => onChange({ ...props, items: next })
@@ -160,6 +211,17 @@ function CardsBlock({ props, onChange, disabled }) {
 
   return (
     <>
+      {/*
+       * ⚠️ Heading + description D-88 §9 me jude — design ke Cards panel me ye nahi hain
+       * (`admin-design-v3.html:906` me sirf `Columns` hai).
+       *
+       * Design me ye upar wale **Text block** ki maani gayi thin, kyunki reference me teenon ek
+       * hi `.blk` ke andar hain. Par hamare model me Text apna block hai — yaani admin me do
+       * panel aur page pe ek dabba, jo client ko bug jaisa dikhta. Ab har layout block apna
+       * poora section hai, aur wo `faqs`/`packageList` se bhi mel khaata hai.
+       */}
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+
       <div className="field" style={{ maxWidth: 200 }}>
         <label>Columns</label>
         <select
@@ -611,30 +673,8 @@ function FaqsBlock({ props, onChange, disabled }) {
 
   return (
     <>
-      <div className="field">
-        <label>Heading</label>
-        <input
-          className="inp"
-          value={props.heading ?? ''}
-          onChange={(e) => onChange({ ...props, heading: e.target.value })}
-          disabled={disabled}
-        />
-      </div>
-
-      {/*
-       * Heading ke neeche ki line — asli editor, plain text nahi (client, 8 Sep). Wahi jodi jo
-       * `packageDefaults.sectionLabels` pe hai (D-65/D-69).
-       */}
-      <div className="field">
-        <label>Description</label>
-        <HtmlEditor
-          value={props.description ?? ''}
-          onChange={(description) => onChange({ ...props, description })}
-          disabled={disabled}
-          height={130}
-        />
-        <div className="hint">Leave it empty and the line does not appear on the page.</div>
-      </div>
+      {/* Wahi do field jo ab Cards aur Two column pe bhi hain — D-88 §9. */}
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
 
       {items.map((faq, i) => (
         <div className="day" key={faq.id ?? i}>

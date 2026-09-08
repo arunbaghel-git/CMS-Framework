@@ -297,7 +297,13 @@ export function sanitizeContent(content) {
         case 'twoColumn':
           return {
             ...block,
-            props: { ...p, left: sanitizeBlockHtml(p.left), right: sanitizeBlockHtml(p.right) },
+            props: {
+              ...p,
+              /** Heading ke neeche ki line — D-88 §9 me judi (client, 8 Sep). */
+              description: sanitizeBlockHtml(p.description),
+              left: sanitizeBlockHtml(p.left),
+              right: sanitizeBlockHtml(p.right),
+            },
           }
 
         case 'cards':
@@ -305,6 +311,8 @@ export function sanitizeContent(content) {
             ...block,
             props: {
               ...p,
+              /** Heading ke neeche ki line — D-88 §9 me judi (client, 8 Sep). */
+              description: sanitizeBlockHtml(p.description),
               items: (p.items ?? []).map((item) =>
                 item ? { ...item, text: sanitizeInlineHtml(item.text) } : item,
               ),

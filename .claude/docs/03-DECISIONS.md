@@ -6429,7 +6429,7 @@ type ki.**
 
 `admin-design-v3.html` me Sidebar ka **poora screen pehle se bana hua hai**
 (`#s-sidebar`, line 682; nav line 341). Wahi file hai jispe Slice A ka milaan hua tha aur
-jahan **design jeeta tha** (R15). Yahan uska model paanch jagah palta hai:
+jahan **design jeeta tha** (R15). Yahan uska model **chhe** jagah palta hai (chhata §9 me):
 
 | Cheez                | Design v3                                                                                                                             | Ab                                                     |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -6566,3 +6566,82 @@ khulega** — wahi galti hai jo Slice C me hui thi.
 Ek collection, ek module (paanch file). ⚠️ `menus` se farak: usme `menuLocations` doosri
 collection thi kyunki assignment menu ke bina bemaani hai. Yahan assignment **page pe** hai
 (`fields.sidebarId`), isliye **location table ki zaroorat hi nahi**.
+
+### §9 — `Cards` aur `Two column` ko apna heading + description (client, 8 Sep)
+
+**Design se chhata farak** (§1 ki table ka agla row). `admin-design-v3.html` ke panels me:
+
+| Block          | Design me heading field |
+| -------------- | ----------------------- |
+| FAQs           | ✅ (line 974)           |
+| Package list   | ✅ (Slice A me joda)    |
+| **Cards**      | ❌ sirf `Columns` (906) |
+| **Two column** | ❌ sirf `Split` (936)   |
+
+### Sawaal jisne ise khola
+
+Client ne poochha: _"`How many days are enough for Andaman?` is section me cards bhi hai aur
+heading + description bhi — heading + description kahan dun?"_
+
+Reference me wo teenon **ek hi `.blk`** ke andar hain:
+
+```html
+<div class="blk">
+  <h2>How many days are enough for Andaman?</h2>
+  <p>The honest answer is decided by the ferries…</p>
+  <div class="dgrid"><div class="dcard">…</div></div>
+</div>
+```
+
+Design ka jawab ye hai ki heading aur prose **upar wale Text block** ke hain. Par hamare model
+me Text apna block hai — yaani **admin me do panel, page pe ek dabba**. Aur `.blk` sirf spacing
+nahi hai, wo ek **card** hai (`background` + `border` + `border-radius` + `padding`,
+`globals.css:1672`), to do block = **do alag safed dabbe**.
+
+### Do raaste the
+
+| Raasta                          | Kya hota                                                                    | Keemat                                                                          |
+| ------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **A** — theme render pe group kare | Text ek section shuru karta, uske baad ke layout blocks usi me judte, agle Text tak | Ek **jaadu jo admin me dikhta hi nahi** — client do panel dekhta, page pe ek dabba |
+| **B** — block apna heading rakhe | Har layout block **apna poora section**                                     | Design ke do panel se vichlan                                                   |
+
+**Client ne B chuna**, aur wo theek hai — teen wajah se:
+
+1. **Ye zyada consistent hai, kam nahi.** `faqs` aur `packageList` ke paas ye pehle se hain;
+   `cards` aur `twoColumn` hi apwaad the.
+2. **Reference ke dono cards section ek-ek block se ban jaate hain** — `tour-v3.html:1683`
+   (heading + description + cards) aur `:1789` (heading + cards, bina description). Kisi Text
+   block ki zaroorat hi nahi bachti.
+3. **Admin == page.** A me client ko ek aisa behaviour yaad rakhna padta jo screen pe likha hi
+   nahi hai.
+
+⚠️ **A ka ek chhupa hua nuksaan bhi tha:** grouping ka niyam theme me hota, aur Phase 5 ka
+builder isi data ko uthayega — us din wo niyam builder me dobara likhna padta, ya wahan page
+alag dikhta. Block ka heading block ke apne props me hona is sawaal ko hamesha ke liye band kar
+deta hai.
+
+### Jo jaan-boojh kar **nahi** kiya
+
+**"Upar wale se jodo" wala checkbox nahi banaya.** Wo theek wahi galti hoti jo 8 Sep ko
+`showBadges` aur `emitSchema` pe pakdi gayi thi: _jo cheez apne aap sahi ho sakti hai, uspe
+toggle rakhna client ko ek aisa faisla dena hai jo uska hai hi nahi._
+
+### Keemat
+
+⚠️ Client ab heading block me bhi likh sakta hai **aur** upar Text block me `<h2>` bhi — tab do
+heading dikhengi. Ye risk `faqs` aur `packageList` pe **pehle se** hai aur aaj tak problem nahi
+bani, isliye iske liye koi rok nahi lagayi gayi.
+
+### Kya badla
+
+- `cardsPropsSchema` aur `twoColumnPropsSchema` me `heading` + `description` — dono
+  `.default('')` pe, isliye **koi migration nahi**; purane blocks waise ke waise parse hote hain
+- `description` `faqs` wali hi shakl me hai: `htmlSchema.pipe(max 2000)`, aur admin me **asli
+  editor** (D-69 wala tark — client ko bold aur link chahiye hote hain)
+- ⚠️ **`sanitizeContent()` me dono jodna zaroori tha** — `cards.description` aur
+  `twoColumn.description`. Ye wahi jaal hai jo is file me teen jagah likha hai: chhoot jaane se
+  content girta **nahi**, wo **bina safai ke bach** jaata hai
+- Admin me teenon block ab ek hi `SectionHeadingFields` component use karte hain — do (ab teen)
+  copies wahi galti hoti jo `bestFor` aur `cancellationText` pe ho chuki hai
+- Band panel ka summary ab **heading** dikhata hai — client section ko uske naam se pehchanta
+  hai, uske `50-50` ya `3 columns` se nahi

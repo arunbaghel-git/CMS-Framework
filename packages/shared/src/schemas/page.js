@@ -79,6 +79,16 @@ export const richTextPropsSchema = z.object({
  * usme se apna hissa kaat kar nikaalna pade — theek wahi jugaad jise client ne mana kiya.
  */
 export const twoColumnPropsSchema = z.object({
+  /**
+   * Section ka heading aur uske neeche ki line — **8 Sep me jude** (D-88 §9, client).
+   *
+   * Poora tark `cardsPropsSchema` ke upar likha hai: har layout block **apna poora section**
+   * hai, isliye uska heading uske apne panel me hai. Bina iske admin ka ek panel aur page ka
+   * ek dabba mel nahi khaate the.
+   */
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(2000)).default(''),
+
   ratio: z.enum(['50-50', '60-40', '40-60']).default('50-50'),
   left: htmlSchema,
   right: htmlSchema,
@@ -102,7 +112,36 @@ export const cardSchema = z.object({
   href: z.string().trim().max(500).default(''),
 })
 
+/**
+ * `Cards`.
+ *
+ * ⚠️ **`heading` aur `description` 8 Sep me jude** (D-88 §9, client) — aur ye design se
+ * **chhata farak** hai: `admin-design-v3.html:906` ke Cards panel me sirf `Columns` hai.
+ *
+ * Wajah: design me heading aur uske neeche ki prose **upar wale Text block** ki maani gayi
+ * thin — reference me teenon ek hi `.blk` ke andar hain (`tour-v3.html:1683`). Par hamare
+ * model me Text apna block hai, yaani admin me **do panel** hote aur page pe **ek dabba** —
+ * aur wo mismatch client ko bug jaisa dikhta.
+ *
+ * Do raaste the: theme render pe blocks ko sections me **group** kare (jaadu, jo admin me
+ * dikhta hi nahi), ya block apna heading khud rakhe. Client ne doosra chuna, aur wo **zyada
+ * consistent** bhi hai — `faqsPropsSchema` aur `packageListPropsSchema` dono ke paas ye
+ * pehle se hain. Cards aur Two column hi apwaad the.
+ *
+ * ✅ Isse reference ke **dono** cards section ek-ek block se ban jaate hain:
+ * `tour-v3.html:1683` (heading + description + cards) aur `:1789` (heading + cards).
+ *
+ * ⚠️ Ab client heading yahan bhi likh sakta hai **aur** upar Text block me `<h2>` bhi — tab
+ * do heading dikhengi. Ye risk `faqs` aur `packageList` pe pehle se hai aur aaj tak problem
+ * nahi bani, isliye iske liye koi rok nahi lagayi gayi.
+ *
+ * **Koi migration nahi** — dono field `.default('')` pe hain, to purane cards blocks waise ke
+ * waise parse hote hain.
+ */
 export const cardsPropsSchema = z.object({
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(2000)).default(''),
+
   columns: z.number().int().min(2).max(4).default(3),
   items: z.array(cardSchema).max(12).default([]),
 })
