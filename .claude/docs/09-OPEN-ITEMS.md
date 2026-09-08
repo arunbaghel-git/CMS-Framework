@@ -77,7 +77,16 @@ saari slices poori ho gayi hain**. `.pgl` chhua nahi gaya (`.pgl--sideleft` modi
 ka markup `PackageCard.jsx` me ek jagah aa gaya, aur `TourSchema` sirf `BreadcrumbList` +
 **ek** `FAQPage` bhejta hai.
 
-**Last updated:** 8 Sep 2026 (Tour Page D-87 · Sidebars D-88 · Slice D theme)
+**8 Sep — design se milaan ka daur (D-89).** Client ne page chala kar section-by-section milaan
+karwaya; **13 farak** nikle aur sab theek ho gaye. Paanch naye contract (`heroButton`,
+`twoColumn.style`, html widget ka `icon`, enquiryForm ka `heading`/`description`,
+`unwrapBareSpans`) — **koi migration nahi**. Naya khula item: **A-19**.
+
+⚠️ **A-17 (speed) ab dobara naapni padegi** — poora naya page, ~500 line nayi CSS, aur package
+list se `content-visibility` hat gaya (D-89 §4). Purane number (mobile 91 / desktop 98) sirf
+package page ke the.
+
+**Last updated:** 8 Sep 2026 (Tour Page D-87 · Sidebars D-88 · Slice D theme · design milaan D-89)
 
 ⚠️ **Push:** `origin/main` `a0f337c` pe hai. Ginti yahan jaan-boojh kar nahi likhi — wo har
 commit pe purani ho jaati hai aur do baar galat mili. Sach `git log --oneline origin/main..HEAD`
@@ -199,6 +208,44 @@ code ki nahi.
 ---
 
 ## 🔴 Ab bhi baaki
+
+### A-19 · Editor se `class` chup-chaap kho sakti hai (8 Sep)
+
+**Deadline:** koi nahi — par jo bhi isse guzar jaaye, wo **dikhna band** ho jaata hai
+**D-89 §6 me pakda gaya**, us kaam ka hissa nahi tha
+
+D-80 ka poora vaada ye tha ki client editor me `class`/`id`/`style` likh sake aur kuch gayab na
+ho. Wo vaada **kam se kam ek jagah toota**:
+
+```
+DB me pehle : <ul class="wdgl"> …
+DB me ab    : <ul> …            (version 27 — kai save ke baad)
+```
+
+⚠️ **Sanitizer nirdosh hai** — uspe seedha chala kar dekha gaya, wo `class` ko chhoota hi nahi
+(`COMMON_ATTRS` me wo allowed hai). Yaani class **editor me** khoyi.
+
+**Kis wajah se, wo abhi tay nahi hai.** Sabse pehla shak `lists` plugin pe hai: TinyMCE ka wo
+plugin list ke andar edit karte waqt `<ul>`/`<ol>` ko dobara banata hai, aur us waqt uske
+attributes le ja sakta hai. Ye **jaanchna baaki hai**.
+
+**Aaj kuch toota hua nahi hai** — sidebar ki list ka look us class se aazad kar diya gaya
+(`.wdgl, .wdg__b ul`), aur FAQ ka padding bhi (`.faq details > div`). Par ye do jagah ka ilaaj
+hai, wajah ka nahi.
+
+**Khatra kahan hai:** jis din client kisi aur jagah class likh kar bharosa kare — aur design ke
+`page-template.html` me `callout` · `tick` · `tabs` · `drow` · `linkgrid` jaisi kai class hain —
+wo chup-chaap ja sakti hai. **Uska lakshan "style nahi lagi" hoga, "content gayab" nahi**, aur
+usse dhoondhna mushkil hota hai.
+
+**Karne wala kaam:**
+
+1. Dohraao: ek `<ul class="x">` daal kar list ke andar edit karo aur save karo — dekho class
+   bachti hai ya nahi
+2. Wajah `lists` plugin nikle to `extended_valid_elements` ya `lists` ke apne option se rok do
+3. Jab tak wajah na mile — **theme ke rules class ke mohtaaj na ho**, wahi jo D-89 §6 me kiya gaya
+
+---
 
 ### A-18 · `importRuns` aur `importruns` — do collection ban gayi hain (4 Sep)
 

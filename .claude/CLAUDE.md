@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**844 tests passing**, 8 Sep). Public package page ke **saare** section live hain.
+hain** (**847 tests passing**, 8 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-88                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-89                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -526,6 +526,26 @@ site pe **dikhta hi nahi tha**. Naya: `components/tour/` me `TourPage` · `Block
 **Live check (production build, asli DB):** 200 · `.vrail__c` 4 · `.pgl--sideleft` · 10 `.blk` ·
 9 `.dcard` · 5 `.prow` · 3 `.wdg` · `fbar: Duration | All | 5N/6D | 5` · JSON-LD me **ek**
 `FAQPage` (9 sawaal), koi `TouristTrip` nahi.
+
+**8 Sep — design se milaan (D-89).** Client ne page **chala kar** section-by-section milaan
+karwaya; **13 farak** nikle aur sab theek ho gaye. Paanch naye contract, **koi migration nahi**:
+`tourSettings.heroButton`, `twoColumn.style` (`plain`/`includedExcluded`), html widget ka `icon`,
+enquiryForm ka `heading`/`description`, aur `unwrapBareSpans()`.
+
+⚠️ **Zyada tar farak "bana hua par juda nahi" wale the** — trust badges (schema + admin + payload
+teenon the, theme me koi padhta hi nahi tha), `entry.url` (4 Sep se bheja ja raha tha, `EntriesList`
+purana `path` padh raha tha), `StickySide`, `Icon.jsx` ke chaar icon, aur `.wdgl`/`.wdg__b`/
+`.wdg--cta`/`.vhero__cta`/`.vhero__trust` ki CSS. **Sab ka lakshan ek hi tha — "kuch na hona".**
+Koi error nahi. Yahi D-86 me likha gaya tha.
+
+⚠️ **Do jagah reference dekhe bina maan liya gaya tha, aur dono baar reference ne ulta kaha** —
+byline (design me hai hi nahi; wo `page-template-text.html` ki cheez hai, isliye ab sirf `page`
+type pe) aur package list ka `.blk` (reference me saada `<div id="pklist">`).
+
+⚠️ **Do jagah CSS client ki likhi hui class pe nirbhar thi** (D-89 §6) — `.wdgl` aur `.faq p`.
+`<ul class="wdgl">` DB me **thi**, kai save ke baad **gayab**; sanitizer nirdosh nikla, wo class
+**editor me** khoyi. Ab dono jagah look class ke bina bhi kaam karta hai. **Wajah abhi zinda hai
+— A-19.**
 
 ⚠️ **`next build` sirf tab jab dev band ho** — dono ek hi `.next` use karte hain. Dev chalte waqt
 build chalane se uske vendor chunks kat gaye aur har page 500 dene laga.

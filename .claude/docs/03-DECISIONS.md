@@ -6757,3 +6757,178 @@ bani, isliye iske liye koi rok nahi lagayi gayi.
   copies wahi galti hoti jo `bestFor` aur `cancellationText` pe ho chuki hai
 - Band panel ka summary ab **heading** dikhata hai — client section ko uske naam se pehchanta
   hai, uske `50-50` ya `3 columns` se nahi
+
+---
+
+## D-89
+
+**Design se milaan — client ke screenshot se pakde hue farak**
+_8 Sep 2026 · client ka faisla · Slice D ke baad ka daur_
+
+### Sandarbh
+
+Slice D ban jaane ke baad client ne page **chala kar** dekha aur design ke saath section-by-section
+milaan karwaya. Us daur me **13 farak** nikle. Do baatein unme saaf dikhti hain:
+
+1. **Zyada tar farak "bana hua par juda nahi" wale the** — schema, payload aur admin teenon
+   maujood, aur theme me use padhne wala koi nahi. Ye wahi shakl hai jo D-82 (`seoSchema`),
+   D-65 (`cancellationText`) aur D-86 (teen mare hue guard) pe pehle bhi thi.
+2. **Do jagah maine reference dekhe bina maan liya tha ki kya hona chahiye** — byline aur
+   package list ka `.blk`. Dono baar reference ne ulta kaha.
+
+### Naye contract (paanch)
+
+| Kya | Kahan | Kyun |
+| --- | --- | --- |
+| `tourSettings.heroButton { label, url }` | `settings.js` | Hero ka pehla button. **Dono chahiye** — ek bhi khaali ho to button nahi dikhta |
+| `twoColumnPropsSchema.style` | `page.js` | `plain` \| `includedExcluded` |
+| `htmlWidgetSchema.props.icon` | `sidebar.js` | Widget ke heading ka icon — **shared `ICONS`** pe |
+| `enquiryFormWidgetSchema.props.heading` + `.description` | `sidebar.js` | `.wdg--cta` ka `<h3>` + `<p>` |
+| `unwrapBareSpans()` | `core/sanitize-html.js` | Paste ke saath aaya bekaar `<span>` |
+
+**Koi migration nahi** — paanchon `.default()` pe hain, purana data waise ka waisa parse hota hai.
+
+### §1 — Hero: button ke do alag source (client ka faisla)
+
+Client: _"only Get my itinerary & price in tour settings, whatsapp to settings ke general se
+utha lega."_
+
+| Button | Kahan se |
+| --- | --- |
+| Pehla | `Tour ▸ Tour settings ▸ Hero button` — label + link |
+| WhatsApp | `Settings ▸ General` ka number — **koi alag field nahi** |
+
+⚠️ WhatsApp ke liye field na banana ek faisla hai: number wahan pehle se hai, aur dobara maangne
+ka matlab hota ek hi number do jagah — theek wahi galti jo 2 Sep ko `settings.contactEmail` pe
+pakdi gayi thi. Uska **label** theme me likha hai (ek shabd, har site pe wahi) — wahi tark jo
+`Planner` ke "Chat with us" aur card ke "Best for" pe hai.
+
+⚠️ **h1 me `₹11,499 pp` ka neela `<em>` nahi bana** — client ne "kuch mat karo" chuna. `title`
+plain text field hai aur wo list, SEO, `<title>` tag, breadcrumb aur schema paanchon jagah jaata
+hai; use HTML banane ka matlab hota har jagah tags strip karna.
+
+### §2 — Byline: faisla sahi tha, uski **jagah** galat thi
+
+Byline har page pe laga di gayi thi, D-87 ke faisle #9 (_"byline poori tarah automatic"_) ke
+bharose. Client ne pakda: _"vbyline to tour page ke design me hai hi nahi."_
+
+Reference gine gaye:
+
+| File | `byline` / `min read` |
+| --- | --- |
+| `tour-v3.html` | **0** |
+| `itinerary-v3.html` | **0** |
+| `page-template-text.html` | **11** |
+
+Yaani byline ek **article** page ki cheez hai, listing page ki nahi. Ab wo sirf `type === 'page'`
+pe render hoti hai.
+
+⚠️ **Sabak:** faisla #9 batata hai ki byline ka **data kahan se aata hai** — ye nahi ki wo **kis
+page pe dikhta hai**. Ek faisle se doosra maan lena wahi galti hai jo Slice C me hui thi (_"ek hi
+edit screen"_ ko _"ek jaise types"_ samajhna).
+
+⚠️ Payload me `byline` phir bhi jaata hai aur uske tests bhi hain — wo galat nahi tha.
+
+### §3 — Jo "bana hua par juda nahi" tha
+
+| Cheez | Haalat |
+| --- | --- |
+| **Trust badges** | Schema + admin screen + payload teenon Slice C me bane, theme me koi padhta hi nahi tha |
+| `Icon.jsx` me `shield`/`pin`/`doc`/`check` | `trustBadgeSchema` ka enum inhe shuru se deta hai aur admin ka dropdown dikhata hai — par unke SVG the hi nahi. Client `shield` chunta, save hota, page pe kuch na dikhta |
+| `.prow__off` (`22% off`) | CSS aur value dono nadaarad |
+| `.wdgl` · `.wdg__b` · `.wdg__h svg` · `.wdg--cta` · `.vhero__cta` · `.vhero__trust` | CSS likhi hi nahi gayi thi |
+| `StickySide` | Component pehle se tha, tour page pe lagaya nahi gaya |
+| `entry.url` | 4 Sep se bheja ja raha tha; `EntriesList` purana `entry.path` padh raha tha |
+
+⚠️ **In sab ka lakshan ek hi hai — "kuch na hona".** Koi error nahi, koi 500 nahi. Yahi D-86 me
+likha gaya tha aur yahi phir se hua.
+
+### §4 — Do jagah reference ne mera andaza ulta kiya
+
+**Package list pe `.blk` nahi hai.** Maine har block ko `.blk` de diya tha; reference me wo ek
+saada `<div id="pklist">` hai (`tour-v3.html:1432`). Cards khud apne dabbe hain — unhe ek aur
+dabbe me rakhna do border ek doosre ke andar bana deta tha.
+⚠️ Keemat: us section se `content-visibility` bhi gaya (D-85). **A-17 dobara naapte waqt hisaab
+me rahe.**
+
+**Duration pill pe ginti nahi hai.** Maine `<i>{count}</i>` daal diya tha; reference me pill sirf
+`2N / 3D` hai aur ginti `.fbar__c` me daayein kinare pe. Server phir bhi `count` bhejta hai aur wo
+theek hai — wo `limit` se pehle gini jaati hai.
+
+### §5 — `Two column` ko `Included / Not included` (client ka chunav)
+
+Design me wo do rangeen dabbe hain — baayan halka neela hara heading ke saath, daayan halka
+gulaabi laal heading ke saath.
+
+Theme ko kaise pata chale ki kaunsa khaana "not included" hai? Heading me "Not" dhoondhna bhasha
+pe nirbhar hota aur chup-chaap galat hota. Client ne dropdown wala raasta chuna: **doosra khaana
+hamesha "not included"** — wahi kram reference me hai.
+
+✅ **Iske liye ek bhi nayi CSS nahi likhni padi** — `.inx`, `.inx__c`, `.inx__c.no` aur unke `h3`
+ke rang `globals.css` me pehle se the (package page ke "What's included" ke liye). Bas wahi
+wrapper laga diya.
+
+⚠️ Us style pe `ratio` lagta hi nahi (`.inx` hamesha `1fr 1fr`), isliye admin me `Split` chhup
+jaata hai.
+
+### §6 — ⚠️ Do jagah CSS **client ki likhi hui class** pe nirbhar thi
+
+Ye D-89 ka sabse kaam ka hissa hai.
+
+**`.wdgl`** — client ne editor me `<ul class="wdgl">` likha tha. Wo class DB me **thi**, phir kai
+save ke baad **gayab ho gayi** (`version: 27` pe sirf `<ul>` bacha tha). Sanitizer nirdosh hai —
+uspe seedha chala kar dekha, wo `class` ko chhoota hi nahi. Yaani wo **editor me** khoyi.
+
+**`.faq p`** — FAQ jawab ka padding sirf tab lagti thi jab jawab `<p>` me lipta ho. Client ka
+pehla FAQ **plain text** tha aur baaki `<p><span>…` — nateeja: pehla jawab kinare se chipka, baaki
+theek.
+
+**Dono ka ilaaj ek hi hai:** look ko us markup ka mohtaaj mat rakho jo editor **shayad** dega.
+
+- `.wdgl, .wdg__b ul` — saadi list bhi sahi dikhti hai; `.wdgl` alias ki tarah zinda hai
+- `.faq details > div` — padding wrapper pe, jo hamesha hota hai
+
+⚠️ **Ye ek naya, aam khatra hai, do jagah ka ittefaq nahi** — A-19 me khula rakha gaya hai.
+
+### §7 — Paste ke bekaar `<span>`
+
+Client ne FAQ me saada text paste kiya aur Text tab me `<p><span>No. Roundtrip flights…</span></p>`
+dikha. Use laga ki **kuch aur paste ho gaya**; text bilkul sahi tha.
+
+Wo span browser ke clipboard se aata hai, aur bach isliye jaata hai ki D-80 me humne TinyMCE se
+khud kaha tha _"kuch mat chhaanto"_ (`valid_elements: '*[*]'`) — taaki client ka `class`/`id`/
+`style` na gire.
+
+Ab safai **do jagah** hai, aur wo jaan-boojh kar hai:
+
+| Kahan | Kaam |
+| --- | --- |
+| `unwrapBareSpans()` — server | **Authority.** Editor kuch bhi de, DB me saaf jaata hai |
+| TinyMCE ka `paste_postprocess` | Sirf UX — client ko **turant** saaf HTML dikhe |
+
+⚠️ **Sirf attribute-rahit `<span>` khulta hai.** `<span class>` aur `<span style>` bilkul chhue
+nahi jaate — D-80 ka poora vaada usi pe khada hai.
+
+⚠️ Do cheezein jaanch kar **khaarij** ki gayin, taaki dobara shak na ho: editor ka binding sahi
+hai (har FAQ ka apna `key`/`value`/`onChange`), aur tab-switch ka logic bhi sahi hai (Visual me
+paste purane draft se overwrite nahi hota).
+
+### §8 — `Tour settings` ab `Settings` me nahi, `Tour` me
+
+`/settings/tour` → `/tour/settings` (client). Storage wahi (`settings.tourSettings`), permission
+bhi wahi (`settings.read`) — sirf menu me jagah badli. Screen ka heading `Tour` hua aur
+`SettingsTabs` hata di, warna nav kuch aur kehti aur screen kuch aur.
+
+### §9 — ⚠️ Design v3 se ab **saat** farak
+
+D-88 §1 ki paanch, D-88 §9 ka chhata (Cards/Two column ka heading), aur ab ye saatvaan:
+`Two column` ka `Style` dropdown. **Client-attribution abhi bhi likha jaana baaki hai.**
+
+### ⚠️ Ek galti jo maine do baar ki
+
+Dev server chalte waqt `next build` chalaya — dono ek hi `.next` folder use karte hain, aur build
+ne dev ke vendor chunks ke upar likh diya. Har page **500** dene laga
+(`Cannot find module './vendor-chunks/zod@3.24.1.js'`). Code me kuch nahi tooTa tha.
+
+**Niyam: `next build` sirf tab jab dev band ho.** (D-85 me bhi yahi likha hai, par wahan wajah
+alag thi — dev ka naapa hua number bemaani hota hai.)

@@ -1,39 +1,129 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 8 Sep 2026 — **198 commit**, ⚠️ **18 unpushed** (`origin/main` = `a0f337c`),
-> **846 test pass** (33 file), admin build pass, lint + format clean, tree clean.
+> **Last updated:** 8 Sep 2026 (shaam) — **210 commit**, ⚠️ **30 unpushed** (`origin/main` =
+> `a0f337c`), **847 test pass** (33 file), admin + web build pass, lint + format clean, tree clean.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (8 Sep)
+## ⏭️ Nayi session yahan se shuru kare (9 Sep)
 
 ### Abhi ki asli haalat (naapi hui)
 
-| Kya           | Value                                                                                |
-| ------------- | ------------------------------------------------------------------------------------ |
-| Commits       | **198**                                                                              |
-| Push          | ⚠️ **18 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
-| Tests         | **846 pass**, 33 file (`pnpm test`, exit 0)                                          |
-| Admin build   | ✅ `vite build` pass                                                                 |
-| Lint · Format | dono clean                                                                           |
-| Tree          | clean                                                                                |
-| Migrations    | **23 files**, 23/23 applied — **023 aaj lagi** (sidebars, D-88)                      |
-| Decisions     | **D-88** tak                                                                         |
-| DB            | 5 package (+8 trash me) · 0 tour page · 4 content type · **0 sidebar**               |
+| Kya           | Value                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------- |
+| Commits       | **210**                                                                                     |
+| Push          | ⚠️ **30 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya)        |
+| Tests         | **847 pass**, 33 file (`pnpm test`, exit 0)                                                 |
+| Builds        | ✅ admin (`vite build`) aur web (`next build`) dono pass                                    |
+| Lint · Format | dono clean                                                                                  |
+| Tree          | clean                                                                                       |
+| Migrations    | **23 files**, 23/23 applied                                                                 |
+| Decisions     | **D-89** tak                                                                                |
+| DB            | 5 package (+8 trash) · **1 tour page (live, poora bhara hua)** · 1 sidebar · 4 content type |
 
 ### Pehle ye do
 
 ```bash
 docker compose up -d mongo
-pnpm seed          # ⚠️ ZAROORI — tourPage ka field set aaj do baar badla, aur sidebarId juda
+pnpm seed          # ⚠️ tourPage me `sidebarId` juda hai (D-88)
 pnpm dev
 ```
 
-⚠️ **`pnpm cms migrate` is machine pe chal chuki hai** (023 applied, live check bhi ho gaya).
-Kisi doosre install pe wo chalani padegi — usme `sidebars` ke indexes **aur** roles ka sync
-dono hain. Bina uske `Appearance ▸ Sidebar` **kisi ko dikhta hi nahi**, aur koi error bhi nahi
-aata (D-86 wali shakl).
+⚠️ **`pnpm cms migrate` ki zaroorat nahi** — 023 lag chuki hai, D-89 me koi nayi nahi lagi.
+
+⚠️ **`next build` KABHI dev chalte waqt mat chalao.** Dono ek hi `.next` folder use karte hain;
+build dev ke vendor chunks ke upar likh deta hai aur **har page 500** dene lagta hai
+(`Cannot find module './vendor-chunks/zod@3.24.1.js'`). Ye 8 Sep ko **do baar** hua. Naapne ya
+build karne se pehle dev band karo.
+
+### Live page dekhne ke liye
+
+```
+http://localhost:3000/andaman-tour-packages-starting-11-499-pp-2026
+```
+
+---
+
+## 8 Sep — teen bade kaam ek din me
+
+**Slice E (D-88) · Slice D (D-87 §11) · design se milaan (D-89).** Iske saath **D-87 aur D-88
+dono poore ho gaye** — Tour Page ka poora kaam khatam hai.
+
+### 1. Slice E — `Appearance ▸ Sidebar` (D-88)
+
+Nayi `sidebars` collection + module, **migration 023**, teen widget type
+(`enquiryForm` · `talkToPlanner` · `html`), page pe `fields.sidebarId`, aur payload me
+`entry.sidebarWidgets[]` (server pe resolve — `sidebarId` theme ko kabhi nahi jaata).
+
+Saath me **D-88 §9** — `Cards` aur `Two column` ko apna `heading` + `description`. Us se
+"theme render pe blocks ko group kare" wala jaadu poori tarah khatam ho gaya: **ek panel = ek
+dabba**.
+
+### 2. Slice D — theme (D-87 §11)
+
+`components/tour/` — `TourPage` · `Blocks` · `PackageList` · `Sidebar` · `TourSchema`, aur ~500
+line nayi CSS. Ab tak catch-all me sirf `type === 'package'` wali branch thi; tour page pe **sirf
+`<h1>`** chhapta tha.
+
+- `.pgl` **chhua nahi gaya** — `.pgl--sideleft` modifier hai (package page ka sidebar right hai)
+- Card ka markup `components/PackageCard.jsx` me ek jagah aaya — `Similar` aur `PackageList` dono
+- `EnquiryForm` ab `variant="book" | "cta"`; uske liye `useOptionalCategory()` juda
+- `TourSchema` alag — sirf `BreadcrumbList` + **saare FAQ blocks milaa kar ek** `FAQPage`
+
+### 3. Design se milaan (D-89) — client ne page chala kar 13 farak nikale
+
+Poora hisaab **D-89** me. Do baatein yaad rakhne laayak:
+
+⚠️ **Zyada tar farak "bana hua par juda nahi" wale the** — trust badges, `entry.url`,
+`StickySide`, `Icon.jsx` ke chaar icon, `.wdgl`/`.wdg__b`/`.wdg--cta` ki CSS. Sab ka lakshan ek
+hi tha: **kuch na hona**. Koi error nahi. Yahi D-86 me likha gaya tha.
+
+⚠️ **Do jagah maine reference dekhe bina maan liya tha** — byline (design me hai hi nahi, wo
+`page-template-text.html` ki cheez hai) aur package list ka `.blk` (reference me saada `<div>`).
+Dono baar reference ne ulta kaha.
+
+**Paanch naye contract, koi migration nahi:** `tourSettings.heroButton`, `twoColumn.style`,
+html widget ka `icon`, enquiryForm ka `heading`/`description`, aur `unwrapBareSpans()`.
+
+---
+
+## ⏭️ Kal ka kaam — kya bacha hai
+
+### Client ne kaha: **design abhi complete hai.** Naya badlaav aayega to wo batayenge.
+
+### 1. ⚠️ Do cheezein client ko admin me set karni hain (code taiyaar, data khaali)
+
+| Kahan                                 | Kya                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------- |
+| `Tour Pages ▸ Edit ▸ What's included` | **Style** = `Included / Not included` — tabhi rangeen dabbe aayenge |
+| Stat rail ka pehla card               | `suffix` me `/persom` likha hai — typo, `/person` hona chahiye      |
+
+Aur purane FAQ ek baar Save karne se unke bekaar `<span>` khul jaayenge.
+
+### 2. A-17 — speed **dobara naapni padegi**
+
+Purane number (mobile 91 · desktop 98) **sirf package page** ke the. Ab ek poora naya page hai,
+~500 line nayi CSS, aur package list se `content-visibility` hat gaya (D-89 §4).
+
+⚠️ Naapna: `next build` + `next start`, **5 run ka median**, aur **dev band rakh kar**.
+
+### 3. A-19 — editor se `class` kho sakti hai (naya, D-89 §6)
+
+Sabse zyada dhyaan maangne wala item. `<ul class="wdgl">` DB me thi, kai save ke baad gayab.
+Sanitizer nirdosh nikla — wo class **editor me** khoyi. Wajah abhi tay nahi; pehla shak `lists`
+plugin pe hai.
+
+Aaj kuch toota nahi hai (dono jagah ka look class se aazad kar diya gaya), par **wajah abhi
+zinda hai**.
+
+### 4. A-18 — `importRuns` / `importruns` — 5 minute ka kaam, verify ho chuka
+
+### 5. ⚠️ D-88 §1 · D-89 §9 — design v3 se ab **saat** farak, attribution baaki
+
+Client se confirm karwana hai. Poori list D-88 §1 me hai, saatvaan D-89 §9 me.
+
+### Baaki purane: A-9 (Pages/Posts screens) · A-12 (CI) · A-15 · A-14 · Q-7 · Q-9 · Q-3 · Q-4
 
 ---
 
@@ -136,7 +226,14 @@ chup ka udhaar hai._ Picker aur blocks ek hi screen pe the, aur do alag tareeke 
 
 ---
 
-## ⏭️ Agla kaam — do raaste, dono khule
+## ✅ (purana) 8 Sep subah ka "Agla kaam" — dono raaste ab band
+
+> Ye section us waqt ka hai jab Slice D aur E dono baaki thin. **Dono usi din ban gayin**
+> (D-87 §11 aur D-88), isliye neeche ka sab **itihaas** hai — kaam ki list nahi.
+>
+> Neeche jo "maloom kaante" likhe hain wo sach nikle aur teenon sambhal liye gaye: `.pgl` chhua
+> nahi gaya (`.pgl--sideleft` modifier bana), `.b`/`.b-o` ki jagah `.btn--accent` use hui, aur
+> sticky filter bar `.blk` ke andar nahi gayi.
 
 ### Slice D — theme (D-87 ka aakhri bada hissa)
 

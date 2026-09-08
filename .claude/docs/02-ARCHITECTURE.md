@@ -103,6 +103,13 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  footerColumns[{ id, heading, type(menu|text|both),         max 6
                                  width(normal|wide), menuId,
                                  textBlocks[{ id, icon, label, text }] }]   max 6 blocks
+                 tourSettings{ bannerMediaId, trustBadges[] max 6,          ← D-87 #10/#11
+                               heroButton{ label, url } }                    ← D-89
+                 hero ke DO button, do alag source (client, 8 Sep):
+                 pehla `heroButton` se; WhatsApp `settings.whatsapp` se —
+                 uske liye yahan koi field NAHI (ek number do jagah nahi)
+                 dono khaane bhare hon tabhi pehla button dikhta hai (D-30)
+                 screen ab `Tour ▸ Tour settings` hai, `Settings ▸` nahi (D-89 §8)
                  ctaSection{ enabled, badge, heading, bullets[] max 6,       ← D-67
                              boxTitle, boxNote,
                              buttons[{label,url,target,variant,enabled}] max 2 }
@@ -217,6 +224,11 @@ menuLocations  * siteId, locale, location, menuId
                  client chunta hai. Migration 008.
 sidebars       * siteId, locale, name, widgets[], version, deletedAt
                  widgets[{ id, type(enquiryForm|talkToPlanner|html), props }]
+                 enquiryForm  props{ heading, description, formId }   D-89
+                 talkToPlanner props{ heading }  — baaki sab derive (D-88 §2)
+                 html         props{ icon, heading, html }            D-89
+                 icon shared ICONS se — trustBadge ki apni alag list hai,
+                 wo isi jaal ka purana udaharan hai (D-89, constants/icons.js)
                  wahi FROZEN envelope jo content.blocks[] ka hai (D-87 §7), par
                  apna alag enum — teen type, aur wo list FIX hai (D-88 §2).
                  ⚠️ Position yahan NAHI hai — wo page pe hai (`fields.sidebar`),
