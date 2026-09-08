@@ -1,4 +1,4 @@
-import { CURRENT_CONTENT_VERSION } from '@cms/shared'
+import { CURRENT_CONTENT_VERSION, ENTRY_LIST_MAX_LIMIT } from '@cms/shared'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -81,7 +81,10 @@ export default function PageEdit({ type = 'tourPage' }) {
    * dono screens pe dikhta hai, par usme hamesha Pages hi aate hain — ek Tour page ko doosre
    * Tour page ke andar rakhna kisi kaam ka nahi.
    */
-  const { data: parentOptions } = useEntryList('page', { limit: 200, status: 'published' })
+  const { data: parentOptions } = useEntryList('page', {
+    limit: ENTRY_LIST_MAX_LIMIT,
+    status: 'published',
+  })
 
   const [form, setForm] = useState(null)
   const [editingSlug, setEditingSlug] = useState(false)
@@ -276,7 +279,7 @@ export default function PageEdit({ type = 'tourPage' }) {
                 className="inp"
                 style={{ marginTop: 6, maxWidth: 320 }}
                 value={form.slug}
-                placeholder="Khaali chhodo to title se banega"
+                placeholder="Leave empty to build it from the title"
                 onChange={(e) => set({ slug: e.target.value })}
               />
             )}
@@ -310,9 +313,9 @@ export default function PageEdit({ type = 'tourPage' }) {
                 />
               </div>
               <div className="hint">
-                Bada heading upar wale Title se aata hai. Breadcrumb page ke <b>Parent</b> se apne
-                aap banta hai. Banner ki image Settings se aati hai — is page pe Featured image
-                daali ho to wo use hoti hai.
+                The big heading comes from the Title above. The breadcrumb is built from the
+                page&rsquo;s <b>Parent</b>. The banner image comes from Settings — a page with its
+                own Featured image uses that instead.
               </div>
             </div>
           </div>
@@ -366,7 +369,7 @@ export default function PageEdit({ type = 'tourPage' }) {
                   )
                 })}
                 <div className="hint">
-                  Chaaron khaali chhodenge to ye patti page pe nahi aayegi.
+                  Leave all four empty and this rail does not appear on the page.
                 </div>
               </div>
             </div>
@@ -388,8 +391,8 @@ export default function PageEdit({ type = 'tourPage' }) {
                 onToggle={toggleBlock}
               />
               <div className="hint">
-                Page pe blocks isi kram me chhapte hain. Text block me normal likhna — heading,
-                paragraph, bullet, table, quote, image. Koi class ya code nahi likhna.
+                Blocks appear on the page in this order. Write normally inside a Text block —
+                headings, paragraphs, bullets, tables, quotes, images. No classes or code.
               </div>
             </div>
           </div>
@@ -428,8 +431,8 @@ export default function PageEdit({ type = 'tourPage' }) {
               </div>
 
               <div className="hint">
-                Page pe byline (<i>author · Updated · min read</i>) inhi se <b>apne aap</b> banti
-                hai — koi field nahi.
+                The byline on the page (<i>author · Updated · min read</i>) is built from these{' '}
+                <b>automatically</b> — there is no field for it.
               </div>
 
               <div className="pub-actions">
@@ -472,12 +475,13 @@ export default function PageEdit({ type = 'tourPage' }) {
                   onChange={(e) => setField('sidebar', e.target.value)}
                   disabled={readOnly}
                 >
-                  <option value="none">Nahi chahiye</option>
-                  <option value="left">Left — content daayein</option>
-                  <option value="right">Right — content baayein</option>
+                  <option value="none">No sidebar</option>
+                  <option value="left">Left — content on the right</option>
+                  <option value="right">Right — content on the left</option>
                 </select>
                 <div className="hint">
-                  Usme kya dikhega — form, widgets — wo <b>Appearance ▸ Sidebar</b> se aata hai.
+                  What goes inside it — the form, the widgets — comes from{' '}
+                  <b>Appearance ▸ Sidebar</b>.
                 </div>
               </div>
 
@@ -499,7 +503,7 @@ export default function PageEdit({ type = 'tourPage' }) {
                     ))}
                 </select>
                 <div className="hint">
-                  Breadcrumb isi se banta hai.
+                  The breadcrumb is built from this.
                   {config.key === 'tourPage' && ' Tour page ka URL isse nahi badalta.'}
                 </div>
               </div>
@@ -543,8 +547,8 @@ export default function PageEdit({ type = 'tourPage' }) {
                 />
               </div>
               <div className="hint">
-                FAQ aur breadcrumb ka schema apne aap jaata hai — FAQs block se aur page ke parent
-                se.
+                The FAQ and breadcrumb schema is emitted automatically — from the FAQs block and
+                from the page&rsquo;s parent.
               </div>
             </div>
           </div>

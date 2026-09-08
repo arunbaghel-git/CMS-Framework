@@ -1,4 +1,4 @@
-import { PAGE_BLOCK_TYPES } from '@cms/shared'
+import { ENTRY_LIST_MAX_LIMIT, PAGE_BLOCK_TYPES } from '@cms/shared'
 import { useId } from 'react'
 
 import { useListDrag } from '../../lib/drag-list.js'
@@ -67,7 +67,7 @@ function summarize(block) {
         .replace(/<[^>]*>/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
-      return text ? text.slice(0, 90) + (text.length > 90 ? '…' : '') : 'Khaali'
+      return text ? text.slice(0, 90) + (text.length > 90 ? '…' : '') : 'Empty'
     }
     case 'twoColumn':
       return p.ratio ?? '50-50'
@@ -145,7 +145,7 @@ function TwoColumnBlock({ props, onChange, disabled }) {
           onChange={(e) => onChange({ ...props, reverseOnMobile: e.target.checked })}
           disabled={disabled}
         />{' '}
-        Mobile par daayan khaana pehle
+        On mobile, show the right column first
       </label>
     </>
   )
@@ -277,8 +277,17 @@ function PackageListBlock({ props, onChange, disabled }) {
    * filter nahi karta. Wo radio waise bhi dhoondhne ke liye nahi hai — uska kaam page pe pills
    * laana hai.
    */
-  const { data: pool, loading } = useEntryList('package', {
-    limit: 200,
+  const {
+    data: pool,
+    loading,
+    error,
+  } = useEntryList('package', {
+    /**
+     * ⚠️ **`ENTRY_LIST_MAX_LIMIT` se, haath se likha number nahi.** Pehle yahan `200` tha — wo
+     * `useTaxonomyList` se uthaya gaya tha, jahan cap sach me 200 hai. Entries pe cap 100 hai,
+     * to har request 400 khaati thi aur picker khaali dikhta tha.
+     */
+    limit: ENTRY_LIST_MAX_LIMIT,
     status: 'published',
     ...(filter === 'packageType' && props.packageTypeId
       ? { packageTypes: props.packageTypeId }
@@ -365,7 +374,7 @@ function PackageListBlock({ props, onChange, disabled }) {
             onChange={(e) => onChange({ ...props, packageTypeId: e.target.value || null })}
             disabled={disabled}
           >
-            <option value="">— chuniye —</option>
+            <option value="">— choose —</option>
             {packageTypes.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
@@ -382,7 +391,7 @@ function PackageListBlock({ props, onChange, disabled }) {
             onChange={(e) => onChange({ ...props, destinationId: e.target.value || null })}
             disabled={disabled}
           >
-            <option value="">— chuniye —</option>
+            <option value="">— choose —</option>
             {destinations.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
@@ -393,7 +402,9 @@ function PackageListBlock({ props, onChange, disabled }) {
       </div>
 
       {filter === 'duration' && (
-        <div className="hint">Page pe duration ki pills dikhengi — chune hue packages me se.</div>
+        <div className="hint">
+          The page shows duration pills, built from the packages you picked.
+        </div>
       )}
 
       <div className="picker">
@@ -409,7 +420,7 @@ function PackageListBlock({ props, onChange, disabled }) {
                   <span className="picker__name">{pkg.title}</span>
                   <span className="picker__meta">{durationOf(pkg.fields)}</span>
                   {added ? (
-                    <span className="picker__added" title="Pehle se juda hua">
+                    <span className="picker__added" title="Already added">
                       ✓
                     </span>
                   ) : (
@@ -425,8 +436,18 @@ function PackageListBlock({ props, onChange, disabled }) {
                 </li>
               )
             })}
-            {!loading && pool.length === 0 && (
-              <li className="picker__empty">Is filter pe koi package nahi.</li>
+            {/*
+             * ⚠️ **Error alag se dikhta hai, khaali list ki tarah nahi.**
+             *
+             * Pehle picker sirf `data` padhta tha. Jab list call 400 de rahi thi (limit 200 vs
+             * cap 100) to screen pe "koi package nahi" jaisa dikhta tha — yaani ek **failure**
+             * ek **khaali state** ki shakl me. Wahi shakl D-86 wale guard ki thi: guard ka na
+             * chalna kabhi error nahi deta, wo sirf "kuch na hone" jaisa dikhta hai.
+             */}
+            {error && <li className="picker__empty picker__error">{error}</li>}
+
+            {!error && !loading && pool.length === 0 && (
+              <li className="picker__empty">No packages match this filter.</li>
             )}
           </ul>
         </div>
@@ -449,7 +470,7 @@ function PackageListBlock({ props, onChange, disabled }) {
                     ⠿
                   </span>
                   <span className="picker__name">
-                    {pkg?.title ?? <em className="muted">(ab available nahi)</em>}
+                    {pkg?.title ?? <em className="muted">(no longer available)</em>}
                   </span>
                   <span className="picker__meta">{pkg ? durationOf(pkg.fields) : ''}</span>
                   <button
@@ -465,8 +486,8 @@ function PackageListBlock({ props, onChange, disabled }) {
             })}
             {chosen.length === 0 && (
               <li className="picker__empty">
-                Abhi koi package nahi — baayen se ＋ dabaayein. Khaali chhoda to ye section page pe
-                nahi aayega.
+                No packages yet — use ＋ on the left. Leave this empty and the section does not
+                appear on the page.
               </li>
             )}
           </ul>
@@ -480,7 +501,7 @@ function PackageListBlock({ props, onChange, disabled }) {
           onChange={(e) => onChange({ ...props, showBadges: e.target.checked })}
           disabled={disabled}
         />{' '}
-        Rating aur discount badge dikhayein
+        Show the rating and discount badge
       </label>
     </>
   )
@@ -648,7 +669,7 @@ export default function PageBlocks({
                   type="button"
                   title="Remove block"
                   onClick={() => {
-                    if (!window.confirm('Remove this block? Iska content bhi chala jaayega.')) {
+                    if (!window.confirm('Remove this block? Its content goes with it.')) {
                       return
                     }
                     onChange(blocks.filter((_, idx) => idx !== i))
@@ -673,8 +694,8 @@ export default function PageBlocks({
                    * jaate hain (server pe bhi), isliye yahan bhi use chhedna galat hoga.
                    */
                   <div className="hint">
-                    Is block (<code>{block.type}</code>) ka editor abhi nahi bana. Iska content
-                    waise ka waisa rahega.
+                    There is no editor for this block (<code>{block.type}</code>) yet. Its content
+                    is left exactly as it is.
                   </div>
                 )}
               </div>
@@ -713,7 +734,7 @@ export default function PageBlocks({
             ))}
           </select>
           <span className="hint" style={{ margin: 0 }}>
-            Naya block sabse neeche judta hai. Kram ⌃ ⌄ se badlein.
+            New blocks are added at the end. Use ⌃ ⌄ to reorder.
           </span>
         </div>
       )}

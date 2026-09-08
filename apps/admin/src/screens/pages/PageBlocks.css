@@ -294,3 +294,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* List call fail ho to wo khaali state jaisi na dikhe — laal me, alag se. */
+.picker__error {
+  color: #b32d2e;
+}

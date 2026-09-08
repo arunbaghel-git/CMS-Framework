@@ -157,6 +157,20 @@ export const entryUpdateSchema = entrySchema
   .extend({ version: z.number().int().nonnegative() })
 
 /** Admin list query. Har param validated — kuch bhi seedha Mongoose query me nahi jaata (R9). */
+/**
+ * Ek list call me zyada se zyada kitni entries — **admin isi constant se poochhta hai**.
+ *
+ * ⚠️ Ye export 8 Sep me bana, aur ek asli bug ke baad. Package list ka picker
+ * `limit: 200` bhej raha tha (wo number `useTaxonomyList` se uthaya gaya tha, jahan cap sach
+ * me 200 hai). Yahan cap 100 hai, to har request **400** khaati thi — aur picker sirf `data`
+ * padhta tha, `error` nahi, isliye screen pe **khaali list** dikhti thi. Client ne poochha:
+ * _"packages to hain, phir left side me koi package aa hi nahi raha, kyun?"_
+ *
+ * Number ko dono taraf haath se likhna hi wo galti thi. Ab admin ise import karta hai, yaani
+ * cap badle to dono taraf ek saath badlega.
+ */
+export const ENTRY_LIST_MAX_LIMIT = 100
+
 export const entryListQuerySchema = z.object({
   type: z.string().optional(),
   status: z.enum(ENTRY_STATUSES).optional(),
@@ -173,7 +187,7 @@ export const entryListQuerySchema = z.object({
   parentId: z.string().optional(),
   trashed: z.coerce.boolean().default(false),
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(20),
+  limit: z.coerce.number().int().positive().max(ENTRY_LIST_MAX_LIMIT).default(20),
   sort: z.enum(['updatedAt', 'createdAt', 'title', 'publishAt', 'order']).default('updatedAt'),
   order: z.enum(['asc', 'desc']).default('desc'),
 })

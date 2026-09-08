@@ -224,7 +224,7 @@ export default function TourSettings() {
             )}
 
             <div className="hint">
-              Bina text wale badge page pe nahi aate — khaali chhodna hi use hataane ka tareeka hai.
+              A badge with no text never reaches the page — clearing the text is how you remove one.
             </div>
           </div>
         </div>
