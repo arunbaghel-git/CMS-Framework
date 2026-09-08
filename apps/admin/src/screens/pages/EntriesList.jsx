@@ -386,9 +386,25 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
                   <span>
                     <Link to={`${basePath}/${entry.id}`}>Edit</Link>
                   </span>
-                  {entry.status === 'published' && entry.path && (
+                  {/*
+                   * ⚠️ **`entry.url`, `entry.path` NAHI** — aur ye bug 8 Sep ko client ne pakda:
+                   * `View` `http://localhost:5173/andaman-tour-packages-…` pe le jaata tha.
+                   *
+                   * `path` relative hai, aur admin apne hi origin pe chalta hai (`:5173`) — to
+                   * browser use **admin ka** pata samajh leta hai. Public site alag origin pe hai.
+                   *
+                   * `withUrl()` (entries controller) ye poora URL **4 Sep se bhej raha tha**,
+                   * theek isi bug ke liye — uske comment me ye shabd likhe hain: _"Sirf `path`
+                   * bhejna ek chup bug hai"_. `PackagesList` shuru se `entry.url` padhti hai;
+                   * ye screen Slice C me likhi gayi aur usme purana `path` reh gaya.
+                   *
+                   * `status` ka check bhi hata diya — `withUrl()` khud `null` deta hai jab tak
+                   * page published na ho. Do jagah ek hi shart rakhne ka matlab hota ki ek din
+                   * wo alag ho jaayein.
+                   */}
+                  {entry.url && (
                     <span>
-                      <a href={entry.path} target="_blank" rel="noreferrer">
+                      <a href={entry.url} target="_blank" rel="noreferrer">
                         View
                       </a>
                     </span>
