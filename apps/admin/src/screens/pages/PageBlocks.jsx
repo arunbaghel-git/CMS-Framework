@@ -862,9 +862,6 @@ export default function PageBlocks({
               </option>
             ))}
           </select>
-          <span className="hint" style={{ margin: 0 }}>
-            New blocks are added at the end. Use ⌃ ⌄ to reorder.
-          </span>
         </div>
       )}
     </>
