@@ -18,10 +18,12 @@
  *
  * Koi bhi contact na ho to widget **render hi nahi hota** — ek khaali card "abhi nahi bana"
  * nahi lagta, "toota hua" lagta hai (D-30).
+ *
+ * ⚠️ `digits`/`telHref`/`waHref` ab `lib/links.js` me hain — `TourPage` ke hero button ko bhi
+ * wahi WhatsApp link chahiye tha, aur do copies wahi galti hoti jo `bestFor` pe ho chuki hai.
  */
 
-/** `+91 98100 66496` → `+919810066496`. `tel:` aur `wa.me` dono ko spaces pasand nahi. */
-const digits = (value) => String(value ?? '').replace(/[^\d+]/g, '')
+import { telHref, waHref } from '../../lib/links.js'
 
 /**
  * @param {string} [heading] Sidebar widget ka apna heading (D-88). Khaali ho to theme ka apna
@@ -43,7 +45,7 @@ export default function Planner({ settings, email: formEmail, heading = '' }) {
           <span className="wdgc__i">☎</span>
           <span>
             <b>Call</b>
-            <a href={`tel:${digits(phone)}`}>{phone}</a>
+            <a href={telHref(phone)}>{phone}</a>
           </span>
         </div>
       )}
@@ -53,11 +55,7 @@ export default function Planner({ settings, email: formEmail, heading = '' }) {
           <span className="wdgc__i wdgc__i--wa">✆</span>
           <span>
             <b>WhatsApp</b>
-            <a
-              href={`https://wa.me/${digits(whatsapp).replace(/^\+/, '')}`}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
+            <a href={waHref(whatsapp)} rel="noopener noreferrer" target="_blank">
               Chat with us
             </a>
           </span>

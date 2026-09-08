@@ -291,6 +291,26 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
       .filter((badge) => badge?.text)
       .map(({ id, icon, text }) => ({ id, icon, text })),
 
+    /**
+     * Hero ka button — `.vhero__cta` (client, 8 Sep).
+     *
+     * ⚠️ **Adhoora button `null` ban jaata hai, aur wo chhaanti yahan hoti hai, theme me nahi.**
+     * Bina `url` ke wo ek aisa button hai jo click pe kuch nahi karta, aur bina `label` ke ek
+     * khaali dabba. Dono soorat me wo dikhna hi nahi chahiye (D-30) — wahi rok jo D-67 ke
+     * khaali URL wale button pe hai.
+     *
+     * ⚠️ WhatsApp wala doosra button yahan **nahi** hai: uska number `whatsapp` me upar pehle se
+     * jaata hai (Settings ▸ General). Ek hi number do jagah bhejne ka matlab hota ki ek din wo
+     * alag ho jaate — 2 Sep ko `settings.contactEmail` pe theek yahi palta gaya tha.
+     */
+    heroButton:
+      settings.tourSettings?.heroButton?.label && settings.tourSettings?.heroButton?.url
+        ? {
+            label: settings.tourSettings.heroButton.label,
+            url: settings.tourSettings.heroButton.url,
+          }
+        : null,
+
     timezone: settings.timezone,
     dateFormat: settings.dateFormat,
     currency: settings.currency,

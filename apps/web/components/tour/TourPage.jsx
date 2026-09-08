@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 
 import Icon from '../Icon.jsx'
 import Img from '../Img.jsx'
+import { waHref } from '../../lib/links.js'
 import { EnquiryDockProvider } from '../package/EnquiryDock.jsx'
 import Blocks from './Blocks.jsx'
 import Sidebar from './Sidebar.jsx'
@@ -94,19 +95,34 @@ export default function TourPage({ entry, settings }) {
         )}
 
         <div className="wrap vhero__in">
-          {breadcrumbs.length > 0 && (
-            <nav className="vcrumb" aria-label="Breadcrumb">
-              {/* ⚠️ Server `{ name, path }` bhejta hai — `label` nahi (`resolveBreadcrumbs`) */}
-              {breadcrumbs.map((crumb, i) => (
-                <span key={crumb.path ?? i}>
-                  {i > 0 && <i>›</i>}
-                  <a href={crumb.path}>{crumb.name}</a>
-                </span>
-              ))}
-              <i>›</i>
-              <b>{entry.title}</b>
-            </nav>
-          )}
+          {/*
+           * ⚠️ **`Home` hamesha, aur wo `breadcrumbs` me se nahi aata.**
+           *
+           * `resolveBreadcrumbs()` sirf **parent chain** deta hai (D-87 faisla #12). Is page ka
+           * koi parent nahi hai, to wo chain khaali hai — aur pehle main poori nav ko usi pe
+           * gate kar raha tha, isliye breadcrumb **dikhta hi nahi tha**. Design me wahan
+           * `Home › <page>` hai.
+           *
+           * `Home` ek static root hai, `/` pe — bilkul wahi jo `PackagePage.jsx:370` pe pehle se
+           * hai. Use payload me bhejne ka koi matlab nahi: wo har site pe wahi hai.
+           *
+           * ⚠️ Aakhri kadam **poora title** hai. Design me wahan chhota text hai
+           * (`Andaman Tour Packages`), par per-page breadcrumb label **client ne hataya tha**
+           * (faisla #12) — wo parent se auto banta hai. Chhota label chahiye to wo ek naya field
+           * hoga, aur wo faisla palatna padega.
+           */}
+          <nav className="vcrumb" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            {/* ⚠️ Server `{ name, path }` bhejta hai — `label` nahi (`resolveBreadcrumbs`) */}
+            {breadcrumbs.map((crumb, i) => (
+              <span key={crumb.path ?? i}>
+                <i>›</i>
+                <a href={crumb.path}>{crumb.name}</a>
+              </span>
+            ))}
+            <i>›</i>
+            <b>{entry.title}</b>
+          </nav>
 
           {fields.eyebrow && (
             <span className="vhero__eye">
@@ -120,6 +136,52 @@ export default function TourPage({ entry, settings }) {
           {/* Sub heading ek asli editor hai (faisla #3), isliye HTML — safai write pe ho chuki */}
           {fields.subheading && (
             <div className="vhero__sub" dangerouslySetInnerHTML={{ __html: fields.subheading }} />
+          )}
+
+          {/*
+           * Hero ke do button — `.vhero__cta` (client, 8 Sep).
+           *
+           * ⚠️ **Do alag source, aur wo client ka faisla hai:** _"only Get my itinerary & price
+           * in tour settings, whatsapp to settings ke general se utha lega."_
+           *
+           * | Button | Kahan se |
+           * | --- | --- |
+           * | Pehla | `Tour ▸ Tour settings ▸ Hero button` (label + link) |
+           * | WhatsApp | `Settings ▸ General` ka number — koi alag field nahi |
+           *
+           * Isiliye WhatsApp ka **label** yahan likha hai. Wo ek hi shabd hai, har site pe wahi,
+           * aur uske liye ek field maangna client se wo cheez poochhna hota jo uski nahi hai —
+           * wahi tark jo `Planner` ke "Chat with us" pe aur `bestFor` ke "Best for" pe hai.
+           *
+           * Dono me se koi bhi na ho to uska button render hi nahi hota (D-30); dono na hon to
+           * poori patti gayab.
+           */}
+          {(settings?.heroButton || settings?.whatsapp) && (
+            <div className="vhero__cta">
+              {/*
+               * ⚠️ **`.btn--accent`, reference ka `.b-o` nahi.** Hamare paas `.b`/`.b-o` hain hi
+               * nahi (ye `09-OPEN-ITEMS` me Slice D ke maloom kaanton me likha tha), aur
+               * `.btn--accent` **bilkul wahi** hai — wahi `--orange-500`, wahi `box-shadow`.
+               * Nayi class banane ka matlab hota ek hi button ke do naam.
+               */}
+              {settings.heroButton && (
+                <a className="btn btn--accent" href={settings.heroButton.url}>
+                  {settings.heroButton.label}
+                </a>
+              )}
+
+              {settings.whatsapp && (
+                <a
+                  className="btn btn--whatsapp"
+                  href={waHref(settings.whatsapp)}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <Icon name="chat" size={17} />
+                  WhatsApp us
+                </a>
+              )}
+            </div>
           )}
 
           {/*

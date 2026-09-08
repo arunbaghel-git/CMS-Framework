@@ -187,6 +187,31 @@ export const tourSettingsSchema = z.object({
 
   /** `.vhero__trust` — hero ke neeche ki line. Khaali list pe wo poori line render hi nahi hoti. */
   trustBadges: z.array(trustBadgeSchema).max(MAX_TRUST_BADGES).default([]),
+
+  /**
+   * Hero ka **ek** button — reference ka `.vhero__cta` ka pehla (`Get my itinerary & price`).
+   *
+   * ⚠️ **Sirf ek, do nahi — client ka faisla (8 Sep):** _"only Get my itinerary & price in tour
+   * settings, whatsapp to settings ke general se utha lega."_
+   *
+   * Doosra button WhatsApp ka hai aur uske liye yahan koi field **nahi** hai: number
+   * `settings.whatsapp` me pehle se maujood hai (Settings ▸ General). Uske liye ek aur khaana
+   * banane ka matlab hota ek hi number do jagah — theek wahi galti jo 2 Sep ko
+   * `settings.contactEmail` pe pakdi gayi thi aur palti gayi thi.
+   *
+   * ⚠️ Number na ho to WhatsApp wala button **render hi nahi hota** (D-30) — wahi rok jo
+   * `Planner` pe hai.
+   *
+   * Khaali `label` pe pehla button bhi nahi dikhta. Ek button ke liye `url` bhi chahiye, warna
+   * wo ek aisa button hai jo click pe kuch nahi karta (D-30 ka wahi tark jo D-67 ke khaali URL
+   * wale button pe laga tha).
+   */
+  heroButton: z
+    .object({
+      label: z.string().trim().max(80).default(''),
+      url: z.string().trim().max(500).default(''),
+    })
+    .default({}),
 })
 
 /**

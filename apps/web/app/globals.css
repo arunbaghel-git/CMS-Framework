@@ -5206,3 +5206,34 @@ a.mega__gl:hover {
   color: rgba(255, 255, 255, 0.55);
   margin-top: 9px;
 }
+
+/* ---------- hero CTA ---------- */
+
+.vhero__cta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/*
+ * WhatsApp ka button — reference ka `.b-wa`.
+ *
+ * ⚠️ Sirf **yahi** naya hai. Pehla button `.btn--accent` pe chalta hai, jo reference ke `.b-o`
+ * se bilkul same hai (wahi `--orange-500`, wahi `box-shadow`) — uske liye nayi class banana
+ * ek hi button ke do naam banata.
+ *
+ * Rang WhatsApp ka apna brand green hai, isliye wo `--` var se nahi aata: wo hamari palette ka
+ * hissa nahi hai aur kisi theme ke saath badalna bhi nahi chahiye.
+ */
+.btn--whatsapp {
+  background: #25d366;
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 2px 0 #16a34a;
+}
+
+.btn--whatsapp:hover {
+  background: #1fbb59;
+  border-color: transparent;
+}

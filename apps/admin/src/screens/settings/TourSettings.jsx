@@ -40,7 +40,7 @@ const ICON_LABEL = {
 }
 
 /** Khaali — naye instance pe `tourSettings` `{}` hota hai. */
-const EMPTY = { bannerMediaId: null, trustBadges: [] }
+const EMPTY = { bannerMediaId: null, trustBadges: [], heroButton: { label: '', url: '' } }
 
 const blankBadge = () => ({ icon: 'shield', text: '' })
 
@@ -128,8 +128,8 @@ export default function TourSettings() {
       </div>
 
       <p className="subtitle">
-        The trust line under the hero, and the default banner image. Both are used on every page — a
-        page with its own Featured image uses that instead.
+        The hero — its banner image, its button, and the trust line under it. These are used on
+        every page; a page with its own Featured image uses that instead of the banner.
       </p>
 
       {error && (
@@ -156,6 +156,50 @@ export default function TourSettings() {
               onSelect={(chosen) => set('bannerMediaId', chosen.id)}
               onClear={() => set('bannerMediaId', null)}
             />
+          </div>
+        </div>
+
+        {/*
+         * Hero ka button — client, 8 Sep: _"only Get my itinerary & price in tour settings,
+         * whatsapp to settings ke general se utha lega."_
+         *
+         * ⚠️ **WhatsApp ka koi field yahan nahi hai, aur wo jaan-boojh kar hai.** Uska number
+         * `Settings ▸ General` me pehle se hai; yahan dobara maangne ka matlab hota ek hi number
+         * do jagah — theek wahi galti jo 2 Sep ko `settings.contactEmail` pe pakdi gayi thi.
+         */}
+        <div className="panel">
+          <div className="panel-head">
+            <h2>Hero button</h2>
+          </div>
+          <div className="panel-body">
+            <div className="row2">
+              <div className="field">
+                <label>Label</label>
+                <input
+                  className="inp"
+                  value={tour.heroButton?.label ?? ''}
+                  placeholder="Get my itinerary &amp; price"
+                  onChange={(e) => set('heroButton', { ...tour.heroButton, label: e.target.value })}
+                  disabled={!canEdit}
+                />
+              </div>
+              <div className="field">
+                <label>Link</label>
+                <input
+                  className="inp"
+                  value={tour.heroButton?.url ?? ''}
+                  placeholder="#enquiry"
+                  onChange={(e) => set('heroButton', { ...tour.heroButton, url: e.target.value })}
+                  disabled={!canEdit}
+                />
+              </div>
+            </div>
+
+            <div className="hint">
+              Both are needed — with either one empty the button does not appear. The green WhatsApp
+              button next to it uses the number from <b>Settings ▸ General</b>; there is nothing to
+              set for it here.
+            </div>
           </div>
         </div>
 
