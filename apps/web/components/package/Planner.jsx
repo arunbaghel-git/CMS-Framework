@@ -23,6 +23,7 @@
  * wahi WhatsApp link chahiye tha, aur do copies wahi galti hoti jo `bestFor` pe ho chuki hai.
  */
 
+import Icon from '../Icon.jsx'
 import { telHref, waHref } from '../../lib/links.js'
 
 /**
@@ -42,7 +43,9 @@ export default function Planner({ settings, email: formEmail, heading = '' }) {
 
       {phone && (
         <div className="wdgc">
-          <span className="wdgc__i">☎</span>
+          <span className="wdgc__i">
+            <Icon name="phone" size={15} />
+          </span>
           <span>
             <b>Call</b>
             <a href={telHref(phone)}>{phone}</a>
@@ -52,7 +55,9 @@ export default function Planner({ settings, email: formEmail, heading = '' }) {
 
       {whatsapp && (
         <div className="wdgc">
-          <span className="wdgc__i wdgc__i--wa">✆</span>
+          <span className="wdgc__i wdgc__i--wa">
+            <Icon name="whatsapp" size={15} />
+          </span>
           <span>
             <b>WhatsApp</b>
             <a href={waHref(whatsapp)} rel="noopener noreferrer" target="_blank">
@@ -64,7 +69,9 @@ export default function Planner({ settings, email: formEmail, heading = '' }) {
 
       {email && (
         <div className="wdgc">
-          <span className="wdgc__i">✉</span>
+          <span className="wdgc__i">
+            <Icon name="mail" size={15} />
+          </span>
           <span>
             <b>Email</b>
             <a href={`mailto:${email}`}>{email}</a>

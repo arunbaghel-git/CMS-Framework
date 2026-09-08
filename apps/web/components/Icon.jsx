@@ -45,6 +45,22 @@ const PATHS = {
   ),
   check: <path d="m5 13 4 4L19 7" />,
 
+  /**
+   * WhatsApp ka brand mark.
+   *
+   * ⚠️ Ye akela icon **fill-based** hai, baaki sab stroke-based. Brand glyph aisa hi hai — use
+   * stroke se banane ka matlab hota uski shakl badal dena. `fill`/`stroke` path pe hi likhe hain
+   * taaki wo `<svg>` ke `fill="none" stroke="currentColor"` ko override kar dein — wrapper ko
+   * chhedne ki zaroorat nahi padi.
+   */
+  whatsapp: (
+    <path
+      fill="currentColor"
+      stroke="none"
+      d="M17.5 14.4c-.3-.2-1.7-.9-2-1s-.5-.1-.7.2-.7 1-.9 1.2-.4.2-.7 0a8.2 8.2 0 0 1-2.4-1.5 9 9 0 0 1-1.7-2.1c-.2-.3 0-.5.1-.6l.5-.6.3-.5v-.5l-1-2.3c-.2-.6-.5-.5-.7-.5h-.6a1.2 1.2 0 0 0-.9.4 3.6 3.6 0 0 0-1.1 2.7 6.3 6.3 0 0 0 1.3 3.3 14.3 14.3 0 0 0 5.5 4.8c2.6 1 2.6.7 3.1.6a3.2 3.2 0 0 0 2.1-1.5 2.6 2.6 0 0 0 .2-1.5zM12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2z"
+    />
+  ),
+
   award: (
     <>
       <circle cx="12" cy="8" r="6" />
