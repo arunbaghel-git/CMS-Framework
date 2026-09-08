@@ -6172,40 +6172,46 @@ DB me reh gaya tha aur usse agla page `-2` pe chala gaya. Wo bhi saaf kiya gaya.
 
 **810 test pass**, admin build pass, lint + format clean.
 
-#### ⚠️ Agle din pakda gaya — Page pe Tour ka content aa raha tha (8 Sep)
+#### ⚠️ Slice C ne scope paar kar liya tha — Pages wapas nikal gaye (8 Sep)
 
-Client ne poochha: _"kal to hamne tour par kaam kiya tha, to page me bhi tour ka content kyun
-aa raha hai?"_ — aur wo theek tha.
+**D-87 ka kaam Tour ka tha.** Slice C me faisla #2 ("koi template nahi, ek hi edit screen") ko
+ek kadam aage kheench liya gaya: _"ek hi screen"_ ka matlab _"ek jaise types"_ maan liya gaya,
+aur `page` ko `tourPage` ka poora field set aur poori screens mil gayin.
 
-**Slice C me faisla #2 ("koi template nahi, ek hi edit screen") ek kadam aage kheench liya gaya
-tha.** "Ek hi screen" ka matlab "ek jaise types" maan liya gaya, aur `page` ko `tourPage` ka
-poora field set mil gaya. Nateeja: ek About Us page kholne pe bhi **Eyebrow**, **Stat rail** aur
-Content me **Package list** block dikhte the — teenon `tour-v3.html` ke hero/listing ki cheezein.
+Client ne do kadam me wo pakda:
 
-Ab teen darje saaf hain:
+1. _"Kal to hamne tour par kaam kiya tha, to page me bhi tour ka content kyun aa raha hai?"_
+   — About Us jaise saade page pe bhi **Eyebrow**, **Stat rail** aur Content me **Package list**
+   block dikh rahe the; teenon `tour-v3.html` ke hero/listing ki cheezein hain
+2. _"Pages ▸ Add New par kuch nahi aana chahiye, kyunki ispar kaam to ho hi nahi raha."_
+
+Dono theek the. Ab:
 
 | Kya | Haalat |
 | --- | --- |
-| Edit screen ka **component** | **ek hi** — `PageEdit.jsx` (faisla #2 waisa ka waisa) |
-| **Field set** | **alag** — `PAGE_FIELDS` = `[subheading]`, `TOUR_PAGE_FIELDS` = `[eyebrow, subheading, statRail]` |
-| **Blocks** | `page` pe `Package list` nahi — packages ki listing Tour ka kaam hai |
-| Menu, list, URL | alag (faisla #1) |
+| `page` ka field set | **`[]`** — bilkul waisa jaisa D-87 se pehle tha |
+| `page` ki screens | wapas **`NotBuiltYet`** pe (`/pages/*`) — **A-9 phir se khula** |
+| `tourPage` | `[eyebrow, subheading, statRail]`, aur uski teenon screens live |
+| `PageEdit.jsx` | ab sirf `/tour` use karta hai, par **`type` prop se hi chalta hai** |
 
-`subheading` dono me hai aur **ek hi constant** se aata hai — do copies rakhne ka matlab hota ki
-kal koi ek me badle aur doosre me bhool jaaye (wahi galti jo `bestFor` aur D-86 ke slug pe ho
-chuki hai).
+⚠️ **Screens ka code hata nahi, wo Tour ka ban gaya.** `EntriesList.jsx` aur `PageEdit.jsx` dono
+`type` se chalte hain aur `lib/use-entries.js` generic hai. Jis din Pages ka kaam aayega, wo
+`TYPE_CONFIG` me **ek row** aur do route jodne ka kaam hai — screens dobara likhni nahi padengi.
+`PagesList.jsx` delete ho gayi (commit `1e7688d` me padi hai), kyunki wo teen line ka wrapper
+thi.
 
-⚠️ **`hero` aur `blocks` `TYPE_CONFIG` me hain**, JSX me bikhre `type === 'tourPage'` se nahi —
-wahi hardcoding jise D-09 ne mana kiya tha.
-
-⚠️ **Block ka filter UI ki rok hai, suraksha ki nahi.** Purana ya API se bheja hua `packageList`
-block ek page pe phir bhi render hota hai — use chup-chaap girana content kho dena hota.
-
-⚠️ **`page` pe `statRail` bheja hi nahi jaata.** `entries.fields` Mixed hai, yaani undeclared
-field bhi chup-chaap store ho jaata aur saade page ke `fields` me `statRail: []` padi rehti.
+⚠️ **`ROUTE_GUARDS` se `/pages` ke teen guard hata diye gaye.** `permissionForRoute()` exact
+pattern se milaata hai, aur jo route hi nahi hai uska guard likhna sirf ye jhootha ishaara deta
+ki wahan kuch hai. **`NAV` me un links pe `permission` phir bhi lagi hui hai** — wo alag sawaal
+hai (menu me item dikhe ya nahi), aur uska jawab screen banne ka intezaar nahi karta.
 
 ⚠️ **Deploy pe `pnpm seed` chahiye** — field set code-owned hai aur `fields` hamesha sync hote
-hain (D-46). Bina uske DB me purana set pada rehta aur admin wahi dikhata.
+hain (D-46). Bina uske DB me purana set pada rehta aur admin wahi dikhata. Dev DB pe chala liya:
+`page: []`, `tourPage: [eyebrow, subheading, statRail]`.
+
+**Sabak:** _scope ek faisle se nahi badhta._ "Ek hi screen" screen ke baare me tha, types ke
+baare me nahi. Ye wahi shakl hai jo D-43 pe pakdi gayi thi (_"Header tab bina poochhe bana diya"_)
+— sirf ulti taraf se: wahan ek screen zyada ban gayi thi, yahan ek poora content type.
 
 #### ⚠️ Agle din pakda gaya — `useEntryList` ka infinite loop (8 Sep)
 

@@ -452,10 +452,16 @@ daur chalta tha, sirf khaali arrays banane ke liye. Ab `page`/`tourPage` ke liye
 se **4.9 / 412** par gir rahi hai, yaani per-package rating aane ke baad bhi koi regression
 nahi. **804 test pass.**
 
-**Slice C (admin screens) bhi ban gayi — aur usne A-9 band kar diya.** `Pages` list ·
-`Tour Pages` list · **ek hi** edit screen · `Settings ▸ Tour settings`. `entries` engine 26 Aug
-se `page` sambhal raha tha, par admin me uska koi raasta nahi tha — nav ke links `NotBuiltYet`
-pe jaate the.
+**Slice C (admin screens) bhi ban gayi** — `Tour Pages` list · edit screen ·
+`Settings ▸ Tour settings`.
+
+⚠️ **Isme Pages ki screens bhi ban gayi thin, aur wo scope se bahar tha** (8 Sep pe hata diya).
+D-87 **Tour** ka kaam tha; faisla #2 ("ek hi edit screen") ko "ek jaise types" samajh kar `page`
+ko bhi Tour ke fields aur screens de diye gaye the. Client ne mana kiya — _"Pages par kaam to ho
+hi nahi raha"_ — to `page` wapas apni purani haalat me hai (`fields: []`, screens `NotBuiltYet`
+pe, **A-9 phir se khula**). **Sabak: scope ek faisle se nahi badhta.**
+✅ Saancha bach gaya — `EntriesList.jsx`/`PageEdit.jsx` dono `type` se chalte hain, to Pages/Posts
+ka din aane pe ek row + do route ka kaam hai.
 
 - **Blocks ka editor** — har block apna panel, `＋ Add block…` dropdown, ⌃⌄ se reorder, band
   hone pe bhi ek line ka summary
@@ -463,8 +469,9 @@ pe jaate the.
   hai (naam wahi, isliye paanch purani screens ko haath nahi laga)
 - ⚠️ **Duration ki ginti admin me dikhti hi nahi** — wo padhne ki cheez hai, likhne ki nahi.
   Client sirf chunta hai ki kaunsi durations dikhein; ginti page pe server se aati hai
-- ⚠️ **Pages ke nav links pe pehle `permission` thi hi nahi** — menu sabko dikhta tha. Ab dono
-  jagah lagi hai (`NAV` + `ROUTE_GUARDS`), `/tour` ke saath
+- ⚠️ **Pages ke nav links pe pehle `permission` thi hi nahi** — menu sabko dikhta tha. Ab `NAV`
+  me dono pe lagi hai. `ROUTE_GUARDS` me sirf `/tour` hai, kyunki `/pages` ka route hi
+  `NotBuiltYet` hai — jo route nahi hai uska guard likhna jhootha ishaara deta hai
 
 **Live check asli DB pe:** ek tour page banaya → publish → resolve → **hata diya**. Blocks kram
 me (`richText → packageList → faqs`), byline apne aap, kachcha `content` payload me nahi, list

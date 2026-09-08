@@ -26,7 +26,6 @@ import PackageDefaults from './screens/packages/PackageDefaults.jsx'
 import PackageEdit from './screens/packages/PackageEdit.jsx'
 import TaxonomyScreen from './screens/packages/TaxonomyScreen.jsx'
 import PackagesList from './screens/packages/PackagesList.jsx'
-import EntriesListPages from './screens/pages/PagesList.jsx'
 import PageEdit from './screens/pages/PageEdit.jsx'
 import TourList from './screens/pages/TourList.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
@@ -131,12 +130,9 @@ function Shell({ children }) {
  * lagta hai, aur profile ko usse chhoot deni padti — wo chhoot hi aage toot-ti.
  */
 const APP_ROUTES = [
-  { path: '/pages', element: <EntriesListPages /> },
-  { path: '/pages/new', element: <PageEdit type="page" /> },
-  { path: '/pages/:id', element: <PageEdit type="page" /> },
   { path: '/tour', element: <TourList /> },
-  { path: '/tour/new', element: <PageEdit type="tourPage" /> },
-  { path: '/tour/:id', element: <PageEdit type="tourPage" /> },
+  { path: '/tour/new', element: <PageEdit /> },
+  { path: '/tour/:id', element: <PageEdit /> },
   { path: '/packages', element: <PackagesList /> },
   /**
    * `/packages/new` `/packages/:id` se **pehle** hai.
@@ -226,6 +222,15 @@ const APP_ROUTES = [
 /** Har wo route jo sidebar me hai par abhi bana nahi. */
 const PENDING_ROUTES = [
   { path: '/posts/*', title: 'Posts', phase: 'Phase 1' },
+  /**
+   * Pages — D-87 me **scope me thi hi nahi**. Slice C me ye screens galti se ban gayi thin
+   * (kaam Tour ka tha), aur client ne 8 Sep ko wo pakda: _"Pages par kaam to ho hi nahi raha"_.
+   *
+   * Screens ka code git me hai (commit 1e7688d) aur unka saancha bhi bacha hua hai —
+   * `EntriesList.jsx` aur `PageEdit.jsx` dono type se chalte hain. Jis din Pages ka kaam
+   * aayega, wo do route jodne ka kaam hai (A-9).
+   */
+  { path: '/pages/*', title: 'Pages', phase: 'Phase 1' },
   /**
    * Packages ke bane hue teen screens upar `APP_ROUTES` me hain. Ye splat sirf uske andar
    * ke baaki raaston ke liye hai — Destinations, Package Type, Hotels, Add Ons, Transfer,

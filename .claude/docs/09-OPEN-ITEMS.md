@@ -449,19 +449,23 @@ jeetega jab tak client saaf na kahe.
 
 ---
 
-### A-9 · Pages ki screens — ✅ **ban gayi (7 Sep, D-87 Slice C)**, Posts abhi baaki
+### A-9 · Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe hain
 
-> ✅ **Pages ka hissa band.** `All Pages`, `Add New` aur edit screen teenon ban gaye, aur unke
-> saath `Tour Pages` ka apna menu bhi. Nav ke links ab `NotBuiltYet` pe nahi jaate, aur dono pe
-> `permission` + `ROUTE_GUARDS` bhi lag gaye — pehle wo **the hi nahi**, yaani menu sabko dikhta
-> tha aur contributor click karne pe ek toota hua screen paata.
+> ⚠️ **Ek din ke liye Pages ka hissa band ho gaya tha, phir wapas khul gaya (8 Sep).**
 >
-> ⚠️ **Posts abhi bhi khula hai** — `/posts`, `/posts/new`, `/posts/categories`, `/posts/tags`
-> chaaron `NotBuiltYet` pe hain. Engine unhe pehle se sambhalta hai; sirf screens baaki hain,
-> aur ab unka saancha bhi maujood hai (`EntriesList.jsx` + `lib/use-entries.js`) — Posts ki list
-> Pages ki list se lagbhag ek jaisi hogi, sirf `Categories`/`Tags` ka filter jodna hoga.
-
-<details><summary>Purana text (7 Sep se pehle)</summary>
+> D-87 Slice C me Pages ki screens ban gayi thin — par **wo kaam scope me tha hi nahi**, D-87
+> Tour ka kaam tha. Client ne wo mana kiya: _"Pages par kaam to ho hi nahi raha."_ Screens wapas
+> `NotBuiltYet` pe hain aur `page` ka field set phir se khaali hai.
+>
+> ✅ **Ek cheez bach gayi, aur wo asli faayda hai:** ab in screens ka **saancha maujood hai** —
+> `EntriesList.jsx` aur `PageEdit.jsx` dono `type` se chalte hain, aur `lib/use-entries.js` ke
+> hooks kisi bhi content type pe chalte hain. Jis din Pages ya Posts ka kaam aayega, wo screens
+> dobara likhni nahi padengi: `TYPE_CONFIG` me ek row, aur do route.
+>
+> ⚠️ **Neeche wala purana andaza galat nikla** — usme likha tha ki ye "Packages ki screens ka hi
+> doosra roop" hoga aur `PackagesList`/`PackageEdit` `type` se chal jaayengi. Asli kaam ulta
+> hua: un screens ko **chhua hi nahi gaya** (unke apne filter aur bulk actions package ke domain
+> ke hain). Jo sach me share hua wo **data hooks** the, screens nahi.
 
 **Deadline:** koi sakht nahi — par ye **engine ka bacha hua kaam** hai, naya feature nahi
 **Kuch toota nahi hai** — sirf ek gap hai jiska kahin record nahi tha
@@ -494,16 +498,15 @@ packages flat hain. Ye copy-paste se nahi aayega.
 poora kaam Packages pe kendrit raha, aur is gap ka kisi list me zikr nahi tha — wo sirf tab
 dikhta jab koi sidebar me Posts pe click karta.
 
-</details>
+⚠️ **Upar wale "Kaam kitna hai" wala andaza galat nikla.** Usme likha tha ki ye "Packages ki
+screens ka hi doosra roop" hoga aur `PackagesList`/`PackageEdit` `type` se chal jaayengi.
+Slice C me asli kaam ulta hua: un screens ko **chhua hi nahi gaya** — unke apne filter,
+`From price` column aur Featured wale bulk action package ke domain ki cheezein hain, aur unhe
+props se on/off karna wahi component banata jise koi chhoona nahi chahta. Jo sach me share hua
+wo **data hooks** the (`lib/use-entries.js`), screens nahi.
 
-⚠️ **Upar wale purane text ka ek andaza galat nikla.** Usme likha tha ki ye "Packages ki screens
-ka hi doosra roop" hoga aur `PackagesList`/`PackageEdit` `type` se chal jaayengi. Asli kaam ulta
-hua: un screens ko **chhua hi nahi gaya**. Unke apne filter, `From price` column aur Featured
-wale bulk action package ke domain ki cheezein hain — unhe props se on/off karna wahi component
-banata jise koi chhoona nahi chahta. Jo sach me share hua wo **data hooks** the
-(`lib/use-entries.js`), screens nahi.
-
-Parent dropdown wali chetavni sahi thi aur wo `PageEdit` me bana hua hai.
+Parent dropdown wali chetavni **sahi** nikli — wo `PageEdit.jsx` me bana hua hai, aur Tour page
+pe bhi chalta hai (wahan wo URL nahi badalta, sirf breadcrumb banata hai).
 
 ---
 

@@ -2239,29 +2239,21 @@ describe('Tour Page ka type (D-87)', () => {
     expect(await pathOf(tour.body.data.entry.id)).toBe('/andaman-tour-packages-2')
   })
 
-  it('page saada hai — Eyebrow aur Stat rail sirf Tour pe hain', async () => {
+  it('fields sirf tourPage pe hain — page D-87 se pehle jaisa hi hai', async () => {
     // ⚠️ Ek din ke liye dono ka field set EK HI tha: faisla #2 ("ek hi edit screen") ko itna
     // kheench liya gaya tha ki "ek hi screen" ka matlab "ek jaise types" maan liya gaya.
     // Nateeja — ek About Us page pe bhi Eyebrow aur Stat rail dikhte the, jo dono
-    // `tour-v3.html` ke hero ki cheezein hain. Client ne 8 Sep ko wo pakda.
+    // `tour-v3.html` ke hero ki cheezein hain.
     //
-    // Edit screen ab bhi ek hi component hai; alag sirf field set hai
+    // Client ne do kadam me wo mana kiya (8 Sep): pehle "page me tour ka content kyun aa raha
+    // hai", phir "Pages par kaam to ho hi nahi raha". D-87 ka kaam Tour ka tha, aur `page`
+    // wapas apni purani haalat me hai — uski screens bhi `NotBuiltYet` pe (A-9 phir se khula)
     const page = await ContentType.findOne({ key: 'page' }).lean()
     const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
 
-    // `blocks` dono me NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7)
-    expect(page.fields.map((f) => f.key)).toEqual(['subheading'])
+    expect(page.fields).toEqual([])
+    // `blocks` yahan NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7)
     expect(tour.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail'])
-  })
-
-  it('subheading dono me ek hi shape ka hai — do copies nahi', async () => {
-    // Ek hi constant se aata hai. Do copies rakhne ka matlab hota ki kal koi ek me badle aur
-    // doosre me bhool jaaye — wahi galti jo `bestFor` aur Bulk Upload ke slug pe ho chuki hai
-    const page = await ContentType.findOne({ key: 'page' }).lean()
-    const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
-
-    const pick = (t) => t.fields.find((f) => f.key === 'subheading')
-    expect(pick(page)).toEqual(pick(tour))
   })
 
   it('dono pe hasBuilder true hai, package/post pe nahi', async () => {
@@ -2406,9 +2398,10 @@ describe('content blocks (D-87 §7)', () => {
   })
 })
 
-describe('page ke apne fields (D-87)', () => {
+describe('tour page ke apne fields (D-87)', () => {
   it('sub heading HTML rakhta hai aur write pe saaf hota hai', async () => {
-    const res = await createPage(adminJar, {
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
       title: 'About',
       fields: { subheading: '<p>Hello <b>there</b><script>bad()</script></p>' },
     })
@@ -2417,6 +2410,21 @@ describe('page ke apne fields (D-87)', () => {
 
     expect(doc.fields.subheading).toContain('<b>there</b>')
     expect(doc.fields.subheading).not.toContain('script')
+  })
+
+  it('page pe wahi fields bheje jaayein to wo parse nahi hote', async () => {
+    // `entries.fields` Mixed hai (D-46), isliye undeclared field **store** to ho jaata hai —
+    // par `normalizeFields()` use chhoota nahi, yaani `statRail` ko stable id nahi milti.
+    //
+    // Ye rok data ki nahi, **matlab** ki hai: Pages par kaam ho hi nahi raha, aur uska field
+    // set khaali hai. Admin wo bhejta bhi nahi
+    const res = await createPage(adminJar, {
+      title: 'Saada Page',
+      fields: { statRail: [{ value: '40+', label: 'Itineraries' }] },
+    })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+    expect(doc.fields.statRail[0].id).toBeUndefined()
   })
 
   it('stat rail ke har card ko stable id milti hai — Tour page pe', async () => {

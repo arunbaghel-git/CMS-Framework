@@ -11,11 +11,15 @@ import PageBlocks from './PageBlocks.jsx'
 import '../packages/Packages.css'
 
 /**
- * Page aur Tour Page ka editor — **ek hi screen, dono ke liye** (D-87, client ka faisla #2).
+ * Tour Page ka editor — **type se chalta hai, hardcoded nahi** (D-87, client ka faisla #2).
  *
  * Client ne 7 Sep ko "do template" wala plan rad kiya: koi chooser nahi, koi template dropdown
- * nahi, koi switch-confirm nahi. Jo alag hai wo sirf **kahan se khula** hai — `/pages/:id` ya
- * `/tour/:id` — aur wo `type` prop se aata hai.
+ * nahi, koi switch-confirm nahi.
+ *
+ * ⚠️ **Aaj sirf `/tour` isko use karta hai.** Kuch ghante ke liye `/pages` bhi isi pe tha, par
+ * Pages par kaam ho hi nahi raha (client, 8 Sep) — wo wapas `NotBuiltYet` pe hai. Component
+ * `type` prop se chalta hai, isliye jis din Pages ka kaam aayega tab `TYPE_CONFIG` me ek row
+ * aur do route jodne se ye wahan bhi chal jaayega.
  *
  * Screen ka dhaancha `admin-design-v3.html` ke `#s-page-edit` se hai:
  *
@@ -39,37 +43,30 @@ import '../packages/Packages.css'
  */
 
 /**
- * ⚠️ **Dono types ek hi component chalate hain, par ek jaise nahi hain** (8 Sep).
+ * Kaunsa type kaunse panel aur blocks paata hai.
  *
- * Ek din ke liye `page` ko bhi Tour ke saare panel mil gaye the — Eyebrow, Stat rail, aur
- * Content me `Package list` block. Wo teenon `tour-v3.html` ke hero/listing ki cheezein hain
- * aur ek About Us page pe unka koi kaam nahi. Client ne wo dekh kar poochha ki "page me tour
- * ka content kyun aa raha hai", aur wo theek tha.
+ * ⚠️ **Abhi sirf `tourPage` hai** — Pages par kaam ho hi nahi raha (client, 8 Sep), aur uski
+ * screens `NotBuiltYet` pe hain. Kuch ghante ke liye yahan `page` bhi tha aur use Tour ke saare
+ * panel mil gaye the (Eyebrow · Stat rail · `Package list` block); wo teenon `tour-v3.html` ke
+ * hero/listing ki cheezein hain aur ek About Us page pe unka koi kaam nahi.
  *
- * `hero` aur `blocks` yahan tay hote hain, JSX me bikhre `type === 'tourPage'` se nahi — wahi
- * hardcoding jise D-09 ne mana kiya tha. Naya type jodna ho to sirf ek row jodni hai.
+ * Jis din Pages ka kaam aayega, yahan **ek row** jodni hai aur do route — component `type` prop
+ * se pehle se chalta hai. `hero`/`blocks` yahin tay hote hain, JSX me bikhre
+ * `type === 'tourPage'` se nahi (wahi hardcoding jise D-09 ne mana kiya tha).
  */
 const TYPE_CONFIG = {
-  page: {
-    key: 'page',
-    label: 'Page',
-    basePath: '/pages',
-    /** Eyebrow + Stat rail — hero wale panel. Saade page pe nahi. */
-    hero: false,
-    /** `Package list` yahan nahi — packages ki listing Tour page ka kaam hai. */
-    blocks: ['richText', 'twoColumn', 'cards', 'faqs'],
-  },
   tourPage: {
     key: 'tourPage',
     label: 'Tour Page',
     basePath: '/tour',
+    /** Eyebrow + Stat rail — `tour-v3.html` ke hero wale panel. */
     hero: true,
     blocks: ['richText', 'twoColumn', 'cards', 'packageList', 'faqs'],
   },
 }
 
-export default function PageEdit({ type = 'page' }) {
-  const config = TYPE_CONFIG[type] ?? TYPE_CONFIG.page
+export default function PageEdit({ type = 'tourPage' }) {
+  const config = TYPE_CONFIG[type] ?? TYPE_CONFIG.tourPage
   const { id } = useParams()
   const navigate = useNavigate()
   const { can } = useAuth()
