@@ -2239,13 +2239,29 @@ describe('Tour Page ka type (D-87)', () => {
     expect(await pathOf(tour.body.data.entry.id)).toBe('/andaman-tour-packages-2')
   })
 
-  it('dono types ka field set bilkul ek hai — ek hi edit screen chalti hai', async () => {
+  it('page saada hai — Eyebrow aur Stat rail sirf Tour pe hain', async () => {
+    // ⚠️ Ek din ke liye dono ka field set EK HI tha: faisla #2 ("ek hi edit screen") ko itna
+    // kheench liya gaya tha ki "ek hi screen" ka matlab "ek jaise types" maan liya gaya.
+    // Nateeja — ek About Us page pe bhi Eyebrow aur Stat rail dikhte the, jo dono
+    // `tour-v3.html` ke hero ki cheezein hain. Client ne 8 Sep ko wo pakda.
+    //
+    // Edit screen ab bhi ek hi component hai; alag sirf field set hai
     const page = await ContentType.findOne({ key: 'page' }).lean()
     const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
 
-    // `blocks` yahan NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7)
-    expect(page.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail'])
-    expect(tour.fields).toEqual(page.fields)
+    // `blocks` dono me NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7)
+    expect(page.fields.map((f) => f.key)).toEqual(['subheading'])
+    expect(tour.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail'])
+  })
+
+  it('subheading dono me ek hi shape ka hai — do copies nahi', async () => {
+    // Ek hi constant se aata hai. Do copies rakhne ka matlab hota ki kal koi ek me badle aur
+    // doosre me bhool jaaye — wahi galti jo `bestFor` aur Bulk Upload ke slug pe ho chuki hai
+    const page = await ContentType.findOne({ key: 'page' }).lean()
+    const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
+
+    const pick = (t) => t.fields.find((f) => f.key === 'subheading')
+    expect(pick(page)).toEqual(pick(tour))
   })
 
   it('dono pe hasBuilder true hai, package/post pe nahi', async () => {
@@ -2403,8 +2419,12 @@ describe('page ke apne fields (D-87)', () => {
     expect(doc.fields.subheading).not.toContain('script')
   })
 
-  it('stat rail ke har card ko stable id milti hai', async () => {
-    const res = await createPage(adminJar, {
+  it('stat rail ke har card ko stable id milti hai — Tour page pe', async () => {
+    // ⚠️ `page` pe nahi, `tourPage` pe: `statRail` ab sirf Tour ke field set me hai (8 Sep).
+    // `normalizeFields()` sirf **declared** fields parse karta hai, isliye page pe bheja gaya
+    // statRail id nahi paata
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
       title: 'Stats',
       fields: { statRail: [{ value: '40+', label: 'Itineraries' }] },
     })

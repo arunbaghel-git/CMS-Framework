@@ -182,20 +182,67 @@ const PACKAGE_FIELDS = [
 ]
 
 /**
- * `page` aur `tourPage` — **dono ka ek hi field set** (D-87, client 7 Sep).
+ * `page` aur `tourPage` — **ek hi edit screen, par ek jaise nahi** (D-87, client 7-8 Sep).
  *
- * Client ne 7 Sep ko do baar palta. Pehle "do template" tay hua tha (Text article + Package
- * archive), phir wo poora rad hua: **koi template hai hi nahi**, ek hi edit screen hai, aur
- * layout content editor ke blocks se aata hai.
+ * Client ne 7 Sep ko "do template" wala plan rad kiya: koi template nahi, **ek hi edit
+ * screen**, aur layout content editor ke blocks se.
  *
- * Isliye do content type hone ke bawajood field set ek hi hai — aur wo jaan-boojh kar ek hi
- * constant hai, do copies nahi. Do copies rakhne ka matlab hota ki kal koi ek me field jode
- * aur doosre me bhool jaaye, aur wo farak **sirf ek type ke edit screen pe** dikhe.
+ * ⚠️ **8 Sep ko ye ek kadam aage kheench liya gaya tha, aur wo galat tha.** Ek din ke liye dono
+ * types ka field set ek hi constant tha — "ek hi screen" ka matlab "ek jaise types" maan liya
+ * gaya. Nateeja: ek normal Page kholne pe bhi **Eyebrow** aur **Stat rail** dikhte the, jo
+ * dono `tour-v3.html` ke hero ki cheezein hain.
  *
- * Jo farak hai wo neeche type ki definition me hai — menu, list aur URL. Wahi teen cheezein
- * client ne alag maangi thi (faisla #1).
+ * Client ne wo dekh kar poochha: _"kal to hamne tour par kaam kiya tha, to page me bhi tour ka
+ * content kyun aa raha hai?"_ Ab teen darje saaf hain:
+ *
+ * | Kya | Kahan |
+ * | --- | --- |
+ * | Edit screen ka **component** | ek hi — `PageEdit.jsx` |
+ * | **Field set** | alag — `PAGE_FIELDS` aur `TOUR_PAGE_FIELDS` |
+ * | Menu, list, URL | alag (faisla #1) |
+ *
+ * `subheading` dono me hai, isliye wo ek hi constant se aata hai — do copies rakhne ka matlab
+ * hota ki kal koi ek me badle aur doosre me bhool jaaye.
  */
-const PAGE_FIELDS = [
+const SUBHEADING_FIELD = {
+  /**
+   * Title ke neeche ka sub heading — **asli editor**, plain text nahi (faisla #3).
+   *
+   * Client ne isme bold/link maange the, isliye ye `textarea` nahi hai. Safai
+   * `sanitizeEntryFields()` me hoti hai (R20).
+   */
+  key: 'subheading',
+  type: 'richText',
+  label: 'Sub heading',
+  help: 'Title ke neeche ka paragraph',
+}
+
+/**
+ * `page` ka field set — **saada page**.
+ *
+ * ⚠️ **8 Sep ko chhota kiya gaya.** Ek din ke liye `page` aur `tourPage` ka field set **ek hi
+ * constant** tha, kyunki faisla #2 ("koi template nahi, ek hi edit screen") ko itna kheench
+ * liya gaya tha ki dono ko ek hi fields mil gaye. Nateeja ye tha ki ek normal Page kholne pe
+ * bhi **Eyebrow** aur **Stat rail** dikhte the — dono `tour-v3.html` ke hero ki cheezein hain,
+ * jinka ek About Us page pe koi matlab nahi.
+ *
+ * Client ne wo dekh kar poochha: _"kal to hamne tour par kaam kiya tha, to page me bhi tour ka
+ * content kyun aa raha hai?"_ — aur wo theek tha. **Faisla #2 ka matlab "ek hi edit screen ka
+ * component" hai, "dono types ek jaise hain" nahi.**
+ *
+ * Screen ab bhi ek hi hai (`PageEdit.jsx`) — wo `type` ke hisaab se panel dikhata hai. Wahi
+ * model jo `PackageEdit` pe hai: screen ek, fields content type se.
+ */
+const PAGE_FIELDS = [SUBHEADING_FIELD]
+
+/**
+ * `tourPage` ka field set — `page` ke upar wo cheezein jo **`tour-v3.html` ke hero** se aati
+ * hain.
+ *
+ * Yahan sab kuch ek listing page ke liye hai: eyebrow ki chhoti line, aur uske neeche stat
+ * rail. Ek saada page pe inka koi kaam nahi.
+ */
+const TOUR_PAGE_FIELDS = [
   {
     /**
      * Title ke upar ki chhoti line (faisla #13).
@@ -209,18 +256,7 @@ const PAGE_FIELDS = [
     label: 'Eyebrow',
     help: 'Title ke upar ki chhoti line',
   },
-  {
-    /**
-     * Title ke neeche ka sub heading — **asli editor**, plain text nahi (faisla #3).
-     *
-     * Client ne isme bold/link maange the, isliye ye `textarea` nahi hai. Safai
-     * `sanitizeEntryFields()` me hoti hai (R20).
-     */
-    key: 'subheading',
-    type: 'richText',
-    label: 'Sub heading',
-    help: 'Title ke neeche ka paragraph',
-  },
+  SUBHEADING_FIELD,
   {
     /**
      * `.vrail` — chaar stat cards, pehla highlighted (`--p`).
@@ -295,6 +331,11 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     /** Pages classify nahi hote — unka structure parent chain se aata hai. */
     taxonomyTypes: [],
 
+    /**
+     * ⚠️ **Saada page** — Eyebrow aur Stat rail yahan **nahi** hain (8 Sep). Wo dono
+     * `tour-v3.html` ke hero ki cheezein hain; ek About Us page pe unka koi kaam nahi. Poora
+     * tark `PAGE_FIELDS` ke upar hai.
+     */
     fields: PAGE_FIELDS,
   },
 
@@ -354,7 +395,7 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     /** Tour page khud packages ko filter karta hai; wo apne aap classify nahi hota. */
     taxonomyTypes: [],
 
-    fields: PAGE_FIELDS,
+    fields: TOUR_PAGE_FIELDS,
   },
 
   {

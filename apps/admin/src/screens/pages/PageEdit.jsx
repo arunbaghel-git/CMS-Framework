@@ -38,9 +38,34 @@ import '../packages/Packages.css'
  * likhi hui hai.
  */
 
+/**
+ * ⚠️ **Dono types ek hi component chalate hain, par ek jaise nahi hain** (8 Sep).
+ *
+ * Ek din ke liye `page` ko bhi Tour ke saare panel mil gaye the — Eyebrow, Stat rail, aur
+ * Content me `Package list` block. Wo teenon `tour-v3.html` ke hero/listing ki cheezein hain
+ * aur ek About Us page pe unka koi kaam nahi. Client ne wo dekh kar poochha ki "page me tour
+ * ka content kyun aa raha hai", aur wo theek tha.
+ *
+ * `hero` aur `blocks` yahan tay hote hain, JSX me bikhre `type === 'tourPage'` se nahi — wahi
+ * hardcoding jise D-09 ne mana kiya tha. Naya type jodna ho to sirf ek row jodni hai.
+ */
 const TYPE_CONFIG = {
-  page: { key: 'page', label: 'Page', basePath: '/pages', listTitle: 'Pages' },
-  tourPage: { key: 'tourPage', label: 'Tour Page', basePath: '/tour', listTitle: 'Tour Pages' },
+  page: {
+    key: 'page',
+    label: 'Page',
+    basePath: '/pages',
+    /** Eyebrow + Stat rail — hero wale panel. Saade page pe nahi. */
+    hero: false,
+    /** `Package list` yahan nahi — packages ki listing Tour page ka kaam hai. */
+    blocks: ['richText', 'twoColumn', 'cards', 'faqs'],
+  },
+  tourPage: {
+    key: 'tourPage',
+    label: 'Tour Page',
+    basePath: '/tour',
+    hero: true,
+    blocks: ['richText', 'twoColumn', 'cards', 'packageList', 'faqs'],
+  },
 }
 
 export default function PageEdit({ type = 'page' }) {
@@ -127,13 +152,19 @@ export default function PageEdit({ type = 'page' }) {
      * ⚠️ Khaali stat rows **bheji nahi jaatin**. Form hamesha chaar row dikhata hai (design se),
      * par jinme `value` nahi hai wo page pe render hi nahi hoti — unhe store karne ka matlab
      * hota DB me chaar khaali object har page pe.
+     *
+     * ⚠️ Aur jis type pe hero hai hi nahi (`page`), wahan `statRail` **bheja hi nahi jaata**.
+     * `entries.fields` Mixed hai, yaani undeclared field bhi chup-chaap store ho jaata —
+     * ek saade page ke `fields` me `statRail: []` padi rehti, jiska koi matlab nahi.
      */
-    const statRail = stats.filter((s) => s?.value?.trim())
+    const fields = config.hero
+      ? { ...form.fields, statRail: stats.filter((s) => s?.value?.trim()) }
+      : form.fields
 
     const payload = {
       title: form.title,
       content: { version: CURRENT_CONTENT_VERSION, blocks: form.blocks },
-      fields: { ...form.fields, statRail },
+      fields,
       seo: form.seo,
       parentId: form.parentId || null,
       featuredImageId: form.featuredImageId,
@@ -260,15 +291,18 @@ export default function PageEdit({ type = 'page' }) {
               <h2>Page header</h2>
             </div>
             <div className="panel-body">
-              <div className="field">
-                <label>Eyebrow line</label>
-                <input
-                  className="inp"
-                  value={form.fields.eyebrow ?? ''}
-                  onChange={(e) => setField('eyebrow', e.target.value)}
-                  disabled={readOnly}
-                />
-              </div>
+              {/* Eyebrow `tour-v3.html` ke hero se aata hai — saade page pe wo nahi hai. */}
+              {config.hero && (
+                <div className="field">
+                  <label>Eyebrow line</label>
+                  <input
+                    className="inp"
+                    value={form.fields.eyebrow ?? ''}
+                    onChange={(e) => setField('eyebrow', e.target.value)}
+                    disabled={readOnly}
+                  />
+                </div>
+              )}
               <div className="field">
                 <label>Sub heading</label>
                 <HtmlEditor
@@ -286,56 +320,60 @@ export default function PageEdit({ type = 'page' }) {
             </div>
           </div>
 
-          {/* ---- STAT RAIL ---- */}
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Stat rail</h2>
-              <span className="muted">
-                {stats
-                  .map((s) => s?.value)
-                  .filter(Boolean)
-                  .join(' · ') || '—'}
-              </span>
+          {/* ---- STAT RAIL ---- reference ka `.vrail`, sirf Tour page pe ---- */}
+          {config.hero && (
+            <div className="panel">
+              <div className="panel-head">
+                <h2>Stat rail</h2>
+                <span className="muted">
+                  {stats
+                    .map((s) => s?.value)
+                    .filter(Boolean)
+                    .join(' · ') || '—'}
+                </span>
+              </div>
+              <div className="panel-body">
+                {Array.from({ length: 4 }, (_, i) => {
+                  const row = stats[i] ?? {}
+                  return (
+                    <div className="row3" key={i}>
+                      <div className="field">
+                        <label>Value</label>
+                        <input
+                          className="inp"
+                          value={row.value ?? ''}
+                          onChange={(e) => setStat(i, 'value', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Suffix</label>
+                        <input
+                          className="inp"
+                          placeholder="—"
+                          value={row.suffix ?? ''}
+                          onChange={(e) => setStat(i, 'suffix', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Label</label>
+                        <input
+                          className="inp"
+                          value={row.label ?? ''}
+                          onChange={(e) => setStat(i, 'label', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+                <div className="hint">
+                  Chaaron khaali chhodenge to ye patti page pe nahi aayegi.
+                </div>
+              </div>
             </div>
-            <div className="panel-body">
-              {Array.from({ length: 4 }, (_, i) => {
-                const row = stats[i] ?? {}
-                return (
-                  <div className="row3" key={i}>
-                    <div className="field">
-                      <label>Value</label>
-                      <input
-                        className="inp"
-                        value={row.value ?? ''}
-                        onChange={(e) => setStat(i, 'value', e.target.value)}
-                        disabled={readOnly}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>Suffix</label>
-                      <input
-                        className="inp"
-                        placeholder="—"
-                        value={row.suffix ?? ''}
-                        onChange={(e) => setStat(i, 'suffix', e.target.value)}
-                        disabled={readOnly}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>Label</label>
-                      <input
-                        className="inp"
-                        value={row.label ?? ''}
-                        onChange={(e) => setStat(i, 'label', e.target.value)}
-                        disabled={readOnly}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-              <div className="hint">Chaaron khaali chhodenge to ye patti page pe nahi aayegi.</div>
-            </div>
-          </div>
+          )}
 
           {/* ---- CONTENT ---- */}
           <div className="panel">
@@ -346,6 +384,7 @@ export default function PageEdit({ type = 'page' }) {
             <div className="panel-body">
               <PageBlocks
                 blocks={form.blocks}
+                types={config.blocks}
                 onChange={(blocks) => set({ blocks })}
                 disabled={readOnly}
                 open={openBlocks}

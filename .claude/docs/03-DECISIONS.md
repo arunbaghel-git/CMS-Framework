@@ -6172,6 +6172,41 @@ DB me reh gaya tha aur usse agla page `-2` pe chala gaya. Wo bhi saaf kiya gaya.
 
 **810 test pass**, admin build pass, lint + format clean.
 
+#### ⚠️ Agle din pakda gaya — Page pe Tour ka content aa raha tha (8 Sep)
+
+Client ne poochha: _"kal to hamne tour par kaam kiya tha, to page me bhi tour ka content kyun
+aa raha hai?"_ — aur wo theek tha.
+
+**Slice C me faisla #2 ("koi template nahi, ek hi edit screen") ek kadam aage kheench liya gaya
+tha.** "Ek hi screen" ka matlab "ek jaise types" maan liya gaya, aur `page` ko `tourPage` ka
+poora field set mil gaya. Nateeja: ek About Us page kholne pe bhi **Eyebrow**, **Stat rail** aur
+Content me **Package list** block dikhte the — teenon `tour-v3.html` ke hero/listing ki cheezein.
+
+Ab teen darje saaf hain:
+
+| Kya | Haalat |
+| --- | --- |
+| Edit screen ka **component** | **ek hi** — `PageEdit.jsx` (faisla #2 waisa ka waisa) |
+| **Field set** | **alag** — `PAGE_FIELDS` = `[subheading]`, `TOUR_PAGE_FIELDS` = `[eyebrow, subheading, statRail]` |
+| **Blocks** | `page` pe `Package list` nahi — packages ki listing Tour ka kaam hai |
+| Menu, list, URL | alag (faisla #1) |
+
+`subheading` dono me hai aur **ek hi constant** se aata hai — do copies rakhne ka matlab hota ki
+kal koi ek me badle aur doosre me bhool jaaye (wahi galti jo `bestFor` aur D-86 ke slug pe ho
+chuki hai).
+
+⚠️ **`hero` aur `blocks` `TYPE_CONFIG` me hain**, JSX me bikhre `type === 'tourPage'` se nahi —
+wahi hardcoding jise D-09 ne mana kiya tha.
+
+⚠️ **Block ka filter UI ki rok hai, suraksha ki nahi.** Purana ya API se bheja hua `packageList`
+block ek page pe phir bhi render hota hai — use chup-chaap girana content kho dena hota.
+
+⚠️ **`page` pe `statRail` bheja hi nahi jaata.** `entries.fields` Mixed hai, yaani undeclared
+field bhi chup-chaap store ho jaata aur saade page ke `fields` me `statRail: []` padi rehti.
+
+⚠️ **Deploy pe `pnpm seed` chahiye** — field set code-owned hai aur `fields` hamesha sync hote
+hain (D-46). Bina uske DB me purana set pada rehta aur admin wahi dikhata.
+
 #### ⚠️ Agle din pakda gaya — `useEntryList` ka infinite loop (8 Sep)
 
 Client ko admin me _"Bahut zyada requests. Thodi der baad."_ dikha — **rate limiter** ka message

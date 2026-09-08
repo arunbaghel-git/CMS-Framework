@@ -481,12 +481,20 @@ const EDITORS = {
 /**
  * @param {object} props
  * @param {any[]} props.blocks
+ * @param {string[]} [props.types]    kaunse block jud sakte hain — content type se aata hai
  * @param {(next: any[]) => void} props.onChange
  * @param {boolean} props.disabled
  * @param {string[]} props.open       khule hue block ids
  * @param {(id: string) => void} props.onToggle
  */
-export default function PageBlocks({ blocks, onChange, disabled, open, onToggle }) {
+export default function PageBlocks({
+  blocks,
+  types = PAGE_BLOCK_TYPES,
+  onChange,
+  disabled,
+  open,
+  onToggle,
+}) {
   const patchBlock = (i, nextProps) =>
     onChange(blocks.map((b, idx) => (idx === i ? { ...b, props: nextProps } : b)))
 
@@ -597,7 +605,14 @@ export default function PageBlocks({ blocks, onChange, disabled, open, onToggle 
             aria-label="Add block"
           >
             <option value="">＋ Add block…</option>
-            {PAGE_BLOCK_TYPES.map((type) => (
+            {/*
+             * ⚠️ Sirf wahi types jo is content type pe chalte hain. `Package list` saade page
+             * pe nahi aata — packages ki listing Tour page ka kaam hai (8 Sep).
+             *
+             * Ye ek **UI ki rok** hai, suraksha ki nahi: purana ya API se bheja hua block phir
+             * bhi render hota hai, kyunki use chup-chaap girana content kho dena hota.
+             */}
+            {types.map((type) => (
               <option key={type} value={type}>
                 {BLOCK_LABEL[type]}
               </option>
