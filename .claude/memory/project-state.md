@@ -1,8 +1,8 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 8 Sep 2026 — **194 commit**, ⚠️ **14 unpushed** (`origin/main` = `a0f337c`),
-> **821 test pass** (32 file), admin build pass, lint + format clean, tree clean.
+> **Last updated:** 8 Sep 2026 — **196 commit**, ⚠️ **16 unpushed** (`origin/main` = `a0f337c`),
+> **844 test pass** (33 file), admin build pass, lint + format clean, tree clean.
 
 ---
 
@@ -12,25 +12,28 @@
 
 | Kya           | Value                                                                                |
 | ------------- | ------------------------------------------------------------------------------------ |
-| Commits       | **194**                                                                              |
-| Push          | ⚠️ **14 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
-| Tests         | **821 pass**, 32 file (`pnpm test`, exit 0)                                          |
+| Commits       | **196**                                                                              |
+| Push          | ⚠️ **16 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
+| Tests         | **844 pass**, 33 file (`pnpm test`, exit 0)                                          |
 | Admin build   | ✅ `vite build` pass                                                                 |
 | Lint · Format | dono clean                                                                           |
 | Tree          | clean                                                                                |
-| Migrations    | **22 files**, 22/22 applied — **aaj koi nayi nahi lagi**                             |
-| Decisions     | **D-87** tak (usme §1–§10 aur teen "agle din pakda gaya" section)                    |
-| DB            | 5 package (+8 trash me) · 0 tour page · 4 content type                               |
+| Migrations    | **23 files**, 23/23 applied — **023 aaj lagi** (sidebars, D-88)                      |
+| Decisions     | **D-88** tak                                                                         |
+| DB            | 5 package (+8 trash me) · 0 tour page · 4 content type · **0 sidebar**               |
 
 ### Pehle ye do
 
 ```bash
 docker compose up -d mongo
-pnpm seed          # ⚠️ ZAROORI — tourPage ka field set aaj do baar badla
+pnpm seed          # ⚠️ ZAROORI — tourPage ka field set aaj do baar badla, aur sidebarId juda
 pnpm dev
 ```
 
-⚠️ **`pnpm cms migrate` ki zaroorat nahi** — D-87 me ab tak koi migration nahi lagi.
+⚠️ **`pnpm cms migrate` is machine pe chal chuki hai** (023 applied, live check bhi ho gaya).
+Kisi doosre install pe wo chalani padegi — usme `sidebars` ke indexes **aur** roles ka sync
+dono hain. Bina uske `Appearance ▸ Sidebar` **kisi ko dikhta hi nahi**, aur koi error bhi nahi
+aata (D-86 wali shakl).
 
 ---
 
@@ -314,8 +317,10 @@ chahiye. Naye CSS: `.vhero*` (7) · `.vrail*` (4) · `.fbar`+`.dpill` · `.prows
   **abhi bhi 404** deta hai. Client jis din wo tour page banayega, wo apne aap theek ho jaayega —
   koi code change nahi
 
-Uske baad **Slice E** — `Appearance ▸ Sidebar` (faisla #14). Wo `forms.placement` ka gap bhi
-bharta hai (`form.js:152`: paanch placement design hui thin, do hi bani).
+~~Uske baad **Slice E**~~ — ✅ **Slice E 8 Sep ko ban gayi** (D-88), yaani **ab sirf Slice D
+bachi hai**. ⚠️ Aur ye andaza galat nikla: Slice E ne `forms.placement` ka gap **nahi** bhara —
+package pages hardcoded hi rahe (client), isliye `placement` ka kaam waisa hi hai aur
+`form.js:152` ka gap **abhi bhi khula** hai.
 
 ### Slice C ka ek adhoora hissa
 
