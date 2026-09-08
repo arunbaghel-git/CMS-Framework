@@ -1,8 +1,8 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 8 Sep 2026 — **196 commit**, ⚠️ **16 unpushed** (`origin/main` = `a0f337c`),
-> **844 test pass** (33 file), admin build pass, lint + format clean, tree clean.
+> **Last updated:** 8 Sep 2026 — **198 commit**, ⚠️ **18 unpushed** (`origin/main` = `a0f337c`),
+> **846 test pass** (33 file), admin build pass, lint + format clean, tree clean.
 
 ---
 
@@ -12,9 +12,9 @@
 
 | Kya           | Value                                                                                |
 | ------------- | ------------------------------------------------------------------------------------ |
-| Commits       | **196**                                                                              |
-| Push          | ⚠️ **16 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
-| Tests         | **844 pass**, 33 file (`pnpm test`, exit 0)                                          |
+| Commits       | **198**                                                                              |
+| Push          | ⚠️ **18 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
+| Tests         | **846 pass**, 33 file (`pnpm test`, exit 0)                                          |
 | Admin build   | ✅ `vite build` pass                                                                 |
 | Lint · Format | dono clean                                                                           |
 | Tree          | clean                                                                                |
