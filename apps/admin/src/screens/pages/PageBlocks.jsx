@@ -718,14 +718,26 @@ export default function PageBlocks({
   const patchBlock = (i, nextProps) =>
     onChange(blocks.map((b, idx) => (idx === i ? { ...b, props: nextProps } : b)))
 
-  const move = (i, delta) => {
-    const j = i + delta
-    if (j < 0 || j >= blocks.length) return
+  /**
+   * Kram badalna — **drag se, grip pe** (client, 8 Sep).
+   *
+   * ⚠️ Pehle yahan ⌃⌄ ke do button the. Wo "abhi ke liye" wala shortcut tha aur galat tha: usi
+   * screen ke picker me `useListDrag` pehle se chal raha hai, yaani drag ka poora intezaam
+   * maujood tha aur maine use yahan lagaya hi nahi.
+   *
+   * `useListDrag` **keyboard bhi deta hai** (grip pe ↑/↓), isliye drag pe jaane se wo raasta
+   * khota nahi — wahi jodi jo `SortablePanels`, itinerary aur menu items pe hai.
+   */
+  const move = (from, to) => {
+    if (to < 0 || to >= blocks.length) return
 
     const next = [...blocks]
-    ;[next[i], next[j]] = [next[j], next[i]]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
     onChange(next)
   }
+
+  const { handleProps, rowProps } = useListDrag(move, !disabled)
 
   return (
     <>
@@ -734,38 +746,49 @@ export default function PageBlocks({
         const isOpen = open.includes(block.id)
 
         return (
-          <div className={`blk blk--${BLOCK_CLASS[block.type] ?? 'text'}`} key={block.id ?? i}>
-            <div className="blk-head">
-              {/*
-               * Reorder abhi ⌃/⌄ se hai, drag se nahi. Kaam wahi hota hai aur keyboard se bhi
-               * chalta hai; drag `SortablePanels` ki tarah baad me lag sakta hai.
-               */}
+          <div
+            className={`blk blk--${BLOCK_CLASS[block.type] ?? 'text'}`}
+            key={block.id ?? i}
+            {...rowProps(i)}
+          >
+            {/*
+             * ⚠️ **Poora head hi toggle hai**, sirf ▾ ka akshar nahi.
+             *
+             * Pehle `▾` ek saada `<span>` tha — dikhta button jaisa tha par kuch karta nahi tha,
+             * aur toggle sirf summary wale text pe lagta tha. Client ne wahi pakda: _"blocks are
+             * not opening and closing by the icon."_
+             *
+             * Ab wahi shakl hai jo `Panel` ki hai: head `role="button"`, aur grip aur ✕ apna
+             * click rok lete hain (`stopPropagation`) — warna har drag ya remove ke baad panel
+             * khul/band ho jaata aur wo bilkul galti jaisa lagta.
+             */}
+            <div
+              className="blk-head"
+              role="button"
+              tabIndex={0}
+              aria-expanded={isOpen}
+              onClick={() => onToggle(block.id)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return
+                e.preventDefault()
+                onToggle(block.id)
+              }}
+            >
               {!disabled && (
-                <span className="blk-move">
-                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0}>
-                    ⌃
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => move(i, 1)}
-                    disabled={i === blocks.length - 1}
-                  >
-                    ⌄
-                  </button>
+                <span
+                  className="grip"
+                  {...handleProps(i)}
+                  onKeyDown={(e) => {
+                    e.stopPropagation()
+                    handleProps(i).onKeyDown?.(e)
+                  }}
+                >
+                  ⠿
                 </span>
               )}
 
               <span className="blk-chip">{BLOCK_LABEL[block.type] ?? block.type}</span>
-
-              <button
-                className="blk-sum"
-                type="button"
-                onClick={() => onToggle(block.id)}
-                title={isOpen ? 'Collapse' : 'Expand'}
-              >
-                {summarize(block)}
-              </button>
-
+              <span className="blk-sum">{summarize(block)}</span>
               <span className="toggle-ico">{isOpen ? '▾' : '▸'}</span>
 
               {!disabled && (
@@ -773,7 +796,8 @@ export default function PageBlocks({
                   className="blk-x"
                   type="button"
                   title="Remove block"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation()
                     if (!window.confirm('Remove this block? Its content goes with it.')) {
                       return
                     }
