@@ -1,12 +1,170 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 7 Sep 2026 (raat) — **179 commit**, **0 unpushed** (`origin/main` =
-> `02d2e83`), **810 test pass** (31 file), lint + format clean, tree clean.
+> **Last updated:** 8 Sep 2026 — **189 commit**, ⚠️ **9 unpushed** (`origin/main` = `a0f337c`),
+> **821 test pass** (32 file), admin build pass, lint + format clean, tree clean.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (7 Sep, raat)
+## ⏭️ Nayi session yahan se shuru kare (8 Sep)
+
+### Abhi ki asli haalat (naapi hui)
+
+| Kya           | Value                                                                               |
+| ------------- | ----------------------------------------------------------------------------------- |
+| Commits       | **189**                                                                             |
+| Push          | ⚠️ **9 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
+| Tests         | **821 pass**, 32 file (`pnpm test`, exit 0)                                         |
+| Admin build   | ✅ `vite build` pass                                                                |
+| Lint · Format | dono clean                                                                          |
+| Tree          | clean                                                                               |
+| Migrations    | **22 files**, 22/22 applied — **aaj koi nayi nahi lagi**                            |
+| Decisions     | **D-87** tak (usme §1–§10 aur teen "agle din pakda gaya" section)                   |
+| DB            | 5 package (+8 trash me) · 0 tour page · 4 content type                              |
+
+### Pehle ye do
+
+```bash
+docker compose up -d mongo
+pnpm seed          # ⚠️ ZAROORI — tourPage ka field set aaj do baar badla
+pnpm dev
+```
+
+⚠️ **`pnpm cms migrate` ki zaroorat nahi** — D-87 me ab tak koi migration nahi lagi.
+
+---
+
+## 8 Sep — D-87 ka doosra din. Client ne chala kar bahut kuch palta
+
+**9 commit.** Din ki shakl saaf thi: client ne admin sach me chalaya, aur jo tooTa ya bemaani
+laga wo batata gaya. **Chaar me se teen badlaav uske the, aur teenon theek the.**
+
+### Do bug jo client ne pakde, aur dono "khaali" jaise dikhte the
+
+| Lakshan                                                             | Asli wajah                                                                                                                                                                                        |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| _"Bahut zyada requests. Thodi der baad."_                           | `useEntryList` ki dep **object ki identity** thi. `PageEdit` inline object bhejta tha → har render pe naya → infinite loop. Rate limiter ne use **sunai dene laayak** bana diya                   |
+| _"Packages to hain, phir left side me koi package aa hi nahi raha"_ | Picker `limit: 200` bhejta tha, `entryListQuerySchema` ka cap **100** hai → har request 400. Aur picker sirf `data` padhta tha, `error` nahi — to **failure khaali state ki shakl me** dikhta tha |
+
+⚠️ **Dono ka sabak ek hi hai:** _guard ya call ka fail hona kabhi error jaisa nahi dikhta — wo
+"kuch na hone" jaisa dikhta hai_ (D-86 wali baat). Ab `ENTRY_LIST_MAX_LIMIT` shared se export
+hota hai (number do jagah haath se likhna hi galti thi), aur picker error **laal me alag se**
+dikhata hai.
+
+### ⚠️ Sabse bada sabak — scope ek faisle se nahi badhta
+
+Slice C me faisla #2 (_"koi template nahi, ek hi edit screen"_) ko ek kadam aage kheench liya
+gaya: _"ek hi screen"_ ka matlab _"ek jaise types"_ maan liya, aur `page` ko `tourPage` ke poore
+fields **aur poori screens** mil gayin.
+
+Client ne do kadam me wo pakda: pehle _"page me tour ka content kyun aa raha hai?"_, phir saaf
+_"Pages par kaam to ho hi nahi raha."_
+
+**Ab `page` bilkul waisa hai jaisa D-87 se pehle tha** — `fields: []`, screens `NotBuiltYet` pe,
+**A-9 phir se khula**. ✅ Saancha bach gaya: `EntriesList.jsx`/`PageEdit.jsx` dono `type` se
+chalte hain, to Pages/Posts ka din aane pe **ek row + do route** ka kaam hai.
+
+### ⚠️ R17 dobara toota — aur client ne dobara wahi tarike se pakda
+
+UI ka text Hinglish me chala gaya tha. R17 me **literally** likha hai ki 21 Aug ko yahi hua tha
+aur _"client ne Profile screen dekh kar poochha tha"_.
+
+Sab English me kar diya. ⚠️ Ek label phir bhi chhoot gaya tha (`banaayein` mere sweep ke
+shabd-list me nahi tha) — client ne wo bhi pakda. **Sweep list adhoori thi, wo bhi ek sabak hai.**
+
+### Package list ka poora model palat gaya — ab wo **chunav** hai
+
+|                 | 7 Sep                   | 8 Sep                                                            |
+| --------------- | ----------------------- | ---------------------------------------------------------------- |
+| List            | server filter se derive | **do-column picker** — `packageIds` hi list hai                  |
+| Kram            | `sort` enum             | **usi array ka**, drag-and-drop se                               |
+| Ginti           | `limit`                 | jitne chune                                                      |
+| Admin ka filter | ek radio, dono kaam     | **`browseBy`** — sirf baayen column chhota karta hai             |
+| Page ka filter  | wahi radio              | **`pageFilter`** — checkbox jo single check ho, teen kism ki bar |
+
+⚠️ **Keemat maan li gayi:** naya package publish hone pe wo apne aap kisi tour page pe **nahi**
+aayega — client ko us page pe jaakar chunna padega.
+
+Saath me: baayen column me **search** (server pe, 300ms debounce), aur FAQs block me
+**description** ka editor.
+
+### Do toggle hataye — dono ek hi wajah se
+
+| Hata         | Client ne kaha                                                                                        |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| `showBadges` | _"rating aur discount badge wala checkbox hatao, default package me hoga to automatically aayega hi"_ |
+| `emitSchema` | _"do I need this checkbox?"_                                                                          |
+
+⚠️ **Niyam jo isse nikla:** _jo cheez apne aap sahi ho sakti hai, uspe toggle rakhna client ko ek
+aisa faisla dena hai jo uska hai hi nahi_ — aur har toggle ek aisi haalat banata hai jisme koi
+use band karke bhool jaata hai. FAQ schema ab **saare FAQ blocks milaa kar ek hi `FAQPage`**
+banayega (Slice D me).
+
+### Ek option hataya tha — client ne poochha "kyun", aur wo theek tha
+
+`Day wise` ko baayen ke filter se nikaal diya gaya tha kyunki list endpoint `nights` pe filter
+karta hi nahi tha. **Option hatane ki jagah use chalana chahiye tha.** Ab `entryListQuerySchema`
+me `duration` param hai aur `durationQuery()` bucket ko Mongo filter me badalti hai.
+
+⚠️ `d8plus` sirf ek aur bucket nahi, wo ek **range** hai (8 aur usse zyada). Uska matlab
+`durationQuery()` me **ek hi jagah** likha hai — do jagah likhne ka matlab hota wahi shakl jo
+D-86 ke slug pe thi.
+
+### Panels ab sach me khulte-bandh hote hain
+
+`PageEdit` me raw `<div className="panel">` likh diya gaya tha, jabki **`Panel` component pehle
+se maujood hai**. Chhe panel `Panel` pe le gaye. Stat rail aur SEO **band khulte hain** (design
+me bhi wahi). Publish ke Save/Trash `footer` me hain — body band hone pe render hi nahi hoti,
+aur Save chhupna nahi chahiye.
+
+---
+
+## ⏭️ Agla kaam — do raaste, dono khule
+
+### Slice D — theme (D-87 ka aakhri bada hissa)
+
+`apps/web` ka catch-all abhi **har** payload `PackagePage` pe bhejta hai; usme page-shaped branch
+chahiye. Naya CSS: `.vhero*` · `.vrail*` · `.fbar`/`.dpill` · `.prows` · `.prow__off` ·
+`.dcard`/`.dgrid` · two-column · `.toc` · `.ctastrip`.
+
+✅ **`.prow` poora bana hua hai** — `globals.css:3544–3766` + `Similar.jsx`.
+
+⚠️ **Maloom kaante:**
+
+- `.pgl` package page pe sidebar **right** rakhta hai; tour page pe ulta. **`.pgl` badla to
+  package detail page tootega** — `.pgl--sideleft` modifier chahiye
+- `.b` / `.b-o` / `.b-wa` hamare paas nahi — `.btn--outline` / `.btn--accent` hain.
+  `.sec--blue` bhi nahi — `.pkg` / `.pkg__cta` (`globals.css:4376`)
+- `.blk` pe `content-visibility` hai — sticky filter bar uske **andar nahi** (D-85)
+- `PackagePage.jsx:95` ka `ARCHIVE_CRUMB` abhi bhi 404 deta hai; client jis din wo tour page
+  banayega, apne aap theek ho jaayega
+- FAQ schema: **saare FAQ blocks milaa kar ek hi `FAQPage`** (aaj tay hua)
+
+### Slice E — `Appearance ▸ Sidebar`
+
+Uska daayra ab teen cheezein hai:
+
+1. **`sidebars` collection** — named sidebars, har ek ke apne widgets (client, 8 Sep)
+2. Page pe **"kaunsa sidebar"** dropdown — `fields.sidebar` string se `{ position, id }`
+3. `forms.placement` ka purana gap (`form.js:152` — paanch placement design hui thin, do bani)
+
+⚠️ **Ek sawaal client se poochhna hai, kaam shuru karne se pehle:** _sidebar me kya-kya daala ja
+sakta hai?_ Demo me chaar widget dikhte hain — `Enquiry form` · `On this page` ·
+`Talk to a planner` · `Packages by duration`. **Ye list fixed hai, ya client apne widgets bana
+sakta hai?** Iska jawab poore module ka shape tay karta hai.
+
+⚠️ Client ne 8 Sep ko **raasta B** chuna: page pe abhi sirf `none`/`left`/`right`, aur "kaunsa
+sidebar" wala chunav Slice E ke saath aayega.
+
+### Slice C ka ek adhoora hissa
+
+**Tour list ka `Packages` column** abhi **blocks ki ginti** dikhata hai, packages ki nahi. Design
+me wahan `11` jaisa number hai — wo live packages pe depend karta hai, isliye server pe hi ban
+sakta hai aur uske liye list endpoint ko per-row query karni padegi.
+
+---
+
+## ⏭️ (purana) Nayi session yahan se shuru kare (7 Sep, raat)
 
 ### Abhi ki asli haalat (naapi hui)
 
@@ -107,7 +265,7 @@ saaf kiya. **Sabak: e2e script ka cleanup `finally` me hona chahiye.**
 
 ---
 
-## ⏭️ Agla kaam — Slice D (theme)
+## (purana) 7 Sep ka "Agla kaam" — Slice D (theme)
 
 `apps/web` ka catch-all abhi **har** payload `PackagePage` pe bhejta hai; usme page-shaped branch
 chahiye. Naye CSS: `.vhero*` (7) · `.vrail*` (4) · `.fbar`+`.dpill` · `.prows` · `.prow__off` ·
