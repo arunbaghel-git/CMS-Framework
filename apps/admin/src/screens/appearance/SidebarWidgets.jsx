@@ -1,4 +1,4 @@
-import { SIDEBAR_WIDGET_LABEL, SIDEBAR_WIDGET_TYPES } from '@cms/shared'
+import { ICONS, ICON_LABELS, SIDEBAR_WIDGET_LABEL, SIDEBAR_WIDGET_TYPES } from '@cms/shared'
 
 import { useListDrag } from '../../lib/drag-list.js'
 import HtmlEditor from '../packages/HtmlEditor.jsx'
@@ -39,7 +39,7 @@ function emptyWidget(type) {
   const props = {
     enquiryForm: { heading: '', description: '', formId: '' },
     talkToPlanner: { heading: '' },
-    html: { heading: '', html: '' },
+    html: { icon: 'none', heading: '', html: '' },
   }[type]
 
   return { id: newId(), type, props: props ?? {} }
@@ -173,14 +173,39 @@ function TalkToPlannerWidget({ props, onChange, disabled }) {
 function HtmlWidget({ props, onChange, disabled }) {
   return (
     <>
-      <div className="field" style={{ maxWidth: 360 }}>
-        <label>Heading</label>
-        <input
-          className="inp"
-          value={props.heading ?? ''}
-          onChange={(e) => onChange({ ...props, heading: e.target.value })}
-          disabled={disabled}
-        />
+      {/*
+       * Icon + Heading ek hi row me — client, 8 Sep: _"Edit Sidebar me hi ek icon field dal do
+       * Heading ke saath me."_
+       *
+       * ⚠️ List wahi shared `ICONS` hai jo header buttons aur footer text blocks use karte hain.
+       * Nayi list banane ka nateeja `constants/icons.js` ke sar pe likha hai.
+       */}
+      <div className="row2">
+        <div className="field">
+          <label>Icon</label>
+          <select
+            className="sel"
+            value={props.icon ?? 'none'}
+            onChange={(e) => onChange({ ...props, icon: e.target.value })}
+            disabled={disabled}
+          >
+            {ICONS.map((icon) => (
+              <option key={icon} value={icon}>
+                {ICON_LABELS[icon] ?? icon}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Heading</label>
+          <input
+            className="inp"
+            value={props.heading ?? ''}
+            onChange={(e) => onChange({ ...props, heading: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
       </div>
 
       <HtmlEditor

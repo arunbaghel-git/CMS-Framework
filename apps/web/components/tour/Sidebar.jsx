@@ -1,3 +1,4 @@
+import Icon from '../Icon.jsx'
 import EnquiryForm from '../package/EnquiryForm.jsx'
 import Planner from '../package/Planner.jsx'
 
@@ -22,7 +23,16 @@ import Planner from '../package/Planner.jsx'
 function HtmlWidget({ props }) {
   return (
     <div className="wdg">
-      {props.heading ? <div className="wdg__h">{props.heading}</div> : null}
+      {props.heading ? (
+        <div className="wdg__h">
+          {/*
+           * Icon widget ke apne props se (D-88 §10, client) — shared `ICONS` me se. `none` ya
+           * koi anjaan value pe `Icon` khud `null` lauta deta hai, to yahan koi check nahi.
+           */}
+          <Icon name={props.icon} size={14} strokeWidth={2.4} />
+          {props.heading}
+        </div>
+      ) : null}
       <div className="wdg__b" dangerouslySetInnerHTML={{ __html: props.html }} />
     </div>
   )

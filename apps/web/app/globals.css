@@ -5241,23 +5241,32 @@ a.mega__gl:hover {
 /* ---------- sidebar ka link-list widget ---------- */
 
 /*
- * `.wdgl` — `Custom HTML` widget me client ki likhi hui list (reference: `Packages by duration`).
+ * `Custom HTML` widget ki list — reference ka `.wdgl` (`Packages by duration`).
  *
- * ⚠️ **Ye CSS 8 Sep tak thi hi nahi, aur uska nateeja screenshot me dikha:** client ne editor me
- * `<ul class="wdgl">` likha tha aur wo browser ki **saadi bullet list** ban kar chhap rahi thi —
- * na dashed separator, na daam daayein.
+ * ⚠️ **Selector me `.wdg__b ul` bhi hai, aur wo jaan-boojh kar hai — sirf `.wdgl` par bharosa
+ * nahi kiya ja sakta.**
  *
- * Yahi wo keemat hai jo D-80 ke saath aayi: client `class` likh sakta hai (sanitizer use bachata
- * hai), par wo class **kaam tabhi karti hai jab theme me uska rule ho**. Naya class naam client
- * ke haath me hai; jo reference me hain, unke rule hamare paas hone chahiye.
+ * Client ne editor me `<ul class="wdgl">` likha tha. Wo class DB me **thi**, phir kai save ke
+ * baad **gayab ho gayi** (`version: 27` pe `<ul>` bacha tha). Sanitizer nirdosh hai — usspe
+ * seedha chala kar dekha, wo `class` ko chhoota hi nahi (`COMMON_ATTRS` me wo allowed hai).
+ * Yaani wo editor me khoyi.
+ *
+ * Isliye look ko us class ka mohtaaj rakhna galat hai: client bullet button se ek saadi list
+ * banata hai, aur sidebar me uska sahi roop **wahi** hai. `.wdgl` alias ki tarah chalti rehti
+ * hai — jo purana content us class ke saath hai wo waise ka waisa dikhta rahega.
+ *
+ * ⚠️ Ye sirf `.wdg__b` ke andar lagta hai, yaani sidebar ke widget me. Page ke content ki
+ * `<ul>` par iska koi asar nahi — wahan bullets wahi rehte hain.
  */
-.wdgl {
+.wdgl,
+.wdg__b ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.wdgl li a {
+.wdgl li a,
+.wdg__b ul li a {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5270,16 +5279,19 @@ a.mega__gl:hover {
 }
 
 /* Aakhri row pe lakeer nahi — warna wo widget ke apne border se do lakeerein bana deti hai */
-.wdgl li:last-child a {
+.wdgl li:last-child a,
+.wdg__b ul li:last-child a {
   border-bottom: 0;
 }
 
-.wdgl li a:hover {
+.wdgl li a:hover,
+.wdg__b ul li a:hover {
   color: var(--blue-600);
 }
 
 /* Daam — daayein kinare, aur kabhi toot kar do line me nahi */
-.wdgl b {
+.wdgl b,
+.wdg__b ul b {
   font-weight: 800;
   color: var(--blue-600);
   white-space: nowrap;

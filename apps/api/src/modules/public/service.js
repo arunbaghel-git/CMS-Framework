@@ -1089,7 +1089,16 @@ async function resolveSidebarWidgets(sidebarId, siteId, locale) {
 
           return isEmptyHtml(html)
             ? null
-            : { id: widget.id, type: 'html', props: { heading: widget.props?.heading ?? '', html } }
+            : {
+                id: widget.id,
+                type: 'html',
+                props: {
+                  /** Heading ke aage ka icon — shared `ICONS` me se (D-88 §10). */
+                  icon: widget.props?.icon ?? 'none',
+                  heading: widget.props?.heading ?? '',
+                  html,
+                },
+              }
         }
 
         /**

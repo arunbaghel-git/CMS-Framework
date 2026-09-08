@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DEFAULT_SITE_ID } from '../constants/index.js'
+import { DEFAULT_SITE_ID, ICONS } from '../constants/index.js'
 import { htmlSchema } from './rich-html.js'
 
 /**
@@ -119,6 +119,26 @@ export const htmlWidgetSchema = z.object({
   type: z.literal('html'),
   props: z
     .object({
+      /**
+       * Heading ke aage ka icon — reference me `PACKAGES BY DURATION` ke saath ek ghadi hai
+       * (`.wdg__h svg`). Client, 8 Sep: _"Edit Sidebar me hi ek icon field dal do Heading ke
+       * saath me."_
+       *
+       * ⚠️ **Wahi shared `ICONS` list, koi nayi nahi.** `constants/icons.js` ke sar pe ye baat
+       * likhi hui hai: do alag list rakhne ka nateeja wahi hota jo `menu.location` pe hua tha —
+       * ek din wo alag ho jaatin aur theme ke paas aisi value pahunch jaati jiska SVG hai hi
+       * nahi.
+       *
+       * ⚠️ `trustBadgeSchema` apni alag list rakhta hai (`shield`/`pin`/`doc`/`check`) — wo isi
+       * jaal ka ek maujooda udaharan hai. Use badla **nahi** ja sakta: client ne un values ko
+       * save kar rakha hai aur wo `ICONS` me hain hi nahi. Naya kaam us list pe na jaaye, itna
+       * hi kiya ja sakta tha.
+       *
+       * `Talk to a planner` pe koi field nahi — uska phone icon theme me fix hai, kyunki wo
+       * widget hamesha wahi ek cheez hai (client ka faisla).
+       */
+      icon: z.enum(ICONS).default('none'),
+
       heading: z.string().trim().max(120).default(''),
       html: htmlSchema,
     })

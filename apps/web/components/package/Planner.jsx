@@ -39,7 +39,16 @@ export default function Planner({ settings, email: formEmail, heading = '' }) {
 
   return (
     <div className="wdg">
-      <div className="wdg__h">{heading || 'Talk to a planner'}</div>
+      {/*
+       * ⚠️ Icon yahan **theme me fix hai**, koi field nahi — client ka faisla (8 Sep). Ye widget
+       * hamesha wahi ek cheez hai, to uske icon ka chunav client ko dena wo faisla dena hota jo
+       * uska hai hi nahi. `Custom HTML` widget pe uska apna icon field hai, kyunki wahan har
+       * widget alag cheez hoti hai.
+       */}
+      <div className="wdg__h">
+        <Icon name="phone" size={14} strokeWidth={2.4} />
+        {heading || 'Talk to a planner'}
+      </div>
 
       {phone && (
         <div className="wdgc">
