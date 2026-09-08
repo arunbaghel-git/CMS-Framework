@@ -227,6 +227,14 @@ export const NAV = [
     label: 'Appearance',
     children: [
       { label: 'Menus', to: '/appearance/menus', permission: PERMISSION.MENU_READ },
+      /**
+       * Sidebar — design me ye tab pehle se hai (`admin-design-v3.html` nav, line 341).
+       *
+       * ⚠️ Uska **model** alag tha (ek hi sidebar, position isi screen pe, aur form ke liye
+       * niyam ki table). Client ne uski jagah **named sidebars** chune — poora hisaab D-88 §1
+       * me. Yahan sirf tab ka naam design se liya gaya hai.
+       */
+      { label: 'Sidebar', to: '/appearance/sidebars', permission: PERMISSION.SIDEBAR_READ },
       { label: 'Footer', to: '/appearance/footer', permission: PERMISSION.SETTINGS_READ },
     ],
   },
@@ -387,6 +395,16 @@ export const ROUTE_GUARDS = Object.freeze({
    * `contributor` menu **dekh** sakte hain (link banate waqt ye kaam ka hai), badal nahi.
    */
   '/appearance/menus': PERMISSION.MENU_READ,
+  /**
+   * Sidebars — wahi jodi jo Menus pe hai: `sidebar.read` se khulti hai, aur `sidebar.update`
+   * na ho to screen khud form disable kar deti hai.
+   *
+   * Dono route yahan hain (list aur editor). ⚠️ 8 Sep ko Pages pe ulta pakda gaya tha — `NAV`
+   * me `permission` thi hi nahi, to menu sabko dikhta tha. Naya section jodte waqt **dono
+   * jagah** likhna hi wo galti nahi hone deta.
+   */
+  '/appearance/sidebars': PERMISSION.SIDEBAR_READ,
+  '/appearance/sidebars/:id': PERMISSION.SIDEBAR_READ,
   /** Footer ke fields `settings` document me hain (spec 006 §7.2), isliye wahi permission. */
   '/appearance/footer': PERMISSION.SETTINGS_READ,
 })

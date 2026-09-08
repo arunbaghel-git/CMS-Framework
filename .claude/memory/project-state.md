@@ -154,21 +154,35 @@ chahiye. Naya CSS: `.vhero*` · `.vrail*` · `.fbar`/`.dpill` · `.prows` · `.p
   banayega, apne aap theek ho jaayega
 - FAQ schema: **saare FAQ blocks milaa kar ek hi `FAQPage`** (aaj tay hua)
 
-### Slice E — `Appearance ▸ Sidebar`
+### ✅ Slice E — `Appearance ▸ Sidebar` — **ban gayi (D-88, 8 Sep)**
 
-Uska daayra ab teen cheezein hai:
+Wo ek sawaal jispe poora module ruka tha — _sidebar me kya-kya daala ja sakta hai, list fixed hai
+ya client apne widget bana sakta hai?_ — client ne band kar diya: **list fix hai, teen type ki.**
 
-1. **`sidebars` collection** — named sidebars, har ek ke apne widgets (client, 8 Sep)
-2. Page pe **"kaunsa sidebar"** dropdown — `fields.sidebar` string se `{ position, id }`
-3. `forms.placement` ka purana gap (`form.js:152` — paanch placement design hui thin, do bani)
+| Cheez                 | Kya bana                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| `sidebars` collection | Nayi, apna module (paanch file), **migration 023** (indexes + roles sync)                      |
+| Widgets               | `enquiryForm` · `talkToPlanner` · `html` — **ordered list**, `{id, type, props}`               |
+| Page pe               | `fields.sidebar` (jaisa tha) + naya `fields.sidebarId`. Dropdown `none` chhodne par khulta hai |
+| Payload               | `entry.sidebarWidgets[]` — resolve hua maal. **`sidebarId` theme ko kabhi nahi jaata**         |
+| Admin                 | `Appearance ▸ Sidebar` list + editor, `PageBlocks` ka hi saancha (drag, toggle, summary)       |
 
-⚠️ **Ek sawaal client se poochhna hai, kaam shuru karne se pehle:** _sidebar me kya-kya daala ja
-sakta hai?_ Demo me chaar widget dikhte hain — `Enquiry form` · `On this page` ·
-`Talk to a planner` · `Packages by duration`. **Ye list fixed hai, ya client apne widgets bana
-sakta hai?** Iska jawab poore module ka shape tay karta hai.
+⚠️ **`fields.sidebar` `{ position, id }` NAHI bana** — upar wala plan palta gaya. Do flat field
+rakhne se entries pe **koi migration nahi lagti**, payload ka shape nahi badalta, aur teen purane
+test waise ke waise chalte hain. Poora tark D-88 §3 me.
 
-⚠️ Client ne 8 Sep ko **raasta B** chuna: page pe abhi sirf `none`/`left`/`right`, aur "kaunsa
-sidebar" wala chunav Slice E ke saath aayega.
+⚠️ **`forms.placement` ka gap na khula na band hua** — wo sirf **package pages** ko serve karta
+hai (jo hardcoded hi rahenge, client ka faisla), aur sidebar ka `formId` sirf `page`/`tourPage`
+ko. Dono kabhi milte hi nahi, isliye ye D-86 wali "ek hi cheez ke do naam" nahi hai.
+
+⚠️ **`On this page` nahi bana — client ne defer kiya.** Wo `tour-v3.html` me hai hi nahi (sirf
+`page-template.html:1862` me), aur Pages ki screens bani nahi (A-9). Jab banega tab tay hoga ki
+uski **jagah** sidebar ki list me ho aur **on/off** page pe — ya wo hamesha sabse upar aaye.
+
+⚠️ **Design v3 se paanch farak** — `admin-design-v3.html:682` pe Sidebar ka poora screen bana hua
+hai (ek hi sidebar · global left/right · form ke liye niyam ki table · chaar widget). Client ne
+uski jagah named sidebars chune. **D-88 §1 me poora hisaab hai, aur usme likha hai ki #2–#5 ka
+client-attribution abhi likha jaana baaki hai** (R15 — design se hatna client se aata hai).
 
 ### Slice C ka ek adhoora hissa
 

@@ -244,13 +244,31 @@ const TOUR_PAGE_FIELDS = [
      * Sidebar hai ya nahi, aur kis taraf — `none` · `left` · `right` (client, 8 Sep).
      *
      * ⚠️ **Kaunsa form dikhega wo yahan tay nahi hota** — client ne wo saaf kiya. Layout page
-     * ka apna faisla hai, content site ka. Poora tark `schemas/page.js` me `sidebarSchema` ke
-     * upar hai.
+     * ka apna faisla hai, content site ka. Poora tark `schemas/page.js` me
+     * `sidebarPositionSchema` ke upar hai.
      */
     key: 'sidebar',
     type: 'select',
     label: 'Sidebar',
     help: 'Is page pe sidebar dikhe ya nahi, aur kis taraf',
+  },
+  {
+    /**
+     * **Kaunsa** sidebar — `sidebars` collection ki id (D-88, client 8 Sep).
+     *
+     * Ye `sidebar` ka jodidaar hai, uska hissa nahi: wo **kis taraf** hai, ye **kaunsa**.
+     * Admin me ye dropdown tabhi khulta hai jab `sidebar` `none` na ho — client ne yahi
+     * maanga tha ("left/right chunne ke baad hi list dikhegi").
+     *
+     * ⚠️ **`package` pe ye field jaan-boojh kar nahi hai** — package ka sidebar hardcoded hi
+     * rahega (D-88 #7). `page` aur `post` pe tab aayega jab unki screens banengi (A-9); unka
+     * field set aaj bhi khaali hai aur use is kaam me kholna wahi galti hoti jo Slice C me
+     * hui thi.
+     */
+    key: 'sidebarId',
+    type: 'select',
+    label: 'Which sidebar',
+    help: 'Appearance ▸ Sidebar me banaye gaye sidebars me se ek',
   },
   /*
    * ⚠️ **`blocks` yahan **nahi** hai — aur wo 7 Sep ko badla (D-87 §7).**

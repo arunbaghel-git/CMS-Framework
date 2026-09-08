@@ -372,6 +372,33 @@ export function sanitizeEntryFields(fields) {
 }
 
 /**
+ * Sidebar ke widgets ki HTML — `Appearance ▸ Sidebar` (D-88).
+ *
+ * Aaj sirf `html` widget me prose hai. `enquiryForm` me ek id hai aur `talkToPlanner` ka poora
+ * content derive hota hai — dono me saaf karne ko kuch hai hi nahi.
+ *
+ * ⚠️ **Naya widget type jodo to yahan bhi jodo.** Ye wahi jaal hai jo `sanitizeContent()` aur
+ * `sanitizeEntryFields()` ke upar likha hai: chhoot jaane ka matlab ye **nahi** ki content gir
+ * jaayega — wo **bina safai ke bach** jaayega, aur sidebar har us page pe render hoti hai
+ * jisne use chuna hai.
+ */
+export function sanitizeSidebarWidgets(widgets) {
+  if (!Array.isArray(widgets)) return widgets
+
+  return widgets.map((widget) => {
+    if (!widget?.props) return widget
+
+    switch (widget.type) {
+      case 'html':
+        return { ...widget, props: { ...widget.props, html: sanitizeBlockHtml(widget.props.html) } }
+
+      default:
+        return widget
+    }
+  })
+}
+
+/**
  * `packageDefaults` ke chaar HTML jagah.
  *
  * ⚠️ `whatsIncluded` ki lines **inline** profile se guzarti hain, block se nahi — wo theme ke

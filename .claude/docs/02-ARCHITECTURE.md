@@ -215,6 +215,16 @@ menuLocations  * siteId, locale, location, menuId
                  NAHI — wo `settings.footerColumns[]` me chale gaye (D-44),
                  kyunki column me text bhi ho sakta hai aur uski ginti
                  client chunta hai. Migration 008.
+sidebars       * siteId, locale, name, widgets[], version, deletedAt
+                 widgets[{ id, type(enquiryForm|talkToPlanner|html), props }]
+                 wahi FROZEN envelope jo content.blocks[] ka hai (D-87 §7), par
+                 apna alag enum — teen type, aur wo list FIX hai (D-88 §2).
+                 ⚠️ Position yahan NAHI hai — wo page pe hai (`fields.sidebar`),
+                 aur "kaunsi sidebar" bhi (`fields.sidebarId`). Client ne 8 Sep ko
+                 wo lakeer khud khinchi: layout page ka, content site ka.
+                 ⚠️ Koi location table nahi — `menus` se yahi farak hai. Assignment
+                 page pe hai, isliye `menuLocations` jaisi doosri collection ki
+                 zaroorat hi nahi. Migration 023.
 templates      * siteId, name, type(page|post|archive|single|404|search),
                  regions{header,footer}, layout, isDefault
 patterns       * siteId, name, kind(pattern|synced), blocks[], category
@@ -367,6 +377,7 @@ enquiries:     { siteId: 1, deletedAt: 1, status: 1, createdAt: -1 }
 menus:         { siteId: 1, locale: 1, key: 1 }            unique   ← locale D-43 me juda
 menus:         { siteId: 1, deletedAt: 1, updatedAt: -1 }
 menuLocations: { siteId: 1, locale: 1, location: 1 }       unique
+sidebars:      { siteId: 1, locale: 1, deletedAt: 1, updatedAt: -1 }  ← migration 023
 contentTypes:  { siteId: 1, key: 1 }                       unique   ← migration 009
 revisions: { entryId: 1, createdAt: -1 }                              ← migration 009
 refreshTokens: { jti: 1 } unique · { userId: 1 } · { expiresAt: 1 } TTL

@@ -396,4 +396,29 @@ export const subheadingSchema = htmlSchema.pipe(z.string().max(2000)).default(''
  */
 export const PAGE_SIDEBAR = Object.freeze(['none', 'left', 'right'])
 
-export const sidebarSchema = z.enum(PAGE_SIDEBAR).default('none')
+/**
+ * ⚠️ **Pehle iska naam `sidebarSchema` tha — 8 Sep ko badla (D-88).**
+ *
+ * `schemas/sidebar.js` bana to `sidebarSchema` ka asli haqdaar **sidebar khud** ban gaya
+ * (naam + widgets), aur do file `export *` pe takra rahi thin. Naam badalna waise bhi theek
+ * tha: ye kabhi "ek sidebar" tha hi nahi, ye "kis taraf" hai.
+ *
+ * Ye sirf ek JS export ka naam hai — **stored data kuch nahi badla** (R4 wahan lagta hai).
+ */
+export const sidebarPositionSchema = z.enum(PAGE_SIDEBAR).default('none')
+
+/**
+ * Page pe **kaunsa** sidebar — `sidebars` collection ki id (D-88, client 8 Sep).
+ *
+ * Client ne dono sawaal alag rakhe: **kis taraf** ye field ke padosi `sidebar` me, aur
+ * **kaunsa** yahan. Admin me ye dropdown `sidebar` ke `none` chhodne par hi khulta hai.
+ *
+ * ⚠️ **`sidebar: 'none'` hone par bhi ye value mitti nahi.** Client left/right toggle karke
+ * wapas aayega aur uska chunav bacha rehna chahiye — wahi soch jo D-87 §3 ki rating pe hai
+ * (override karta hai, mitata nahi).
+ *
+ * ⚠️ Khaali id, ya aisi id jiska sidebar delete ho chuka — dono par page pe sidebar **render
+ * hi nahi hota**. Delete pe koi guard jaan-boojh kar nahi hai (D-79 ka precedent), aur toota
+ * hua kuch kabhi render nahi hota (D-42 §2).
+ */
+export const sidebarIdSchema = z.string().trim().max(60).default('')

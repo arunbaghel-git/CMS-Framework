@@ -73,6 +73,14 @@ export const PERMISSION = Object.freeze({
   // Appearance
   MENU_READ: 'menu.read',
   MENU_UPDATE: 'menu.update',
+  /**
+   * Sidebars — `Appearance ▸ Sidebar` (D-88).
+   *
+   * `MENU_*` wali hi jodi, aur usi wajah se: create/update/delete teenon `SIDEBAR_UPDATE`
+   * pe hain, kyunki delete yahan soft hai (R12) — wo ek update hi hai.
+   */
+  SIDEBAR_READ: 'sidebar.read',
+  SIDEBAR_UPDATE: 'sidebar.update',
   TEMPLATE_READ: 'template.read',
   TEMPLATE_CREATE: 'template.create',
   TEMPLATE_UPDATE: 'template.update',
@@ -164,6 +172,12 @@ const READ_ONLY = [
   P.TAXONOMY_READ,
   P.MEDIA_READ,
   P.MENU_READ,
+  /**
+   * Sidebar ki read `MENU_READ` ke saath hai, aur wahi wajah hai: page edit karte waqt
+   * "Which sidebar" ka dropdown isi se bharta hai. Bina read ke wo dropdown khaali rehta —
+   * aur wo failure permission jaisi nahi, "kuch bana hi nahi" jaisi dikhti hai (D-86).
+   */
+  P.SIDEBAR_READ,
   P.PATTERN_READ,
   P.HOTEL_READ,
   P.ADD_ON_READ,
@@ -238,6 +252,7 @@ const EDITOR = [
   P.MEDIA_DELETE,
   P.MEDIA_RESTORE,
   P.MENU_UPDATE,
+  P.SIDEBAR_UPDATE,
   P.TEMPLATE_READ,
   P.TEMPLATE_CREATE,
   P.TEMPLATE_UPDATE,

@@ -6393,3 +6393,176 @@ test nahi hota. Par jo hissa **toota tha** wo pure hai, aur wo ab
 - **Tour list ka `Packages` column** — abhi **blocks ki ginti** hai, packages ki nahi. Design me
   wahan `11` jaisa number hai; wo live packages pe depend karta hai, isliye server pe hi ban
   sakta hai aur uske liye list endpoint ko per-row query karni padegi
+
+---
+
+## D-88
+
+**`Appearance ▸ Sidebar` — named sidebars, teen widget, aur position page pe**
+_8 Sep 2026 · client ka faisla · Slice E ka contract_
+
+### Sandarbh
+
+D-87 ka faisla #14 sidebar aur form placement ko per-page se hata kar
+**`Appearance ▸ Sidebar`** me bhej chuka tha, par usme sirf **kahan** tay hua tha — **kya**
+nahi. 8 Sep ko client ne pehla hissa chuna (raasta B): page pe sirf `none`/`left`/`right`,
+aur "kaunsa sidebar" wala chunav Slice E ke saath. Aaj baaki tay hua.
+
+Wo ek sawaal jispe poora module ruka tha — _sidebar me kya-kya daala ja sakta hai, list
+fixed hai ya client apne widget bana sakta hai?_ — ab band hai: **list fixed hai, teen
+type ki.**
+
+### Client ke faisle
+
+| #   | Faisla                                                                     |
+| --- | -------------------------------------------------------------------------- |
+| 1   | **Multiple named sidebars** — ek nahi, jitne chahiye                       |
+| 2   | Har sidebar me **teen kism** ki cheezein: Form · Talk to a planner · HTML   |
+| 3   | Form widget me **forms ki list** aati hai, usme se ek chunte hain           |
+| 4   | Talk to a planner — **"if needed"**, yaani chahiye to daalo                 |
+| 5   | HTML — text/details, ya koi bhi list (jaise `Packages by duration`)         |
+| 6   | Page pe left/right chunne ke **baad** hi sidebars ki list dikhegi           |
+| 7   | **Package page nahi badlega** — uska sidebar hardcoded hi rahega           |
+| 8   | `On this page` **abhi nahi** — wo `tour-v3.html` me hai hi nahi, baad me   |
+
+### §1 — Design v3 se paanch farak, aur wo jaan-boojh kar hain
+
+`admin-design-v3.html` me Sidebar ka **poora screen pehle se bana hua hai**
+(`#s-sidebar`, line 682; nav line 341). Wahi file hai jispe Slice A ka milaan hua tha aur
+jahan **design jeeta tha** (R15). Yahan uska model paanch jagah palta hai:
+
+| Cheez                | Design v3                                                                                                                             | Ab                                                     |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Kitne sidebar        | **Ek hi** — screen ka title `Sidebar`, ek `Save changes`                                                                              | **Multiple**, named                                    |
+| Left / Right         | **Global** — "Sidebar ki jagah" panel usi screen pe                                                                                    | **Har page pe apna** (client, 8 Sep)                   |
+| Kaunsa form          | **"Kis page pe kaunsa form"** — niyam ki table (`Tour pages — sab` · `Package pages — sab` · `Pages — sab` + kisi ek page ka override) | Sidebar ke **andar** widget ka chunav                  |
+| Widgets              | **Chaar**: Enquiry form · On this page · Talk to a planner · Packages by duration _(sirf Tour pages pe)_                               | **Teen**: Form · Talk to a planner · HTML              |
+| Packages by duration | Apna widget, **derive** hota hua                                                                                                      | **HTML** — client haath se likhega                    |
+
+⚠️ **Ek keemat jo is palat ke saath aati hai:** design ki table ek baar me _saare_ Pages ko
+ek sidebar de deti thi. Named sidebars me har page pe jaakar chunna padega — theek wahi
+trade-off jo 8 Sep ko package list pe liya gaya tha (_"naya package publish hone pe wo apne
+aap kisi tour page pe nahi aayega"_). 5–10 page pe ye kuch nahi hai; 50 pe chubhega.
+
+⚠️ **Attribution:** faisle #1 aur #6 `project-state.md` me 8 Sep ko **client ke naam se**
+darj hain. #2–#5 aaj aaye aur inka client-attribution likha jaana **baaki hai** — ship se
+pehle confirm ho jaaye, kyunki design se hatna client se aata hai, developer se nahi (R15).
+
+### §2 — Widgets ek **ordered list** hai, teen slot nahi
+
+Client ne "teen cheezein" kaha. Wo teen **types** hain, teen **khaane** nahi — yaani ek
+sidebar me do HTML widget bhi ho sakte hain, aur unka **kram** client tay karta hai.
+
+Wajah reference me hi hai — do page pe kram alag hai:
+
+| Page                                     | Kram                                                     |
+| ---------------------------------------- | -------------------------------------------------------- |
+| `tour-v3.html:1849+`                     | Packages by duration → Talk to a planner → Enquiry form   |
+| Aaj ka package page (`PackagePage.jsx:770`) | Enquiry form → Talk to a planner                      |
+
+Teen fixed slot rakhne ka matlab hota ki kram bhi fix ho jaata aur doosra HTML widget kabhi
+ban hi nahi sakta.
+
+Aur **"Talk to a planner ka checkbox" alag se banta hi nahi** — widget list me hona hi on
+hai, hata dena hi off. Ek hi cheez ke do control (list me maujood + ek checkbox) wahi shakl
+hoti jo D-86 ke slug pe thi.
+
+Shape wahi **FROZEN `{ id, type, props }`** hai jo `content.blocks[]` ka hai (D-87 §7), par
+**apna alag enum** — `blockSchema` reuse nahi hota. `packageList` sidebar me bemaani hai aur
+`talkToPlanner` main content me; ek hi enum me daalna wahi jhootha control banata jo
+`optionalTag` pe bana tha (`form.js:140`).
+
+| type            | props                | Data kahan se                                                        |
+| --------------- | -------------------- | -------------------------------------------------------------------- |
+| `enquiryForm`   | `{ formId }`         | `forms` collection — sirf `active`                                   |
+| `talkToPlanner` | `{ heading }`        | Sab **derive** — phone/whatsapp `settings` se, email form ke `emailTo` se |
+| `html`          | `{ heading, html }`  | TinyMCE, **write pe sanitize** (R20)                                  |
+
+⚠️ `talkToPlanner` ke props me contact **kabhi nahi** — 2 Sep ko `settings.contactEmail`
+isi liye palta tha. Koi contact na ho to widget render hi nahi hota (D-30).
+
+### §3 — Storage flat, payload resolved
+
+`project-state.md` me likha tha ki `fields.sidebar` string se `{ position, id }` banega.
+**Ulta kiya gaya — do flat field:**
+
+| Field              | Value                          | Kyun                                                                                                        |
+| ------------------ | ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `fields.sidebar`   | `none` · `left` · `right`      | Ship ho chuka, tested (`entries.test.js:2807`), aur theme ise **wrapper** pe use karti hai (`.pgl--sideleft`) |
+| `fields.sidebarId` | string / khaali                | Purely additive                                                                                              |
+
+Object banane ka matlab hota entries pe **migration**, payload ka shape badalna, aur teen
+test dobara likhna — un teenon ki keemat kuch nahi khareedti.
+
+⚠️ `sidebarId` bhara ho par `sidebar: 'none'` ho to value **rehne do, mitao mat** — client
+left/right toggle karke wapas aayega. Wahi soch jo D-87 §3 ki rating pe hai (override karta
+hai, mitata nahi).
+
+Payload me theme ko `sidebarId` **kabhi nahi** jaata — `toPublicPage()` use **server pe**
+resolve karti hai:
+
+```
+entry.sidebar        'left'          ← jaisa hai, layout ke liye
+entry.sidebarWidgets [ {...}, ... ]  ← naya, content ke liye
+```
+
+Dono top-level, aur **ek bhi purana test nahi tootta**. Yahi wo lakeer hai jo client ne khud
+khinchi thi — layout page ka, content site ka.
+
+⚠️ **Alag endpoint bilkul nahi.** Slice B me yahi bachaya gaya tha aur D-83 wahi bug tha:
+alag call `path:` tag aur ISR dono se bahar hoti hai, yaani har page load pe ek aur round trip.
+
+### §4 — Package page ko haath nahi lagega (client, #7)
+
+Uska sidebar `PackagePage.jsx:770` pe hardcoded hai — enquiry form + Talk to a planner — aur
+waisa hi rahega. Isse teen kharche apne aap khatam ho gaye: mojooda paanch package pe backfill
+migration, `MobileBar` wali 2 Sep ki interaction, aur `forms.placement` ka duplicate hona.
+
+⚠️ **`forms.placement` zinda rahega**, aur wo ab bhi theek hai: `placement` sirf **package
+pages** ko serve karta hai, sidebar widget ka `formId` sirf **page/tourPage** ko. Dono kabhi
+milte hi nahi, isliye ye D-86 wali "ek hi cheez ke do naam" **nahi** hai. `form.js:152` ka gap
+(paanch placement design hui, do bani) isse na khulta hai na band hota hai.
+
+### §5 — Kaunse type ko picker **kab** milega
+
+| Type            | Kab                                                              |
+| --------------- | ---------------------------------------------------------------- |
+| `tourPage`      | **Ab** — `fields.sidebar` maujood hai, `sidebarId` jodna hai      |
+| `package`       | **Kabhi nahi** — hardcoded (#7)                                  |
+| `page` · `post` | **Jab unki screens banengi** (A-9)                               |
+
+⚠️ `page` ka `fields: []` hai aur uski screens `NotBuiltYet` pe (`content-types.js:325`) — wo
+8 Sep ko _"Pages par kaam to ho hi nahi raha"_ pe wapas ki gayi thi. Sidebar picker ek
+**field** hai aur use set karne ke liye **edit screen** chahiye. **A-9 is kaam me dobara nahi
+khulega** — wahi galti hai jo Slice C me hui thi.
+
+### §6 — Kya jaan-boojh kar NAHI banega
+
+- **`On this page`** — client ne defer kiya (#8). Wo `tour-v3.html` me hai hi nahi; sirf
+  `page-template.html:1862` me hai, aur Pages ki screens bani nahi. Jab banega tab ye tay hoga
+  ki uski **jagah** sidebar ki list me ho aur **on/off** page pe — ya wo hamesha sabse upar aaye
+- **`packagesByDuration` ka derived widget** — client ne saaf kaha ki wo HTML se banega.
+  ⚠️ Keemat: daam haath se likhe jaayenge aur wo purane ho sakte hain
+- **Niyam ki table** (design v3 wali) — §1
+- **Sidebar delete pe guard** — delete hamesha chalega (D-79 ka precedent). Jis page ka
+  `sidebarId` gayab ho, wahan sidebar **render hi na ho** (D-42 §2: toota hua kabhi nahi)
+- **"Used on N pages" column** — wo per-row query maangta hai, theek wahi jo Tour list ke
+  `Packages` column pe abhi adhoora pada hai
+
+### §7 — Kaante
+
+| Kaanta                                   | Kya karna hai                                                                                                                                                                     |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sanitize bhoolna**                     | `html` widget ki HTML write pe saaf ho (R20). Bhoolne pe content girta **nahi**, wo **bina safai ke bach jaata** hai — CLAUDE.md ke mutabik ye `updatePackageDefaults()` wale whitelist jaal se **zyada khatarnak** hai |
+| **Migration lagegi**                     | Slice A–C me koi nahi lagi thi. Yahan `sidebars` ke indexes + roles me `sidebar.read`/`sidebar.update` ka sync chahiye (021 ne roles ke liye yahi kiya)                            |
+| **`pnpm format` pehle, migrate baad me** | D-82 — do baar ulta hua aur checksum guard ne pakda                                                                                                                               |
+| **Collection ka naam `sidebars`**        | Pehle se lowercase, to A-18 wala `importRuns`/`importruns` jaal yahan nahi lagta. Migration me bhi wahi naam                                                                       |
+| **Bekaar `sidebarId` pe 500 nahi**       | Chup-chaap gir jaaye — package list ke tests me ye niyam pehle se hai                                                                                                             |
+| **Cache**                                | Sidebar save pe `type:page` + `type:tourPage` revalidate. Yahi `forms` wala precedent hai (`public/service.js:1296`), naya machinery kuch nahi                                     |
+| **Drag pehle se maujood hai**            | `lib/drag-list.js` + `SortablePanels.jsx`. Ise "baad me lagayenge" likhna wahi chup ka udhaar hai jo 8 Sep ko blocks ke ⌃⌄ button pe pakda gaya tha                              |
+
+### §8 — Module ka shape
+
+Ek collection, ek module (paanch file). ⚠️ `menus` se farak: usme `menuLocations` doosri
+collection thi kyunki assignment menu ke bina bemaani hai. Yahan assignment **page pe** hai
+(`fields.sidebarId`), isliye **location table ki zaroorat hi nahi**.

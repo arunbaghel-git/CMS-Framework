@@ -2254,7 +2254,14 @@ describe('Tour Page ka type (D-87)', () => {
     expect(page.fields).toEqual([])
     // `blocks` yahan NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7).
     // `sidebar` 8 Sep me juda: page pe sidebar dikhe ya nahi, aur kis taraf
-    expect(tour.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail', 'sidebar'])
+    // `sidebarId` D-88 me juda: unme se KAUNSA. Do alag sawaal, isliye do field
+    expect(tour.fields.map((f) => f.key)).toEqual([
+      'eyebrow',
+      'subheading',
+      'statRail',
+      'sidebar',
+      'sidebarId',
+    ])
   })
 
   it('dono pe hasBuilder true hai, package/post pe nahi', async () => {

@@ -21,6 +21,7 @@ import { roleRoutes } from './modules/roles/routes.js'
 import { settingsRoutes } from './modules/settings/routes.js'
 import { mediaRoutes } from './modules/media/routes.js'
 import { menuLocationRoutes, menuRoutes } from './modules/menus/routes.js'
+import { sidebarRoutes } from './modules/sidebars/routes.js'
 import { contentTypeRoutes } from './modules/content-types/routes.js'
 import { entryRoutes } from './modules/entries/routes.js'
 import { taxonomyRoutes } from './modules/taxonomies/routes.js'
@@ -212,6 +213,7 @@ export function createApp() {
   app.use('/api/media', mediaRoutes)
   app.use('/api/menus', menuRoutes)
   app.use('/api/menu-locations', menuLocationRoutes)
+  app.use('/api/sidebars', sidebarRoutes)
   app.use('/api/content-types', contentTypeRoutes)
   app.use('/api/entries', entryRoutes)
   app.use('/api/taxonomies', taxonomyRoutes)

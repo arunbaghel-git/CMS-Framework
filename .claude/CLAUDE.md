@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**764 tests passing**, 4 Sep). Public package page ke **saare** section live hain.
+hain** (**844 tests passing**, 8 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-83                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-88                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -478,7 +478,31 @@ me (`richText → packageList → faqs`), byline apne aap, kachcha `content` pay
 ne 5 me se 3 cards diye, facets `5N/6D[5]`, rating `packageDefaults` se. `tourSettings` alag se
 DB me likh kar padha gaya. Dono ke baad DB waisi ki waisi.
 
-Baaki slices: **D** (theme) · **E** (`Appearance ▸ Sidebar`, faisla #14).
+**Slice E bhi ban gayi (D-88, 8 Sep)** — `Appearance ▸ Sidebar`. Client ne wo ek sawaal band kar
+diya jispe poora module ruka tha: _sidebar me kya-kya daala ja sakta hai?_ — **list fix hai, teen
+type ki**: `enquiryForm` · `talkToPlanner` · `html`.
+
+- **Named sidebars** — nayi `sidebars` collection, ek module, **migration 023** (indexes + roles
+  ka sync). Widgets ki **ordered list**, wahi FROZEN `{id, type, props}` envelope jo
+  `content.blocks[]` ka hai — par apna alag enum (`blockSchema` reuse nahi)
+- **Page pe do field** — `fields.sidebar` (kis taraf, pehle se tha) aur naya `fields.sidebarId`
+  (kaunsi). Dropdown `none` chhodne par hi khulta hai. **Sirf `tourPage` pe** — package ka
+  sidebar hardcoded hi rahega (client), aur `page`/`post` pe tab jab unki screens banengi (A-9)
+- **Payload me `sidebarId` kabhi nahi jaata** — `toPublicPage()` server pe resolve karke
+  `sidebarWidgets[]` bhejti hai. Koi naya endpoint nahi (D-83 wala hi tark)
+- ⚠️ **`sanitizeSidebarWidgets()`** — `html` widget ki safai write pe (R20). **Naya widget type
+  jodo to wahan bhi jodo**
+- ⚠️ **Delete pe koi guard nahi** (D-79 ka precedent) — jis page ka `sidebarId` gayab ho, wahan
+  sidebar **render hi nahi hoti** (D-42 §2). Isliye "Used on N pages" ka column bhi nahi bana
+
+⚠️ **Design v3 se paanch farak hain, aur wo client ke faisle hain** — `admin-design-v3.html:682`
+pe Sidebar ka poora screen bana hua hai (ek hi sidebar · global left/right · form ke liye niyam
+ki table). Poora hisaab **D-88 §1** me. **#2–#5 ka client-attribution likha jaana baaki hai.**
+
+Baaki slice: **D** (theme) — `apps/web` ka catch-all abhi har payload `PackagePage` pe bhejta hai.
+
+⚠️ **`forms.placement` zinda hai aur wo theek hai** — wo sirf package pages ko serve karta hai,
+sidebar ka `formId` sirf `page`/`tourPage` ko. Dono kabhi milte hi nahi.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

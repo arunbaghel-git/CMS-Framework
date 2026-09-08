@@ -6,6 +6,7 @@ import {
   durationBucket,
   extractBlockText,
   htmlToText,
+  isEmptyHtml,
   isPubliclyVisible,
   nightsByStay,
   normalizePath,
@@ -17,7 +18,7 @@ import {
 } from '@cms/shared'
 
 import { Entry } from '../entries/model.js'
-import { getPublicPackageForm } from '../forms/service.js'
+import { getPublicFormById, getPublicPackageForm } from '../forms/service.js'
 import { AddOn, Hotel, Review, Transfer } from '../master-lists/model.js'
 import { Media } from '../media/model.js'
 import { toPublicMedia } from '../media/service.js'
@@ -25,6 +26,7 @@ import { getPublicMenuById } from '../menus/service.js'
 import { ensurePackageDefaults } from '../package-defaults/service.js'
 import { findRedirect } from '../redirects/service.js'
 import { getSettings } from '../settings/service.js'
+import { getSidebarWidgets } from '../sidebars/service.js'
 import { Taxonomy } from '../taxonomies/model.js'
 /** Byline ka author — sirf `name`, aur wo bhi D-87 ke faisle #9 ke liye (R10). */
 import { User } from '../users/model.js'
@@ -990,6 +992,88 @@ async function resolveBreadcrumbs(doc, siteId, locale) {
  * ek `Transfer.find()`, aur `resolveSimilarPackages()` ka poora daur, sirf khaali arrays
  * banane ke liye.
  */
+/**
+ * Page ki sidebar — `fields.sidebarId` se widgets tak (D-88).
+ *
+ * Theme ko **`sidebarId` kabhi nahi jaata**, resolve hua maal jaata hai. Wahi tark jo D-65 pe
+ * `sectionLabels` ke resolve pe aur D-84 pe `srcset` pe hai: resolve server pe ho, theme me
+ * nahi — warna wo hisaab har theme me dobara likhna padta hai.
+ *
+ * ⚠️ **Khaali list aur "sidebar hai hi nahi" ek jaise dikhte hain, aur wo theek hai** — dono
+ * soorat me theme kuch render nahi karti (D-30). Teen wajah se list khaali aa sakti hai, aur
+ * teenon **normal** hain: `sidebarId` khaali ho, wo sidebar delete ho chuki ho (delete hamesha
+ * chalta hai — D-79), ya uske saare widget khud gir gaye hon.
+ */
+async function resolveSidebarWidgets(sidebarId, siteId, locale) {
+  const widgets = await getSidebarWidgets(sidebarId, siteId, locale)
+  if (!widgets?.length) return []
+
+  /**
+   * Form pehle resolve hota hai, kyunki `talkToPlanner` ka email **usi form ke `emailTo`** se
+   * aata hai (2 Sep ka faisla — wo pata form me pehle se hai, `settings` me dobara nahi).
+   *
+   * ⚠️ Ek se zyada `enquiryForm` widget ho to email **pehle wale** se — kram wahi hai jo client
+   * ne khud lagaya. Koi bhi niyam chahiye tha; "pehla" wo hai jise client screen pe dekh sakta
+   * hai.
+   */
+  const forms = new Map()
+  await Promise.all(
+    widgets
+      .filter((w) => w?.type === 'enquiryForm' && w.props?.formId)
+      .map(async (w) => forms.set(w.props.formId, await getPublicFormById(w.props.formId, siteId))),
+  )
+
+  const plannerEmail = [...forms.values()].find((form) => form?.contactEmail)?.contactEmail ?? ''
+
+  return widgets
+    .map((widget) => {
+      if (!widget?.type) return null
+
+      switch (widget.type) {
+        /**
+         * Form na mile — draft ho, delete ho chuka ho, ya chuna hi na gaya ho — to widget
+         * **gayab** ho jaata hai. Khaali dabba "abhi nahi bana" nahi lagta, "toota hua" lagta
+         * hai (D-30).
+         */
+        case 'enquiryForm': {
+          const form = forms.get(widget.props?.formId) ?? null
+
+          return form ? { id: widget.id, type: 'enquiryForm', props: { form } } : null
+        }
+
+        /**
+         * Poora content derive hota hai — phone/whatsapp `settings` se, email form se. Ek bhi
+         * contact na ho to `Planner.jsx` khud `null` lauta deta hai; wo rok wahin rehni chahiye
+         * (ek hi niyam do jagah nahi).
+         */
+        case 'talkToPlanner':
+          return {
+            id: widget.id,
+            type: 'talkToPlanner',
+            props: { heading: widget.props?.heading ?? '', email: plannerEmail },
+          }
+
+        /** Khaali HTML pe widget gir jaata hai — heading akela ek khaali card banata (D-30). */
+        case 'html': {
+          const html = widget.props?.html ?? ''
+
+          return isEmptyHtml(html)
+            ? null
+            : { id: widget.id, type: 'html', props: { heading: widget.props?.heading ?? '', html } }
+        }
+
+        /**
+         * ⚠️ Anjaan type chup-chaap gir jaata hai, 500 nahi deta. Aisa tab hota hai jab koi
+         * type hata diya jaaye par purane sidebars me wo bacha ho — theek wahi haalat jispe
+         * package list ka _"bekaar id se 500 nahi aata"_ wala niyam bana tha.
+         */
+        default:
+          return null
+      }
+    })
+    .filter(Boolean)
+}
+
 async function toPublicPage(doc, siteId, locale) {
   const fields = doc.fields ?? {}
 
@@ -1022,6 +1106,20 @@ async function toPublicPage(doc, siteId, locale) {
     (await toDisplayImage(settings.tourSettings?.bannerMediaId, 'large', siteId))
 
   const blocks = await resolvePageBlocks(doc.content?.blocks, siteId, locale, defaults)
+
+  /**
+   * ⚠️ Sidebar tabhi resolve hoti hai jab page ne use **maanga** ho (`sidebar` `none` na ho).
+   *
+   * `sidebarId` `none` par bhi bhara reh sakta hai — wo jaan-boojh kar mitaya nahi jaata
+   * (D-88 §3), taaki client left/right toggle karke wapas aaye to uska chunav bacha rahe.
+   * Bina is check ke hum ek aisi sidebar ke widgets resolve karte jo page pe dikhni hi nahi —
+   * theek wahi fizool kaam jo Slice B me `toPublicEntry()` pe pakda gaya tha, jahan har `page`
+   * resolve pe `resolveSimilarPackages()` ka poora daur chalta tha.
+   */
+  const sidebarWidgets =
+    (fields.sidebar ?? 'none') === 'none'
+      ? []
+      : await resolveSidebarWidgets(fields.sidebarId, siteId, locale)
 
   /**
    * Read time content ke **saare** rich text se ginti hai, sirf pehle block se nahi —
@@ -1062,13 +1160,23 @@ async function toPublicPage(doc, siteId, locale) {
     /**
      * Sidebar — `none` · `left` · `right` (client, 8 Sep).
      *
-     * ⚠️ Yahan sirf **layout** hai. Usme kaunsa form dikhega wo `Appearance ▸ Sidebar` ka kaam
-     * hai (Slice E) aur wo alag se aayega — client ne wo lakeer khud khinchi.
+     * ⚠️ Yahan sirf **layout** hai — usme kya dikhega wo `sidebarWidgets` me hai.
      *
      * `fields` ke bahar hai kyunki theme iska istemaal page ke **wrapper** pe karti hai
      * (`.pgl--sideleft`), kisi section ke andar nahi.
      */
     sidebar: fields.sidebar ?? 'none',
+
+    /**
+     * Sidebar me kya dikhega — `Appearance ▸ Sidebar` se resolve hua (D-88).
+     *
+     * ⚠️ **`sidebarId` yahan jaan-boojh kar nahi hai.** Theme ke paas id ka koi kaam nahi —
+     * usse render kuch nahi hota, aur bhejne ka matlab hota ek din koi uspe alag call likh de.
+     * Wahi wajah jis se `content` `blocks` ke saath payload me nahi jaata (D-87 §7).
+     *
+     * `sidebar: 'none'` par ye hamesha khaali hai — do jagah check karne ki zaroorat nahi.
+     */
+    sidebarWidgets,
 
     /**
      * Byline — teenon hisse derive hote hain, ek bhi field nahi (client ka faisla #9).

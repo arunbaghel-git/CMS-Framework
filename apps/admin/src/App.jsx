@@ -13,6 +13,8 @@ import NotBuiltYet from './screens/NotBuiltYet.jsx'
 import Profile from './screens/Profile.jsx'
 import AppearanceFooter from './screens/appearance/Footer.jsx'
 import Menus from './screens/appearance/Menus.jsx'
+import SidebarEdit from './screens/appearance/SidebarEdit.jsx'
+import Sidebars from './screens/appearance/Sidebars.jsx'
 import BulkUpload from './screens/bulk-upload/BulkUpload.jsx'
 import BulkUploadRun from './screens/bulk-upload/BulkUploadRun.jsx'
 import EnquiriesList from './screens/enquiries/EnquiriesList.jsx'
@@ -216,6 +218,8 @@ const APP_ROUTES = [
   { path: '/settings/cta', element: <CtaSection /> },
   { path: '/settings/tour', element: <TourSettings /> },
   { path: '/appearance/menus', element: <Menus /> },
+  { path: '/appearance/sidebars', element: <Sidebars /> },
+  { path: '/appearance/sidebars/:id', element: <SidebarEdit /> },
   { path: '/appearance/footer', element: <AppearanceFooter /> },
 ]
 

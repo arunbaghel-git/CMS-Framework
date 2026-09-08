@@ -7,6 +7,7 @@ import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { useEntry, useEntryList, useMediaById } from '../../lib/use-entries.js'
+import { useSidebars } from '../appearance/useSidebars.js'
 import HtmlEditor from '../packages/HtmlEditor.jsx'
 import PageBlocks from './PageBlocks.jsx'
 import '../packages/Packages.css'
@@ -86,6 +87,16 @@ export default function PageEdit({ type = 'tourPage' }) {
     limit: ENTRY_LIST_MAX_LIMIT,
     status: 'published',
   })
+
+  /**
+   * "Which sidebar" ka dropdown (D-88).
+   *
+   * ⚠️ Ye hook yahan hai, us `if (loading) return` ke **neeche nahi** jahan wo padha jaata hai —
+   * conditional hook React ka rule tod deta hai. Aur list hamesha load hoti hai, chahe page pe
+   * `sidebar: 'none'` ho: use `sidebar` ki value pe rokne ka matlab hota ki client left chunte
+   * hi ek khaali dropdown dekhe aur phir wo bhar jaaye.
+   */
+  const { data: sidebars, loading: sidebarsLoading } = useSidebars({ limit: 200 })
 
   const [form, setForm] = useState(null)
   const [editingSlug, setEditingSlug] = useState(false)
@@ -493,6 +504,46 @@ export default function PageEdit({ type = 'tourPage' }) {
                   <b>Appearance ▸ Sidebar</b>.
                 </div>
               </div>
+
+              {/*
+               * "Which sidebar" — **left/right chunne ke baad hi** (client, D-88 #6).
+               *
+               * ⚠️ `none` par ye dropdown chhup jaata hai par uski **value mitti nahi** — client
+               * left/right toggle karke wapas aayega aur uska chunav bacha rehna chahiye. Wahi
+               * soch jo D-87 §3 ki rating pe hai: override karta hai, mitata nahi.
+               */}
+              {(form.fields.sidebar ?? 'none') !== 'none' && (
+                <div className="field">
+                  <label>Which sidebar</label>
+                  <select
+                    className="sel"
+                    value={form.fields.sidebarId ?? ''}
+                    onChange={(e) => setField('sidebarId', e.target.value)}
+                    disabled={readOnly || sidebarsLoading}
+                  >
+                    <option value="">
+                      {sidebarsLoading ? 'Loading…' : '— choose a sidebar —'}
+                    </option>
+                    {sidebars.map((sidebar) => (
+                      <option key={sidebar.id} value={sidebar.id}>
+                        {sidebar.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/*
+                   * Khaali list ka matlab "abhi banayi hi nahi" hai — aur wo saaf likha hona
+                   * chahiye. 8 Sep ko package picker pe ulta hua tha: request 400 de rahi thi
+                   * aur screen pe sirf khaali list dikhti thi, yaani **failure khaali state ki
+                   * shakl me** aa raha tha (D-86).
+                   */}
+                  {!sidebarsLoading && sidebars.length === 0 && (
+                    <div className="hint">
+                      No sidebars yet — create one under <b>Appearance ▸ Sidebar</b>.
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="field">
                 <label>Parent</label>

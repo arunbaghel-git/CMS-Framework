@@ -19,7 +19,8 @@ import {
   parseBlockProps,
   pricingSchema,
   ratingSchema,
-  sidebarSchema,
+  sidebarIdSchema,
+  sidebarPositionSchema,
   statRailSchema,
   isReservedSlug,
   rebasePath,
@@ -230,7 +231,17 @@ function normalizeFields(fields, contentType) {
    * Ek chhota enum hai, par parse phir bhi zaroori: theme isse seedha class me badalti hai
    * (`.pgl--sideleft`), aur bina rok ke koi bhi string wahan pahunch sakti hai.
    */
-  if (has('sidebar')) out.sidebar = sidebarSchema.parse(fields.sidebar)
+  if (has('sidebar')) out.sidebar = sidebarPositionSchema.parse(fields.sidebar)
+
+  /**
+   * Kaunsa sidebar — `sidebars` collection ki id (D-88, client 8 Sep).
+   *
+   * ⚠️ **`sidebar: 'none'` hone par bhi ye value mitti nahi** — client left/right toggle
+   * karke wapas aayega. Aur yahan id ka **maujood hona verify nahi** hota, jaan-boojh kar:
+   * sidebar delete hamesha chalta hai (D-79), isliye ek dangling id bilkul aam haalat hai.
+   * Uska jawab payload me hai — resolve na ho to sidebar render hi nahi hota (D-42 §2).
+   */
+  if (has('sidebarId')) out.sidebarId = sidebarIdSchema.parse(fields.sidebarId)
 
   /*
    * ⚠️ **`blocks` yahan **nahi** hai — 7 Sep ko badla (D-87 §7).**

@@ -1,3 +1,5 @@
+import mongoose from 'mongoose'
+
 import { DEFAULT_SITE_ID, ENQUIRY_STATUSES, deriveEnquiryColumns, emptyForm } from '@cms/shared'
 
 import { notFound, unprocessable } from '../../core/errors.js'
@@ -163,6 +165,38 @@ export async function getPublicPackageForm(siteId = DEFAULT_SITE_ID) {
     .sort({ updatedAt: -1 })
     .lean()
 
+  return toPublicForm(doc)
+}
+
+/**
+ * Ek **chuna hua** form — sidebar ke `enquiryForm` widget ke liye (D-88).
+ *
+ * ⚠️ Ye `getPublicPackageForm()` se **alag rasta** hai aur wo takrav nahi hai: `placement`
+ * sirf package pages ko serve karta hai (jo hardcoded hi rahenge, D-88 #7), aur ye sirf
+ * `page`/`tourPage` ki sidebar ko. Dono kabhi ek hi page pe nahi milte.
+ *
+ * ⚠️ **`draft` form pe `null`** — wahi rok jo `placement` wale rasta pe hai. Bina uske client
+ * ek draft form sidebar me chun leta aur wo live page pe chhap jaata, jabki `submitEnquiry()`
+ * uski har submission ko theek se reject karti — form dikhta, kaam na karta.
+ *
+ * Bekaar id pe bhi `null`, CastError nahi.
+ */
+export async function getPublicFormById(id, siteId = DEFAULT_SITE_ID) {
+  if (!id || !mongoose.isValidObjectId(id)) return null
+
+  const doc = await Form.findOne({ _id: id, ...scope(siteId), status: 'active' }).lean()
+
+  return toPublicForm(doc)
+}
+
+/**
+ * Form ka public shape — **ek hi jagah**.
+ *
+ * Do copies ka nateeja is repo me pehle ho chuka hai: `bestFor` similar cards pe chhoot gaya
+ * tha (Slice B), aur `cancellationText` payload me ja hi nahi raha tha (31 Aug). Isliye
+ * projection yahan ek baar likhi hai, aur dono raaste isi se guzarte hain.
+ */
+function toPublicForm(doc) {
   if (!doc) return null
 
   return {

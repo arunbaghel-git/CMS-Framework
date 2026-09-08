@@ -53,12 +53,30 @@ Migration **022**.
 cache karta hi nahi (default `no-store`) — poora revalidate dhaancha teen hafte inert pada tha.
 Ab `revalidate` tags ke **saath** hai, unki jagah nahi.
 
-**764 tests passing** (31 files) · lint clean · format clean — 4 Sep ko verify kiya.
-**Last updated:** 4 Sep 2026 (TinyMCE D-80 · Bulk Upload D-81 · Itinerary Settings +
-structured data D-82 · ISR cache D-83)
+**4 Sep — speed ke do pass (D-84, D-85).** Media `immutable`, har image pe `srcset`, hero ka
+shuffle server pe, `content-visibility` fold ke neeche. **Mobile 68 → 91, desktop 98** — sirf
+LCP (3.35s) bacha hai, aur wo ab bandwidth ka sawaal hai (A-17).
 
-⚠️ **Push:** `origin/main` abhi bhi `f0b7964` (2 Sep) pe hai — **28 commit unpushed**. Push se
-pehle A-12 padho: CI un sab pe red aayegi, aur wo red environment ki wajah se hai, code ki nahi.
+**4 Sep — Bulk Upload har run pe duplicate bana raha tha (D-86).** Dhoondhne ka slug aur save
+karne ka slug do alag the. Us ek `null` se **teen guard chup-chaap mar gaye the**.
+
+**7–8 Sep — Tour Page (D-87).** Slice A (schema) · B (public payload) · C (admin screens) —
+teenon ban gayin. 8 Sep ko client ne admin chala kar bahut kuch palta: Package list ab
+**do-column picker** hai, `showBadges`/`emitSchema` toggle hat gaye, Day wise filter sach me
+chalu hua, aur Pages ki screens **scope se bahar** thin, isliye wapas `NotBuiltYet` pe (A-9 phir
+se khula).
+
+**8 Sep — Slice E (D-88).** `Appearance ▸ Sidebar` — named sidebars, teen widget type
+(`enquiryForm` · `talkToPlanner` · `html`), aur page pe `fields.sidebarId`. **Migration 023.**
+⚠️ Design v3 se paanch farak hain — poora hisaab D-88 §1 me, aur **#2–#5 ka client-attribution
+likha jaana baaki hai**.
+
+**Last updated:** 8 Sep 2026 (Tour Page D-87 · Sidebars D-88)
+
+⚠️ **Push:** `origin/main` `a0f337c` pe hai. Ginti yahan jaan-boojh kar nahi likhi — wo har
+commit pe purani ho jaati hai aur do baar galat mili. Sach `git log --oneline origin/main..HEAD`
+se lo. Push se pehle A-12 padho: CI un sab pe red aayegi, aur wo red environment ki wajah se hai,
+code ki nahi.
 
 ---
 
