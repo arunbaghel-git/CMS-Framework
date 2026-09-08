@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 8 Sep 2026 — **189 commit**, ⚠️ **9 unpushed** (`origin/main` = `a0f337c`),
+> **Last updated:** 8 Sep 2026 — **191 commit**, ⚠️ **11 unpushed** (`origin/main` = `a0f337c`),
 > **821 test pass** (32 file), admin build pass, lint + format clean, tree clean.
 
 ---
@@ -10,17 +10,17 @@
 
 ### Abhi ki asli haalat (naapi hui)
 
-| Kya           | Value                                                                               |
-| ------------- | ----------------------------------------------------------------------------------- |
-| Commits       | **189**                                                                             |
-| Push          | ⚠️ **9 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
-| Tests         | **821 pass**, 32 file (`pnpm test`, exit 0)                                         |
-| Admin build   | ✅ `vite build` pass                                                                |
-| Lint · Format | dono clean                                                                          |
-| Tree          | clean                                                                               |
-| Migrations    | **22 files**, 22/22 applied — **aaj koi nayi nahi lagi**                            |
-| Decisions     | **D-87** tak (usme §1–§10 aur teen "agle din pakda gaya" section)                   |
-| DB            | 5 package (+8 trash me) · 0 tour page · 4 content type                              |
+| Kya           | Value                                                                                |
+| ------------- | ------------------------------------------------------------------------------------ |
+| Commits       | **191**                                                                              |
+| Push          | ⚠️ **11 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
+| Tests         | **821 pass**, 32 file (`pnpm test`, exit 0)                                          |
+| Admin build   | ✅ `vite build` pass                                                                 |
+| Lint · Format | dono clean                                                                           |
+| Tree          | clean                                                                                |
+| Migrations    | **22 files**, 22/22 applied — **aaj koi nayi nahi lagi**                             |
+| Decisions     | **D-87** tak (usme §1–§10 aur teen "agle din pakda gaya" section)                    |
+| DB            | 5 package (+8 trash me) · 0 tour page · 4 content type                               |
 
 ### Pehle ye do
 
@@ -36,7 +36,7 @@ pnpm dev
 
 ## 8 Sep — D-87 ka doosra din. Client ne chala kar bahut kuch palta
 
-**9 commit.** Din ki shakl saaf thi: client ne admin sach me chalaya, aur jo tooTa ya bemaani
+**11 commit.** Din ki shakl saaf thi: client ne admin sach me chalaya, aur jo tooTa ya bemaani
 laga wo batata gaya. **Chaar me se teen badlaav uske the, aur teenon theek the.**
 
 ### Do bug jo client ne pakde, aur dono "khaali" jaise dikhte the
@@ -116,6 +116,20 @@ D-86 ke slug pe thi.
 se maujood hai**. Chhe panel `Panel` pe le gaye. Stat rail aur SEO **band khulte hain** (design
 me bhi wahi). Publish ke Save/Trash `footer` me hain — body band hone pe render hi nahi hoti,
 aur Save chhupna nahi chahiye.
+
+### Blocks ab drag se, aur unka head bhi sach me toggle hai
+
+Wahi do kamiyaan blocks pe bhi thi, aur client ne dono pakdi:
+
+- **⌃⌄ ke button hataye, ab grip se drag** — wo "abhi ke liye" wala shortcut tha aur galat tha:
+  **usi screen ke package picker me `useListDrag` pehle se chal raha tha.** Drag ka intezaam
+  maujood tha aur use blocks pe lagaya hi nahi gaya
+- **`▾` ek saada `<span>` tha** — dikhta button jaisa, par toggle sirf summary ke text pe. Ab
+  poora head toggle hai (`role="button"`, Enter/Space bhi), aur grip aur ✕ apna click rok lete
+  hain
+
+⚠️ **Sabak:** _jab ek pattern isi repo me pehle se chal raha ho, "baad me lagayenge" likhna ek
+chup ka udhaar hai._ Picker aur blocks ek hi screen pe the, aur do alag tareeke se chal rahe the.
 
 ---
 
