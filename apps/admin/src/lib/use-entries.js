@@ -24,20 +24,63 @@ import { api, errorMessage } from './api.js'
  * dheema karti hai.
  */
 
-/** List — `entryListQuerySchema` ke params hi jaate hain. */
+/**
+ * List call ke params ka **stable key** — `useEntryList` ki effect dep.
+ *
+ * Alag function isliye hai ki asli invariant yahi hai aur ise test se pin kiya ja sakta hai:
+ * **do alag object jinka content ek hai, unka key bhi ek hona chahiye.** Admin ke liye koi
+ * React test setup nahi hai (na jsdom, na testing-library), par ye hissa pure hai — aur yahi
+ * hissa toota tha.
+ *
+ * ⚠️ Keys ka **kram maayne rakhta hai** (`{a,b}` aur `{b,a}` ka key alag hoga). Aaj har caller
+ * apna object ek hi jagah, ek hi shape me banata hai, isliye ye pakadta nahi. Jis din koi
+ * query ko shart pe alag-alag kram me bana kar bheje, wo ek extra fetch degi — galat jawab
+ * nahi, sirf ek faltu call.
+ *
+ * @param {string} type
+ * @param {object} [query]
+ */
+export function listParamsKey(type, query) {
+  return JSON.stringify({ type, ...query })
+}
+
+/**
+ * List — `entryListQuerySchema` ke params hi jaate hain.
+ *
+ * ⚠️ **Dep `query` ki identity nahi, uska content hai** — aur ye ek asli bug ka ilaaj hai, koi
+ * safai nahi.
+ *
+ * Pehle dep `[type, query]` thi. `PageEdit` ne use aise bulaya tha:
+ *
+ * ```js
+ * useEntryList('page', { limit: 200, status: 'published' })
+ * ```
+ *
+ * Wo object **har render pe naya** banta hai. Nateeja ek loop tha: nayi identity → naya
+ * `load` → `useEffect` chali → `setState` → dobara render → phir naya object. Edit screen
+ * kholte hi `/api/entries` par requests ki jhadi lag jaati thi, aur admin me
+ * _"Bahut zyada requests"_ (429) aa jaata tha — yaani lakshan **rate limiter** pe dikhta tha,
+ * jabki galti yahan thi.
+ *
+ * Call site pe `useMemo` lagana bhi ilaaj tha, par wo har naye caller pe **yaad rakhna** padta.
+ * Ye jaal chup hai: koi error nahi, sirf ek screen jo "dheemi" lagti hai. Isliye rok yahan hai,
+ * jahan use koi bypass nahi kar sakta — wahi soch jo `useMediaById` pe pehle se thi.
+ */
 export function useEntryList(type, query) {
   const [state, setState] = useState({ data: [], meta: null, loading: true, error: null })
+
+  const params = listParamsKey(type, query)
 
   const load = useCallback(async () => {
     setState((s) => ({ ...s, loading: true, error: null }))
 
     try {
-      const res = await api.get('/entries', { params: { type, ...query } })
+      const res = await api.get('/entries', { params: JSON.parse(params) })
       setState({ data: res.data.data.entries, meta: res.data.meta, loading: false, error: null })
     } catch (err) {
       setState({ data: [], meta: null, loading: false, error: errorMessage(err) })
     }
-  }, [type, query])
+  }, [params])
 
   useEffect(() => {
     load()

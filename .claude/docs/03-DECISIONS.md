@@ -6172,6 +6172,34 @@ DB me reh gaya tha aur usse agla page `-2` pe chala gaya. Wo bhi saaf kiya gaya.
 
 **810 test pass**, admin build pass, lint + format clean.
 
+#### ⚠️ Agle din pakda gaya — `useEntryList` ka infinite loop (8 Sep)
+
+Client ko admin me _"Bahut zyada requests. Thodi der baad."_ dikha — **rate limiter** ka message
+(`app.js`, dev me 1000 req/min).
+
+Asli galti wahan nahi thi. `useEntryList` ki effect dep `[type, query]` thi, yaani **object ki
+identity**, aur `PageEdit` use inline object se bulata tha:
+
+```js
+useEntryList('page', { limit: 200, status: 'published' })
+```
+
+Wo object har render pe naya banta hai → nayi identity → naya `load` → `useEffect` chali →
+`setState` → dobara render → phir naya object. **Page/Tour ka edit screen kholte hi
+`/api/entries` par requests ki jhadi lag jaati thi.**
+
+Ilaaj **hook me** hai, call site pe nahi: dep ab `listParamsKey(type, query)` hai — content ka
+key, identity nahi. Call site pe `useMemo` lagana bhi kaam karta, par wo **har naye caller pe
+yaad rakhna** padta, aur ye jaal chup hai (koi error nahi, sirf ek "dheemi" screen). Rok wahin
+honi chahiye jahan use koi bypass na kar sake — wahi soch jo `useMediaById` pe pehle se thi.
+
+⚠️ **Sabse zaroori sabak: lakshan galat jagah dikha.** 429 dekh kar pehla shak limiter pe jaata
+hai. Limiter ne ulta **madad** ki — usne ek chup bug ko sunai dene laayak bana diya.
+
+Admin ke liye koi React test setup nahi hai (na jsdom, na testing-library), isliye hook khud
+test nahi hota. Par jo hissa **toota tha** wo pure hai, aur wo ab
+`lib/use-entries.test.js` me pin hai — teen test, **813 pass**.
+
 ### Ab bhi khula
 
 - **Slice D** — theme (`.vhero` · `.vrail` · `.fbar`/`.dpill` · `.prows` · `.dcard` · two-column
