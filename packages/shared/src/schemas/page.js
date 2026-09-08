@@ -89,6 +89,22 @@ export const twoColumnPropsSchema = z.object({
   heading: z.string().trim().max(200).default(''),
   description: htmlSchema.pipe(z.string().max(2000)).default(''),
 
+  /**
+   * Do khaanon ka **look** — `plain`, ya reference ka `Included / Not included` (`.inx`).
+   *
+   * ⚠️ **Ye ek chunav hai, andaza nahi.** Design me wo do rangeen dabbe hain: baayan halka neela
+   * hara heading ke saath, daayan halka gulaabi laal heading ke saath (`.inx__c` / `.inx__c.no`).
+   * Theme ko kaise pata chalta ki kaunsa khaana "not included" hai? Content se andaza lagana —
+   * jaise heading me "Not" dhoondhna — bhasha pe nirbhar hota aur chup-chaap galat hota.
+   *
+   * Client ne 8 Sep ko ye dropdown chuna. Doosra khaana hamesha "not included" hai — wahi kram
+   * reference me hai.
+   *
+   * ⚠️ `includedExcluded` pe **`ratio` lagta hi nahi** — `.inx` hamesha `1fr 1fr` hai. Design me
+   * wo do dabbe barabar hi hain, aur unhe 60/40 karne ka koi matlab nahi banta.
+   */
+  style: z.enum(['plain', 'includedExcluded']).default('plain'),
+
   ratio: z.enum(['50-50', '60-40', '40-60']).default('50-50'),
   left: htmlSchema,
   right: htmlSchema,

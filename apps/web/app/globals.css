@@ -3123,10 +3123,30 @@ a.mega__gl:hover {
   content: '−';
 }
 
-.faq p {
+/*
+ * Jawab ka padding **wrapper pe hai, `<p>` pe nahi** — 8 Sep me badla.
+ *
+ * ⚠️ Pehle ye sirf `.faq p` tha, aur wo ek chup bug tha: padding tabhi lagti thi jab client ka
+ * jawab `<p>` me lipta ho. Client ke asli page pe pehla FAQ **plain text** tha (`<div>Packages
+ * start at…`) aur baaki `<p><span>…` — nateeja ye ki pehla jawab kinare se chipka hua tha aur
+ * baaki theek. Screenshot me theek wahi dikha.
+ *
+ * Wahi sabak jo `.wdgl` pe mila tha: editor kya markup dega ispe bharosa mat karo. Padding
+ * `<details>` ke apne wrapper `<div>` pe lagti hai, jo hamesha hota hai.
+ */
+.faq details > div {
   padding: 0 18px 17px;
   font-size: var(--fs-body);
   line-height: 1.6;
+}
+
+/* Andar ke `<p>` ka apna padding nahi — wo wrapper se aa chuka hai. Sirf paragraph ka gap. */
+.faq details > div p {
+  margin: 0;
+}
+
+.faq details > div p + p {
+  margin-top: 10px;
 }
 
 /* ==================================================================

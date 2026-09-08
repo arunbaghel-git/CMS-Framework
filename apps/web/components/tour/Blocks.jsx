@@ -59,13 +59,33 @@ function TwoColumnBlock({ props }) {
       <BlockHead heading={heading} description={description} />
 
       {/*
-       * `ratio` ek class banti hai, inline style nahi — do wajah: reference me bhi wahi class
-       * hai, aur inline grid CSS ko media query se mobile pe todna padta.
+       * ⚠️ **`includedExcluded` pe poora dhaancha hi alag hai — `.inx`, `.twocol` nahi.**
+       *
+       * Aur uske liye ek bhi nayi CSS nahi likhni padi: `.inx`, `.inx__c`, `.inx__c.no` aur unke
+       * `h3` ke rang **pehle se globals.css me hain** (2279–2307) — wo package page ke
+       * "What's included" ke liye bane the. Yahan bas wahi wrapper laga diya.
+       *
+       * Ye D-88 §9 wali soch ka ulta bhi nahi hai: heading block ka apna hai, ye sirf uske andar
+       * ka look hai.
        */}
-      <div className={`twocol twocol--${ratio ?? '50-50'}${reverseOnMobile ? ' twocol--rev' : ''}`}>
-        <div dangerouslySetInnerHTML={{ __html: left ?? '' }} />
-        <div dangerouslySetInnerHTML={{ __html: right ?? '' }} />
-      </div>
+      {props.style === 'includedExcluded' ? (
+        <div className="inx">
+          {/* Doosra khaana hamesha "not included" — wahi kram reference me hai */}
+          <div className="inx__c" dangerouslySetInnerHTML={{ __html: left ?? '' }} />
+          <div className="inx__c no" dangerouslySetInnerHTML={{ __html: right ?? '' }} />
+        </div>
+      ) : (
+        /*
+         * `ratio` ek class banti hai, inline style nahi — do wajah: reference me bhi wahi class
+         * hai, aur inline grid CSS ko media query se mobile pe todna padta.
+         */
+        <div
+          className={`twocol twocol--${ratio ?? '50-50'}${reverseOnMobile ? ' twocol--rev' : ''}`}
+        >
+          <div dangerouslySetInnerHTML={{ __html: left ?? '' }} />
+          <div dangerouslySetInnerHTML={{ __html: right ?? '' }} />
+        </div>
+      )}
     </section>
   )
 }

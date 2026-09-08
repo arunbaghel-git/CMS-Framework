@@ -112,19 +112,47 @@ function TwoColumnBlock({ props, onChange, disabled }) {
       {/* Cards wali hi wajah — D-88 §9. Design ke panel me sirf `Split` tha. */}
       <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
 
-      <div className="field" style={{ maxWidth: 200 }}>
-        <label>Split</label>
-        <select
-          className="sel"
-          value={props.ratio ?? '50-50'}
-          onChange={(e) => onChange({ ...props, ratio: e.target.value })}
-          disabled={disabled}
-        >
-          <option value="50-50">50 / 50</option>
-          <option value="60-40">60 / 40</option>
-          <option value="40-60">40 / 60</option>
-        </select>
+      <div className="row2">
+        {/*
+         * ⚠️ `Included / Not included` pe poora look badal jaata hai (do rangeen dabbe), aur
+         * wahan `Split` lagta hi nahi — design me wo dono khaane hamesha barabar hain.
+         */}
+        <div className="field">
+          <label>Style</label>
+          <select
+            className="sel"
+            value={props.style ?? 'plain'}
+            onChange={(e) => onChange({ ...props, style: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="plain">Plain columns</option>
+            <option value="includedExcluded">Included / Not included</option>
+          </select>
+        </div>
+
+        {(props.style ?? 'plain') === 'plain' && (
+          <div className="field">
+            <label>Split</label>
+            <select
+              className="sel"
+              value={props.ratio ?? '50-50'}
+              onChange={(e) => onChange({ ...props, ratio: e.target.value })}
+              disabled={disabled}
+            >
+              <option value="50-50">50 / 50</option>
+              <option value="60-40">60 / 40</option>
+              <option value="40-60">40 / 60</option>
+            </select>
+          </div>
+        )}
       </div>
+
+      {props.style === 'includedExcluded' && (
+        <div className="hint">
+          The left column is shown as <b>Included</b> (blue) and the right one as{' '}
+          <b>Not included</b> (pink). Both columns are always equal width in this style.
+        </div>
+      )}
 
       {/*
        * Dono khaane apne-apne editor hain, ek hi HTML ke do hisse nahi (D-87 §7). Ek hi
