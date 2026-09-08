@@ -4586,3 +4586,520 @@ a.mega__gl:hover {
     animation: none;
   }
 }
+
+/* ==================================================================
+   TOUR / PAGE TEMPLATE — Slice D (D-87)
+   Reference: tour-v3.html — `.vhero` `.vrail` `.sec` `.fbar` `.dgrid` `.twocol`
+
+   ⚠️ `.blk`, `.faq`, `.prow`, `.sim`, `.wdg` yahan **dobara nahi likhe gaye** — wo
+   upar package page ke saath pehle se hain aur bilkul wahi shakl ke hain. Do copies
+   ka nateeja CSS pe sabse bura hota hai: dono ek jaise shuru hote hain aur
+   dheere-dheere alag ho jaate hain, bina kisi test ke pakde.
+   ================================================================== */
+
+/* ---------- section shell ---------- */
+
+.sec {
+  padding: clamp(28px, 3.4vw, 46px) 0;
+}
+
+.sec--white {
+  background: #fff;
+}
+
+.sec--blue {
+  background: var(--blue-50);
+}
+
+/* ---------- hero ---------- */
+
+.vhero {
+  position: relative;
+  background: var(--blue-900);
+  overflow: hidden;
+}
+
+.vhero__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.vhero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.45;
+}
+
+/*
+ * Gehra gradient — iske bina safed text har image pe nahi padha jaata.
+ *
+ * ⚠️ Ye `::after` hai, `background-image` nahi: `<img>` ko rehne dena zaroori hai kyunki
+ * wahi LCP element hai aur uspe `srcset` + `fetchpriority` dono lagte hain (D-84). CSS
+ * background pe browser wo dono nahi de sakta.
+ */
+.vhero__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(9, 32, 55, 0.94) 8%,
+    rgba(9, 32, 55, 0.72) 48%,
+    rgba(9, 32, 55, 0.42)
+  );
+}
+
+.vhero__in {
+  position: relative;
+  z-index: 2;
+  padding-block: clamp(20px, 2.6vw, 34px) clamp(40px, 4.2vw, 56px);
+}
+
+.vhero__eye {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8fd0ff;
+}
+
+.vhero__eye svg {
+  color: var(--gold);
+}
+
+.vhero h1 {
+  color: #fff;
+  font-size: clamp(25px, 3.6vw, 40px);
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  margin: 11px 0 0;
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+/* Reference me daam wala tukda `<em>` me hai — client editor me wahi likh sakta hai */
+.vhero h1 em {
+  font-style: normal;
+  color: #7cc7ff;
+}
+
+.vhero__sub {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(13.5px, 1.3vw, 15.5px);
+  line-height: 1.6;
+  margin-top: 11px;
+  max-width: 60ch;
+}
+
+/* Sub heading ek editor hai (faisla #3) — uske `<p>` ka apna margin nahi chahiye */
+.vhero__sub p {
+  margin: 0;
+}
+
+.vhero__sub p + p {
+  margin-top: 8px;
+}
+
+/*
+ * ⚠️ Hero ke andar `.vcrumb` ka rang alag hai — wo neeli patti pe hai, safed nahi.
+ *
+ * `.vcrumb` package page pe pehle se hai aur wahan uska rang gehra hai. Usko badalne ke
+ * bajaye yahan scope kiya gaya hai: `.pkg` wale page pe wo waisa hi rehta hai.
+ */
+.vhero .vcrumb {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.vhero .vcrumb a {
+  color: inherit;
+}
+
+.vhero .vcrumb a:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.vhero .vcrumb i {
+  font-style: normal;
+  opacity: 0.4;
+}
+
+.vhero .vcrumb b {
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 700;
+}
+
+/* ---------- stat rail ---------- */
+
+/*
+ * Rail hero pe **chadhi** hui hai — negative margin se.
+ *
+ * ⚠️ Isiliye ye `.blk` ke andar kabhi nahi ja sakti: `.blk` pe `contain: paint` hai (D-85)
+ * aur uske bahar nikalta hua hissa kat jaata hai.
+ */
+.vrail {
+  position: relative;
+  z-index: 3;
+  margin-top: clamp(-52px, -4vw, -34px);
+}
+
+.vrail__in {
+  background: #fff;
+  border-radius: var(--r4);
+  box-shadow: var(--sh-3);
+  display: grid;
+  grid-template-columns: 1.25fr repeat(3, 1fr);
+  align-items: center;
+}
+
+.vrail__c {
+  padding: clamp(16px, 1.8vw, 22px) clamp(14px, 1.6vw, 24px);
+  border-left: 1px solid var(--line-2);
+}
+
+.vrail__c:first-child {
+  border-left: 0;
+}
+
+.vrail__c b {
+  display: block;
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.vrail__c span {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+/* `highlight` wala card — reference me pehla wala neela hai */
+.vrail__c--p b {
+  color: var(--blue-700);
+}
+
+.vrail__c--p i {
+  font-style: normal;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-left: 5px;
+}
+
+/* `suffix` — `/ person` jaisa chhota tukda, har card pe */
+.vrail__c b i {
+  font-style: normal;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-left: 5px;
+}
+
+/* ---------- sidebar left ---------- */
+
+/*
+ * ⚠️ **`.pgl` ko chhua NAHI gaya, aur wo poora point hai.**
+ *
+ * `.pgl` package detail page pe bhi chalti hai aur wahan sidebar **right** hai
+ * (`minmax(0,1fr) 322px`). Uska `grid-template-columns` seedha badalne ka matlab hota us
+ * page ka layout tod dena — ye Slice D ka pehle se maloom kaanta tha aur `09-OPEN-ITEMS`
+ * me likha hua tha.
+ *
+ * DOM me `main` pehle aur `aside` baad me rehta hai (reference me bhi wahi comment hai) —
+ * `grid-column` se jagah badalti hai, markup se nahi. Isse chhoti screen pe stacking apne
+ * aap sahi rehti hai: content pehle, sidebar neeche.
+ */
+.pgl--sideleft {
+  grid-template-columns: 322px minmax(0, 1fr);
+}
+
+.pgl--sideleft .pgl__main {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.pgl--sideleft .pgl__side {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+/* ---------- byline ---------- */
+
+.vbyline {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ---------- block ke andar ka heading block ---------- */
+
+/*
+ * Har block apna poora section hai (D-88 §9) — heading uske apne panel se aati hai, aur
+ * uske neeche ki line bhi.
+ */
+.blk__intro {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.blk__intro p {
+  margin: 0;
+}
+
+.blk__intro p + p {
+  margin-top: 8px;
+}
+
+.blk__empty {
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+/* ---------- section head (package list) ---------- */
+
+.sh {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: clamp(16px, 2vw, 22px);
+  flex-wrap: wrap;
+}
+
+.sh h2 {
+  font-size: clamp(19px, 2.2vw, 25px);
+  font-weight: 800;
+}
+
+.sh p {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ---------- duration filter bar ---------- */
+
+/*
+ * ⚠️ Ye bar `.blk` ke **andar** hai, aur wo jaan-boojh kar hai.
+ *
+ * `.blk` pe `content-visibility: auto` + `contain: layout style paint` hai (D-85). Bar ko
+ * kabhi `position: sticky` mat banana — `contain: paint` use uske apne dabbe me kaat dega
+ * aur wo chipkegi hi nahi. Reference me bhi ye sticky nahi hai.
+ */
+.fbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  padding: 11px 13px;
+  margin-bottom: 14px;
+}
+
+.fbar__l {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.fbar__c {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.dpill {
+  padding: 6px 12px;
+  border-radius: var(--rf);
+  border: 1.5px solid var(--line);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--body);
+  cursor: pointer;
+}
+
+.dpill:hover {
+  border-color: var(--blue-500);
+  color: var(--blue-600);
+}
+
+.dpill.on {
+  background: var(--blue-600);
+  border-color: var(--blue-600);
+  color: #fff;
+}
+
+/* Facet ki ginti — `2N / 3D 3`. Server pe `limit` se PEHLE gini gayi hai */
+.dpill i {
+  font-style: normal;
+  opacity: 0.62;
+  margin-left: 5px;
+}
+
+.prows {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+/* ---------- cards ---------- */
+
+.dgrid {
+  display: grid;
+  grid-template-columns: repeat(var(--dcols, 3), 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.dcard {
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  padding: 15px 16px;
+  background: #fff;
+  border-top: 3px solid var(--blue-500);
+}
+
+.dcard h3 {
+  font-size: 14.5px;
+  margin: 0 0 5px;
+}
+
+.dcard p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Card ka `tag` — `Short break`, `Best for first-timers` */
+.dcard em {
+  font-style: normal;
+  display: inline-block;
+  margin-top: 9px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--blue-700);
+  background: var(--blue-50);
+  border: 1px solid var(--blue-100);
+  padding: 4px 9px;
+  border-radius: var(--rf);
+}
+
+/* `href` bhara ho to card khud ek link hai — reference me wo state nahi hai, isliye halka */
+.dcard--link {
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s;
+}
+
+.dcard--link:hover {
+  border-color: var(--blue-500);
+  box-shadow: var(--sh-1);
+}
+
+/* ---------- two column ---------- */
+
+.twocol {
+  display: grid;
+  gap: clamp(16px, 2.2vw, 30px);
+  margin-top: 14px;
+}
+
+.twocol--50-50 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.twocol--60-40 {
+  grid-template-columns: 1.5fr 1fr;
+}
+
+.twocol--40-60 {
+  grid-template-columns: 1fr 1.5fr;
+}
+
+.twocol > * {
+  min-width: 0;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1024px) {
+  /*
+   * ⚠️ `grid-column` ko **wapas auto** karna zaroori hai.
+   *
+   * Upar ek hi column bachta hai; `grid-column: 2` uske liye ek **implicit** doosra column
+   * bana deta hai aur layout chup-chaap do column ka hi reh jaata. Ye theek wo kism ki galti
+   * hai jo sirf chhoti screen pe dikhti hai.
+   */
+  .pgl--sideleft {
+    grid-template-columns: 1fr;
+  }
+
+  .pgl--sideleft .pgl__main,
+  .pgl--sideleft .pgl__side {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .dgrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .twocol--50-50,
+  .twocol--60-40,
+  .twocol--40-60 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Mobile pe daayan khaana pehle — `reverseOnMobile` */
+  .twocol--rev > *:first-child {
+    order: 2;
+  }
+
+  .vrail {
+    margin-top: -26px;
+  }
+
+  .vrail__in {
+    grid-template-columns: 1fr;
+  }
+
+  .vrail__c {
+    border-left: 0;
+    border-top: 1px solid var(--line-2);
+  }
+
+  .vrail__c:first-child {
+    border-top: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .dgrid {
+    grid-template-columns: 1fr;
+  }
+}

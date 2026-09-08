@@ -499,7 +499,36 @@ type ki**: `enquiryForm` · `talkToPlanner` · `html`.
 pe Sidebar ka poora screen bana hua hai (ek hi sidebar · global left/right · form ke liye niyam
 ki table). Poora hisaab **D-88 §1** me. **#2–#5 ka client-attribution likha jaana baaki hai.**
 
-Baaki slice: **D** (theme) — `apps/web` ka catch-all abhi har payload `PackagePage` pe bhejta hai.
+**Slice D (theme) bhi ban gayi — D-87 §11, 8 Sep. Ab D-87 ki saari slices poori hain.**
+
+Ab tak catch-all me sirf ek branch thi (`type === 'package'`); `page`/`tourPage` fallback pe
+girte the aur wahan **sirf `<h1>`** chhapta tha — yaani Slice A–C ka bhara hua sab kuch public
+site pe **dikhta hi nahi tha**. Naya: `components/tour/` me `TourPage` · `Blocks` ·
+`PackageList` · `Sidebar` · `TourSchema`, aur CSS (`.vhero*` · `.vrail*` · `.sec--*` ·
+`.fbar`/`.dpill` · `.dgrid`/`.dcard` · `.twocol`).
+
+- ⚠️ **`.pgl` chhua nahi gaya** — `.pgl--sideleft` ek **modifier** hai. Package page pe sidebar
+  right hai, tour page pe left; `.pgl` seedha badalna us page ko tod deta. 1024px pe
+  `grid-column` wapas `auto` karna zaroori tha, warna implicit doosra column bana rehta
+- **Card ka markup ek jagah aaya** — `components/PackageCard.jsx`, `Similar` aur `PackageList`
+  dono usi pe. Saath me ek purani galti bhi theek hui: `Similar` har card pe **ek hi global
+  rating** dikhata tha, jabki D-87 §3 ke baad har card apni rating le kar aata hai
+- **`EnquiryForm` ab `variant="book" | "cta"`** — do form component nahi banaye. Uske liye
+  **`useOptionalCategory()`** juda; `useCategory()` ka throw waisa ka waisa hai (wo package page
+  ke liye sahi guard hai)
+- **`TourSchema` alag hai** — package wala `Schema.jsx` poori tarah package-shaped hai
+  (`TouristTrip`/`Product`/`AggregateRating`). Listing page pe wo bhejna "misleading structured
+  data" hai. Yahan sirf `BreadcrumbList` + **saare FAQ blocks milaa kar ek** `FAQPage`
+- ⚠️ **Ek guard galat tha, live check me pakda** — filter bar `facets.length > 1` pe thi. Asli
+  page ke saare paanch package `5N/6D` ke hain, yaani facet ek hi tha aur **client ka chuna hua
+  filter chup-chaap gayab** ho gaya. Ab `> 0`. Wahi D-86 wala sabak
+
+**Live check (production build, asli DB):** 200 · `.vrail__c` 4 · `.pgl--sideleft` · 10 `.blk` ·
+9 `.dcard` · 5 `.prow` · 3 `.wdg` · `fbar: Duration | All | 5N/6D | 5` · JSON-LD me **ek**
+`FAQPage` (9 sawaal), koi `TouristTrip` nahi.
+
+⚠️ **`next build` sirf tab jab dev band ho** — dono ek hi `.next` use karte hain. Dev chalte waqt
+build chalane se uske vendor chunks kat gaye aur har page 500 dene laga.
 
 ⚠️ **`forms.placement` zinda hai aur wo theek hai** — wo sirf package pages ko serve karta hai,
 sidebar ka `formId` sirf `page`/`tourPage` ko. Dono kabhi milte hi nahi.

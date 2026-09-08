@@ -6396,6 +6396,118 @@ test nahi hota. Par jo hissa **toota tha** wo pure hai, aur wo ab
 
 ---
 
+### §11 — Slice D: theme (8 Sep)
+
+D-87 ka **aakhri** hissa. Ab tak `apps/web` ka catch-all me sirf ek branch thi
+(`entry.type === 'package'`); `page`/`tourPage` neeche wale fallback pe girte the aur wahan
+**sirf `<h1>`** chhapta tha. Yaani jo kuch Slice A–C me admin me bhara ja raha tha, wo public
+site pe **dikhta hi nahi tha**.
+
+### Kya bana
+
+| Cheez | Kahan |
+| --- | --- |
+| Page shell — hero · stat rail · byline · `.pgl` | `components/tour/TourPage.jsx` |
+| Paanch block ka render | `components/tour/Blocks.jsx` |
+| `Package list` block + duration pills | `components/tour/PackageList.jsx` |
+| Sidebar ke teen widget | `components/tour/Sidebar.jsx` |
+| `BreadcrumbList` + **ek** `FAQPage` | `components/tour/TourSchema.jsx` |
+| CSS — `.vhero*` · `.vrail*` · `.sec--*` · `.fbar`/`.dpill` · `.dgrid`/`.dcard` · `.twocol` · `.pgl--sideleft` | `app/globals.css` |
+
+### §11.1 — `.pgl` chhua nahi gaya
+
+Ye Slice D ka **pehle se likha hua maloom kaanta** tha (`09-OPEN-ITEMS`): `.pgl` package detail
+page pe bhi chalti hai aur wahan sidebar **right** hai (`minmax(0,1fr) 322px`); tour page pe wo
+**left** hai. Uska `grid-template-columns` seedha badalne ka matlab hota package page tod dena.
+
+Isliye `.pgl--sideleft` ek **modifier** hai. DOM me `main` pehle aur `aside` baad me rehta hai —
+jagah `grid-column` se badalti hai, markup se nahi (reference me bhi wahi comment hai). Isse
+chhoti screen pe stacking apne aap sahi rehti hai.
+
+⚠️ **1024px pe `grid-column` ko wapas `auto` karna zaroori tha.** Ek hi column bachne par
+`grid-column: 2` ek **implicit** doosra column bana deta hai aur layout chup-chaap do column ka
+hi reh jaata — wo galti sirf chhoti screen pe dikhti.
+
+### §11.2 — Card ka markup ek jagah aa gaya
+
+`PackageList` ko bilkul wahi `.prow` card chahiye tha jo `Similar` (package page) render karta
+hai. Do copies banane ka nateeja is repo me pehle ho chuka hai aur wo **chup** tha: `bestFor`
+similar cards pe chhoot gaya tha.
+
+Ab dono `components/PackageCard.jsx` use karte hain. Saath me ek purani galti bhi theek hui —
+`Similar` har card pe **ek hi global rating** dikhata tha, jabki D-87 §3 ke baad
+`toPackageCards()` har card ki apni `rating` bhejta hai (fallback server pe lag chuka hota hai).
+Ab card apni rating dikhata hai.
+
+### §11.3 — `EnquiryForm` ka `variant`, do form nahi
+
+Reference me tour ka form `.wdg--cta` hai (`tour-v3.html:1890`) — package page wale `.wdg--book`
+se alag: usme **neela price header hai hi nahi**, aur uske upar ek `<h3>` + `<p>` hai.
+
+Naya form component **nahi** banaya. Submit, validation, honeypot, thank-you aur reset — sab ek
+hi jagah rehne chahiye; do copies me se ek hamesha pichhad jaati hai. `EnquiryForm` ab
+`variant="book" | "cta"` leta hai.
+
+⚠️ Uske liye ek naya hook laga — **`useOptionalCategory()`**. `useCategory()` provider ke bina
+**throw** karta hai, aur wo package page ke liye sahi hai (wahan provider ka na hona ek asli bug
+hai: catbar aur form alag daam dikhane lagte). Tour page pe koi **ek** package hai hi nahi, to
+pricing aur category dono hote hi nahi — wahan throw karna galat hota. Purana guard waisa ka
+waisa hai; jise category **chahiye** wo `useCategory()` leta hai, jise **mil sakti** hai wo naya.
+
+### §11.4 — Structured data: package wala `Schema.jsx` yahan nahi
+
+`Schema.jsx` poori tarah package-shaped hai — `TouristTrip`, `Product`, `AggregateOffer`,
+`AggregateRating`, route ka `ItemList`. Tour page ek **listing** hai; uspe koi ek trip, ek daam
+ya ek rating hai hi nahi. Wo nodes bhejne ka matlab hota Google ko wo batana jo page pe dikh hi
+nahi raha — _"misleading structured data"_, manual penalty wali shreni. Yahi chetavni
+`Schema.jsx` ke sar pe pehle se likhi hai.
+
+Isliye `TourSchema.jsx` sirf do node bhejta hai: `BreadcrumbList` aur **ek** `FAQPage`.
+
+⚠️ **Saare FAQ blocks milaa kar ek hi `FAQPage`** (client, 8 Sep). Ek page pe kai FAQs block ho
+sakte hain; har ek ka apna node bhejna ek hi page pe do-teen `FAQPage` bana deta, jiske liye
+Google saaf mana karta hai.
+
+### §11.5 — ⚠️ Ek guard galat tha, aur wo live check me hi pakda gaya
+
+`Package list` ki filter bar pehle `facets.length > 1` pe dikhti thi — soch ye thi ki ek hi pill
+bemaani hai.
+
+Asli page pe **saare paanch package `5N / 6D`** ke hain, yaani facet **ek** hi tha — aur client
+ka chuna hua `pageFilter: duration` **chup-chaap gayab** ho gaya.
+
+Ab wo `> 0` pe hai. **Sabak wahi jo D-86 me likha hai:** _guard ka chalna kabhi error jaisa nahi
+dikhta, wo "kuch na hone" jaisa dikhta hai._ Aur ek pill pe bhi bar bekaar nahi hai — `.fbar__c`
+ki ginti (`5 packages`) apne aap me kaam ki hai.
+
+### Live check — asli DB, production build
+
+`next build` + `next start`, phir asli tour page fetch (200, 170 KB):
+
+```
+.vhero 1 · .vrail__c 4 · .sec--blue 1 · .pgl--sideleft 1 · .vbyline 1
+.blk 10 · .dgrid 2 · .dcard 9 · .twocol 1 · .prows 1 · .prow 5
+.wdg 3 (html · planner · cta) · .faq 1
+fbar: Duration | All | 5N / 6D | 5
+JSON-LD: 1 FAQPage, 9 Question — koi TouristTrip/Product nahi
+byline: "Arun · Updated 8 Sept 2026 · 4 min read"
+```
+
+Sidebar ka kram wahi mila jo client ne admin me lagaya tha (Packages by duration → Talk to a
+planner → Enquiry form), aur wahi jo reference me hai.
+
+⚠️ **`BreadcrumbList` is page pe nahi aaya, aur wo sahi hai** — page ka koi parent nahi hai, to
+chain me sirf wo khud bachta hai. Ek item ka breadcrumb bemaani hai.
+
+### ⚠️ Ek galti jo maine ki
+
+Dev server chalte waqt `pnpm --filter @cms/web build` chala diya. Dono ek hi `.next` folder use
+karte hain, aur build ne dev ke vendor chunks ke upar likh diya — dev server har page pe **500**
+dene laga (`Cannot find module './vendor-chunks/zod@3.24.1.js'`). Code me kuch nahi tooTa tha.
+
+**Niyam:** `next build` sirf tab jab dev band ho. Naapne ke liye bhi yahi hai (D-85), par wahan
+wajah alag thi — dev ka number bemaani hota hai.
+
 ## D-88
 
 **`Appearance ▸ Sidebar` — named sidebars, teen widget, aur position page pe**

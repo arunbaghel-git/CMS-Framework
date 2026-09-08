@@ -63,6 +63,23 @@ export const enquiryFormWidgetSchema = z.object({
   type: z.literal('enquiryForm'),
   props: z
     .object({
+      /**
+       * ⚠️ **`heading` aur `description` D-88 §10 me jude** — wahi faisla jo usi din blocks pe
+       * hua tha (§9).
+       *
+       * Reference ka tour wala widget (`tour-v3.html:1890`, `.wdg--cta`) package page wale
+       * `.wdg--book` se alag hai: usme price header nahi hai, par uske upar ek `<h3>` aur ek
+       * `<p>` hai — _"Not sure which package?"_ / _"Tell us your dates…"_.
+       *
+       * Wo do line kahin se to aani thi. Theme me likhne ka matlab hota Q-9 wala hi kaanta
+       * dobara (dhaancha static, maal admin se), aur `form.name` use karna galat hota — wo
+       * admin ka label hai ("Package Enquiry"), customer ko dikhane wali line nahi.
+       *
+       * Iske baad **teenon widget** ke paas apna heading hai — `enquiryForm` hi akela bacha tha.
+       */
+      heading: z.string().trim().max(200).default(''),
+      description: htmlSchema.pipe(z.string().max(2000)).default(''),
+
       formId: z.string().trim().max(60).default(''),
     })
     .default({}),

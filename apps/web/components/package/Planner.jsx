@@ -23,7 +23,11 @@
 /** `+91 98100 66496` → `+919810066496`. `tel:` aur `wa.me` dono ko spaces pasand nahi. */
 const digits = (value) => String(value ?? '').replace(/[^\d+]/g, '')
 
-export default function Planner({ settings, email: formEmail }) {
+/**
+ * @param {string} [heading] Sidebar widget ka apna heading (D-88). Khaali ho to theme ka apna
+ *   naam chalta hai — wahi D-65 wala niyam: heading ke bina widget bemaani lagta hai.
+ */
+export default function Planner({ settings, email: formEmail, heading = '' }) {
   const phone = settings?.phone?.trim()
   const whatsapp = settings?.whatsapp?.trim()
   const email = formEmail?.trim()
@@ -32,7 +36,7 @@ export default function Planner({ settings, email: formEmail }) {
 
   return (
     <div className="wdg">
-      <div className="wdg__h">Talk to a planner</div>
+      <div className="wdg__h">{heading || 'Talk to a planner'}</div>
 
       {phone && (
         <div className="wdgc">

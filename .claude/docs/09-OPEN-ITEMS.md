@@ -71,7 +71,13 @@ se khula).
 ⚠️ Design v3 se paanch farak hain — poora hisaab D-88 §1 me, aur **#2–#5 ka client-attribution
 likha jaana baaki hai**.
 
-**Last updated:** 8 Sep 2026 (Tour Page D-87 · Sidebars D-88)
+**8 Sep — Slice D (theme), D-87 §11.** `apps/web` ka catch-all ab `page`/`tourPage` ke liye
+`TourPage` render karta hai — pehle wahan **sirf `<h1>`** chhapta tha. Iske saath **D-87 ki
+saari slices poori ho gayi hain**. `.pgl` chhua nahi gaya (`.pgl--sideleft` modifier hai), card
+ka markup `PackageCard.jsx` me ek jagah aa gaya, aur `TourSchema` sirf `BreadcrumbList` +
+**ek** `FAQPage` bhejta hai.
+
+**Last updated:** 8 Sep 2026 (Tour Page D-87 · Sidebars D-88 · Slice D theme)
 
 ⚠️ **Push:** `origin/main` `a0f337c` pe hai. Ginti yahan jaan-boojh kar nahi likhi — wo har
 commit pe purani ho jaati hai aur do baar galat mili. Sach `git log --oneline origin/main..HEAD`

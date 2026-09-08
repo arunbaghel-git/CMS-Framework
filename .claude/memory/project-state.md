@@ -296,6 +296,42 @@ saaf kiya. **Sabak: e2e script ka cleanup `finally` me hona chahiye.**
 
 ---
 
+## ✅ Slice D (theme) ban gayi — D-87 §11, 8 Sep
+
+**D-87 ki saari slices ab poori hain (A · B · C · D · E).**
+
+Ab tak catch-all me sirf `type === 'package'` wali branch thi; tour page fallback pe girta tha
+jahan **sirf `<h1>`** chhapta tha. Naya: `components/tour/` — `TourPage` · `Blocks` ·
+`PackageList` · `Sidebar` · `TourSchema`, aur ~470 line CSS.
+
+**Live check (production build, asli DB, `/andaman-tour-packages-starting-11-499-pp-2026`):**
+
+```
+200 · 170 KB
+.vhero 1 · .vrail__c 4 · .sec--blue 1 · .pgl--sideleft 1 · .vbyline 1
+.blk 10 · .dgrid 2 · .dcard 9 · .twocol 1 · .prows 1 · .prow 5
+.wdg 3 (html · planner · cta form) · .faq 1
+fbar: Duration | All | 5N / 6D | 5
+JSON-LD: 1 FAQPage (9 Question) — koi TouristTrip/Product nahi
+byline: "Arun · Updated 8 Sept 2026 · 4 min read"
+```
+
+Sidebar ka kram wahi mila jo client ne admin me lagaya tha.
+
+⚠️ **Ek guard galat tha aur live check ne hi pakda** — filter bar `facets.length > 1` pe thi.
+Asli page ke saare paanch package `5N/6D` ke hain, yaani facet ek hi tha aur **client ka chuna
+hua `pageFilter` chup-chaap gayab** ho gaya. Ab `> 0`. Wahi D-86 wala sabak: guard ka chalna
+kabhi error jaisa nahi dikhta.
+
+⚠️ **`next build` sirf tab jab dev band ho.** Dono ek hi `.next` use karte hain; dev chalte waqt
+build chalane se uske vendor chunks kat gaye aur har page **500** dene laga
+(`Cannot find module './vendor-chunks/zod@3.24.1.js'`). Code me kuch nahi tooTa tha.
+
+⚠️ **`.pgl` chhua nahi gaya** — `.pgl--sideleft` modifier hai. 1024px pe `grid-column` wapas
+`auto` karna zaroori tha, warna implicit doosra column bacha rehta.
+
+---
+
 ## (purana) 7 Sep ka "Agla kaam" — Slice D (theme)
 
 `apps/web` ka catch-all abhi **har** payload `PackagePage` pe bhejta hai; usme page-shaped branch

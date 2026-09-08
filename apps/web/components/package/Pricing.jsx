@@ -47,6 +47,23 @@ export function useCategory() {
   return ctx
 }
 
+/**
+ * Wahi context, par **provider ke bina `null`** — Slice D me juda.
+ *
+ * ⚠️ Ye upar wale guard ko kamzor **nahi** karta, aur wo jaan-boojh kar do alag hooks hain.
+ * `useCategory()` ka throw us page ke liye sahi hai jahan pricing hoti hi hai: wahan provider
+ * ka na hona ek asli bug hai (catbar aur form alag daam dikhane lagte).
+ *
+ * Par tour page pe koi **ek** package hai hi nahi — na pricing, na category. Wahan enquiry form
+ * `.wdg--cta` shakl me chalta hai (reference `tour-v3.html:1890`), jisme price header hota hi
+ * nahi. Us haalat me throw karna galat hota: kuch toota nahi hai, wo cheez wahan hai hi nahi.
+ *
+ * Isliye jise category **chahiye** wo `useCategory()` le, aur jise **mil sakti hai** wo ye.
+ */
+export function useOptionalCategory() {
+  return useContext(CategoryContext)
+}
+
 export function CategoryProvider({ pricing, currency, children }) {
   /**
    * Rows **server pe hi** chhan kar aate hain (`pricedCategories()`) — jinka daam nahi

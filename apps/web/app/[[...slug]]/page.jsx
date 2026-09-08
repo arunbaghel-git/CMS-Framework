@@ -1,6 +1,7 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation'
 
 import PackagePage from '../../components/package/PackagePage.jsx'
+import TourPage from '../../components/tour/TourPage.jsx'
 import { getPackageDefaults, getSettings, resolvePath } from '../../lib/cms.js'
 
 /**
@@ -87,8 +88,27 @@ export default async function CatchAllPage({ params }) {
     return <PackagePage entry={entry} defaults={defaults} settings={settings} />
   }
 
+  if (entry.type === 'page' || entry.type === 'tourPage') {
+    /**
+     * Dono ka payload ek hi hai (`toPublicPage()`) aur field set bhi ek hi constant (D-87 §1) —
+     * alag type sirf isliye hai ki menu, list aur URL teenon alag maange gaye the. Render me
+     * unme koi farak nahi.
+     *
+     * ⚠️ `page` ki screens abhi bani nahi hain (A-9), yaani aaj practically sirf `tourPage`
+     * yahan aata hai. Branch phir bhi dono pe hai — jis din Pages ka kaam aayega, yahan kuch
+     * nahi badlega.
+     *
+     * ⚠️ **`getPackageDefaults()` yahan nahi aata.** Wo `sectionLabels`, pricing note, hotels
+     * aur booking steps hai — sab package page ki cheezein. Ek aur fetch ka matlab hota ek aur
+     * cache tag aur ek aur round trip, us data ke liye jise ye page chhoota bhi nahi.
+     */
+    const settings = await getSettings()
+
+    return <TourPage entry={entry} settings={settings} />
+  }
+
   /**
-   * Baaki types (page, post) ke template abhi nahi bane — wo Phase 3 me aayenge.
+   * Baaki types (post) ke template abhi nahi bane.
    *
    * Yahan `notFound()` **nahi** hai: entry sach me maujood hai aur publish bhi ho chuki
    * hai; 404 dena jhooth hota. Ek saada render se kam se kam title aur content dikhta hai.

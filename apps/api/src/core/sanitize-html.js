@@ -400,6 +400,13 @@ export function sanitizeSidebarWidgets(widgets) {
       case 'html':
         return { ...widget, props: { ...widget.props, html: sanitizeBlockHtml(widget.props.html) } }
 
+      /** Heading ke neeche ki line — D-88 §10 me judi. */
+      case 'enquiryForm':
+        return {
+          ...widget,
+          props: { ...widget.props, description: sanitizeBlockHtml(widget.props.description) },
+        }
+
       default:
         return widget
     }

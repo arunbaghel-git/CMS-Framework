@@ -37,7 +37,7 @@ const newId = () =>
 /** Naye widget ka khaali shape. Props server pe `.parse()` se bharenge, yahan sirf shuruaat. */
 function emptyWidget(type) {
   const props = {
-    enquiryForm: { formId: '' },
+    enquiryForm: { heading: '', description: '', formId: '' },
     talkToPlanner: { heading: '' },
     html: { heading: '', html: '' },
   }[type]
@@ -90,28 +90,53 @@ function summarize(widget, forms) {
  */
 function EnquiryFormWidget({ props, onChange, disabled, forms, loading }) {
   return (
-    <div className="field" style={{ maxWidth: 360 }}>
-      <label>Form</label>
-      <select
-        className="sel"
-        value={props.formId ?? ''}
-        onChange={(e) => onChange({ ...props, formId: e.target.value })}
-        disabled={disabled || loading}
-      >
-        <option value="">{loading ? 'Loading…' : '— choose a form —'}</option>
-        {forms.map((form) => (
-          <option key={form.id} value={form.id}>
-            {form.name}
-          </option>
-        ))}
-      </select>
+    <>
+      {/* Reference ke `.wdg--cta` ka `<h3>` + `<p>` — D-88 §10, wahi jodi jo blocks pe hai (§9). */}
+      <div className="field" style={{ maxWidth: 360 }}>
+        <label>Heading</label>
+        <input
+          className="inp"
+          value={props.heading ?? ''}
+          onChange={(e) => onChange({ ...props, heading: e.target.value })}
+          placeholder="Not sure which package?"
+          disabled={disabled}
+        />
+      </div>
 
-      {!loading && forms.length === 0 && (
-        <div className="hint">
-          No active forms yet. Create one under <b>Enquiry Forms</b>, then set it to Active.
-        </div>
-      )}
-    </div>
+      <div className="field">
+        <label>Description</label>
+        <HtmlEditor
+          value={props.description ?? ''}
+          onChange={(description) => onChange({ ...props, description })}
+          disabled={disabled}
+          height={120}
+        />
+        <div className="hint">Leave it empty and the line does not appear on the page.</div>
+      </div>
+
+      <div className="field" style={{ maxWidth: 360 }}>
+        <label>Form</label>
+        <select
+          className="sel"
+          value={props.formId ?? ''}
+          onChange={(e) => onChange({ ...props, formId: e.target.value })}
+          disabled={disabled || loading}
+        >
+          <option value="">{loading ? 'Loading…' : '— choose a form —'}</option>
+          {forms.map((form) => (
+            <option key={form.id} value={form.id}>
+              {form.name}
+            </option>
+          ))}
+        </select>
+
+        {!loading && forms.length === 0 && (
+          <div className="hint">
+            No active forms yet. Create one under <b>Enquiry Forms</b>, then set it to Active.
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 

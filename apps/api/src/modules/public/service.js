@@ -1038,7 +1038,17 @@ async function resolveSidebarWidgets(sidebarId, siteId, locale) {
         case 'enquiryForm': {
           const form = forms.get(widget.props?.formId) ?? null
 
-          return form ? { id: widget.id, type: 'enquiryForm', props: { form } } : null
+          return form
+            ? {
+                id: widget.id,
+                type: 'enquiryForm',
+                props: {
+                  heading: widget.props?.heading ?? '',
+                  description: widget.props?.description ?? '',
+                  form,
+                },
+              }
+            : null
         }
 
         /**

@@ -4,7 +4,7 @@ import { HOTEL_CATEGORY_LABEL, formatPrice } from '@cms/shared'
 import { useEffect, useState } from 'react'
 
 import { useEnquiryDock } from './EnquiryDock.jsx'
-import { PriceHeader, useCategory } from './Pricing.jsx'
+import { PriceHeader, useOptionalCategory } from './Pricing.jsx'
 
 /**
  * Sidebar ka enquiry form — reference ka `.wdg--book` (`itinerary-v3.html`).
@@ -179,7 +179,24 @@ function toRows(fields) {
   return rows
 }
 
-export default function EnquiryForm({ form, packages = [], sourcePath }) {
+/**
+ * @param {'book'|'cta'} [variant]
+ *   `book` — package page ka sidebar widget: neela price header, aur mobile pe sheet ban jaata hai
+ *   `cta`  — tour page ka `.wdg--cta` (reference `tour-v3.html:1890`): heading + line + form,
+ *            **koi price header nahi** (wahan koi ek package hai hi nahi)
+ *
+ * ⚠️ Do alag form component **nahi** banaye gaye, aur wo soch kar hai: submit, validation,
+ * honeypot, thank-you aur reset — sab ek hi jagah rehna chahiye. Do copies ka nateeja is repo me
+ * pehle ho chuka hai, aur wo hamesha chup hota hai (ek taraf fix lagta hai, doosri pichhad jaati).
+ */
+export default function EnquiryForm({
+  form,
+  packages = [],
+  sourcePath,
+  variant = 'book',
+  heading = '',
+  description = '',
+}) {
   const [values, setValues] = useState({})
   const [hp, setHp] = useState('')
   const [state, setState] = useState({ sending: false, done: false, error: null })
@@ -191,7 +208,21 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
    * to upar ke catbar se category badalne pe form purani dikhata rehta. Ek hi source hone se
    * dono hamesha ek jaisi dikhti hain — reference me bhi wahi hota hai.
    */
-  const { rows: categoryRows, category, setCategory, currency } = useCategory()
+  /**
+   * ⚠️ **`useOptionalCategory()` — `useCategory()` nahi** (Slice D).
+   *
+   * Package page pe provider hamesha hota hai. Tour page pe hota hi nahi: wahan koi ek package
+   * nahi hai, to na pricing hai na category. Wahi form `variant="cta"` pe chalta hai (reference
+   * ka `.wdg--cta`), jisme price header aur "Hotel category" dropdown dono hote hi nahi.
+   *
+   * `setCategory` ka `noop` fallback zaroori hai: `isCategoryField` wala field us haalat me
+   * chhapta hi nahi, par uske bina ek galti se bacha hua field poore form ko phaad deta.
+   */
+  const categoryCtx = useOptionalCategory()
+  const categoryRows = categoryCtx?.rows ?? []
+  const category = categoryCtx?.category
+  const setCategory = categoryCtx?.setCategory ?? (() => {})
+  const currency = categoryCtx?.currency ?? 'INR'
 
   /**
    * Mobile pe ye widget ek **sheet** ban jaata hai, aur use neeche wali `.mobar` kholti hai.
@@ -201,6 +232,15 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
    * state: user desktop pe kuch bharta, screen chhoti karta, aur bhara hua gayab.
    */
   const dock = useEnquiryDock()
+
+  /**
+   * ⚠️ `cta` pe dock ka poora vyavhaar band hai, sirf uska CSS nahi.
+   *
+   * Dock mobile pe is widget ko sheet banata hai aur use `.mobar` kholti hai — wo dono package
+   * page ki cheezein hain. Tour page pe wo bar hai hi nahi, to sheet kholne ka koi raasta bhi
+   * nahi hota: khulti hui sheet ka scrim bina kisi close ke poora page dhak leta.
+   */
+  const isCta = variant === 'cta'
 
   /**
    * Thank-you dikhane ke baad button apne aap wapas apni asli haalat me (client, 2 Sep).
@@ -329,14 +369,25 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
        *
        * Ispe click karne se sheet band — wahi vyavhaar jo Lightbox ke backdrop ka hai.
        */}
-      {dock?.open && <div className="mosheet-scrim" onClick={dock.close} aria-hidden="true" />}
+      {isCta ||
+        (dock?.open && <div className="mosheet-scrim" onClick={dock.close} aria-hidden="true" />)}
 
-      <div className={`wdg wdg--book${dock?.open ? ' is-open' : ''}`} id="enquiry">
+      <div
+        className={isCta ? 'wdg wdg--cta' : `wdg wdg--book${dock?.open ? ' is-open' : ''}`}
+        id="enquiry"
+      >
+        {/*
+         * `.wdg--cta` ka heading aur uske neeche ki line — dono admin se aati hain (D-88 §10).
+         * Theme me likhne ka matlab hota Q-9 wala hi kaanta dobara.
+         */}
+        {isCta && heading ? <h3>{heading}</h3> : null}
+        {isCta && description ? <div dangerouslySetInnerHTML={{ __html: description }} /> : null}
+
         {/*
          * Close sirf sheet wali haalat me — sidebar me widget band karne jaisi koi cheez hai
          * hi nahi, wo wahan hamesha khula rehta hai.
          */}
-        {dock?.open && (
+        {!isCta && dock?.open && (
           <button
             className="wdg__x"
             type="button"
@@ -356,8 +407,13 @@ export default function EnquiryForm({ form, packages = [], sourcePath }) {
             </svg>
           </button>
         )}
-        {/* Neela price header — wahi daam jo hero me hai, chuni hui category ke saath badalta hai */}
-        <PriceHeader />
+        {/*
+         * Neela price header — wahi daam jo hero me hai, chuni hui category ke saath badalta hai.
+         *
+         * ⚠️ `cta` pe ye hai hi nahi: tour page pe koi ek package nahi hota, to dikhane ko koi
+         * daam bhi nahi. Reference ka `.wdg--cta` bhi bina header ke hai.
+         */}
+        {!isCta && <PriceHeader />}
 
         <div className="bkg__b">
           {/*
