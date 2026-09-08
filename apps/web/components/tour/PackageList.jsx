@@ -62,7 +62,19 @@ export default function PackageList({ props, data }) {
   const showFilters = facets.length > 0
 
   return (
-    <section className="blk" id="pklist">
+    /*
+     * ⚠️ **`.blk` yahan nahi hai, aur wo client ne pakda** (8 Sep).
+     *
+     * Maine har block ko `.blk` de diya tha, par reference me package list ek **saada
+     * `<div id="pklist">`** hai — koi safed card, koi border nahi (`tour-v3.html:1432`). Cards
+     * khud apne dabbe hain; unhe ek aur dabbe me rakhna do border ek doosre ke andar bana deta.
+     *
+     * ⚠️ Iska ek asar hai jo yaad rakhna hoga: `.blk` ke saath `content-visibility: auto` bhi
+     * jaata tha (D-85). Ye section lamba hota hai, to fold ke neeche uska layout ab paint se
+     * pehle hoga. Naapne laayak farak nahi hai (baaki 9 `.blk` abhi bhi contain karte hain),
+     * par LCP dobara naapte waqt ye baat hisaab me honi chahiye.
+     */
+    <section id="pklist">
       {(props.heading || props.subheading) && (
         <div className="sh">
           <div>
@@ -93,9 +105,15 @@ export default function PackageList({ props, data }) {
               aria-pressed={active === facet.key}
               onClick={() => setActive(facet.key)}
             >
+              {/*
+               * ⚠️ **Pill pe ginti nahi** (client, 8 Sep). Maine yahan `<i>{count}</i>` daal
+               * diya tha — reference me wo hai hi nahi, wahan pill sirf `2N / 3D` hai. Poori
+               * list ki ginti `.fbar__c` me daayein kinare pe aati hai, aur wahi kaafi hai.
+               *
+               * `facets` phir bhi `count` ke saath aate hain aur wo theek hai — server use
+               * `limit` se pehle ginta hai, aur wo ginti kabhi kaam aa sakti hai.
+               */}
               {facet.label}
-              {/* `[3]` — ginti server se, aur wo `limit` se pehle gini gayi hai */}
-              {facet.count > 0 && <i>{facet.count}</i>}
             </button>
           ))}
 

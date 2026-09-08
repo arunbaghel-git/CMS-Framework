@@ -257,7 +257,22 @@ export default function TourPage({ entry, settings }) {
             className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
           >
             <div className="pgl__main">
-              <Byline byline={byline} />
+              {/*
+               * ⚠️ **Byline sirf `page` pe, `tourPage` pe nahi — client ne 8 Sep ko pakda.**
+               *
+               * Maine ise D-87 ke faisle #9 ("byline poori tarah automatic") ke bharose har page
+               * pe laga diya tha. Par wo faisla ye batata hai ki byline ka **data kahan se aata
+               * hai**, ye nahi ki wo **kis page pe dikhta hai**.
+               *
+               * Reference dekhne pe saaf hua: `tour-v3.html` me byline **hai hi nahi** (0
+               * matches), aur `itinerary-v3.html` me bhi nahi. Wo sirf `page-template-text.html`
+               * me hai — yaani wo ek **article** page ki cheez hai, listing page ki nahi.
+               *
+               * ⚠️ Payload me `byline` phir bhi jaata hai aur uske tests bhi hain — wo galat nahi
+               * tha. Sirf uski jagah galat thi.
+               */}
+              {entry.type === 'page' && <Byline byline={byline} />}
+
               <Blocks blocks={entry.blocks ?? []} />
             </div>
 

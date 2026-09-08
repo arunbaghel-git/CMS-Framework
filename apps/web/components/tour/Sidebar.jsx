@@ -1,6 +1,7 @@
 import Icon from '../Icon.jsx'
 import EnquiryForm from '../package/EnquiryForm.jsx'
 import Planner from '../package/Planner.jsx'
+import StickySide from '../package/StickySide.jsx'
 
 /**
  * Page ki sidebar — `Appearance ▸ Sidebar` se (D-88).
@@ -46,7 +47,19 @@ export default function Sidebar({ widgets = [], settings, sourcePath }) {
   if (!widgets.length) return null
 
   return (
-    <aside className="pgl__side">
+    /*
+     * ⚠️ **`StickySide`, saada `<aside>` nahi** — client, 8 Sep: sidebar content ke saath scroll
+     * ho aur end pe ruk jaaye, jaise itinerary page pe hota hai.
+     *
+     * Saada `position: sticky` yahan kaam nahi karta: column screen se lambi ho jaati hai (form
+     * ke saath ho hi jaati hai) aur uska neeche wala hissa kabhi dikhta hi nahi — user upar hi
+     * atka rehta hai. `StickySide` scroll ki disha ke saath `top` khiskata hai, isliye poori
+     * column pahunch me aa jaati hai. Reference me iske liye ek script hai; ye wahi kaam hai.
+     *
+     * Wo khud `<aside className="pgl__side">` deta hai, isliye yahan apna wrapper nahi hai.
+     * 1024px se neeche wo `top` ko haath bhi nahi lagata (wahan CSS use `static` kar deti hai).
+     */
+    <StickySide>
       {widgets.map((widget) => {
         switch (widget.type) {
           case 'html':
@@ -92,6 +105,6 @@ export default function Sidebar({ widgets = [], settings, sourcePath }) {
             return null
         }
       })}
-    </aside>
+    </StickySide>
   )
 }

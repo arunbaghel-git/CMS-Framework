@@ -127,9 +127,25 @@ function FaqsBlock({ props }) {
     <section className="blk">
       <BlockHead heading={props.heading} description={props.description} />
 
-      <div className="faq">
+      {/*
+       * ⚠️ **`faq--wide` — reference me tour ka FAQ apni chaudai khud khol deta hai.**
+       *
+       * `tour-v3.html:1803` me wo literally `<div class="faq" style="max-width:none;
+       * margin-top:14px">` hai. Hamari `.faq` `max-width: 860px; margin-inline: auto` pe hai
+       * (package page ke liye), aur uske bina yahan wo block ke andar sikud kar beech me aa
+       * jaati thi — client ne yahi "style theek nahi hai" kaha.
+       *
+       * Modifier isliye, `.blk .faq` scope nahi: package page ka FAQ bhi `.blk` ke andar hai
+       * (`PackagePage.jsx:729`) aur use badalne ki koi wajah nahi.
+       */}
+      <div className="faq faq--wide">
         {items.map((faq, i) => (
-          <details key={faq.id ?? i}>
+          /*
+           * ⚠️ **Pehla FAQ khula rehta hai** — dono reference me `<details open>` sirf pehle pe
+           * hai, aur package page bhi yahi karta hai (`PackagePage.jsx:734`). Client ne 8 Sep ko
+           * pakda ki tour page pe wo band tha.
+           */
+          <details key={faq.id ?? i} open={i === 0}>
             <summary>{faq.question}</summary>
             <div dangerouslySetInnerHTML={{ __html: faq.answer ?? '' }} />
           </details>

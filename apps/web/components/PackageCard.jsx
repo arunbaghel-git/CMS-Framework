@@ -83,6 +83,20 @@ export default function PackageCard({ item, rating, currency = 'INR' }) {
     item.hasBreakfast ? 'Breakfast' : null,
   ].filter(Boolean)
 
+  /**
+   * Kitne pratishat ki chhoot — strike aur asli daam se.
+   *
+   * ⚠️ `null` teen soorat me: strike hai hi nahi, wo asli daam se **chhota ya barabar** hai, ya
+   * ginti `0%` pe aa jaati hai. Teenon me se kisi pe bhi `0% off` chhapna galat hota — wo ek
+   * offer dikhata hai jo hai hi nahi.
+   */
+  const strike = item.from?.strikePrice
+  const price = item.from?.priceFrom
+  const discount =
+    strike != null && price != null && strike > price
+      ? Math.round(((strike - price) / strike) * 100) || null
+      : null
+
   return (
     <a className="prow" href={item.path}>
       <div className="prow__m">
@@ -149,6 +163,17 @@ export default function PackageCard({ item, rating, currency = 'INR' }) {
           <del>{formatPrice(item.from.strikePrice, currency)}</del>
         )}
         {item.from && <strong>{formatPrice(item.from.priceFrom, currency)}</strong>}
+
+        {/*
+         * `23% off` — reference ka `.prow__off` (`tour-v3.html:1467`). Client ne 8 Sep ko pakda
+         * ki ye aa hi nahi raha.
+         *
+         * ⚠️ **Ye derive hota hai, koi field nahi** — strike aur asli daam dono pehle se card me
+         * hain. Ek alag "discount %" field rakhne ka matlab hota ki wo ek din daam se **alag**
+         * ho jaaye: client daam badle aur pratishat purana hi chhapta rahe. Wahi tark jo hotels
+         * table (D-58) aur upar wale daam (D-60) pe hai — jo gina ja sakta hai wo store nahi hota.
+         */}
+        {discount != null && <span className="prow__off">{discount}% off</span>}
 
         <span className="prow__go">
           View itinerary
