@@ -2528,14 +2528,45 @@ a.mega__gl:hover {
   overflow: hidden;
 }
 
+/*
+ * ⚠️ **`display: flex` 8 Sep me juda, aur uske bina heading ka icon toota hua baithta tha.**
+ *
+ * Heading me ab ek icon aata hai (`Custom HTML` widget ka apna field, `Talk to a planner` pe
+ * fix) — reference me wo `.wdg__h` ke `flex` + `gap: 8px` se text ke saath ek line me baithta
+ * hai. Bina uske SVG apni baseline pe latak jaata hai.
+ *
+ * ⚠️ **`color` bhi badla: `#64748b` (halka bhoora) se `--ink`.** Wo drift thi, faisla nahi —
+ * dono reference (`tour-v3.html` aur `itinerary-v3.html`) `var(--ink)` kehte hain, aur client
+ * ke screenshot me farak saaf dikh raha tha: design me heading gehri hai, hamare paas halki.
+ */
 .wdg__h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: var(--fs-3xs);
   font-weight: var(--fw-heading);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--ink);
   padding: 12px 14px;
   border-bottom: 1px solid #e2e8f0;
+}
+
+/* Heading ka icon neela — reference: `.wdg__h svg{color:var(--blue-500)}`. */
+.wdg__h svg {
+  color: var(--blue-500);
+  flex-shrink: 0;
+}
+
+/*
+ * ⚠️ **Widget ki body ka padding — ye rule tha hi nahi.**
+ *
+ * `.wdg` pe `overflow: hidden` hai aur uske andar sab kuch apna padding khud laata tha
+ * (`.wdgc`, `.bkg__b`). `Custom HTML` widget ke aane tak koi aisa hissa tha hi nahi jiska
+ * apna padding na ho — uski list seedha kinare se chipak rahi thi.
+ */
+.wdg__b {
+  padding: 6px 15px 12px;
 }
 
 /*
@@ -5192,6 +5223,16 @@ a.mega__gl:hover {
 
 .wdg--cta .fld {
   margin-bottom: 9px;
+}
+
+/*
+ * Submit poori chaudai ka — reference: `.wdg--cta .b{width:100%}`.
+ *
+ * ⚠️ Scope `.wdg--cta` ke andar hai, isliye package page ka `.wdg--book` wala button chhua
+ * nahi jaata — wahan uska apna naap pehle se theek hai.
+ */
+.wdg--cta .btn {
+  width: 100%;
 }
 
 .wdg--cta .fld label {
