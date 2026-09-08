@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 8 Sep 2026 — **191 commit**, ⚠️ **11 unpushed** (`origin/main` = `a0f337c`),
+> **Last updated:** 8 Sep 2026 — **194 commit**, ⚠️ **14 unpushed** (`origin/main` = `a0f337c`),
 > **821 test pass** (32 file), admin build pass, lint + format clean, tree clean.
 
 ---
@@ -12,8 +12,8 @@
 
 | Kya           | Value                                                                                |
 | ------------- | ------------------------------------------------------------------------------------ |
-| Commits       | **191**                                                                              |
-| Push          | ⚠️ **11 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
+| Commits       | **194**                                                                              |
+| Push          | ⚠️ **14 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya) |
 | Tests         | **821 pass**, 32 file (`pnpm test`, exit 0)                                          |
 | Admin build   | ✅ `vite build` pass                                                                 |
 | Lint · Format | dono clean                                                                           |
@@ -36,7 +36,7 @@ pnpm dev
 
 ## 8 Sep — D-87 ka doosra din. Client ne chala kar bahut kuch palta
 
-**11 commit.** Din ki shakl saaf thi: client ne admin sach me chalaya, aur jo tooTa ya bemaani
+**14 commit.** Din ki shakl saaf thi: client ne admin sach me chalaya, aur jo tooTa ya bemaani
 laga wo batata gaya. **Chaar me se teen badlaav uske the, aur teenon theek the.**
 
 ### Do bug jo client ne pakde, aur dono "khaali" jaise dikhte the
