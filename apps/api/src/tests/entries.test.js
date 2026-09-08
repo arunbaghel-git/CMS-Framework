@@ -2252,8 +2252,9 @@ describe('Tour Page ka type (D-87)', () => {
     const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
 
     expect(page.fields).toEqual([])
-    // `blocks` yahan NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7)
-    expect(tour.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail'])
+    // `blocks` yahan NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7).
+    // `sidebar` 8 Sep me juda: page pe sidebar dikhe ya nahi, aur kis taraf
+    expect(tour.fields.map((f) => f.key)).toEqual(['eyebrow', 'subheading', 'statRail', 'sidebar'])
   })
 
   it('dono pe hasBuilder true hai, package/post pe nahi', async () => {
@@ -2288,27 +2289,25 @@ describe('content blocks (D-87 §7)', () => {
   it('props apne type ke schema se validate hote hain, aur defaults bharte hain', async () => {
     const res = await createTour(adminJar, {
       title: 'Props Test',
-      content: contentOf({ id: 'p1', type: 'packageList', props: { sort: 'price-asc' } }),
+      content: contentOf({ id: 'p1', type: 'packageList', props: { filter: 'duration' } }),
     })
 
     const doc = await Entry.findById(res.body.data.entry.id).lean()
 
-    // `.parse()` defaults bhar deta hai, isliye theme ko `?? 14` har jagah nahi likhna padta
+    // `.parse()` defaults bhar deta hai, isliye theme ko `?? []` har jagah nahi likhna padta
     expect(doc.content.blocks[0].props).toMatchObject({
-      sort: 'price-asc',
-      limit: 14,
-      showFilters: true,
+      filter: 'duration',
+      packageIds: [],
       showBadges: true,
-      featuredFirst: true,
-      durations: [],
       packageTypeId: null,
+      destinationId: null,
     })
   })
 
   it('galat props 400 pe girte hain — chup-chaap store nahi hote', async () => {
     const res = await createTour(adminJar, {
       title: 'Galat Props',
-      content: contentOf({ id: 'p1', type: 'packageList', props: { sort: 'kuch-bhi' } }),
+      content: contentOf({ id: 'p1', type: 'packageList', props: { filter: 'kuch-bhi' } }),
     })
 
     expect(res.status).toBe(400)
@@ -2606,113 +2605,157 @@ describe('Package list block ka payload (D-87)', () => {
     return res.body.data.entry.blocks[0]
   }
 
-  const pricing = (price) => ({ categoryPricing: [{ category: 'deluxe', priceFrom: price }] })
+  it('sirf chune hue packages aate hain, aur usi kram me', async () => {
+    // ⚠️ Ye 7 Sep wale model se ULTA hai. Pehle block ek filter tha aur server list banata tha;
+    // client ne do-column picker maanga, isliye ab `packageIds` hi list hai. Kram bhi wahi —
+    // client ne wo drag-and-drop se banaya hai, use Mongo ke jawab pe chhodna uska kaam mita
+    // dena hota ($in apna kram rakhta hi nahi)
+    const a = await publishedPackage('Alpha', { nights: 2, days: 3 })
+    const b = await publishedPackage('Beta', { nights: 5, days: 6 })
+    await publishedPackage('Gamma — nahi chuna', { nights: 3, days: 4 })
 
-  it('cards resolve ke payload me aate hain — koi naya endpoint nahi', async () => {
-    // Naya endpoint hota to wo call cache ke bahar rehti aur har page load pe API tak jaati —
-    // theek wahi bug jo D-83 me teen hafte chhupa raha
-    await publishedPackage('Emerald Andaman', { nights: 2, days: 3 })
-
-    const block = await tourWithList('List A')
+    const block = await tourWithList('List A', { packageIds: [b, a] })
 
     expect(block.type).toBe('packageList')
-    expect(block.data.cards.map((c) => c.title)).toEqual(['Emerald Andaman'])
-    expect(block.data.total).toBe(1)
+    expect(block.data.cards.map((c) => c.title)).toEqual(['Beta', 'Alpha'])
+    expect(block.data.total).toBe(2)
   })
 
-  it('har duration ka apna count aata hai (faisla #8)', async () => {
-    await publishedPackage('A', { nights: 2, days: 3 })
-    await publishedPackage('B', { nights: 2, days: 3 })
-    await publishedPackage('C', { nights: 5, days: 6 })
+  it('kuch na chuna ho to section khaali rehta hai — koi query bhi nahi', async () => {
+    await publishedPackage('Live', { nights: 2, days: 3 })
 
     const block = await tourWithList('List B')
 
-    expect(block.data.facets).toEqual([
+    expect(block.data.cards).toEqual([])
+    expect(block.data.facets).toEqual([])
+    expect(block.data.total).toBe(0)
+  })
+
+  it('pills SIRF day-wise radio pe aati hain (client, 8 Sep)', async () => {
+    const a = await publishedPackage('A', { nights: 2, days: 3 })
+    const b = await publishedPackage('B', { nights: 2, days: 3 })
+    const c = await publishedPackage('C', { nights: 5, days: 6 })
+
+    const off = await tourWithList('List C', { packageIds: [a, b, c] })
+    expect(off.data.facets).toEqual([])
+
+    const on = await tourWithList('List D', { filter: 'duration', packageIds: [a, b, c] })
+    expect(on.data.facets).toEqual([
       { key: 'd2', label: '2N / 3D', nights: 2, count: 2 },
       { key: 'd5', label: '5N / 6D', nights: 5, count: 1 },
     ])
   })
 
-  it('8N aur usse lambe ek hi bucket me jaate hain — reference ka data-f="d8,d9,d12"', async () => {
-    await publishedPackage('Long A', { nights: 8, days: 9 })
-    await publishedPackage('Long B', { nights: 12, days: 13 })
+  it('ginti chune hue packages me se hi banti hai, poore collection se nahi', async () => {
+    // Bar aur cards ek hi set ke do roop hone chahiye — warna ek pill pe click karne pe page
+    // khaali ho jaata hai
+    const a = await publishedPackage('Chuna', { nights: 2, days: 3 })
+    await publishedPackage('Nahi chuna', { nights: 2, days: 3 })
 
-    const block = await tourWithList('List C')
+    const block = await tourWithList('List E', { filter: 'duration', packageIds: [a] })
+
+    expect(block.data.facets).toEqual([{ key: 'd2', label: '2N / 3D', nights: 2, count: 1 }])
+  })
+
+  it('8N aur usse lambe ek hi bucket me jaate hain — reference ka data-f="d8,d9,d12"', async () => {
+    const a = await publishedPackage('Long A', { nights: 8, days: 9 })
+    const b = await publishedPackage('Long B', { nights: 12, days: 13 })
+
+    const block = await tourWithList('List F', { filter: 'duration', packageIds: [a, b] })
 
     expect(block.data.facets).toEqual([
       { key: 'd8plus', label: '8N and longer', nights: null, count: 2 },
     ])
   })
 
-  it('ginti limit se pehle hoti hai — warna count jhootha ho jaata', async () => {
-    await publishedPackage('A', { nights: 2, days: 3 })
-    await publishedPackage('B', { nights: 2, days: 3 })
-    await publishedPackage('C', { nights: 2, days: 3 })
+  it('draft package chuna ho to wo card nahi banta — par baaki list chalti rahti hai', async () => {
+    // Client ne use chuna tha aur baad me wo unpublish/trash ho gaya. Us id ko chup-chaap
+    // gira dena theek hai: page pe ek toota hua card dikhane se behtar hai ki wo card na ho
+    // (D-30, aur wahi invariant jo D-42 §2 media pe hai)
+    const live = await publishedPackage('Live', { nights: 2, days: 3 })
+    const draft = await createEntry(adminJar, { title: 'Draft', fields: { nights: 2, days: 3 } })
 
-    const block = await tourWithList('List D', { limit: 1 })
+    const block = await tourWithList('List G', {
+      packageIds: [draft.body.data.entry.id, live],
+    })
 
-    expect(block.data.cards).toHaveLength(1)
-    expect(block.data.facets[0].count).toBe(3)
-    expect(block.data.total).toBe(3)
-  })
-
-  it('chuni hui durations hi aati hain — aur facets bhi unhi ki', async () => {
-    // Filter facets se PEHLE lagta hai: ulta karne pe bar me ek pill dikhti jiska koi card
-    // list me hai hi nahi, aur usse click karne pe page khaali ho jaata
-    await publishedPackage('Chhota', { nights: 2, days: 3 })
-    await publishedPackage('Bada', { nights: 5, days: 6 })
-
-    const block = await tourWithList('List E', { durations: ['d2'] })
-
-    expect(block.data.cards.map((c) => c.title)).toEqual(['Chhota'])
-    expect(block.data.facets.map((f) => f.key)).toEqual(['d2'])
+    expect(block.data.cards.map((c) => c.title)).toEqual(['Live'])
     expect(block.data.total).toBe(1)
   })
 
-  it('price-asc sabse saste se lagata hai, aur bina daam wale neeche jaate hain', async () => {
-    await publishedPackage('Mehnga', { nights: 2, days: 3, pricing: pricing(40000) })
-    await publishedPackage('Sasta', { nights: 2, days: 3, pricing: pricing(11499) })
-    await publishedPackage('Bina Daam', { nights: 2, days: 3 })
+  it('trash me daala hua package card nahi banta', async () => {
+    // ⚠️ Ye `status` se **nahi** pakda jaata: trash `deletedAt` set karti hai aur `status` ko
+    // haath hi nahi lagati (D-25), yaani ek trashed package abhi bhi `published` hai. List ko
+    // sirf `deletedAt: null` bachata hai.
+    //
+    // Ye asli haalat hai, kaalpanik nahi — dev DB me is waqt 5 live packages hain aur 8
+    // trash me, aur teeenon ka `status` `published` hai
+    const live = await publishedPackage('Live', { nights: 2, days: 3 })
+    const gone = await publishedPackage('Trash me', { nights: 2, days: 3 })
+    await authed('post', `/api/entries/${gone}/trash`, adminJar).send({})
 
-    const block = await tourWithList('List F', { sort: 'price-asc', featuredFirst: false })
-
-    expect(block.data.cards.map((c) => c.title)).toEqual(['Sasta', 'Mehnga', 'Bina Daam'])
-  })
-
-  it('featuredFirst sort ke UPAR lagta hai, uski jagah nahi', async () => {
-    // Design me "Sort by" aur "Featured packages pehle" do alag control hain — featured ek
-    // tie-break hai jo kisi bhi sort ke saath chal sakta hai
-    await publishedPackage('Sasta', { nights: 2, days: 3, pricing: pricing(11499) })
-    await publishedPackage('Mehnga Featured', {
-      nights: 2,
-      days: 3,
-      pricing: pricing(40000),
-      featured: true,
-    })
-
-    const block = await tourWithList('List G', { sort: 'price-asc', featuredFirst: true })
-
-    expect(block.data.cards.map((c) => c.title)).toEqual(['Mehnga Featured', 'Sasta'])
-  })
-
-  it('draft package list me nahi aata', async () => {
-    await publishedPackage('Live', { nights: 2, days: 3 })
-    await createEntry(adminJar, { title: 'Draft', fields: { nights: 2, days: 3 } })
-
-    const block = await tourWithList('List H')
+    const block = await tourWithList('List T', { packageIds: [gone, live] })
 
     expect(block.data.cards.map((c) => c.title)).toEqual(['Live'])
   })
 
-  it('showFilters off ho to facets bante hi nahi', async () => {
-    await publishedPackage('A', { nights: 2, days: 3 })
+  it('bekaar id se 500 nahi aata — wo chup-chaap gir jaati hai', async () => {
+    // `$in` me galat shape wali string CastError phenkti hai, aur wo public page pe 500 ban
+    // jaati — jabki wo sirf ek purana reference hai
+    const live = await publishedPackage('Live', { nights: 2, days: 3 })
 
-    const block = await tourWithList('List I', { showFilters: false })
+    const block = await tourWithList('List H', { packageIds: ['kuch-bhi', live] })
 
-    expect(block.data.facets).toEqual([])
-    // ...par cards aur total phir bhi aate hain
-    expect(block.data.cards).toHaveLength(1)
-    expect(block.data.total).toBe(1)
+    expect(block.data.cards.map((c) => c.title)).toEqual(['Live'])
+  })
+
+  it('heading aur line props me jaate hain — theme ko wahin se milte hain', async () => {
+    const a = await publishedPackage('A', { nights: 2, days: 3 })
+
+    const block = await tourWithList('List I', {
+      heading: 'Best-selling Andaman packages',
+      subheading: 'Filter by duration',
+      packageIds: [a],
+    })
+
+    expect(block.props.heading).toBe('Best-selling Andaman packages')
+    expect(block.props.subheading).toBe('Filter by duration')
+  })
+})
+
+describe('sidebar — sirf layout aur visibility (client, 8 Sep)', () => {
+  const resolve = (path) => request(app).get(`/api/public/resolve?path=${path}`)
+
+  async function publishedTour(title, fields) {
+    const created = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
+      title,
+      ...(fields ? { fields } : {}),
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+    return created.body.data.entry.path
+  }
+
+  it('payload me left/right jaata hai', async () => {
+    const path = await publishedTour('Side Left', { sidebar: 'left' })
+
+    expect((await resolve(path)).body.data.entry.sidebar).toBe('left')
+  })
+
+  it('kuch na chuna ho to `none` — default se sidebar nahi aata (D-30)', async () => {
+    const path = await publishedTour('Side Default')
+
+    expect((await resolve(path)).body.data.entry.sidebar).toBe('none')
+  })
+
+  it('galat value 400 pe girti hai — theme isse seedha class me badalti hai', async () => {
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
+      title: 'Galat Sidebar',
+      fields: { sidebar: 'top' },
+    })
+
+    expect(res.status).toBe(400)
   })
 })
 

@@ -181,3 +181,116 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/*
+ * Package list ka do-column picker — client ka faisla (8 Sep).
+ *
+ * Baayen saare packages, daayen chune hue. Daayen wali list ka kram hi page ka kram hai,
+ * isliye wahin grip aur drag hai.
+ */
+.pick-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-bottom: 4px;
+}
+
+.picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.picker__col {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: #fff;
+  overflow: hidden;
+}
+
+.picker__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  background: #f6f7f7;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7b8798;
+}
+
+/* Dono column ki oonchai ek hi — warna chunte waqt panel uchhalta rehta hai. */
+.picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.picker__list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 12.5px;
+}
+
+.picker__list li:last-child {
+  border-bottom: 0;
+}
+
+.picker__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker__meta {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  flex: 0 0 auto;
+}
+
+/* Jo pehle se juda hua hai — uspe ＋ ki jagah ek chup ✓ */
+.picker__added {
+  color: #3d7a42;
+  font-weight: 700;
+  flex: 0 0 auto;
+  padding: 0 8px;
+}
+
+.picker__empty {
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 10px;
+}
+
+.picker__list .grip {
+  color: #a7aaad;
+  cursor: grab;
+  flex: 0 0 auto;
+}
+
+/* `useListDrag` ke do data-attribute — wahi jo itinerary aur menu items pe hain. */
+.picker__list li[data-dragging] {
+  opacity: 0.4;
+}
+
+.picker__list li[data-dragover] {
+  box-shadow: inset 0 2px 0 var(--primary);
+}
+
+@media (max-width: 900px) {
+  .picker {
+    grid-template-columns: 1fr;
+  }
+}

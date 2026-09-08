@@ -18,6 +18,7 @@ import {
   parseBlockProps,
   pricingSchema,
   ratingSchema,
+  sidebarSchema,
   statRailSchema,
   isReservedSlug,
   rebasePath,
@@ -221,6 +222,14 @@ function normalizeFields(fields, contentType) {
     const stats = statRailSchema.parse(fields.statRail)
     out.statRail = stats.map((stat) => ({ ...stat, id: stat.id || randomUUID() }))
   }
+
+  /**
+   * Sidebar — `none` · `left` · `right` (D-87, client 8 Sep).
+   *
+   * Ek chhota enum hai, par parse phir bhi zaroori: theme isse seedha class me badalti hai
+   * (`.pgl--sideleft`), aur bina rok ke koi bhi string wahan pahunch sakti hai.
+   */
+  if (has('sidebar')) out.sidebar = sidebarSchema.parse(fields.sidebar)
 
   /*
    * ⚠️ **`blocks` yahan **nahi** hai — 7 Sep ko badla (D-87 §7).**

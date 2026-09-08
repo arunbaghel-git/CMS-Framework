@@ -6172,6 +6172,83 @@ DB me reh gaya tha aur usse agla page `-2` pe chala gaya. Wo bhi saaf kiya gaya.
 
 **810 test pass**, admin build pass, lint + format clean.
 
+### §9 — Package list ab **chunav** hai, filter nahi (8 Sep)
+
+Client ne block ka poora model palta:
+
+> _"Isme do column honge — left side saare packages dikhenge, aur right me wo aayenge jo main
+> choose karunga. Upar ek filter hoga jisme radio buttons honge taaki ek hi filter choose ho.
+> Right side me added packages ko drag and drop kar sakein."_
+
+Aur uske baad, saaf karte hue: _"Filter jo admin me choose karenge wo frontend par package show
+ho jayenge. Purane filter hat jaayein. Agar day-wise wala radio choose karenge to dikh jaayengi
+pills."_
+
+#### Kya badla
+
+| | 7 Sep (purana) | 8 Sep |
+| --- | --- | --- |
+| List kahan se | server derive karta tha | **`props.packageIds`** — client ka chunav |
+| Kram | `sort` enum se | **usi array ka** — drag-and-drop |
+| Ginti | `limit` | jitne chune |
+| Kasauti | Package Type + Destination + Duration checkboxes, sab ek saath | **ek radio** — All · Package Type · Destination · Day wise |
+| Pills | `showFilters` checkbox | **sirf `Day wise` radio pe** |
+
+`sort`, `featuredFirst`, `durations` aur `limit` **chaaron hat gaye** — jab kram aur ginti dono
+client tay kar raha hai, unka koi matlab nahi bachta. `showBadges` bacha (wo filter nahi, display
+hai).
+
+#### ⚠️ Ek keemat maan li gayi hai
+
+**Naya package publish hone pe wo apne aap kisi tour page pe nahi aayega** — client ko us page pe
+jaakar use chunna padega. Pehle ulta tha. Ye us control ki keemat hai jo picker deta hai, aur wo
+client ka faisla hai.
+
+#### Radio ka dohra kaam
+
+Wahi ek control do jagah lagta hai: **admin me** baayen wali list chhoti karta hai, aur **page pe**
+`duration` hone par pills laata hai. Baaki teen kasautiyon pe bar render hi nahi hoti.
+
+⚠️ Admin ka filter **server pe** lagta hai (R14) — `useEntryList('package', { packageTypes: … })`.
+`duration` pe koi narrowing nahi hoti kyunki `nights` `fields` ke andar hai aur list endpoint uspe
+filter nahi karta; wo radio waise bhi dhoondhne ke liye nahi hai.
+
+#### Teen chetavniyaan jo code me likhi hain
+
+⚠️ **Kram `packageIds` ka hai, Mongo ka nahi** — `$in` apna kram rakhta hi nahi, aur wo kram client
+ne drag se banaya hai.
+
+⚠️ **Jo id resolve na ho wo chup-chaap gir jaati hai** — draft, unpublish, ya trash. Page pe ek
+toota hua card dikhane se behtar hai ki wo card na ho (D-30, D-42 §2 wala hi invariant).
+**Trash `status` ko haath nahi lagati** (D-25), yaani ek trashed package abhi bhi `published` hai
+— list ko sirf `deletedAt: null` bachata hai. Dev DB me is waqt 5 live aur 8 trashed packages
+hain, to ye kaalpanik nahi; uska apna test hai.
+
+⚠️ **`PACKAGE_LIST_SCAN_CAP` khatam** — wo 200 ki chhat isliye thi ki `price-asc` derived value pe
+sort karta tha aur uske liye poora set uthana padta tha. Ab ek `$in` query hai, koi scan nahi.
+
+### §10 — Sidebar page pe, form Appearance me (8 Sep)
+
+Client: _"Sidebar me only layout aur visibility tay karega, not kaunsa form — wo to Appearance me
+alag kaam hai."_
+
+Isliye **faisla #14 poora palta nahi, wo do hisson me bat gaya**:
+
+| Sawaal | Kahan |
+| --- | --- |
+| Sidebar hai ya nahi, aur kis taraf | **page pe** — `fields.sidebar` (`none` · `left` · `right`) |
+| Usme kya dikhega (form, widgets) | `Appearance ▸ Sidebar` — **Slice E**, abhi bana nahi |
+
+Ye lakeer theek jagah hai: **layout page ka apna faisla hai** (ek lambe article pe sidebar chubhta
+hai, ek listing page pe kaam ka hai), par **content site ka** — har page pe alag form rakhna wahi
+bikhraav banata jise D-65 ne section labels pe roka tha.
+
+⚠️ Default `none` hai, `right` nahi. Reference tour page pe sidebar hai, par default se use daal
+dene ka matlab hota ki har naya page bina maange ek khaali sidebar le kar aaye (D-30).
+
+⚠️ Enum chhota hai par phir bhi `.parse()` hota hai — theme isse **seedha class me** badalti hai
+(`.pgl--sideleft`), aur bina rok ke koi bhi string wahan pahunch sakti hai.
+
 #### ⚠️ Slice C ne scope paar kar liya tha — Pages wapas nikal gaye (8 Sep)
 
 **D-87 ka kaam Tour ka tha.** Slice C me faisla #2 ("koi template nahi, ek hi edit screen") ko

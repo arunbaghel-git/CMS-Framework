@@ -736,21 +736,19 @@ function resolveRating(own, fallback) {
  * 200 ek chhat hai, target nahi: site pe aaj **paanch** package hain. Iske bina ek din
  * 5000-package wali site pe ek page render poora collection memory me le aata.
  */
-const PACKAGE_LIST_SCAN_CAP = 200
-
 /**
- * Duration ke pills aur unki ginti — `.fbar` (client ka faisla #8).
+ * Duration ke pills aur unki ginti — `.fbar`.
  *
- * ⚠️ **Ginti derive hoti hai, store nahi** — wahi niyam jo hotels table (D-58) aur upar ke
- * daam (D-56) pe hai. Store karne ka matlab hota ki naya package publish karte hi har tour
- * page ka number chup-chaap jhootha ho jaaye.
+ * ⚠️ **Ginti derive hoti hai, store nahi** — wahi niyam jo hotels table (D-58) aur upar ke daam
+ * (D-56) pe hai. Store karne ka matlab hota ki client ek package hata de aur number waise ka
+ * waisa khada rahe.
  *
  * ⚠️ **`8N and longer` ek hi bucket hai**, aur wo reference se aaya hai — `tour-v3.html` me
  * literally `data-f="d8,d9,d12"` likha hai. Bina is bucket ke ek 8N, ek 9N aur ek 12N package
  * teen alag pills bana dete aur bar lambi hoti chali jaati.
  *
- * Jis package pe `nights` likhi hi nahi wo kisi pill me nahi jaata (par `All` me ginti hai) —
- * wahi guard jo `resolveSimilarPackages()` pe hai: bina uske `null` khud ek bucket ban jaata.
+ * Jis package pe `nights` likhi hi nahi wo kisi pill me nahi jaata — wahi guard jo
+ * `resolveSimilarPackages()` pe hai: bina uske `null` khud ek bucket ban jaata.
  */
 function durationFacets(docs) {
   const buckets = new Map()
@@ -786,114 +784,80 @@ function durationFacets(docs) {
 }
 
 /**
- * `Package list` block ke sort ke teen tareeke — props ka enum yahi hai (`page.js`).
+ * `Package list` block — page ka asli maal (`.prows` + `.fbar`).
  *
- * ⚠️ `featured` yahan **nahi** hai, aur wo design se aaya hai: usme "Sort by" me teen option
- * hain aur "Featured packages pehle" ek **alag checkbox**. Wo theek bhi hai — featured ek
- * *tie-break* hai jo kisi bhi sort ke saath chal sakta hai, uska vikalp nahi.
- */
-const SORTERS = {
-  recent: (a, b) => b.updatedAt - a.updatedAt,
-  duration: (a, b) => (a.nights ?? 999) - (b.nights ?? 999),
-  /** Bina daam wale packages hamesha **neeche** — upar aane se list tooti hui lagti hai (D-30). */
-  'price-asc': (a, b) => (a.price ?? Infinity) - (b.price ?? Infinity),
-}
-
-/**
- * `Package list` block — page ka asli maal (`.prows` + `.fbar`), D-87 faisla #6.
+ * ## ⚠️ Ye 8 Sep ko ulta ho gaya — filter se **chunav**
+ *
+ * Pehle ye block ek *filter* tha: client kasauti chunta tha (Package Type, Destination, sort,
+ * duration checkboxes, limit) aur server list banata tha. Client ne wo dekh kar do-column wala
+ * picker maanga — baayen saare packages, daayen chune hue, drag se kram.
+ *
+ * Ab **`props.packageIds` hi list hai, usi kram me**. Sort, `featuredFirst`, `durations` aur
+ * `limit` chaaron hat gaye: jab kram aur ginti dono client tay kar raha hai, unka koi matlab
+ * nahi bachta.
+ *
+ * Iske do nateeje hain, dono maan liye gaye:
+ *
+ * 1. **Naya package apne aap kisi tour page pe nahi aayega** — client ko us page pe jaakar use
+ *    chunna padega. Ye keemat hai us control ki jo picker deta hai.
+ * 2. **Ek `$in` query, koi scan nahi.** Pehle `PACKAGE_LIST_SCAN_CAP = 200` ki chhat lagti thi
+ *    kyunki `price-asc` derived value pe sort karta tha aur uske liye poora set uthana padta
+ *    tha. Ab wo poori jamaawat hi nahi hai.
  *
  * ⚠️ **Naya endpoint jaan-boojh kar nahi banaya.** List `resolve` ke payload me hi jaati hai,
- * `similar[]` ki tarah — usse `path:` cache tag (D-52) aur ISR (D-83) dono muft mil jaate
- * hain. Alag endpoint ka matlab hota ki wo call cache ke bahar rehti aur har page load pe
- * API tak jaati — theek wahi bug jo D-83 me teen hafte chhupa raha.
- *
- * ⚠️ Sort **JS me** hota hai, Mongo me nahi, aur wo majboori hai: `price-asc`/`price-desc`
- * `cheapestPricing()` se aate hain, jo ek derived value hai (`categoryPricing[]` me sabse
- * sasta bhara hua daam). Use Mongo me sort karne ka matlab hota ya to use store karna — aur
- * phir wo har pricing edit pe stale ho jaata — ya ek aggregation pipeline jo usi ginti ko
- * dobara likhti.
+ * `similar[]` ki tarah — usse `path:` cache tag (D-52) aur ISR (D-83) dono muft milte hain.
+ * Alag endpoint ka matlab hota ki wo call cache ke bahar rehti aur har page load pe API tak
+ * jaati — theek wahi bug jo D-83 me teen hafte chhupa raha.
  */
 async function resolvePackageListBlock(props, siteId, locale, defaults) {
-  const now = new Date()
+  /**
+   * `isObjectId` ka pehra zaroori hai: bekaar string `$in` me CastError phenkti hai aur wo
+   * public page pe **500** ban jaati, jabki wo sirf ek purana reference hai.
+   */
+  const wanted = (props.packageIds ?? []).filter(isObjectId)
+  if (!wanted.length) return { cards: [], facets: [], total: 0 }
 
-  const filter = {
+  const now = new Date()
+  const docs = await Entry.find({
+    _id: { $in: wanted },
     siteId,
     locale,
     type: 'package',
     deletedAt: null,
+    /**
+     * ⚠️ `status` ka filter **query me** hai, `isPubliclyVisible()` se nahi: wo ek document pe
+     * chalti hai, aur yahan list chahiye. Dono ka matlab ek hi rakha gaya hai — `published`,
+     * ya `scheduled` jiska waqt aa chuka (R2 wala self-healing).
+     */
     $or: [{ status: 'published' }, { status: 'scheduled', publishAt: { $lte: now } }],
-  }
+  }).lean()
 
   /**
-   * Taxonomy ka filter — `entry.taxonomies` ki apni key pe (D-49).
+   * **Kram `packageIds` ka hai, Mongo ka nahi.** `$in` apna kram nahi rakhta, aur client ne wo
+   * kram drag-and-drop se banaya hai — use query ke jawab pe chhod dena uska poora kaam mita
+   * dena hota.
    *
-   * `isObjectId` ka pehra zaroori hai: bekaar string `$in` me CastError phenkti hai aur wo
-   * public page pe **500** ban jaati, jabki wo sirf ek purana reference hai.
+   * Jo id resolve na ho (trash me chali gayi, ya unpublish ho gayi) wo chup-chaap gir jaati
+   * hai. Ye theek hai aur jaan-boojh kar hai: page pe ek toota hua card dikhane se behtar hai
+   * ki wo card na ho (D-30, aur wahi invariant jo D-42 §2 media pe hai).
    */
-  if (props.packageTypeId && isObjectId(props.packageTypeId)) {
-    filter['taxonomies.packageTypes'] = props.packageTypeId
-  }
-  if (props.destinationId && isObjectId(props.destinationId)) {
-    filter['taxonomies.destinations'] = props.destinationId
-  }
-
-  const scanned = await Entry.find(filter)
-    .sort({ updatedAt: -1 })
-    .limit(PACKAGE_LIST_SCAN_CAP)
-    .lean()
+  const byId = new Map(docs.map((doc) => [String(doc._id), doc]))
+  const ordered = wanted.map((id) => byId.get(id)).filter(Boolean)
 
   /**
-   * Client ne kaunsi duration ki pills chuni — **khaali list ka matlab sab** (design ke
-   * checkboxes).
+   * Pills **sirf `duration` wale radio pe** aati hain (client, 8 Sep) — baaki teen kasautiyon
+   * pe wo bar render hi nahi hoti.
    *
-   * ⚠️ Ye filter facets se **pehle** lagta hai. Ulta karne ka matlab hota ki bar me ek pill
-   * dikhe jiska koi card list me hai hi nahi — usse click karne pe page khaali ho jaata.
+   * Ginti chune hue packages me se hi banti hai, poore collection se nahi: bar aur cards ek hi
+   * set ke do roop hone chahiye, warna ek pill pe click karne pe page khaali ho jaata.
    */
-  const wanted = new Set(props.durations ?? [])
-  const docs = wanted.size
-    ? scanned.filter((doc) => wanted.has(durationBucket(doc.fields?.nights)))
-    : scanned
-
-  /** Facets **slice se pehle** — poori filtered list pe, warna ginti jhoothi ho jaati hai. */
-  const facets = props.showFilters ? durationFacets(docs) : []
-
-  /**
-   * Sort ki chaabi pehle nikaali jaati hai, phir sort — comparator ke andar
-   * `cheapestPricing()` chalane ka matlab hota use har comparison pe dobara ginna
-   * (O(n log n) baar), aur wo har baar `pricingSchema.parse()` bhi chalata.
-   */
-  const keyed = docs.map((doc) => ({
-    doc,
-    featured: Boolean(doc.fields?.featured),
-    updatedAt: new Date(doc.updatedAt ?? 0).getTime(),
-    nights: doc.fields?.nights ?? null,
-    price: cheapestPricing(pricingSchema.parse(doc.fields?.pricing ?? {}))?.priceFrom ?? null,
-  }))
-
-  const compare = SORTERS[props.sort] ?? SORTERS.duration
-
-  /**
-   * `featuredFirst` sort ke **upar** lagta hai, uski jagah nahi — design me wo ek alag
-   * checkbox hai. Isliye pehle featured, phir chuna hua kram.
-   */
-  keyed.sort(
-    props.featuredFirst
-      ? (a, b) => Number(b.featured) - Number(a.featured) || compare(a, b)
-      : compare,
-  )
-
-  const cards = await toPackageCards(
-    keyed.slice(0, props.limit).map((row) => row.doc),
-    siteId,
-    locale,
-    defaults.rating,
-  )
+  const facets = props.filter === 'duration' ? durationFacets(ordered) : []
 
   return {
-    cards,
+    cards: await toPackageCards(ordered, siteId, locale, defaults.rating),
     facets,
-    /** `.fbar__c` — `14 packages`. Ye poori filtered list ki ginti hai, dikh rahe cards ki nahi. */
-    total: docs.length,
+    /** `.fbar__c` — `14 packages`. */
+    total: ordered.length,
   }
 }
 
@@ -1041,6 +1005,17 @@ async function toPublicPage(doc, siteId, locale) {
       /** Khaali `value` wale cards gir jaate hain — khaali cheez khaali dikhe, tooti hui nahi (D-30). */
       statRail: (Array.isArray(fields.statRail) ? fields.statRail : []).filter((s) => s?.value),
     },
+
+    /**
+     * Sidebar — `none` · `left` · `right` (client, 8 Sep).
+     *
+     * ⚠️ Yahan sirf **layout** hai. Usme kaunsa form dikhega wo `Appearance ▸ Sidebar` ka kaam
+     * hai (Slice E) aur wo alag se aayega — client ne wo lakeer khud khinchi.
+     *
+     * `fields` ke bahar hai kyunki theme iska istemaal page ke **wrapper** pe karti hai
+     * (`.pgl--sideleft`), kisi section ke andar nahi.
+     */
+    sidebar: fields.sidebar ?? 'none',
 
     /**
      * Byline — teenon hisse derive hote hain, ek bhi field nahi (client ka faisla #9).

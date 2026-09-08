@@ -132,46 +132,64 @@ export function durationBucket(nights) {
 }
 
 /**
+ * Admin me packages **kaise dhoondhe jaate hain** — radio, yaani ek waqt me ek hi.
+ *
+ * ⚠️ Radio isliye, checkbox nahi (client, 8 Sep): checkbox kai dimension ek saath chun lene
+ * deta hai, aur phir "Honeymoon **aur** 5N/6D" jaisa sawaal banta hai jiska jawab picker me
+ * dikhana mushkil hai. Ek waqt me ek hi kasauti.
+ *
+ * `duration` ka ek **aur** kaam hai: wahi ek option page pe duration ki pills (`.fbar`) laata
+ * hai. Baaki teen pe pills nahi aatin.
+ */
+export const PACKAGE_LIST_FILTERS = Object.freeze(['all', 'packageType', 'destination', 'duration'])
+
+/**
  * `Package list` — page ka asli maal (`.prows` + `.fbar`).
  *
- * ⚠️ **Ye list yahan store nahi hoti.** Props sirf batate hain ki kaunse packages chunne
- * hain; asli cards server pe `resolve` ke payload me bante hain, `similar[]` ki tarah. Naya
- * endpoint jaan-boojh kar nahi banaya — usse `path:` cache tag (D-52) aur ISR (D-83) dono
- * muft mil jaate hain.
+ * ⚠️ **Cards yahan store nahi hote.** Props sirf batate hain ki kaunse packages, kis kram me;
+ * asli cards server pe `resolve` ke payload me bante hain, `similar[]` ki tarah. Naya endpoint
+ * jaan-boojh kar nahi banaya — usse `path:` cache tag (D-52) aur ISR (D-83) dono muft mil jaate
+ * hain.
  */
 export const packageListPropsSchema = z.object({
   /** Design me ye do field block ke sabse upar hain — section ka heading aur uske neeche ki line. */
   heading: z.string().trim().max(200).default(''),
   subheading: z.string().trim().max(300).default(''),
 
-  /** Khaali = sab package types. Taxonomy ki `id`, uska naam nahi (D-49). */
+  /**
+   * Kaunsi kasauti se packages dhoondhe ja rahe hain (radio).
+   *
+   * ⚠️ Ye **chunav ki jagah nahi leta** — page pe wahi packages jaate hain jo `packageIds` me
+   * hain. Iske do kaam hain: admin ke picker me baayen wali list chhoti karna, aur `duration`
+   * hone pe page pe pills laana.
+   */
+  filter: z.enum(PACKAGE_LIST_FILTERS).default('all'),
+
+  /** Chuni hui kasauti ki value. Taxonomy ki `id`, uska naam nahi (D-49). */
   packageTypeId: z.string().nullable().default(null),
   destinationId: z.string().nullable().default(null),
 
   /**
-   * ⚠️ Teen hi option hain, aur `featured` inme **nahi** hai — wo apna checkbox hai
-   * (`featuredFirst`). Design me dono alag hain, aur wo theek bhi hai: "featured pehle" ek
-   * *tie-break* hai jo kisi bhi sort ke saath chal sakta hai.
-   */
-  sort: z.enum(['duration', 'price-asc', 'recent']).default('duration'),
-  featuredFirst: z.boolean().default(true),
-
-  /**
-   * Kaunsi duration ki pills dikhein — **khaali list ka matlab sab**.
+   * **Is page pe kaunse packages, aur kis kram me** — client ka faisla (8 Sep).
    *
-   * ⚠️ **Ginti yahan nahi hai.** Design me har pill ke aage ek number dikhta hai, par wo
-   * padhne ke liye hai — `2N / 3D` ke kitne package hain. Wo server pe ginta hai, store nahi
-   * hota (wahi niyam jo hotels table pe hai, D-58): store karne ka matlab hota ki naya
-   * package publish karte hi har tour page ka number chup-chaap jhootha ho jaaye.
+   * ⚠️ **Ye poora model 7 Sep se ulta hai.** Pehle block ek *filter* tha: client kasauti
+   * chunta tha aur server list banata tha (sort, limit, featured-first, duration checkboxes).
+   * Client ne wo dekh kar do-column wala picker maanga — baayen saare packages, daayen chune
+   * hue, drag se kram.
+   *
+   * Isliye purane chaaron filter (`sort`, `featuredFirst`, `durations`, `limit`) **hata diye
+   * gaye**: jab kram aur ginti dono client khud tay kar raha hai, unka koi matlab nahi bachta.
+   *
+   * ⚠️ **Ek nateeja maan liya gaya hai:** naya package publish hone pe wo apne aap kisi tour
+   * page pe **nahi** aayega — client ko us page pe jaakar use chunna padega. Pehle ulta tha.
+   * Ye keemat hai us control ki jo do-column picker deta hai.
+   *
+   * Kram **isi array ka** hai. Wahi soch jo `content.blocks[]` pe hai (D-87 §7): kram wahin
+   * rehta hai jahan cheez rehti hai, kisi alag `order` field me nahi.
    */
-  durations: z.array(z.enum(DURATION_BUCKETS)).default([]),
+  packageIds: z.array(z.string()).max(60).default([]),
 
-  /** Kitne cards. 0 ka matlab "sab" nahi hai — wo `max` par ruk jaata hai. */
-  limit: z.number().int().min(1).max(60).default(14),
-
-  /** `.fbar` — Duration ke pills. Band karne pe poori bar render hi nahi hoti. */
-  showFilters: z.boolean().default(true),
-  /** Card pe rating aur discount ka badge — design ka teesra checkbox. */
+  /** Card pe rating aur discount ka badge — design ka checkbox. Filter nahi hai, isliye bacha. */
   showBadges: z.boolean().default(true),
 })
 
@@ -255,3 +273,27 @@ export const eyebrowSchema = z.string().trim().max(120).default('')
 
 /** Sub heading ek asli editor hai, plain text nahi (faisla #3) — isliye HTML. */
 export const subheadingSchema = htmlSchema.pipe(z.string().max(2000)).default('')
+
+/**
+ * Page pe sidebar — **sirf dikhe ya nahi, aur kis taraf** (client, 8 Sep).
+ *
+ * ⚠️ **Kaunsa form dikhega, wo yahan tay nahi hota** — client ne wo saaf kiya: _"sidebar me
+ * only layout aur visibility tay karega, not kaunsa form; wo to Appearance me alag kaam hai."_
+ * Yaani faisla #14 poora palta nahi — wo **do hisson me bat gaya**:
+ *
+ * | Sawaal | Kahan |
+ * | --- | --- |
+ * | Sidebar hai ya nahi, aur kis taraf | **page pe** (ye field) |
+ * | Usme kya dikhega (form, widgets) | `Appearance ▸ Sidebar` — alag kaam (Slice E) |
+ *
+ * Ye lakeer theek us jagah hai jahan hona chahiye: **layout page ka apna faisla hai** (ek lambe
+ * article pe sidebar chubhta hai, ek listing page pe kaam ka hai), par **content site ka** —
+ * har page pe alag form rakhna wahi bikhraav banata jise D-65 ne section labels pe roka tha.
+ *
+ * ⚠️ `none` default hai, `right` nahi. Reference tour page pe sidebar hai, par default se use
+ * daal dene ka matlab hota ki har naya page bina maange ek khaali sidebar le kar aaye —
+ * D-30: khaali cheez khaali dikhe, tooti hui nahi.
+ */
+export const PAGE_SIDEBAR = Object.freeze(['none', 'left', 'right'])
+
+export const sidebarSchema = z.enum(PAGE_SIDEBAR).default('none')

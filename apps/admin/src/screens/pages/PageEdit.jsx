@@ -457,6 +457,30 @@ export default function PageEdit({ type = 'tourPage' }) {
               <h2>Page settings</h2>
             </div>
             <div className="panel-body">
+              {/*
+               * Sidebar — **sirf layout aur visibility** (client, 8 Sep).
+               *
+               * ⚠️ Usme kaunsa form dikhega wo yahan tay nahi hota; wo `Appearance ▸ Sidebar`
+               * ka kaam hai (Slice E). Client ne wo lakeer khud khinchi, aur wo theek jagah
+               * hai: layout page ka apna faisla hai, content site ka.
+               */}
+              <div className="field">
+                <label>Sidebar</label>
+                <select
+                  className="sel"
+                  value={form.fields.sidebar ?? 'none'}
+                  onChange={(e) => setField('sidebar', e.target.value)}
+                  disabled={readOnly}
+                >
+                  <option value="none">Nahi chahiye</option>
+                  <option value="left">Left — content daayein</option>
+                  <option value="right">Right — content baayein</option>
+                </select>
+                <div className="hint">
+                  Usme kya dikhega — form, widgets — wo <b>Appearance ▸ Sidebar</b> se aata hai.
+                </div>
+              </div>
+
               <div className="field">
                 <label>Parent</label>
                 <select

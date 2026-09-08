@@ -1,5 +1,8 @@
 import { PAGE_BLOCK_TYPES } from '@cms/shared'
+import { useId } from 'react'
 
+import { useListDrag } from '../../lib/drag-list.js'
+import { useEntryList } from '../../lib/use-entries.js'
 import HtmlEditor from '../packages/HtmlEditor.jsx'
 import { useTaxonomyList } from '../packages/usePackages.js'
 import './PageBlocks.css'
@@ -227,27 +230,94 @@ function CardsBlock({ props, onChange, disabled }) {
   )
 }
 
-/** Reference ke pills — `2N / 3D`, aur aakhri `8N and longer`. */
-const DURATION_LABEL = {
-  d2: '2N / 3D',
-  d3: '3N / 4D',
-  d4: '4N / 5D',
-  d5: '5N / 6D',
-  d6: '6N / 7D',
-  d7: '7N / 8D',
-  d8plus: '8N and longer',
+/** Picker me naam ke aage chhota meta — `5N / 6D`. Dono me se ek bhi na ho to khaali. */
+function durationOf(fields) {
+  const nights = fields?.nights
+  const days = fields?.days
+
+  if (nights == null && days == null) return ''
+
+  return `${nights ?? '?'}N / ${days ?? '?'}D`
 }
 
+/**
+ * `Package list` — **do column ka picker** (client, 8 Sep).
+ *
+ * ```
+ * ◉ All  ○ Package Type [Honeymoon ▾]  ○ Destination [… ▾]  ○ Day wise
+ *
+ * ┌── SAARE PACKAGES ────────┐   ┌── IS PAGE PE ──────────────┐
+ * │ Emerald Andaman    [＋]  │   │ ⠿ Discover Andaman    [✕]  │
+ * │ Andaman Thrills    [＋]  │   │ ⠿ Andaman Escape      [✕]  │
+ * │ Discover Andaman    ✓    │   │                            │
+ * └──────────────────────────┘   └────────────────────────────┘
+ * ```
+ *
+ * ⚠️ **Ye 7 Sep wale model se ulta hai.** Pehle block ek *filter* tha: client kasauti chunta
+ * tha aur server list banata tha. Client ne wo dekh kar picker maanga — isliye `sort`,
+ * `featuredFirst`, `durations` aur `limit` chaaron hat gaye. Jab kram aur ginti dono client tay
+ * kar raha hai, unka koi matlab nahi bachta.
+ *
+ * ⚠️ **Radio, checkbox nahi** — client ka faisla: ek waqt me ek hi kasauti. Aur `Day wise` ka ek
+ * **aur** kaam hai: wahi ek option page pe duration ki pills laata hai.
+ */
 function PackageListBlock({ props, onChange, disabled }) {
+  /** Radio group ka naam har block pe alag hona chahiye — warna do Package list block ek doosre ka chunav badal dete. */
+  const radioName = useId()
   const destinations = useTaxonomyList('destination')
   const packageTypes = useTaxonomyList('packageType')
 
-  const chosen = props.durations ?? []
-  const toggleDuration = (key) =>
+  const filter = props.filter ?? 'all'
+  const chosen = props.packageIds ?? []
+
+  /**
+   * Baayen wali list — **filter server pe lagta hai, browser me nahi** (R14).
+   *
+   * `duration` pe koi narrowing nahi hoti: `nights` `fields` ke andar hai aur list endpoint uspe
+   * filter nahi karta. Wo radio waise bhi dhoondhne ke liye nahi hai — uska kaam page pe pills
+   * laana hai.
+   */
+  const { data: pool, loading } = useEntryList('package', {
+    limit: 200,
+    status: 'published',
+    ...(filter === 'packageType' && props.packageTypeId
+      ? { packageTypes: props.packageTypeId }
+      : {}),
+    ...(filter === 'destination' && props.destinationId
+      ? { destinations: props.destinationId }
+      : {}),
+  })
+
+  /** Daayen wali list ka kram — `packageIds` hi kram hai, isliye reorder yahin hota hai. */
+  const move = (from, to) => {
+    if (to < 0 || to >= chosen.length) return
+    const next = [...chosen]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    onChange({ ...props, packageIds: next })
+  }
+
+  const { handleProps, rowProps } = useListDrag(move, !disabled)
+
+  const byId = new Map(pool.map((p) => [p.id, p]))
+  const add = (id) => !chosen.includes(id) && onChange({ ...props, packageIds: [...chosen, id] })
+  const remove = (id) => onChange({ ...props, packageIds: chosen.filter((x) => x !== id) })
+
+  /** Radio badalne pe uski value bhi saaf — warna "All" pe bhi purani type chipki rehti. */
+  const setFilter = (next) =>
     onChange({
       ...props,
-      durations: chosen.includes(key) ? chosen.filter((d) => d !== key) : [...chosen, key],
+      filter: next,
+      ...(next === 'packageType' ? {} : { packageTypeId: null }),
+      ...(next === 'destination' ? {} : { destinationId: null }),
     })
+
+  const RADIOS = [
+    { key: 'all', label: 'All' },
+    { key: 'packageType', label: 'Package Type' },
+    { key: 'destination', label: 'Destination' },
+    { key: 'duration', label: 'Day wise' },
+  ]
 
   return (
     <>
@@ -272,122 +342,146 @@ function PackageListBlock({ props, onChange, disabled }) {
         </div>
       </div>
 
-      <div className="row3">
-        <div className="field">
-          <label>Package Type</label>
+      <label className="blk-sublabel">Filter</label>
+      <div className="pick-filter">
+        {RADIOS.map(({ key, label }) => (
+          <label className="inline-lbl" key={key}>
+            <input
+              type="radio"
+              name={radioName}
+              checked={filter === key}
+              onChange={() => setFilter(key)}
+              disabled={disabled}
+            />{' '}
+            {label}
+          </label>
+        ))}
+
+        {filter === 'packageType' && (
           <select
             className="sel"
+            style={{ width: 'auto' }}
             value={props.packageTypeId ?? ''}
             onChange={(e) => onChange({ ...props, packageTypeId: e.target.value || null })}
             disabled={disabled}
           >
-            <option value="">Any</option>
+            <option value="">— chuniye —</option>
             {packageTypes.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
               </option>
             ))}
           </select>
-        </div>
-        <div className="field">
-          <label>Destination</label>
+        )}
+
+        {filter === 'destination' && (
           <select
             className="sel"
+            style={{ width: 'auto' }}
             value={props.destinationId ?? ''}
             onChange={(e) => onChange({ ...props, destinationId: e.target.value || null })}
             disabled={disabled}
           >
-            <option value="">Any</option>
+            <option value="">— chuniye —</option>
             {destinations.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>
             ))}
           </select>
+        )}
+      </div>
+
+      {filter === 'duration' && (
+        <div className="hint">Page pe duration ki pills dikhengi — chune hue packages me se.</div>
+      )}
+
+      <div className="picker">
+        <div className="picker__col">
+          <div className="picker__head">
+            All packages <span className="muted">{loading ? '…' : pool.length}</span>
+          </div>
+          <ul className="picker__list">
+            {pool.map((pkg) => {
+              const added = chosen.includes(pkg.id)
+              return (
+                <li key={pkg.id}>
+                  <span className="picker__name">{pkg.title}</span>
+                  <span className="picker__meta">{durationOf(pkg.fields)}</span>
+                  {added ? (
+                    <span className="picker__added" title="Pehle se juda hua">
+                      ✓
+                    </span>
+                  ) : (
+                    <button
+                      className="btn btn-sm"
+                      type="button"
+                      onClick={() => add(pkg.id)}
+                      disabled={disabled}
+                    >
+                      ＋
+                    </button>
+                  )}
+                </li>
+              )
+            })}
+            {!loading && pool.length === 0 && (
+              <li className="picker__empty">Is filter pe koi package nahi.</li>
+            )}
+          </ul>
         </div>
-        <div className="field">
-          <label>Sort by</label>
-          <select
-            className="sel"
-            value={props.sort ?? 'duration'}
-            onChange={(e) => onChange({ ...props, sort: e.target.value })}
-            disabled={disabled}
-          >
-            <option value="duration">Nights — short to long</option>
-            <option value="price-asc">Price — low to high</option>
-            <option value="recent">Recently updated</option>
-          </select>
+
+        <div className="picker__col">
+          <div className="picker__head">
+            Is page pe <span className="muted">{chosen.length}</span>
+          </div>
+          <ul className="picker__list">
+            {chosen.map((id, i) => {
+              /**
+               * ⚠️ Jo package pool me na mile (draft ho gaya, ya trash me chala gaya) uski id
+               * phir bhi dikhti hai — chup-chaap gira dena client ka chunav uske bina bataye
+               * mita dena hota. Page pe wo waise bhi render nahi hoga.
+               */
+              const pkg = byId.get(id)
+              return (
+                <li key={id} {...rowProps(i)}>
+                  <span className="grip" {...handleProps(i)}>
+                    ⠿
+                  </span>
+                  <span className="picker__name">
+                    {pkg?.title ?? <em className="muted">(ab available nahi)</em>}
+                  </span>
+                  <span className="picker__meta">{pkg ? durationOf(pkg.fields) : ''}</span>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    type="button"
+                    onClick={() => remove(id)}
+                    disabled={disabled}
+                  >
+                    ✕
+                  </button>
+                </li>
+              )
+            })}
+            {chosen.length === 0 && (
+              <li className="picker__empty">
+                Abhi koi package nahi — baayen se ＋ dabaayein. Khaali chhoda to ye section page pe
+                nahi aayega.
+              </li>
+            )}
+          </ul>
         </div>
       </div>
 
-      <label className="blk-sublabel">Duration — kaunsi dikhein</label>
-      <div className="dur-grid">
-        {Object.entries(DURATION_LABEL).map(([key, label]) => (
-          <label className="inline-lbl" key={key}>
-            <input
-              type="checkbox"
-              checked={chosen.length === 0 || chosen.includes(key)}
-              onChange={() => toggleDuration(key)}
-              disabled={disabled}
-            />{' '}
-            {label}
-          </label>
-        ))}
-      </div>
-      {/*
-       * ⚠️ Ginti yahan **nahi** dikhti, aur wo jaan-boojh kar hai. Demo me har pill ke aage
-       * ek chhota input tha; wo padhne ke liye tha, likhne ke liye nahi. Number live packages
-       * pe depend karta hai — use yahan store karne ka matlab hota ki naya package publish
-       * karte hi wo chup-chaap jhootha ho jaaye (wahi niyam jo hotels table pe hai, D-58).
-       * Page pe wo server se ginta hua aata hai.
-       */}
-      <div className="hint">
-        Ek bhi na chunein to <b>sab</b> dikhengi. Har pill ke aage ki ginti page par server se aati
-        hai.
-      </div>
-
-      <div className="checklist" style={{ marginTop: 9 }}>
-        <label className="inline-lbl">
-          <input
-            type="checkbox"
-            checked={props.featuredFirst !== false}
-            onChange={(e) => onChange({ ...props, featuredFirst: e.target.checked })}
-            disabled={disabled}
-          />{' '}
-          Featured packages pehle
-        </label>
-        <label className="inline-lbl">
-          <input
-            type="checkbox"
-            checked={props.showFilters !== false}
-            onChange={(e) => onChange({ ...props, showFilters: e.target.checked })}
-            disabled={disabled}
-          />{' '}
-          Duration filter pills dikhayein
-        </label>
-        <label className="inline-lbl">
-          <input
-            type="checkbox"
-            checked={props.showBadges !== false}
-            onChange={(e) => onChange({ ...props, showBadges: e.target.checked })}
-            disabled={disabled}
-          />{' '}
-          Rating aur discount badge dikhayein
-        </label>
-      </div>
-
-      <div className="field" style={{ maxWidth: 160, marginTop: 10 }}>
-        <label>Kitne cards</label>
+      <label className="inline-lbl" style={{ marginTop: 10 }}>
         <input
-          className="inp"
-          type="number"
-          min={1}
-          max={60}
-          value={props.limit ?? 14}
-          onChange={(e) => onChange({ ...props, limit: Number(e.target.value) })}
+          type="checkbox"
+          checked={props.showBadges !== false}
+          onChange={(e) => onChange({ ...props, showBadges: e.target.checked })}
           disabled={disabled}
-        />
-      </div>
+        />{' '}
+        Rating aur discount badge dikhayein
+      </label>
     </>
   )
 }

@@ -239,6 +239,19 @@ const TOUR_PAGE_FIELDS = [
     label: 'Stat rail',
     help: 'Hero ke neeche ke chaar number',
   },
+  {
+    /**
+     * Sidebar hai ya nahi, aur kis taraf — `none` · `left` · `right` (client, 8 Sep).
+     *
+     * ⚠️ **Kaunsa form dikhega wo yahan tay nahi hota** — client ne wo saaf kiya. Layout page
+     * ka apna faisla hai, content site ka. Poora tark `schemas/page.js` me `sidebarSchema` ke
+     * upar hai.
+     */
+    key: 'sidebar',
+    type: 'select',
+    label: 'Sidebar',
+    help: 'Is page pe sidebar dikhe ya nahi, aur kis taraf',
+  },
   /*
    * ⚠️ **`blocks` yahan **nahi** hai — aur wo 7 Sep ko badla (D-87 §7).**
    *
