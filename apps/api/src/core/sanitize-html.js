@@ -269,7 +269,7 @@ export function sanitizeInlineHtml(html) {
  * | `richText` | `props.html` — "Text" block |
  * | `twoColumn` | `props.left` · `props.right` — dono khaane |
  * | `cards` | `props.items[].text` — **inline** profile |
- * | `faqs` | `props.items[].answer` |
+ * | `faqs` | `props.description` · `props.items[].answer` |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
  * ki content gir jaayega — wo bilkul theek save hoga, **bina safai ke**, aur page pe
@@ -316,6 +316,8 @@ export function sanitizeContent(content) {
             ...block,
             props: {
               ...p,
+              /** Heading ke neeche ki line — 8 Sep me judi (client). */
+              description: sanitizeBlockHtml(p.description),
               items: (p.items ?? []).map((faq) =>
                 faq ? { ...faq, answer: sanitizeBlockHtml(faq.answer) } : faq,
               ),

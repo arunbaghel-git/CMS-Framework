@@ -6204,14 +6204,54 @@ hai).
 jaakar use chunna padega. Pehle ulta tha. Ye us control ki keemat hai jo picker deta hai, aur wo
 client ka faisla hai.
 
-#### Radio ka dohra kaam
+#### ⚠️ Do filter, do alag kaam — usi din theek hua
 
-Wahi ek control do jagah lagta hai: **admin me** baayen wali list chhoti karta hai, aur **page pe**
-`duration` hone par pills laata hai. Baaki teen kasautiyon pe bar render hi nahi hoti.
+Pehle **ek hi radio** dono kaam karta tha: admin me list chhoti karta tha, **aur** page pe pills
+laata tha. Client ne wo alag karwaya:
 
-⚠️ Admin ka filter **server pe** lagta hai (R14) — `useEntryList('package', { packageTypes: … })`.
-`duration` pe koi narrowing nahi hoti kyunki `nights` `fields` ke andar hai aur list endpoint uspe
-filter nahi karta; wo radio waise bhi dhoondhne ke liye nahi hai.
+> _"Jo filter abhi admin me hai wo **only left side ke liye** rahega. Ab right side me bhi ek
+> checkbox ka filter lagao jo single check kar sake, **for showing filtered packages on
+> frontend**."_
+
+| | Kahan | Kiske liye |
+| --- | --- | --- |
+| `browseBy` | picker ka **baayan** column | **admin** — package dhoondhne ke liye |
+| `pageFilter` | picker ka **daayan** column | **visitor** — page pe filter bar |
+
+Ye lakeer zaroori thi. Ek hi control se dono kaam karwane ka matlab tha ki client ko "Honeymoon"
+chunna pade **sirf** isliye ki wo Honeymoon packages dhoondh raha hai — aur uska side-effect page
+pe chala jaata.
+
+⚠️ **`pageFilter` ab teen kism ki bar bana sakta hai**, sirf duration nahi: `packageType`,
+`destination`, `duration`. Taxonomy wali facets `resolveTaxonomies()` se naam uthati hain aur
+**naam se sort** hoti hain, ginti se nahi — warna ek package publish hote hi pills apni jagah
+badal leti aur client ko lagta ki bar hil rahi hai.
+
+⚠️ **Ek package kai taxonomies me ho sakta hai**, isliye facets ke `count` ka jod cards ki ginti
+se **zyada** ho sakta hai. Live check pe wahi dikha — 5 packages, aur
+`Havelock[5] Neil Island[5] Port Blair[5]`. Ye theek hai: "Havelock ke 5" ka matlab hai paanch
+package Havelock jaate hain, ye nahi ki wo paanch **sirf** Havelock jaate hain.
+
+⚠️ **UI checkbox hai, behaviour radio ka** — client ne shart yahi rakhi (_"single check kar sake,
+not multiple"_). Chuna hua dobara click karne pe `none` pe wapas; wo raasta radio nahi deta.
+
+⚠️ `browseBy` me `duration` **nahi** hai: `nights` `fields` ke andar hai aur list endpoint uspe
+filter nahi karta, to wo option baayen kuch narrow karta hi nahi. Use rakhne ka matlab hota ek
+aisa radio jo dabaane pe kuch na kare.
+
+#### Search — baayen column me
+
+`q` param pe, **server pe** (R14). ⚠️ **300ms ka debounce zaroori hai**: hook apni dep badalte hi
+refetch karta hai, to bina debounce ke har keystroke ek API call banati.
+
+#### FAQs block me description
+
+Heading ke neeche ki line, **asli editor** — wahi jodi jo `packageDefaults.sectionLabels` pe hai
+(D-65/D-69), aur usi wajah se: client ko usme bold aur link chahiye hote hain.
+
+⚠️ **Khaali line poori tarah gayab ho jaati hai**, khaali heading ki tarah fallback pe nahi jaati —
+D-65 wala hi model. Aur wo `sanitizeContent()` ki list me bhi juda: chhoot jaane ka matlab hota ki
+wo HTML **bina safai ke bach** jaati (R20).
 
 #### Teen chetavniyaan jo code me likhi hain
 

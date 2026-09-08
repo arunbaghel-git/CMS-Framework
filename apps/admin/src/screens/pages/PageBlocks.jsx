@@ -1,5 +1,5 @@
 import { ENTRY_LIST_MAX_LIMIT, PAGE_BLOCK_TYPES } from '@cms/shared'
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 import { useListDrag } from '../../lib/drag-list.js'
 import { useEntryList } from '../../lib/use-entries.js'
@@ -48,7 +48,7 @@ function emptyBlock(type) {
     twoColumn: { ratio: '50-50', left: '', right: '', reverseOnMobile: false },
     cards: { columns: 3, items: [] },
     packageList: {},
-    faqs: { heading: '', items: [], emitSchema: true },
+    faqs: { heading: '', description: '', items: [], emitSchema: true },
   }[type]
 
   return { id: newId(), type, props: props ?? {} }
@@ -267,15 +267,30 @@ function PackageListBlock({ props, onChange, disabled }) {
   const destinations = useTaxonomyList('destination')
   const packageTypes = useTaxonomyList('packageType')
 
-  const filter = props.filter ?? 'all'
+  const browseBy = props.browseBy ?? 'all'
+  const pageFilter = props.pageFilter ?? 'none'
   const chosen = props.packageIds ?? []
+
+  /**
+   * Search — **server pe** chalti hai (`q`, `searchText` pe regex), browser me nahi (R14).
+   *
+   * ⚠️ Debounce zaroori hai: bina uske har keystroke ek API call banati, kyunki hook apni dep
+   * badalte hi refetch karta hai. 300ms wahi hai jo aadmi ke rukne aur list ke badalne ke beech
+   * chubhta nahi.
+   */
+  const [search, setSearch] = useState('')
+  const [applied, setApplied] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setApplied(search.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
   /**
    * Baayen wali list — **filter server pe lagta hai, browser me nahi** (R14).
    *
-   * `duration` pe koi narrowing nahi hoti: `nights` `fields` ke andar hai aur list endpoint uspe
-   * filter nahi karta. Wo radio waise bhi dhoondhne ke liye nahi hai — uska kaam page pe pills
-   * laana hai.
+   * ⚠️ Yahan `browseBy` chalta hai, `pageFilter` **nahi**. Dono alag cheezein hain: ye picker me
+   * dhoondhne ke liye hai, wo page pe visitor ke liye (client, 8 Sep).
    */
   const {
     data: pool,
@@ -289,10 +304,11 @@ function PackageListBlock({ props, onChange, disabled }) {
      */
     limit: ENTRY_LIST_MAX_LIMIT,
     status: 'published',
-    ...(filter === 'packageType' && props.packageTypeId
+    ...(applied ? { q: applied } : {}),
+    ...(browseBy === 'packageType' && props.packageTypeId
       ? { packageTypes: props.packageTypeId }
       : {}),
-    ...(filter === 'destination' && props.destinationId
+    ...(browseBy === 'destination' && props.destinationId
       ? { destinations: props.destinationId }
       : {}),
   })
@@ -313,16 +329,31 @@ function PackageListBlock({ props, onChange, disabled }) {
   const remove = (id) => onChange({ ...props, packageIds: chosen.filter((x) => x !== id) })
 
   /** Radio badalne pe uski value bhi saaf — warna "All" pe bhi purani type chipki rehti. */
-  const setFilter = (next) =>
+  const setBrowseBy = (next) =>
     onChange({
       ...props,
-      filter: next,
+      browseBy: next,
       ...(next === 'packageType' ? {} : { packageTypeId: null }),
       ...(next === 'destination' ? {} : { destinationId: null }),
     })
 
-  const RADIOS = [
+  /**
+   * Page wala filter — **checkbox dikhta hai, chalta radio ki tarah hai** (client: _"single
+   * check kar sake, not multiple"_).
+   *
+   * Chuna hua dobara click karne pe `none` pe wapas — checkbox ka yahi ek faayda radio pe hai,
+   * aur usse "koi filter nahi" chunna mumkin rehta hai.
+   */
+  const setPageFilter = (next) =>
+    onChange({ ...props, pageFilter: pageFilter === next ? 'none' : next })
+
+  const BROWSE = [
     { key: 'all', label: 'All' },
+    { key: 'packageType', label: 'Package Type' },
+    { key: 'destination', label: 'Destination' },
+  ]
+
+  const PAGE_FILTERS = [
     { key: 'packageType', label: 'Package Type' },
     { key: 'destination', label: 'Destination' },
     { key: 'duration', label: 'Day wise' },
@@ -351,67 +382,74 @@ function PackageListBlock({ props, onChange, disabled }) {
         </div>
       </div>
 
-      <label className="blk-sublabel">Filter</label>
-      <div className="pick-filter">
-        {RADIOS.map(({ key, label }) => (
-          <label className="inline-lbl" key={key}>
-            <input
-              type="radio"
-              name={radioName}
-              checked={filter === key}
-              onChange={() => setFilter(key)}
-              disabled={disabled}
-            />{' '}
-            {label}
-          </label>
-        ))}
-
-        {filter === 'packageType' && (
-          <select
-            className="sel"
-            style={{ width: 'auto' }}
-            value={props.packageTypeId ?? ''}
-            onChange={(e) => onChange({ ...props, packageTypeId: e.target.value || null })}
-            disabled={disabled}
-          >
-            <option value="">— choose —</option>
-            {packageTypes.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        )}
-
-        {filter === 'destination' && (
-          <select
-            className="sel"
-            style={{ width: 'auto' }}
-            value={props.destinationId ?? ''}
-            onChange={(e) => onChange({ ...props, destinationId: e.target.value || null })}
-            disabled={disabled}
-          >
-            <option value="">— choose —</option>
-            {destinations.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      {filter === 'duration' && (
-        <div className="hint">
-          The page shows duration pills, built from the packages you picked.
-        </div>
-      )}
-
       <div className="picker">
         <div className="picker__col">
           <div className="picker__head">
             All packages <span className="muted">{loading ? '…' : pool.length}</span>
           </div>
+
+          {/*
+           * Baayen ke dono control — search aur browse filter — **sirf dhoondhne ke liye**
+           * hain. Inka page pe koi asar nahi (client, 8 Sep).
+           */}
+          <div className="picker__tools">
+            <input
+              className="inp"
+              type="search"
+              placeholder="Search packages…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              disabled={disabled}
+            />
+
+            <div className="pick-filter">
+              {BROWSE.map(({ key, label }) => (
+                <label className="inline-lbl" key={key}>
+                  <input
+                    type="radio"
+                    name={radioName}
+                    checked={browseBy === key}
+                    onChange={() => setBrowseBy(key)}
+                    disabled={disabled}
+                  />{' '}
+                  {label}
+                </label>
+              ))}
+            </div>
+
+            {browseBy === 'packageType' && (
+              <select
+                className="sel"
+                value={props.packageTypeId ?? ''}
+                onChange={(e) => onChange({ ...props, packageTypeId: e.target.value || null })}
+                disabled={disabled}
+              >
+                <option value="">— choose —</option>
+                {packageTypes.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {browseBy === 'destination' && (
+              <select
+                className="sel"
+                value={props.destinationId ?? ''}
+                onChange={(e) => onChange({ ...props, destinationId: e.target.value || null })}
+                disabled={disabled}
+              >
+                <option value="">— choose —</option>
+                {destinations.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
           <ul className="picker__list">
             {pool.map((pkg) => {
               const added = chosen.includes(pkg.id)
@@ -454,8 +492,39 @@ function PackageListBlock({ props, onChange, disabled }) {
 
         <div className="picker__col">
           <div className="picker__head">
-            Is page pe <span className="muted">{chosen.length}</span>
+            On this page <span className="muted">{chosen.length}</span>
           </div>
+
+          {/*
+           * Page ka filter — **checkbox dikhta hai, chalta radio ki tarah hai** (client:
+           * _"single check kar sake, not multiple"_). Chuna hua dobara click karne pe `none`
+           * pe wapas — checkbox ka yahi ek faayda radio pe hai.
+           *
+           * ⚠️ Ye baayen wale se **bilkul alag** hai: wo sirf admin me list chhoti karta hai,
+           * ye visitor ko page pe milta hai.
+           */}
+          <div className="picker__tools">
+            <span className="picker__toolslabel">Filter on the page</span>
+            <div className="pick-filter">
+              {PAGE_FILTERS.map(({ key, label }) => (
+                <label className="inline-lbl" key={key}>
+                  <input
+                    type="checkbox"
+                    checked={pageFilter === key}
+                    onChange={() => setPageFilter(key)}
+                    disabled={disabled}
+                  />{' '}
+                  {label}
+                </label>
+              ))}
+            </div>
+            <div className="hint" style={{ margin: 0 }}>
+              {pageFilter === 'none'
+                ? 'No filter bar on the page.'
+                : 'The page shows a filter bar, built from the packages you picked.'}
+            </div>
+          </div>
+
           <ul className="picker__list">
             {chosen.map((id, i) => {
               /**
@@ -524,6 +593,21 @@ function FaqsBlock({ props, onChange, disabled }) {
           onChange={(e) => onChange({ ...props, heading: e.target.value })}
           disabled={disabled}
         />
+      </div>
+
+      {/*
+       * Heading ke neeche ki line — asli editor, plain text nahi (client, 8 Sep). Wahi jodi jo
+       * `packageDefaults.sectionLabels` pe hai (D-65/D-69).
+       */}
+      <div className="field">
+        <label>Description</label>
+        <HtmlEditor
+          value={props.description ?? ''}
+          onChange={(description) => onChange({ ...props, description })}
+          disabled={disabled}
+          height={130}
+        />
+        <div className="hint">Leave it empty and the line does not appear on the page.</div>
       </div>
 
       {items.map((faq, i) => (

@@ -2289,14 +2289,15 @@ describe('content blocks (D-87 §7)', () => {
   it('props apne type ke schema se validate hote hain, aur defaults bharte hain', async () => {
     const res = await createTour(adminJar, {
       title: 'Props Test',
-      content: contentOf({ id: 'p1', type: 'packageList', props: { filter: 'duration' } }),
+      content: contentOf({ id: 'p1', type: 'packageList', props: { pageFilter: 'duration' } }),
     })
 
     const doc = await Entry.findById(res.body.data.entry.id).lean()
 
     // `.parse()` defaults bhar deta hai, isliye theme ko `?? []` har jagah nahi likhna padta
     expect(doc.content.blocks[0].props).toMatchObject({
-      filter: 'duration',
+      pageFilter: 'duration',
+      browseBy: 'all',
       packageIds: [],
       showBadges: true,
       packageTypeId: null,
@@ -2307,7 +2308,7 @@ describe('content blocks (D-87 §7)', () => {
   it('galat props 400 pe girte hain — chup-chaap store nahi hote', async () => {
     const res = await createTour(adminJar, {
       title: 'Galat Props',
-      content: contentOf({ id: 'p1', type: 'packageList', props: { filter: 'kuch-bhi' } }),
+      content: contentOf({ id: 'p1', type: 'packageList', props: { pageFilter: 'kuch-bhi' } }),
     })
 
     expect(res.status).toBe(400)
@@ -2586,8 +2587,12 @@ describe('Tour Page ka public payload (D-87)', () => {
 })
 
 describe('Package list block ka payload (D-87)', () => {
-  async function publishedPackage(title, fields) {
-    const created = await createEntry(adminJar, { title, fields })
+  async function publishedPackage(title, fields, taxonomies) {
+    const created = await createEntry(adminJar, {
+      title,
+      fields,
+      ...(taxonomies ? { taxonomies } : {}),
+    })
     await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
     return created.body.data.entry.id
   }
@@ -2639,7 +2644,7 @@ describe('Package list block ka payload (D-87)', () => {
     const off = await tourWithList('List C', { packageIds: [a, b, c] })
     expect(off.data.facets).toEqual([])
 
-    const on = await tourWithList('List D', { filter: 'duration', packageIds: [a, b, c] })
+    const on = await tourWithList('List D', { pageFilter: 'duration', packageIds: [a, b, c] })
     expect(on.data.facets).toEqual([
       { key: 'd2', label: '2N / 3D', nights: 2, count: 2 },
       { key: 'd5', label: '5N / 6D', nights: 5, count: 1 },
@@ -2652,16 +2657,65 @@ describe('Package list block ka payload (D-87)', () => {
     const a = await publishedPackage('Chuna', { nights: 2, days: 3 })
     await publishedPackage('Nahi chuna', { nights: 2, days: 3 })
 
-    const block = await tourWithList('List E', { filter: 'duration', packageIds: [a] })
+    const block = await tourWithList('List E', { pageFilter: 'duration', packageIds: [a] })
 
     expect(block.data.facets).toEqual([{ key: 'd2', label: '2N / 3D', nights: 2, count: 1 }])
+  })
+
+  it('browseBy ka page pe koi asar nahi — wo sirf admin ke picker ke liye hai', async () => {
+    // Client ne dono filter alag karwaye (8 Sep): baayan wala sirf list chhoti karta hai, page
+    // pe kya dikhega wo `pageFilter` tay karta hai. Ek hi control se dono kaam karwane ka matlab
+    // tha ki client ko "Honeymoon" chunna pade sirf dhoondhne ke liye, aur wo page pe chala jaata
+    const a = await publishedPackage('A', { nights: 2, days: 3 })
+
+    const block = await tourWithList('List B2', {
+      browseBy: 'packageType',
+      pageFilter: 'none',
+      packageIds: [a],
+    })
+
+    expect(block.data.facets).toEqual([])
+    expect(block.data.cards).toHaveLength(1)
+  })
+
+  it('pageFilter packageType pe taxonomy ki pills aati hain', async () => {
+    const tax = async (name) =>
+      (await authed('post', '/api/taxonomies', adminJar).send({ type: 'packageType', name })).body
+        .data.taxonomy.id
+
+    const honeymoon = await tax('Honeymoon')
+    const family = await tax('Family')
+
+    /**
+     * ⚠️ **Ek package kai types me ho sakta hai**, isliye `count` ka jod cards ki ginti se
+     * zyada ho sakta hai. Ye theek hai: "Honeymoon ke 2" ka matlab hai do package honeymoon
+     * hain, ye nahi ki wo do sirf honeymoon hain.
+     */
+    const a = await publishedPackage('A', { nights: 2, days: 3 }, { packageTypes: [honeymoon] })
+    const b = await publishedPackage(
+      'B',
+      { nights: 5, days: 6 },
+      { packageTypes: [honeymoon, family] },
+    )
+
+    const block = await tourWithList('List B3', {
+      pageFilter: 'packageType',
+      packageIds: [a, b],
+    })
+
+    // Kram naam se hai, ginti se nahi — warna ek package publish hote hi pills apni jagah badal
+    // leti aur client ko lagta ki bar hil rahi hai
+    expect(block.data.facets.map((f) => [f.label, f.count])).toEqual([
+      ['Family', 1],
+      ['Honeymoon', 2],
+    ])
   })
 
   it('8N aur usse lambe ek hi bucket me jaate hain — reference ka data-f="d8,d9,d12"', async () => {
     const a = await publishedPackage('Long A', { nights: 8, days: 9 })
     const b = await publishedPackage('Long B', { nights: 12, days: 13 })
 
-    const block = await tourWithList('List F', { filter: 'duration', packageIds: [a, b] })
+    const block = await tourWithList('List F', { pageFilter: 'duration', packageIds: [a, b] })
 
     expect(block.data.facets).toEqual([
       { key: 'd8plus', label: '8N and longer', nights: null, count: 2 },

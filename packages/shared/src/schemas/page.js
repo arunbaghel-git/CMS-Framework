@@ -132,16 +132,47 @@ export function durationBucket(nights) {
 }
 
 /**
- * Admin me packages **kaise dhoondhe jaate hain** — radio, yaani ek waqt me ek hi.
+ * **Do alag filter hain, aur unka kaam bilkul alag hai** (client, 8 Sep — doosra pass).
  *
- * ⚠️ Radio isliye, checkbox nahi (client, 8 Sep): checkbox kai dimension ek saath chun lene
- * deta hai, aur phir "Honeymoon **aur** 5N/6D" jaisa sawaal banta hai jiska jawab picker me
- * dikhana mushkil hai. Ek waqt me ek hi kasauti.
+ * Pehle ek hi radio tha jo dono kaam karta tha: admin me list chhoti karta tha, **aur** page pe
+ * pills laata tha. Client ne wo alag karwaya:
  *
- * `duration` ka ek **aur** kaam hai: wahi ek option page pe duration ki pills (`.fbar`) laata
- * hai. Baaki teen pe pills nahi aatin.
+ * > _"Jo filter abhi admin me hai wo **only left side ke liye** rahega. Ab right side me bhi ek
+ * > checkbox ka filter lagao jo single check kar sake, **for showing filtered packages on
+ * > frontend**."_
+ *
+ * | | Kahan | Kiske liye | Store hota hai? |
+ * | --- | --- | --- | --- |
+ * | `browseBy` | picker ka **baayan** column | **admin** — package dhoondhne ke liye | haan, taaki agli baar wahi chunav khula mile |
+ * | `pageFilter` | picker ka **daayan** column | **visitor** — page pe filter bar | haan, wo page ka hissa hai |
+ *
+ * ⚠️ Ye lakeer zaroori thi. Ek hi control se dono kaam karwane ka matlab tha ki client ko
+ * "Honeymoon" chunna pade **sirf** isliye ki wo Honeymoon packages dhoondh raha hai — aur uska
+ * side-effect page pe chala jaata.
  */
-export const PACKAGE_LIST_FILTERS = Object.freeze(['all', 'packageType', 'destination', 'duration'])
+
+/**
+ * Baayen column ko chhota karne ke tareeke.
+ *
+ * ⚠️ `duration` yahan **nahi** hai, aur wo jaan-boojh kar hai: `nights` `fields` ke andar baithi
+ * hai aur list endpoint uspe filter nahi karta, to wo option baayen kuch narrow karta hi nahi.
+ * Use rakhne ka matlab hota ek aisa radio jo dabaane pe kuch na kare.
+ */
+export const PACKAGE_BROWSE_FILTERS = Object.freeze(['all', 'packageType', 'destination'])
+
+/**
+ * Page pe visitor ko kaunsi filter bar milegi — **ek hi, ya koi nahi**.
+ *
+ * Client ne checkbox maange (radio nahi) par shart wahi rakhi: _"single check kar sake, not
+ * multiple"_. Isliye UI checkbox hai aur behaviour radio ka — dusra chunte hi pehla khul jaata
+ * hai. Wo `none` pe wapas aane ka raasta bhi de deta hai, jo radio nahi deta.
+ */
+export const PACKAGE_PAGE_FILTERS = Object.freeze([
+  'none',
+  'packageType',
+  'destination',
+  'duration',
+])
 
 /**
  * `Package list` — page ka asli maal (`.prows` + `.fbar`).
@@ -157,17 +188,24 @@ export const packageListPropsSchema = z.object({
   subheading: z.string().trim().max(300).default(''),
 
   /**
-   * Kaunsi kasauti se packages dhoondhe ja rahe hain (radio).
+   * **Sirf admin ke picker ke liye** — baayen wali list kis kasauti se chhoti ho.
    *
-   * ⚠️ Ye **chunav ki jagah nahi leta** — page pe wahi packages jaate hain jo `packageIds` me
-   * hain. Iske do kaam hain: admin ke picker me baayen wali list chhoti karna, aur `duration`
-   * hone pe page pe pills laana.
+   * ⚠️ Iska page pe **koi asar nahi** hai. Page pe wahi packages jaate hain jo `packageIds` me
+   * hain, aur unpe kaunsi filter bar dikhegi wo `pageFilter` tay karta hai.
    */
-  filter: z.enum(PACKAGE_LIST_FILTERS).default('all'),
+  browseBy: z.enum(PACKAGE_BROWSE_FILTERS).default('all'),
 
-  /** Chuni hui kasauti ki value. Taxonomy ki `id`, uska naam nahi (D-49). */
+  /** `browseBy` ki value. Taxonomy ki `id`, uska naam nahi (D-49). */
   packageTypeId: z.string().nullable().default(null),
   destinationId: z.string().nullable().default(null),
+
+  /**
+   * **Page pe visitor ko kaunsi filter bar milegi** — `.fbar`.
+   *
+   * Facets chune hue packages me se hi bunti hain, poore collection se nahi: bar aur cards ek
+   * hi set ke do roop hone chahiye, warna ek pill pe click karne pe page khaali ho jaata hai.
+   */
+  pageFilter: z.enum(PACKAGE_PAGE_FILTERS).default('none'),
 
   /**
    * **Is page pe kaunse packages, aur kis kram me** — client ka faisla (8 Sep).
@@ -206,6 +244,20 @@ export const packageListPropsSchema = z.object({
  */
 export const faqsPropsSchema = z.object({
   heading: z.string().trim().max(200).default(''),
+
+  /**
+   * Heading ke neeche ki line — **asli editor**, plain text nahi (client, 8 Sep).
+   *
+   * Wahi jodi jo `packageDefaults.sectionLabels` pe hai (D-65): har section ka apna heading aur
+   * uske neeche apni line. Wahan bhi wo rich text hai (D-69), aur usi wajah se — client ko usme
+   * bold aur link chahiye hote hain.
+   *
+   * ⚠️ **Khaali line poori tarah gayab ho jaati hai**, khaali heading ki tarah fallback pe nahi
+   * jaati. Yahi D-65 wala model hai, aur wahan uska tark likha hai: heading ke bina section
+   * bemaani lagta hai, par line ke bina bilkul theek dikhta hai.
+   */
+  description: htmlSchema.pipe(z.string().max(2000)).default(''),
+
   items: z.array(faqSchema).max(50).default([]),
   emitSchema: z.boolean().default(true),
 })

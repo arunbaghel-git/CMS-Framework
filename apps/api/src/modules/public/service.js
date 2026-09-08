@@ -784,6 +784,59 @@ function durationFacets(docs) {
 }
 
 /**
+ * Taxonomy ke hisaab se facets — Package Type ya Destination ki pills.
+ *
+ * ⚠️ **Ek package kai taxonomies me ho sakta hai** (do destinations, do types). Isliye har id
+ * apni ginti me judti hai aur `count` ka jod cards ki ginti se **zyada** ho sakta hai. Ye theek
+ * hai aur wahi hai jo visitor expect karta hai: "Havelock ke 4" ka matlab hai chaar package
+ * Havelock jaate hain, ye nahi ki wo chaar sirf Havelock jaate hain.
+ *
+ * Kram **taxonomy ke naam se** hai, ginti se nahi — warna ek package publish hote hi pills apni
+ * jagah badal leti aur client ko lagta ki bar hil rahi hai.
+ */
+async function taxonomyFacets(docs, refKey, siteId, locale) {
+  const counts = new Map()
+
+  for (const doc of docs) {
+    for (const id of doc.taxonomies?.[refKey] ?? []) {
+      counts.set(id, (counts.get(id) ?? 0) + 1)
+    }
+  }
+
+  if (counts.size === 0) return []
+
+  const resolved = await resolveTaxonomies([...counts.keys()], siteId, locale)
+
+  return resolved
+    .map((tax) => ({ key: tax.id, label: tax.name, nights: null, count: counts.get(tax.id) ?? 0 }))
+    .sort((a, b) => a.label.localeCompare(b.label))
+}
+
+/**
+ * Page pe kaunsi filter bar dikhegi — `pageFilter` ke hisaab se (client, 8 Sep).
+ *
+ * ⚠️ **Ye picker ke baayen wale filter se alag hai.** Wo (`browseBy`) sirf admin me list chhoti
+ * karta hai; ye visitor ko milta hai. Client ne dono ko alag karwaya, aur wo theek tha: ek hi
+ * control se dono kaam karwane ka matlab tha ki client ko "Honeymoon" chunna pade sirf isliye
+ * ki wo Honeymoon packages dhoondh raha hai — aur uska side-effect page pe chala jaata.
+ *
+ * Facets **chune hue packages me se hi** bunti hain, poore collection se nahi: bar aur cards ek
+ * hi set ke do roop hone chahiye, warna ek pill pe click karne pe page khaali ho jaata hai.
+ */
+async function resolveFacets(pageFilter, docs, siteId, locale) {
+  switch (pageFilter) {
+    case 'duration':
+      return durationFacets(docs)
+    case 'packageType':
+      return taxonomyFacets(docs, 'packageTypes', siteId, locale)
+    case 'destination':
+      return taxonomyFacets(docs, 'destinations', siteId, locale)
+    default:
+      return []
+  }
+}
+
+/**
  * `Package list` block — page ka asli maal (`.prows` + `.fbar`).
  *
  * ## ⚠️ Ye 8 Sep ko ulta ho gaya — filter se **chunav**
@@ -844,17 +897,17 @@ async function resolvePackageListBlock(props, siteId, locale, defaults) {
   const byId = new Map(docs.map((doc) => [String(doc._id), doc]))
   const ordered = wanted.map((id) => byId.get(id)).filter(Boolean)
 
-  /**
-   * Pills **sirf `duration` wale radio pe** aati hain (client, 8 Sep) — baaki teen kasautiyon
-   * pe wo bar render hi nahi hoti.
-   *
-   * Ginti chune hue packages me se hi banti hai, poore collection se nahi: bar aur cards ek hi
-   * set ke do roop hone chahiye, warna ek pill pe click karne pe page khaali ho jaata.
-   */
-  const facets = props.filter === 'duration' ? durationFacets(ordered) : []
+  const [cards, facets] = await Promise.all([
+    toPackageCards(ordered, siteId, locale, defaults.rating),
+    /**
+     * ⚠️ **`pageFilter`, `browseBy` nahi.** Wo doosra wala sirf admin ke picker me baayen wali
+     * list chhoti karta hai aur page tak pahunchta hi nahi (client, 8 Sep).
+     */
+    resolveFacets(props.pageFilter, ordered, siteId, locale),
+  ])
 
   return {
-    cards: await toPackageCards(ordered, siteId, locale, defaults.rating),
+    cards,
     facets,
     /** `.fbar__c` — `14 packages`. */
     total: ordered.length,
