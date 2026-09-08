@@ -2401,6 +2401,26 @@ describe('content blocks (D-87 §7)', () => {
     }
   })
 
+  it('bina attribute wale <span> khul jaate hain, class/style wale bachte hain', async () => {
+    /*
+     * Client ne 8 Sep ko pakda: usne FAQ me saada text paste kiya aur Text tab me
+     * `<p><span>No. Roundtrip flights…</span></p>` dikha — use laga kuch aur paste ho gaya.
+     * Text sahi tha, bas browser ke clipboard ka ek bekaar span saath aa gaya tha.
+     *
+     * ⚠️ `class`/`style` wale span **kabhi** nahi chhue jaate — D-80 ka poora vaada usi pe hai.
+     */
+    const res = await createTour(adminJar, {
+      title: 'Span Test',
+      content: contentOf(
+        textBlock('t1', '<p><span>saada</span> aur <span class="k">rakha hua</span></p>'),
+      ),
+    })
+
+    const html = (await Entry.findById(res.body.data.entry.id).lean()).content.blocks[0].props.html
+
+    expect(html).toBe('<p>saada aur <span class="k">rakha hua</span></p>')
+  })
+
   it('normalize safai se PEHLE chalta hai — warna saaf ki hui HTML wapas gandi ho jaati', async () => {
     // Ulta kram wahi jaal hai jo `normalizeFields()` ke aakhir me likha hai (D-80): parse
     // input se dobara padhta hai aur saaf ki hui value ko overwrite kar deta

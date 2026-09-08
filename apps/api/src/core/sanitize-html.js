@@ -221,6 +221,36 @@ const INLINE = {
 }
 
 /**
+ * Bina attribute wale `<span>` khol do — 8 Sep me juda.
+ *
+ * ⚠️ **Client ne ye pakda, aur uska lakshan dhokha dene wala tha:** usne FAQ me saada text
+ * paste kiya aur Text tab me `<p><span>No. Roundtrip flights…</span></p>` dikha — use laga ki
+ * "kuch aur paste ho gaya". Text bilkul sahi tha; sirf ek bekaar `<span>` uske saath aa gaya tha.
+ *
+ * Wo `<span>` browser se aata hai: rendered page se copy karne pe clipboard usme apni styling ke
+ * span daal deta hai. Hum TinyMCE se kehte hain _"kuch mat chhaanto"_ (`valid_elements: '*[*]'`,
+ * D-80) taaki client ka `class`/`id`/`style` bach sake — uska side effect ye hai ki paste ka
+ * kachra bhi bach jaata hai.
+ *
+ * ⚠️ **Sirf wo `<span>` khulta hai jiska koi attribute na ho.** `<span class="x">` ya
+ * `<span style="…">` bilkul chhua nahi jaata — wo client ka apna faisla hai aur D-80 ka poora
+ * vaada usi pe khada hai. Bina attribute ke span ka koi matlab hota hi nahi.
+ *
+ * Loop isliye ki span ek doosre ke andar bhi ho sakte hain (`<span><span>x</span></span>`);
+ * chhat isliye ki koi gadha hua input use hamesha ke liye ghumaa na sake.
+ */
+function unwrapBareSpans(html) {
+  let out = html
+  for (let i = 0; i < 5; i++) {
+    const next = out.replace(/<span>([\s\S]*?)<\/span>/g, '$1')
+    if (next === out) break
+    out = next
+  }
+
+  return out
+}
+
+/**
  * Block-level rich text saaf karo.
  *
  * @param {unknown} html
@@ -229,7 +259,7 @@ const INLINE = {
 export function sanitizeBlockHtml(html) {
   if (!html) return ''
 
-  return sanitizeHtmlLib(String(html), BLOCK)
+  return unwrapBareSpans(sanitizeHtmlLib(String(html), BLOCK))
 }
 
 /**
@@ -241,7 +271,7 @@ export function sanitizeBlockHtml(html) {
 export function sanitizeInlineHtml(html) {
   if (!html) return ''
 
-  return sanitizeHtmlLib(String(html), INLINE)
+  return unwrapBareSpans(sanitizeHtmlLib(String(html), INLINE))
 }
 
 // ── kaunsa field HTML hai — ek hi jagah ─────────────────────────────────────

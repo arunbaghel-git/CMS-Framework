@@ -282,6 +282,27 @@ export default function HtmlEditor({ value, onChange, disabled = false, height =
               paste_data_images: false,
 
               /**
+               * ⚠️ **Paste pe bina attribute wale `<span>` khol do** — client, 8 Sep.
+               *
+               * Usne FAQ me saada text paste kiya aur Text tab me
+               * `<p><span>No. Roundtrip flights…</span></p>` dikha; use laga ki kuch aur paste ho
+               * gaya. Text sahi tha — sirf ek bekaar span saath aa gaya tha. Wo browser ke
+               * clipboard se aata hai, aur upar wali do line (`valid_elements: '*[*]'`) use rok
+               * nahi sakti kyunki unka poora kaam hi **kuch na chhaantna** hai (D-80).
+               *
+               * ⚠️ Wahi safai server pe bhi hai (`unwrapBareSpans`, `core/sanitize-html.js`) —
+               * wo authority hai. Yahan sirf isliye ki client ko **turant** saaf HTML dikhe,
+               * save aur reload ka intezaar na karna pade.
+               *
+               * ⚠️ `class`/`style` wale span **chhue nahi jaate** — wo client ke apne hain.
+               */
+              paste_postprocess: (_editor, args) => {
+                for (const span of args.node.querySelectorAll('span')) {
+                  if (span.attributes.length === 0) span.replaceWith(...span.childNodes)
+                }
+              },
+
+              /**
                * ⚠️ **`skin: false` ka matlab "skin nahi chahiye" nahi hai** — matlab hai
                * "skin ki CSS **URL se mat laao**". Wo CSS `TinyMceEditor.jsx` bundle se laata
                * hai, taaki koi CDN call na ho (self-hosted, D-77). Wahi baat `content_css`
