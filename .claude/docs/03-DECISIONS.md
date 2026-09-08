@@ -6286,6 +6286,29 @@ bikhraav banata jise D-65 ne section labels pe roka tha.
 ⚠️ Default `none` hai, `right` nahi. Reference tour page pe sidebar hai, par default se use daal
 dene ka matlab hota ki har naya page bina maange ek khaali sidebar le kar aaye (D-30).
 
+#### Sidebar ek **named cheez** banega — par Slice E me, abhi nahi
+
+Client ne aage jaakar saaf kiya:
+
+> _"Sidebar me choose karne par, suppose Left — to uske baad saare sidebar ki list aa jaayegi,
+> uske baad choose kar lenge kaunsa sidebar add karna hai."_
+
+Yaani sidebar Menus jaisi cheez hai: ek site pe **kai sidebars**, har ek ka apna naam aur apne
+widgets. Page do cheezein chunta hai — **jagah** (left/right) aur **kaunsa sidebar**.
+
+⚠️ **Wo dropdown abhi nahi bana, aur ye jaan-boojh kar hai.** `sidebars` naam ki koi collection
+hai hi nahi — wo poora `Appearance ▸ Sidebar` ka kaam hai (Slice E): nayi collection, module,
+screen aur public payload. Abhi dropdown daal dene ka matlab hota ek **hamesha khaali** control
+jisme se kuch chunna mumkin hi na ho — aur wo D-30 ka palan nahi, uska ulta hai.
+
+**Client ne raasta B chuna** (8 Sep): page pe abhi sirf `none`/`left`/`right`, aur "kaunsa
+sidebar" wala chunav Slice E ke saath aayega. Tab `fields.sidebar` ek string se `{ position, id }`
+banega — ek chhota shape badlaav, aur uski migration bhi chhoti hogi kyunki tab tak asli data
+lagbhag hoga hi nahi.
+
+⚠️ Ye poochhna zaroori tha. Ek din pehle bilkul yahi galti ho chuki thi: Pages ki screens bina
+poochhe ban gayi thin kyunki wo "aas-paas ka kaam" lagta tha. **Scope ek faisle se nahi badhta.**
+
 ⚠️ Enum chhota hai par phir bhi `.parse()` hota hai — theme isse **seedha class me** badalti hai
 (`.pgl--sideleft`), aur bina rok ke koi bhi string wahan pahunch sakti hai.
 
@@ -6362,8 +6385,11 @@ test nahi hota. Par jo hissa **toota tha** wo pure hai, aur wo ab
 
 - **Slice D** — theme (`.vhero` · `.vrail` · `.fbar`/`.dpill` · `.prows` · `.dcard` · two-column
   · `.toc` · `.ctastrip`), aur `apps/web` ka catch-all page-shaped payload padhna
-- **Slice E** — `Appearance ▸ Sidebar` (faisla #14). Wo `forms.placement` ka wo gap bhi bharta
-  hai jo `form.js:152` pe likha hai: paanch placement design hui thin, do hi bani
+- **Slice E** — `Appearance ▸ Sidebar` (faisla #14). Ab uska daayra teen cheezein hai:
+  **(a)** `sidebars` collection — named sidebars, har ek ke apne widgets (client, 8 Sep);
+  **(b)** page pe "kaunsa sidebar" wala dropdown, yaani `fields.sidebar` string se
+  `{ position, id }`; **(c)** `forms.placement` ka wo gap jo `form.js:152` pe likha hai —
+  paanch placement design hui thin, do hi bani
 - **Tour list ka `Packages` column** — abhi **blocks ki ginti** hai, packages ki nahi. Design me
   wahan `11` jaisa number hai; wo live packages pe depend karta hai, isliye server pe hi ban
   sakta hai aur uske liye list endpoint ko per-row query karni padegi
