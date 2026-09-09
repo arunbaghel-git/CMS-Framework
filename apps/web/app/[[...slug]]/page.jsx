@@ -1,5 +1,6 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation'
 
+import PostPage from '../../components/blog/PostPage.jsx'
 import PackagePage from '../../components/package/PackagePage.jsx'
 import TourPage from '../../components/tour/TourPage.jsx'
 import { getPackageDefaults, getSettings, resolvePath } from '../../lib/cms.js'
@@ -88,6 +89,24 @@ export default async function CatchAllPage({ params }) {
     return <PackagePage entry={entry} defaults={defaults} settings={settings} />
   }
 
+  if (entry.type === 'post') {
+    /**
+     * Blog post — `blog-detail-v1.html` (spec 008, Slice D).
+     *
+     * ⚠️ **Ye branch se pehle post neeche wale fallback pe girta tha, jahan sirf `<h1>` chhapta
+     * hai.** Yaani Slice A–C ka bhara hua sab kuch — TOC, prev/next, related, sidebar — public
+     * site pe **dikhta hi nahi tha**. Theek wahi haalat jo 8 Sep tak `tourPage` ki thi
+     * (D-87 §11), aur wahi lakshan: koi error nahi, bas kuch na hona.
+     *
+     * `getPackageDefaults()` yahan nahi aata — wo `sectionLabels`, pricing note aur hotels hai,
+     * sab package page ki cheezein. Ek aur fetch ka matlab hota ek aur cache tag aur ek aur
+     * round trip, us data ke liye jise ye page chhoota bhi nahi.
+     */
+    const settings = await getSettings()
+
+    return <PostPage entry={entry} settings={settings} />
+  }
+
   if (entry.type === 'page' || entry.type === 'tourPage') {
     /**
      * Dono ka payload ek hi hai (`toPublicPage()`) aur field set bhi ek hi constant (D-87 §1) —
@@ -108,10 +127,14 @@ export default async function CatchAllPage({ params }) {
   }
 
   /**
-   * Baaki types (post) ke template abhi nahi bane.
+   * Bache hue types — aaj **`blogPage`**, jiska template Slice D2 me banega (spec 008).
+   *
+   * ⚠️ Pehle yahan `post` likha tha; wo Slice D me apni branch pe chala gaya. Ye comment us
+   * din update nahi hota to wo ek jhootha ishaara chhod jaata — theek wahi cheez jo D-89 me
+   * do baar mili (byline aur `.blk` pe reference dekhe bina maan liya gaya tha).
    *
    * Yahan `notFound()` **nahi** hai: entry sach me maujood hai aur publish bhi ho chuki
-   * hai; 404 dena jhooth hota. Ek saada render se kam se kam title aur content dikhta hai.
+   * hai; 404 dena jhooth hota. Ek saada render se kam se kam title dikh jaata hai.
    */
   return (
     <main className="wrap" style={{ padding: '48px 0' }}>

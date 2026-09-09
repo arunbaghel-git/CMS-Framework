@@ -1,0 +1,384 @@
+import Img from '../Img.jsx'
+import CtaSection from '../package/CtaSection.jsx'
+import { EnquiryDockProvider } from '../package/EnquiryDock.jsx'
+import MobileBar from '../package/MobileBar.jsx'
+import Blocks from '../tour/Blocks.jsx'
+import Sidebar from '../tour/Sidebar.jsx'
+import BlogSchema from './BlogSchema.jsx'
+import PostCard from './PostCard.jsx'
+import PostNav from './PostNav.jsx'
+
+/**
+ * Blog post ka template — `blog-detail-v1.html` (spec 008, Slice D).
+ *
+ * ```
+ * .vhero      banner + breadcrumb + .ahead__cat + h1 + author/date/read time
+ * .pgl        main + sidebar   (sidebar Settings ▸ Blog settings se, per-post nahi)
+ *   .art      article ka body — blocks
+ *   .share    chaar share link
+ *   .authorbox
+ *   .pn       previous / next
+ *   .bpg      Related reading
+ * .offer      CTA — settings se, package/tour wala hi component
+ * .mobar      mobile ki patti; form popup usi se khulta hai
+ * ```
+ *
+ * ## ⚠️ Yahan naya kya **nahi** bana
+ *
+ * | Cheez | Kahan se |
+ * | --- | --- |
+ * | Content ke blocks | `tour/Blocks.jsx` — post ke blocks (`richText` + `faqs`) wahin bane hue hain, aur `wrapTables()` bhi wahin hai (D-90) |
+ * | Sidebar | `tour/Sidebar.jsx` — wahi widgets, wahi `StickySide` |
+ * | Mobile pe form ka popup | `EnquiryDockProvider` + `MobileBar` — bilkul wahi jo tour aur itinerary pe hai (client, 9 Sep) |
+ * | Aakhri CTA | `package/CtaSection.jsx`, `settings.ctaSection` se — **static**, tour/itinerary jaisa hi (client, 9 Sep) |
+ *
+ * Doosra `Blocks` ya doosra `Sidebar` likhne ka matlab hota ki client ki table ek page pe wrap
+ * ho aur doosre pe nahi — theek wahi jo D-65/D-51/D-58 pe teen baar bachaya gaya.
+ */
+
+/** `Andaman Tourism team` → `AT`. Avatar ke liye koi field nahi — naam se hi banta hai. */
+const initials = (name) =>
+  String(name ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+
+const longDate = (value) =>
+  value
+    ? new Date(value).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : ''
+
+/**
+ * Share ke chaar link — Facebook · X · WhatsApp · copy.
+ *
+ * ⚠️ **Inka koi backend nahi hai aur na hoga** (spec 008 ke "scope me kya NAHI hai"). Ye saade
+ * `href` hain; koi count, koi API. `copy` wala bhi ek link hai jo isi page pe le jaata hai —
+ * uske liye JS lagana matlab is poore page ko client component banana, jo ek icon ke liye
+ * bahut mehngi keemat hai.
+ */
+const SHARE = [
+  {
+    key: 'facebook',
+    label: 'Share on Facebook',
+    href: (url) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    path: 'M13.5 22v-8h2.7l.4-3.1h-3.1V8.9c0-.9.25-1.5 1.55-1.5H16.7V4.6c-.3 0-1.3-.13-2.45-.13-2.42 0-4.08 1.48-4.08 4.2v2.34H7.45V14h2.72v8z',
+  },
+  {
+    key: 'x',
+    label: 'Share on X',
+    href: (url, title) =>
+      `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`,
+    path: 'M17.5 3h3.2l-7 8 8.2 10h-6.4l-5-6.1L4.7 21H1.5l7.5-8.6L1.2 3h6.6l4.5 5.6zm-1.1 16.1h1.8L7.7 4.8H5.8z',
+  },
+  {
+    key: 'whatsapp',
+    label: 'Share on WhatsApp',
+    href: (url, title) => `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`,
+    path: 'M17.5 14.4c-.3-.2-1.7-.9-2-1s-.5-.1-.7.2-.7 1-.9 1.2-.4.2-.7 0a8.2 8.2 0 0 1-2.4-1.5 9 9 0 0 1-1.7-2.1c-.2-.3 0-.5.1-.6l.5-.6.3-.5v-.5l-1-2.3c-.2-.6-.5-.5-.7-.5h-.6a1.2 1.2 0 0 0-.9.4 3.6 3.6 0 0 0-1.1 2.7 6.3 6.3 0 0 0 1.3 3.3 14.3 14.3 0 0 0 5.5 4.8c2.6 1 2.6.7 3.1.6a3.2 3.2 0 0 0 2.1-1.5 2.6 2.6 0 0 0 .2-1.5zM12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2z',
+  },
+]
+
+/**
+ * `On this post` — reference ka `.toc` (spec 008).
+ *
+ * ⚠️ **Ye ek sidebar widget NAHI hai.** Wo `blogSettings.showToc` ke ek checkbox pe hai (client,
+ * 9 Sep: _"blog settings me checkbox bana denge sabke liye"_) aur post ke apne `<h2>` se banti
+ * hai. Widget banane ka matlab hota **do control** — checkbox aur "list me hona" — aur do me se
+ * ek hi yaad rehta (wahi tark jise D-88 ne `talkToPlanner` pe likha tha).
+ *
+ * ⚠️ **Dono shart server pe lag chuki hain** — `showToc` off ho ya 3 se kam heading hon, dono
+ * soorat me `entry.toc` **khaali** aata hai. Isliye yahan sirf lambai dekhi jaati hai: theme ko
+ * koi niyam yaad nahi rakhna, aur wo niyam do jagah alag nahi ho sakta (D-65 wala hi tark).
+ *
+ * ⚠️ Heading ke `id` bhi server pe lagte hain (`withHeadingIds()`), usi ek pass me jisme ye list
+ * bani. Do jagah slug banane pe wo ek din alag ho jaate aur har link kahin na le jaata.
+ */
+function Toc({ items = [] }) {
+  if (!items.length) return null
+
+  return (
+    <div className="wdg">
+      <div className="wdg__h">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+        >
+          <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+        </svg>
+        On this post
+      </div>
+      <div className="wdg__b">
+        <ul className="toc">
+          {items.map((item) => (
+            <li key={item.id}>
+              <a href={`#${item.id}`}>{item.text}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+function Share({ url, title }) {
+  /**
+   * ⚠️ Site ka pata configured na ho to share links **render hi nahi hote**. Relative path se
+   * bane link Facebook pe `undefined/blog/x` bhejte — ek toota hua button us button se bura hai
+   * jo hai hi nahi (D-30).
+   */
+  if (!url) return null
+
+  return (
+    <div className="share">
+      <b>Share</b>
+      {SHARE.map((item) => (
+        <a
+          key={item.key}
+          href={item.href(url, title)}
+          aria-label={item.label}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d={item.path} />
+          </svg>
+        </a>
+      ))}
+    </div>
+  )
+}
+
+export default function PostPage({ entry, settings }) {
+  const {
+    banner,
+    breadcrumbs = [],
+    category,
+    author = {},
+    sidebar,
+    sidebarWidgets = [],
+    related = [],
+  } = entry
+
+  /**
+   * ⚠️ **TOC bhi column banane ki wajah hai.** Client ne sidebar chuni ho par usme widget na
+   * hon, aur TOC on ho — us haalat me bhi column chahiye, warna uska on kiya hua TOC
+   * chup-chaap gayab ho jaata (D-30 ka ulta: yahan cheez **hai**, dikhti nahi).
+   */
+  const hasSidebar =
+    sidebar !== 'none' && (sidebarWidgets.length > 0 || (entry.toc ?? []).length > 0)
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? settings?.siteUrl
+  const shareUrl = siteUrl ? `${siteUrl.replace(/\/$/, '')}${entry.path}` : null
+
+  return (
+    /**
+     * `EnquiryDockProvider` — mobile pe form ek sheet ki tarah khulta hai, `.mobar` ke
+     * **Get free quote** se (client, 9 Sep: _"mobile par form popup ban jayega, tour/itinerary
+     * me hai"_). Bilkul wahi jodi jo `TourPage` pe hai; naya kuch nahi.
+     */
+    <EnquiryDockProvider>
+      <BlogSchema entry={entry} settings={settings} />
+
+      {/*
+       * ⚠️ `<main className="tour">` — wo class page ko **tinted background** deti hai
+       * (`--bg: #f4f7fa`), jo reference me hai aur hamari body me nahi. Ye 9 Sep ka pakda hua
+       * kaanta hai: uske bina CTA ka safed band body ki safedi me ghul jaata hai aur uski jagah
+       * "bekaar khaali jagah" jaisi dikhti hai.
+       *
+       * Naam `tour` hai aur ye blog page hai — wo tang lagta hai, par ek nayi class banane ka
+       * matlab hota do class jo bilkul ek jaisa karti hain (D-86). Wo class ab "page ka tinted
+       * shell" hai, "tour ka" nahi.
+       */}
+      <main className="tour">
+        <section className="vhero">
+          {banner && (
+            <div className="vhero__bg">
+              {/* Hero ki image LCP hai — `priority` uspe `fetchpriority="high"` lagata hai (D-84). */}
+              <Img image={banner} alt="" sizes="100vw" priority />
+            </div>
+          )}
+
+          <div className="wrap vhero__in">
+            {/* `Home` static root hai — `resolveBreadcrumbs()` sirf parent chain deta hai (D-87 #12). */}
+            <nav className="vcrumb" aria-label="Breadcrumb">
+              <a href="/">Home</a>
+              {breadcrumbs.map((crumb, i) => (
+                <span key={crumb.path ?? i}>
+                  <i>›</i>
+                  <a href={crumb.path}>{crumb.name}</a>
+                </span>
+              ))}
+              <i>›</i>
+              <b>{entry.title}</b>
+            </nav>
+
+            {category && <span className="ahead__cat">{category.name}</span>}
+
+            {/*
+             * ⚠️ **`entry.title`, koi `fields.heading` nahi** — aur ye `TourPage` se soch kar
+             * alag hai. D-90 ne wo field `tourPage` ke liye banaya tha kyunki wahan `<h1>` me
+             * `<em>` se rang chahiye tha. Ek article ka `<h1>` uska title **hi** hota hai; do
+             * field rakhne ka matlab hota ki breadcrumb, card aur `<title>` ek naam kahein aur
+             * page doosra (D-86).
+             */}
+            <h1 className="ahead__t">{entry.title}</h1>
+
+            {entry.excerpt && <p className="ahead__d">{entry.excerpt}</p>}
+
+            {/*
+             * Byline — author `blogSettings` se, date `publishAt` se, read time derived.
+             *
+             * ⚠️ **Author khaali ho to uska poora hissa gir jaata hai**, "Unknown" nahi chhapta —
+             * aur admin ka naam yahan kabhi pahunchta hi nahi (wo payload me hai hi nahi, R10).
+             */}
+            <div className="ahead__m">
+              {author.name && (
+                <span className="ahead__au">
+                  <span className="ahead__av">{initials(author.name)}</span>
+                  <span>
+                    <b>{author.name}</b>
+                    {author.role ? <span>{author.role}</span> : null}
+                  </span>
+                </span>
+              )}
+
+              {entry.publishedAt && (
+                <>
+                  {author.name && <i className="ahead__dot" />}
+                  <span className="ahead__x">Published {longDate(entry.publishedAt)}</span>
+                </>
+              )}
+
+              {entry.readMinutes > 0 && (
+                <>
+                  <i className="ahead__dot" />
+                  <span className="ahead__x">{entry.readMinutes} min read</span>
+                </>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="sec sec--blue">
+          <div className="wrap">
+            {/*
+             * ⚠️ `.pgl--sideleft` ek **modifier** hai — `.pgl` package page pe bhi chalti hai
+             * aur wahan sidebar right hai. Use seedha badalna us page ka layout tod deta
+             * (D-87 §11 ka maloom kaanta).
+             */}
+            <div
+              className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
+            >
+              <div className="pgl__main">
+                <article className="art">
+                  {/*
+                   * ⚠️ **Blocks `tour/Blocks.jsx` se** — post ke dono block (`richText`, `faqs`)
+                   * wahin bane hue hain, aur `wrapTables()` bhi wahin hai (D-90). Doosra renderer
+                   * likhne ka matlab hota ki client ki table ek page pe wrap ho aur doosre pe
+                   * nahi.
+                   *
+                   * ⚠️ Heading ke `id` server pe lag chuke hote hain (`withHeadingIds()`), aur
+                   * TOC ke link unhi pe jaate hain — dono ek hi pass se aate hain.
+                   */}
+                  <Blocks blocks={entry.blocks ?? []} />
+
+                  <Share url={shareUrl} title={entry.title} />
+
+                  {/*
+                   * Author box — `blogSettings.author` se poora. `bio` na ho to box render hi
+                   * nahi hota: naam aur role hero me pehle se hain, to bina bio ke ye box wahi
+                   * baat dobara kehta (D-30).
+                   */}
+                  {author.name && author.bio && (
+                    <div className="authorbox">
+                      <span className="authorbox__av">{initials(author.name)}</span>
+                      <div>
+                        <b>{author.name}</b>
+                        {author.role ? <span>{author.role}</span> : null}
+                        <p>{author.bio}</p>
+                      </div>
+                    </div>
+                  )}
+                </article>
+
+                <PostNav prev={entry.prev} next={entry.next} />
+
+                {related.length > 0 && (
+                  <div style={{ marginTop: 'clamp(22px,2.8vw,34px)' }}>
+                    <div className="sh">
+                      <div>
+                        <h2>Related reading</h2>
+                        <p>The guides people open next</p>
+                      </div>
+                    </div>
+
+                    {/*
+                     * ⚠️ Related me **excerpt nahi** — reference me bhi wahi hai (`.bp__x` sirf
+                     * listing grid pe). Chaar card ke saath excerpt column ko bahut lamba kar
+                     * deta hai.
+                     */}
+                    <div className="bpg">
+                      {related.map((post) => (
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          author={settings?.blogAuthor?.name}
+                          showExcerpt={false}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {hasSidebar && (
+                <Sidebar
+                  widgets={sidebarWidgets}
+                  settings={settings}
+                  sourcePath={entry.path}
+                  before={<Toc items={entry.toc} />}
+                />
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/*
+         * Aakhri CTA — `settings.ctaSection` se, **static** (client, 9 Sep: _"CTA section static
+         * hi aayega setting se same as tour and itinerary"_).
+         *
+         * Wahi component jo package aur tour dono pe hai. D-67 ne ye case pehle hi soch liya tha:
+         * design me is card ke box me daam tha, aur client ne wo raasta band kiya kyunki _"ye
+         * card doosre pages pe bhi jaayega jahan koi package hai hi nahi"_. Blog post theek wahi
+         * page hai.
+         *
+         * Khaali hone pe component khud `null` lauta deta hai, isliye yahan koi shart nahi.
+         */}
+        <CtaSection cta={settings?.ctaSection} />
+      </main>
+
+      {/*
+       * Mobile ki patti — Call · WhatsApp · Get free quote. Teesra button sidebar ke enquiry form
+       * ko **sheet** ki tarah kholta hai (client, 9 Sep).
+       *
+       * `hasForm` isi liye widgets se aata hai: form na ho to bar sirf Call/WhatsApp dikhati hai,
+       * aur teenon na hon to `MobileBar` khud `null` lauta deta hai (D-30).
+       */}
+      <MobileBar
+        settings={settings}
+        hasForm={sidebarWidgets.some((w) => w.type === 'enquiryForm')}
+      />
+    </EnquiryDockProvider>
+  )
+}

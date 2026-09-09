@@ -20,6 +20,7 @@ import {
   withHeadingIds,
 } from '@cms/shared'
 
+import { env } from '../../core/env.js'
 import { Entry } from '../entries/model.js'
 import { getPublicFormById, getPublicPackageForm } from '../forms/service.js'
 import { AddOn, Hotel, Review, Transfer } from '../master-lists/model.js'
@@ -312,6 +313,24 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
           role: settings.blogSettings.author.role ?? '',
         }
       : null,
+
+    /**
+     * Site ka apna pata — **structured data aur share links dono ko chahiye** (spec 008).
+     *
+     * ⚠️ **Ye pehle se maan liya gaya tha, par bhejta koi nahi tha.** `TourSchema.jsx` 8 Sep se
+     * `process.env.NEXT_PUBLIC_SITE_URL ?? settings?.siteUrl` padh raha hai — aur us `??` ka
+     * daayan hissa **kabhi chala hi nahi**, kyunki ye key payload me thi hi nahi. Yaani jis
+     * instance pe `NEXT_PUBLIC_SITE_URL` set nahi hai, wahan schema ke saare absolute URL
+     * chup-chaap `undefined` ho kar gir jaate the.
+     *
+     * Wahi shakl jo D-89 me baar-baar mili: bana hua, par juda nahi — aur uska lakshan sirf
+     * "kuch na hona".
+     *
+     * ⚠️ **`env.SITE_URL` se, koi naya var nahi.** Wo pehle se required hai (revalidate ka
+     * target). Doosra var banane ka matlab hota ek hi pata do jagah, aur ek din wo alag ho
+     * jaate (D-86).
+     */
+    siteUrl: env.SITE_URL,
 
     /**
      * Hero ka button — `.vhero__cta` (client, 8 Sep).
