@@ -234,11 +234,15 @@ export default function EnquiryForm({
   const dock = useEnquiryDock()
 
   /**
-   * ⚠️ `cta` pe dock ka poora vyavhaar band hai, sirf uska CSS nahi.
+   * ⚠️ **`variant` ab sirf DIKHNE ka farak hai — dock dono pe chalta hai** (9 Sep me badla).
    *
-   * Dock mobile pe is widget ko sheet banata hai aur use `.mobar` kholti hai — wo dono package
-   * page ki cheezein hain. Tour page pe wo bar hai hi nahi, to sheet kholne ka koi raasta bhi
-   * nahi hota: khulti hui sheet ka scrim bina kisi close ke poora page dhak leta.
+   * Pehle yahan likha tha ki `cta` pe dock ka poora vyavhaar band hai, kyunki _"tour page pe
+   * `.mobar` hai hi nahi, to sheet kholne ka koi raasta bhi nahi"_. **Wo andaza galat tha:**
+   * `tour-v3.html:2038` me `.mobar` maujood hai (Call · WhatsApp · Get free quote), bilkul
+   * `itinerary-v3.html` jaisi. Maine reference dekhe bina maan liya tha.
+   *
+   * Ab dono variant ek hi tarah khulte hain — scrim, `is-open`, close button. Farak sirf itna:
+   * `book` pe upar neela price header hota hai, `cta` pe uski jagah heading + line.
    */
   const isCta = variant === 'cta'
 
@@ -369,11 +373,10 @@ export default function EnquiryForm({
        *
        * Ispe click karne se sheet band — wahi vyavhaar jo Lightbox ke backdrop ka hai.
        */}
-      {isCta ||
-        (dock?.open && <div className="mosheet-scrim" onClick={dock.close} aria-hidden="true" />)}
+      {dock?.open && <div className="mosheet-scrim" onClick={dock.close} aria-hidden="true" />}
 
       <div
-        className={isCta ? 'wdg wdg--cta' : `wdg wdg--book${dock?.open ? ' is-open' : ''}`}
+        className={`wdg ${isCta ? 'wdg--cta' : 'wdg--book'}${dock?.open ? ' is-open' : ''}`}
         id="enquiry"
       >
         {/*
@@ -387,7 +390,7 @@ export default function EnquiryForm({
          * Close sirf sheet wali haalat me — sidebar me widget band karne jaisi koi cheez hai
          * hi nahi, wo wahan hamesha khula rehta hai.
          */}
-        {!isCta && dock?.open && (
+        {dock?.open && (
           <button
             className="wdg__x"
             type="button"

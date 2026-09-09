@@ -5,6 +5,7 @@ import Img from '../Img.jsx'
 import { waHref } from '../../lib/links.js'
 import CtaSection from '../package/CtaSection.jsx'
 import { EnquiryDockProvider } from '../package/EnquiryDock.jsx'
+import MobileBar from '../package/MobileBar.jsx'
 import Blocks from './Blocks.jsx'
 import Sidebar from './Sidebar.jsx'
 import TourSchema from './TourSchema.jsx'
@@ -309,6 +310,24 @@ export default function TourPage({ entry, settings }) {
        * control wahi shakl bante jo D-86 me pakdi gayi thi.
        */}
       <CtaSection cta={settings?.ctaSection} />
+
+      {/*
+       * Mobile ki neeche wali patti — `tour-v3.html:2038` me wo maujood hai (Call · WhatsApp ·
+       * Get free quote), bilkul `itinerary-v3.html` jaisi.
+       *
+       * ⚠️ **Maine 8 Sep ko likha tha ki "tour page pe koi `.mobar` hai hi nahi" — wo galat
+       * tha.** Reference dekhe bina maan liya gaya tha, aur usi bharose sidebar ke mobile ka
+       * poora niyam likh diya gaya. Ye us din ki teesri aisi galti hai (byline aur pklist ka
+       * `.blk` bhi wahi thin).
+       *
+       * `hasForm` sidebar me enquiry form widget hone pe hi `true` hai — us bar ka button wahi
+       * sheet kholta hai. Form na ho to bar sirf Call/WhatsApp dikhati hai, aur teenon na hon
+       * to `MobileBar` khud `null` lauta deta hai (D-30).
+       */}
+      <MobileBar
+        settings={settings}
+        hasForm={sidebarWidgets.some((w) => w.type === 'enquiryForm')}
+      />
     </EnquiryDockProvider>
   )
 }

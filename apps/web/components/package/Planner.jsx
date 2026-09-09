@@ -38,7 +38,17 @@ export default function Planner({ settings, email: formEmail, heading = '' }) {
   if (!phone && !whatsapp && !email) return null
 
   return (
-    <div className="wdg">
+    /*
+     * ⚠️ **`wdg--planner` 9 Sep me juda, aur uske bina mobile ka niyam likha hi nahi ja sakta
+     * tha.**
+     *
+     * Mobile pe is widget ko chhupna hai (uske contact `.mobar` me chale jaate hain) par
+     * `Custom HTML` widget ko **dikhna** hai (client, 9 Sep). Dono `.wdg` the, yaani CSS unme
+     * farak kar hi nahi sakti thi. Pehle package page pe ye kaam
+     * `.wdg:not(.wdg--book)` se hota tha — "book ke alawa sab chhupa do" — jo tab tak chalta
+     * raha jab tak sidebar me sirf do hi widget the.
+     */
+    <div className="wdg wdg--planner">
       {/*
        * ⚠️ Icon yahan **theme me fix hai**, koi field nahi — client ka faisla (8 Sep). Ye widget
        * hamesha wahi ek cheez hai, to uske icon ka chunav client ko dena wo faisla dena hota jo

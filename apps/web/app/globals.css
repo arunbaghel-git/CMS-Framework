@@ -3285,18 +3285,21 @@ a.mega__gl:hover {
   /*
    * "Talk to a planner" chhup jaata hai — uske contact ab patti me hain (client, 2 Sep).
    *
-   * `:not(.wdg--book)` isliye ki enquiry form bhi `.wdg` hai, aur wo chhupta nahi — wo sheet
-   * ban jaata hai (neeche).
+   * ⚠️ **Ye rule do baar badla, aur dono baar wajah ek hi thi: selector wo baat poochh raha tha
+   * jo wo jaanta hi nahi tha.**
    *
-   * ⚠️ **`.pgl:not(.pgl--tour)` 8 Sep me juda, aur uske bina ye rule tour page ko kaat raha
-   * tha.** Wahan sidebar ke teenon widget `.wdg` hain aur enquiry form `.wdg--cta` hai,
-   * `.wdg--book` nahi — yaani mobile pe **poori sidebar gayab** ho jaati, form samet.
+   * 1. Pehle ye `.wdg:not(.wdg--book)` tha — _"book ke alawa sab chhupa do"_. Wo tab tak chalta
+   *    raha jab tak sidebar me sirf **do** widget the (Planner + form). Tour page aate hi wo
+   *    `Custom HTML` widget ko bhi kha gaya
+   * 2. Phir maine `.pgl:not(.pgl--tour)` laga kar tour page ko poora chhod diya — us waqt maine
+   *    maan liya tha ki _"tour page pe koi `.mobar` hai hi nahi"_. **Wo galat tha**
+   *    (`tour-v3.html:2038`)
    *
-   * Ye rule sirf isliye theek hai ki package page pe wo contact `.mobar` me chale jaate hain.
-   * **Tour page pe koi `.mobar` hai hi nahi**, to chhupane ka matlab hota unhe kahin na dikhana.
-   * Wahan sidebar mobile pe content ke neeche baith jaati hai aur wahi sahi hai.
+   * Ab selector wahi kehta hai jo matlab hai: **Planner chhupta hai.** Client ka niyam (9 Sep) —
+   * `Packages by duration` mobile pe **rahega**, `Talk to a planner` **hidden**, aur form ek
+   * popup ban jaayega. Teenon ka jawab is ek rule aur neeche wale `.wdg--cta` se aa jaata hai.
    */
-  .pgl:not(.pgl--tour) .pgl__side .wdg:not(.wdg--book) {
+  .pgl__side .wdg--planner {
     display: none;
   }
 
@@ -3307,11 +3310,13 @@ a.mega__gl:hover {
    * hota. Do copies ka matlab hota do alag form state: user kuch bharta, screen ghumati, aur
    * bhara hua gayab.
    */
-  .wdg--book {
+  .wdg--book,
+  .wdg--cta {
     display: none;
   }
 
-  .wdg--book.is-open {
+  .wdg--book.is-open,
+  .wdg--cta.is-open {
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -3340,10 +3345,22 @@ a.mega__gl:hover {
     flex: none;
   }
 
-  .wdg--book.is-open .bkg__b {
+  .wdg--book.is-open .bkg__b,
+  .wdg--cta.is-open .bkg__b {
     overflow-y: auto;
     /* iPhone ke home indicator ke neeche button chala na jaaye. */
     padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+
+  /*
+   * ⚠️ `.wdg--cta` me `.bkg__t` (neela price header) hota hi nahi — wahan upar heading aur uske
+   * neeche ki line hai. Sheet me wahi chipki rehni chahiye aur fields scroll karein, warna
+   * heading scroll me upar chali jaati hai aur user ko pata hi nahi chalta ki wo kya bhar raha
+   * hai.
+   */
+  .wdg--cta.is-open > h3,
+  .wdg--cta.is-open > div:not(.bkg__b) {
+    flex: none;
   }
 }
 
