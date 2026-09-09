@@ -27,6 +27,8 @@ import {
 } from './index.js'
 import { ENTRY_STATUSES, ROLE_LABEL, ROLE_PERMISSIONS, ROLES } from '../constants/index.js'
 import { fieldTypesFor, isFieldTypeAllowed, isResponsive } from '../field-types.js'
+/** ⚠️ `toc.js` top-level index me hai, `schemas/index.js` me nahi — cycle se bachne ke liye. */
+import { withHeadingIds } from '../toc.js'
 
 /** Ek valid entry — baaki tests isko base ki tarah use karte hain. */
 const validEntry = () => ({
@@ -440,5 +442,56 @@ describe('extractBlockText nested props bhi padhta hai (spec 008)', () => {
 
     expect(text).toContain('Ferry')
     expect(text).toContain('Do ghante')
+  })
+})
+
+describe('withHeadingIds — On this post (spec 008)', () => {
+  it('har h2 ko id deta hai aur wahi id toc me bhejta hai', () => {
+    const { html, toc } = withHeadingIds(
+      '<p>lead</p><h2>Lock the ferries</h2><p>x</p><h2>Book hotels</h2>',
+    )
+
+    expect(toc).toEqual([
+      { id: 'lock-the-ferries', text: 'Lock the ferries' },
+      { id: 'book-hotels', text: 'Book hotels' },
+    ])
+    // Link aur heading ka id ek hi pass se aate hain — do jagah slug banane pe wo ek din
+    // alag ho jaate aur har link kahin na le jaata
+    expect(html).toContain('<h2 id="lock-the-ferries">Lock the ferries</h2>')
+    expect(html).toContain('<h2 id="book-hotels">Book hotels</h2>')
+  })
+
+  it('client ne khud id likhi ho to wahi chalti hai', () => {
+    const { html, toc } = withHeadingIds('<h2 id="mera-anchor">Kuch bhi</h2>')
+
+    expect(toc[0].id).toBe('mera-anchor')
+    // Purane anchor tab bhi kaam karte rahein jab heading ka text badle
+    expect(html).toBe('<h2 id="mera-anchor">Kuch bhi</h2>')
+  })
+
+  it('ek jaisi heading do baar ho to id takraati nahi', () => {
+    const { toc } = withHeadingIds('<h2>Cost</h2><h2>Cost</h2>')
+
+    expect(toc.map((t) => t.id)).toEqual(['cost', 'cost-2'])
+  })
+
+  it('heading ke andar ka markup id me nahi ghusta', () => {
+    const { toc } = withHeadingIds('<h2>Step 1 — <em>nights</em> first</h2>')
+
+    expect(toc[0].text).toBe('Step 1 — nights first')
+    expect(toc[0].id).toBe('step-1-nights-first')
+  })
+
+  it('khaali heading toc me nahi jaati — us link pe kuch likha hi nahi hota', () => {
+    const { toc } = withHeadingIds('<h2></h2><h2>Asli</h2>')
+
+    expect(toc).toEqual([{ id: 'asli', text: 'Asli' }])
+  })
+
+  it('h3 ko chhoota nahi — TOC sirf h2 ki hai', () => {
+    const { html, toc } = withHeadingIds('<h3>Chhota</h3>')
+
+    expect(toc).toEqual([])
+    expect(html).toBe('<h3>Chhota</h3>')
   })
 })

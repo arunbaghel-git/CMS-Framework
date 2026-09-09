@@ -728,9 +728,60 @@ function tagsFor(entry) {
   ].filter(Boolean)
 }
 
+/**
+ * Blog listing pages ke `path:` tag — **spec 008**.
+ *
+ * ## ⚠️ Ye kyun zaroori hai: `type:post` ko koi padhta hi nahi
+ *
+ * `tagsFor()` `type:${entry.type}` pehle se bhejta hai, par `apps/web` me use **koi fetch
+ * nahi lagati**. `lib/cms.js` ka resolve sirf `path:` se tag hota hai — yaani blog listing ka
+ * cache `path:/blog` pe hai, aur naya post publish hone pe wo **saaf hota hi nahi**. Post
+ * dikhta CACHE_SECONDS ke baad, aur uski koi error kahin nahi aati.
+ *
+ * Ye bilkul D-83 wali shakl hai: revalidate ka poora dhaancha khada tha aur ek din chala nahi.
+ * Aur blog pe ye zyada chubhta hai kyunki `postList` **query se** chalta hai (spec 008) —
+ * "publish karo, turant dikhe" hi uska poora point hai.
+ *
+ * ## Ilaaj: tag wahan se lo jahan fetch sach me hota hai
+ *
+ * Wahi niyam jo `tagsFor()` ke `path:` wale comment me likha hai. Listing pages dhoondh kar
+ * unka apna `path:` bheja jaata hai — wahi tag jispe unka cache sach me baitha hai.
+ *
+ * ⚠️ **`resolvePath()` me `type:post` jodna ilaaj NAHI tha** — wo fetch **har** URL pe chalti
+ * hai (fetch se pehle type pata hi nahi hota), to ek post publish poori site ka cache uda
+ * deta.
+ *
+ * ⚠️ Sirf `post` pe query chalti hai. Baaki har type pe ye function bina Mongo chhue lauta
+ * jaata hai.
+ */
+async function blogListingTags(entries) {
+  const posts = entries.filter((e) => e?.type === 'post')
+  if (!posts.length) return []
+
+  const siteIds = [...new Set(posts.map((e) => e.siteId).filter(Boolean))]
+
+  const pages = await Entry.find({
+    ...(siteIds.length ? { siteId: { $in: siteIds } } : {}),
+    type: 'blogPage',
+    deletedAt: null,
+    /** Jis listing page pe `postList` hai hi nahi, uspe post ka koi asar nahi. */
+    'content.blocks.type': 'postList',
+  })
+    .select('path')
+    .lean()
+
+  return pages.map((p) => (p.path ? `path:${p.path}` : null)).filter(Boolean)
+}
+
 /** Entry + uske cascade hue descendants, sab ek hi call me. */
 async function invalidate(entry, descendants = []) {
-  await revalidateTags([...tagsFor(entry), ...descendants.flatMap(tagsFor)])
+  const all = [entry, ...descendants].filter(Boolean)
+
+  await revalidateTags([
+    ...tagsFor(entry),
+    ...descendants.flatMap(tagsFor),
+    ...(await blogListingTags(all)),
+  ])
 }
 
 // ── revisions ────────────────────────────────────────────────────────────────

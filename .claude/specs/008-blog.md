@@ -564,11 +564,15 @@ waisa**, poore `CACHE_SECONDS` tak.
 ek din chala nahi. Aur `postList` **query se** chalta hai (§1), yaani blog ka poora point
 "publish karo, turant dikhe" isi par tika hai.
 
-**Ilaaj (sifarish):** `tagsFor()` me `type === 'post'` par un `blogPage` entries ke
-**`path:` tag bhi** jodo jinke `content.blocks[]` me `postList` hai. Ek query, poori tarah
-generic, koi hardcoded `/blog` nahi — aur maujooda `path:` consumer hi chal jaata hai.
-Yahi us function ke apne comment ka niyam hai: tag wahan se lo jahan **fetch sach me hota
-hai**.
+**Ilaaj — ✅ Slice B me ban gaya** (`entries/service.js`, `blogListingTags()`): `invalidate()`
+ab `post` pe un `blogPage` entries ke **`path:` tag bhi** bhejta hai jinke `content.blocks[]`
+me `postList` hai. Ek query, poori tarah generic, koi hardcoded `/blog` nahi — aur maujooda
+`path:` consumer hi chal jaata hai. Yahi `tagsFor()` ke apne comment ka niyam hai: tag wahan
+se lo jahan **fetch sach me hota hai**. Baaki har type pe wo bina Mongo chhue lauta jaata hai.
+
+⚠️ **Ye abhi sirf unit level pe sach hai.** Asli pehra `next build` + `next start` pe hai —
+dev server pe ye test hamesha pass karega chahe tag juda ho ya nahi. Wo Slice D me hoga, jab
+theme banegi (D-83 bilkul aise hi teen din chhupa raha tha).
 
 ⚠️ `resolvePath()` me `type:post` seedha jod dena **ilaaj nahi** — wo fetch har URL pe chalti
 hai (fetch se pehle type pata hi nahi hota), to ek post publish poori site ka cache uda dega.

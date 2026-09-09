@@ -2,6 +2,8 @@ import {
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   LONG_STAY_FROM,
+  POST_LIST_CAP,
+  TOC_MIN_HEADINGS,
   cheapestPricing,
   durationBucket,
   extractBlockText,
@@ -15,6 +17,7 @@ import {
   readingMinutes,
   resolveSectionLabels,
   routeStrip,
+  withHeadingIds,
 } from '@cms/shared'
 
 import { Entry } from '../entries/model.js'
@@ -292,6 +295,25 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
       .map(({ id, icon, text }) => ({ id, icon, text })),
 
     /**
+     * Blog ka author — `Settings ▸ Blog settings` (spec 008).
+     *
+     * ⚠️ **Yahan hai, post ke card pe nahi.** Har post pe wahi ek naam hai; use 60 cards pe
+     * dohraana payload me fizool hai, aur do jagah rakhne ka matlab hota ki ek din wo alag ho
+     * jaayein (D-86). Post ke apne payload me wo phir bhi jaata hai — wahan `bio` bhi chahiye
+     * hoti hai (`.authorbox`), jo listing pe kabhi nahi dikhti.
+     *
+     * ⚠️ **`showToc` aur `postSidebarId` yahan NAHI hain** — wo faisle server pe lag chuke
+     * hote hain (`toPublicPost()` khaali `toc[]` bhejti hai, aur sidebar resolve karke). Theme
+     * ko koi niyam yaad nahi rakhna chahiye; wahi tark jo `sidebarId` pe D-88 me tha.
+     */
+    blogAuthor: settings.blogSettings?.author?.name
+      ? {
+          name: settings.blogSettings.author.name,
+          role: settings.blogSettings.author.role ?? '',
+        }
+      : null,
+
+    /**
      * Hero ka button — `.vhero__cta` (client, 8 Sep).
      *
      * ⚠️ **Adhoora button `null` ban jaata hai, aur wo chhaanti yahan hoti hai, theme me nahi.**
@@ -380,15 +402,28 @@ export async function resolvePublicPath(
    * Naye types ke liye `PAGE_TYPES` me jodna hai — `type === 'page'` jaisa check har jagah
    * bikhraana wahi hardcoding hai jise D-09 ne mana kiya tha.
    */
-  const entryPayload = PAGE_TYPES.has(entry.type)
-    ? await toPublicPage(entry, siteId, locale)
-    : await toPublicEntry(entry, siteId, locale)
+  /**
+   * ⚠️ **`post` ki apni branch hai, `PAGE_TYPES` me nahi** (spec 008). Uske paas prev/next,
+   * related aur TOC hain jo kisi page ke paas nahi — poora tark `toPublicPost()` ke sar pe.
+   */
+  const entryPayload =
+    entry.type === 'post'
+      ? await toPublicPost(entry, siteId, locale)
+      : PAGE_TYPES.has(entry.type)
+        ? await toPublicPage(entry, siteId, locale)
+        : await toPublicEntry(entry, siteId, locale)
 
   return { kind: 'entry', entry: entryPayload }
 }
 
-/** Wo types jinka payload page-shaped hai, package-shaped nahi (D-87). */
-const PAGE_TYPES = new Set(['page', 'tourPage'])
+/**
+ * Wo types jinka payload page-shaped hai, package-shaped nahi (D-87).
+ *
+ * ⚠️ `blogPage` spec 008 me juda — wo `tourPage` jaisa hi hai, bas uske blocks me
+ * `packageList` ki jagah `postList` hota hai. `post` yahan **nahi** hai: uska payload dono se
+ * alag hai (`toPublicPost()`).
+ */
+const PAGE_TYPES = new Set(['page', 'tourPage', 'blogPage'])
 
 /**
  * Mongo id ka shape sahi hai? `$in` me bekaar string CastError phenkti hai, aur wo public
@@ -748,6 +783,188 @@ function resolveRating(own, fallback) {
   return { value: Number(fallback?.value) || 0, count: Number(fallback?.count) || 0 }
 }
 
+// ── blog (spec 008) ──────────────────────────────────────────────────────────
+
+/**
+ * Ek published post ki shart — **teen jagah wahi ek**.
+ *
+ * ⚠️ `status: 'published'` akela **galat** hai: ek scheduled post jiska waqt aa chuka hai wo
+ * bhi public hai (R2 ka self-healing — cron use baad me `published` karti hai, par wo tab tak
+ * live hai). Sirf `published` maangne se aisa post listing se, prev/next ki chain se aur
+ * related se **gayab** ho jaata, aur wo failure bilkul chup hoti.
+ *
+ * `resolvePackageListBlock()` ye pehle se karta hai; yahan wo ek jagah nikaal di gayi hai
+ * kyunki blog me isi shart ki **chaar** jagah zaroorat hai (list · prev · next · related).
+ */
+const publiclyVisibleQuery = (now = new Date()) => ({
+  deletedAt: null,
+  $or: [{ status: 'published' }, { status: 'scheduled', publishAt: { $lte: now } }],
+})
+
+/**
+ * Post docs → listing cards (`.bp` aur `.fcard`, dono reference pages pe).
+ *
+ * ⚠️ **Ek hi card builder, teen jagah** — `postList` ki grid, `Start here` ke featured, aur
+ * `Related reading`. `toPackageCards()` ke sar pe likha hua sabak yahan pehle se laga hua hai:
+ * do copies ka nateeja ho chuka hai (`bestFor` similar cards pe chhoot gaya tha, aur `Similar`
+ * har card pe ek hi global rating dikhata tha).
+ *
+ * ⚠️ **Author card pe nahi jaata.** Wo `blogSettings.author` se aata hai aur har post pe wahi
+ * hai — 60 cards pe wahi string dohraana payload me fizool hai, aur do jagah rakhne ka matlab
+ * hota ki ek din wo alag ho jaayein (D-86). Theme use `settings` se ek baar padhti hai.
+ *
+ * Categories **ek query me** aati hain, har card ke liye alag nahi — wahi tark jo
+ * `toPackageCards()` ke stays/types pe hai.
+ */
+async function toPostCards(docs, siteId, locale) {
+  if (!docs.length) return []
+
+  const categories = await resolveTaxonomies(
+    docs.flatMap((d) => d.taxonomies?.categories ?? []),
+    siteId,
+    locale,
+  )
+  const categoryById = new Map(categories.map((c) => [c.id, c]))
+
+  return Promise.all(
+    docs.map(async (d) => ({
+      id: String(d._id),
+      title: d.title,
+      path: d.path,
+      excerpt: d.excerpt ?? '',
+
+      /** `medium` — card ka thumbnail hai, hero nahi. */
+      banner: await toDisplayImage(d.featuredImageId, 'medium', siteId),
+
+      /**
+       * Image ke upar ka badge — **pehli** category (`.bcat`).
+       *
+       * ⚠️ Badge ka **rang** payload me nahi hai. Reference me chaar variant hain
+       * (`bcat--b`/`--g`/`--d`/plain) aur wo presentation hai — theme use category ki id se
+       * deterministically chunegi, taaki ek category ka rang har jagah wahi rahe. Uske liye
+       * taxonomy pe ek `color` field banana client ko ek aisa faisla dena hota jo uska nahi
+       * hai (wahi tark jo `showBadges` pe laga tha).
+       */
+      category: categoryById.get((d.taxonomies?.categories ?? [])[0]) ?? null,
+
+      /**
+       * ⚠️ **`publishAt`, `createdAt` nahi.** `publishEntry()` publish pe wo hamesha bharta
+       * hai, aur blog ka poora kram (list · prev/next · `datePublished`) isi ek field pe hai.
+       * Do alag tareekhein dikhaane ka matlab hota ki card kuch kahe aur schema kuch aur.
+       */
+      publishedAt: d.publishAt ?? null,
+      updatedAt: d.updatedAt ?? null,
+
+      /** `8 min read` — 200 shabd/minute, poore content se (FAQ blocks samet). */
+      readMinutes: readingMinutes(htmlToText(extractBlockText(d.content?.blocks ?? []))),
+    })),
+  )
+}
+
+/**
+ * Prev / Next — padhne ki chain (`.pn`, `blog-detail-v1.html`).
+ *
+ * ## Kram aur matlab
+ *
+ * Kram wahi hai jo listing ka hai — `publishAt` desc. **Previous = purana**, **Next = naya**.
+ * Sabse naye post pe `next` `null` hota hai aur sabse purane pe `prev` — theme us taraf kuch
+ * render nahi karti (D-30, wahi invariant jo logo aur `.wdgl` pe hai). Ek hi post ho to dono
+ * `null` aur poora `.pn` gayab.
+ *
+ * ## ⚠️ Tie ka pehra — ye sirf ek "edge case" nahi hai
+ *
+ * Do post ka `publishAt` ek hi second pe ho sakta hai (do publish ek saath, ya bulk import).
+ * Akela `$lt`/`$gt` un dono ko **chhod deta hai**, yaani chain beech me se toot jaati. Isliye
+ * cursor compound hai — `publishAt` barabar ho to `_id` faisla karta hai. Tab kram **total**
+ * rehta hai aur do post ke beech loop nahi banta.
+ *
+ * ⚠️ Do `$or` ek saath hain (visibility ka aur cursor ka), isliye `$and` me lapetna **zaroori**
+ * hai — Mongo me doosra `$or` pehle ko chup-chaap overwrite kar deta hai.
+ *
+ * ## Scan nahi hai
+ *
+ * Dono taraf ek-ek `findOne` + sort, aur wo maujooda index se chalti hai
+ * (`{siteId, type, status, publishAt: -1}`, migration 001). Poori list kabhi nahi uthti —
+ * `PACKAGE_LIST_SCAN_CAP` wali problem yahan aati hi nahi.
+ */
+async function resolvePostNav(doc, siteId, locale) {
+  /**
+   * `publishAt` na ho to chain me is post ki koi jagah hi nahi. Aisa aam taur pe hota nahi
+   * (`publishEntry()` use hamesha bharta hai), par read ko apne bharose pe khada hona chahiye —
+   * wahi wajah jo `resolveBreadcrumbs()` ki depth cap pe likhi hai.
+   */
+  if (!doc.publishAt) return { prev: null, next: null }
+
+  /**
+   * `$or` ko alag nikaala gaya hai kyunki neeche uski **doosri** zaroorat hai (cursor), aur
+   * ek query me do top-level `$or` nahi ho sakte — doosra pehle ko chup-chaap kha jaata hai.
+   */
+  const { $or: visible, ...scope } = { siteId, locale, type: 'post', ...publiclyVisibleQuery() }
+
+  const step = (direction) => {
+    const op = direction === -1 ? '$lt' : '$gt'
+
+    return Entry.findOne({
+      ...scope,
+      $and: [
+        { $or: visible },
+        {
+          $or: [
+            { publishAt: { [op]: doc.publishAt } },
+            { publishAt: doc.publishAt, _id: { [op]: doc._id } },
+          ],
+        },
+      ],
+    })
+      .sort({ publishAt: direction, _id: direction })
+      .select('title path')
+      .lean()
+  }
+
+  const [prev, next] = await Promise.all([step(-1), step(1)])
+
+  const toLink = (d) => (d ? { id: String(d._id), title: d.title, path: d.path } : null)
+
+  return { prev: toLink(prev), next: toLink(next) }
+}
+
+/**
+ * `Related reading` — usi category ke post (`blog-detail-v1.html`).
+ *
+ * **Poori tarah derived, koi field nahi** — wahi model jo `resolveSimilarPackages()` ka hai.
+ *
+ * ⚠️ **Us category me do hi post hon to do hi aayenge.** Kisi aur category se bhar kar chaar
+ * karne ka matlab hota ek "Related reading" jo related hai hi nahi — aur wo chhoti list se
+ * bura hai (D-30).
+ *
+ * ⚠️ Reference me teen card hain, client ne **chaar** kaha (9 Sep) — client jeeta (R15).
+ * `.bpg` ka grid `auto-fit` hai, to dono chalte hain.
+ */
+async function resolveRelatedPosts(doc, siteId, locale, limit) {
+  const categoryId = (doc.taxonomies?.categories ?? [])[0]
+
+  /**
+   * Bina category wale post ka koi "related" nahi hota. Bina is guard ke `undefined` khud ek
+   * kasauti ban jaata aur har bina-category post doosre ka related ban jaata — theek wahi jaal
+   * jo `resolveSimilarPackages()` ke `nights == null` guard ne roka tha.
+   */
+  if (!categoryId) return []
+
+  const docs = await Entry.find({
+    siteId,
+    locale,
+    type: 'post',
+    _id: { $ne: doc._id },
+    'taxonomies.categories': categoryId,
+    ...publiclyVisibleQuery(),
+  })
+    .sort({ publishAt: -1, _id: -1 })
+    .limit(limit)
+    .lean()
+
+  return toPostCards(docs, siteId, locale)
+}
+
 /**
  * `Package list` block ek baar me kitne packages **dekhta** hai (cards se alag).
  *
@@ -884,6 +1101,109 @@ async function resolveFacets(pageFilter, docs, siteId, locale) {
  * Alag endpoint ka matlab hota ki wo call cache ke bahar rehti aur har page load pe API tak
  * jaati — theek wahi bug jo D-83 me teen hafte chhupa raha.
  */
+/**
+ * `Post list` block ka data — `blog-v1.html` ka poora beech ka hissa.
+ *
+ * ## ⚠️ Source **query** hai, chunav nahi — `packageList` se ulta
+ *
+ * `packageList` client ke chune hue ids se chalta hai, aur D-87 §8 ne uska nateeja saaf likha
+ * tha: naya package apne aap kisi page pe **nahi** aata. Package ke liye wo theek tha (paanch
+ * hain, curated hain).
+ *
+ * **Blog pe wahi niyam galat hoga.** Blog ka poora point "publish karo, turant dikhe" hai;
+ * har naye post ke liye client ko listing page kholna padta, aur ek din wo bhool jaata —
+ * theek wahi "kuch na hona" jo D-86 aur D-89 me baar-baar mila.
+ *
+ * ## Filter aur pagination dono theme me hain
+ *
+ * Client ka faisla (9 Sep): saare post ek hi baar payload me, phir JS filter aur page karta
+ * hai. Isi se pills aur sidebar ke `Topics` ka **do-tarfa sync muft** milta hai — dono ek hi
+ * state ke do control ban jaate hain. `perPage` bhi isliye payload me jaata hai, use theme
+ * lagati hai.
+ *
+ * ⚠️ `POST_LIST_CAP` isi model ki keemat hai. Poora tark `schemas/page.js` me uske upar hai.
+ *
+ * ## Featured neeche wali grid me dobara nahi aate
+ *
+ * Reference me bhi wahi hai — `Start here` ke teen aur `Latest articles` ke nau, sab alag.
+ * Bina is niyam ke wahi card ek hi page pe do jagah dikhta.
+ */
+async function resolvePostListBlock(props, siteId, locale) {
+  const wantedFeatured = (props.featuredIds ?? []).filter(isObjectId)
+
+  const query = {
+    siteId,
+    locale,
+    type: 'post',
+    ...publiclyVisibleQuery(),
+  }
+
+  /** Taxonomy ki id, uska naam nahi (D-49). Bekaar string `$in`/`$eq` me CastError deti hai. */
+  if (props.categoryId && isObjectId(props.categoryId)) {
+    query['taxonomies.categories'] = props.categoryId
+  }
+
+  const docs = await Entry.find(query).sort({ publishAt: -1, _id: -1 }).limit(POST_LIST_CAP).lean()
+
+  const byId = new Map(docs.map((d) => [String(d._id), d]))
+
+  /**
+   * Kram **`featuredIds` ka** hai, Mongo ka nahi — pehla card bada banta hai aur wo chunav
+   * client ne drag se kiya hai. Jo id resolve na ho (trash, unpublish) wo chup-chaap gir jaati
+   * hai (D-42 §2).
+   */
+  const featuredDocs = wantedFeatured.map((id) => byId.get(id)).filter(Boolean)
+  const featuredIds = new Set(featuredDocs.map((d) => String(d._id)))
+  const restDocs = docs.filter((d) => !featuredIds.has(String(d._id)))
+
+  const [featured, cards, facets] = await Promise.all([
+    toPostCards(featuredDocs, siteId, locale),
+    toPostCards(restDocs, siteId, locale),
+    /**
+     * ⚠️ **Facets `restDocs` se bunte hain, poore collection se nahi** — bar aur cards ek hi
+     * set ke do roop hone chahiye, warna ek pill pe click karne pe grid khaali ho jaata.
+     * Wahi niyam jo `resolveFacets()` pe D-87 Slice B me laga tha.
+     */
+    categoryFacets(restDocs, siteId, locale),
+  ])
+
+  return {
+    featured,
+    cards,
+    facets,
+    /** `.bfilter__c` — `9 articles`. Ye bina filter wali ginti hai; filter ke baad theme ginti hai. */
+    total: cards.length,
+    /**
+     * ⚠️ Ye batata hai ki chhat lagi ya nahi. Theme ise aaj nahi padhti — ye **hume** batane
+     * ke liye hai ki blog cap paar kar gaya aur ab URL wala raasta lena hoga.
+     */
+    capped: docs.length >= POST_LIST_CAP,
+  }
+}
+
+/**
+ * Categories ki pills aur unki ginti — `.bfilter` aur sidebar ka `Topics`, **dono ek hi jagah se**.
+ *
+ * ⚠️ Ginti **derive** hoti hai, store nahi — wahi niyam jo `durationFacets()` aur hotels table
+ * (D-58) pe hai. Store karne ka matlab hota ki client ek post trash kare aur number waise ka
+ * waisa khada rahe.
+ */
+async function categoryFacets(docs, siteId, locale) {
+  const counts = new Map()
+
+  for (const doc of docs) {
+    const id = (doc.taxonomies?.categories ?? [])[0]
+    if (id) counts.set(String(id), (counts.get(String(id)) ?? 0) + 1)
+  }
+
+  if (!counts.size) return []
+
+  const taxonomies = await resolveTaxonomies([...counts.keys()], siteId, locale)
+
+  /** Kram taxonomy ke apne kram ka hai — client use `Posts ▸ Categories` me tay karta hai. */
+  return taxonomies.map((t) => ({ ...t, count: counts.get(t.id) ?? 0 }))
+}
+
 async function resolvePackageListBlock(props, siteId, locale, defaults) {
   /**
    * `isObjectId` ka pehra zaroori hai: bekaar string `$in` me CastError phenkti hai aur wo
@@ -952,6 +1272,15 @@ async function resolvePageBlocks(blocks, siteId, locale, defaults) {
 
   return Promise.all(
     blocks.map(async (block) => {
+      /**
+       * ⚠️ **Naya list-type block jodo to yahan bhi jodo.** Chhoot jaane ka lakshan `500`
+       * nahi hota — block render hota hai, bas uske andar kuch hota nahi. Yahi wo "bana hua
+       * par juda nahi" shakl hai jo D-89 me 13 me se zyada tar farak ki thi.
+       */
+      if (block?.type === 'postList') {
+        return { ...block, data: await resolvePostListBlock(block.props, siteId, locale) }
+      }
+
       if (block?.type !== 'packageList') return block
 
       /**
@@ -1045,7 +1374,7 @@ async function resolveSidebarWidgets(sidebarId, siteId, locale) {
 
   const plannerEmail = [...forms.values()].find((form) => form?.contactEmail)?.contactEmail ?? ''
 
-  return widgets
+  const resolved = widgets
     .map((widget) => {
       if (!widget?.type) return null
 
@@ -1102,6 +1431,53 @@ async function resolveSidebarWidgets(sidebarId, siteId, locale) {
         }
 
         /**
+         * `Topics` — categories ki list, ginti ke saath (`.cats`).
+         *
+         * ⚠️ **Yahan ki ginti `.bfilter` ki pills se alag hoti hai, aur wo galti nahi hai.**
+         * Reference me sidebar `9 · 6 · 11 · 8 · 5 · 4` (yaani 43) dikhata hai jabki grid pe
+         * `9 articles` likha hai — kyunki sidebar **poore blog** ki ginti hai aur pills us
+         * page pe dikh rahe set ki. Dono ko ek number pe zabardasti laana design ko todta.
+         *
+         * Do-tarfa sync **chunav** ka hai, ginti ka nahi: dono taraf category ki wahi `id`
+         * jaati hai, isliye theme ek hi state se dono ko active kar sakti hai.
+         *
+         * Cards ki tarah, ginti bhi **neeche ek hi baar** bharti hai — har widget pe alag
+         * query wahi N+1 hota.
+         */
+        case 'topics':
+          return {
+            id: widget.id,
+            type: 'topics',
+            props: {
+              icon: widget.props?.icon ?? 'none',
+              heading: widget.props?.heading ?? '',
+            },
+          }
+
+        /**
+         * `Post picks` — reference ka `Most read` (`.pop`).
+         *
+         * ⚠️ **Ginti se kuch nahi banta** — is CMS me view counting hai hi nahi, aur uske liye
+         * har page view pe ek write chahiye hota jo ISR aur caching dono tod deta (D-83 abhi
+         * theek hua hai). Client khud chunta hai; `Most read` bas wo heading hai jo wo likhta
+         * hai (client ka faisla, 9 Sep).
+         *
+         * Cards yahan **resolve** nahi hote — wo `postPicks` ki ids ke saath jaate hain aur
+         * neeche ek hi query me bharte hain. Har widget pe alag query wahi N+1 hota jise
+         * `toPackageCards()` ne ek query me badla tha.
+         */
+        case 'postPicks':
+          return {
+            id: widget.id,
+            type: 'postPicks',
+            props: {
+              icon: widget.props?.icon ?? 'none',
+              heading: widget.props?.heading ?? '',
+              postIds: (widget.props?.postIds ?? []).filter(isObjectId),
+            },
+          }
+
+        /**
          * ⚠️ Anjaan type chup-chaap gir jaata hai, 500 nahi deta. Aisa tab hota hai jab koi
          * type hata diya jaaye par purane sidebars me wo bacha ho — theek wahi haalat jispe
          * package list ka _"bekaar id se 500 nahi aata"_ wala niyam bana tha.
@@ -1111,6 +1487,226 @@ async function resolveSidebarWidgets(sidebarId, siteId, locale) {
       }
     })
     .filter(Boolean)
+
+  return fillBlogWidgets(resolved, siteId, locale)
+}
+
+/**
+ * `topics` aur `postPicks` ka asli maal — **sab widgets ke liye ek-ek query** (spec 008).
+ *
+ * ⚠️ Ye `switch` ke andar isliye nahi hai ki wahan har widget apni query chalata — do
+ * `postPicks` widget do queries bana dete. Yahi N+1 `toPackageCards()` me stays/types pe roka
+ * gaya tha (_"ek-ek query me, har card ke liye alag nahi"_).
+ *
+ * Dono me se koi widget na ho to **ek bhi query nahi chalti** — package page pe ye function
+ * bas list wapas kar deta hai.
+ */
+async function fillBlogWidgets(widgets, siteId, locale) {
+  const needsTopics = widgets.some((w) => w.type === 'topics')
+  const pickIds = [
+    ...new Set(widgets.flatMap((w) => (w.type === 'postPicks' ? w.props.postIds : []))),
+  ]
+
+  if (!needsTopics && !pickIds.length) return widgets
+
+  const [topics, picked] = await Promise.all([
+    needsTopics ? allPostCategories(siteId, locale) : [],
+    pickIds.length
+      ? Entry.find({
+          _id: { $in: pickIds },
+          siteId,
+          locale,
+          type: 'post',
+          ...publiclyVisibleQuery(),
+        })
+          .lean()
+          .then((docs) => toPostCards(docs, siteId, locale))
+      : [],
+  ])
+
+  const cardById = new Map(picked.map((c) => [c.id, c]))
+
+  return (
+    widgets
+      .map((widget) => {
+        if (widget.type === 'topics') return { ...widget, props: { ...widget.props, topics } }
+
+        if (widget.type === 'postPicks') {
+          /**
+           * Kram **client ka** hai, query ka nahi. Jo id resolve na ho (trash, unpublish) wo
+           * chup-chaap gir jaati hai — D-42 §2, aur `postIds` payload me nahi jaati (theme ko
+           * id se kuch nahi karna).
+           */
+          const posts = widget.props.postIds.map((id) => cardById.get(id)).filter(Boolean)
+
+          return {
+            ...widget,
+            props: { icon: widget.props.icon, heading: widget.props.heading, posts },
+          }
+        }
+
+        return widget
+      })
+      /** Khaali list wala widget ek khaali dabba hai — wo dikhna nahi chahiye (D-30). */
+      .filter((w) => {
+        if (w.type === 'topics') return w.props.topics.length > 0
+        if (w.type === 'postPicks') return w.props.posts.length > 0
+        return true
+      })
+  )
+}
+
+/**
+ * Poore blog ki categories aur unki ginti — sidebar ke `Topics` ke liye.
+ *
+ * ⚠️ **Ginti derive hoti hai, store nahi** (D-58 wala hi niyam) — aur wo `usageCount` se alag
+ * hai: wo **har** entry ginta hai (draft samet, kyunki wo admin ki list ke liye hai), yahan
+ * sirf public post chahiye. Ek hi naam ke do matlab banane se bachne ke liye ye alag function
+ * hai, `usageCount` ka reuse nahi (D-86).
+ */
+async function allPostCategories(siteId, locale) {
+  const rows = await Entry.aggregate([
+    { $match: { siteId, locale, type: 'post', ...publiclyVisibleQuery() } },
+    { $unwind: '$taxonomies.categories' },
+    { $group: { _id: '$taxonomies.categories', count: { $sum: 1 } } },
+  ])
+
+  if (!rows.length) return []
+
+  const counts = new Map(rows.map((r) => [String(r._id), r.count]))
+  const taxonomies = await resolveTaxonomies([...counts.keys()], siteId, locale)
+
+  return taxonomies.map((t) => ({ ...t, count: counts.get(t.id) ?? 0 }))
+}
+
+/** `Related reading` me kitne card — client, 9 Sep (reference me teen hain). */
+const RELATED_POSTS_LIMIT = 4
+
+/**
+ * Ek blog post ka public payload — `blog-detail-v1.html` (spec 008).
+ *
+ * ## ⚠️ `toPublicEntry()` se alag kyun
+ *
+ * Wo poori tarah **package-shaped** hai — `pricing`, `itinerary`, `hotels`, `addOns`,
+ * `similar`, `reviews`. Post ko unme se ek bhi nahi chahiye, aur usme se guzarne ka matlab
+ * hota `resolveSimilarPackages()` ka poora daur sirf khaali arrays banane ke liye. Theek yahi
+ * D-87 Slice B me `page` pe pakda gaya tha aur usi liye `toPublicPage()` alag hui thi.
+ *
+ * ## Aur `toPublicPage()` se bhi alag kyun
+ *
+ * Post ke paas teen cheezein hain jo kisi page ke paas nahi — **prev/next**, **related** aur
+ * **TOC** — aur do cheezein nahi hain jo har page ke paas hain (`statRail`, per-page sidebar
+ * ka chunav). Ek hi function me dono rakhne ka matlab hota har page pe `type === 'post'` ke
+ * chaar `if`, aur wahi bikhraav jise D-09 ne routing pe mana kiya tha.
+ */
+async function toPublicPost(doc, siteId, locale) {
+  const [settings, breadcrumbs, nav, related] = await Promise.all([
+    getSettings(siteId),
+    resolveBreadcrumbs(doc, siteId, locale),
+    resolvePostNav(doc, siteId, locale),
+    resolveRelatedPosts(doc, siteId, locale, RELATED_POSTS_LIMIT),
+  ])
+
+  const blog = settings.blogSettings ?? {}
+
+  const [banner, categories] = await Promise.all([
+    toDisplayImage(doc.featuredImageId, 'large', siteId),
+    resolveTaxonomies(doc.taxonomies?.categories ?? [], siteId, locale),
+  ])
+
+  /**
+   * ⚠️ **Heading ke `id` yahan bharte hain, aur TOC wahin se banti hai** — ek hi pass.
+   *
+   * Do jagah slug banane ka matlab hota ki TOC ka link aur heading ka anchor ek din alag ho
+   * jaayein. Poora tark `packages/shared/src/toc.js` ke sar pe hai.
+   *
+   * Sirf `richText` blocks — `faqs` ka apna `<details>` accordion hai, uske sawaal TOC me
+   * daalne ka matlab hota ki ek 9-sawaal wali FAQ poori TOC nigal jaaye.
+   */
+  const toc = []
+  const blocks = (doc.content?.blocks ?? []).map((block) => {
+    if (block?.type !== 'richText') return block
+
+    const { html, toc: found } = withHeadingIds(block.props?.html ?? '')
+    toc.push(...found)
+
+    return { ...block, props: { ...block.props, html } }
+  })
+
+  /**
+   * TOC pe **do** shart hain, aur dono zaroori hain.
+   *
+   * `showToc` client ka faisla hai (9 Sep — _"blog settings me checkbox bana denge sabke
+   * liye"_). `TOC_MIN_HEADINGS` uske saath lagta hai, uske upar nahi: checkbox "dikhao" kehta
+   * hai, "zabardasti dikhao" nahi — ek link wali `On this post` khaali dabbe jaisi lagti hai.
+   *
+   * ⚠️ Faisla **yahan** hota hai, theme me nahi: khaali `toc[]` bhejne se theme ko koi niyam
+   * yaad nahi rakhna padta, aur do jagah wo niyam alag nahi ho sakta.
+   */
+  const showToc = blog.showToc !== false && toc.length >= TOC_MIN_HEADINGS
+
+  return {
+    id: String(doc._id),
+    type: doc.type,
+    title: doc.title,
+    slug: doc.slug,
+    path: doc.path,
+    excerpt: doc.excerpt ?? '',
+    seo: doc.seo ?? {},
+    updatedAt: doc.updatedAt ?? null,
+    publishedAt: doc.publishAt ?? null,
+
+    banner,
+    breadcrumbs,
+    blocks,
+
+    /** `.ahead__cat` — post ki category. Khaali pe badge render hi nahi hota. */
+    category: categories[0] ?? null,
+
+    /**
+     * Byline — **`blogSettings.author` se, `authorId` se nahi**.
+     *
+     * ⚠️ Ye `toPublicPage()` ke byline se **jaan-boojh kar alag** hai. Wahan author asli admin
+     * user hota hai (D-87 ka faisla #9), aur blog pe wo galat naam hota: page pe `arun` chhap
+     * jaata, `Andaman Tourism team` nahi. `authorId` andar rehta hai — kisne likha,
+     * permissions, admin ki list — par yahan kabhi nahi aata (R10 waise bhi rokta).
+     *
+     * ⚠️ Khaali `name` pe theme byline ka author wala hissa render **nahi** karti — koi
+     * fallback nahi hai, kyunki fallback ka matlab hota do source (D-86).
+     *
+     * Avatar ke `AT` initials naam se derive hote hain — uske liye koi field nahi.
+     */
+    author: {
+      name: blog.author?.name ?? '',
+      role: blog.author?.role ?? '',
+      bio: blog.author?.bio ?? '',
+    },
+
+    readMinutes: readingMinutes(htmlToText(extractBlockText(doc.content?.blocks ?? []))),
+
+    /** `On this post` — khaali array ka matlab "mat dikhao", theme ko kuch tay nahi karna. */
+    toc: showToc ? toc : [],
+
+    /** `.pn` — dono `null` ho sakte hain (pehla/aakhri post). */
+    prev: nav.prev,
+    next: nav.next,
+
+    /** `Related reading` — usi category ke, 4 tak. Kam mile to kam. */
+    related,
+
+    /**
+     * Sidebar — **`blogSettings` se, post pe nahi** (client, 9 Sep).
+     *
+     * Blog ke saare post ek hi shakl ke hain, isliye ye ek baar chunta hai. Har post pe do
+     * dropdown bharwane ka matlab hota ki ek din koi bhool jaaye aur us post pe sidebar
+     * chup-chaap gayab ho (D-42 §2).
+     */
+    sidebar: blog.postSidebar ?? 'none',
+    sidebarWidgets:
+      (blog.postSidebar ?? 'none') === 'none'
+        ? []
+        : await resolveSidebarWidgets(blog.postSidebarId, siteId, locale),
+  }
 }
 
 async function toPublicPage(doc, siteId, locale) {
