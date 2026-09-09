@@ -5943,6 +5943,55 @@ a.mega__gl:hover {
   border-radius: var(--r4);
   padding: clamp(20px, 2.6vw, 38px);
 }
+
+/*
+ * ⚠️ **`.blk` `.art` ke andar apna dabba NAHI banata** — client, 9 Sep.
+ *
+ * `.blk` tour page ke liye bana tha, jahan har block apna safed card hai. Article ke andar
+ * wo dabbe-me-dabba ban jaata hai: `.art` khud safed card hai, border aur padding uski hai.
+ * Reference me article ke andar koi inner box hai hi nahi.
+ *
+ * ⚠️ **Isi wajah se upar ke `.art > p` waale selectors ab `.art p` hain.** Reference me
+ * article ka content `.art` ka seedha bachcha hai; hamare yahan wo `.blk` ke andar hai, to
+ * child selector pahunchta hi nahi tha — yaani reference ki poori article typography (15.5px,
+ * line-height 1.75, lead 17px) **lag hi nahi rahi thi** aur uski jagah tour page waali chal
+ * rahi thi. Wahi shakl: bana hua, par juda nahi.
+ *
+ * ⚠️ `content-visibility` jaan-boojh kar **nahi** hataya — wo D-85 ka speed wala kaam hai
+ * (TBT 834ms → 128ms), dikhne se uska koi lena-dena nahi.
+ */
+.art > .blk {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.art > .blk + .blk {
+  margin-top: clamp(22px, 2.6vw, 32px);
+}
+
+/*
+ * Hover pe rangeen border — client, 9 Sep: _"only hover karne par outside bale me border
+ * aata hai colored border"_.
+ *
+ * ⚠️ Reference me ye `.art` ke **doosre** rule se aata hai (line 428, section "19. ARTICLES"
+ * ka card component) — do alag cheezein ek hi class naam pe hain, aur us page pe wo hover
+ * article body pe bhi lagta hai. Wo ittefaq ho sakta hai, par page **chalta** waisa hi hai
+ * aur client ne use dekh kar maanga (R15).
+ */
+.art {
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+
+.art:hover {
+  border-color: var(--blue-500);
+  box-shadow: var(--sh-2);
+  transform: translateY(-2px);
+}
 .artfig {
   margin: 0 0 clamp(18px, 2.4vw, 26px);
 }
@@ -5957,12 +6006,12 @@ a.mega__gl:hover {
   margin-top: 9px;
   font-weight: 600;
 }
-.art > p {
+.art p {
   font-size: 15.5px;
   line-height: 1.75;
   color: var(--body);
 }
-.art > p + p {
+.art p + p {
   margin-top: 15px;
 }
 .art .lead {
