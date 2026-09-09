@@ -32,6 +32,33 @@
   font-family: 'RupeeLocal';
   src: local('Segoe UI'), local('Roboto'), local('Helvetica Neue'), local('Arial');
   unicode-range: U+20B9;
+  font-weight: 400;
+}
+
+/*
+ * ⚠️ **Bold wala face — 9 Sep me juda, aur uske bina ₹ patla chhap raha tha** (client ne pakda).
+ *
+ * Upar wale face pe `font-weight` descriptor tha hi nahi, aur uski default value **400** hai.
+ * Yaani daam jahan `font-weight: 900` pe chhapta hai (`.vrail__c b`, `.prow__p strong`,
+ * `.pkg__price`), wahan ankh to Inter ke bold me aate the par ₹ **regular** hi rehta tha — aur
+ * wo farak bilkul saaf dikhta hai, kyunki dono ek hi shabd me bagal-bagal hote hain.
+ *
+ * Ilaaj wo 85 KB wali file wapas laana **nahi** hai (D-85 me wo FCP 1993→1417ms ke liye hati
+ * thi). Machine pe bold Segoe UI/Arial pehle se maujood hai — bas use maangna tha.
+ *
+ * ⚠️ `700 900` ka range isliye ki hamare bold naap `--fw-heading` (700) se `--fw-black` (900)
+ * tak hain; ek hi value likhne pe beech ke weights wapas regular face pe gir jaate.
+ *
+ * Ye bhi kuch download nahi karta — `local()` sirf wahi uthata hai jo pehle se hai. Kisi machine
+ * pe ye naam na milen to browser upar wale face pe gir jaata hai, yaani aaj jaisa hi — koi
+ * regression nahi.
+ */
+@font-face {
+  font-family: 'RupeeLocal';
+  src: local('Segoe UI Bold'), local('Roboto Bold'), local('Helvetica Neue Bold'),
+    local('Arial Bold');
+  unicode-range: U+20B9;
+  font-weight: 700 900;
 }
 
 :root {
