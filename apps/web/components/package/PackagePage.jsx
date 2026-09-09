@@ -282,11 +282,23 @@ export default function PackagePage({ entry, defaults, settings }) {
   const labels = defaults?.sectionLabels ?? PACKAGE_SECTION_DEFAULTS
 
   /**
-   * Reviews aur unki rating dono **global** hain (client, 1 Sep) — `packageDefaults` se
-   * aati hain, entry se nahi. Package inme se kuch chunta nahi.
+   * **Reviews** global hain (client, 1 Sep) — `packageDefaults` se aati hain, entry se nahi.
+   * Package inme se kuch chunta nahi.
+   *
+   * ⚠️ **Rating ab global NAHI hai — 9 Sep ko client ne pakda.**
+   *
+   * D-87 §3 (7 Sep) ne rating per-package kar di thi: `resolveRating(fields.rating,
+   * defaults.rating)` payload me chalti hai aur `entry.rating` me poori resolve ho kar aati
+   * hai. Card us par chala gaya tha, par **ye page `defaults.rating` hi padhta reh gaya** —
+   * isliye listing me package ki apni rating dikhti thi aur uske apne page pe global wali.
+   *
+   * Ye D-70 ka comment tha jo D-87 §3 ke baad **bhi wahin baitha reh gaya**. Faisla badla,
+   * uska palan ek jagah badla aur doosri jagah nahi.
+   *
+   * `?? defaults?.rating` sirf ehtiyaat hai — payload me fallback pehle hi lag chuka hota hai.
    */
   const reviews = defaults?.reviews ?? []
-  const rating = defaults?.rating
+  const rating = entry.rating ?? defaults?.rating
 
   /**
    * Similar itineraries — server pe chune gaye (wahi nights/days, khud ko chhod kar).

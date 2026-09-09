@@ -309,9 +309,16 @@ export default function PageEdit({ type = 'tourPage' }) {
                * — _"current jo hai use only slug ke liye rakhte hain, to breadcrumb bhi simple ho
                * jayega"_.
                *
-               * ⚠️ **`inline` editor** — bold · highlight · link, aur bas. Koi heading dropdown,
-               * koi list, koi image: ye `<h1>` ke andar chhapta hai. Poora tark
-               * `HtmlEditor` ke `INLINE_TOOLBAR` par likha hai.
+               * ⚠️ **Editor bilkul wahi hai jo baaki jagah hai** — client, 9 Sep:
+               * _"page header ka editor different kyu hai other editors se, make it same
+               * becouse admin could be confuse."_ Pehle iska apna chhota toolbar tha (bold ·
+               * highlight · link) aur tabs bhi nahi the.
+               *
+               * ⚠️ **Iski ek keemat hai, aur wo hint me likhi hai:** toolbar me heading dropdown,
+               * list aur image ab dikhte hain, par ye field `<h1>` ke **andar** chhapta hai —
+               * `pageHeadingSchema` inline profile pe hai, to block tags save pe gir jaate hain.
+               * Client ko wo pehle se bata dena hi ek raasta bacha, kyunki toolbar ab chhota nahi
+               * kiya ja sakta.
                */}
               <div className="field">
                 <label>Page heading</label>
@@ -319,11 +326,13 @@ export default function PageEdit({ type = 'tourPage' }) {
                   value={form.fields.heading ?? ''}
                   onChange={(heading) => setField('heading', heading)}
                   disabled={readOnly}
-                  inline
+                  height={160}
                 />
                 <div className="hint">
-                  Shown as the page’s H1. Leave it empty and the <b>Title</b> above is used. Use{' '}
-                  <b>Highlight</b> on the part that should stand out in the accent colour.
+                  Shown as the page’s H1. Leave it empty and the <b>Title</b> above is used.{' '}
+                  <b>Italic</b> marks the part that should stand out in the accent colour. Only
+                  bold, italic and links are kept here — headings, lists and images are dropped when
+                  you save, because this is a heading.
                 </div>
               </div>
 
