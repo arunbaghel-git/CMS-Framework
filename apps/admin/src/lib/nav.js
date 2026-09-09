@@ -31,15 +31,31 @@ import { PERMISSION } from '@cms/shared'
  */
 export const NAV = [
   { id: 'dashboard', icon: '⌂', label: 'Dashboard', to: '/' },
+  /**
+   * Posts — blog (spec 008, client 9 Sep).
+   *
+   * ⚠️ **`Tags` hata diya gaya** — client: _"remove tag submenu"_. Sirf yahan se link
+   * hataana kaafi nahi hota: `post.taxonomyTypes` se bhi `tag` gaya hai, warna taxonomy
+   * zinda rehti aur uske paas koi UI na hoti — theek wahi "bana hua par juda nahi" jo D-89
+   * aur D-90 me baar-baar mila.
+   *
+   * ⚠️ **In chaaron pe `permission` ab lagi hui hai, aur pehle nahi thi.** Ye wahi jaal ka
+   * **zinda** instance tha jo 8 Sep ko Pages pe theek hua tha — menu **sabko** dikhta tha aur
+   * contributor click karke ek toota hua screen paata.
+   *
+   * `Blog Page` listing page hai (`blogPage` type) — client ne use _"ek submenu me single
+   * page"_ kaha. Wo aam list hai jisme aam taur pe ek hi row hogi; doosri banane ka raasta
+   * khula hai kyunki topic-wise landing page (`/blog/ferries`) usi se banta hai.
+   */
   {
     id: 'posts',
     icon: '✎',
     label: 'Posts',
     children: [
-      { label: 'All Posts', to: '/posts' },
-      { label: 'Add New', to: '/posts/new' },
-      { label: 'Categories', to: '/posts/categories' },
-      { label: 'Tags', to: '/posts/tags' },
+      { label: 'All Posts', to: '/posts', permission: PERMISSION.ENTRY_READ },
+      { label: 'Add New', to: '/posts/new', permission: PERMISSION.ENTRY_CREATE },
+      { label: 'Categories', to: '/posts/categories', permission: PERMISSION.TAXONOMY_READ },
+      { label: 'Blog Page', to: '/blog-page', permission: PERMISSION.ENTRY_READ },
     ],
   },
   { id: 'media', icon: '▤', label: 'Media', to: '/media', permission: PERMISSION.MEDIA_READ },
@@ -297,6 +313,15 @@ export const NAV = [
        */
       { label: 'CTA Section', to: '/settings/cta', permission: PERMISSION.SETTINGS_READ },
       /* `Tour settings` yahan se **Tour ke submenu** me chala gaya (client, 8 Sep) — upar dekho. */
+      /**
+       * Blog settings — author · TOC · post ki sidebar (spec 008).
+       *
+       * ⚠️ **Ye Settings me hai, Posts ke submenu me nahi — client ne saaf kaha** (_"in
+       * settings there will be a post/blog settings"_). Yaani `Tour settings` wala raasta
+       * yahan **nahi** liya gaya, jo 8 Sep ko Settings se Tour ke submenu me chala gaya tha.
+       * Dono client ke faisle hain; UI ki jagah aur storage ki jagah ka koi bandhan nahi.
+       */
+      { label: 'Blog settings', to: '/settings/blog', permission: PERMISSION.SETTINGS_READ },
       { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
       { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
       {
@@ -375,6 +400,20 @@ export const ROUTE_GUARDS = Object.freeze({
   '/tour': PERMISSION.ENTRY_READ,
   '/tour/new': PERMISSION.ENTRY_CREATE,
   '/tour/:id': PERMISSION.ENTRY_READ,
+
+  /**
+   * Posts aur Blog Page — wahi jodi (spec 008, Slice C).
+   *
+   * ⚠️ Ab ye guard sach me kuch rokte hain, kyunki screens ban chuki hain. `/posts/tags` ka
+   * guard **nahi** hai aur na ho — wo route hi hata diya gaya (client ne Tags mana kiya).
+   */
+  '/posts': PERMISSION.ENTRY_READ,
+  '/posts/new': PERMISSION.ENTRY_CREATE,
+  '/posts/:id': PERMISSION.ENTRY_READ,
+  '/posts/categories': PERMISSION.TAXONOMY_READ,
+  '/blog-page': PERMISSION.ENTRY_READ,
+  '/blog-page/new': PERMISSION.ENTRY_CREATE,
+  '/blog-page/:id': PERMISSION.ENTRY_READ,
 
   /**
    * Bulk Upload — dono screen ek hi permission pe.

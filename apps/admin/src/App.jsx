@@ -29,9 +29,12 @@ import PackageEdit from './screens/packages/PackageEdit.jsx'
 import TaxonomyScreen from './screens/packages/TaxonomyScreen.jsx'
 import PackagesList from './screens/packages/PackagesList.jsx'
 import PageEdit from './screens/pages/PageEdit.jsx'
+import BlogPageList from './screens/pages/BlogPageList.jsx'
+import PostList from './screens/pages/PostList.jsx'
 import TourList from './screens/pages/TourList.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import General from './screens/settings/General.jsx'
+import BlogSettings from './screens/settings/BlogSettings.jsx'
 import TourSettings from './screens/settings/TourSettings.jsx'
 import DeleteUser from './screens/users/DeleteUser.jsx'
 import UserForm from './screens/users/UserForm.jsx'
@@ -142,6 +145,34 @@ const APP_ROUTES = [
    */
   { path: '/tour/settings', element: <TourSettings /> },
   { path: '/tour/:id', element: <PageEdit /> },
+
+  /**
+   * Posts aur Blog Page — blog (spec 008, Slice C).
+   *
+   * ⚠️ **Teenon screens `NotBuiltYet` se yahan aayi hain** (A-9 ka `post` wala aadha).
+   * `page` **jaan-boojh kar chhoda gaya hai** — 8 Sep ka sabak: _"Pages par kaam to ho hi
+   * nahi raha"_. Blog ka matlab `post` hai, aur scope ek faisle se nahi badhta.
+   *
+   * `/posts/new` `/posts/:id` se **pehle** — wahi kram jo `/packages` pe hai, taaki padhne
+   * wale ko ye na sochna pade ki "new" kahin ek id ki tarah to nahi jaa raha.
+   */
+  { path: '/posts', element: <PostList /> },
+  { path: '/posts/new', element: <PageEdit type="post" /> },
+  {
+    path: '/posts/categories',
+    element: (
+      <TaxonomyScreen
+        type="category"
+        title="Category"
+        subtitle="Flat list — the topic shown on each post card, and in the blog sidebar."
+      />
+    ),
+  },
+  { path: '/posts/:id', element: <PageEdit type="post" /> },
+
+  { path: '/blog-page', element: <BlogPageList /> },
+  { path: '/blog-page/new', element: <PageEdit type="blogPage" /> },
+  { path: '/blog-page/:id', element: <PageEdit type="blogPage" /> },
   { path: '/packages', element: <PackagesList /> },
   /**
    * `/packages/new` `/packages/:id` se **pehle** hai.
@@ -223,6 +254,8 @@ const APP_ROUTES = [
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
   { path: '/settings/cta', element: <CtaSection /> },
+  /** Blog settings — author · TOC · post ki sidebar (spec 008, Slice C). */
+  { path: '/settings/blog', element: <BlogSettings /> },
   { path: '/appearance/menus', element: <Menus /> },
   { path: '/appearance/sidebars', element: <Sidebars /> },
   { path: '/appearance/sidebars/:id', element: <SidebarEdit /> },
@@ -231,7 +264,11 @@ const APP_ROUTES = [
 
 /** Har wo route jo sidebar me hai par abhi bana nahi. */
 const PENDING_ROUTES = [
-  { path: '/posts/*', title: 'Posts', phase: 'Phase 1' },
+  /**
+   * ~~Posts ka splat~~ — **9 Sep ko hat gaya** (spec 008, Slice C). All Posts, Add New,
+   * Categories aur Blog Page — chaaron upar `APP_ROUTES` me hain. `Tags` bana hi nahi, aur
+   * na banega: client ne use mana kiya aur `post.taxonomyTypes` se bhi wo hat chuka hai.
+   */
   /**
    * Pages — D-87 me **scope me thi hi nahi**. Slice C me ye screens galti se ban gayi thin
    * (kaam Tour ka tha), aur client ne 8 Sep ko wo pakda: _"Pages par kaam to ho hi nahi raha"_.

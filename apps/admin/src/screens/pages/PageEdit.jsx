@@ -1,4 +1,9 @@
-import { CURRENT_CONTENT_VERSION, ENTRY_LIST_MAX_LIMIT } from '@cms/shared'
+import {
+  BLOG_PAGE_BLOCK_TYPES,
+  CURRENT_CONTENT_VERSION,
+  ENTRY_LIST_MAX_LIMIT,
+  POST_BLOCK_TYPES,
+} from '@cms/shared'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -9,6 +14,7 @@ import { useAuth } from '../../lib/auth.jsx'
 import { useEntry, useEntryList, useMediaById } from '../../lib/use-entries.js'
 import { useSidebars } from '../appearance/useSidebars.js'
 import HtmlEditor from '../packages/HtmlEditor.jsx'
+import { useTaxonomyList } from '../packages/usePackages.js'
 import PageBlocks from './PageBlocks.jsx'
 import '../packages/Packages.css'
 
@@ -61,9 +67,58 @@ const TYPE_CONFIG = {
     key: 'tourPage',
     label: 'Tour Page',
     basePath: '/tour',
+    /** `Page header` panel — heading + sub heading. */
+    header: true,
     /** Eyebrow + Stat rail — `tour-v3.html` ke hero wale panel. */
     hero: true,
+    /** Sidebar ka chunav page pe (D-88). */
+    sidebar: true,
     blocks: ['richText', 'twoColumn', 'cards', 'packageList', 'faqs'],
+  },
+
+  /**
+   * Blog ka listing page — `blog-v1.html` (spec 008).
+   *
+   * ⚠️ `hero: false` — na Eyebrow, na Stat rail. Dono `tour-v3.html` ke hero ki cheezein hain
+   * aur `blog-v1.html` me hain hi nahi; Eyebrow ko client ne **saaf mana kiya** (_"Written on
+   * the islands · updated for 2026"_ hataana tha). Isiliye `BLOG_PAGE_FIELDS` bhi
+   * `TOUR_PAGE_FIELDS` se alag hai — do khaali khaane admin me padey rehna hi wo sawaal
+   * paida karta hai jiska koi jawab nahi hota.
+   */
+  blogPage: {
+    key: 'blogPage',
+    label: 'Blog Page',
+    basePath: '/blog-page',
+    header: true,
+    hero: false,
+    sidebar: true,
+    blocks: BLOG_PAGE_BLOCK_TYPES,
+  },
+
+  /**
+   * Blog post — `blog-detail-v1.html` (spec 008).
+   *
+   * ⚠️ **`header: false`** — post ka `<h1>` uska **Title hi** hai. D-90 ne `fields.heading`
+   * `tourPage` ke liye banaya tha kyunki wahan `<h1>` me `<em>` se rang chahiye tha aur
+   * `title` har doosri jagah (SEO, `<title>` tag) bhi jaata hai. Blog pe reference ka
+   * `.ahead__t` bilkul wahi text hai jo breadcrumb aur card pe dikhta hai — do field ek hi
+   * cheez ke do naam bana dete (D-86).
+   *
+   * ⚠️ **`sidebar: false`** — post ki sidebar `Settings ▸ Blog settings` me ek baar chunti hai
+   * (client, 9 Sep: TOC ke liye bhi _"sabke liye"_). Har post pe do dropdown bharwane ka
+   * matlab hota ki ek din koi bhool jaaye aur us post pe sidebar chup-chaap gayab ho.
+   */
+  post: {
+    key: 'post',
+    label: 'Post',
+    basePath: '/posts',
+    header: false,
+    hero: false,
+    sidebar: false,
+    /** Excerpt aur Category sirf post pe — `tourPage` ko dono ki zaroorat hi nahi. */
+    excerpt: true,
+    categories: true,
+    blocks: POST_BLOCK_TYPES,
   },
 }
 
@@ -98,6 +153,17 @@ export default function PageEdit({ type = 'tourPage' }) {
    */
   const { data: sidebars, loading: sidebarsLoading } = useSidebars({ limit: 200 })
 
+  /**
+   * Post ka Category dropdown (spec 008).
+   *
+   * ⚠️ **Wahi hook jo Packages ka Destinations/Package Type bharta hai** — nayi list nahi
+   * likhi. Do copies ka nateeja is repo me kai baar ho chuka hai (D-65/D-51/D-58).
+   *
+   * Hook hamesha chalta hai, chahe type `post` na ho — conditional hook React ka rule tod
+   * deta hai. Ek `category` taxonomy ki list saste me aa jaati hai.
+   */
+  const categories = useTaxonomyList('category')
+
   const [form, setForm] = useState(null)
   const [editingSlug, setEditingSlug] = useState(false)
   const [openBlocks, setOpenBlocks] = useState([])
@@ -123,6 +189,14 @@ export default function PageEdit({ type = 'tourPage' }) {
       featuredImageId: entry?.featuredImageId ?? null,
       seo: entry?.seo ?? {},
       version: entry?.version ?? 0,
+
+      /** Sirf `post` pe dikhta hai, par state hamesha bharta hai — ek hi shape (spec 008). */
+      excerpt: entry?.excerpt ?? '',
+      /**
+       * ⚠️ Form me **ek** id, par DB me wo `taxonomies.categories[]` hai (D-49 ka shape).
+       * Wahi jodi jo `sidebarId` pe hai: UI ek dropdown, storage apne asli shape me.
+       */
+      categoryId: entry?.taxonomies?.categories?.[0] ?? '',
     })
   }, [id, entry])
 
@@ -181,6 +255,20 @@ export default function PageEdit({ type = 'tourPage' }) {
       parentId: form.parentId || null,
       featuredImageId: form.featuredImageId,
       ...(form.slug ? { slug: form.slug } : {}),
+
+      /**
+       * ⚠️ **Dono sirf un types pe bheje jaate hain jinke paas wo field hai** — wahi rok jo
+       * upar `statRail` pe hai. `entries` ka `fields`/`taxonomies` ke saath problem ye hai ki
+       * undeclared value chup-chaap store ho jaati hai, aur ek Tour page ke document me
+       * `excerpt: ''` ya khaali `categories: []` padi rehna sirf bhram paida karta hai.
+       *
+       * ⚠️ `taxonomies` **poora object** jaata hai, sirf ek key nahi: `entrySchema` `.strict()`
+       * pe hai aur galat key chup-chaap girti nahi, phenkti hai (D-43 §3 ka trap).
+       */
+      ...(config.excerpt ? { excerpt: form.excerpt } : {}),
+      ...(config.categories
+        ? { taxonomies: { categories: form.categoryId ? [form.categoryId] : [] } }
+        : {}),
     }
 
     try {
@@ -298,71 +386,99 @@ export default function PageEdit({ type = 'tourPage' }) {
           </div>
 
           {/* ---- PAGE HEADER ---- */}
-          <Panel title="Page header">
-            <div className="panel-body">
-              {/* Eyebrow `tour-v3.html` ke hero se aata hai — saade page pe wo nahi hai. */}
-              {/*
-               * Page ka **dikhne wala** `<h1>` — client, 9 Sep.
-               *
-               * ⚠️ Iske aane se upar wale `Title` ka kaam **chhota ho gaya**: ab wo slug,
-               * breadcrumb, admin ki list, SEO aur schema ke liye hai. Client ne yahi maanga tha
-               * — _"current jo hai use only slug ke liye rakhte hain, to breadcrumb bhi simple ho
-               * jayega"_.
-               *
-               * ⚠️ **Editor bilkul wahi hai jo baaki jagah hai** — client, 9 Sep:
-               * _"page header ka editor different kyu hai other editors se, make it same
-               * becouse admin could be confuse."_ Pehle iska apna chhota toolbar tha (bold ·
-               * highlight · link) aur tabs bhi nahi the.
-               *
-               * ⚠️ **Iski ek keemat hai, aur wo hint me likhi hai:** toolbar me heading dropdown,
-               * list aur image ab dikhte hain, par ye field `<h1>` ke **andar** chhapta hai —
-               * `pageHeadingSchema` inline profile pe hai, to block tags save pe gir jaate hain.
-               * Client ko wo pehle se bata dena hi ek raasta bacha, kyunki toolbar ab chhota nahi
-               * kiya ja sakta.
-               */}
-              <div className="field">
-                <label>Page heading</label>
-                <HtmlEditor
-                  value={form.fields.heading ?? ''}
-                  onChange={(heading) => setField('heading', heading)}
-                  disabled={readOnly}
-                  height={160}
-                />
-                <div className="hint">
-                  Shown as the page’s H1. Leave it empty and the <b>Title</b> above is used.{' '}
-                  <b>Italic</b> marks the part that should stand out in the accent colour. Only
-                  bold, italic and links are kept here — headings, lists and images are dropped when
-                  you save, because this is a heading.
-                </div>
-              </div>
-
-              {config.hero && (
+          {config.header && (
+            <Panel title="Page header">
+              <div className="panel-body">
+                {/* Eyebrow `tour-v3.html` ke hero se aata hai — saade page pe wo nahi hai. */}
+                {/*
+                 * Page ka **dikhne wala** `<h1>` — client, 9 Sep.
+                 *
+                 * ⚠️ Iske aane se upar wale `Title` ka kaam **chhota ho gaya**: ab wo slug,
+                 * breadcrumb, admin ki list, SEO aur schema ke liye hai. Client ne yahi maanga tha
+                 * — _"current jo hai use only slug ke liye rakhte hain, to breadcrumb bhi simple ho
+                 * jayega"_.
+                 *
+                 * ⚠️ **Editor bilkul wahi hai jo baaki jagah hai** — client, 9 Sep:
+                 * _"page header ka editor different kyu hai other editors se, make it same
+                 * becouse admin could be confuse."_ Pehle iska apna chhota toolbar tha (bold ·
+                 * highlight · link) aur tabs bhi nahi the.
+                 *
+                 * ⚠️ **Iski ek keemat hai, aur wo hint me likhi hai:** toolbar me heading dropdown,
+                 * list aur image ab dikhte hain, par ye field `<h1>` ke **andar** chhapta hai —
+                 * `pageHeadingSchema` inline profile pe hai, to block tags save pe gir jaate hain.
+                 * Client ko wo pehle se bata dena hi ek raasta bacha, kyunki toolbar ab chhota nahi
+                 * kiya ja sakta.
+                 */}
                 <div className="field">
-                  <label>Eyebrow line</label>
-                  <input
-                    className="inp"
-                    value={form.fields.eyebrow ?? ''}
-                    onChange={(e) => setField('eyebrow', e.target.value)}
+                  <label>Page heading</label>
+                  <HtmlEditor
+                    value={form.fields.heading ?? ''}
+                    onChange={(heading) => setField('heading', heading)}
                     disabled={readOnly}
+                    height={160}
+                  />
+                  <div className="hint">
+                    Shown as the page’s H1. Leave it empty and the <b>Title</b> above is used.{' '}
+                    <b>Italic</b> marks the part that should stand out in the accent colour. Only
+                    bold, italic and links are kept here — headings, lists and images are dropped
+                    when you save, because this is a heading.
+                  </div>
+                </div>
+
+                {config.hero && (
+                  <div className="field">
+                    <label>Eyebrow line</label>
+                    <input
+                      className="inp"
+                      value={form.fields.eyebrow ?? ''}
+                      onChange={(e) => setField('eyebrow', e.target.value)}
+                      disabled={readOnly}
+                    />
+                  </div>
+                )}
+                <div className="field">
+                  <label>Sub heading</label>
+                  <HtmlEditor
+                    value={form.fields.subheading ?? ''}
+                    onChange={(v) => setField('subheading', v)}
+                    disabled={readOnly}
+                    height={140}
                   />
                 </div>
-              )}
-              <div className="field">
-                <label>Sub heading</label>
-                <HtmlEditor
-                  value={form.fields.subheading ?? ''}
-                  onChange={(v) => setField('subheading', v)}
-                  disabled={readOnly}
-                  height={140}
-                />
+                <div className="hint">
+                  The big heading comes from the Title above. The breadcrumb is built from the
+                  page&rsquo;s <b>Parent</b>. The banner image comes from Settings — a page with its
+                  own Featured image uses that instead.
+                </div>
               </div>
-              <div className="hint">
-                The big heading comes from the Title above. The breadcrumb is built from the
-                page&rsquo;s <b>Parent</b>. The banner image comes from Settings — a page with its
-                own Featured image uses that instead.
+            </Panel>
+          )}
+
+          {/* ---- EXCERPT ---- sirf post pe (spec 008) ---- */}
+          {config.excerpt && (
+            /*
+             * ⚠️ Excerpt do jagah dikhta hai — listing card ka `.bp__x` **aur** meta
+             * description ka fallback. Isiliye hint me wo likha hai: client ise "sirf card ki
+             * line" samajh kar chhota likh de to SEO wali jagah bhi chhoti ho jaati hai.
+             */
+            <Panel title="Excerpt">
+              <div className="panel-body">
+                <div className="field">
+                  <textarea
+                    className="inp"
+                    rows={3}
+                    value={form.excerpt ?? ''}
+                    onChange={(e) => set({ excerpt: e.target.value })}
+                    disabled={readOnly}
+                  />
+                  <div className="hint">
+                    The line under the title on listing cards. Also used as the meta description
+                    when the <b>SEO</b> panel below is left empty.
+                  </div>
+                </div>
               </div>
-            </div>
-          </Panel>
+            </Panel>
+          )}
 
           {/* ---- STAT RAIL ---- reference ka `.vrail`, sirf Tour page pe ---- */}
           {config.hero && (
@@ -538,69 +654,111 @@ export default function PageEdit({ type = 'tourPage' }) {
 
           <Panel title="Page settings">
             <div className="panel-body">
+              {/* ---- CATEGORY ---- sirf post pe (spec 008) ---- */}
+              {config.categories && (
+                /*
+                 * ⚠️ **Ek hi category**, list nahi — aur wo `entry.taxonomies.categories[]`
+                 * ke andar bhejti jaati hai (D-49 ka shape). Reference me card pe ek hi badge
+                 * hai (`.bcat`) aur sidebar ke Topics me har post ek hi baar ginta hai; do
+                 * category ki ijaazat dene ka matlab hota ki wo ginti do jagah bhare aur
+                 * `.bfilter` ka total cards se zyada ho jaaye.
+                 *
+                 * ⚠️ **Tags yahan nahi hain** — client ne 9 Sep ko mana kiya, aur `post` ke
+                 * `taxonomyTypes` se bhi wo hat chuka hai.
+                 */
+                <div className="field">
+                  <label>Category</label>
+                  <select
+                    className="sel"
+                    value={form.categoryId ?? ''}
+                    onChange={(e) => set({ categoryId: e.target.value })}
+                    disabled={readOnly}
+                  >
+                    <option value="">— no category —</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  {categories.length === 0 && (
+                    <div className="hint">
+                      No categories yet — add one under <b>Posts ▸ Categories</b>.
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/*
                * Sidebar — **sirf layout aur visibility** (client, 8 Sep).
                *
                * ⚠️ Usme kaunsa form dikhega wo yahan tay nahi hota; wo `Appearance ▸ Sidebar`
                * ka kaam hai (Slice E). Client ne wo lakeer khud khinchi, aur wo theek jagah
                * hai: layout page ka apna faisla hai, content site ka.
-               */}
-              <div className="field">
-                <label>Sidebar</label>
-                <select
-                  className="sel"
-                  value={form.fields.sidebar ?? 'none'}
-                  onChange={(e) => setField('sidebar', e.target.value)}
-                  disabled={readOnly}
-                >
-                  <option value="none">No sidebar</option>
-                  <option value="left">Left — content on the right</option>
-                  <option value="right">Right — content on the left</option>
-                </select>
-                <div className="hint">
-                  What goes inside it — the form, the widgets — comes from{' '}
-                  <b>Appearance ▸ Sidebar</b>.
-                </div>
-              </div>
-
-              {/*
-               * "Which sidebar" — **left/right chunne ke baad hi** (client, D-88 #6).
                *
-               * ⚠️ `none` par ye dropdown chhup jaata hai par uski **value mitti nahi** — client
-               * left/right toggle karke wapas aayega aur uska chunav bacha rehna chahiye. Wahi
-               * soch jo D-87 §3 ki rating pe hai: override karta hai, mitata nahi.
+               * ⚠️ **Post pe ye dono field nahi hain** (spec 008) — uski sidebar
+               * `Settings ▸ Blog settings` me ek baar chunti hai, har post pe nahi.
                */}
-              {(form.fields.sidebar ?? 'none') !== 'none' && (
-                <div className="field">
-                  <label>Which sidebar</label>
-                  <select
-                    className="sel"
-                    value={form.fields.sidebarId ?? ''}
-                    onChange={(e) => setField('sidebarId', e.target.value)}
-                    disabled={readOnly || sidebarsLoading}
-                  >
-                    <option value="">
-                      {sidebarsLoading ? 'Loading…' : '— choose a sidebar —'}
-                    </option>
-                    {sidebars.map((sidebar) => (
-                      <option key={sidebar.id} value={sidebar.id}>
-                        {sidebar.name}
-                      </option>
-                    ))}
-                  </select>
+              {config.sidebar && (
+                <>
+                  <div className="field">
+                    <label>Sidebar</label>
+                    <select
+                      className="sel"
+                      value={form.fields.sidebar ?? 'none'}
+                      onChange={(e) => setField('sidebar', e.target.value)}
+                      disabled={readOnly}
+                    >
+                      <option value="none">No sidebar</option>
+                      <option value="left">Left — content on the right</option>
+                      <option value="right">Right — content on the left</option>
+                    </select>
+                    <div className="hint">
+                      What goes inside it — the form, the widgets — comes from{' '}
+                      <b>Appearance ▸ Sidebar</b>.
+                    </div>
+                  </div>
 
                   {/*
-                   * Khaali list ka matlab "abhi banayi hi nahi" hai — aur wo saaf likha hona
-                   * chahiye. 8 Sep ko package picker pe ulta hua tha: request 400 de rahi thi
-                   * aur screen pe sirf khaali list dikhti thi, yaani **failure khaali state ki
-                   * shakl me** aa raha tha (D-86).
+                   * "Which sidebar" — **left/right chunne ke baad hi** (client, D-88 #6).
+                   *
+                   * ⚠️ `none` par ye dropdown chhup jaata hai par uski **value mitti nahi** — client
+                   * left/right toggle karke wapas aayega aur uska chunav bacha rehna chahiye. Wahi
+                   * soch jo D-87 §3 ki rating pe hai: override karta hai, mitata nahi.
                    */}
-                  {!sidebarsLoading && sidebars.length === 0 && (
-                    <div className="hint">
-                      No sidebars yet — create one under <b>Appearance ▸ Sidebar</b>.
+                  {(form.fields.sidebar ?? 'none') !== 'none' && (
+                    <div className="field">
+                      <label>Which sidebar</label>
+                      <select
+                        className="sel"
+                        value={form.fields.sidebarId ?? ''}
+                        onChange={(e) => setField('sidebarId', e.target.value)}
+                        disabled={readOnly || sidebarsLoading}
+                      >
+                        <option value="">
+                          {sidebarsLoading ? 'Loading…' : '— choose a sidebar —'}
+                        </option>
+                        {sidebars.map((sidebar) => (
+                          <option key={sidebar.id} value={sidebar.id}>
+                            {sidebar.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/*
+                       * Khaali list ka matlab "abhi banayi hi nahi" hai — aur wo saaf likha hona
+                       * chahiye. 8 Sep ko package picker pe ulta hua tha: request 400 de rahi thi
+                       * aur screen pe sirf khaali list dikhti thi, yaani **failure khaali state ki
+                       * shakl me** aa raha tha (D-86).
+                       */}
+                      {!sidebarsLoading && sidebars.length === 0 && (
+                        <div className="hint">
+                          No sidebars yet — create one under <b>Appearance ▸ Sidebar</b>.
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
+                </>
               )}
 
               <div className="field">

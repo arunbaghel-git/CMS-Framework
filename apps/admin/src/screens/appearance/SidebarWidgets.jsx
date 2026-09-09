@@ -1,6 +1,14 @@
-import { ICONS, ICON_LABELS, SIDEBAR_WIDGET_LABEL, SIDEBAR_WIDGET_TYPES } from '@cms/shared'
+import {
+  ENTRY_LIST_MAX_LIMIT,
+  ICONS,
+  ICON_LABELS,
+  MAX_POST_PICKS,
+  SIDEBAR_WIDGET_LABEL,
+  SIDEBAR_WIDGET_TYPES,
+} from '@cms/shared'
 
 import { useListDrag } from '../../lib/drag-list.js'
+import { useEntryList } from '../../lib/use-entries.js'
 import HtmlEditor from '../packages/HtmlEditor.jsx'
 /**
  * ⚠️ CSS **wahi file** hai jo blocks ki hai — copy nahi ki gayi.
@@ -28,6 +36,8 @@ const WIDGET_CLASS = {
   enquiryForm: 'list',
   talkToPlanner: 'cards',
   html: 'text',
+  topics: 'list',
+  postPicks: 'cards',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -40,6 +50,8 @@ function emptyWidget(type) {
     enquiryForm: { heading: '', description: '', formId: '' },
     talkToPlanner: { heading: '' },
     html: { icon: 'none', heading: '', html: '' },
+    topics: { icon: 'none', heading: '' },
+    postPicks: { icon: 'none', heading: '', postIds: [] },
   }[type]
 
   return { id: newId(), type, props: props ?? {} }
@@ -64,6 +76,10 @@ function summarize(widget, forms) {
        */
       return form ? form.name : 'Form not available'
     }
+    case 'topics':
+      return p.heading || 'Topics'
+    case 'postPicks':
+      return `${p.heading || 'Post picks'} — ${(p.postIds ?? []).length} post(s)`
     case 'talkToPlanner':
       return p.heading || 'Talk to a planner'
     case 'html': {
@@ -218,10 +234,197 @@ function HtmlWidget({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * `Topics` — blog ki categories, ginti ke saath (spec 008).
+ *
+ * ⚠️ **Yahan chunne ko kuch hai hi nahi, aur wo sahi hai.** Categories aur unki ginti dono
+ * derive hoti hain — client se list chunwana wahi galti hoti jo D-58 ne hotels table pe
+ * bachayi thi. Widget list me hona hi "on" hai (D-88 ka `talkToPlanner` wala tark).
+ */
+function TopicsWidget({ props, onChange, disabled }) {
+  return (
+    <>
+      <IconAndHeading props={props} onChange={onChange} disabled={disabled} placeholder="Topics" />
+
+      <div className="hint">
+        Every category that has published posts, with its count. Nothing to pick — the list builds
+        itself from <b>Posts ▸ Categories</b>. If there are no categories yet, this widget is not
+        shown.
+      </div>
+    </>
+  )
+}
+
+/**
+ * `Post picks` — reference ka `Most read` (spec 008).
+ *
+ * ⚠️ **Ginti se kuch nahi banta.** Is CMS me view counting hai hi nahi, aur uske liye har page
+ * view pe ek write chahiye hota — jo ISR aur caching dono tod deta (D-83 abhi theek hua hai).
+ * Client khud chunta hai; `Most read` bas wo heading hai jo wo likhta hai (client, 9 Sep).
+ *
+ * Isiliye type ka naam `postPicks` hai, `mostRead` nahi — naam wahi kehna chahiye jo cheez
+ * sach me hai. **Type DB me stored data hai, ise kabhi rename mat karna (R4).**
+ */
+function PostPicksWidget({ props, onChange, disabled }) {
+  const chosen = props.postIds ?? []
+  const {
+    data: posts,
+    loading,
+    error,
+  } = useEntryList('post', {
+    limit: ENTRY_LIST_MAX_LIMIT,
+    status: 'published',
+  })
+
+  const move = (from, to) => {
+    if (to < 0 || to >= chosen.length) return
+    const next = [...chosen]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    onChange({ ...props, postIds: next })
+  }
+
+  const { handleProps, rowProps } = useListDrag(move, !disabled)
+
+  const byId = new Map(posts.map((p) => [p.id, p]))
+  const full = chosen.length >= MAX_POST_PICKS
+  const add = (id) =>
+    !chosen.includes(id) && !full && onChange({ ...props, postIds: [...chosen, id] })
+  const remove = (id) => onChange({ ...props, postIds: chosen.filter((x) => x !== id) })
+
+  return (
+    <>
+      <IconAndHeading
+        props={props}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder="Most read"
+      />
+
+      <div className="picker">
+        <div className="picker__col">
+          <div className="picker__head">
+            All posts <span className="muted">{posts.length}</span>
+          </div>
+          <ul className="picker__list">
+            {posts.map((post) => {
+              const added = chosen.includes(post.id)
+              return (
+                <li key={post.id}>
+                  <span className="picker__name">{post.title}</span>
+                  {added ? (
+                    <span className="picker__added" title="Already added">
+                      ✓
+                    </span>
+                  ) : (
+                    <button
+                      className="btn btn-sm"
+                      type="button"
+                      onClick={() => add(post.id)}
+                      disabled={disabled || full}
+                    >
+                      ＋
+                    </button>
+                  )}
+                </li>
+              )
+            })}
+            {/* Error khaali list ki shakl me na dikhe — 8 Sep wala sabak (D-86). */}
+            {error && <li className="picker__empty picker__error">{error}</li>}
+            {!error && !loading && posts.length === 0 && (
+              <li className="picker__empty">No published posts yet.</li>
+            )}
+          </ul>
+        </div>
+
+        <div className="picker__col">
+          <div className="picker__head">
+            Chosen{' '}
+            <span className="muted">
+              {chosen.length} / {MAX_POST_PICKS}
+            </span>
+          </div>
+          <ul className="picker__list">
+            {chosen.map((id, i) => {
+              /** Jo post list me na mile uski id phir bhi dikhti hai — chunav bina bataye na mite. */
+              const post = byId.get(id)
+              return (
+                <li key={id} {...rowProps(i)}>
+                  <span className="grip" {...handleProps(i)}>
+                    ⠿
+                  </span>
+                  <span className="picker__name">
+                    {post?.title ?? <em className="muted">(no longer available)</em>}
+                  </span>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    type="button"
+                    onClick={() => remove(id)}
+                    disabled={disabled}
+                  >
+                    ✕
+                  </button>
+                </li>
+              )
+            })}
+            {chosen.length === 0 && (
+              <li className="picker__empty">
+                None yet — use ＋ on the left. With none chosen, this widget is not shown.
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </>
+  )
+}
+
+/**
+ * Icon + Heading ki jodi — `html`, `topics` aur `postPicks` teenon pe bilkul wahi.
+ *
+ * ⚠️ Alag component isliye ki teen copies ka nateeja is repo me kai baar ho chuka hai
+ * (D-65/D-51/D-58). Icon ki list wahi shared `ICONS` hai — nayi banane ka nateeja
+ * `constants/icons.js` ke sar pe likha hua hai.
+ */
+function IconAndHeading({ props, onChange, disabled, placeholder }) {
+  return (
+    <div className="row2">
+      <div className="field">
+        <label>Icon</label>
+        <select
+          className="sel"
+          value={props.icon ?? 'none'}
+          onChange={(e) => onChange({ ...props, icon: e.target.value })}
+          disabled={disabled}
+        >
+          {ICONS.map((icon) => (
+            <option key={icon} value={icon}>
+              {ICON_LABELS[icon] ?? icon}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="field">
+        <label>Heading</label>
+        <input
+          className="inp"
+          value={props.heading ?? ''}
+          onChange={(e) => onChange({ ...props, heading: e.target.value })}
+          placeholder={placeholder}
+          disabled={disabled}
+        />
+      </div>
+    </div>
+  )
+}
+
 const EDITORS = {
   enquiryForm: EnquiryFormWidget,
   talkToPlanner: TalkToPlannerWidget,
   html: HtmlWidget,
+  topics: TopicsWidget,
+  postPicks: PostPicksWidget,
 }
 
 /* ── list ──────────────────────────────────────────────────────────────────── */

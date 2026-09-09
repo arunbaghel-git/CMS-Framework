@@ -1,4 +1,9 @@
-import { ENTRY_LIST_MAX_LIMIT, PAGE_BLOCK_TYPES } from '@cms/shared'
+import {
+  ENTRY_LIST_MAX_LIMIT,
+  PAGE_BLOCK_TYPES,
+  POST_LIST_MAX_FEATURED,
+  POST_LIST_PER_PAGE_DEFAULT,
+} from '@cms/shared'
 import { useEffect, useId, useState } from 'react'
 
 import { useListDrag } from '../../lib/drag-list.js'
@@ -25,6 +30,7 @@ const BLOCK_LABEL = {
   twoColumn: 'Two column',
   cards: 'Cards',
   packageList: 'Package list',
+  postList: 'Post list',
   faqs: 'FAQs',
 }
 
@@ -34,6 +40,7 @@ const BLOCK_CLASS = {
   twoColumn: 'two',
   cards: 'cards',
   packageList: 'list',
+  postList: 'list',
   faqs: 'faq',
 }
 
@@ -55,6 +62,7 @@ function emptyBlock(type) {
     },
     cards: { heading: '', description: '', columns: 3, items: [] },
     packageList: {},
+    postList: { heading: '', subheading: '', linkLabel: '', linkUrl: '', featuredIds: [] },
     faqs: { heading: '', description: '', items: [] },
   }[type]
 
@@ -84,6 +92,8 @@ function summarize(block) {
       return p.heading || (p.ratio ?? '50-50')
     case 'cards':
       return `${p.heading ? `${p.heading} — ` : ''}${(p.items ?? []).length} card(s) · ${p.columns ?? 3} columns`
+    case 'postList':
+      return `${p.heading || 'Post list'} — ${(p.featuredIds ?? []).length} featured`
     case 'packageList':
       return p.heading || 'Package list'
     case 'faqs':
@@ -725,6 +735,249 @@ function PackageListBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * `Post list` — blog listing page ka block (spec 008).
+ *
+ * ## ⚠️ Picker sirf **featured teen** ke liye hai, poori list ke liye nahi
+ *
+ * `PackageListBlock` me client **har** package chunta hai. Yahan wo galat hota: blog ki list
+ * query se banti hai (naya post publish karo, wo apne aap aa jaaye). Client sirf `Start here`
+ * ke teen chunta hai — ek bada aur do chhote.
+ *
+ * Isiliye baayen wali list pe `browseBy` jaisa kuch nahi hai — sirf search. Filter ka sawaal
+ * hi nahi uthta, kyunki ye chunav sirf teen ka hai.
+ */
+function PostListBlock({ props, onChange, disabled }) {
+  const categories = useTaxonomyList('category')
+  const chosen = props.featuredIds ?? []
+
+  const [search, setSearch] = useState('')
+  const [applied, setApplied] = useState('')
+
+  /** 300ms — bina iske har keystroke ek API call banati (wahi debounce jo package picker pe hai). */
+  useEffect(() => {
+    const timer = setTimeout(() => setApplied(search.trim()), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const {
+    data: pool,
+    loading,
+    error,
+  } = useEntryList('post', {
+    limit: ENTRY_LIST_MAX_LIMIT,
+    status: 'published',
+    ...(applied ? { q: applied } : {}),
+  })
+
+  const move = (from, to) => {
+    if (to < 0 || to >= chosen.length) return
+    const next = [...chosen]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    onChange({ ...props, featuredIds: next })
+  }
+
+  const { handleProps, rowProps } = useListDrag(move, !disabled)
+
+  const byId = new Map(pool.map((p) => [p.id, p]))
+  const full = chosen.length >= POST_LIST_MAX_FEATURED
+  const add = (id) =>
+    !chosen.includes(id) && !full && onChange({ ...props, featuredIds: [...chosen, id] })
+  const remove = (id) => onChange({ ...props, featuredIds: chosen.filter((x) => x !== id) })
+
+  return (
+    <>
+      <div className="row2">
+        <div className="field">
+          <label>Heading</label>
+          <input
+            className="inp"
+            value={props.heading ?? ''}
+            onChange={(e) => onChange({ ...props, heading: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+        <div className="field">
+          <label>Sub heading</label>
+          <input
+            className="inp"
+            value={props.subheading ?? ''}
+            onChange={(e) => onChange({ ...props, subheading: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+
+      <div className="row2">
+        <div className="field">
+          <label>Link text</label>
+          <input
+            className="inp"
+            value={props.linkLabel ?? ''}
+            onChange={(e) => onChange({ ...props, linkLabel: e.target.value })}
+            disabled={disabled}
+            placeholder="All articles"
+          />
+        </div>
+        <div className="field">
+          <label>Link URL</label>
+          <input
+            className="inp"
+            value={props.linkUrl ?? ''}
+            onChange={(e) => onChange({ ...props, linkUrl: e.target.value })}
+            disabled={disabled}
+          />
+          {/* Aadha link ek aisa button hai jo click pe kuch nahi karta (D-30, D-90). */}
+          <div className="hint">Both are needed — with only one, no link is shown.</div>
+        </div>
+      </div>
+
+      <div className="row3">
+        <div className="field">
+          <label>Only this topic</label>
+          <select
+            className="sel"
+            value={props.categoryId ?? ''}
+            onChange={(e) => onChange({ ...props, categoryId: e.target.value || null })}
+            disabled={disabled}
+          >
+            <option value="">All topics</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          {/* Topic-wise landing page ka poora raasta yahi hai — koi alag route nahi. */}
+          <div className="hint">Pick one to make this a single-topic page.</div>
+        </div>
+
+        <div className="field">
+          <label>Posts per page</label>
+          <input
+            className="inp"
+            type="number"
+            min={1}
+            max={50}
+            value={props.perPage ?? POST_LIST_PER_PAGE_DEFAULT}
+            onChange={(e) => onChange({ ...props, perPage: Number(e.target.value) || 1 })}
+            disabled={disabled}
+          />
+        </div>
+
+        <div className="field">
+          <label>Topic filter</label>
+          <label className="inline-lbl">
+            <input
+              type="checkbox"
+              checked={props.showFilter !== false}
+              onChange={(e) => onChange({ ...props, showFilter: e.target.checked })}
+              disabled={disabled}
+            />{' '}
+            Show the filter pills
+          </label>
+        </div>
+      </div>
+
+      <div className="picker">
+        <div className="picker__col">
+          <div className="picker__head">
+            All posts <span className="muted">{pool.length}</span>
+          </div>
+          <div className="picker__tools">
+            <input
+              className="inp"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search posts…"
+              disabled={disabled}
+            />
+          </div>
+          <ul className="picker__list">
+            {pool.map((post) => {
+              const added = chosen.includes(post.id)
+              return (
+                <li key={post.id}>
+                  <span className="picker__name">{post.title}</span>
+                  {added ? (
+                    <span className="picker__added" title="Already added">
+                      ✓
+                    </span>
+                  ) : (
+                    <button
+                      className="btn btn-sm"
+                      type="button"
+                      onClick={() => add(post.id)}
+                      disabled={disabled || full}
+                    >
+                      ＋
+                    </button>
+                  )}
+                </li>
+              )
+            })}
+            {/*
+             * ⚠️ Error khaali list ki tarah **nahi** dikhta — 8 Sep ko package picker pe wahi
+             * hua tha: request 400 de rahi thi aur screen "koi package nahi" keh raha tha,
+             * yaani failure khaali state ki shakl me (D-86).
+             */}
+            {error && <li className="picker__empty picker__error">{error}</li>}
+            {!error && !loading && pool.length === 0 && (
+              <li className="picker__empty">No published posts yet.</li>
+            )}
+          </ul>
+        </div>
+
+        <div className="picker__col">
+          <div className="picker__head">
+            Featured{' '}
+            <span className="muted">
+              {chosen.length} / {POST_LIST_MAX_FEATURED}
+            </span>
+          </div>
+          <ul className="picker__list">
+            {chosen.map((id, i) => {
+              /**
+               * ⚠️ Jo post pool me na mile (draft ho gaya, ya trash me) uski id phir bhi dikhti
+               * hai — chup-chaap gira dena client ka chunav uske bina bataye mita dena hota.
+               * Page pe wo waise bhi render nahi hoga.
+               */
+              const post = byId.get(id)
+              return (
+                <li key={id} {...rowProps(i)}>
+                  <span className="grip" {...handleProps(i)}>
+                    ⠿
+                  </span>
+                  <span className="picker__name">
+                    {post?.title ?? <em className="muted">(no longer available)</em>}
+                  </span>
+                  {/* Kram mayne rakhta hai — pehla bada card banta hai (`.fcard--lg`). */}
+                  <span className="picker__meta">{i === 0 ? 'Big card' : 'Small'}</span>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    type="button"
+                    onClick={() => remove(id)}
+                    disabled={disabled}
+                  >
+                    ✕
+                  </button>
+                </li>
+              )
+            })}
+            {chosen.length === 0 && (
+              <li className="picker__empty">
+                None yet — use ＋ on the left. Leave this empty and the “Start here” section does
+                not appear. These three are left out of the list below.
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function FaqsBlock({ props, onChange, disabled }) {
   const items = props.items ?? []
   const setItems = (next) => onChange({ ...props, items: next })
@@ -794,6 +1047,7 @@ const EDITORS = {
   twoColumn: TwoColumnBlock,
   cards: CardsBlock,
   packageList: PackageListBlock,
+  postList: PostListBlock,
   faqs: FaqsBlock,
 }
 
