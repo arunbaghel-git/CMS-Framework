@@ -3,6 +3,7 @@ import { Fragment } from 'react'
 import Icon from '../Icon.jsx'
 import Img from '../Img.jsx'
 import { waHref } from '../../lib/links.js'
+import CtaSection from '../package/CtaSection.jsx'
 import { EnquiryDockProvider } from '../package/EnquiryDock.jsx'
 import Blocks from './Blocks.jsx'
 import Sidebar from './Sidebar.jsx'
@@ -282,6 +283,32 @@ export default function TourPage({ entry, settings }) {
           </div>
         </div>
       </section>
+
+      {/*
+       * Page ka aakhri CTA card — `settings.ctaSection` se (D-67), package page wala **wahi**
+       * component.
+       *
+       * ⚠️ **Naya kuch nahi bana, aur wo ittefaq nahi hai — client ne ye case D-67 me hi soch
+       * liya tha.** Design me is card ke box me daam aur category thi (`js-px`/`js-cat-name`);
+       * client ne wo raasta band kiya kyunki _"ye card doosre pages pe bhi jaayega jahan koi
+       * package hai hi nahi"_. Wo doosra page yahi hai. Isliye hamara component tour ke design
+       * se **bilkul** milta hai — `tour-v3.html:1913` ke `.offer` me bhi daam nahi hai.
+       *
+       * ⚠️ **Yahan `hasCtaSection()` ka guard nahi hai, aur wo package page se farak hai.**
+       * Wahan wo padding ke liye chahiye tha (`.pkg--cta`), kyunki CTA `.pkg` ke **andar**
+       * baithti hai aur uski apni bottom padding neeche neela strip chhod deti thi. Yahan CTA
+       * `.sec--blue` ke **bahar** ek alag band hai — do bands apni-apni padding rakhte hain,
+       * theek jaise reference me `sec--blue` ke baad `sec--white` aata hai.
+       *
+       * Component khud khaali hone pe `null` lauta deta hai (client ne section off kiya ho, ya
+       * usme kuch bhara hi na ho), isliye yahan koi shart likhne ki zaroorat nahi.
+       *
+       * ⚠️ Ye section **global** hai — `Settings ▸ CTA Section` badalne pe package page pe bhi
+       * badlega. Client ka yahi faisla hai (_"dusre pages par bhi use hoga"_), aur isi liye
+       * Tour settings me iska doosra on/off **jaan-boojh kar nahi** banaya: ek hi cheez ke do
+       * control wahi shakl bante jo D-86 me pakdi gayi thi.
+       */}
+      <CtaSection cta={settings?.ctaSection} />
     </EnquiryDockProvider>
   )
 }
