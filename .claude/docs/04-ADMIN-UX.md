@@ -541,3 +541,78 @@ file upload karke use turant chun bhi leta hai. Yaani dono cheezein pehle se **k
 
 Ye `MediaDrop.jsx` me ek jagah badla, isliye chaaron jagah ek saath — Settings ka Logo/Favicon,
 Footer ka logo, package ka banner aur destination ka banner.
+
+---
+
+## Tour page ka aakhri daur — admin ke chaar badlaav (9 Sep, D-90)
+
+### `Page heading` — ek naya field, aur `Title` ka kaam chhota
+
+`Tour Page` ke edit screen pe `Title` ke neeche naya **`Page heading`** hai. Wahi page ka `<h1>`
+banta hai; `Title` ab slug, breadcrumb, admin ki list, SEO aur schema ke liye hai. Client ka apna
+vaakya: _"current jo hai use only slug ke liye rakhte hain, to breadcrumb bhi simple ho jayega."_
+
+⚠️ **Editor bilkul wahi hai jo baaki jagah hai** — poore tabs ke saath. Pehle iska apna chhota
+toolbar tha (bold · italic · highlight · link); client ne mana kiya: _"page header ka editor
+different kyu hai other editors se, make it same becouse admin could be confuse."_
+
+⚠️ **Uski ek keemat hai, aur wo hint me likhi hai.** Toolbar me heading dropdown, list aur image
+ab dikhte hain, par ye field `<h1>` ke **andar** chhapta hai — save pe wo gir jaate hain. Hint
+pehle se bata deti hai ki sirf bold, italic aur link bachenge.
+
+⚠️ **Accent rang `Italic` se aata hai**, kisi alag button se nahi. Theme me `.vhero h1 em` ko
+`font-style: normal` ke saath accent rang milta hai, yaani wahan `<em>` tirchha hota hi nahi.
+Isiliye `HtmlEditor` ka purana `Highlight` button hata diya gaya — wo sirf us chhote toolbar ke
+liye tha. Ye baat bhi hint me hai, warna client tirchha maangta aur neela paa kar use bug samajhta.
+
+### `Package edit` pe ab apna `Rating` panel
+
+Sidebar me naya **`Rating`** panel — wahi `RatingPanel` component jo `Packages ▸ Section Headings`
+pe site ki rating ke liye chalta hai. Dobara nahi likha gaya.
+
+⚠️ **Ye "bana hua par juda nahi" ka udaharan tha** — `fields.rating` D-87 §3 se schema, service aur
+payload teenon me kaam kar raha tha; bas **bharne ka raasta nahi tha**, isliye har package pe site
+wali rating hi chhapti thi.
+
+⚠️ **Ek hi panel, do jagah, aur `0` ka matlab dono jagah alag:**
+
+| Kahan | `0` ka matlab |
+| --- | --- |
+| `Section Headings ▸ Traveller reviews` | rating **dikhani hi nahi** — page se line gayab |
+| `Package edit ▸ Rating` | is package ki **apni rating nahi** — site wali chalti hai (D-87 §3) |
+
+⚠️ **Client ne 9 Sep ko is panel ki teenon hint hata di** (dono jagah se, aur per-package wali bhi).
+Wajah samajh aati hai — ek hi hint dono jagah sach nahi ho sakti. Ab wo farak sirf code comments me
+likha hai (`RatingPanel.jsx` ka header, `PackageEdit.jsx` ka panel comment). **Hint wapas jodna
+client ka faisla hai — khud mat jodo.**
+
+### `Stat rail` me `Highlight this one`
+
+Har stat row pe naya checkbox. `statSchema.highlight` D-87 se maujood tha, payload use bhejta tha
+aur theme uspe `.vrail__c--p` (accent rang) lagati thi — **admin me tick karne ka raasta hi nahi
+tha**, yaani wo hamesha `false` rehta aur design ka neela `₹11,499` kabhi aata hi nahi.
+
+### `Package list` block me `Link label` + `Link URL`
+
+Block ke heading/subheading ke neeche do naye box — reference ka _"Need something custom? →"_
+(`tour-v3.html:1436`).
+
+⚠️ **Text bhi field hai, sirf URL nahi** — client ka chunav. Theme me likh dene ka matlab hota ki
+wo har client ki site pe wahi rahe.
+
+⚠️ **Dono chahiye** — ek bhi khaali ho to link render nahi hota, aur hint yahi kehti hai. Aadha
+link ek aisa button hai jo click pe kuch nahi karta.
+
+### `Enquiry Details` pe ab poora URL
+
+`Submitted from` ab **poora URL** dikhata hai aur wo ek **link** hai (naye tab me khulta hai).
+
+⚠️ Pehle wahan `sourcePath` tha. Admin apne origin pe chalta hai (`:5173`), to relative path admin
+ka pata lagta tha — us text ko copy karke koi khol hi nahi sakta tha. **Wahi bug `All Packages` ke
+`View` link pe aur Bulk Upload ke result pe pehle ho chuka hai (D-81) — ye teesri baar tha.**
+
+`sourceUrl` server pe `env.SITE_URL` se banta hai, kisi setting se nahi — `settings.read`
+`salesAgent` ke paas hai hi nahi, aur ye screen usi ke liye bani hai (D-29).
+
+⚠️ **List me abhi bhi `sourcePath` hai** — `enq-src` column chhota hai, wahan poora URL bemaani
+hota.

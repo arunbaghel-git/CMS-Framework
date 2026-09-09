@@ -1,48 +1,159 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 8 Sep 2026 (raat) — **210 commit**, ✅ **sab push ho chuka**
-> (`origin/main` = `44c15e3`), **847 test pass** (33 file), admin + web build pass,
-> lint + format clean, tree clean.
+> **Last updated:** 9 Sep 2026 (shaam) — **223 commit**, ⚠️ **12 commit push nahi hue**
+> (`origin/main` = `44c15e3`), **848 test pass** (33 file), lint + format clean, tree clean.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (9 Sep)
+## ⏭️ Nayi session yahan se shuru kare (10 Sep)
 
 ### Abhi ki asli haalat (naapi hui)
 
-| Kya           | Value                                                                                        |
-| ------------- | -------------------------------------------------------------------------------------------- |
-| Commits       | **210**                                                                                      |
-| Push          | ✅ **sab push ho chuka** — `origin/main` = `44c15e3` (client ne 8 Sep raat ko permission di) |
-| Tests         | **847 pass**, 33 file (`pnpm test`, exit 0)                                                  |
-| Builds        | ✅ admin (`vite build`) aur web (`next build`) dono pass                                     |
-| Lint · Format | dono clean                                                                                   |
-| Tree          | clean                                                                                        |
-| Migrations    | **23 files**, 23/23 applied                                                                  |
-| Decisions     | **D-89** tak                                                                                 |
-| DB            | 5 package (+8 trash) · **1 tour page (live, poora bhara hua)** · 1 sidebar · 4 content type  |
+| Kya           | Value                                                                                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Commits       | **223**                                                                                                                                        |
+| Push          | ⚠️ **12 commit local hi hain** — `origin/main` abhi bhi `44c15e3`. Client ne 9 Sep ko saaf mana kiya: _"documentation kar do only, dont push"_ |
+| Tests         | **848 pass**, 33 file (`pnpm test`, exit 0)                                                                                                    |
+| Builds        | ⚠️ **aaj verify nahi hue** — dev server chal raha tha, aur `next build` uske saath nahi chalaya ja sakta                                       |
+| Lint · Format | dono clean                                                                                                                                     |
+| Tree          | clean                                                                                                                                          |
+| Migrations    | **23 files**, 23/23 applied — D-90 me koi nayi nahi lagi                                                                                       |
+| Decisions     | **D-90** tak                                                                                                                                   |
+| DB            | 5 package (+8 trash) · **1 tour page (live, poora bhara hua)** · 1 sidebar · 4 content type                                                    |
+
+### Pehla kaam: **push** (agar client kahe)
+
+```bash
+git log --oneline origin/main..main    # 12 commit
+git push
+```
+
+⚠️ **Bina permission ke push mat karo.** 8 Sep ko client ne ek baar ijaazat di thi — wo **us ek
+baar** ke liye thi. 9 Sep ko unhone saaf mana kiya.
 
 ### Pehle ye do
 
 ```bash
 docker compose up -d mongo
-pnpm seed          # ⚠️ tourPage me `sidebarId` juda hai (D-88)
+pnpm seed          # ⚠️ tourPage me `heading` juda hai (D-90 §2)
 pnpm dev
 ```
 
-⚠️ **`pnpm cms migrate` ki zaroorat nahi** — 023 lag chuki hai, D-89 me koi nayi nahi lagi.
+⚠️ **`pnpm cms migrate` ki zaroorat nahi** — 023 lag chuki hai.
 
 ⚠️ **`next build` KABHI dev chalte waqt mat chalao.** Dono ek hi `.next` folder use karte hain;
 build dev ke vendor chunks ke upar likh deta hai aur **har page 500** dene lagta hai
-(`Cannot find module './vendor-chunks/zod@3.24.1.js'`). Ye 8 Sep ko **do baar** hua. Naapne ya
-build karne se pehle dev band karo.
+(`Cannot find module './vendor-chunks/zod@3.24.1.js'`). Ye 8 Sep ko **do baar** hua.
+
+⚠️ **Mongo do jagah chal sakta hai.** 9 Sep ko Docker ka mongo **aur** Windows ka local
+`mongod.exe` dono `27017` pe the, aur local wala `127.0.0.1` pe shadow kar raha tha. Client ne
+Windows service band kar di. Kuch ajeeb lage — "data hai hi nahi", "save nahi hua" — to sabse
+pehle yahi dekho.
 
 ### Live page dekhne ke liye
 
 ```
 http://localhost:3000/andaman-tour-packages-starting-11-499-pp-2026
 ```
+
+---
+
+## 9 Sep — Tour page band. Client ke pandrah kaam (D-90)
+
+**12 commit.** D-89 wale milaan ke baad client ne page **dobara** chala kar dekha. Poora hisaab
+**D-90** me; yahan sirf wo cheezein jo aage kaam aayengi.
+
+### Ek naya contract jo aage har page pe asar karega — `fields.heading`
+
+`entry.title` ab page ka `<h1>` **nahi** hai. Naya `fields.heading` wo kaam karta hai; `title`
+slug · breadcrumb · admin list · SEO · schema ke liye bacha.
+
+| Kahan            | Kaun                        |
+| ---------------- | --------------------------- |
+| Page ka `<h1>`   | **`fields.heading`** (naya) |
+| Baaki sab jagah  | `title` (plain, jaisa tha)  |
+| Khaali `heading` | theme `title` pe girti hai  |
+
+⚠️ **`inlineHtmlSchema` pe hai** — block tags `<h1>` ke andar ghus hi nahi sakte. Pehra do jagah:
+`normalizeFields()` (shape) aur `sanitizeInlineHtml` (safai, R20).
+
+⚠️ **Pages/Posts ka kaam shuru karte waqt ye yaad rahe** — abhi ye field sirf `tourPage` pe hai
+(`TOUR_PAGE_FIELDS`). `page`/`post` ki screens banate waqt tay karna hoga ki unhe bhi milega ya
+nahi.
+
+### Teen "bana hua par juda nahi" phir mile (D-89 §3 ka silsila)
+
+Per-package rating ka panel, `statRail[].highlight` ka checkbox, aur `PackagePage.jsx` ka
+`defaults.rating` — teenon me schema · payload · theme taiyaar the, **admin me control nadaarad**
+ya **doosra padhne wala chhoot gaya** tha.
+
+⚠️ **Teesra sabse seekhne layak hai:** D-87 §3 ne rating per-package ki, `toPackageCards()` badla,
+par `PackagePage.jsx` chhoot gaya. Client ki shakayat bilkul yahi thi — _"card me updated hai,
+page pe purana 412 aa raha hai."_ **Ek hi baat ke do padhne wale the aur sirf ek badla.**
+
+### A-19 ki teesri jagah mil gayi — ab ye pattern hai, ittefaq nahi
+
+`.wdgl` · `.faq p` ke baad ab **`.tblw`**. Client ke teen table me se do pe wrapper tha, ek pe
+nahi — us ek pe na gol kone aaye, aur mobile pe wo page se bahar nikal gayi.
+
+**Ab `wrapTables()` theme me khud wrapper lagata hai** (`components/tour/Blocks.jsx`). Naya CSS
+likhte waqt sawaal ye hai: _"agar client ye class na likhe to kya hoga?"_
+
+### ⚠️ Ek galti jo maine ki — `git add -A`
+
+Client ne usi waqt `RatingPanel.jsx` aur `PackageEdit.jsx` se teen hint hataayi thi. Mere
+`git add -A` ne wo **table wale commit** (`6869feb`) me kheench liye — commit message me unka
+zikr tak nahi hai.
+
+**Niyam: commit se pehle `git status` padho. `-A` tabhi jab pata ho ki tree me sirf apna kaam
+hai.** Client screens khol kar baitha ho sakta hai.
+
+⚠️ Un hint ko **wapas mat jodo** — wo client ka faisla hai (A-20 #3).
+
+---
+
+## ⏭️ Kal ka kaam — kya bacha hai
+
+### Client ne kaha: **tour page ka design complete hai.** Agla kaam **blog** hai.
+
+### 1. Blog = A-9 kholna
+
+`post` content type **pehle se maujood hai** (`content-types.js:421`) — uski screens
+`NotBuiltYet` pe hain. Yaani naya module banana **nahi** hai.
+
+✅ **Saancha taiyaar hai** — `EntriesList.jsx` aur `PageEdit.jsx` dono `type` se chalte hain
+(Tour ke liye yahi use hua), aur `lib/use-entries.js` ke hooks kisi bhi type pe chalte hain.
+Kaam `TYPE_CONFIG` me ek row + do route ka hai.
+
+⚠️ **8 Sep ka sabak dohraana nahi hai:** blog ka matlab **`post`** hai. `page` usme apne aap mat
+ghusaao — client ne wo saaf mana kiya tha (_"Pages par kaam to ho hi nahi raha"_). Scope ek
+faisle se nahi badhta.
+
+⚠️ Blog ke apne sawaal jo abhi tay nahi hain: `post` ko `fields.heading` milega ya nahi, archive
+page (`/blog`) banega ya nahi, aur categories/tags ki screens (`/posts/categories`,
+`/posts/tags` — dono abhi `NotBuiltYet`). **Ye client se poochhne wali cheezein hain.**
+
+### 2. A-20 — tour page ke chaar bache hue kaante (naya, D-90)
+
+Sabse zaroori: **`enquiry.sourceUrl` asli enquiry pe verify nahi hua** (test enquiry thi hi
+nahi). Ek form bhar kar `Enquiry Details` khol kar dekhna hai.
+
+### 3. A-17 — speed ke number ab **purane** hain
+
+Mobile 91 · desktop 98 wale number **sirf package page** ke the, 4 Sep ke. Uske baad ek poora
+naya page bana, `globals.css` ~600 line badi hui, aur `pklist` se `content-visibility` hat gaya.
+**Naapna ab do page pe hai**, aur **dev band karke**.
+
+### 4. A-19 — editor se `class` kho sakti hai
+
+Ab teen jagah mil chuki hai. Wajah abhi tay nahi; pehla shak `lists` plugin pe hai.
+
+### 5. A-18 — `importRuns` / `importruns` — 5 minute ka kaam, verify ho chuka
+
+### 6. ⚠️ D-88 §1 · D-89 §9 — design v3 se **saat** farak, attribution baaki
+
+### Baaki purane: A-12 (CI) · A-15 · A-14 · Q-7 · Q-9 · Q-3 · Q-4
 
 ---
 
@@ -86,48 +197,6 @@ Dono baar reference ne ulta kaha.
 
 **Paanch naye contract, koi migration nahi:** `tourSettings.heroButton`, `twoColumn.style`,
 html widget ka `icon`, enquiryForm ka `heading`/`description`, aur `unwrapBareSpans()`.
-
----
-
-## ⏭️ Kal ka kaam — kya bacha hai
-
-### Client ne kaha: **design abhi complete hai.** Naya badlaav aayega to wo batayenge.
-
-### 1. ✅ Client ke chaaron admin kaam ho gaye (9 Sep subah, DB pe verify)
-
-| Kya                       | Ab                                         |
-| ------------------------- | ------------------------------------------ |
-| `twoColumn.style`         | `includedExcluded` ✅                      |
-| Stat rail ka `suffix`     | `/person` ✅ (typo theek)                  |
-| `tourSettings.heroButton` | `Get my itinerary & price` → `#enquiry` ✅ |
-| `html` widget ka `icon`   | `clock` ✅                                 |
-
-⚠️ Purane FAQ ke bekaar `<span>` **abhi bhi wahan hain** — wo tabhi khulenge jab wo block ek baar
-Save ho (`unwrapBareSpans` write pe chalta hai). Naya paste apne aap saaf aata hai.
-
-### 2. A-17 — speed **dobara naapni padegi**
-
-Purane number (mobile 91 · desktop 98) **sirf package page** ke the. Ab ek poora naya page hai,
-~500 line nayi CSS, aur package list se `content-visibility` hat gaya (D-89 §4).
-
-⚠️ Naapna: `next build` + `next start`, **5 run ka median**, aur **dev band rakh kar**.
-
-### 3. A-19 — editor se `class` kho sakti hai (naya, D-89 §6)
-
-Sabse zyada dhyaan maangne wala item. `<ul class="wdgl">` DB me thi, kai save ke baad gayab.
-Sanitizer nirdosh nikla — wo class **editor me** khoyi. Wajah abhi tay nahi; pehla shak `lists`
-plugin pe hai.
-
-Aaj kuch toota nahi hai (dono jagah ka look class se aazad kar diya gaya), par **wajah abhi
-zinda hai**.
-
-### 4. A-18 — `importRuns` / `importruns` — 5 minute ka kaam, verify ho chuka
-
-### 5. ⚠️ D-88 §1 · D-89 §9 — design v3 se ab **saat** farak, attribution baaki
-
-Client se confirm karwana hai. Poori list D-88 §1 me hai, saatvaan D-89 §9 me.
-
-### Baaki purane: A-9 (Pages/Posts screens) · A-12 (CI) · A-15 · A-14 · Q-7 · Q-9 · Q-3 · Q-4
 
 ---
 

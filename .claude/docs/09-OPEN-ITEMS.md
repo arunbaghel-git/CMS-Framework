@@ -209,6 +209,20 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
+### A-20 · Tour page ke chaar bache hue kaante (9 Sep, D-90)
+
+**Deadline:** koi sakht nahi — par pehla item **client ke saamne** jaana chahiye
+**Kuch toota hua nahi hai** — chaaron "verify karo" ya "likha jaana baaki hai" wale hain
+
+| # | Kya | Haalat |
+| --- | --- | --- |
+| 1 | **`enquiry.sourceUrl` asli enquiry pe verify nahi hua** | Code bana, tests pass, par test enquiry maujood hi nahi thi. Ek form bhar kar `Enquiry Details` khol kar dekhna hai ki poora URL aata hai aur wo **khulta** hai. ⚠️ `env.SITE_URL` galat ho to link banega phir bhi — bas galat jagah le jaayega |
+| 2 | **Design v3 se saat farak ka client-attribution** | D-88 §1 ke #2–#5 aur D-89 §9 ke #6–#7. Sab client ke faisle hain, par **likhe kahin nahi** — R15 kehta hai design jeetega jab tak client saaf na kahe, aur wo "saaf kaha" ka record hi nahi hai |
+| 3 | **`RatingPanel` ki hint client ne hata di** | 9 Sep ko teenon hint gayi (`RatingPanel.jsx` se do, `PackageEdit.jsx` se ek). Ab `0` ka do-alag-matlab wala farak sirf **code comments** me likha hai. **Wapas jodna client ka faisla hai — khud mat jodo** |
+| 4 | **`Page heading` ka toolbar zyada dikhata hai** | Editor ab baaki jaisa hai (client ka faisla, D-90 §3), yaani heading dropdown · list · image toolbar me hain par save pe gir jaate hain. Ilaaj abhi **hint** hai. Client agar kahe ki ye confuse karta hai, to raasta `HtmlEditor` me ek `profile` prop hai — par tab wo phir "alag editor" ban jaayega, jo unhone khud mana kiya tha |
+
+---
+
 ### A-19 · Editor se `class` chup-chaap kho sakti hai (8 Sep)
 
 **Deadline:** koi nahi — par jo bhi isse guzar jaaye, wo **dikhna band** ho jaata hai
@@ -237,6 +251,15 @@ hai, wajah ka nahi.
 `page-template.html` me `callout` · `tick` · `tabs` · `drow` · `linkgrid` jaisi kai class hain —
 wo chup-chaap ja sakti hai. **Uska lakshan "style nahi lagi" hoga, "content gayab" nahi**, aur
 usse dhoondhna mushkil hota hai.
+
+⚠️ **Update (9 Sep, D-90 §5): teesri jagah mil gayi — `<div class="tblw">`.** Client ke teen table
+me se do pe wrapper tha, ek pe nahi. Us ek pe na gol kone aaye, aur mobile pe wo page se bahar
+nikal gayi (`.tblw` me `overflow-x: auto` bhi hai).
+
+⚠️ **Isse ek baat pakki ho gayi: ye ittefaq nahi, pattern hai.** Teen jagah, teen alag class,
+teenon ka ilaaj ek hi — `wrapTables()` ab theme me khud wrapper lagata hai. Yaani **A-19 ka asar
+har us jagah phailta hai jahan look client ke markup pe tika ho**, sirf `.wdgl` pe nahi. Naya CSS
+likhte waqt sawaal ye hai: _"agar client ye class na likhe to kya hoga?"_
 
 **Karne wala kaam:**
 
@@ -306,6 +329,22 @@ karo ya model me `collection: 'importRuns'` pin kar do. Khaali collection tab ha
 > ⚠️ **Naapne ka tareeka bhi likh liya jaaye:** `next build` + `next start` par, **5 run ka
 > median**. Is machine pe noise 2× tak hai (`benchmarkIndex` 1317–2536) — ek run ka number
 > bekaar hai, aur **dev server pe naapna to bilkul hi bekaar hai**.
+
+> ⚠️ **Update (9 Sep): upar wale saare number ab PURANE hain — dobara naapna zaroori hai.**
+> Wo naap 4 Sep ko **package page** pe hui thi. Uske baad D-87 se D-90 me kaafi kuch badla:
+>
+> | Kya badla | Speed pe asar |
+> | --- | --- |
+> | **Tour page ek naya page hai** (D-87 §11) | Uski koi naap hui hi nahi — package page ka 91/98 uspe laagu nahi hota |
+> | `globals.css` ~600 line badi hui | Har page pe jaati hai, tour page pe nahi sirf |
+> | `pklist` se **`content-visibility` hat gaya** (D-89 §4) | TBT ka 834→128ms wala faayda wahan **nahi** milta |
+> | Naya bold `@font-face` (D-90 §6) | `local()` hai — kuch download nahi hota, par face resolve hone ka apna kharcha hai |
+> | `.tour` ka background, `.blk` ka base `font-size` | Paint aur layout dono pe |
+>
+> **Naapna ab do page pe hai** — package page (regression check) aur tour page (naya baseline).
+> ⚠️ Aur wahi purani shart: **dev band karke** `next build` + `next start`, 5 run ka median.
+> (Dev chalte waqt build chalane se `.next` ke vendor chunks kat jaate hain — D-89 me wo do baar
+> hua aur har page 500 dene laga.)
 
 **Deadline:** client khud Lighthouse chala kar number dega
 **Client ka lakshya:** _"Make sure it is fast, can serve page from cache and score of 100 in

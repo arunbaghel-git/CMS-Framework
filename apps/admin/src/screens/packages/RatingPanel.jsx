@@ -1,8 +1,18 @@
 /**
- * `4.9 average from 412 trips` — site ki ek hi rating jodi (client, 1 Sep).
+ * `4.9 average from 412 trips` — rating ki jodi (client, 1 Sep).
  *
- * `Packages ▸ Section Headings ▸ Traveller reviews` tab me baithta hai, `BookingPanel`
- * jaisa hi: section ka baaki content usi tab me, jahan client use dhoondhega.
+ * ⚠️ **Ye component ab do jagah chalta hai** (9 Sep):
+ *
+ * | Kahan | Kis cheez ki rating |
+ * | --- | --- |
+ * | `Packages ▸ Section Headings ▸ Traveller reviews` | **site ki** — `packageDefaults.rating` |
+ * | `Package edit ▸ Rating` panel | **us package ki** — `fields.rating` (D-87 §3) |
+ *
+ * Dobara nahi likha gaya, aur isiliye yahan koi hint nahi bachi: ek hi hint dono jagah sach
+ * nahi ho sakti. Jo kehna hai wo bulane wali screen kehti hai.
+ *
+ * Pehli jagah pe `BookingPanel` jaisa hi baithta hai: section ka baaki content usi tab me,
+ * jahan client use dhoondhega.
  *
  * ## Ye Reviews screen pe kyun nahi hai
  *
@@ -59,14 +69,14 @@ export default function RatingPanel({ rating, onChange, disabled }) {
             disabled={disabled}
           />
           {/*
-           * "trips", "reviews" nahi — design dono shabd alag matlab me use karta hai, aur
-           * client ka number trips ka hai. Hint isliye zaroori hai: box ke paas baith kar
-           * ye lagta hai ki neeche ki list ginni hai.
+           * ⚠️ Label me **"trips" hai, "reviews" nahi** — design dono shabd alag matlab me use
+           * karta hai, aur client ka number trips ka hai. Pehle iske neeche ek hint bhi thi jo
+           * yahi samjhaati thi; wo 9 Sep ko hat gayi (panel ab do jagah hai, aur ek hint dono
+           * jagah sach nahi thi). Ab ye farak **label** akela rakhta hai — use badalne se pehle
+           * ye padh lena.
            */}
-
         </div>
       </div>
-
     </div>
   )
 }

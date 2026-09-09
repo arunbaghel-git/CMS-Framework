@@ -6932,3 +6932,215 @@ ne dev ke vendor chunks ke upar likh diya. Har page **500** dene laga
 
 **Niyam: `next build` sirf tab jab dev band ho.** (D-85 me bhi yahi likha hai, par wahan wajah
 alag thi — dev ka naapa hua number bemaani hota hai.)
+
+---
+
+## D-90
+
+**Tour page ka aakhri daur — client ke pandrah kaam**
+_9 Sep 2026 · client ka faisla · D-89 ke baad, Tour page band karne se pehle_
+
+### Sandarbh
+
+D-89 wala milaan ho jaane ke baad client ne page dobara chala kar dekha aur **pandrah** cheezein
+gina di — kuch naye field, kuch missing control, kuch naap aur rang. Ye "design review" ka doosra
+daur tha, aur uska character pehle daur se alag hai:
+
+- D-89 me zyada tar farak **"bana hua par juda nahi"** wale the
+- D-90 me zyada tar farak **"theme content pe bharosa kar rahi thi"** wale hain — CSS ya markup us
+  cheez ka intezaar kar raha tha jo client ke likhe HTML me shayad ho, shayad na ho
+
+Doosri kism zyada khatarnak hai, kyunki wo **kabhi-kabhi** kaam karti hai. Teen table me se do pe
+`.tblw` tha aur ek pe nahi; do FAQ `<p>` me the aur ek plain text tha. Aisi cheez testing me
+nikalti hi nahi.
+
+### §1 — Naye contract (do)
+
+| Kya | Kahan | Kyun |
+| --- | --- | --- |
+| `fields.heading` — `pageHeadingSchema` | `schemas/page.js` + `content-types.js` | Page ka **dikhne wala** `<h1>` |
+| `packageListPropsSchema.linkLabel` + `.linkUrl` | `schemas/page.js` | Heading ke daayein `.viewall` link |
+
+**Koi migration nahi** — dono `.default('')` pe hain.
+
+Ek teesri cheez payload me judi par wo contract nahi hai: **`enquiry.sourceUrl`** — wo `sourcePath`
+se `env.SITE_URL` laga kar controller me banta hai, DB me kuch naya nahi jaata.
+
+### §2 — `title` ka kaam chhota ho gaya
+
+Ye is daur ka sabse bada dhaanche wala badlaav hai.
+
+Pehle `entry.title` **sab kuch** tha: page ka `<h1>`, slug ka source, breadcrumb, admin ki list,
+SEO title, schema, aur card ka naam. Client ko `<h1>` me styling chahiye thi — design me
+`₹11,499 pp` neela hai — par `title` me HTML daalna har doosri jagah pe tag chhaap deta.
+`<title>` tag ke andar `<em>` browser ke tab me literally dikhta hai.
+
+Ab batwara saaf hai:
+
+| Kahan | Kaun |
+| --- | --- |
+| Page ka `<h1>` | **`fields.heading`** (naya) |
+| Slug · breadcrumb · admin list · SEO · schema · cards | `title` (plain, jaisa tha) |
+
+Client ke apne shabd: _"current jo hai use only slug ke liye rakhte hain, to breadcrumb bhi simple
+ho jayega."_
+
+⚠️ **`inlineHtmlSchema` pe hai, `htmlSchema` pe nahi — aur wahi poora point hai.** Inline profile
+me block tags (`<p>`, `<h2>`, `<ul>`, `<table>`) allowed hi nahi, isliye `<h1>` ke andar wo ghus hi
+nahi sakte. Do jagah pehra hai aur dono zaroori hain: `normalizeFields()` me parse (shape), aur
+`sanitizeEntryFields()` me `sanitizeInlineHtml` (safai, R20).
+
+⚠️ **Khaali chhodo to theme `title` pe girti hai** — wo fallback **theme me** hai, payload me
+nahi. Payload me bhar dena do jagah wahi text rakhna hota, aur ek din wo alag ho jaate. (D-65 me
+tark ulta tha: wahan default **server ka** hai, isliye resolve server pe hota hai. Yahan default
+`title` hai, jo payload me pehle se maujood hai.)
+
+### §3 — Editor ek jaisa rakhna, chahe keemat lage
+
+Pehle `Page heading` ka apna **chhota** toolbar tha — bold · italic · highlight · link, koi tabs
+nahi. Wo soch kar banaya gaya tha: field `<h1>` me chhapta hai, to usme heading dropdown aur image
+ka button dikhana hi nahi chahiye.
+
+Client ne mana kiya: _"page header ka editor different kyu hai other editors se, make it same
+becouse admin could be confuse."_
+
+Faisla: **ek jaisa editor jeeta.** Ab wahi `HtmlEditor` hai jo baaki jagah hai.
+
+⚠️ **Iski keemat hai aur wo bhugtani padegi:** toolbar me ab heading dropdown, list aur image
+dikhte hain, par save pe wo gir jaate hain (inline profile). Yaani UI ek cheez ki ijaazat deti
+dikhti hai jo hoti nahi — normally ye bug hota. Yahan wo jaan-boojh kar hai, aur uska ilaaj
+**field ki hint** hai, jo pehle se bata deti hai ki kya bachega.
+
+⚠️ Uske saath `HtmlEditor` ka **`Highlight` button hat gaya** — wo sirf us chhote toolbar ke liye
+bana tha. Ab heading ka neela tukda **Italic** se banta hai: theme me `.vhero h1 em` ko
+`font-style: normal` ke saath accent rang milta hai (`tour-v3.html:719`), yaani wahan `<em>`
+tirchha hota hi nahi. Ye hint me likha hai — warna client tirchha maangta, neela paata, aur use
+bug samajhta.
+
+### §4 — "Bana hua par juda nahi" — teen aur (D-89 §3 ka silsila)
+
+| Cheez | Kab se maujood | Kya nadaarad tha |
+| --- | --- | --- |
+| **Per-package rating** | D-87 §3 (7 Sep) | Admin me bharne ka koi raasta hi nahi — `PackageEdit` pe panel tha hi nahi |
+| **`statSchema.highlight`** | D-87 (7 Sep) | Admin me tick karne ka checkbox nahi — hamesha `false`, `.vrail__c--p` ka neela rang kabhi aata hi nahi |
+| **Package page ki rating** | D-87 §3 (7 Sep) | `PackagePage.jsx` abhi bhi `defaults.rating` padh raha tha (purana D-70 wala comment saath tha). Card update ho gaya tha, page nahi |
+
+⚠️ **Teesra sabse seekhne layak hai.** D-87 §3 ne rating per-package ki, `toPackageCards()` badal
+gaya — par `PackagePage.jsx` chhoot gaya. Client ne bilkul yahi shakl bataayi: _"card me updated
+hai, page pe purana 412 aa raha hai."_ Ek hi baat ke **do padhne wale** the aur sirf ek badla.
+
+Ab wo `entry.rating ?? defaults?.rating` hai. Live check: 412 → 350.
+
+### §5 — ⚠️ Theme ne content pe bharosa kiya, teesri baar
+
+D-89 §6 me do jagah mili thi (`.wdgl`, `.faq p`). 9 Sep ko **teesri** mili, aur ab ye ek pattern
+hai, ittefaq nahi.
+
+**Tables.** `.tblw` me `border-radius` ke saath **`overflow-x: auto`** bhi hai. Client ke teen
+table me se do pe wrapper tha, ek pe nahi — us ek pe na gol kone aaye, aur mobile pe wo apni
+`min-width: 520px` le kar page se **bahar nikal gayi**. Client ne dono lakshan bataye.
+
+⚠️ **Maine pehle ise content ki galti kaha tha, aur wo galat tha.** Ye wahi kism ki cheez hai jise
+theme ko sambhalna chahiye. Ab `wrapTables()` (`components/tour/Blocks.jsx`) har `<table>` ko khud
+lapetta hai — `richText` me aur `twoColumn` ke dono khaano me.
+
+Wo **do kadam** me chalta hai aur kram maayne rakhta hai:
+
+1. purane `.tblw` wrapper **hatao**
+2. phir sab pe ek jaisa **lagao**
+
+Sirf doosra kadam karne se pehle se lipti tables **do baar** lipat jaatin — do border, ek doosre ke
+andar.
+
+Regex HTML pe aam taur pe bura auzaar hai; yahan chalta hai kyunki daayra tang aur maloom hai —
+`<table>` apne andar `<table>` nahi rakhti, aur ye HTML sanitizer se ho kar aa chuki hai.
+
+**Ab teenon jagah ka niyam ek hi hai:** _look ko us markup ka mohtaaj mat rakho jo editor **shayad**
+dega._
+
+### §6 — Naap aur rang (client ke chhe)
+
+| Kya | Kya hua |
+| --- | --- |
+| **₹ patla chhap raha tha** | `RupeeLocal` ka pehla `@font-face` bina `font-weight` descriptor ke tha, yaani **400**. Jahan daam `font-weight: 900` pe hai, wahan ank bold aur ₹ regular — ek hi shabd me bagal-bagal. Naya face `local('Segoe UI Bold')…` `font-weight: 700 900` pe. **Kuch download nahi hota** (D-85 ne 85 KB wali file hataayi thi, wo wapas nahi aayi) |
+| **`.blk` pe base 14px** | Client ne 1 Sep ko `body` pe `15px` lene se mana kiya tha (_"only line height"_), yaani jo apna naap nahi likhta wo browser ke 16px pe girta hai. `.blk p`/`h2`/`.tbl` ke apne naap the; client ke likhe `<ul>`/`<li>` ka koi rule tha hi nahi. Ab base block pe hai — apna naap likhne wala waise bhi jeet-ta hai |
+| **Paragraph ka gap** | `.blk p + p { margin-top: 10px }` **2 Sep ko chup-chaap comment ho gaya tha** (commit `3f6ca4c`, jiska maqsad mobile pe rating khiskana tha — debugging ka bacha hua). Nateeja: package page **aur** tour page dono pe paragraph chipke hue. 7 din tak kisi ne nahi dekha |
+| **Tour page ka background** | Reference ka `body` tinted hai, hamara safed. Package page tint `.pkg` se leta hai; tour ke paas wrapper tha hi nahi. Naya `.tour { background: #f4f7fb }`. ⚠️ `body` badal kar theek **nahi** kiya — wo har page pe lagta (post ka fallback bhi) |
+| **Do jagah dugna padding** | Breadcrumb ka `padding-top`, aur `.pgl--sideleft` ka `padding-bottom` — `.sec` pe pehle se padding thi |
+| **Responsive** | `.dgrid` tablet pe 3 column; `.vrail__in` tablet 4 / mobile 2 |
+
+⚠️ **Do baar client ne "FAQ ke neeche bekaar jagah" bataayi aur dono baar wajah alag thi** — pehli
+baar `.pgl--sideleft` ki padding, doosri baar CTA ka **safed band safed page pe** (dikhta hi nahi
+tha, par jagah ghera rahi thi). Doosri wali `.tour` ke tint se apne aap theek hui.
+
+### §7 — Mobile sidebar (client ka niyam)
+
+Mobile pe teen widget ke teen alag natije chahiye the:
+
+| Widget | Mobile pe |
+| --- | --- |
+| `Packages by duration` (html) | **rahega**, jaisa hai |
+| `Talk to a planner` | **chhup jayega** |
+| Enquiry form | **popup**, `.mobar` ke saath — bilkul itinerary page jaisa |
+
+⚠️ **Ye rule do baar galat likha gaya, aur dono baar wajah ek hi thi: selector wo baat poochh raha
+tha jo wo jaanta hi nahi tha.**
+
+1. Pehle `.wdg:not(.wdg--book)` — _"book ke alawa sab chhupa do"_. Sidebar me sirf **do** widget the
+   (Planner + form) tab tak chala; tour page aate hi wo `Custom HTML` widget bhi kha gaya
+2. Phir `.pgl:not(.pgl--tour)` — maine maan liya tha ki _"tour page pe koi `.mobar` hai hi nahi"_.
+   **Wo galat tha** (`tour-v3.html:2038`)
+
+Ab selector wahi kehta hai jo matlab hai: **`.pgl__side .wdg--planner` chhupta hai.** Baaki sab
+`.wdg--book, .wdg--cta` ke popup rule se aa jaata hai.
+
+⚠️ `.wdg--cta` me `.bkg__t` (neela price header) hota hi nahi — wahan heading aur uske neeche ki
+line hai. Sheet me wahi chipki rehni chahiye aur fields scroll karein, warna heading scroll me upar
+chali jaati hai aur user ko pata hi nahi chalta ki wo kya bhar raha hai.
+
+### §8 — Enquiry ka poora URL
+
+Detail screen pe `Submitted from /packages/discover-andaman` likha aata tha. Admin apne hi origin
+pe chalta hai (`:5173`), to wo relative path **admin ka** pata lagta hai — aur us text ko copy
+karke koi khol hi nahi sakta tha.
+
+⚠️ **Ye wahi chup bug hai jo `entries` pe 4 Sep ko pakda gaya tha (`withUrl`), aur usse pehle Bulk
+Upload ke result pe (D-81). Teesri baar.**
+
+`sourceUrl` server pe `env.SITE_URL` se banta hai (`forms/controller.js`), kisi setting se nahi —
+wahi pattern jo `entries/controller.js` pe hai. Settings se lene ka matlab hota `settings.read` ke
+peeche chala jaana, jo `salesAgent` ke paas hai hi nahi — aur usi ke liye ye screen bani hai (D-29).
+
+⚠️ `sourcePath` **hataya nahi gaya** — list ke `enq-src` column me wo abhi bhi chhota dikhta hai,
+aur wahan poora URL bemaani hota.
+
+⚠️ **Ye abhi tak asli enquiry pe verify nahi hua** — test enquiry maujood hi nahi thi.
+`09-OPEN-ITEMS.md` me khula hai.
+
+### §9 — `.viewall` link — text bhi field hai, sirf URL nahi
+
+Reference me heading ke daayein _"Need something custom? →"_ hai (`tour-v3.html:1436`). Client ne
+**dono** field maange, sirf URL nahi.
+
+Theme me text likh dene ka matlab hota ki wo har client ki site pe wahi rahe aur admin se badla hi
+na ja sake — wahi Q-9 wala kaanta jo `TAB_NOTE` pe abhi tak khula hai.
+
+⚠️ **Dono chahiye** — ek bhi khaali ho to link render nahi hota (D-30). Aadha link ek aisa button
+hai jo click pe kuch nahi karta; wahi rok `heroButton` (D-89) aur D-67 ke CTA button pe hai.
+
+### §10 — ⚠️ Design v3 se ab **saat** farak, attribution abhi bhi baaki
+
+D-89 §9 me saat gine gaye the. D-90 ne unme **naya farak nahi** joda — `Page heading` aur
+`Link label`/`Link URL` dono `admin-design-v3.html` me hain hi nahi, par wo client ke seedhe
+maange hue field hain, andaza nahi.
+
+**D-88 §1 ke #2–#5 ka client-attribution likha jaana abhi bhi baaki hai.**
+
+### ⚠️ Ek galti jo is daur me hui
+
+`git add -A` ne client ke apne hand-edit (`RatingPanel.jsx` aur `PackageEdit.jsx` se teen hint
+hataana) **table wale commit me** kheench liye — commit message me unka koi zikr nahi hai.
+Commit `6869feb` me wo saath hain.
+
+**Niyam: commit se pehle `git status` padho, aur `-A` tabhi jab pata ho ki tree me sirf apna kaam
+hai.** Client screens khol kar baitha ho sakta hai.

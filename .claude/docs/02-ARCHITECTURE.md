@@ -157,6 +157,11 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          package/post: ek hi richText block (D-46 §3)
                          page/tourPage: BLOCKS KI LIST, aur KRAM YAHI HAI (D-87 §7)
                          types: richText(Text) twoColumn cards packageList faqs
+                         twoColumn.style = plain | includedExcluded (D-89 §5)
+                         packageList.linkLabel + .linkUrl = heading ke daayein
+                         .viewall link (D-90 §9, 9 Sep). ⚠️ DONO chahiye — ek
+                         bhi khaali ho to link render hi nahi hota (D-30).
+                         Text bhi field hai, sirf URL nahi — client ka chunav
                          har block apna panel, dropdown se judta hai, grip se
                          reorder. blockSchema ka {id,type,props} FROZEN shape hi
                          hai — Phase 5 ka builder yahi data uthayega
@@ -184,9 +189,19 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          package ka apna number use OVERRIDE karta hai, mitata
                          nahi. Fallback PAYLOAD banate waqt lagta hai, write pe
                          nahi — store wahi jo client ne likha (D-65 wala tark)
-                         page + tourPage ke apne: eyebrow, subheading (HTML),
-                         statRail[] — contract
+                         page + tourPage ke apne: heading (HTML), eyebrow,
+                         subheading (HTML), statRail[] — contract
                          packages/shared/schemas/page.js me (D-87)
+                         heading = page ka DIKHNE WALA <h1> (D-90 §2, 9 Sep).
+                         Uske aane se title ka kaam CHHOTA ho gaya: ab wo slug,
+                         breadcrumb, admin list, SEO aur schema ke liye hai.
+                         ⚠️ inlineHtmlSchema pe hai, htmlSchema pe nahi — block
+                         tags <h1> ke andar ghus hi nahi sakte. Pehra do jagah:
+                         normalizeFields() parse + sanitizeInlineHtml (R20).
+                         ⚠️ Khaali pe theme title pe girti hai — wo fallback THEME
+                         me hai, payload me nahi (warna ek hi text do jagah).
+                         statRail[i].highlight ka admin control 9 Sep me juda —
+                         schema/payload/theme teenon 7 Sep se the (D-90 §4)
                          ⚠️ blocks yahan NAHI hain — 7 Sep ko wo content.blocks[]
                          me chale gaye (D-87 §7, §2 ka palat). Kuch ghante ke liye
                          yahan `blocks{}` tha: id se settings ka naksha, kram HTML
@@ -296,6 +311,11 @@ forms          * siteId, name, emailTo, afterSubmit{mode,value}, placement,
                  chahiye (Phase 5)
 enquiries      * siteId, formId, formName, sourcePath, values{}, status,
                  notes[], deletedAt, searchText                    ← D-75, 3 Sep
+                 ⚠️ sourceUrl STORE nahi hota — controller use sourcePath +
+                 env.SITE_URL se banata hai, sirf DETAIL ke response me
+                 (D-90 §8, 9 Sep). Path akela admin ke apne origin (:5173) ka
+                 pata lagta hai aur use koi khol hi nahi sakta. List me abhi
+                 bhi sourcePath hai — wahan poora URL bemaani hota
                  formName COPY hota hai, sirf formId nahi — form rename ya delete
                  ho jaaye to bhi enquiry apna source jaanti hai
                  values me sirf string/number/boolean pahunchte hain — ye endpoint

@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**847 tests passing**, 8 Sep). Public package page ke **saare** section live hain.
+hain** (**848 tests passing**, 9 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-89                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-90                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -552,6 +552,41 @@ build chalane se uske vendor chunks kat gaye aur har page 500 dene laga.
 
 ⚠️ **`forms.placement` zinda hai aur wo theek hai** — wo sirf package pages ko serve karta hai,
 sidebar ka `formId` sirf `page`/`tourPage` ko. Dono kabhi milte hi nahi.
+
+**9 Sep — Tour page band ho gaya (D-90).** Client ne page dobara chala kar **pandrah** cheezein
+gina di. **Do naye contract, koi migration nahi:** `fields.heading` (`pageHeadingSchema`) aur
+`packageList` ka `linkLabel`/`linkUrl`.
+
+⚠️ **`entry.title` ab page ka `<h1>` nahi hai.** Naya `fields.heading` wo kaam karta hai; `title`
+slug · breadcrumb · admin list · SEO · schema ke liye bacha. Client ke shabd: _"current jo hai use
+only slug ke liye rakhte hain, to breadcrumb bhi simple ho jayega."_ Wo `inlineHtmlSchema` pe hai,
+`htmlSchema` pe nahi — block tags `<h1>` ke andar ghus hi nahi sakte. Khaali chhodo to theme
+`title` pe girti hai, aur **wo fallback theme me hai, payload me nahi**.
+
+⚠️ **Editor ek jaisa rakhna jeeta, chahe keemat lagi.** `Page heading` ka apna chhota toolbar tha;
+client ne mana kiya (_"admin could be confuse"_). Ab wahi `HtmlEditor` hai jo baaki jagah hai —
+yaani toolbar heading/list/image dikhata hai par wo save pe gir jaate hain. Ilaaj **field ki hint**
+hai. Uske saath `Highlight` button hat gaya: heading ka accent rang ab **Italic** se banta hai
+(`.vhero h1 em` ko `font-style: normal` milta hai).
+
+⚠️ **Teen aur "bana hua par juda nahi"** — per-package rating ka admin panel, `statRail[].highlight`
+ka checkbox, aur `PackagePage.jsx` ka `defaults.rating`. Teesra sabse seekhne layak hai: D-87 §3 ne
+rating per-package ki aur `toPackageCards()` badal gaya, par **page ka doosra padhne wala chhoot
+gaya**. Client ki shakayat bilkul yahi thi — _"card me updated hai, page pe purana 412 aa raha hai."_
+
+⚠️ **A-19 ki teesri jagah mil gayi — ab ye pattern hai, ittefaq nahi.** `.wdgl` aur `.faq p` ke baad
+ab **`.tblw`**: client ke teen table me se do pe wrapper tha, ek pe nahi. Us ek pe na gol kone aaye,
+aur mobile pe wo apni `min-width` le kar page se bahar nikal gayi (`.tblw` me `overflow-x: auto` bhi
+hai). Ab `wrapTables()` theme me khud wrapper lagata hai. **Naya CSS likhte waqt sawaal ye hai:
+_"agar client ye class na likhe to kya hoga?"_**
+
+⚠️ **`enquiry.sourceUrl`** — detail screen pe ab poora URL, aur wo link hai. `sourcePath` akela
+admin ke apne origin (`:5173`) ka pata lagta tha. **Ye wahi bug teesri baar tha** (`entries` ka
+`withUrl`, Bulk Upload ka result — D-81). ⚠️ Asli enquiry pe **verify nahi hua** (A-20).
+
+⚠️ **`git add -A` ne client ke hand-edit commit me kheench liye** — `RatingPanel.jsx`/`PackageEdit.jsx`
+se teen hint hataana `6869feb` me chala gaya, jiska message table ke baare me hai. **Commit se pehle
+`git status` padho.**
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

@@ -583,8 +583,12 @@ export default function PackageEdit() {
            * rating ke liye chalta hai — dobara nahi likha gaya.
            *
            * ⚠️ **Khaali chhodna ek asli haalat hai, galti nahi.** `0` ka matlab hai "is package
-           * ki apni rating nahi" aur tab `packageDefaults.rating` chalti hai (D-87 §3). Isiliye
-           * hint me wo likha hai — warna client ko lagta ki 0 ka matlab "rating hi mat dikhao".
+           * ki apni rating nahi" aur tab `packageDefaults.rating` chalti hai (D-87 §3) — na ki
+           * "rating hi mat dikhao", jo `Section Headings` wale usi panel pe `0` ka matlab hai.
+           *
+           * ⚠️ **Ye baat 9 Sep tak ek hint me likhi thi; client ne wo hata di** (panel ki teenon
+           * hint ke saath). Yaani ab ye sirf yahan likhi hai. Wapas daalne ka faisla client ka
+           * hai — dobara mat jodo.
            */}
           <Panel title="Rating">
             <div className="panel-body">
