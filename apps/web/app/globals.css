@@ -5145,8 +5145,21 @@ a.mega__gl:hover {
   margin: 0 0 5px;
 }
 
+/*
+ * ⚠️ **Reference yahan `12.5px` kehta hai — client ne 14px maanga (9 Sep).**
+ *
+ * Ye wahi lakeer hai jo 1 Sep ko khinchi thi: client ne body ko 14px pe rakha aur kaha ki jahan
+ * chhota dikhe wahan naap likh do. Card ka text bhi content hai, heading nahi — isliye wo
+ * `--fs-body` pe aata hai.
+ *
+ * ⚠️ `.dcard h3` (14.5px) aur `.dcard em` (11.5px) **chhue nahi gaye** — wo heading aur badge
+ * hain, body text nahi. Client ne unke baare me kuch nahi kaha.
+ *
+ * ⚠️ Tables jaan-boojh kar bahar hain — client (9 Sep): _"only tables ka jo hai wo rahega,
+ * kyunki itinerary page ki tables bhi 14px par nahi hain."_
+ */
 .dcard p {
-  font-size: 12.5px;
+  font-size: var(--fs-body);
   line-height: 1.5;
   margin: 0;
 }
