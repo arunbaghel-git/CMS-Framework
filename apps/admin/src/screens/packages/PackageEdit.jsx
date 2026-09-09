@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { contentFromRichText, emptyContent } from '@cms/shared'
 
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
+import RatingPanel from './RatingPanel.jsx'
 import Panel from '../../components/admin/Panel.jsx'
 import SortablePanels from '../../components/admin/SortablePanels.jsx'
 import { api, errorMessage } from '../../lib/api.js'
@@ -565,6 +566,37 @@ export default function PackageEdit() {
                 />{' '}
                 Featured on homepage
               </label>
+            </div>
+          </Panel>
+
+          {/*
+           * ⚠️ **Per-package rating — client, 9 Sep. Aur ye "bana hua par juda nahi" ka ek aur
+           * udaharan tha.**
+           *
+           * `fields.rating` schema me **D-87 §3 se** hai, `normalizeFields()` use parse karti
+           * hai, aur payload me `resolveRating(fields.rating, defaults.rating)` chalti hai —
+           * yaani per-package rating poori tarah kaam kar rahi thi. Bas admin me use **bharne ka
+           * koi raasta hi nahi tha**, isliye har package pe site wali global rating hi chhapti
+           * thi. Client ne yahi pakda.
+           *
+           * `RatingPanel` bilkul wahi component hai jo `Packages ▸ Section Headings` pe global
+           * rating ke liye chalta hai — dobara nahi likha gaya.
+           *
+           * ⚠️ **Khaali chhodna ek asli haalat hai, galti nahi.** `0` ka matlab hai "is package
+           * ki apni rating nahi" aur tab `packageDefaults.rating` chalti hai (D-87 §3). Isiliye
+           * hint me wo likha hai — warna client ko lagta ki 0 ka matlab "rating hi mat dikhao".
+           */}
+          <Panel title="Rating">
+            <div className="panel-body">
+              <RatingPanel
+                rating={form.fields.rating}
+                onChange={(rating) => setField('rating', rating)}
+                disabled={readOnly}
+              />
+              <div className="hint">
+                Leave both at 0 and this package falls back to the site-wide rating from{' '}
+                <b>Packages ▸ Section Headings</b>.
+              </div>
             </div>
           </Panel>
 

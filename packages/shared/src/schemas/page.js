@@ -270,6 +270,20 @@ export const packageListPropsSchema = z.object({
   subheading: z.string().trim().max(300).default(''),
 
   /**
+   * Heading ke daayein wala link — reference ka `.viewall`
+   * (`tour-v3.html:1436`: _"Need something custom? →"_). Client, 9 Sep.
+   *
+   * ⚠️ **Text bhi field hai, sirf URL nahi** — client ka chunav. Theme me likh dene ka matlab
+   * hota ki wo har client ki site pe wahi rahe aur admin se badla hi na ja sake; wahi Q-9 wala
+   * kaanta jo `TAB_NOTE` pe abhi tak khula hai.
+   *
+   * **Dono chahiye** — ek bhi khaali ho to link render nahi hota (D-30). Aadha link ek aisa
+   * button hai jo click pe kuch nahi karta; wahi rok `heroButton` aur D-67 ke CTA button pe hai.
+   */
+  linkLabel: z.string().trim().max(120).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+
+  /**
    * **Sirf admin ke picker ke liye** — baayen wali list kis kasauti se chhoti ho.
    *
    * ⚠️ Iska page pe **koi asar nahi** hai. Page pe wahi packages jaate hain jo `packageIds` me
@@ -428,6 +442,31 @@ export const eyebrowSchema = z.string().trim().max(120).default('')
 
 /** Sub heading ek asli editor hai, plain text nahi (faisla #3) — isliye HTML. */
 export const subheadingSchema = htmlSchema.pipe(z.string().max(2000)).default('')
+
+/**
+ * Page ka **dikhne wala** `<h1>` — client, 9 Sep.
+ *
+ * ⚠️ **`title` ab do kaam nahi karta.** Pehle wahi ek field h1, slug, breadcrumb, admin ki list,
+ * SEO title aur schema — sab jagah jaata tha. Client ko h1 me styling chahiye thi (design me
+ * `₹11,499 pp` neela hai, wo `<em>` se aata hai), par `title` me HTML daalna har us doosri jagah
+ * pe tag chhaap deta — `<title>` tag me `<em>` browser ke tab me literally dikhta.
+ *
+ * Ab batwara saaf hai:
+ *
+ * | Kahan | Kaun |
+ * | --- | --- |
+ * | Page ka `<h1>` | **`fields.heading`** (ye) |
+ * | Slug · breadcrumb · admin list · SEO · schema · cards | `title` (plain, jaisa tha) |
+ *
+ * ⚠️ **`inlineHtmlSchema`, `htmlSchema` nahi** — aur wo poora point hai. Inline profile me block
+ * tags (`<p>`, `<h2>`, `<ul>`, `<table>`) allowed hi nahi hain, isliye `<h1>` ke andar wo ghus
+ * hi nahi sakte. Client ne 9 Sep ko yahi chuna: _"inline editor — bold · italic · highlight ·
+ * link"_.
+ *
+ * Khaali chhodo to theme `title` pe gir jaati hai — yaani purane pages waise ke waise chalte
+ * hain aur is field ko bharna zaroori nahi.
+ */
+export const pageHeadingSchema = inlineHtmlSchema.pipe(z.string().max(300)).default('')
 
 /**
  * Page pe sidebar — **sirf dikhe ya nahi, aur kis taraf** (client, 8 Sep).

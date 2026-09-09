@@ -1190,6 +1190,16 @@ async function toPublicPage(doc, siteId, locale) {
     breadcrumbs,
 
     fields: {
+      /**
+       * Page ka dikhne wala `<h1>` (client, 9 Sep).
+       *
+       * ⚠️ Khaali pe theme `entry.title` pe girti hai — wo fallback **theme me** hai, yahan nahi.
+       * Yahan bhar dene ka matlab hota ki payload me do jagah wahi text ho, aur ek din wo alag
+       * ho jaayein (D-65 wali `sectionLabels` pe yahi tark ulta tha: wahan resolve server pe hai
+       * kyunki wahan default **server ka** hai; yahan default `title` hai, jo payload me pehle se
+       * hai).
+       */
+      heading: fields.heading ?? '',
       eyebrow: fields.eyebrow ?? '',
       subheading: fields.subheading ?? '',
       /** Khaali `value` wale cards gir jaate hain — khaali cheez khaali dikhe, tooti hui nahi (D-30). */

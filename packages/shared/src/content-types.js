@@ -204,6 +204,19 @@ const PACKAGE_FIELDS = [
 const TOUR_PAGE_FIELDS = [
   {
     /**
+     * Page ka **dikhne wala** `<h1>` — client, 9 Sep.
+     *
+     * ⚠️ Iske aane se `title` ka kaam **chhota ho gaya**: ab wo slug, breadcrumb, admin ki list,
+     * SEO aur schema ke liye hai — page pe chhapta nahi. Poora tark `schemas/page.js` me
+     * `pageHeadingSchema` ke upar hai.
+     */
+    key: 'heading',
+    type: 'text',
+    label: 'Page heading',
+    help: 'The H1 shown on the page. Leave it empty and the Title is used.',
+  },
+  {
+    /**
      * Title ke upar ki chhoti line (faisla #13).
      *
      * ⚠️ Ye breadcrumb ka label **nahi** hai — wo parent chain se auto banta hai (faisla #12,

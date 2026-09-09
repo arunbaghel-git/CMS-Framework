@@ -5525,3 +5525,36 @@ a.mega__gl:hover {
   margin-inline: 0;
   margin-top: 14px;
 }
+
+/* ---------- section head ka link ---------- */
+
+/*
+ * `.viewall` — `Package list` block ke heading ke daayein (`Need something custom? →`).
+ * Client, 9 Sep: text aur URL dono admin se aate hain.
+ */
+.viewall {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-black);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue-600);
+  white-space: nowrap;
+}
+
+/* Teer hover pe thoda aage — reference me bhi yahi ek harkat hai */
+.viewall svg {
+  transition: transform 0.18s;
+}
+
+.viewall:hover svg {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewall svg {
+    transition: none;
+  }
+}

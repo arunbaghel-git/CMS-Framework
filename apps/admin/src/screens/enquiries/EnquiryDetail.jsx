@@ -146,9 +146,28 @@ export default function EnquiryDetail() {
                 ))}
               </dl>
 
+              {/*
+               * ⚠️ **`sourceUrl`, `sourcePath` nahi** — client, 9 Sep: detail pe poora URL chahiye.
+               *
+               * `path` relative hai, aur admin apne hi origin pe chalta hai (`:5173`) — wo text
+               * copy karke koi khol hi nahi sakta tha. Wahi bug jo 8 Sep ko `All Tour Pages` ke
+               * `View` link pe pakda gaya tha, aur usse pehle Bulk Upload ke result pe (D-81).
+               *
+               * Server ise `env.SITE_URL` se banata hai (`forms/controller.js`). Link isliye ki
+               * poora URL dikhne ka matlab hi ye hai ki usse jaaya ja sake.
+               */}
               <p className="enq-meta muted">
                 Form: {enquiry.formName || '—'}
-                {enquiry.sourcePath ? ` · Submitted from ${enquiry.sourcePath}` : ''}
+                {enquiry.sourceUrl ? (
+                  <>
+                    {' · Submitted from '}
+                    <a href={enquiry.sourceUrl} target="_blank" rel="noreferrer">
+                      {enquiry.sourceUrl}
+                    </a>
+                  </>
+                ) : (
+                  ''
+                )}
               </p>
             </div>
           </section>

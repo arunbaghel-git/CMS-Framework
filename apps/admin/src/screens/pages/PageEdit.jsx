@@ -139,7 +139,7 @@ export default function PageEdit({ type = 'tourPage' }) {
     setField(
       'statRail',
       Array.from({ length: 4 }, (_, idx) => {
-        const row = stats[idx] ?? { value: '', suffix: '', label: '' }
+        const row = stats[idx] ?? { value: '', suffix: '', label: '', highlight: false }
         return idx === i ? { ...row, [key]: value } : row
       }),
     )
@@ -301,6 +301,32 @@ export default function PageEdit({ type = 'tourPage' }) {
           <Panel title="Page header">
             <div className="panel-body">
               {/* Eyebrow `tour-v3.html` ke hero se aata hai — saade page pe wo nahi hai. */}
+              {/*
+               * Page ka **dikhne wala** `<h1>` — client, 9 Sep.
+               *
+               * ⚠️ Iske aane se upar wale `Title` ka kaam **chhota ho gaya**: ab wo slug,
+               * breadcrumb, admin ki list, SEO aur schema ke liye hai. Client ne yahi maanga tha
+               * — _"current jo hai use only slug ke liye rakhte hain, to breadcrumb bhi simple ho
+               * jayega"_.
+               *
+               * ⚠️ **`inline` editor** — bold · highlight · link, aur bas. Koi heading dropdown,
+               * koi list, koi image: ye `<h1>` ke andar chhapta hai. Poora tark
+               * `HtmlEditor` ke `INLINE_TOOLBAR` par likha hai.
+               */}
+              <div className="field">
+                <label>Page heading</label>
+                <HtmlEditor
+                  value={form.fields.heading ?? ''}
+                  onChange={(heading) => setField('heading', heading)}
+                  disabled={readOnly}
+                  inline
+                />
+                <div className="hint">
+                  Shown as the page’s H1. Leave it empty and the <b>Title</b> above is used. Use{' '}
+                  <b>Highlight</b> on the part that should stand out in the accent colour.
+                </div>
+              </div>
+
               {config.hero && (
                 <div className="field">
                   <label>Eyebrow line</label>
@@ -384,6 +410,29 @@ export default function PageEdit({ type = 'tourPage' }) {
                           disabled={readOnly}
                         />
                       </div>
+
+                      {/*
+                       * ⚠️ **Highlight — client ne 9 Sep ko pakda ki design me `₹11,499` neela
+                       * hai aur hamare paas nahi.**
+                       *
+                       * `statSchema.highlight` D-87 se maujood tha, payload use bhejta tha, aur
+                       * theme uspe `.vrail__c--p` lagati thi — bas **admin me use tick karne ka
+                       * koi raasta hi nahi tha**. Yaani wo hamesha `false` rehta aur neela rang
+                       * kabhi aata hi nahi.
+                       *
+                       * Ye us din ka teesra aisa gap tha (per-package rating aur trust badges
+                       * bhi wahi shakl ke the): schema + payload + theme teenon taiyaar, aur
+                       * admin me control nadaarad.
+                       */}
+                      <label className="inline-lbl">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(row.highlight)}
+                          onChange={(e) => setStat(i, 'highlight', e.target.checked)}
+                          disabled={readOnly}
+                        />{' '}
+                        Highlight this one
+                      </label>
                     </div>
                   )
                 })}

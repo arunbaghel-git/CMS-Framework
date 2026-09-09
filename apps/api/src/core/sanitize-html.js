@@ -398,6 +398,15 @@ export function sanitizeEntryFields(fields) {
   /** Page/Tour Page ka sub heading — asli editor hai, plain text nahi (D-87 faisla #3). */
   if (out.subheading !== undefined) out.subheading = sanitizeBlockHtml(out.subheading)
 
+  /**
+   * Page ka dikhne wala `<h1>` (client, 9 Sep).
+   *
+   * ⚠️ **`sanitizeInlineHtml`, block wala nahi** — ye `<h1>` ke andar chhapta hai. Block profile
+   * `<p>`/`<h2>`/`<table>` ko allow karta hai, aur unme se koi bhi heading ke andar aaye to HTML
+   * hi galat ho jaata hai. Wahi wajah jiske liye `whatsIncluded` ki lines bhi inline pe hain.
+   */
+  if (out.heading !== undefined) out.heading = sanitizeInlineHtml(out.heading)
+
   /*
    * ⚠️ **Blocks yahan **nahi** hain — 7 Sep ko badla (D-87 §7).**
    *

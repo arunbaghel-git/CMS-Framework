@@ -2255,7 +2255,9 @@ describe('Tour Page ka type (D-87)', () => {
     // `blocks` yahan NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7).
     // `sidebar` 8 Sep me juda: page pe sidebar dikhe ya nahi, aur kis taraf
     // `sidebarId` D-88 me juda: unme se KAUNSA. Do alag sawaal, isliye do field
+    // `heading` 9 Sep me juda — page ka DIKHNE wala h1. `title` ab slug/breadcrumb/SEO ke liye
     expect(tour.fields.map((f) => f.key)).toEqual([
+      'heading',
       'eyebrow',
       'subheading',
       'statRail',
@@ -2399,6 +2401,26 @@ describe('content blocks (D-87 §7)', () => {
       expect(html).not.toContain('script')
       expect(html).toContain('Hi')
     }
+  })
+
+  it('page ka heading inline HTML hai — block tags usme aa hi nahi sakte', async () => {
+    /*
+     * ⚠️ Ye field `<h1>` ke ANDAR chhapta hai. `<p>`/`<h2>` wahan aate hi HTML galat ho jaata
+     * hai, isliye `pageHeadingSchema` inline profile pe hai — dono taraf rok honi chahiye
+     * (editor me toolbar chhota hai, aur yahan schema).
+     */
+    const res = await createTour(adminJar, {
+      title: 'Heading Test',
+      fields: { heading: '<p>Andaman <em>₹11,499</em></p>' },
+    })
+
+    expect(res.status).toBe(201)
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+
+    // `<em>` bacha (highlight), `<p>` gir gaya
+    expect(doc.fields.heading).toContain('<em>₹11,499</em>')
+    expect(doc.fields.heading).not.toContain('<p>')
   })
 
   it('bina attribute wale <span> khul jaate hain, class/style wale bachte hain', async () => {

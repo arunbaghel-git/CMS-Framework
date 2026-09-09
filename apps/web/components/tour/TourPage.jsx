@@ -152,7 +152,21 @@ export default function TourPage({ entry, settings }) {
               </span>
             )}
 
-            <h1>{entry.title}</h1>
+            {/*
+             * ⚠️ **`fields.heading` pehle, `title` fallback** — client, 9 Sep.
+             *
+             * `title` ab slug, breadcrumb, admin ki list, SEO aur schema ke liye hai; page pe
+             * dikhne wala h1 apna alag field hai, taaki usme styling ho sake (design me
+             * `₹11,499 pp` neela hai). Poora tark `schemas/page.js` ke `pageHeadingSchema` pe.
+             *
+             * Fallback **theme me** hai, payload me nahi: `title` waise bhi payload me hai, aur
+             * dono jagah wahi text bhejne ka matlab hota ki ek din wo alag ho jaayein.
+             */}
+            {fields.heading ? (
+              <h1 dangerouslySetInnerHTML={{ __html: fields.heading }} />
+            ) : (
+              <h1>{entry.title}</h1>
+            )}
 
             {/* Sub heading ek asli editor hai (faisla #3), isliye HTML — safai write pe ho chuki */}
             {fields.subheading && (

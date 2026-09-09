@@ -486,6 +486,39 @@ function PackageListBlock({ props, onChange, disabled }) {
         </div>
       </div>
 
+      {/*
+       * Heading ke daayein wala link — reference ka `.viewall`
+       * (`tour-v3.html:1436`: _"Need something custom? →"_). Client, 9 Sep.
+       *
+       * ⚠️ **Text bhi field hai, sirf URL nahi** — client ka chunav. Theme me likh dene ka matlab
+       * hota ki wo har client ki site pe wahi rahe; wahi Q-9 wala kaanta jo `TAB_NOTE` pe abhi
+       * tak khula hai.
+       */}
+      <div className="row2">
+        <div className="field">
+          <label>Link label</label>
+          <input
+            className="inp"
+            value={props.linkLabel ?? ''}
+            placeholder="Need something custom?"
+            onChange={(e) => onChange({ ...props, linkLabel: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+        <div className="field">
+          <label>Link URL</label>
+          <input
+            className="inp"
+            value={props.linkUrl ?? ''}
+            placeholder="#enquiry"
+            onChange={(e) => onChange({ ...props, linkUrl: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+
+      <div className="hint">Both are needed — with either one empty the link does not appear.</div>
+
       <div className="picker">
         <div className="picker__col">
           <div className="picker__head">

@@ -19,6 +19,7 @@ import {
   parseBlockProps,
   pricingSchema,
   ratingSchema,
+  pageHeadingSchema,
   sidebarIdSchema,
   sidebarPositionSchema,
   statRailSchema,
@@ -231,6 +232,16 @@ function normalizeFields(fields, contentType) {
    * Ek chhota enum hai, par parse phir bhi zaroori: theme isse seedha class me badalti hai
    * (`.pgl--sideleft`), aur bina rok ke koi bhi string wahan pahunch sakti hai.
    */
+  /**
+   * Page ka dikhne wala `<h1>` (client, 9 Sep).
+   *
+   * ⚠️ **Parse yahan zaroori hai** kyunki ye HTML hai: `pageHeadingSchema` `inlineHtmlSchema` pe
+   * khada hai, yaani block tags (`<p>`, `<h2>`, `<table>`) is field me aa hi nahi sakte. Safai
+   * `sanitizeEntryFields()` me alag se hoti hai — wo iske **baad** chalti hai (aakhri me), to
+   * dono milkar poora pehra bana dete hain.
+   */
+  if (has('heading')) out.heading = pageHeadingSchema.parse(fields.heading)
+
   if (has('sidebar')) out.sidebar = sidebarPositionSchema.parse(fields.sidebar)
 
   /**

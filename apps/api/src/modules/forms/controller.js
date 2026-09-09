@@ -1,5 +1,6 @@
 import { PERMISSION } from '@cms/shared'
 
+import { env } from '../../core/env.js'
 import { forbidden } from '../../core/errors.js'
 import * as formService from './service.js'
 import {
@@ -75,6 +76,26 @@ export const formController = {
 }
 
 /**
+ * Enquiry kis page se aayi — uska **poora** pata (client, 9 Sep).
+ *
+ * ⚠️ **Sirf `sourcePath` bhejna wahi chup bug hai jo `entries` pe 4 Sep ko pakda gaya tha**
+ * (`withUrl`, wahan ka comment padho): admin apne hi origin pe chalta hai (`:5173`), to browser
+ * `/packages/discover-andaman` ko **admin ka** pata samajh leta hai. Detail screen pe wo ek aisa
+ * text hai jise copy karke koi khol hi nahi sakta.
+ *
+ * `env.SITE_URL` se banta hai, kisi setting se nahi — wahi pattern jo `entries/controller.js`
+ * aur `settings/controller.js` pe hai. Settings se lene ka matlab hota `settings.read` ke peeche
+ * chala jaana, jo `salesAgent` ke paas hai hi nahi — aur usi ke liye ye screen bani hai (D-29).
+ *
+ * ⚠️ `sourcePath` **hataya nahi gaya** — wo list ke `enq-src` column me abhi bhi chhota dikhta
+ * hai, aur wahan poora URL bemaani hota.
+ */
+const withSourceUrl = (enquiry) =>
+  enquiry?.sourcePath
+    ? { ...enquiry, sourceUrl: `${env.SITE_URL.replace(/\/$/, '')}${enquiry.sourcePath}` }
+    : enquiry
+
+/**
  * Public submit — **bina auth ke**.
  *
  * Yahan koi permission check nahi hai aur na ho sakta hai: bharne wala site ka visitor hai.
@@ -111,7 +132,9 @@ export const enquiryController = {
 
   async get(req, res, next) {
     try {
-      res.json({ data: await formService.getEnquiry(req.params.id) })
+      const data = await formService.getEnquiry(req.params.id)
+
+      res.json({ data: { ...data, enquiry: withSourceUrl(data.enquiry) } })
     } catch (err) {
       next(err)
     }

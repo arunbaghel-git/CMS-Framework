@@ -24,6 +24,13 @@ import PackageCard from '../PackageCard.jsx'
 /** Design me `All` hamesha pehla pill hai aur shuru me `on` hota hai. */
 const ALL = 'all'
 
+/** `.viewall` ka teer — wahi jo card ke `View itinerary →` pe hai. */
+const Arrow = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+)
+
 export default function PackageList({ props, data }) {
   const [active, setActive] = useState(ALL)
 
@@ -75,12 +82,26 @@ export default function PackageList({ props, data }) {
      * par LCP dobara naapte waqt ye baat hisaab me honi chahiye.
      */
     <section id="pklist">
-      {(props.heading || props.subheading) && (
+      {(props.heading || props.subheading || (props.linkLabel && props.linkUrl)) && (
         <div className="sh">
           <div>
             {props.heading ? <h2>{props.heading}</h2> : null}
             {props.subheading ? <p>{props.subheading}</p> : null}
           </div>
+
+          {/*
+           * Heading ke daayein wala link — reference ka `.viewall`
+           * (`tour-v3.html:1436`: _"Need something custom? →"_). Client, 9 Sep.
+           *
+           * ⚠️ **Dono chahiye.** Bina URL ke wo ek aisa link hai jo click pe kuch nahi karta, aur
+           * bina label ke ek khaali teer. Wahi rok `heroButton` aur D-67 ke CTA button pe hai.
+           */}
+          {props.linkLabel && props.linkUrl ? (
+            <a className="viewall" href={props.linkUrl}>
+              {props.linkLabel}
+              <Arrow />
+            </a>
+          ) : null}
         </div>
       )}
 
