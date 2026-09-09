@@ -1,8 +1,8 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 9 Sep 2026 (shaam) — **223 commit**, ⚠️ **12 commit push nahi hue**
-> (`origin/main` = `44c15e3`), **848 test pass** (33 file), lint + format clean, tree clean.
+> **Last updated:** 9 Sep 2026 (raat) — **228 commit**, ⚠️ **18 commit push nahi hue**
+> (`origin/main` = `44c15e3`), **898 test pass** (34 file), lint + format clean, tree clean.
 
 ---
 
@@ -56,6 +56,75 @@ pehle yahi dekho.
 ```
 http://localhost:3000/andaman-tour-packages-starting-11-499-pp-2026
 ```
+
+---
+
+## 9 Sep (raat) — Blog shuru: spec 008, Slice A–C aur D1
+
+**5 commit.** Client ne `blog-v1.html` (listing) aur `blog-detail-v1.html` (post) di.
+**Kaam ka kram unka hai — pehle detail, phir listing.** Poora contract
+[`specs/008-blog.md`](../specs/008-blog.md) me (🟡 Draft), `cms-architect` se review ho chuka.
+
+### Client ke chaar faisle (inhi pe poora design khada hai)
+
+| #   | Faisla                                                                                                                                                                      |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Listing ka filter + pagination client-side** — saare post ek saath payload me, `perPage` (9) theme lagati hai. Isi se pills ↔ Topics ka **do-tarfa sync muft** milta hai |
+| 2   | **Post ka editor = `richText` + `faqs`** — FAQ alag block isliye ki `FAQPage` schema usi se banti hai                                                                       |
+| 3   | **Byline sirf `blogSettings.author` se** — `authorId` andar rehta hai, page pe kabhi nahi                                                                                   |
+| 4   | **`postPicks` widget** ("Most read") — client 5 tak post khud chunta hai. **View counting hai hi nahi**                                                                     |
+| 5   | **TOC pe checkbox** (`blogSettings.showToc`) — ⚠️ maine ulta suggest kiya tha, client ne palta (R15)                                                                        |
+| 6   | **Mobile pe form popup + CTA settings se** — dono maujooda component, naya kuch nahi                                                                                        |
+
+### Kya bana
+
+- **Slice A** (`8e3922a`) — `post` se `tag` gaya + `hasBuilder`, naya `blogPage` type,
+  `postList` block, `blogSettings`, do naye widget (`topics`/`postPicks`)
+- **Slice B** (`0789664`) — `toPublicPost()`, `toPostCards()`, prev/next, related, TOC
+- **Slice C** (`01198fb`) — Posts ki screens, Blog Page, `Settings ▸ Blog settings`
+- **Slice D1** (`4ac0c3e`, `468e892`) — post ka page live
+
+### ⚠️ Chaar bug mile, **chaaron "bana hua par juda nahi"**
+
+1. **Cache** — API `type:post` bhejti hai par `apps/web` me use **koi padhta hi nahi**
+   (`cms.js` sirf `path:` se tag karta hai). Naya post publish hone pe `/blog` ka cache saaf
+   hota hi nahi tha. Ab `invalidate()` un `blogPage` entries ke `path:` bhi bhejta hai jinme
+   `postList` hai. ⚠️ **Ye abhi sirf code level pe sach hai — asli pehra `next build` pe hai**
+2. **`settings.siteUrl` payload me tha hi nahi** — `TourSchema.jsx` 8 Sep se
+   `?? settings?.siteUrl` padh raha hai aur wo hissa **kabhi chala hi nahi**. Yaani jis instance
+   pe `NEXT_PUBLIC_SITE_URL` na ho, wahan **tour page ke schema ke saare absolute URL chup-chaap
+   gir jaate the**. Ab `env.SITE_URL` se jaata hai
+3. **TOC** payload me 8 item ke saath ja rahi thi aur render koi nahi kar raha tha
+4. **`extractBlockText()` sirf top-level string props padhta tha** — `faqs.items[].answer` kabhi
+   ginta hi nahi tha. Yaani read time jhootha **aur** `entries.searchText` adhoora: client ke
+   likhe FAQ admin search me **aaj tak aate hi nahi the**
+
+### ⚠️ Ek aur, client ke chalane pe (`468e892`)
+
+Client: _"main content me jo `.blk` hai usme padding nahi hai design me, na koi border."_ Uske
+peeche ek bada issue nikla: reference ke `.art > p` waale selector `.blk` ke **through pahunchte
+hi nahi the**, kyunki hamara content `.blk` ke andar baithta hai. Yaani **article ki poori
+typography lag hi nahi rahi thi** (15.5px/1.75 ki jagah tour page waali). Ab wo descendant hain.
+
+### DB me kya hai (asli data, client ne khud bhara)
+
+**12 published post** — ek poora bhara hua (reference wala article + 4 FAQ), **gyarah placeholder
+body ke saath** (title · excerpt · category · date sab `blog-v1.html` se asli). 6 categories,
+`Blog Page` sidebar (`enquiryForm` + `html` + `postPicks`), `blogSettings` poori bhari hui.
+
+⚠️ **Un gyarah ka body `Write this section.` hai — client apne content se badlega.** Maine koi
+tathya nahi gadha (ferry timings, daam, PADI) — wo ek asli travel business ki site pe jaate.
+
+### ⏭️ Agla kaam
+
+1. **Slice D2 — listing page** (`blog-v1.html`): `.feat`/`.fcard` (Start here ke 3),
+   `.bfilter` ki pills, `.pager`, aur **Topics ↔ pills ka do-tarfa sync**.
+   ⚠️ Client ne kaha tha _"/blog wala page baad me, data bhi baad me daal dunga"_
+2. **`next build` + `next start` pe verify** — cache wala fix (#1 upar) **sirf wahin** sach me
+   test hota hai. ⚠️ Build se pehle dev band karo (dono ek hi `.next`)
+3. **Spec ke teen khule sawaal** — Q-B1 (`blogPage` ek ya kai), Q-B2 (`postPicks` ka default
+   heading), aur URL switch (`/blog/{slug}` ↔ `/{slug}`, Slice E — abhi bana hi nahi)
+4. **A-9 ka `page` wala aadha ab bhi khula** — blog ka matlab `post` tha, aur wahi kiya gaya
 
 ---
 
