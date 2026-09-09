@@ -1,8 +1,9 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 8 Sep 2026 (shaam) — **210 commit**, ⚠️ **30 unpushed** (`origin/main` =
-> `a0f337c`), **847 test pass** (33 file), admin + web build pass, lint + format clean, tree clean.
+> **Last updated:** 8 Sep 2026 (raat) — **210 commit**, ✅ **sab push ho chuka**
+> (`origin/main` = `44c15e3`), **847 test pass** (33 file), admin + web build pass,
+> lint + format clean, tree clean.
 
 ---
 
@@ -10,17 +11,17 @@
 
 ### Abhi ki asli haalat (naapi hui)
 
-| Kya           | Value                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------- |
-| Commits       | **210**                                                                                     |
-| Push          | ⚠️ **30 unpushed** — `origin/main` `a0f337c` pe khada hai (client ne push mana kiya)        |
-| Tests         | **847 pass**, 33 file (`pnpm test`, exit 0)                                                 |
-| Builds        | ✅ admin (`vite build`) aur web (`next build`) dono pass                                    |
-| Lint · Format | dono clean                                                                                  |
-| Tree          | clean                                                                                       |
-| Migrations    | **23 files**, 23/23 applied                                                                 |
-| Decisions     | **D-89** tak                                                                                |
-| DB            | 5 package (+8 trash) · **1 tour page (live, poora bhara hua)** · 1 sidebar · 4 content type |
+| Kya           | Value                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| Commits       | **210**                                                                                      |
+| Push          | ✅ **sab push ho chuka** — `origin/main` = `44c15e3` (client ne 8 Sep raat ko permission di) |
+| Tests         | **847 pass**, 33 file (`pnpm test`, exit 0)                                                  |
+| Builds        | ✅ admin (`vite build`) aur web (`next build`) dono pass                                     |
+| Lint · Format | dono clean                                                                                   |
+| Tree          | clean                                                                                        |
+| Migrations    | **23 files**, 23/23 applied                                                                  |
+| Decisions     | **D-89** tak                                                                                 |
+| DB            | 5 package (+8 trash) · **1 tour page (live, poora bhara hua)** · 1 sidebar · 4 content type  |
 
 ### Pehle ye do
 
@@ -92,14 +93,17 @@ html widget ka `icon`, enquiryForm ka `heading`/`description`, aur `unwrapBareSp
 
 ### Client ne kaha: **design abhi complete hai.** Naya badlaav aayega to wo batayenge.
 
-### 1. ⚠️ Do cheezein client ko admin me set karni hain (code taiyaar, data khaali)
+### 1. ✅ Client ke chaaron admin kaam ho gaye (9 Sep subah, DB pe verify)
 
-| Kahan                                 | Kya                                                                 |
-| ------------------------------------- | ------------------------------------------------------------------- |
-| `Tour Pages ▸ Edit ▸ What's included` | **Style** = `Included / Not included` — tabhi rangeen dabbe aayenge |
-| Stat rail ka pehla card               | `suffix` me `/persom` likha hai — typo, `/person` hona chahiye      |
+| Kya                       | Ab                                         |
+| ------------------------- | ------------------------------------------ |
+| `twoColumn.style`         | `includedExcluded` ✅                      |
+| Stat rail ka `suffix`     | `/person` ✅ (typo theek)                  |
+| `tourSettings.heroButton` | `Get my itinerary & price` → `#enquiry` ✅ |
+| `html` widget ka `icon`   | `clock` ✅                                 |
 
-Aur purane FAQ ek baar Save karne se unke bekaar `<span>` khul jaayenge.
+⚠️ Purane FAQ ke bekaar `<span>` **abhi bhi wahan hain** — wo tabhi khulenge jab wo block ek baar
+Save ho (`unwrapBareSpans` write pe chalta hai). Naya paste apne aap saaf aata hai.
 
 ### 2. A-17 — speed **dobara naapni padegi**
 
