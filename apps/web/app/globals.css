@@ -5140,11 +5140,29 @@ a.mega__gl:hover {
   }
 }
 
+/*
+ * ⚠️ **Tablet pe `.dgrid` aur `.vrail__in` dono reference se ALAG hain — client ka faisla
+ * (9 Sep).**
+ *
+ * | | Reference | Ab |
+ * | --- | --- | --- |
+ * | `.dgrid` tablet | 2 column (`≤1024`) | **3 column** — yaani client ka apna `columns` chalta rehta hai |
+ * | `.vrail__in` tablet | 2×2 (`≤1080`) | **4 ek line me** — desktop jaisa |
+ * | `.vrail__in` mobile | 1 column (`≤760`) | **2 ek line me** |
+ *
+ * Iska matlab ye hai ki tablet pe layout desktop ke zyada kareeb rehta hai aur toot-ta sirf
+ * mobile pe hai. `.pgl` 1024 pe hi ek column ho jaati hai, to uske neeche content poori chaudai
+ * leta hai — 3 card aur 4 stat wahan aaram se aa jaate hain.
+ */
 @media (max-width: 900px) {
-  .dgrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
+  /*
+   * ⚠️ `.dgrid` yahan **nahi** hai — pehle wo `repeat(2, 1fr)` pe girta tha. Ab client ka chuna
+   * hua `--dcols` tablet tak chalta hai aur seedha mobile pe ek column ho jaata hai.
+   *
+   * ⚠️ Iska ek kinara hai: client ne agar **4 column** chune hon to tablet pe bhi chaar hi
+   * aayenge, aur wo tang lagenge. Aaj ke page pe teen hain. Jis din wo dikkat kare, ilaaj yahin
+   * hai — chaar ko teen pe cap karna.
+   */
   .twocol--50-50,
   .twocol--60-40,
   .twocol--40-60 {
@@ -5155,28 +5173,36 @@ a.mega__gl:hover {
   .twocol--rev > *:first-child {
     order: 2;
   }
+}
+
+@media (max-width: 760px) {
+  /* Tablet pe teen the; mobile pe ek — reference bhi yahin ek pe aata hai. */
+  .dgrid {
+    grid-template-columns: 1fr;
+  }
 
   .vrail {
     margin-top: -26px;
   }
 
+  /*
+   * Do ek line me — client (9 Sep). Reference yahan **ek** column karta hai aur 2×2 uske upar
+   * (`≤1080`) rakhta hai; hum ulta kar rahe hain: tablet pe chaar, mobile pe do.
+   *
+   * ⚠️ Border ka hisaab `nth-child` se hai, aur wo do-column wale grid ka hi hisaab hai —
+   * teesre card se baayin lakeer hat-ti hai (wo nayi line ka pehla hai) aur upar wali lakeer
+   * lagti hai. Ye rules reference ke hi hain, bas doosre breakpoint pe.
+   */
   .vrail__in {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
-  .vrail__c {
+  .vrail__c:nth-child(3) {
     border-left: 0;
+  }
+
+  .vrail__c:nth-child(n + 3) {
     border-top: 1px solid var(--line-2);
-  }
-
-  .vrail__c:first-child {
-    border-top: 0;
-  }
-}
-
-@media (max-width: 620px) {
-  .dgrid {
-    grid-template-columns: 1fr;
   }
 }
 
