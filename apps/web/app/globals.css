@@ -4687,6 +4687,25 @@ a.mega__gl:hover {
   background: var(--blue-50);
 }
 
+/*
+ * Tour page ka apna tinted background — reference ke `body` (`--bg: #f4f7fa`) ke barabar.
+ *
+ * ⚠️ **Hamara `body` safed hai** (`--surface`), reference ka tinted. Package page ye tint `.pkg`
+ * se leta hai; tour page ke paas aisa wrapper tha hi nahi, aur usse **do** cheezein toot rahi
+ * thin (client ne dono pakdi, 9 Sep):
+ *
+ * 1. `.vrail` ke aas-paas ki patti safed dikhti thi
+ * 2. FAQ ke neeche "bekaar jagah" lagti thi — wo asal me CTA ka safed band tha (`.pkg__cta` ka
+ *    background bhi `--surface` hai), aur safed pe safed band dikhta hi nahi
+ *
+ * ⚠️ `body` ka background badalne se ye theek **nahi** kiya gaya, aur wo soch kar hai: wo har
+ * page pe lagta (post ka fallback, aur aage jo bhi aaye) aur `.pkg` uspe waise bhi apna tint
+ * likh deta. Jo cheez ek page ki hai wo us page ke wrapper pe rehni chahiye.
+ */
+.tour {
+  background: #f4f7fb;
+}
+
 /* ---------- hero ---------- */
 
 .vhero {
@@ -4789,6 +4808,20 @@ a.mega__gl:hover {
  */
 .vhero .vcrumb {
   color: rgba(255, 255, 255, 0.55);
+
+  /*
+   * ⚠️ **`padding-top: 0` — client ne 9 Sep ko pakda.**
+   *
+   * Base `.vcrumb` pe `padding-top: clamp(14px, 2vw, 22px)` hai aur wo **package page ke liye**
+   * hai: wahan breadcrumb page ke content me sabse upar baithta hai, to use apni jagah chahiye.
+   *
+   * Tour page pe wo `.vhero__in` ke andar hai, jiska apna `padding-block` pehle se hai — yaani
+   * dono jud kar **dugni** jagah bana rahe the. Reference ke `.vcrumb` me `padding-top` hai hi
+   * nahi (sirf `margin-bottom`).
+   *
+   * Base rule chhua nahi gaya — package page ko wo padding chahiye.
+   */
+  padding-top: 0;
 }
 
 .vhero .vcrumb a {
