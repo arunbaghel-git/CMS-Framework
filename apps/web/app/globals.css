@@ -1676,6 +1676,22 @@ a.mega__gl:hover {
   padding: clamp(18px, 2.2vw, 28px);
 
   /*
+   * ⚠️ **Base size yahan 9 Sep me juda — client ne pakda ki tour page pe text 14px nahi hai.**
+   *
+   * Hamare `body` pe `font-size` hai hi nahi, aur wo jaan-boojh kar hai: 1 Sep ko client ne
+   * reference wali `15px` lene se mana kiya tha (_"only line height lagao"_). Uska nateeja ye
+   * hai ki **jo bhi apna naap nahi likhta wo browser ke 16px pe gir jaata hai**, aur ilaaj wahi
+   * tay hua tha — _"jahan farq dikhe, wahan naap likh do"_ (yahi `.wdgc` pe likha hai).
+   *
+   * `.blk p`, `.blk h2`, `.tbl` sabke apne naap the. Par client ke likhe content me saadi
+   * `<ul>`/`<li>` bhi aati hain aur unka koi rule tha hi nahi — wo 16px pe chal rahi thin.
+   *
+   * Ek-ek element pe naap likhne se behtar hai block pe base rakh dena: jo apna naap likhta hai
+   * wo waise bhi jeet-ta hai, aur baaki sab 14px pe aa jaate hain.
+   */
+  font-size: var(--fs-body);
+
+  /*
    * **Fold ke neeche ka layout paint se pehle mat karo** — D-85.
    *
    * Page ~9800px lamba hai aur usme 1366 element hain. Trace me `Layout` ki do sabse badi
@@ -1765,8 +1781,20 @@ a.mega__gl:hover {
   color: var(--body);
 }
 
+/*
+ * ⚠️ **Ye 2 Sep ko chup-chaap comment ho gaya tha, aur client ne 9 Sep ko iska asar pakda** —
+ * _"design me paragraph me space hai, wo aa nahi raha"_.
+ *
+ * Commit `3f6ca4c` (_"Mobile pe similar card ki rating title ke upar"_) me ye line
+ * `/* margin-top: 10px; *​/` ban gayi thi. Us commit ka maqsad mobile pe rating khiskana tha —
+ * paragraph ke gap se uska koi lena-dena nahi tha, yaani ye **debugging ka bacha hua** tha jo
+ * galti se commit ho gaya.
+ *
+ * Nateeja: package page **aur** tour page dono pe paragraph ek doosre se chipke hue the. Reference
+ * me `.blk p + p{margin-top:10px}` hai.
+ */
 .blk p + p {
-  /* margin-top: 10px; */
+  margin-top: 10px;
 }
 
 /* Steps ke baad cancellation ka paragraph — reference me iske liye inline
@@ -2543,12 +2571,12 @@ a.mega__gl:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--fs-3xs);
-  font-weight: var(--fw-heading);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink);
-  padding: 12px 14px;
+  padding: 12px 15px;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -4760,6 +4788,7 @@ a.mega__gl:hover {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #8fd0ff;
+  padding-top: 6px;
 }
 
 .vhero__eye svg {
