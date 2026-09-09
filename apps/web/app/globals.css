@@ -4864,7 +4864,6 @@ a.mega__gl:hover {
   box-shadow: var(--sh-3);
   display: grid;
   grid-template-columns: 1.25fr repeat(3, 1fr);
-  align-items: center;
 }
 
 .vrail__c {
@@ -4931,6 +4930,27 @@ a.mega__gl:hover {
  * `grid-column` se jagah badalti hai, markup se nahi. Isse chhoti screen pe stacking apne
  * aap sahi rehti hai: content pehle, sidebar neeche.
  */
+/*
+ * ⚠️ **Tour page pe `.pgl` ka apna padding hat jaata hai — client ne 9 Sep ko pakda.**
+ *
+ * `.pgl` pe `padding-block: clamp(18px,2.4vw,46px) 46px` hai, aur wo **package page ke liye**
+ * hai: wahan `.pgl` seedha ek `.wrap` hai, uske upar koi section nahi, to apni jagah usi ko
+ * banani padti hai.
+ *
+ * Tour page pe wo `.sec--blue` ke **andar** hai, jiska apna `padding: clamp(28px,3.4vw,46px) 0`
+ * hai — yaani neeche 46 + 46 = **92px**, aur upar bhi wahi dohraav. Client ne isi ko _"padding
+ * bottom jo bekaar jagah bana raha hai"_ kaha.
+ *
+ * ⚠️ **Dono reference me `.pgl` pe koi padding hai hi nahi** — na `tour-v3.html` me, na
+ * `itinerary-v3.html` me. Wahan wo kaam section ka hai. Hamare paas wo package page pe section
+ * hai hi nahi, isliye padding `.pgl` pe aa gayi thi.
+ *
+ * Base rule chhua nahi gaya — package page ko wo padding chahiye.
+ */
+.pgl--tour {
+  padding-block: 0;
+}
+
 .pgl--sideleft {
   grid-template-columns: 322px minmax(0, 1fr);
 }
