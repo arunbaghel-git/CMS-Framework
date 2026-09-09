@@ -109,11 +109,44 @@ export const blockSchema = z.lazy(() =>
 export function extractBlockText(blocks = []) {
   const out = []
 
+  /**
+   * Props ke andar **kitni bhi gehraai tak** — spec 008.
+   *
+   * ⚠️ **Pehle ye sirf top-level string props padhta tha, aur wo do jagah chup-chaap galat
+   * tha.** `faqs.props.items[].answer` ek array ke **andar** hai, `cards.props.items[].text`
+   * bhi. Yaani ek aisa page jiska aadha content FAQ me ho, uska `searchText` aadha khaali
+   * rehta tha (admin search usme se dhoondh hi nahi paati thi) aur uska `readMinutes` jhooth
+   * bolta tha.
+   *
+   * Ye ab do cheezein theek karta hai kyunki dono ek hi function pe khadi hain — `searchText`
+   * (`entries/service.js`) aur read time (`readingMinutes()`). MongoDB ek collection pe sirf
+   * **ek** text index deta hai, isliye admin ki poori search isi par tiki hai.
+   *
+   * @param {unknown} value
+   */
+  const collect = (value) => {
+    if (typeof value === 'string') {
+      if (value.trim()) out.push(value.trim())
+      return
+    }
+    if (Array.isArray(value)) {
+      for (const item of value) collect(item)
+      return
+    }
+    /**
+     * ⚠️ `id` jaisi keys bhi isme aa jaati hain, aur wo theek hai: `searchText` me ek
+     * bekaar token se koi nuksaan nahi, par read time me wo ek shabd ginta hai. 200 shabd
+     * prati minute pe ek-do token ka koi asar nahi — aur unhe chhaantne ka matlab hota yahan
+     * ek key ki list rakhna, jo har naye block pe purani ho jaati.
+     */
+    if (value && typeof value === 'object') {
+      for (const inner of Object.values(value)) collect(inner)
+    }
+  }
+
   const walk = (nodes) => {
     for (const node of nodes ?? []) {
-      for (const value of Object.values(node.props ?? {})) {
-        if (typeof value === 'string' && value.trim()) out.push(value.trim())
-      }
+      collect(node.props ?? {})
       if (node.children?.length) walk(node.children)
     }
   }

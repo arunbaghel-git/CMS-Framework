@@ -29,13 +29,21 @@ import { htmlSchema } from './rich-html.js'
  * teen. Khuli chhodne ka matlab hota ki koi `packageList` yahan daal de, jo sidebar me bemaani
  * hai aur uska koi renderer hai hi nahi.
  */
-export const SIDEBAR_WIDGET_TYPES = Object.freeze(['enquiryForm', 'talkToPlanner', 'html'])
+export const SIDEBAR_WIDGET_TYPES = Object.freeze([
+  'enquiryForm',
+  'talkToPlanner',
+  'html',
+  'topics',
+  'postPicks',
+])
 
 /** Admin ke `＋ Add widget…` dropdown ke naam. UI ka text English me (R17). */
 export const SIDEBAR_WIDGET_LABEL = Object.freeze({
   enquiryForm: 'Enquiry form',
   talkToPlanner: 'Talk to a planner',
   html: 'Custom HTML',
+  topics: 'Topics',
+  postPicks: 'Post picks',
 })
 
 /**
@@ -146,6 +154,68 @@ export const htmlWidgetSchema = z.object({
 })
 
 /**
+ * `Topics` — categories ki list, har ek pe ginti (`.cats`, `blog-v1.html`).
+ *
+ * ⚠️ **Poori tarah derived — koi list, koi chunav nahi.** Categories `taxonomies` se aati
+ * hain aur ginti `usageCount` se, jo master-lists service me **pehle se** banti hai (aur wo
+ * trash me padi entries ko nahi ginti). Client se yahan categories chunwana wahi galti hoti
+ * jo D-58/D-60 ne hotels pe bachayi thi: jo cheez apne aap sahi ho sakti hai, uske liye ek
+ * doosri list mat banao.
+ *
+ * ⚠️ Ek bhi category na ho to widget **render hi nahi hota** (D-30).
+ *
+ * `blog-v1.html` me ye pills ke saath **do-tarfa** juda hai — Topic pe click se grid filter
+ * hoti hai, aur pill pe click se yahan wo topic active hota hai. Wo sync theme ka kaam hai
+ * (dono ek hi client-side state padhte hain), payload ka nahi.
+ */
+export const topicsWidgetSchema = z.object({
+  id: widgetId,
+  type: z.literal('topics'),
+  props: z
+    .object({
+      icon: z.enum(ICONS).default('none'),
+      /** Khaali pe theme ka apna heading chalta hai — D-65 wala hi niyam. */
+      heading: z.string().trim().max(120).default(''),
+    })
+    .default({}),
+})
+
+/** `postPicks` me kitne post — reference me chaar hain (`.pop`). */
+export const MAX_POST_PICKS = 5
+
+/**
+ * `Post picks` — chune hue post, chhoti thumbnail ke saath (`.pop`, dono reference pages pe).
+ *
+ * ## ⚠️ Reference ise `Most read` kehta hai, par ye ginti se nahi banta
+ *
+ * Is CMS me **view counting hai hi nahi**. Asli "most read" ka matlab hota har page view pe
+ * ek write — jo ISR aur caching dono todta hai (D-83 abhi-abhi theek hua hai), aur uske saath
+ * bot filtering aur rate limit bhi chahiye. Ek decorative widget ke liye wo keemat bahut
+ * zyada hai.
+ *
+ * Isliye client **khud chunta hai**, aur `Most read` bas wo heading hai jo wo type karta hai
+ * (client ka faisla, 9 Sep). Type ka naam `postPicks` isliye rakha gaya, `mostRead` nahi —
+ * naam wahi kehna chahiye jo cheez sach me hai. **Type string DB me stored data hai, ise
+ * kabhi rename mat karna (R4).**
+ *
+ * ⚠️ Jo id resolve na ho (trash me chala gaya, ya unpublish ho gaya) wo **chup-chaap gir
+ * jaati hai** — D-79 ka precedent aur D-42 §2 ka invariant. Khaali list pe widget render hi
+ * nahi hota.
+ */
+export const postPicksWidgetSchema = z.object({
+  id: widgetId,
+  type: z.literal('postPicks'),
+  props: z
+    .object({
+      icon: z.enum(ICONS).default('none'),
+      heading: z.string().trim().max(120).default(''),
+      /** Kram **isi array ka** hai — wahi soch jo `packageIds[]` aur `content.blocks[]` pe hai. */
+      postIds: z.array(z.string()).max(MAX_POST_PICKS).default([]),
+    })
+    .default({}),
+})
+
+/**
  * Widget ka envelope — `{ id, type, props }`, wahi shape jo `content.blocks[]` ka hai
  * (D-87 §7 ka FROZEN envelope). Yaani Phase 5 ka builder yahi data uthayega.
  *
@@ -157,6 +227,8 @@ export const sidebarWidgetSchema = z.discriminatedUnion('type', [
   enquiryFormWidgetSchema,
   talkToPlannerWidgetSchema,
   htmlWidgetSchema,
+  topicsWidgetSchema,
+  postPicksWidgetSchema,
 ])
 
 /**

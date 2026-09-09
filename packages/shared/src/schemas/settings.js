@@ -3,6 +3,13 @@ import { z } from 'zod'
 import { DEFAULT_SITE_ID } from '../constants/index.js'
 import { ICONS } from '../constants/icons.js'
 import { BUTTON_VARIANTS, LINK_TARGETS, classNameSchema, menuUrlSchema } from './menu.js'
+/**
+ * ⚠️ Sidebar ke do field **`page.js` se udhaar** liye ja rahe hain, dobara likhe nahi —
+ * `blogSettings.postSidebar` bilkul wahi cheez hai jo `page`/`tourPage` ke `fields.sidebar`
+ * pe hai, sirf uski jagah alag hai (entry ke bajaye settings). Dobara likhne ka matlab hota
+ * ki ek din unke enum alag ho jaayein — wahi jaal jo `menu.location` pe pakda gaya tha.
+ */
+import { sidebarIdSchema, sidebarPositionSchema } from './page.js'
 import { emailSchema } from './user.js'
 
 /**
@@ -212,6 +219,78 @@ export const tourSettingsSchema = z.object({
       url: z.string().trim().max(500).default(''),
     })
     .default({}),
+})
+
+/**
+ * Blog ki site-level settings — **spec 008** (client, 9 Sep).
+ *
+ * `tourSettings` ka hi joda: jo cheez har post pe **ek jaisi** hai wo yahan hai, per-post
+ * nahi. Client ne khud yahi maanga — _"blog settings me checkbox bana denge **sabke liye**"_.
+ */
+export const blogAuthorSchema = z.object({
+  /**
+   * Byline ka naam — `blog-detail-v1.html` ka `Andaman Tourism team`.
+   *
+   * ⚠️ **Ye `entry.authorId` ko jeet-ta nahi, use replace karta hai.** Public byline ka
+   * **ekmatra** source yahi hai. `authorId` andar rehta hai — kisne likha, permissions,
+   * admin ki list — par page pe **kabhi nahi** jaata (R10 waise bhi user ka naam/email
+   * public payload me nahi jaane deta).
+   *
+   * Ise "fallback" banane ka matlab hota ek hi cheez ke do source, aur ek din wo alag ho
+   * jaate — theek wahi jo 9 Sep ko rating pe hua tha (`toPackageCards()` badla,
+   * `PackagePage.jsx` chhoot gaya, client ne kaha _"card me updated hai, page pe purana 412
+   * aa raha hai"_).
+   *
+   * ⚠️ Khaali naam pe byline ka author wala hissa **render hi nahi hota** (D-30) — admin
+   * user ka naam wahan kabhi nahi girega.
+   */
+  name: z.string().trim().max(120).default(''),
+
+  /** Naam ke neeche ki chhoti line — `Planners in Port Blair`. */
+  role: z.string().trim().max(160).default(''),
+
+  /**
+   * Article ke neeche `.authorbox` ka paragraph.
+   *
+   * ⚠️ Avatar ke initials (`AT`) **naam se derive** hote hain — uske liye koi field nahi.
+   * Do akshar ek naam se hamesha nikaale ja sakte hain; unhe alag se rakhna ek aur jagah
+   * hoti jahan wo naam se alag ho jaate.
+   */
+  bio: z.string().trim().max(1000).default(''),
+})
+
+export const blogSettingsSchema = z.object({
+  author: blogAuthorSchema.default({}),
+
+  /**
+   * `On this post` (TOC) dikhe ya nahi — **saare post ke liye ek** (client, 9 Sep):
+   * _"On this post to heading se generate hoga aur blog settings me checkbox bana denge
+   * sabke liye ki show karna hai ya nahi."_
+   *
+   * ⚠️ **Maine iske ulta suggest kiya tha aur client ne palta.** Meri salah thi ki koi
+   * checkbox na ho aur TOC sidebar ka widget bane (list me hona hi on) — wahi tark jo
+   * `showBadges` aur `emitSchema` pe laga tha (8 Sep). Client ne checkbox maanga, aur
+   * **R15 kehta hai change client se aata hai, developer se nahi.** Ye yahan likha ja raha
+   * hai taaki koi baad me "ye to hamare hi niyam ke khilaf hai" keh kar hata na de.
+   *
+   * ⚠️ **On hone par bhi TOC har post pe nahi aati** — jis post me 3 se kam `<h2>` hain
+   * wahan wo render nahi hoti. Checkbox "dikhao" kehta hai, "zabardasti dikhao" nahi (D-30).
+   */
+  showToc: z.boolean().default(true),
+
+  /**
+   * Post ke page pe sidebar — **kis taraf** aur **kaunsi**, saare post ke liye ek baar.
+   *
+   * ⚠️ Ye `page`/`tourPage` se alag hai, jahan dono field **entry pe** hain. Wajah: wahan har
+   * page apni shakl ka hota hai (ek listing, ek lamba article), par blog ke saare post ek hi
+   * shakl ke hain. Har post pe do dropdown bharwane ka matlab hota ki ek din koi bhool jaaye
+   * aur us post pe sidebar chup-chaap gayab ho (D-42 §2).
+   *
+   * ⚠️ **`blogPage` par ye laagu nahi** — listing page apni sidebar apne `fields` se chunta
+   * hai. Reference me dono alag hain hi: listing pe `Topics`, detail pe `On this post`.
+   */
+  postSidebar: sidebarPositionSchema,
+  postSidebarId: sidebarIdSchema,
 })
 
 /**
@@ -443,6 +522,16 @@ export const settingsSchema = z.object({
    * jaati jo maujood hi nahi.
    */
   tourSettings: tourSettingsSchema.default({}),
+
+  /**
+   * `Settings ▸ Blog settings` — author · TOC · post ki sidebar (spec 008, client 9 Sep).
+   *
+   * ⚠️ **Model me bhi jodna zaroori hai** (`settings/model.js`). `updateSettings()` ka `$set`
+   * generic hai, isliye Zod pass kar dega — par Mongoose `strict` **anjaan path chup-chaap
+   * gira deta hai**: API `200` degi, admin `"Saved."` dikhayega, aur DB me kuch nahi hoga.
+   * Isi liye iska test **response nahi, DB** padhta hai.
+   */
+  blogSettings: blogSettingsSchema.default({}),
 
   /**
    * `{year}` placeholder theme replace karta hai, taaki har 1 January ko client ko

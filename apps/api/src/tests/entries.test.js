@@ -140,14 +140,15 @@ describe('built-in content types', () => {
 
     expect(res.status).toBe(200)
     // `tourPage` D-87 me juda (7 Sep) — package listing page. `page` se alag type isliye
-    // hai ki menu, list aur URL teenon alag maange gaye the; field set dono ka ek hi hai
-    expect(keys).toEqual(['package', 'page', 'post', 'tourPage'])
+    // hai ki menu, list aur URL teenon alag maange gaye the; field set dono ka ek hi hai.
+    // `blogPage` spec 008 me juda (9 Sep) — blog ka listing page, wahi teen wajah
+    expect(keys).toEqual(['blogPage', 'package', 'page', 'post', 'tourPage'])
   })
 
   it('dobara chalne pe duplicate nahi banta — seed idempotent hai', async () => {
     const result = await ensureBuiltInContentTypes()
 
-    expect(await ContentType.countDocuments({})).toBe(4)
+    expect(await ContentType.countDocuments({})).toBe(5)
     expect(result.every((r) => r.action === 'up-to-date')).toBe(true)
   })
 
@@ -910,8 +911,12 @@ describe('package content type ka shape', () => {
 
   it('package Destinations aur Package Type use karta hai, Pages koi nahi', async () => {
     expect((await typeByKey('package')).taxonomyTypes).toEqual(['destination', 'packageType'])
-    expect((await typeByKey('post')).taxonomyTypes).toEqual(['category', 'tag'])
+    // ⚠️ `tag` 9 Sep ko hata (spec 008, client: "remove tag submenu"). Sirf nav se link
+    // hataane ka matlab hota taxonomy zinda aur uske paas koi UI nahi — wahi "bana hua par
+    // juda nahi" jo D-89/D-90 me baar-baar mila
+    expect((await typeByKey('post')).taxonomyTypes).toEqual(['category'])
     expect((await typeByKey('page')).taxonomyTypes).toEqual([])
+    expect((await typeByKey('blogPage')).taxonomyTypes).toEqual([])
   })
 })
 
@@ -2266,13 +2271,21 @@ describe('Tour Page ka type (D-87)', () => {
     ])
   })
 
-  it('dono pe hasBuilder true hai, package/post pe nahi', async () => {
-    // Flag ab sach me batata hai ki editor kaisa khulega: block list, ya ek hi richText
+  it('sirf package pe hasBuilder false hai', async () => {
+    // Flag ab sach me batata hai ki editor kaisa khulega: block list, ya ek hi richText.
+    // ⚠️ `post` 9 Sep ko `true` hua (spec 008) — uska article ek `richText` hai par FAQ apne
+    // block me, taaki FAQPage structured data sach me ban sake
     const byKey = Object.fromEntries(
       (await ContentType.find({}).lean()).map((t) => [t.key, t.hasBuilder]),
     )
 
-    expect(byKey).toEqual({ package: false, page: true, post: false, tourPage: true })
+    expect(byKey).toEqual({
+      package: false,
+      page: true,
+      post: true,
+      tourPage: true,
+      blogPage: true,
+    })
   })
 })
 

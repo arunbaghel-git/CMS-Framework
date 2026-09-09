@@ -87,6 +87,17 @@ const settingsSchema = new mongoose.Schema(
     /** `Settings ▸ Tour settings` — trust badges + universal banner (D-87). */
     tourSettings: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 
+    /**
+     * `Settings ▸ Blog settings` — author · TOC · post ki sidebar (spec 008).
+     *
+     * ⚠️ **Ye line hi wo jagah hai jahan chook chup-chaap hoti hai.** `updateSettings()` ka
+     * `$set` generic loop hai, to Zod-validated field wahan pahunch to jaata hai — par
+     * Mongoose `strict` un paths ko **bina kuch kahe gira deta hai** jo schema me nahi hain.
+     * Nateeja: API `200`, admin `"Saved."`, aur DB me purani value. Wahi shakl jo
+     * `updatePackageDefaults()` ke whitelist wale jaal ki hai (CLAUDE.md — chaar baar laga).
+     */
+    blogSettings: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+
     footerColumns: {
       type: [
         new mongoose.Schema(

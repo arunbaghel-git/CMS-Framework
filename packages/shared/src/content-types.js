@@ -296,6 +296,52 @@ const TOUR_PAGE_FIELDS = [
    */
 ]
 
+/**
+ * `blogPage` ka field set — blog **listing** page (spec 008, client 9 Sep).
+ *
+ * ⚠️ **`TOUR_PAGE_FIELDS` reuse nahi kiya, aur wo jaan-boojh kar hai.** Do field wahan hain jo
+ * yahan bemaani hain: `statRail` (hero ke neeche chaar number — wo `tour-v3.html` ki cheez hai,
+ * `blog-v1.html` me hai hi nahi) aur `eyebrow` (client ne use **saaf mana kiya** — _"Written on
+ * the islands · updated for 2026"_ hataana tha).
+ *
+ * Ek hi constant share karne ka matlab hota ki admin me do khaane hamesha khaali padey rahein
+ * aur client poochhe ki inka karna kya hai. Ye D-87 §1 ka palan hai, uska apwaad nahi: wahan
+ * `page` aur `tourPage` ka field set isliye ek tha ki dono ka **content shape** ek hai; yahan
+ * shape alag hai.
+ */
+const BLOG_PAGE_FIELDS = [
+  {
+    /** Page ka dikhne wala `<h1>` — `blog-v1.html` me `The Andaman <em>travel guide</em>`. */
+    key: 'heading',
+    type: 'text',
+    label: 'Page heading',
+    help: 'The H1 shown on the page. Leave it empty and the Title is used.',
+  },
+  {
+    key: 'subheading',
+    type: 'richText',
+    label: 'Sub heading',
+    help: 'Title ke neeche ka paragraph',
+  },
+  {
+    key: 'sidebar',
+    type: 'select',
+    label: 'Sidebar',
+    help: 'Is page pe sidebar dikhe ya nahi, aur kis taraf',
+  },
+  {
+    /**
+     * ⚠️ Listing page apni sidebar **alag** chun sakta hai — post ki sidebar
+     * `blogSettings.postSidebarId` se aati hai. Reference me dono alag hain hi: listing pe
+     * `Topics`, detail pe `On this post`.
+     */
+    key: 'sidebarId',
+    type: 'select',
+    label: 'Which sidebar',
+    help: 'Appearance ▸ Sidebar me banaye gaye sidebars me se ek',
+  },
+]
+
 /** @type {ReadonlyArray<import('./types.js').ContentTypeSeed>} */
 export const BUILT_IN_CONTENT_TYPES = Object.freeze([
   {
@@ -418,12 +464,60 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
   },
 
   {
+    /**
+     * Blog ka **listing** page — `blog-v1.html` (spec 008, client 9 Sep).
+     *
+     * ## Alag type kyun, `tourPage` me kyun nahi
+     *
+     * Wahi teen wajah jo D-87 §1 me `tourPage` ko `page` se alag karne ki thin: **menu, list
+     * aur URL teenon alag** maange gaye hain. Client ne kaha _"blog-v1.html ka ek submenu me
+     * single page banega slug (/blog)"_ — yaani wo use `Posts` ke neeche dhoondhega,
+     * `Tour Pages` ke andar nahi.
+     *
+     * ⚠️ **`hasArchive: false` — blog page khud ek archive hai.** Aur wo do field
+     * (`archiveBase`/`hasArchive`) aaj poore repo me **koi padhta hi nahi**; packages ka
+     * listing bhi ek `tourPage` **entry** hi hai. Yahi raasta liya gaya hai, aur usse `path:`
+     * cache tag, ISR, redirects, breadcrumb aur SEO sab muft mil jaate hain.
+     *
+     * ⚠️ **`hierarchical: false`** — ek listing page ka koi parent nahi hota, aur nesting se
+     * uska URL `/x/blog` ban jaata.
+     */
+    key: 'blogPage',
+    label: 'Blog Page',
+    labelPlural: 'Blog Pages',
+    icon: 'page',
+
+    hasBuilder: true,
+    hierarchical: false,
+    urlPattern: '/{slug}',
+    archiveBase: null,
+    hasArchive: false,
+
+    supports: [S.TITLE, S.EDITOR, S.FEATURED_IMAGE, S.SEO, S.REVISIONS],
+
+    /** Listing page khud posts ko filter karta hai; wo apne aap classify nahi hota. */
+    taxonomyTypes: [],
+
+    fields: BLOG_PAGE_FIELDS,
+  },
+
+  {
     key: 'post',
     label: 'Post',
     labelPlural: 'Posts',
     icon: 'post',
 
-    hasBuilder: false,
+    /**
+     * ⚠️ **`true` — 9 Sep ko badla (spec 008).**
+     *
+     * Client ne kaha content ek hi editor me aa jaayega, aur wo sach hai: `blog-detail-v1.html`
+     * ka poora `.art` body (h2 · table · callout · list · figure) ek `richText` me likha ja
+     * sakta hai. **FAQs alag block isliye hai** ki reference ke JSON-LD me `FAQPage` hai, aur
+     * wo hand-written `<details>` se bharosemand nahi banti.
+     *
+     * Dropdown me sirf ye do — `POST_BLOCK_TYPES` (`schemas/page.js`).
+     */
+    hasBuilder: true,
     hierarchical: false,
     urlPattern: '/blog/{slug}',
     archiveBase: 'blog',
@@ -431,8 +525,35 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
 
     supports: [S.TITLE, S.EDITOR, S.EXCERPT, S.FEATURED_IMAGE, S.SEO, S.REVISIONS, S.AUTHOR],
 
-    taxonomyTypes: ['category', 'tag'],
+    /**
+     * ⚠️ **`tag` hata diya gaya — client, 9 Sep** (_"remove tag submenu"_).
+     *
+     * Sirf nav se link hataana kaafi nahi hota: taxonomy zinda rehti aur uske paas koi UI na
+     * hoti — theek wahi "bana hua par juda nahi" jo D-89 aur D-90 me kai baar mila. Isliye
+     * dono jagah se.
+     *
+     * ⚠️ Jis post pe `taxonomies.tag` bhari ho uska agla edit D-49 ke gate pe **422** khaayega.
+     * 9 Sep ko asli DB me gina gaya: `post` ki ginti **0**, tag lagi hui **0** — isliye koi
+     * purge nahi. **Har naye instance pe ye dobara ginna hoga.**
+     */
+    taxonomyTypes: ['category'],
 
+    /**
+     * ⚠️ **Khaali, aur wo soch-samajh kar hai.**
+     *
+     * Blog ka sab kuch `supports` se aata hai (`title` · `excerpt` · `featuredImage` ·
+     * `author` · `seo`) aur article khud `content.blocks[]` me. Teen field jaan-boojh kar
+     * yahan **nahi** hain:
+     *
+     * - **`heading`** — D-90 ne wo `tourPage` ko diya tha kyunki wahan `<h1>` me `<em>` se
+     *   rang chahiye tha. Blog pe article ka `<h1>` uska **title hi** hai; reference ka
+     *   `.ahead__t` bilkul wahi text hai jo breadcrumb aur card pe dikhta hai
+     * - **`sidebar` / `sidebarId`** — post ki sidebar `blogSettings` me **ek baar** chunti hai
+     *   (client ne TOC pe bhi "sabke liye" kaha). Har post pe bharwana bojh hai, aur ek baar
+     *   bhoolne pe us post pe sidebar chup-chaap gayab (D-42 §2)
+     * - **`author` / `readTime`** — dono derive hote hain, `blogSettings.author` aur
+     *   `readingMinutes()` se
+     */
     fields: [],
   },
 ])

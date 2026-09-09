@@ -12,6 +12,14 @@ import {
   entryUpdateSchema,
   extractBlockText,
   findDuplicateBlockIds,
+  BLOG_PAGE_BLOCK_TYPES,
+  PAGE_BLOCK_PROP_SCHEMAS,
+  PAGE_BLOCK_TYPES,
+  POST_BLOCK_TYPES,
+  POST_LIST_PER_PAGE_DEFAULT,
+  parseBlockProps,
+  settingsSchema,
+  sidebarWidgetSchema,
   isPubliclyVisible,
   pathSchema,
   seoSchema,
@@ -340,5 +348,97 @@ describe('field DSL (D-24)', () => {
   it('responsive sirf block context me matlab rakhta hai', () => {
     expect(isResponsive({ type: 'spacing' }, 'block')).toBe(true)
     expect(isResponsive({ type: 'spacing' }, 'content')).toBe(false)
+  })
+})
+
+describe('blog ka schema (spec 008)', () => {
+  it('postList apne defaults bharta hai — khaali block bhi poora hota hai', () => {
+    const props = parseBlockProps('postList', {})
+
+    expect(props.perPage).toBe(POST_LIST_PER_PAGE_DEFAULT)
+    expect(props.showFilter).toBe(true)
+    expect(props.featuredIds).toEqual([])
+    // Khaali matlab "saare post", kisi ek topic pe seemit nahi
+    expect(props.categoryId).toBeNull()
+  })
+
+  it('featured teen se zyada nahi ho sakte — Start here ka layout hi teen ka hai', () => {
+    expect(() => parseBlockProps('postList', { featuredIds: ['a', 'b', 'c', 'd'] })).toThrow()
+  })
+
+  it('postList PAGE_BLOCK_PROP_SCHEMAS me hai — warna props chhoot jaate, gir nahi jaate', () => {
+    // Us naksha me naam na hone ka matlab "koi validation nahi" hota hai, "block nahi ban
+    // sakta" nahi — isliye iska apna test
+    expect(PAGE_BLOCK_PROP_SCHEMAS.postList).toBeDefined()
+    expect(PAGE_BLOCK_TYPES).toContain('postList')
+  })
+
+  it('post ke dropdown me sirf Text aur FAQs hain', () => {
+    expect(POST_BLOCK_TYPES).toEqual(['richText', 'faqs'])
+    // packageList ek blog post pe bemaani hai
+    expect(BLOG_PAGE_BLOCK_TYPES).not.toContain('packageList')
+    expect(BLOG_PAGE_BLOCK_TYPES).toContain('postList')
+  })
+
+  it('blogSettings khaali settings me se bhi poora nikalta hai', () => {
+    const parsed = settingsSchema.parse({})
+
+    expect(parsed.blogSettings.showToc).toBe(true)
+    expect(parsed.blogSettings.author.name).toBe('')
+    // Sidebar `none` default hai — naya page bina maange khaali sidebar le kar na aaye (D-30)
+    expect(parsed.blogSettings.postSidebar).toBe('none')
+  })
+
+  it('topics aur postPicks widget ban jaate hain', () => {
+    const topics = sidebarWidgetSchema.parse({ type: 'topics', props: {} })
+    expect(topics.props.heading).toBe('')
+
+    const picks = sidebarWidgetSchema.parse({
+      type: 'postPicks',
+      props: { heading: 'Most read', postIds: ['a', 'b'] },
+    })
+    // "Most read" sirf ek heading hai — ginti se kuch nahi banta (koi view counting nahi)
+    expect(picks.props.heading).toBe('Most read')
+    expect(picks.props.postIds).toEqual(['a', 'b'])
+  })
+
+  it('postPicks paanch se zyada nahi le sakta', () => {
+    expect(() =>
+      sidebarWidgetSchema.parse({
+        type: 'postPicks',
+        props: { postIds: ['a', 'b', 'c', 'd', 'e', 'f'] },
+      }),
+    ).toThrow()
+  })
+})
+
+describe('extractBlockText nested props bhi padhta hai (spec 008)', () => {
+  it('faqs ka jawab ginti me aata hai — wo items[] ke andar hai', () => {
+    const text = extractBlockText([
+      { id: 'r1', type: 'richText', props: { html: '<p>upar wali line</p>' } },
+      {
+        id: 'f1',
+        type: 'faqs',
+        props: {
+          heading: 'Questions',
+          items: [{ id: 'q1', question: 'Kitne din?', answer: '<p>Paanch raat</p>' }],
+        },
+      },
+    ])
+
+    // Pehle sirf top-level string props padhe jaate the, isliye ye do chhoot jaate the —
+    // yaani searchText adhoora aur read time jhootha
+    expect(text).toContain('Kitne din?')
+    expect(text).toContain('<p>Paanch raat</p>')
+    expect(text).toContain('upar wali line')
+  })
+
+  it('cards ke items ka text bhi aata hai', () => {
+    const text = extractBlockText([
+      { id: 'c1', type: 'cards', props: { items: [{ title: 'Ferry', text: 'Do ghante' }] } },
+    ])
+
+    expect(text).toContain('Ferry')
+    expect(text).toContain('Do ghante')
   })
 })

@@ -63,7 +63,30 @@ export const PAGE_BLOCK_TYPES = Object.freeze([
   'cards',
   'packageList',
   'faqs',
+  'postList',
 ])
+
+/**
+ * Kis content type pe dropdown me kaunse blocks — **spec 008** (Blog).
+ *
+ * ⚠️ **Ye sirf UI ki rok hai, server ki nahi.** Server pe per-type block allowlist hai hi
+ * nahi: `parseBlockProps()` type dekh kar props validate karta hai, par "ye block is type pe
+ * chalega ya nahi" wo nahi poochta. `packageList` pe bhi aaj yahi haal hai.
+ *
+ * Ye likha ja raha hai taaki koi baad me server guard **dhoondhe nahi** — wo hai hi nahi, aur
+ * uski zaroorat bhi nahi: block galat page pe pahunch bhi jaaye to uska renderer wahan kuch
+ * nahi banata (D-30).
+ */
+export const POST_BLOCK_TYPES = Object.freeze(['richText', 'faqs'])
+
+/**
+ * `blogPage` ka dropdown — listing page.
+ *
+ * ⚠️ `packageList` yahan **nahi** hai: blog listing pe packages ki list bemaani hai, aur
+ * `postList` uska joda hai. Client ne blog ke liye teen cheez maangi thin — featured teen,
+ * latest ki grid, aur topic filter — teenon `postList` ke andar hain.
+ */
+export const BLOG_PAGE_BLOCK_TYPES = Object.freeze(['richText', 'postList', 'faqs'])
 
 /** `richText` — "Text" block. Poora content ek HTML string me, jaisa D-80 se hai. */
 export const richTextPropsSchema = z.object({
@@ -380,6 +403,107 @@ export const faqsPropsSchema = z.object({
 })
 
 /**
+ * ⚠️ **Payload me kitne post tak jaayenge — `postList` ki chhat** (spec 008).
+ *
+ * Blog listing ka filter aur pagination **dono client-side** hain (client, 9 Sep): saare post
+ * ek hi baar payload me jaate hain, phir JS unhe filter aur page karta hai. Isi se pills aur
+ * sidebar ke Topics ka do-tarfa sync **muft** milta hai — dono ek hi state ke do control hain.
+ *
+ * Wo model 60 post tak theek hai (~45 KB). Usse aage raasta URL wala hai (`?topic=&page=`),
+ * aur uski keemat **poore page ki ISR** hai — `searchParams` Next 15 me route ko dynamic kar
+ * deta hai, yaani D-83 ka jeeta hua faayda wapas chala jaata.
+ *
+ * ⚠️ Ye `PACKAGE_LIST_SCAN_CAP` jaisa hi pehra hai, par wajah ulti hai: wahan chhat **query**
+ * pe thi (sort JS me hota hai), yahan **payload** pe hai.
+ */
+export const POST_LIST_CAP = 60
+
+/** Ek page pe kitne card — reference (`blog-v1.html`) me nau hain. */
+export const POST_LIST_PER_PAGE_DEFAULT = 9
+
+/** `Start here` — ek bada aur do chhote card (`.fcard--lg` + `.feat__side`). */
+export const POST_LIST_MAX_FEATURED = 3
+
+/**
+ * `Post list` — blog listing page ka asli maal (`.feat` + `.bfilter` + `.bpg` + `.pager`).
+ *
+ * ## ⚠️ Source **query** hai, chunav nahi — aur ye `packageList` se jaan-boojh kar ulta hai
+ *
+ * `packageList` me client **har package haath se chunta hai** (`packageIds[]`), aur D-87 §8 ne
+ * uska nateeja saaf likha tha: naya package publish hone pe wo apne aap kisi tour page pe
+ * **nahi** aayega. Package ke liye wo theek tha — wo paanch hain aur curated hain.
+ *
+ * **Blog pe wahi niyam galat hoga.** Blog ka poora point hi "publish karo, turant dikhe" hai;
+ * har naye post ke liye client ko listing page kholna padta to wo ek din bhool jaata aur post
+ * kahin dikhta hi nahi — theek wahi "kuch na hona" wala lakshan jo D-86 aur D-89 me baar-baar
+ * mila.
+ *
+ * Isliye yahan sirf **featured teen** haath se chunte hain; baaki list `publishAt` desc se
+ * apne aap banti hai.
+ *
+ * ⚠️ **Cards yahan store nahi hote** — props batate hain kya chahiye, cards server pe
+ * `resolve` ke payload me bante hain (`similar[]` aur `packageList` ki tarah).
+ */
+export const postListPropsSchema = z.object({
+  /** Reference me ye `Start here` / `Latest articles` wale `.sh` ke do hisse hain. */
+  heading: z.string().trim().max(200).default(''),
+  subheading: z.string().trim().max(300).default(''),
+
+  /**
+   * Heading ke daayein wala link — `.viewall` (`All articles →`).
+   *
+   * **Dono chahiye** — ek bhi khaali ho to link render nahi hota (D-30). Aadha link ek aisa
+   * button hai jo click pe kuch nahi karta; wahi rok `packageList` (D-90) aur `heroButton`
+   * pe hai.
+   */
+  linkLabel: z.string().trim().max(120).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+
+  /**
+   * `Start here` ke teen post — **ek bada, do chhote** (`.fcard--lg` + `.feat__side`).
+   *
+   * Kram **isi array ka** hai; pehla bada card banta hai. Wahi soch jo `content.blocks[]` aur
+   * `packageIds[]` pe hai — kram wahin rehta hai jahan cheez rehti hai.
+   *
+   * ⚠️ **Ye teen neeche ki grid me dobara nahi aate.** Reference me bhi wahi hai: Start here ke
+   * teen aur `Latest articles` ke nau, sab alag. Bina is niyam ke wahi card do jagah dikhta.
+   *
+   * Khaali chhodna theek hai — tab `Start here` ka poora section render hi nahi hota.
+   */
+  featuredIds: z.array(z.string()).max(POST_LIST_MAX_FEATURED).default([]),
+
+  /**
+   * List ko **ek topic pe seemit** karo — khaali matlab saare post.
+   *
+   * Isi se topic-wise landing page banta hai (`/blog/ferries`): wo bas ek aur `blogPage` entry
+   * hai jisme ye bhara ho. **Isiliye category ka koi magic route nahi banaya** — us raaste pe
+   * client us page ka heading, hero, sidebar aur SEO kuch bhi na badal paata.
+   *
+   * Taxonomy ki `id`, uska naam nahi (D-49).
+   */
+  categoryId: z.string().nullable().default(null),
+
+  /**
+   * `.bfilter` ki pills dikhein ya nahi.
+   *
+   * ⚠️ Ek hi topic wale page pe (`categoryId` bhara hua) filter bemaani hai — wahan ise off
+   * karna client ka faisla hai. Facets khud bhi khaali honge, aur tab bar render nahi hoti:
+   * D-87 §11 wala sabak yahan pehle se laga hua hai (`facets.length > 0`, `> 1` nahi — us ek
+   * galti ne client ka chuna hua filter chup-chaap gayab kar diya tha).
+   */
+  showFilter: z.boolean().default(true),
+
+  /**
+   * Ek page pe kitne card, `.pager` isi se banta hai.
+   *
+   * ⚠️ **Ye `settings.postsPerPage` NAHI hai** — wo `frontPageType: 'posts'` ka hissa hai
+   * (homepage khud blog ho), jo abhi bana hi nahi. Do jagah rakhne ka matlab hota ek hi cheez
+   * ke do naam (D-86); jis din wo feature banega, tab tay hoga ki kaun kisko padhta hai.
+   */
+  perPage: z.coerce.number().int().min(1).max(50).default(POST_LIST_PER_PAGE_DEFAULT),
+})
+
+/**
  * Block type se uske props ka schema — **ek hi jagah**.
  *
  * ⚠️ Jis type ka naam yahan nahi hai uske props **chhoot jaate hain, gir nahi jaate**.
@@ -393,6 +517,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   cards: cardsPropsSchema,
   packageList: packageListPropsSchema,
   faqs: faqsPropsSchema,
+  postList: postListPropsSchema,
 })
 
 /**
