@@ -44,7 +44,7 @@ export default function RatingPanel({ rating, onChange, disabled }) {
             onChange={(e) => set({ value: num(e.target.value) })}
             disabled={disabled}
           />
-          <div className="hint">Out of 5 — e.g. 4.9. Leave it empty to hide the rating.</div>
+          <div className="hint">Out of 5 — e.g. 4.9.</div>
         </div>
 
         <div className="field">
@@ -63,17 +63,10 @@ export default function RatingPanel({ rating, onChange, disabled }) {
            * client ka number trips ka hai. Hint isliye zaroori hai: box ke paas baith kar
            * ye lagta hai ki neeche ki list ginni hai.
            */}
-          <div className="hint">
-            Trips travelled, not the number of reviews written below — the page prints it as
-            &ldquo;412 trips&rdquo;.
-          </div>
+
         </div>
       </div>
 
-      <div className="hint">
-        These two show in two places: above the package title, and next to this section&rsquo;s
-        heading. The reviews themselves live in <b>Packages &rsaquo; Reviews</b>.
-      </div>
     </div>
   )
 }

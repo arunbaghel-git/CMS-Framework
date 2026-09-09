@@ -593,10 +593,6 @@ export default function PackageEdit() {
                 onChange={(rating) => setField('rating', rating)}
                 disabled={readOnly}
               />
-              <div className="hint">
-                Leave both at 0 and this package falls back to the site-wide rating from{' '}
-                <b>Packages ▸ Section Headings</b>.
-              </div>
             </div>
           </Panel>
 

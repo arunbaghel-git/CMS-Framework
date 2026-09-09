@@ -39,14 +39,40 @@ function BlockHead({ heading, description }) {
 }
 
 /**
+ * Har `<table>` ko `.tblw` me lapet do — client, 9 Sep.
+ *
+ * ⚠️ **`.tblw` sirf border-radius ke liye nahi hai, usme `overflow-x: auto` bhi hai.** Uske bina
+ * table apni `min-width: 520px` le kar mobile pe page se **bahar nikal jaati hai**. Client ne
+ * dono cheezein pakdi: gol kone nahi aa rahe, aur scroll bhi nahi ho raha.
+ *
+ * ⚠️ **Pehle maine ise content ki galti kaha tha, aur wo galat tha.** Client ke teen table me se
+ * do pe wrapper tha aur ek pe nahi — par ye us kism ki cheez hai jise **theme ko sambhalna
+ * chahiye**, client ko yaad nahi rakhni chahiye. Wahi sabak jo `.wdgl` (A-19) aur `.faq p` pe
+ * mila tha: look us markup ka mohtaaj mat rakho jo editor **shayad** dega.
+ *
+ * Kaam do kadam me hota hai aur wo kram maayne rakhta hai: pehle **purane wrapper hata**, phir
+ * **sab pe ek jaisa laga**. Sirf doosra kadam karne se pehle se lipti hui tables **do baar** lipat
+ * jaatin — do border, ek doosre ke andar.
+ *
+ * Regex HTML pe aam taur pe bura auzaar hai; yahan wo chalta hai kyunki daayra tang aur maloom
+ * hai — `<table>` apne andar `<table>` nahi rakhti, aur ye HTML sanitizer se hokar aa chuki hai.
+ */
+const wrapTables = (html) =>
+  String(html ?? '')
+    .replace(/<div class="tblw">\s*(<table[\s\S]*?<\/table>)\s*<\/div>/g, '$1')
+    .replace(/<table[\s\S]*?<\/table>/g, (table) => `<div class="tblw">${table}</div>`)
+
+/**
  * ⚠️ **Saari HTML `dangerouslySetInnerHTML` se jaati hai, aur wo theek hai** — safai **write pe**
  * ho chuki hai (`sanitizeContent()`, R20). Render pe dobara saaf karna do jagah ek hi tark
  * rakhna hota, aur wo dheere-dheere alag ho jaata.
+ *
+ * ⚠️ `wrapTables()` safai **nahi** hai — wo dhaancha theek karta hai, khatra nahi hatata.
  */
 function RichTextBlock({ props }) {
   if (!props.html) return null
 
-  return <div className="blk" dangerouslySetInnerHTML={{ __html: props.html }} />
+  return <div className="blk" dangerouslySetInnerHTML={{ __html: wrapTables(props.html) }} />
 }
 
 function TwoColumnBlock({ props }) {
@@ -71,8 +97,8 @@ function TwoColumnBlock({ props }) {
       {props.style === 'includedExcluded' ? (
         <div className="inx">
           {/* Doosra khaana hamesha "not included" — wahi kram reference me hai */}
-          <div className="inx__c" dangerouslySetInnerHTML={{ __html: left ?? '' }} />
-          <div className="inx__c no" dangerouslySetInnerHTML={{ __html: right ?? '' }} />
+          <div className="inx__c" dangerouslySetInnerHTML={{ __html: wrapTables(left) }} />
+          <div className="inx__c no" dangerouslySetInnerHTML={{ __html: wrapTables(right) }} />
         </div>
       ) : (
         /*
@@ -82,8 +108,8 @@ function TwoColumnBlock({ props }) {
         <div
           className={`twocol twocol--${ratio ?? '50-50'}${reverseOnMobile ? ' twocol--rev' : ''}`}
         >
-          <div dangerouslySetInnerHTML={{ __html: left ?? '' }} />
-          <div dangerouslySetInnerHTML={{ __html: right ?? '' }} />
+          <div dangerouslySetInnerHTML={{ __html: wrapTables(left) }} />
+          <div dangerouslySetInnerHTML={{ __html: wrapTables(right) }} />
         </div>
       )}
     </section>
