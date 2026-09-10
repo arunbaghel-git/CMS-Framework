@@ -34,7 +34,32 @@ import sanitizeHtmlLib from 'sanitize-html'
  * **Profile source ke hisaab se chunna chahiye, field ke hisaab se nahi.**
  */
 
-/** Sirf wahi tags jo doc se aane chahiye. `span` yahan **nahi** hai — wo upar hi khap chuka hota hai. */
+/**
+ * Sirf wahi tags jo doc se aane chahiye. `span` yahan **nahi** hai — wo upar hi khap chuka
+ * hota hai.
+ *
+ * ## ⚠️ Table aur image spec 008 me jude, aur unke bina nuksaan **chup** tha
+ *
+ * Package ke doc me sirf prose aati thi (`Overview`, `Day Description`), isliye ye list utni
+ * hi chhoti thi. Blog ka article ulta hai: reference (`blog-detail-v1.html`) ka poora `.art`
+ * body **h2 · table · list · figure** hai.
+ *
+ * Bina inke jo hota tha wo "gayab ho jaana" se bhi bura tha — table ke cells **chipak kar ek
+ * line ban jaate the**:
+ *
+ * ```
+ * Makruzz90 minutes₹1,400
+ * ```
+ *
+ * Na error, na warning; row `Published` hi bolti. Yahi shakl D-82 me `stripTags` pe pakdi
+ * gayi thi.
+ *
+ * ⚠️ **`img` allow karne ki ek shart hai**, aur wo is file ke bahar poori hoti hai: Google ke
+ * `lh7-*.googleusercontent.com` wale URL **signed aur expire hone wale** hain. Unhe DB me
+ * chhod dena matlab post aaj theek dikhega aur kuch hafte baad har image toot jaayegi. Isliye
+ * `importInlineImages()` (`bulk-imports/service.js`) har image ko Media library me utaar kar
+ * `src` badal deti hai. **Ye do cheezein ek saath hi chalni chahiye.**
+ */
 const IMPORTED = {
   allowedTags: [
     'p',
@@ -51,13 +76,38 @@ const IMPORTED = {
     'a',
     'br',
     'blockquote',
+    'table',
+    'thead',
+    'tbody',
+    'tfoot',
+    'tr',
+    'td',
+    'th',
+    'caption',
+    'figure',
+    'figcaption',
+    'img',
   ],
 
-  /** `href` ke alawa kuch nahi — koi `class`, koi `style`, koi `id`. */
-  allowedAttributes: { a: ['href', 'target', 'rel'] },
+  /**
+   * `href`/`src` ke alawa kuch nahi — koi `class`, koi `style`, koi `id`.
+   *
+   * ⚠️ `colspan`/`rowspan` **zaroori** hain: client ke table me merged cells ho sakte hain, aur
+   * unke bina wo table apne aap ko doosre kram me jod leti hai — dikhne me sahi, padhne me
+   * galat.
+   *
+   * ⚠️ `width`/`height` `img` pe rakhe gaye hain kyunki unke bina CLS wapas aati hai (D-84 ne
+   * wahi 6/12 se 12/12 kiya tha). `Img.jsx` inhe padhta hai.
+   */
+  allowedAttributes: {
+    a: ['href', 'target', 'rel'],
+    img: ['src', 'alt', 'width', 'height'],
+    td: ['colspan', 'rowspan'],
+    th: ['colspan', 'rowspan'],
+  },
 
   allowedSchemes: ['http', 'https', 'mailto', 'tel'],
-  allowedSchemesAppliedToAttributes: ['href'],
+  allowedSchemesAppliedToAttributes: ['href', 'src'],
 
   /**
    * ⚠️ `style` aur `head`/`title` ka **text** bhi girna chahiye, sirf tag nahi.
@@ -74,6 +124,17 @@ const IMPORTED = {
     h1: 'h2',
     h5: 'h4',
     h6: 'h4',
+
+    /**
+     * ⚠️ Ye do **beema** hain, aaj ki zaroorat nahi.
+     *
+     * Google Docs bold ko `<span>` se bhejta hai aur `spansToTags()` use `<strong>` bana chuka
+     * hota hai — yaani aam haalat me `<b>` aata hi nahi. Par doc me kahin se paste kiya hua
+     * HTML `<b>`/`<i>` la sakta hai, aur wo `allowedTags` me na hone se **chup-chaap girta**.
+     * Ek mapping likhna us poori kism ke bug se sasta hai.
+     */
+    b: 'strong',
+    i: 'em',
   },
 }
 
@@ -213,7 +274,7 @@ export function unwrapGoogleLink(href) {
  * @param {unknown} html
  * @returns {string}
  */
-export function cleanGoogleHtml(html) {
+export function cleanGoogleHtml(html, { allowImages = false } = {}) {
   if (!html) return ''
 
   const source = String(html)
@@ -221,6 +282,21 @@ export function cleanGoogleHtml(html) {
 
   const cleaned = sanitizeHtmlLib(withTags, {
     ...IMPORTED,
+    /**
+     * ⚠️ **`img` default se BAND hai, aur wo jaan-boojh kar hai.**
+     *
+     * Google ka `src` signed aur expire hone wala hota hai. Use tabhi rakhna chahiye jab koi
+     * use Media library me utaar bhi raha ho — yaani `importInlineImages()` saath chal rahi ho.
+     * Dono me se ek akele chalne ka matlab hai post aaj theek dikhega aur kuch hafte baad har
+     * image toot jaayegi (D-42 §2 ka seedha ulta).
+     *
+     * Isliye ye ek **chunav** hai, default nahi: jo raasta images sambhaal sakta hai wahi ise
+     * kholta hai. Package ka import aaj images nahi sambhaalta, to uske liye ye band rehta hai
+     * aur uska vyavhaar bilkul waisa hai jaisa pehle tha.
+     */
+    allowedTags: allowImages
+      ? IMPORTED.allowedTags
+      : IMPORTED.allowedTags.filter((tag) => tag !== 'img'),
     transformTags: {
       ...IMPORTED.transformTags,
       a: (tagName, attrs) => ({

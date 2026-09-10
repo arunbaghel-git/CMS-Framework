@@ -31,6 +31,7 @@ import { createMediaFromUpload, mediaExists } from '../media/service.js'
 import { getRolePermissions } from '../roles/service.js'
 import { allTaxonomyNames } from '../taxonomies/service.js'
 import { User } from '../users/model.js'
+import { mediaIdFromUrl } from './inline-images.js'
 import { hasBlocker, toEntryInput } from './mapper.js'
 import { ImportRun } from './model.js'
 
@@ -249,30 +250,6 @@ async function actorFor(userId) {
 
   return { user, permissions: await getRolePermissions(user.role) }
 }
-
-/**
- * URL hamari **apni** media ki taraf to nahi ja raha?
- *
- * Client aksar wahi image daalta hai jo pehle se Media library me hai — wo admin me image pe
- * jaakar "File URL" copy karta hai, aur wo URL aisa dikhta hai:
- *
- * ```
- * http://localhost:5173/uploads/sites/default/media/2026/09/6a982ced…/large.webp
- * https://site.com/uploads/sites/default/media/2026/09/6a982ced…/large.webp
- * ```
- *
- * ⚠️ **Ise download karna do tarah se galat hai.** Ek: har import wo image dobara utha kar ek
- * **naya media record** bana deta (aur teen naye WebP variants), yaani har run pe kachra badhta.
- * Do: dev me wo pata `localhost` hota hai, jo SSRF guard theek hi rok deta hai — aur client ko
- * ek aisa error milta jo uski galti jaisa lagta hai, jabki usne bilkul sahi image chuni thi.
- *
- * Media ki **id URL ke andar hi likhi hai** (`buildMediaVariantKey()` ka format), to use utha
- * lena hi sabse sahi hai: koi download nahi, koi duplicate nahi, aur kaam dev aur production
- * dono me ek jaisa.
- */
-const mediaIdFromUrl = (url) =>
-  String(url ?? '').match(/\/uploads\/sites\/[^/]+\/media\/\d{4}\/\d{2}\/([a-f0-9]{24})\//i)?.[1] ??
-  null
 
 /** Banner image laa kar media me daalo — **fail ho to sirf image fail ho, package nahi**. */
 async function importBanner(url, actor, siteId, deps) {
