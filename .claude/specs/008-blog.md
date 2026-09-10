@@ -1,7 +1,7 @@
 # 008 — Blog (post detail + blog listing page)
 
-**Status:** 🟢 **Ban gaya** (10 Sep) — Slice A–D2, aur client ke gine hue dus fix.
-909 test pass. Faisle **D-91** me.
+**Status:** 🟢 **Ban gaya** (10 Sep) — Slice A–D2, client ke gine hue dus fix, aur uske upar
+**Bulk Upload for blog** (**D-92**). 988 test pass. Faisle **D-91** aur **D-92** me.
 ⚠️ **Ek verify baaki hai:** `next build` + `next start` pe cache wala pehra (naya post publish →
 listing turant update). Dev server pe wo hamesha "pass" dikhta hai — theek wahi shakl jo D-83 me
 teen din chhupi rahi thi. **A-21** dekho.
@@ -784,3 +784,46 @@ chhoda gaya — wo do control bana deta (checkbox aur list me hona).
 **`fields.heading` post pe.** D-90 ne wo `tourPage` ke liye banaya tha kyunki wahan `<h1>`
 aur breadcrumb ka text alag chahiye tha. Blog pe wo ek hi hai — dusra field ek hi cheez ke
 do naam bana deta (D-86).
+
+---
+
+## §11 — Bulk Upload for blog (10 Sep, D-92)
+
+Client ki team article Google Docs me likhti hai. D-81 wala Bulk Upload ab `target` se post bhi
+banata hai — **ek hi module, ek hi screen, ek dropdown**.
+
+### Doc ka contract
+
+| Label | Jaata hai | Na mile to |
+| --- | --- | --- |
+| `Blog title` | `title` | **Failed** |
+| `Blog URL` | `slug` | **Draft** (D-86 ka niyam) |
+| `Blog heading` | `fields.heading` | theme `title` pe girti hai |
+| `Meta Title` / `Meta Description` | `seo{}` | khaali |
+| `Excerpt` | `excerpt` | khaali |
+| `Category` | `taxonomies.categories` | **Draft** |
+| `Banner Image URL` | `featuredImageId` | note |
+| `Content` | `richText` block | **Draft** |
+| `Faq:` → `Heading` / `Question` / `answer` | `faqs` block | — |
+
+### Content me design kaise aata hai
+
+Apne aap: `h2`/`h3`, pehla paragraph (`.lead`), table (pehli row hamesha header), image (Media
+library me utar kar), bullet aur numbered list, bold/italic, link.
+
+Nishaan se: `Note:` → `.callout`, `Warning:` → `.callout--w`, `Quote:` → `.pullq`. Title ke liye
+writer ka apna bold.
+
+Team ka guide: [Blog post guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)
+
+### Live check (10 Sep, asli DB + asli sheet)
+
+Poora `/how-to-plan-an-andaman-trip` ka article doc me daal kar chalaya:
+
+- content 7,577 chars · 7 `h2` · 2 table (`thead` + 6 `th`) · 1 `ul` · 2 `ol` · 1 `a` · 1 `img`
+- link ka Google redirect unwrap · koi `data:` URI nahi · koi `&mdash;` nahi
+- dobara chalane pe **0 naye post, 0 naye media**
+- payload: `toc` 8 item, `readMinutes` 6, FAQ heading
+- `existing` mode me naye slug pe saaf **Failed** — D-86 ka assertion asli data pe chala
+
+⚠️ Poore faisle aur unke saath pakde gaye chhe bug **D-92** me.

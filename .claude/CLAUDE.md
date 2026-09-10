@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**848 tests passing**, 9 Sep). Public package page ke **saare** section live hain.
+hain** (**988 tests passing**, 10 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-90                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-92                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -587,6 +587,36 @@ admin ke apne origin (`:5173`) ka pata lagta tha. **Ye wahi bug teesri baar tha*
 ⚠️ **`git add -A` ne client ke hand-edit commit me kheench liye** — `RatingPanel.jsx`/`PackageEdit.jsx`
 se teen hint hataana `6869feb` me chala gaya, jiska message table ke baare me hai. **Commit se pehle
 `git status` padho.**
+
+**9–10 Sep — Blog poora ban gaya (D-91, spec 008).** Client ne `blog-v1.html` aur
+`blog-detail-v1.html` di aur kaam ka kram khud chuna — pehle detail, phir listing. `post` se `tag`
+gaya, naya `blogPage` type, `postList` block, `blogSettings`, aur post ke URL ka switch
+(`/blog/{slug}` ↔ `/{slug}`, 301 ke saath).
+⚠️ **`entry.title` post ka `<h1>` nahi hai** — wo `fields.heading` hai (wahi batwara jo D-90 ne
+`tourPage` pe kiya tha). Client: _"blog ki heading aur slug alag rahenge jisse breadcrumb bhi thik
+ho jayega."_
+
+**10 Sep — Bulk Upload for blog (D-92).** Wahi `bulk-imports` module ab `target` se **package aur
+post dono** banata hai — ek hi screen, ek dropdown. Sirf teen cheezein target se badalti hain
+(`targets.js`): doc kaise padha jaaye, payload kaise bane, kaunsi master lists chahiye. **Koi
+migration nahi lagi.**
+
+⚠️ **Chhe bug mile aur unme se paanch sirf live chalane pe.** Har baar code-level pe sab "pass"
+tha: `&mdash;` ka decode na hona, table ke cells ka chipakna, Google ka image `data:` URI me
+bhejna (maine ulta maan liya tha), images ka clamp ke **baad** import hona (article **7 character**
+ka bacha aur row ne "Published" kaha), FAQ ka heading `"Frequently asked questions"` khud ek
+section marker hona, aur `<thead>` aane par mere CSS ka pehli **data row** ko header bana dena.
+
+⚠️ **Jo sirf render pe chalta hai use JSX me mat rakho.** `wrapTables()` aur uske saathi
+`Blocks.jsx` me the, jahan unka test likha hi nahi ja sakta tha — table ka header usi wajah se
+**do baar** galat bana, dono baar galti live page pe pakdi gayi. Ab wo `apps/web/lib/article-html.js`
+me hain, 16 test ke saath.
+
+⚠️ **Design ke wo hisse jo Google Doc likh hi nahi sakta, theme sambhalti hai** — `Note:` ·
+`Warning:` · `Quote:` nishaan se `.callout` · `.callout--w` · `.pullq` bante hain, aur `.lead` apne
+aap (pehla paragraph). Ghar theme hai, importer nahi (wahi jagah jahan `wrapTables()` hai), isliye
+DB me content saaf rehta hai aur nishaan hata dene se page saade paragraph pe wapas aa jaata hai.
+⚠️ Nishaan ke shabd **maine chune, client ne nahi** — A-22.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

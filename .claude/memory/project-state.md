@@ -1,8 +1,8 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 10 Sep 2026 (shaam) — **238 commit**, ⚠️ **9 commit push nahi hue**
-> (`origin/main` = `983b7a9`), **909 test pass** (34 file), lint + format clean, tree clean.
+> **Last updated:** 10 Sep 2026 (raat) — **254 commit**, **push ho chuke**, **988 test pass**
+> (39 file), lint + format clean, tree clean.
 
 ---
 
@@ -10,21 +10,34 @@
 
 ### Abhi ki asli haalat (naapi hui)
 
-| Kya           | Value                                                                                                                      |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Commits       | **238**                                                                                                                    |
-| Push          | ⚠️ **9 commit local hi hain** — `origin/main` = `983b7a9`. **Bina permission ke push mat karo**                            |
-| Tests         | **909 pass**, 34 file (`pnpm test`, exit 0)                                                                                |
-| Builds        | admin ✅ · ⚠️ **`next build` aaj bhi nahi chala** — dev server chal raha tha (**A-21**)                                    |
-| Lint · Format | dono clean                                                                                                                 |
-| Tree          | clean                                                                                                                      |
-| Migrations    | **23 files**, 23/23 applied — blog me koi nayi nahi lagi                                                                   |
-| Decisions     | **D-91** tak                                                                                                               |
-| DB            | 5 package (+8 trash) · 1 tour page · **1 blog page** (`/blog`) · **13 post** · 6 category · **3 sidebar** · 5 content type |
+| Kya           | Value                                                                                              |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| Commits       | **254** — sab push ho chuke                                                                        |
+| Tests         | **988 pass**, 39 file (`pnpm test`, exit 0)                                                        |
+| Builds        | admin ✅ · ⚠️ **`next build` aaj bhi nahi chala** — dev server chal raha tha (**A-21**)            |
+| Lint · Format | dono clean                                                                                         |
+| Migrations    | **23 files**, 23/23 applied — **Bulk Upload for blog me koi nayi nahi lagi**                       |
+| Decisions     | **D-92** tak                                                                                       |
+| DB            | 5 package (+8 trash) · 1 tour page · 1 blog page · **15 post** · 6 category · 3 sidebar · 19 media |
 
-### Pehla kaam: **A-21 — `next build` pe blog ka pehra**
+### Client ne kaha: "kal kuch improvements bataunga"
 
-Client ne 10 Sep ko kaha: _"shaam ko, kaam poora hone ke baad."_ Kaam poora hai.
+Session **jaan-boojh kar yahin band** ki gayi. Client 11 Sep ko blog ke bulk upload pe kuch aur
+badlaav bataayega. Tab tak neeche wali teen cheezein unse poochhni hain (**A-22**).
+
+### Pehla kaam: A-22 ke teen sawaal
+
+1. **Nishaan ke shabd** — `Note:` · `Warning:` · `Quote:` **maine chune, client ne nahi**. Ye
+   guide **bhejne se pehle** tay hone chahiye, warna team ke likhe doc dobara chhoone padenge
+2. **Purana guide doc trash karna hai** (`18Dd6_o8…`) — wo ab galat hai, aur Drive ka API content
+   update nahi kar sakta. Naya [guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)
+3. **Test post `/how-to-plan-an-andaman-trip-test` live hai** — client ke kehne pe hatana hai
+
+### Doosra kaam: A-21 (pehle se khula)
+
+`next build` + `next start` pe blog ka pehra. **Ab usme Bulk Upload wale post bhi shaamil hain** —
+naya post import karke dekho ki `/blog` ki listing turant update hoti hai ya nahi. Wo test dev
+server pe **hamesha jhootha pass** deta hai (D-83 wali shakl).
 
 ```bash
 # ⚠️ Dev BAND karo pehle — dono ek hi .next use karte hain (D-89)
@@ -32,30 +45,70 @@ pnpm --filter @cms/web build
 pnpm --filter @cms/web start
 ```
 
-Chaar cheezein jaanchni hain — poori list **09-OPEN-ITEMS.md → A-21** me. Sabse zaroori:
-**naya post publish karo aur dekho ki listing turant update hoti hai ya nahi.** Wo test dev
-server pe **hamesha pass dikhta hai**, isliye aaj tak liya hi nahi gaya.
-
-### Pehle ye do
+### Shuru karne ke liye
 
 ```bash
 docker compose up -d mongo
-pnpm seed          # ⚠️ post me `heading` juda hai, aur `blogPage` naya type hai
 pnpm dev
 ```
 
-⚠️ **`pnpm seed` `post.urlPattern` ko haath nahi lagata** (wo sirf create pe set hota hai), par
-`hierarchical` ko **har baar** seed ki value pe le aata hai. Isi wajah se URL switch
-`urlPattern` pe bana hai — poora tark **D-91 §2**.
+`pnpm seed` ki zaroorat nahi — is kaam me na koi naya content type bana, na koi migration.
 
-### Blog ka kya bacha hai
+---
 
-1. **A-21** — upar
-2. **`Latest articles` ki heading/line theme me static hai** — block me sirf ek
-   heading/subheading ki jodi hai, jo `Start here` ko mili. Editable karna ho to do naye field
-3. **Q-B1 · Q-B2** (spec 008) — dono client ke faisle, plan nahi rok rahe
-4. ⚠️ **Client ka `postUrlMode` abhi `root` pe hai** — post `/how-to-plan-an-andaman-trip` pe
-   hain, `/blog/…` pe nahi. Ye unka chunav hai ya test ka bacha hua, pakka nahi. Poochh lena
+## 10 Sep (shaam-raat) — Bulk Upload for blog (D-92)
+
+**16 commit.** Poore faisle **D-92** me, contract **spec 008 §11** me. Neeche sirf wo jo agli
+session ko turant chahiye.
+
+### Kya bana
+
+Ek hi `bulk-imports` module ab `target` se **package aur post dono** banata hai. Admin me ek hi
+screen, upar ek dropdown (`Packages` / `Blog posts`), aur Past imports me `Type` ka column.
+
+Sirf teen cheezein target se badalti hain (`targets.js`): doc kaise padha jaaye, payload kaise
+bane, aur kaunsi master lists chahiye. Post ke tests **wahi `runImport()`** chalate hain jo
+package ke chalate hain.
+
+### ⚠️ Chhe bug mile — **paanch sirf live chalane pe**
+
+Ye is din ka sabse zaroori sabak hai. Har baar code-level pe sab "pass" tha.
+
+1. **`&mdash;` decode hi nahi hota tha** — plain-text khaanon (excerpt, meta description) me wo
+   **literally** chhapta. HTML wale khaane me nuksaan nahi hota, isliye chhoot jaata
+2. **Table ke cells chipak jaate the** — `Makruzz90 minutes` (D-82 wala `stripTags`)
+3. **Google image `data:` URI me bhejta hai**, CDN URL me nahi. Maine ulta maan liya tha
+4. **Images clamp ke baad import hoti thi** → article **7 character** ka bacha aur row ne
+   "Published" kaha
+5. **FAQ ka heading** `"Frequently asked questions"` khud ek section marker hai — chup-chaap gayab
+6. **`<thead>` aata hai, `<th>` nahi** — mere CSS ka `tr:first-child` pehli **data row** ko bhi
+   header bana deta tha
+
+### Do cheezein jo aage kaam aayengi
+
+**1. Jo sirf render pe chalta hai use JSX me mat rakho.** `wrapTables()` aur uske saathi
+`Blocks.jsx` me the, jahan unka test likha hi nahi ja sakta tha — table ka header usi wajah se
+**do baar** galat bana. Ab wo `apps/web/lib/article-html.js` me hain, 16 test ke saath.
+
+**2. Design ke wo hisse jo doc likh hi nahi sakta, theme sambhalti hai.** `Note:` · `Warning:` ·
+`Quote:` nishaan se `.callout` · `.callout--w` · `.pullq` bante hain, aur `.lead` apne aap. Ghar
+theme hai, importer nahi — wahi jagah jahan `wrapTables()` hai (D-90 §5). DB me content saaf
+rehta hai. ⚠️ Isi ka nateeja **A-23** hai: admin ke editor me ye dabbe nahi dikhte.
+
+### Live check (asli DB, asli sheet, poora article)
+
+- content 7,577 chars · 7 `h2` · 2 table (`thead` + 6 `th`) · 1 `ul` · 2 `ol` · 1 `a` · 1 `img`
+- link ka Google redirect unwrap · koi `data:` URI nahi · koi `&mdash;` nahi
+- **dobara chalane pe 0 naye post, 0 naye media** — image ka naam content ka hash hai
+- payload: `toc` 8 item, `readMinutes` 6, FAQ heading
+- `existing` mode me naye slug pe saaf **Failed** — D-86 ka assertion asli data pe chala
+
+### Team ke do doc (client ki Drive me)
+
+- [Template — full test article](https://docs.google.com/document/d/1UvtC6tG44rTcx68x85nnaV2WL6pw924_SDdX7epwACQ/edit)
+- [Guide v2 — content kaise likho](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)
+
+⚠️ Dono **private** hain. Team ko bhejne se pehle share karna hoga.
 
 ---
 

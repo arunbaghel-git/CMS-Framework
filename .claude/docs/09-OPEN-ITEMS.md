@@ -86,7 +86,7 @@ karwaya; **13 farak** nikle aur sab theek ho gaye. Paanch naye contract (`heroBu
 list se `content-visibility` hat gaya (D-89 §4). Purane number (mobile 91 / desktop 98) sirf
 package page ke the.
 
-**Last updated:** 8 Sep 2026 (Tour Page D-87 · Sidebars D-88 · Slice D theme · design milaan D-89)
+**Last updated:** 10 Sep 2026 (Blog D-91 · **Bulk Upload for blog D-92**)
 
 ⚠️ **Push:** `origin/main` `a0f337c` pe hai. Ginti yahan jaan-boojh kar nahi likhi — wo har
 commit pe purani ho jaati hai aur do baar galat mili. Sach `git log --oneline origin/main..HEAD`
@@ -208,6 +208,42 @@ code ki nahi.
 ---
 
 ## 🔴 Ab bhi baaki
+
+### A-22 · Bulk Upload for blog — teen cheezein client se poochhni hain (10 Sep, D-92)
+
+**Deadline:** guide team ko bhejne se **pehle**
+**Kuch toota hua nahi hai** — teenon "maine chuna, client ne nahi" wale hain
+
+| #   | Kya                                                     | Kyun poochhna hai                                                                                                                                                                                             |
+| --- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Nishaan ke shabd** — `Note:` · `Warning:` · `Quote:`  | Ye maine chune. Client Hindi chahe, ya `Tip:`/`Important:` jaise aur variants chahe, to ek line ka badlaav hai — par **guide bhejne ke baad** badalna matlab team ke likhe doc dobara chhoona                  |
+| 2   | **Image ki caption**                                    | Abhi import se caption aa hi nahi sakti (reference me `figcaption` hai). Guide me likha hai "image ke neeche italic line likho". Asli caption chahiye to doc me ek naya label banega                            |
+| 3   | **Table ki pehli row hamesha header**                   | `ensureTableHeader()` ye **maan leta** hai. Jis table me pehli row asli data ho wo header jaisi dikhegi — nuksaan sirf dikhne ka hai, data ka nahi. Client ko ye pata hona chahiye                              |
+
+⚠️ **Purana guide doc ab galat hai** (`18Dd6_o8…`) — usme content wala hissa hai hi nahi. Naya
+[guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)
+hai. Drive ka API content update nahi kar sakta (sirf title/folder), isliye purana **trash** karna
+hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
+
+⚠️ Test post `/how-to-plan-an-andaman-trip-test` abhi **live** hai. Client ke kehne pe hatana hai.
+
+---
+
+### A-23 · Callout aur nishaan admin ke editor me nahi dikhte (10 Sep, D-92 §7)
+
+**Deadline:** koi nahi — aaj kuch toota hua nahi hai
+
+`Note:` · `Warning:` · `Quote:` render pe block bante hain; DB me wo saade paragraph hi rehte hain.
+Yaani admin ke TinyMCE me client ko wahi `Note: …` wali line dikhegi, dabba nahi.
+
+Ye **jaan-boojh kar** hai aur iske do faayde hain: content saaf rehta hai, aur nishaan hata dene se
+page apne aap saade paragraph pe wapas aa jaata hai. Wahi soch `wrapTables()` pe hai — wahan bhi
+`.tblw` sirf render pe lagta hai.
+
+Par client ise "preview se alag" bata sakta hai. Us din do raaste hain: editor me ek chhota CSS
+preview, ya nishaan ko asli block me badalna (jo Phase 5 ke builder ka kaam hai).
+
+---
 
 ### A-21 · Blog ka `next build` wala pehra abhi liya hi nahi (10 Sep, D-91)
 

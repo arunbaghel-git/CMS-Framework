@@ -7290,3 +7290,128 @@ jo maine reference **dekhe bina** maan li thin:
 
 ⚠️ **Yahi galti D-89 me do baar ho chuki thi** (byline aur `.blk`). Ab teen baar. **Reference ki
 CSS dekh kar markup maan lena** is repo ki ek pehchani hui galti hai.
+
+---
+
+## D-92
+
+**Bulk Upload for blog — Google Docs se post pages** (10 Sep, spec 008)
+
+Client ki team blog ke article Google Docs me likhti hai. D-81 wala Bulk Upload package ke liye
+pehle se chal raha tha; ab wahi `target` se post bhi banata hai. **Ek hi module, ek hi screen.**
+
+### §1 — Do module kyun nahi bane
+
+Bulk Upload ka **85% hissa target se bemutalliq** hai: sheet ka CSV, Google fetch, sign-in page
+ka pehchana, SSRF guard, run + rows ka model, claim loop, atki hui rows, purane run hataana,
+New/Existing ka assertion, publish ke do niyam, admin ki screens aur polling.
+
+Sirf **teen** cheezein alag hain, aur wahi `targets.js` me hain: doc kaise padha jaaye, payload
+kaise bane, aur kaunsi master lists chahiye.
+
+Do module ka matlab hota do copies — aur is repo me uska nateeja teen baar dekha ja chuka hai
+(`bestFor` D-87, `htmlToText`, aur D-86 ka slug). Post ke tests **wahi `runImport()`** chalate
+hain jo package ke chalate hain, sirf `target` alag hai.
+
+⚠️ **Koi migration nahi lagi** — `target` ka default `package` hai, aur purane run pe wo **sach**
+hai, andaza nahi: us waqt import package ka hi hota tha. Iska apna test hai (`$unset` karke).
+
+### §2 — Labels client ke apne hain
+
+Naksha client ke doc se **padha** gaya, gadha nahi: `Blog title` · `Blog heading` · `Excerpt` ·
+`Category` · `Banner Image URL` · `Content` · `Faq:` → `Heading` / `Question` / `answer`.
+
+⚠️ **`Blog URL` ek hi cheez hai jo maine jodi**, aur wo D-86 ki wajah se: uske bina slug title se
+banta, aur title thoda badalte hi agla import purane post ko pehchanta hi nahi aur ek **doosra
+live post** bana deta. Wo failure poori tarah chup hoti — dono live, dono theek dikhte.
+
+FAQ ka parser (`Question`/`answer`) bina ek line likhe reuse ho gaya — wo D-81 se maujood tha.
+
+### §3 — Do jagah post package se jaan-boojh kar alag hai
+
+| | Package | Post | Kyun |
+| --- | --- | --- | --- |
+| Khaali `Category` | chal jaata hai | **blocker** | Blog ka poora navigation topic pe khada hai — pills, Topics, `categoryId` wale landing page. Bina category ke post live to hota hai par **kisi topic ke neeche milta nahi** |
+| Khaali `Content` | — | **blocker** | Padhne ko kuch hai hi nahi |
+| Banner image | `fields.bannerImage` | `featuredImageId` | Post pe wo `entrySchema` ka top-level field hai. Ek hi jagah maan lene se image `fields` me chali jaati, jahan `Mixed` hone se Zod use rok bhi nahi paata — chup-chaap padi rehti aur page pe kabhi na dikhti |
+
+### §4 — ⚠️ Google ke baare me teen andaze galat nikle, teenon live chalane pe
+
+Ye is kaam ka sabse zaroori hissa hai. Har baar code-level pe sab "pass" tha.
+
+**1. Image `data:` URI me aati hai, CDN URL me nahi.** Maine `lh7-*.googleusercontent.com` maan
+liya tha aur wo file ke comment me likha bhi tha. Asli export inline base64 bhejta hai. Do chup
+nateeje the: sanitizer `data` ko allowed schemes me na paa kar **`src` hata deta tha**, aur
+importer `fetchImage()` pe jaata jahan SSRF guard use theek hi thukra deta.
+
+✅ Ek faayda muft mila: `stemFor()` poori `data:` URI ko hash karta hai, yaani naam **apne aap
+content ka hash** ban gaya. "src sthir rahega ya nahi" wala shak uthta hi nahi.
+
+**2. `<thead>` aata hai, `<th>` nahi.** CSS me maine likha tha ki thead hota hi nahi — galat. Wo
+`<thead>` **aur** ek toota hua `<tbody></tbody>` bhejta hai (`<tr>` ke **andar**), par cells sab
+`<td>`. Mere pehle selector ka `tr:first-child` **do** rows pakadta tha — thead ki header row aur
+tbody ki **pehli data row**.
+
+**3. Table ke bina `<th>` ke header ban hi nahi sakta tha.** Ilaaj CSS nahi, **markup** hai:
+`ensureTableHeader()` render pe pehli row ke `<td>` ko `<th>` bana deta hai. Look, semantics aur
+markup — teenon ek saath theek.
+
+### §5 — Kram ka ek bug jisne poora article kha liya
+
+Images pehle **mapper ke baad** import hoti thi. `data:` URI ~100KB ki hai, do image yaani ~200KB
+ka article — aur mapper use `htmlSchema` ki hadd (40,000) pe kaat_ta tha, **base64 ke beech**. Us
+toote HTML ko write pe sanitizer poora phenk deta tha.
+
+Asli run ka nateeja: article **7 character** ka bacha — na heading, na table, na image — aur row
+ne phir bhi **"Published"** kaha, kyunki clamp sirf ek `note` tha.
+
+Ab images **parse se pehle**, poori doc HTML par utarti hain (sirf `richText` blocks pe nahi —
+isse FAQ ke jawab ki image bhi apne aap sambhal jaati hai). Aur `Content` ka kat jaana ab
+**blocker** hai: HTML ko character se kaatna hamesha khatarnak hai.
+
+### §6 — FAQ ka heading section marker se takraya
+
+Client ke article me FAQ ka heading literally _"Frequently asked questions"_ tha — aur wahi vaakya
+`FAQ_SECTION_LABELS` me ek **section marker** bhi hai. Parser use ek **doosra `faqStart`** samajh
+leta tha: `currentKey` reset, heading chup-chaap gayab. Chaaron sawaal theek aate the.
+
+Post me sirf **ek** section hai, isliye ab marker tabhi dhoondha jaata hai jab `section === 'top'`
+ho. Package ka parser is se alag hai — wahan teen section hain aur itinerary ke baad `FAQs` aana
+asli baat hai (D-81).
+
+### §7 — Design ke wo hisse jo doc likh hi nahi sakta
+
+Reference (`blog-detail-v1.html`) me `callout` · `callout--w` · `pullq` · `lead` apne `<div>` aur
+class se bante hain. Google Doc me wo likhne ka koi tareeka hai hi nahi, to client ke article me
+wo **saade paragraph** ban kar aate the.
+
+Ab writer ek nishaan likhta hai aur theme use asli block banati hai — `Note:` · `Warning:` ·
+`Quote:`, aur title ke liye uska apna **bold**. `lead` apne aap lagta hai (pehla paragraph), kyunki
+use nishaan ke bharose chhodna sirf bhoolne ka mauka dena hai.
+
+⚠️ **Nishaan ke shabd maine chune hain, client ne nahi** — A-22.
+
+⚠️ **Teenon ka ghar theme hai, importer nahi** — wahi jagah jahan `wrapTables()` hai (D-90 §5).
+Isse ye TinyMCE se likhe content pe bhi chalte hain, aur DB me content saaf rehta hai: nishaan
+hata do to page apne aap saade paragraph pe wapas. Aur ye sirf **blog post** pe chalte hain
+(`<Blocks article />`) — har `richText` pe chalane se tour/package ka pehla paragraph bhi bada ho
+jaata.
+
+### §8 — Jo test ke bahar tha wo do baar toota
+
+Ye transforms pehle `Blocks.jsx` ke andar the, jahan unka test **likha hi nahi ja sakta tha** (wo
+JSX hai aur poora component tree kheenchti hai). Table ka header usi wajah se **do baar** galat
+bana, aur dono baar galti **live page pe** pakdi gayi.
+
+Ab wo `apps/web/lib/article-html.js` me hain, `linkify.js` ke saath — 16 test.
+
+**Sabak:** jo cheez sirf render pe chalti hai use JSX me mat rakho; use ek pure function banao,
+warna uski galti sirf aankh se pakdi jaayegi.
+
+### §9 — Ek chhoti galti jo maine khud ki
+
+CSS me likha tha ki imported article ka bold saada dikhta hai. **Wo naapa hua nahi tha.**
+Reference ki apni line (`blog-detail-v1.html:985`) pe hi `.art b, .art strong` dono hain, aur wo
+hamare paas bhi hai — blog pe bold kabhi toota hi nahi tha. `.blk p :is(b, strong)` phir bhi rakha
+gaya, par asli faayda **tour/package pages** pe hai jahan `.art` hai hi nahi aur TinyMCE `<strong>`
+likhta hai.
