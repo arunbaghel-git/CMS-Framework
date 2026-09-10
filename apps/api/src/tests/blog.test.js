@@ -8,7 +8,9 @@ import { Entry } from '../modules/entries/model.js'
 import { ensureBuiltInContentTypes } from '../modules/content-types/service.js'
 import { Settings } from '../modules/settings/model.js'
 import { Sidebar } from '../modules/sidebars/model.js'
-import { entryCounts, listEntries } from '../modules/entries/service.js'
+import { entryCounts, listEntries, updateEntry } from '../modules/entries/service.js'
+import { Redirect } from '../modules/redirects/model.js'
+import { updateSettings } from '../modules/settings/service.js'
 import { Taxonomy } from '../modules/taxonomies/model.js'
 
 /**
@@ -107,6 +109,8 @@ beforeEach(async () => {
     Settings.deleteMany({}),
     Sidebar.deleteMany({}),
     Taxonomy.deleteMany({}),
+    /** ⚠️ Bina iske ek test ki redirect agle test me leak karti hai aur loop-check jhootha ho jaata. */
+    Redirect.deleteMany({}),
   ])
   await ensureBuiltInContentTypes()
 })
@@ -665,5 +669,101 @@ describe('admin list ke filter — category aur All dates', () => {
 
     expect(counts.months).toEqual(['2026-01'])
     expect(res.entries.map((e) => e.title)).toEqual(['Live'])
+  })
+})
+
+describe('post ke URL ki shakl — Blog settings ka switch (#10)', () => {
+  /** Ek listing page jiske `postList` block ho — prefix isi ke slug se aata hai. */
+  const makeListing = (slug = 'blog') =>
+    Entry.create({
+      siteId: 'default',
+      locale: 'en',
+      type: 'blogPage',
+      title: 'Andaman travel guide',
+      slug,
+      path: `/${slug}`,
+      status: 'published',
+      publishAt: new Date(),
+      content: { version: 1, blocks: [{ id: 'pl1', type: 'postList', props: {} }] },
+    })
+
+  const pathOf = async (slug) =>
+    (await Entry.findOne({ type: 'post', slug }).select('path').lean())?.path
+
+  it('root mode har post ka path root pe le aata hai, 301 ke saath', async () => {
+    await makeListing()
+    await makePost({ title: 'Ferry guide', slug: 'ferry-guide', publishAt: day(1) })
+
+    expect(await pathOf('ferry-guide')).toBe('/blog/ferry-guide')
+
+    await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+
+    expect(await pathOf('ferry-guide')).toBe('/ferry-guide')
+
+    // ⚠️ Bina iske client ke share kiye hue aur Google me index ho chuke saare blog link
+    // chup-chaap mar jaate — aur wo failure kahin dikhti bhi nahi
+    const r = await Redirect.findOne({ from: '/blog/ferry-guide' }).lean()
+    expect(r).toMatchObject({ to: '/ferry-guide', statusCode: 301 })
+  })
+
+  it('wapas nested karne pe path lautta hai aur koi loop nahi banta', async () => {
+    await makeListing()
+    await makePost({ title: 'Ferry guide', slug: 'ferry-guide', publishAt: day(1) })
+
+    await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+    await updateSettings({ blogSettings: { postUrlMode: 'nested' } })
+
+    expect(await pathOf('ferry-guide')).toBe('/blog/ferry-guide')
+
+    // `/blog/ferry-guide → /ferry-guide` aur uska ulta — dono ek saath hote to loop banta
+    const all = await Redirect.find({}).lean()
+    const byFrom = new Map(all.map((r) => [r.from, r.to]))
+    expect(all.filter((r) => byFrom.has(r.to))).toEqual([])
+  })
+
+  it('prefix listing page ke slug se aata hai, hardcoded /blog nahi', async () => {
+    // Admin ka dropdown "Under the blog page" kehta hai — agar prefix us page se na aaye
+    // to wo label ek din jhooth bolne lagta
+    await makeListing('guides')
+    await makePost({ title: 'Ferry guide', slug: 'ferry-guide', publishAt: day(1) })
+
+    await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+    await updateSettings({ blogSettings: { postUrlMode: 'nested' } })
+
+    expect(await pathOf('ferry-guide')).toBe('/guides/ferry-guide')
+  })
+
+  it('listing page ka slug badle to post uske saath chalte hain', async () => {
+    const listing = await makeListing()
+    await makePost({ title: 'Ferry guide', slug: 'ferry-guide', publishAt: day(1) })
+
+    /**
+     * ⚠️ Yahan koi asli user nahi banaya — `assertCan()` sabse pehle `permissions` dekhta hai
+     * aur broad permission milte hi lauta deta hai. User sirf `.own` waale raaste pe chahiye
+     * hota, jo yahan chalta hi nahi. Is file ka poora point login se bachna hai.
+     */
+    const actor = { permissions: ['entry.update'] }
+    await updateEntry(listing._id, { version: listing.version, slug: 'guides' }, actor)
+
+    // ⚠️ Sirf path-prefix cascade kaafi nahi hota — `urlPattern` bhi badalna chahiye, warna
+    // agle save pe path wapas purane pattern pe chala jaata
+    expect(await pathOf('ferry-guide')).toBe('/guides/ferry-guide')
+
+    const ct = await ContentType.findOne({ key: 'post' }).lean()
+    expect(ct.urlPattern).toBe('/guides/{slug}')
+  })
+
+  it('trash ke post bhi saath chalte hain — restore pe purana pattern na rah jaaye', async () => {
+    await makeListing()
+    await makePost({
+      title: 'Trashed',
+      slug: 'trashed',
+      publishAt: day(1),
+      deletedAt: new Date(),
+    })
+
+    await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+
+    expect(await pathOf('trashed')).toBe('/trashed')
   })
 })

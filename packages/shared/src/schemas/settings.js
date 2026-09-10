@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DEFAULT_SITE_ID } from '../constants/index.js'
+import { DEFAULT_SITE_ID, POST_URL_MODES } from '../constants/index.js'
 import { ICONS } from '../constants/icons.js'
 import { BUTTON_VARIANTS, LINK_TARGETS, classNameSchema, menuUrlSchema } from './menu.js'
 /**
@@ -291,6 +291,18 @@ export const blogSettingsSchema = z.object({
    */
   postSidebar: sidebarPositionSchema,
   postSidebarId: sidebarIdSchema,
+
+  /**
+   * Post ke URL ki shakl — `/blog/{slug}` ya `/{slug}` (client, 10 Sep).
+   *
+   * ⚠️ **Ye ek saada setting nahi hai** — iske badalne pe server har post ka `path` dobara
+   * likhta hai aur har purane path se **301** banata hai. Poora tark
+   * `entries/service.js` me `syncPostUrlPattern()` ke upar hai.
+   *
+   * ⚠️ Default `nested` hai kyunki `post` type shuru se `/blog/{slug}` pe tha — default badalne
+   * ka matlab hota ki koi purana instance seed chalate hi apne saare blog URL badal le.
+   */
+  postUrlMode: z.enum(POST_URL_MODES).default('nested'),
 })
 
 /**

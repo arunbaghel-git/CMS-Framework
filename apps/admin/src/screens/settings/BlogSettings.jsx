@@ -31,6 +31,7 @@ const EMPTY = {
   showToc: true,
   postSidebar: 'none',
   postSidebarId: '',
+  postUrlMode: 'nested',
 }
 
 export default function BlogSettings() {
@@ -179,6 +180,44 @@ export default function BlogSettings() {
                 disabled={!canEdit}
               />
               <div className="hint">The paragraph in the box at the end of each post.</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-head">
+            <h3>Post URLs</h3>
+          </div>
+          <div className="card-body">
+            <div className="field">
+              <label>Where posts live</label>
+              <select
+                className="sel"
+                value={blog.postUrlMode}
+                onChange={(e) => set('postUrlMode', e.target.value)}
+                disabled={!canEdit}
+              >
+                <option value="nested">Under the blog page — /blog/post-name</option>
+                <option value="root">At the root — /post-name</option>
+              </select>
+
+              {/*
+               * ⚠️ **Ye hint zaroori hai, aur uska har hissa sach hai.**
+               *
+               * Ye dropdown ek saada setting nahi hai — save karte hi server **har post ka URL
+               * badal deta hai** aur har purane URL se 301 banata hai. Client ko ye pata hona
+               * chahiye **pehle**, save ke baad nahi: uske share kiye hue aur Google me index ho
+               * chuke link is ek chunav pe tike hain.
+               *
+               * ⚠️ `/blog/` wala hissa blog page ke **apne slug** se aata hai — isliye hint me
+               * "the blog page" likha hai, hardcoded `/blog` nahi. Us page ka slug badalne pe
+               * post ke URL bhi uske saath chalte hain.
+               */}
+              <div className="hint">
+                Changing this rewrites the link of <b>every post</b>. Old links keep working — each
+                one gets a permanent redirect. The <code>/blog/</code> part comes from the blog
+                page&rsquo;s own permalink, so renaming that page moves the posts with it.
+              </div>
             </div>
           </div>
         </div>

@@ -148,6 +148,24 @@ export const HOTEL_CATEGORY_LABEL = Object.freeze({
 })
 
 /** Public paths jo koi entry claim nahi kar sakti. */
+/**
+ * Post ka URL kis shakl me bane — `Settings ▸ Blog settings` (spec 008, client 10 Sep).
+ *
+ * | Mode | Post ka URL | Kab |
+ * | --- | --- | --- |
+ * | `nested` | `/blog/how-to-plan` | blog page ek **section** hai (default) |
+ * | `root` | `/how-to-plan` | post site ke top level pe |
+ *
+ * ⚠️ **Breadcrumb dono me ek jaisa rehta hai** — `Home › Andaman Travel Guide › Post`. Wo
+ * `parentId` se banta hai, URL se nahi; blog page phir bhi post ka section hai. Yahi
+ * WordPress bhi karta hai.
+ *
+ * ⚠️ **Ye value `contentTypes.post.urlPattern` chalati hai**, aur wo badalne se **har post ka
+ * path** badalta hai. Isliye badalne pe har purane path se 301 banti hai (D-49) — bina uske
+ * saare shared aur indexed blog link chup-chaap mar jaate.
+ */
+export const POST_URL_MODES = Object.freeze(['nested', 'root'])
+
 export const RESERVED_SLUGS = Object.freeze(['admin', 'api', '_next', 'media', 'uploads'])
 
 /** Responsive breakpoints — inhi teenon pe style store hoti hai. */

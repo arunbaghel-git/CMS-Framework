@@ -4,6 +4,7 @@ import { badRequest } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
 import { mediaExists } from '../media/service.js'
 import { menuExists } from '../menus/service.js'
+import { syncPostUrlPattern } from '../entries/service.js'
 import { Settings } from './model.js'
 
 /**
@@ -160,6 +161,21 @@ export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
   }
 
   const updated = await Settings.findOneAndUpdate({ siteId }, { $set }, { new: true })
+
+  /**
+   * ⚠️ **`postUrlMode` badalne pe har post ka URL badalta hai** (spec 008, client 10 Sep).
+   *
+   * Ye ek saada setting nahi hai — ye ek **bulk rename** hai: `post` type ka `urlPattern`
+   * badalta hai, har post ka `path` dobara likha jaata hai, aur har purane path se **301**
+   * banti hai. Poora tark `entries/service.js` me `syncPostUrlPattern()` ke upar hai.
+   *
+   * ⚠️ **`$set` ke baad chalta hai, pehle nahi** — wo function nayi value **DB se** padhta hai.
+   * Pehle chalane ka matlab hota ki wo purane mode pe kaam kare aur naya mode kabhi lage hi
+   * nahi. Wahi kism ka bug jo D-86 me tha: dono taraf ka code sahi dikhta hai.
+   *
+   * Mode na badla ho to ye function khud kuch nahi karta (pattern pehle se wahi hota hai).
+   */
+  if (input.blogSettings !== undefined) await syncPostUrlPattern(siteId)
 
   /**
    * Settings har page pe hai — logo, site name, footer copyright sab header/footer me

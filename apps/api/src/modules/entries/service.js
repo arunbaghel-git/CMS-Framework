@@ -25,6 +25,7 @@ import {
   statRailSchema,
   isReservedSlug,
   rebasePath,
+  normalizePath,
   resolvePath,
   slugify,
   suffixSlug,
@@ -33,7 +34,13 @@ import {
 import { conflict, forbidden, notFound, unprocessable } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
 import { sanitizeContent, sanitizeEntryFields } from '../../core/sanitize-html.js'
+import { ContentType } from '../content-types/model.js'
 import { requireContentType } from '../content-types/service.js'
+/**
+ * ⚠️ **Settings ka model, uski service nahi.** `settings/service.js` yahan se `syncPostUrlPattern`
+ * import karti hai — service import karne se wo cycle ban jaata. Yahan sirf ek `findOne` chahiye.
+ */
+import { Settings } from '../settings/model.js'
 import { recordAutoRedirect, removeRedirectsTo } from '../redirects/service.js'
 /**
  * ⚠️ **Ye import circular hai** — `taxonomies/service.js` yahan se
@@ -773,6 +780,119 @@ async function blogListingTags(entries) {
   return pages.map((p) => (p.path ? `path:${p.path}` : null)).filter(Boolean)
 }
 
+/**
+ * Post ke URL ki shakl badalna — `/blog/{slug}` ↔ `/{slug}` (spec 008, client 10 Sep).
+ *
+ * ## ⚠️ Ye ek "setting save" nahi hai, ek **bulk rename** hai
+ *
+ * `contentTypes.post.urlPattern` badalne se **har post ka path** badalta hai. `content-types`
+ * service is raaste ko jaan-boojh kar band rakhti hai (`updateContentType()` entries hone par
+ * `urlPattern` badalne se mana kar deti hai), aur uske comment me wajah likhi hai:
+ *
+ * > _"Har entry ka path dobara likhna ek alag, bulk operation hai ('convert URL pattern'), aur
+ * > wo abhi nahi bana. Us tak ye raasta band hai, kyunki **aadha kiya gaya rename hi wo case
+ * > hai jisme link chup-chaap 404 hone lagte hain**."_
+ *
+ * Ye function wahi bulk operation hai. Isliye teen kaam **ek saath** hote hain aur teenon
+ * zaroori hain: pattern badlo, har path dobara likho, aur **har purane path se 301 banao**.
+ * Teesra chhoot jaye to client ke share kiye hue aur Google me index ho chuke saare blog link
+ * mar jaate hain — aur wo bilkul chup failure hoti.
+ *
+ * ## ⚠️ `hierarchical` se ye kaam kyun nahi ho sakta
+ *
+ * Pehli soch yahi thi ki `nested` mode me `post.hierarchical = true` kar do aur path parent
+ * chain se bane. Wo **chalta nahi**: `ensureBuiltInContentTypes()` `hierarchical` ko **har seed
+ * pe** wapas seed ki value pe le aata hai (uska comment: _"`fields` `supports` `taxonomyTypes`
+ * `hasBuilder` `hierarchical` → hamesha"_). Agla `pnpm seed` setting chup-chaap palat deta.
+ * `urlPattern` sirf create pe set hota hai, isliye wahi ek bacha hua raasta hai.
+ *
+ * ## Prefix blog page ke slug se aata hai
+ *
+ * ⚠️ **Hardcoded `/blog` nahi.** Client ka listing page ek aam entry hai; uska slug `guides` bhi
+ * ho sakta hai. Admin me dropdown ka label _"Under the blog page"_ kehta hai — to prefix us page
+ * ka apna slug hona chahiye, warna label jhooth bolta. Listing page bana hi na ho to `blog` pe
+ * gir jaata hai (wahi jo `post` type me shuru se hai).
+ *
+ * @returns {Promise<{ changed: boolean, pattern: string, moved: number }>}
+ */
+export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const settings = await Settings.findOne({ siteId }).lean()
+  const mode = settings?.blogSettings?.postUrlMode ?? 'nested'
+
+  /** Wahi kasauti jo `blogListingTags()` aur `resolveBlogPath()` ki hai — ek hi listing page. */
+  const listing = await Entry.findOne({
+    ...scope(siteId, locale),
+    type: 'blogPage',
+    deletedAt: null,
+    'content.blocks.type': 'postList',
+  })
+    .sort({ createdAt: 1 })
+    .select('slug')
+    .lean()
+
+  const prefix = listing?.slug || 'blog'
+  const pattern = mode === 'root' ? '/{slug}' : `/${prefix}/{slug}`
+
+  /**
+   * ⚠️ **`scope()` yahan use NAHI kiya ja sakta — wo `locale` bhi bhejta hai.**
+   *
+   * `contentTypes` me `locale` hai hi nahi (`model.js`: _"uniqueness `{siteId, key}` hai,
+   * `{siteId, locale, key}` nahi"_). `scope()` ka default `locale: 'en'` query me chala jaata
+   * aur us collection me kuch match hi nahi hota — yaani switch **chup-chaap kuch na karta**.
+   *
+   * ⚠️ Ye asli DB pe **chal raha tha aur test pe fail** — kyunki purane instance ke document me
+   * ek legacy `locale` field pada hai. Yahi wo kism ka farak hai jise sirf test pakadta hai.
+   */
+  const contentType = await ContentType.findOne({ siteId, key: 'post' })
+  if (!contentType) return { changed: false, pattern, moved: 0 }
+  if (contentType.urlPattern === pattern) return { changed: false, pattern, moved: 0 }
+
+  await ContentType.updateOne({ _id: contentType._id }, { $set: { urlPattern: pattern } })
+
+  /**
+   * ⚠️ **Trash ke post bhi** — unka path unke document me pada hai aur restore hone pe wahi
+   * wapas live ho jaata. Unhe chhodne ka matlab hota ki restore ke baad wo purane pattern pe
+   * baithe rahein, jise ab koi route nahi janta.
+   */
+  const posts = await Entry.find({ ...scope(siteId, locale), type: 'post' })
+    .select('_id slug path')
+    .lean()
+
+  const moved = posts
+    .map((post) => ({ ...post, newPath: normalizePath(pattern.replace('{slug}', post.slug)) }))
+    .filter((post) => post.newPath !== post.path)
+
+  if (moved.length) {
+    await Entry.bulkWrite(
+      moved.map((post) => ({
+        updateOne: { filter: { _id: post._id }, update: { $set: { path: post.newPath } } },
+      })),
+    )
+
+    /**
+     * ⚠️ **Har post ka apna 301** — D-49 ka wahi tark jo `cascadeDescendantPaths()` pe likha
+     * hai: sirf listing page pe redirect banane ka matlab hai ki har post ka link chup-chaap
+     * mar jaaye. `recordAutoRedirect()` khud chain flatten aur loop se bachav karti hai.
+     */
+    for (const post of moved) {
+      await recordAutoRedirect(post.path, post.newPath, siteId, locale)
+    }
+
+    /**
+     * ⚠️ Purane **aur** naye dono path ke tag saaf hote hain. Sirf naya bhejne ka matlab hota
+     * ki purana URL cache me 200 deta rahe jabki ab wahan 301 hona chahiye.
+     */
+    await revalidateTags([
+      ...moved.flatMap((post) => [`path:${post.path}`, `path:${post.newPath}`]),
+      'type:post',
+      'sitemap',
+      'feed',
+    ])
+  }
+
+  return { changed: true, pattern, moved: moved.length }
+}
+
 /** Entry + uske cascade hue descendants, sab ek hi call me. */
 async function invalidate(entry, descendants = []) {
   const all = [entry, ...descendants].filter(Boolean)
@@ -1161,6 +1281,28 @@ export async function updateEntry(
 
   await createRevision(updated, actor?.user?._id ? String(actor.user._id) : null, 'save')
   await invalidate(updated, descendants)
+
+  /**
+   * ⚠️ **Blog listing page ka slug badla to post ke URL bhi badalne chahiye** (spec 008).
+   *
+   * `nested` mode me post ka prefix us page ke slug se aata hai, aur admin ka dropdown kehta
+   * hai _"Under the blog page"_. Bina is hook ke wo label ek din jhooth bolta: page `/guides`
+   * pe chala jaata aur post `/blog/…` pe padey rehte.
+   *
+   * ⚠️ **Path-prefix cascade akela kaafi NAHI hai.** `cascadeDescendantPaths()` post ke `path`
+   * badal deta hai, par `contentTypes.post.urlPattern` purana reh jaata — aur agle save pe
+   * `resolveSlugAndPath()` path wapas purane pattern pe le aata. Yaani ek adha-badla naam,
+   * jo save karte hi chup-chaap palat jaata.
+   *
+   * `syncPostUrlPattern()` khud dekh leta hai ki kuch badla bhi hai ya nahi.
+   */
+  /**
+   * ⚠️ `slugChanged` **nahi** — wo sirf haath se badle gaye slug ko pakadta hai. Title badalne
+   * pe bhi slug apne aap badal jaata hai (`autoSlug`), aur wo bhi utna hi badlaav hai.
+   */
+  if (updated.type === 'blogPage' && updated.slug !== current.slug) {
+    await syncPostUrlPattern(siteId, locale)
+  }
 
   return toApi(updated)
 }
