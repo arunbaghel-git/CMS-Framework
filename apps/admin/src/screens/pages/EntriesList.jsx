@@ -83,7 +83,13 @@ function shortDate(value) {
  * @param {string} props.addLabel      "Add New Page" / "Add New Tour Page"
  * @param {string} props.basePath      `/pages` ya `/tour`
  * @param {string} props.searchLabel   Search box ka placeholder
- * @param {string} props.thirdColumn   `author` · `packages` · `category`
+ * @param {string} [props.thirdColumn]
+ *   `author` · `packages` · `category`. **Na dene pe teesra column banta hi nahi.**
+ *
+ *   ⚠️ Pehle iska default `packages` tha, aur wo do baar galat nikla: Posts pe (9 Sep) aur
+ *   Blog Pages pe (10 Sep) — dono jagah heading `Packages` chhap raha tha aur cell me har
+ *   entry ke blocks me `packageList` gina ja raha tha, jo hamesha 0 hota. Ab column tabhi
+ *   banta hai jab screen ne uske liye kuch maanga ho.
  * @param {boolean} [props.postFilters]  Category aur All dates ke dropdown (sirf Posts pe)
  */
 /** Teesre column ka heading — `type` DB ka data hai, label sirf UI ka (R6 wala hi tark). */
@@ -275,6 +281,15 @@ export default function EntriesList({
    * liye list endpoint ko per-row query karni padti. Wo alag se hoga; tab tak yahan wahi
    * dikhta hai jo sach me pata hai.
    */
+  /**
+   * Khaali/loading row kitne column ghere — **ginti se, haath se likhe number se nahi.**
+   *
+   * ⚠️ Pehle yahan `5` likha tha, phir thumbnail column jud-te hi `6` karna pada. Teesra
+   * column optional hone ke baad wo teesri baar galat ho jaata — aur uska lakshan sirf ek
+   * tedhi si "Nothing here yet." row hoti, jo dikhne me bug bhi nahi lagti.
+   */
+  const columnCount = 4 + (canEdit ? 1 : 0) + (thirdColumn ? 1 : 0)
+
   function thirdCell(entry) {
     if (thirdColumn === 'author') return userNames[entry.authorId] ?? '—'
 
@@ -468,7 +483,7 @@ export default function EntriesList({
             )}
             <th className="col-thumb" />
             <th>Title</th>
-            <th>{THIRD_LABEL[thirdColumn] ?? 'Packages'}</th>
+            {thirdColumn && <th>{THIRD_LABEL[thirdColumn]}</th>}
             <th>Status</th>
             <th>Updated</th>
           </tr>
@@ -476,13 +491,15 @@ export default function EntriesList({
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={6}>Loading…</td>
+              <td colSpan={columnCount}>Loading…</td>
             </tr>
           )}
 
           {!loading && data.length === 0 && (
             <tr>
-              <td colSpan={6}>{tab === 'trash' ? 'Trash is empty.' : 'Nothing here yet.'}</td>
+              <td colSpan={columnCount}>
+                {tab === 'trash' ? 'Trash is empty.' : 'Nothing here yet.'}
+              </td>
             </tr>
           )}
 
@@ -572,7 +589,7 @@ export default function EntriesList({
                   )}
                 </div>
               </td>
-              <td className="muted">{thirdCell(entry)}</td>
+              {thirdColumn && <td className="muted">{thirdCell(entry)}</td>}
               <td>
                 <span className={`badge ${STATUS_BADGE[entry.status] ?? 'b-draft'}`}>
                   {STATUS_LABEL[entry.status] ?? entry.status}

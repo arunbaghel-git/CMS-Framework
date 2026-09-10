@@ -7144,3 +7144,149 @@ Commit `6869feb` me wo saath hain.
 
 **Niyam: commit se pehle `git status` padho, aur `-A` tabhi jab pata ho ki tree me sirf apna kaam
 hai.** Client screens khol kar baitha ho sakta hai.
+
+---
+
+## D-91
+
+**Blog — post ka page, listing page, aur post ke URL ka switch** (9–10 Sep, spec 008)
+
+Client ne `blog-detail-v1.html` aur `blog-v1.html` di, aur **kaam ka kram khud chuna**: pehle
+detail, phir listing. Poora contract [`specs/008-blog.md`](../specs/008-blog.md) me hai.
+
+Ye D-87 (Tour Page) ki hi shakl hai — A-9 ka bacha hua `post` wala aadha + Phase 3 ka public
+render — par usse teen cheezein alag nikli, aur teenon niche likhi hain.
+
+### §1 — Client ke faisle jinpe poora design khada hai
+
+| # | Faisla | Nateeja |
+| - | ------ | ------- |
+| 1 | Listing ka filter + pagination **client-side** | saare post ek payload me; `POST_LIST_CAP = 200` uski keemat hai |
+| 2 | Post ka editor = `richText` + `faqs` | FAQ alag block, kyunki `FAQPage` schema usi se banti hai |
+| 3 | Byline **sirf `blogSettings.author`** se | `authorId` andar rehta hai, page pe kabhi nahi (R10) |
+| 4 | `postPicks` widget — client khud chunta hai | **view counting hai hi nahi**, aur wo jaan-boojh kar |
+| 5 | TOC pe ek checkbox, "sabke liye" | ⚠️ maine ulta suggest kiya tha, client ne palta (R15) |
+| 6 | Mobile pe form popup + CTA settings se | dono maujooda component — `EnquiryDockProvider` + `CtaSection` |
+| 7 | Post ki heading `title` se **alag** | 9 Sep ko maine ulta tay kiya tha; client ne 10 Sep ko palta |
+| 8 | Post ke URL ka switch `Blog settings` me | `/blog/{slug}` ↔ `/{slug}`, **301 ke saath** |
+
+### §2 — ⚠️ `hierarchical` se URL switch nahi ban sakta
+
+Pehli soch yahi thi: `nested` mode me `post.hierarchical = true` kar do aur path parent chain
+se bane. **Wo chalta nahi** — `ensureBuiltInContentTypes()` `hierarchical` ko **har seed pe**
+wapas seed ki value pe le aata hai (uska apna comment: _"`fields` `supports` `taxonomyTypes`
+`hasBuilder` `hierarchical` → hamesha"_). Agla `pnpm seed` client ki setting chup-chaap palat
+deta.
+
+`urlPattern` **sirf create pe** set hota hai, isliye wahi ek bacha hua raasta hai. Isliye
+`syncPostUrlPattern()` teen kaam **ek saath** karta hai: pattern badlo, har path dobara likho,
+har purane path se **301**. Teesra chhoot jaye to client ke share kiye hue aur Google me index
+ho chuke saare blog link mar jaate hain.
+
+⚠️ Ye wahi "convert URL pattern" wala bulk operation hai jiska zikr `updateContentType()` ke
+guard me hai. **Wo guard chhua nahi gaya** — content type screen se badalna waise hi band hai.
+
+### §3 — URL aur breadcrumb do alag cheezein thin, ab ek hain
+
+Client ne pakda: reference me breadcrumb `Home › Andaman Travel Guide › Post` hai, hamare yahan
+`Home › Post`, jabki URL `/blog/…` kehta hai.
+
+Jad: `/blog/` ek **literal string** tha `urlPattern` me — kisi entry se juda hi nahi. Aur
+**`/blog` pe koi page tha hi nahi** (404), jabki URL uska vaada karta tha.
+
+Ilaaj: blog page ka slug `blog`, aur har post ka `parentId` wahi page. Ab:
+
+```
+slug  = blog                  →  /blog/how-to-plan-an-andaman-trip
+title = Andaman Travel Guide  →  Home › Andaman Travel Guide › How to plan…
+```
+
+⚠️ Post `hierarchical: false` hi hai — parent **sirf breadcrumb** ke liye hai, path `urlPattern`
+se banta hai.
+
+### §4 — ⚠️ Chaar bug, chaaron "bana hua par juda nahi"
+
+D-89 ka wahi pattern, aur wo ab **ittefaq nahi, pattern hai**:
+
+1. **`type:post` tag ko koi padhta hi nahi** — `apps/web` sirf `path:` se tag karta hai. Naya
+   post publish hone pe listing ka cache saaf hota hi nahi tha
+2. **`settings.siteUrl` payload me tha hi nahi** — `TourSchema.jsx` 8 Sep se `?? settings?.siteUrl`
+   padh raha tha aur wo hissa **kabhi chala hi nahi**
+3. **TOC payload me 8 item ke saath jaati thi aur render koi nahi karta tha**
+4. **`blogPage` theme ki branch me nahi tha** — payload poora sahi, page pe sirf `<h1>`
+
+⚠️ Aur ek paanchvan, jo isse bhi purana tha: **`extractBlockText()` sirf top-level string props
+padhta tha**, yaani `faqs.items[].answer` kabhi ginta hi nahi tha — read time jhootha **aur**
+`entries.searchText` adhoora. Client ke likhe FAQ admin search me **aaj tak aate hi nahi the**.
+
+### §5 — ⚠️ Reference ki CSS raw px ke saath copy karna galat tha
+
+Maine `blog-detail-v1.html` ki CSS jaisi ki waisi chipka di. Nateeja: ek hi site pe **do body
+size** — tour pe `--fs-body` (14px), blog pe hardcoded 15.5px — aur D-73 ka poora token wala
+kaam bypass.
+
+Client ka niyam (10 Sep) isse bada hai:
+
+> _"Reference me space ya font-size mismatch hai to poora copy karne ki zaroorat nahi. Standard
+> check karke jo most of time aa raha hai wo choose karo."_
+
+Ab `.art` ki apni typography **hata di gayi** — `.blk` hi chalata hai (body 14px, h2 ke neeche
+10px, h3 ke neeche 7px). Card ka body text bhi `--fs-body` pe hai, kyunki us role ka naap client
+ne 8 Sep ko `.dcard p` pe khud chuna tha (`b69d5bb`).
+
+⚠️ **Ye galti do baar hui** — pehli baar poori CSS raw copy, doosri baar (usi din ke fix me) har
+px ko uske **exact** token pe map karna, yaani naam badalna par value nahi.
+
+### §6 — ⚠️ A-19 ka apna ilaaj hi ek naya bug bana
+
+D-89 me `.wdgl` ke liye selector jaan-boojh kar chauda kiya gaya tha — `.wdg__b ul`, yaani
+sidebar ki **koi bhi** list. `.toc` bhi wahi `ul` hai, aur wo chauda selector (`0,2,2`)
+`.toc li a` (`0,1,2`) ko **hara raha tha**.
+
+Phir usse bachne ke liye maine `.toc` ko **poore rule set** se nikal diya — jisme
+`list-style: none; padding: 0` wala **reset** bhi tha. Client ko browser ke bullets aur 40px
+indent dikhe.
+
+**Sabak: defensive selector ka daayra jitna chauda, uska agla shikaar utna hi anjaan.**
+
+### §7 — ⚠️ `content-visibility` margin collapse rok deti hai
+
+`Frequently asked questions` ke upar gap **dugna** tha. Do margin (`.art > .blk + .blk` ka 32px
+aur `.art h2` ka 38px) collapse hone chahiye the — hote nahi, kyunki `.blk` pe
+`content-visibility: auto` hai (D-85) aur wo apne saath **containment** laata hai.
+
+D-85 ne wo speed ke liye lagaya tha; uska layout wala side-effect kahin likha nahi tha. Ab hai.
+
+### §8 — ⚠️ Ek asli data loss, aur uski jad
+
+Live test me `updateSettings({ blogSettings: { postUrlMode: 'root' } })` ne **poora
+`blogSettings` object replace** kar diya — client ka author text uud gaya (wapas daal diya
+gaya).
+
+`$set['blogSettings'] = value` puraane object ko badal deta hai. `social` pe ye jaal **pehle se
+handle tha**; `blogSettings` pe nahi. Admin ka form hamesha poora object bhejta hai, isliye ye
+wahan **kabhi dikhta hi nahi** — ek script se ek field patch karte hi dikha.
+
+Ab `MERGED_KEYS = ['social', 'blogSettings']`. ⚠️ Merge **ek hi star** gehra hai — naya nested
+object jodo to yahi sawaal dobara poochhna hoga.
+
+### §9 — Do jagah ek hi list rakhne ke do nateeje
+
+| Kahan | Kya hua |
+| ----- | ------- |
+| `PAGE_TYPES` (API) vs catch-all ki branch (theme) | `blogPage` ek me tha, doosre me nahi — page khaali |
+| `EntriesList` ka `thirdColumn` | default `packages` tha, aur wo **do baar** galat nikla (Posts pe, Blog Pages pe) — heading `Packages`, aur cell me hamesha 0 |
+
+Doosre ka ilaaj: column ab **optional** hai. Jo screen maange wahi milta hai; default kuch nahi.
+
+### §10 — Design se milaan, client ke chalane pe
+
+Client ne dono page chala kar **pandrah se zyada** cheezein gina di, aur unme se do aisi thin
+jo maine reference **dekhe bina** maan li thin:
+
+- **Hero me excerpt** — `.ahead__d` ki CSS reference me padi hai par **markup me kahin use hi
+  nahi hoti**. Maine CSS dekh kar maan liya ki wahan text aata hoga
+- **Sidebar me `All topics` ka row** — reference ke `.cats` me sirf chhe categories hain
+
+⚠️ **Yahi galti D-89 me do baar ho chuki thi** (byline aur `.blk`). Ab teen baar. **Reference ki
+CSS dekh kar markup maan lena** is repo ki ek pehchani hui galti hai.

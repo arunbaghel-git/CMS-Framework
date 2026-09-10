@@ -1,6 +1,10 @@
 # 008 — Blog (post detail + blog listing page)
 
-**Status:** 🟡 Draft
+**Status:** 🟢 **Ban gaya** (10 Sep) — Slice A–D2, aur client ke gine hue dus fix.
+909 test pass. Faisle **D-91** me.
+⚠️ **Ek verify baaki hai:** `next build` + `next start` pe cache wala pehra (naya post publish →
+listing turant update). Dev server pe wo hamesha "pass" dikhta hai — theek wahi shakl jo D-83 me
+teen din chhupi rahi thi. **A-21** dekho.
 **Phase:** Phase 1 ka bacha hua hissa (**A-9** ka `post` wala aadha) + Phase 3 ka public
 render — bilkul wahi shakl jo D-87 (Tour Page) ki thi
 **Blocks:** A-9 (`post` ki screens `NotBuiltYet` pe hain)
@@ -694,10 +698,18 @@ default `no-store` hai.
   use aam list ki tarah rakhta hai (jaise `tourPage`), yaani usme aam taur pe **ek hi row**
   hogi par doosra banaya ja sakta hai. Ye jaan-boojh kar hai — topic-wise landing page (§Scope
   me kya NAHI hai) isi se banta hai. **Client confirm kare.**
+- **Q-B1 ka abhi tak ka sach:** client ne **ek hi** `blogPage` banaya hai (`Andaman Travel
+  Guide`, slug `blog`). Screen aam list hi hai, to doosra banane ka raasta khula hai — par abhi
+  uski zaroorat padi nahi. Sawaal khula hai, plan nahi rok raha.
 - **Q-B2 — `postPicks` ka heading kya default ho?** Reference me `Most read` hai, par data
   hand-picked hai. `Editor's picks` zyada sach hoga. **Client ka faisla** (R15) — wo heading
   waise bhi field hai.
-### 🟡 Q-B3 — post ka sidebar: **`blogSettings` me ek baar** (confirm hona baaki)
+### ✅ Q-B3 — post ka sidebar: **`blogSettings` me ek baar** (client ne confirm kiya, 10 Sep)
+
+Client ne **do alag sidebar** banayin — `Main Blog` (topics · postPicks · enquiryForm) listing
+ke liye, aur `Blog detail Page` (enquiryForm · postPicks) post ke liye. Yaani raasta A hi sahi
+tha: post ki sidebar `blogSettings.postSidebarId` se aati hai, aur listing page apni `fields` se
+apni chunta hai.
 
 `post.fields` aaj **khaali** hai (`content-types.js:436`) — na `sidebar`, na `sidebarId`.
 Iske bina `topics` · `postPicks` · `Sidebar` ka koi source hi nahi.

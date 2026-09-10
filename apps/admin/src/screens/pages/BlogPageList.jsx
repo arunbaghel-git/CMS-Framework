@@ -10,6 +10,11 @@ import EntriesList from './EntriesList.jsx'
  *
  * Iska ulta — screen ko zabardasti ek entry pe baandhna — us raaste ko band kar deta, aur
  * uske badle me kuch bhi nahi milta.
+ *
+ * ⚠️ **Teesra column jaan-boojh kar nahi diya** (`thirdColumn` pass hi nahi hota) — client,
+ * 10 Sep: _"column me Packages kyu aa raha hai, isme to hai hi nahi."_ Is page pe na packages
+ * hain, na category, aur koi teesri cheez jo ginne laayak ho. Pehle uska default `packages`
+ * tha, jo har entry ke blocks me `packageList` ginta tha — hamesha 0.
  */
 export default function BlogPageList() {
   return (

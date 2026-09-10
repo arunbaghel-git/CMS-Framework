@@ -209,6 +209,26 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
+### A-21 · Blog ka `next build` wala pehra abhi liya hi nahi (10 Sep, D-91)
+
+**Deadline:** blog live jaane se **pehle**
+**Ye "verify karo" nahi, "abhi tak jaancha hi nahi" hai** — aur ek item aisa hai jo dev pe
+**hamesha pass dikhega**
+
+| # | Kya jaanchna hai | Kyun dev server kaafi nahi |
+| - | ---------------- | -------------------------- |
+| 1 | **Naya post publish → listing turant update** | `invalidate()` ab un `blogPage` ke `path:` tag bhejta hai jinme `postList` hai. **ISR sirf production build pe chalti hai** — dev me har request waise bhi fresh hoti hai, isliye ye test wahan **jhootha pass** deta hai. Theek wahi shakl jo D-83 me **teen din** chhupi rahi thi |
+| 2 | **Post ka URL switch → 301** | `syncPostUrlPattern()` ka `revalidateTags` dono path pe. Purana URL cache me 200 de raha ho to switch ke baad bhi wahi dikhega |
+| 3 | **Listing ka client-side filter** | `PostList` `'use client'` hai; hydration ki galti dev me aksar nahi dikhti |
+| 4 | **Speed ka naap** | D-85 ke baad blog ke do naye page kabhi naape hi nahi gaye. ⚠️ **Naapna `next build` + `next start` pe, 5 run ka median** — is machine pe noise 2x tak hai |
+
+⚠️ **Build se pehle dev band karo** — dono ek hi `.next` use karte hain. Dev chalte waqt build
+chalane se uske vendor chunks kat gaye the aur har page 500 dene laga tha (D-89).
+
+**Client ne 10 Sep ko kaha: _"shaam ko, kaam poora hone ke baad."_**
+
+---
+
 ### A-20 · Tour page ke chaar bache hue kaante (9 Sep, D-90)
 
 **Deadline:** koi sakht nahi — par pehla item **client ke saamne** jaana chahiye

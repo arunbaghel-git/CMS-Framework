@@ -1,61 +1,110 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 9 Sep 2026 (raat) — **229 commit**, ✅ **push ho chuka**
-> (`origin/main` = `983b7a9`), **898 test pass** (34 file), lint + format clean, tree clean.
+> **Last updated:** 10 Sep 2026 (shaam) — **238 commit**, ⚠️ **9 commit push nahi hue**
+> (`origin/main` = `983b7a9`), **909 test pass** (34 file), lint + format clean, tree clean.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (10 Sep)
+## ⏭️ Nayi session yahan se shuru kare (11 Sep)
 
 ### Abhi ki asli haalat (naapi hui)
 
-| Kya           | Value                                                                                                                                          |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Commits       | **223**                                                                                                                                        |
-| Push          | ⚠️ **12 commit local hi hain** — `origin/main` abhi bhi `44c15e3`. Client ne 9 Sep ko saaf mana kiya: _"documentation kar do only, dont push"_ |
-| Tests         | **848 pass**, 33 file (`pnpm test`, exit 0)                                                                                                    |
-| Builds        | ⚠️ **aaj verify nahi hue** — dev server chal raha tha, aur `next build` uske saath nahi chalaya ja sakta                                       |
-| Lint · Format | dono clean                                                                                                                                     |
-| Tree          | clean                                                                                                                                          |
-| Migrations    | **23 files**, 23/23 applied — D-90 me koi nayi nahi lagi                                                                                       |
-| Decisions     | **D-90** tak                                                                                                                                   |
-| DB            | 5 package (+8 trash) · **1 tour page (live, poora bhara hua)** · 1 sidebar · 4 content type                                                    |
+| Kya           | Value                                                                                                                      |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Commits       | **238**                                                                                                                    |
+| Push          | ⚠️ **9 commit local hi hain** — `origin/main` = `983b7a9`. **Bina permission ke push mat karo**                            |
+| Tests         | **909 pass**, 34 file (`pnpm test`, exit 0)                                                                                |
+| Builds        | admin ✅ · ⚠️ **`next build` aaj bhi nahi chala** — dev server chal raha tha (**A-21**)                                    |
+| Lint · Format | dono clean                                                                                                                 |
+| Tree          | clean                                                                                                                      |
+| Migrations    | **23 files**, 23/23 applied — blog me koi nayi nahi lagi                                                                   |
+| Decisions     | **D-91** tak                                                                                                               |
+| DB            | 5 package (+8 trash) · 1 tour page · **1 blog page** (`/blog`) · **13 post** · 6 category · **3 sidebar** · 5 content type |
 
-### Pehla kaam: **push** (agar client kahe)
+### Pehla kaam: **A-21 — `next build` pe blog ka pehra**
+
+Client ne 10 Sep ko kaha: _"shaam ko, kaam poora hone ke baad."_ Kaam poora hai.
 
 ```bash
-git log --oneline origin/main..main    # 12 commit
-git push
+# ⚠️ Dev BAND karo pehle — dono ek hi .next use karte hain (D-89)
+pnpm --filter @cms/web build
+pnpm --filter @cms/web start
 ```
 
-⚠️ **Bina permission ke push mat karo.** 8 Sep ko client ne ek baar ijaazat di thi — wo **us ek
-baar** ke liye thi. 9 Sep ko unhone saaf mana kiya.
+Chaar cheezein jaanchni hain — poori list **09-OPEN-ITEMS.md → A-21** me. Sabse zaroori:
+**naya post publish karo aur dekho ki listing turant update hoti hai ya nahi.** Wo test dev
+server pe **hamesha pass dikhta hai**, isliye aaj tak liya hi nahi gaya.
 
 ### Pehle ye do
 
 ```bash
 docker compose up -d mongo
-pnpm seed          # ⚠️ tourPage me `heading` juda hai (D-90 §2)
+pnpm seed          # ⚠️ post me `heading` juda hai, aur `blogPage` naya type hai
 pnpm dev
 ```
 
-⚠️ **`pnpm cms migrate` ki zaroorat nahi** — 023 lag chuki hai.
+⚠️ **`pnpm seed` `post.urlPattern` ko haath nahi lagata** (wo sirf create pe set hota hai), par
+`hierarchical` ko **har baar** seed ki value pe le aata hai. Isi wajah se URL switch
+`urlPattern` pe bana hai — poora tark **D-91 §2**.
 
-⚠️ **`next build` KABHI dev chalte waqt mat chalao.** Dono ek hi `.next` folder use karte hain;
-build dev ke vendor chunks ke upar likh deta hai aur **har page 500** dene lagta hai
-(`Cannot find module './vendor-chunks/zod@3.24.1.js'`). Ye 8 Sep ko **do baar** hua.
+### Blog ka kya bacha hai
 
-⚠️ **Mongo do jagah chal sakta hai.** 9 Sep ko Docker ka mongo **aur** Windows ka local
-`mongod.exe` dono `27017` pe the, aur local wala `127.0.0.1` pe shadow kar raha tha. Client ne
-Windows service band kar di. Kuch ajeeb lage — "data hai hi nahi", "save nahi hua" — to sabse
-pehle yahi dekho.
+1. **A-21** — upar
+2. **`Latest articles` ki heading/line theme me static hai** — block me sirf ek
+   heading/subheading ki jodi hai, jo `Start here` ko mili. Editable karna ho to do naye field
+3. **Q-B1 · Q-B2** (spec 008) — dono client ke faisle, plan nahi rok rahe
+4. ⚠️ **Client ka `postUrlMode` abhi `root` pe hai** — post `/how-to-plan-an-andaman-trip` pe
+   hain, `/blog/…` pe nahi. Ye unka chunav hai ya test ka bacha hua, pakka nahi. Poochh lena
 
-### Live page dekhne ke liye
+---
 
-```
-http://localhost:3000/andaman-tour-packages-starting-11-499-pp-2026
-```
+## 10 Sep — Blog poora ho gaya: Slice D2, URL switch, aur client ke gine hue fix (D-91)
+
+**9 commit.** Spec 008 ab **🟢**. Poore faisle **D-91** me — neeche sirf wo jo agli session ko
+turant chahiye.
+
+### Client ne page **chala kar** dus cheezein gina di
+
+Aur unme se **do** aisi thin jo maine reference **dekhe bina** maan li thin:
+
+- **Hero me excerpt** — `.ahead__d` ki CSS reference me padi hai par uska **markup kahin use hi
+  nahi hota**. Maine CSS dekh kar maan liya
+- **Sidebar me `All topics` ka row** — reference ke `.cats` me sirf chhe categories hain
+
+⚠️ **Yahi galti D-89 me do baar ho chuki thi** (byline aur `.blk`). Ab **teen baar**.
+**Reference ki CSS dekh kar markup maan lena is repo ki ek pehchani hui galti hai.**
+
+### Do cheezein jo aaj sabse zyada seekhne layak thin
+
+**1. A-19 ka apna ilaaj hi ek naya bug bana.** D-89 me `.wdgl` ke liye selector chauda kiya gaya
+tha — `.wdg__b ul`. `.toc` bhi wahi `ul` hai, to wo TOC ka look kha gaya. Phir maine `.toc` ko
+**poore rule set** se nikala — jisme `list-style: none; padding: 0` ka **reset** bhi tha — aur
+client ko browser ke bullets dikhe. **Defensive selector ka daayra jitna chauda, uska agla
+shikaar utna hi anjaan.**
+
+**2. `content-visibility` margin collapse rok deti hai.** FAQ ke upar gap dugna tha; dono margin
+collapse hone chahiye the. `.blk` pe `content-visibility: auto` (D-85) containment laata hai, jo
+collapsing rok deti hai. D-85 ne wo speed ke liye lagaya tha; layout wala side-effect kahin likha
+nahi tha.
+
+### ⚠️ Ek asli data loss hua
+
+Live test me `updateSettings({ blogSettings: { postUrlMode: 'root' } })` ne **poora
+`blogSettings` replace** kar diya — client ka author text uud gaya (**wapas daal diya gaya**).
+`social` pe ye jaal pehle se handle tha, `blogSettings` pe nahi. Ab `MERGED_KEYS` me dono hain.
+
+**Admin ka form hamesha poora object bhejta hai, isliye ye wahan kabhi dikhta hi nahi** — ek
+script se ek field patch karte hi dikha.
+
+### DB me kya hai (client ne khud bhara)
+
+**13 post** — ek poora bhara hua (reference wala article + 4 FAQ), baaki placeholder body ke
+saath. **1 blog page** `/blog` pe (title `Andaman Travel Guide`, slug `blog`), jiske `postList`
+me teen featured chune hue hain. **6 category**, **3 sidebar** (`Tour Page` · `Blog detail Page`
+· `Main Blog`).
+
+⚠️ Un placeholder posts ka body `Write this section.` hai — client apne content se badlega.
 
 ---
 
