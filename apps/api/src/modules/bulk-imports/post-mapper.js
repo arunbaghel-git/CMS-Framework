@@ -240,7 +240,32 @@ export function toPostEntryInput(parsed, refs) {
   /** `resolveOne` ko naksha chahiye; use `values` ke saath le jaana sabse chhota raasta hai. */
   const categories = buildCategories(refs.categories, values, issues)
 
-  const contentHtml = clamp(htmlOf(values, 'content'), LIMITS.content, 'Content', warnings)
+  /**
+   * ⚠️ **Content ka kat jaana `blocker` hai, `note` nahi** — aur ye 10 Sep ke live run pe badla.
+   *
+   * Us run me article `data:` URI ki wajah se hadd paar kar gaya, kat gaya, aur write pe
+   * sanitizer ne toota hua HTML poora phenk diya. Article **7 character** ka bacha — aur row ne
+   * `Published` kaha, kyunki ye ek note tha.
+   *
+   * Asli wajah ab band ho chuki hai (images parse se pehle utar jaati hain), par ye rok phir
+   * bhi honi chahiye: HTML ko character se kaatna hamesha khatarnak hai — kaat kisi tag ya
+   * attribute ke beech pad sakti hai. Jab wo ho, **post publish nahi hona chahiye**.
+   *
+   * Baaki clamp (title, excerpt, heading) note hi rehte hain: wahan plain text kat_ta hai, aur
+   * kata hua title bhi padha ja sakta hai.
+   */
+  const rawContent = htmlOf(values, 'content')
+  const contentHtml = rawContent.slice(0, LIMITS.content)
+
+  if (rawContent.length > LIMITS.content) {
+    issues.push(
+      blocker(
+        'Content',
+        `${rawContent.length} characters`,
+        `The article is longer than ${LIMITS.content} characters and had to be cut, which can break its formatting. Shorten it in the document, then import again.`,
+      ),
+    )
+  }
 
   if (!contentHtml) {
     issues.push(

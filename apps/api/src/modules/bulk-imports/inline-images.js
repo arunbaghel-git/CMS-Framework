@@ -10,21 +10,30 @@ import { createMediaFromUpload } from '../media/service.js'
 /**
  * Article ke andar ki images Media library me utaarna — spec 008 (client, 10 Sep).
  *
- * ## Ye zaroori kyun hai
+ * ## ⚠️ Google image ko `data:` URI me bhejta hai — CDN URL me nahi
  *
- * Google Doc ka export images ko **apne CDN pe** chhodta hai:
+ * Ye 10 Sep ko asli doc pe naap kar pata chala, aur **pehle yahan iska ulta likha tha**.
+ * `export?format=html` ka asli output aisa hai:
  *
  * ```html
- * <img src="https://lh7-rt.googleusercontent.com/docsz/AD_4nX…">
+ * <img alt="" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAA…">
  * ```
  *
- * Wo URL **signed hain aur expire hote hain**. Unhe DB me chhod dena matlab post aaj theek
- * dikhega aur kuch hafte baad **har image toot jaayegi** — aur wo D-42 §2 ka seedha ulta hai
- * (*toota hua kuch kabhi render nahi hona chahiye*). Uske upar wo hotlinking bhi hai.
+ * Iske do nateeje hain, aur dono is file ki shakl tay karte hain:
  *
- * Isliye har image download hoti hai, Media me jaati hai, aur `src` hamare apne URL se badal
- * jaata hai — wahi raasta jo banner pe D-81 se chal raha hai (SSRF guard, content-type ki
- * jaanch aur byte cap sab `fetchImage()` me hain).
+ * 1. **Fetch hoti hi nahi** — bytes doc me hi aa chuke hote hain. `fetchImage()` ise laa bhi
+ *    nahi sakti: uska SSRF guard sirf `http`/`https` jaanta hai.
+ * 2. **Naam apne aap content ka hash ban jaata hai** — `stemFor()` poori `data:` URI ko hash
+ *    karta hai, yaani wahi image hamesha wahi naam. Isliye dobara import pe wo dobara nahi
+ *    utarti, aur ye us shak ka bhi jawab hai jo pehle yahan likha tha ("src sthir rahega ya
+ *    nahi") — `data:` URI ke saath wo sawaal uthta hi nahi.
+ *
+ * ⚠️ Bahar ke URL wala raasta phir bhi zinda hai (`fetchImage()` ke saath), kyunki client doc
+ * me "Insert → by URL" bhi kar sakta hai aur wo har baar inline nahi hota.
+ *
+ * Dono soorat me image Media me jaati hai aur `src` hamare apne URL se badal jaata hai. Google
+ * ki URI ko DB me chhod dena matlab har post ka HTML **kai sau KB** ka ho jaana, aur ek CDN URL
+ * chhod dena matlab kuch hafte baad har image ka toot jaana — D-42 §2 ka seedha ulta.
  *
  * ## ⚠️ Dobara import pe image dobara nahi utarti — aur uska tareeka
  *
@@ -130,14 +139,39 @@ const findImportedMedia = (url, siteId, port) =>
     siteId,
   )
 
-/** Ek bahar wali image utaar kar Media me daalo. */
+/**
+ * `data:image/jpeg;base64,…` → bytes aur mime. Doosri shakl pe `null`.
+ *
+ * ⚠️ **Yahi shakl asli me sabse zyada aati hai**, aur ye 10 Sep ko naap kar pata chala.
+ * `export?format=html` doc me paste ki hui har image ko **inline base64** me bhejta hai, kisi
+ * CDN URL me nahi.
+ */
+const DATA_URI_RE = /^data:(image\/[a-z0-9.+-]+);base64,([\s\S]+)$/i
+
+function decodeDataUri(src) {
+  const match = String(src ?? '').match(DATA_URI_RE)
+
+  if (!match) return null
+
+  return { bytes: Buffer.from(match[2], 'base64'), mime: match[1].toLowerCase() }
+}
+
+/** Ek image utaar kar Media me daalo — `data:` URI se ya bahar ke URL se. */
 async function importOne(url, actor, siteId, deps) {
   const port = deps.mediaPort ?? mongoMediaPort
 
   const existing = await findImportedMedia(url, siteId, port)
   if (existing) return largeUrlOf(existing)
 
-  const { bytes, mime } = await fetchImage(url, deps)
+  /**
+   * ⚠️ `data:` pe **koi fetch nahi hoti** — bytes doc me hi hain.
+   *
+   * `fetchImage()` ise waise bhi nahi laa sakti: uska SSRF guard sirf `http`/`https` jaanta hai
+   * aur `data:` ko theek hi thukra deta. Us raaste par jaane ka matlab hota har image pe ek
+   * bemaani error, aur client ko ek aisa message jo uski galti jaisa dikhta — theek wahi shakl
+   * jo D-81 me `localhost` wale banner URL pe bani thi.
+   */
+  const { bytes, mime } = decodeDataUri(url) ?? (await fetchImage(url, deps))
 
   const media = await port.create(
     {

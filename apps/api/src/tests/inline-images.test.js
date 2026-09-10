@@ -28,6 +28,10 @@ const actor = { user: { _id: new mongoose.Types.ObjectId() } }
 const REMOTE = 'https://lh7-rt.googleusercontent.com/docsz/AD_4nXabc123'
 const OTHER = 'https://lh7-rt.googleusercontent.com/docsz/AD_4nXzzz999'
 
+/** Jaisa Google sach me bhejta hai — 10 Sep ko asli doc pe naapa gaya. */
+const DATA_URI = 'data:image/jpeg;base64,' + Buffer.from('fake-jpeg-bytes').toString('base64')
+const DATA_URI_2 = 'data:image/png;base64,' + Buffer.from('another-image').toString('base64')
+
 /** Naqli Google — har image URL pe ek chhoti PNG. */
 const PNG = Buffer.from('89504e470d0a1a0a', 'hex')
 
@@ -59,16 +63,19 @@ const deadFetch = async (url) => ({
  */
 function fakeMediaPort() {
   const rows = []
+  const created = []
   let next = 1
 
   return {
     rows,
+    created,
 
     async findByFilenames(filenames) {
       return rows.find((row) => filenames.includes(row.filename)) ?? null
     },
 
     async create(input) {
+      created.push(input)
       const id = String(next++).padStart(24, '0')
 
       const row = {
@@ -233,5 +240,50 @@ describe('image na aaye to sirf image gire, article nahi', () => {
     expect(issues[0].label).toBe('Content image')
     expect(issues[0].value).toBe(REMOTE)
     expect(port.rows).toEqual([])
+  })
+})
+
+describe('data: URI — jaisa Google sach me bhejta hai', () => {
+  /**
+   * ⚠️ **Ye shakl 10 Sep ko asli doc pe naap kar mili**, aur pehle iska ulta maan liya gaya tha
+   * (`lh7-*.googleusercontent.com`). `export?format=html` doc me paste ki hui image ko
+   * **inline base64** me bhejta hai.
+   *
+   * Us galat andaze ke do nateeje the, aur dono chup the: sanitizer `data:` ko allow na karke
+   * `src` hata deta tha, aur importer `fetchImage()` pe jaata jahan SSRF guard use theek hi
+   * thukra deta.
+   */
+  it('data: URI se image bina kisi fetch ke utar jaati hai', async () => {
+    /** `deadFetch` yahan pehra hai: koi fetch hui to test saaf fail hoga. */
+    const { html, issues } = await run(`<p><img src="${DATA_URI}"></p>`, deadFetch)
+
+    expect(issues).toEqual([])
+    expect(port.rows).toHaveLength(1)
+    expect(html).not.toContain('data:image')
+    expect(html).toContain('/large.webp')
+  })
+
+  it('mime data: URI se hi padha jaata hai', async () => {
+    await run(`<p><img src="${DATA_URI}"></p>`, deadFetch)
+
+    expect(port.created[0].declaredMime).toBe('image/jpeg')
+  })
+
+  it('wahi image dobara import pe dobara nahi utarti', async () => {
+    /**
+     * ⚠️ `data:` URI ke saath naam apne aap **content ka hash** ban jaata hai, isliye wo sawaal
+     * hi nahi uthta jo bahar ke URL pe uthta tha ("src sthir rahega ya nahi").
+     */
+    const first = await run(`<p><img src="${DATA_URI}"></p>`, deadFetch)
+    const second = await run(`<p><img src="${DATA_URI}"></p>`, deadFetch)
+
+    expect(port.rows).toHaveLength(1)
+    expect(second.html).toBe(first.html)
+  })
+
+  it('do alag images do alag record banati hain', async () => {
+    await run(`<p><img src="${DATA_URI}"></p><p><img src="${DATA_URI_2}"></p>`, deadFetch)
+
+    expect(port.rows).toHaveLength(2)
   })
 })

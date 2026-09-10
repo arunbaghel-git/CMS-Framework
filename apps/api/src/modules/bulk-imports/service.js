@@ -234,36 +234,47 @@ async function importRow(run, row, refs, actor, deps) {
    */
   const target = targetOf(run.target)
 
-  const html = cleanGoogleHtml(await fetchDocHtml(row.docId, deps), {
+  let html = cleanGoogleHtml(await fetchDocHtml(row.docId, deps), {
     allowImages: target.allowImages,
   })
+
+  /**
+   * Images Media library me utaaro — **parse karne se pehle, poori doc HTML par**.
+   *
+   * ⚠️ **Kram yahan sabse zaroori cheez hai, aur ye live chalane pe hi pakda gaya (10 Sep).**
+   *
+   * Pehle ye mapper ke baad chalti thi, block-by-block. Wo galat tha aur uska nateeja poori
+   * tarah chup tha: Google har image ko **`data:` URI me** bhejta hai (~100KB ki), do image
+   * yaani ~200KB ka article. Mapper `Content` ko `htmlSchema` ki hadd (40,000) pe kaat_ta hai —
+   * aur wo kaat **base64 ke beech** padti thi. Us toote hue HTML ko write pe sanitizer poora
+   * phenk deta tha.
+   *
+   * Asli run me nateeja ye tha: article **7 character** ka bacha, na koi heading, na table, na
+   * image — aur row ne phir bhi **"Published"** kaha. Theek wahi lakshan jo D-86 aur D-89 me
+   * baar-baar mila.
+   *
+   * Images pehle utar jaane se wahi article ~4KB ka reh jaata hai aur hadd ka sawaal hi nahi
+   * uthta.
+   *
+   * ⚠️ **Poori doc HTML pe, sirf article pe nahi** — isse FAQ ke jawab aur baaki har khaane ki
+   * image bhi apne aap sambhal jaati hai. Block-by-block chalane me har naya HTML wala block
+   * yaad rakhna padta, aur bhoolne ka lakshan wahi "kuch hafte baad toot jaana" hota.
+   */
+  const imageIssues = []
+
+  if (target.allowImages) {
+    const result = await importInlineImages(html, { actor, siteId, deps })
+
+    html = result.html
+    imageIssues.push(...result.issues)
+  }
 
   const parsed = target.parse(html)
   const { input, issues, slug, bannerUrl } = target.map(parsed, refs)
 
+  issues.push(...imageIssues)
+
   if (!input.title) throw new Error(target.missingTitle)
-
-  /**
-   * Article ke andar ki images Media library me utaaro, aur `src` badal do.
-   *
-   * ⚠️ Ye `createEntry()` se **pehle** hona chahiye. Baad me karne ka matlab hota ki ek baar
-   * Google ke expire hone wale URL DB me likhe jaayein aur phir badle jaayein — aur beech me
-   * kuch bhi girne pe wahi toote hue URL live post pe reh jaate.
-   *
-   * ⚠️ **Sirf `richText` blocks** — package ka Overview aur post ka poora article dono wahi
-   * hain. Naya block type jodo jisme HTML ho, to use yahan bhi jodna padega. Chhoot jaane ka
-   * lakshan wahi purana hoga: image kuch hafte chalegi, phir chup-chaap toot jaayegi.
-   */
-  if (target.allowImages) {
-    for (const block of input.content?.blocks ?? []) {
-      if (block.type !== 'richText' || !block.props?.html) continue
-
-      const result = await importInlineImages(block.props.html, { actor, siteId, deps })
-
-      block.props.html = result.html
-      issues.push(...result.issues)
-    }
-  }
 
   /**
    * ⚠️ **Dhoondhne ka slug wahi hona chahiye jo save karne ka slug hai** — D-86.

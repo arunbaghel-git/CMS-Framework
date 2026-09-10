@@ -297,6 +297,29 @@ export function cleanGoogleHtml(html, { allowImages = false } = {}) {
     allowedTags: allowImages
       ? IMPORTED.allowedTags
       : IMPORTED.allowedTags.filter((tag) => tag !== 'img'),
+
+    /**
+     * ⚠️ **Google is endpoint pe images `data:` URI me bhejta hai, CDN URL me nahi.**
+     *
+     * Ye 10 Sep ko asli doc pe naap kar pata chala, aur ye pehle wale andaze ka **palat** hai.
+     * `export?format=html` ka asli output aisa hai:
+     *
+     * ```html
+     * <img alt="" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAA…">
+     * ```
+     *
+     * `data` `allowedSchemes` me na ho to sanitize-html **`src` hata deta hai aur tag chhod
+     * deta hai** — yaani `<img alt="" />`. Uska lakshan wahi "kuch na hona" hota: na error, na
+     * warning, bas client ki saari images gayab.
+     *
+     * ⚠️ **`allowedSchemesByTag` se, `allowedSchemes` se nahi** — wo `href` pe bhi lag jaata aur
+     * `data:text/html` wala link khol deta. Yahan chhoot sirf `img` ke `src` ko hai.
+     *
+     * ⚠️ Ye URI DB tak **kabhi nahi pahunchti**: `importInlineImages()` har image ko Media
+     * library me utaar kar `src` badal deti hai, aur jo na utar paaye uska tag hata deti hai.
+     * Isiliye ye chhoot `allowImages` ke saath hi khulti hai — akeli kabhi nahi.
+     */
+    ...(allowImages ? { allowedSchemesByTag: { img: ['http', 'https', 'data'] } } : {}),
     transformTags: {
       ...IMPORTED.transformTags,
       a: (tagName, attrs) => ({
