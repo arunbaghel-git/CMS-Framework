@@ -113,6 +113,24 @@ export const IMPORT_TARGET = Object.freeze({ PACKAGE: 'package', POST: 'post' })
 
 export const IMPORT_TARGETS = Object.freeze(Object.values(IMPORT_TARGET))
 
+/**
+ * Har target ka naam — **ek hi jagah, dono taraf ke liye**.
+ *
+ * API ke error message me `"A post with the URL … choose New posts"` likha hota hai, aur admin
+ * ke radio pe literally `New posts` likha hota hai. Do jagah haath se likhne ka matlab hota ki
+ * ek din ek badle aur doosra na badle — aur tab error client ko ek aisa button dhoondhne bhejta
+ * jo us naam se hai hi nahi.
+ *
+ * Yahi wajah `TAXONOMY_REF_KEY` aur `ENTRY_LIST_MAX_LIMIT` pe pehle likhi ja chuki hai: jo
+ * number ya naam dono taraf dikhta hai, wo dono taraf **import** hona chahiye.
+ *
+ * `plural` sirf dikhane ke liye hai (dropdown, column), `many` vaakya ke andar jaata hai.
+ */
+export const IMPORT_TARGET_LABEL = Object.freeze({
+  [IMPORT_TARGET.PACKAGE]: { one: 'package', many: 'packages', plural: 'Packages' },
+  [IMPORT_TARGET.POST]: { one: 'post', many: 'posts', plural: 'Blog posts' },
+})
+
 export const startImportSchema = z
   .object({
     sheetUrl: z.string().min(1, 'Paste the Google Sheet link').max(2000),

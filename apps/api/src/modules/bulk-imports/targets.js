@@ -2,6 +2,7 @@ import {
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   IMPORT_TARGET,
+  IMPORT_TARGET_LABEL,
   normalizeName,
   parsePackageDoc,
   parsePostDoc,
@@ -110,8 +111,8 @@ async function postRefs(siteId, locale) {
 export const TARGET_CONFIG = Object.freeze({
   [IMPORT_TARGET.PACKAGE]: {
     entryType: 'package',
-    label: 'package',
-    labelPlural: 'packages',
+    label: IMPORT_TARGET_LABEL[IMPORT_TARGET.PACKAGE].one,
+    labelPlural: IMPORT_TARGET_LABEL[IMPORT_TARGET.PACKAGE].many,
     parse: parsePackageDoc,
     map: toEntryInput,
     buildRefs: packageRefs,
@@ -126,8 +127,8 @@ export const TARGET_CONFIG = Object.freeze({
 
   [IMPORT_TARGET.POST]: {
     entryType: 'post',
-    label: 'post',
-    labelPlural: 'posts',
+    label: IMPORT_TARGET_LABEL[IMPORT_TARGET.POST].one,
+    labelPlural: IMPORT_TARGET_LABEL[IMPORT_TARGET.POST].many,
     parse: parsePostDoc,
     map: toPostEntryInput,
     buildRefs: postRefs,

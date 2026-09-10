@@ -1,3 +1,4 @@
+import { IMPORT_TARGET, IMPORT_TARGET_LABEL, IMPORT_TARGETS } from '@cms/shared'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -28,8 +29,12 @@ export default function BulkUpload() {
   const { runs, loading, error, reload } = useImportRuns()
   const [sheetUrl, setSheetUrl] = useState('')
   const [mode, setMode] = useState('new')
+  const [target, setTarget] = useState(IMPORT_TARGET.PACKAGE)
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState(null)
+
+  /** Radio ke label aur API ke error message ek hi jagah se aate hain (`IMPORT_TARGET_LABEL`). */
+  const words = IMPORT_TARGET_LABEL[target]
 
   async function onImport(event) {
     event.preventDefault()
@@ -39,7 +44,7 @@ export default function BulkUpload() {
     setActionError(null)
 
     try {
-      const run = await startImport(sheetUrl.trim(), mode)
+      const run = await startImport(sheetUrl.trim(), mode, target)
       /** Seedha nateeje pe — wahin progress dikhti hai. */
       navigate(`/bulk-upload/${run.id}`)
     } catch (err) {
@@ -53,7 +58,7 @@ export default function BulkUpload() {
       <div className="page-head">
         <h1>Bulk Upload</h1>
       </div>
-      <p className="subtitle">Import package pages from Google Docs listed in a Google Sheet.</p>
+      <p className="subtitle">Import pages from Google Docs listed in a Google Sheet.</p>
 
       {actionError && (
         <p className="notice err" role="alert">
@@ -64,6 +69,33 @@ export default function BulkUpload() {
       <div className="panel">
         <div className="panel-body">
           <form onSubmit={onImport}>
+            {/*
+              ⚠️ Ye dropdown hai, sidebar me doosra menu nahi — client ka faisla (10 Sep).
+              D-81 pe unhone saaf kaha tha _"sidebar me menu banana hai not submenu"_, aur uske
+              baad do top-level menu banana usi baat ke ulta jaata. Past imports ki list bhi ek
+              hi rehti hai, `Type` ke column ke saath.
+            */}
+            <div className="field">
+              <label htmlFor="target">What are you importing?</label>
+              <select
+                id="target"
+                className="inp"
+                value={target}
+                disabled={busy}
+                onChange={(e) => setTarget(e.target.value)}
+              >
+                {IMPORT_TARGETS.map((key) => (
+                  <option key={key} value={key}>
+                    {IMPORT_TARGET_LABEL[key].plural}
+                  </option>
+                ))}
+              </select>
+              <p className="hint">
+                Each kind has its own document template — the labels inside the documents are
+                different.
+              </p>
+            </div>
+
             <div className="field">
               <label htmlFor="sheetUrl">Google Sheet link</label>
               <input
@@ -76,7 +108,7 @@ export default function BulkUpload() {
                 onChange={(e) => setSheetUrl(e.target.value)}
               />
               <p className="hint">
-                The sheet needs a <b>Doc File</b> column with a link to each package document.
+                The sheet needs a <b>Doc File</b> column with a link to each {words.one} document.
               </p>
             </div>
 
@@ -100,7 +132,7 @@ export default function BulkUpload() {
                   disabled={busy}
                   onChange={() => setMode('new')}
                 />{' '}
-                New packages
+                New {words.many}
               </label>{' '}
               <label className="inline-lbl bu-mode">
                 <input
@@ -110,12 +142,12 @@ export default function BulkUpload() {
                   disabled={busy}
                   onChange={() => setMode('existing')}
                 />{' '}
-                Existing packages
+                Existing {words.many}
               </label>
               <p className="hint">
                 {mode === 'new'
-                  ? 'Any document whose Package URL already exists will be left as Failed, so nothing live is overwritten by mistake.'
-                  : 'Any document whose Package URL does not exist yet will be left as Failed.'}
+                  ? `Any document whose address already exists will be left as Failed, so nothing live is overwritten by mistake.`
+                  : `Any document whose address does not exist yet will be left as Failed.`}
               </p>
             </div>
 
@@ -130,9 +162,9 @@ export default function BulkUpload() {
             ye line pehle hi likhi hai, error message ka intezaar kiye bina.
           */}
           <p className="hint bu-note">
-            The sheet and every document must be shared as <b>Anyone with the link — Viewer</b>.
-            Packages are published automatically; any row with a problem is left as a draft with the
-            reason shown.
+            The sheet and every document must be shared as <b>Anyone with the link — Viewer</b>. The{' '}
+            {words.many} are published automatically; any row with a problem is left as a draft with
+            the reason shown.
           </p>
         </div>
       </div>
@@ -152,6 +184,7 @@ export default function BulkUpload() {
         <thead>
           <tr>
             <th>When</th>
+            <th className="nowrap">Type</th>
             <th>Sheet</th>
             <th className="nowrap">New</th>
             <th className="nowrap">Existing</th>
@@ -164,7 +197,7 @@ export default function BulkUpload() {
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={8} className="muted">
+              <td colSpan={9} className="muted">
                 Loading…
               </td>
             </tr>
@@ -172,7 +205,7 @@ export default function BulkUpload() {
 
           {!loading && runs.length === 0 && (
             <tr>
-              <td colSpan={8} className="muted">
+              <td colSpan={9} className="muted">
                 No imports yet.
               </td>
             </tr>
@@ -185,6 +218,7 @@ export default function BulkUpload() {
                   {new Date(run.createdAt).toLocaleString()}
                 </Link>
               </td>
+              <td className="nowrap">{IMPORT_TARGET_LABEL[run.target]?.plural ?? run.target}</td>
               <td className="bu-url">{run.sheetUrl}</td>
               <td>{run.counts.created}</td>
               <td>{run.counts.updated}</td>

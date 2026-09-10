@@ -1,4 +1,4 @@
-import { IMPORT_ROW_STATUS } from '@cms/shared'
+import { IMPORT_ROW_STATUS, IMPORT_TARGET_LABEL } from '@cms/shared'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
@@ -40,6 +40,14 @@ export default function BulkUploadRun() {
 
   const rows = run.rows.filter((row) => tab === 'all' || row.status === tab)
   const running = run.status === 'queued' || run.status === 'running'
+
+  /**
+   * Table ka pehla column — "Package" ya "Blog posts".
+   *
+   * ⚠️ Purane run me `target` hai hi nahi (wo is field se pehle bane the), isliye fallback
+   * `Packages` hai — us waqt import package ka hi hota tha.
+   */
+  const title = (IMPORT_TARGET_LABEL[run.target] ?? IMPORT_TARGET_LABEL.package).plural
   const done = run.counts.total - run.counts.pending
 
   return (
@@ -91,7 +99,7 @@ export default function BulkUploadRun() {
       <table className="list">
         <thead>
           <tr>
-            <th>Package</th>
+            <th>{title}</th>
             <th>Status</th>
             <th>What&rsquo;s missing</th>
             <th>Page</th>

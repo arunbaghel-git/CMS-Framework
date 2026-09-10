@@ -98,8 +98,8 @@ export function useImportRun(id) {
 }
 
 /** Naya import shuru karo — run ki id lauti hai. */
-export async function startImport(sheetUrl, mode) {
-  const res = await api.post('/bulk-imports', { sheetUrl, mode })
+export async function startImport(sheetUrl, mode, target) {
+  const res = await api.post('/bulk-imports', { sheetUrl, mode, target })
 
   return res.data.data.run
 }
