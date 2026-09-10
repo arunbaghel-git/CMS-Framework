@@ -1,3 +1,4 @@
+import PostList from '../blog/PostList.jsx'
 import PackageList from './PackageList.jsx'
 
 /**
@@ -217,6 +218,12 @@ const BLOCKS = {
   twoColumn: TwoColumnBlock,
   cards: CardsBlock,
   packageList: PackageList,
+  /**
+   * ⚠️ **Naya list-type block jodo to yahan bhi jodo.** Chhoot jaane ka lakshan `500` nahi
+   * hota — block admin me bhara hua rehta hai aur page pe **kuch nahi** aata. Yahi shakl
+   * D-89 me 13 me se zyada tar farak ki thi.
+   */
+  postList: PostList,
   faqs: FaqsBlock,
 }
 

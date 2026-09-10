@@ -1220,6 +1220,16 @@ async function resolvePostListBlock(props, siteId, locale) {
     featured,
     cards,
     facets,
+
+    /**
+     * Byline ka author — **ek baar, har card pe nahi** (spec 008).
+     *
+     * ⚠️ Wahi tark jo `toPostCards()` ke sar pe likha hai: har post pe yahi ek naam hai, use
+     * 60 cards ke payload me dohraana fizool hai. Detail page pe wo `settings.blogAuthor` se
+     * milta hai; yahan block ke apne `data` me hai, kyunki `Blocks` ko `settings` milti hi
+     * nahi — aur uske liye poore block system me settings piroana ek bada badlaav hota.
+     */
+    author: (await getSettings(siteId)).blogSettings?.author?.name ?? '',
     /** `.bfilter__c` — `9 articles`. Ye bina filter wali ginti hai; filter ke baad theme ginti hai. */
     total: cards.length,
     /**

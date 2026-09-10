@@ -6346,3 +6346,213 @@ a.mega__gl:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   BLOG LISTING — `Start here` ke featured card, filter bar, pager
+   (spec 008, Slice D2 — `blog-v1.html`)
+   ============================================================
+
+   ⚠️ `.bcat`, `.bpg` aur `.bp*` upar wale blog block me pehle se hain — wo detail page ke
+   `Related reading` me bhi chalte hain. Yahan sirf wo hai jo **sirf listing** pe hai.
+
+   ⚠️ Naap tokens se hain, reference ke raw px se nahi — client ka niyam (10 Sep):
+   *"reference me mismatch ho to poora copy karne ki zaroorat nahi."*                      */
+
+.feat {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.feat__side {
+  display: grid;
+  gap: 14px;
+  align-content: stretch;
+}
+
+.fcard {
+  position: relative;
+  display: block;
+  border-radius: var(--r4);
+  overflow: hidden;
+  background: var(--blue-900);
+  min-height: 230px;
+  box-shadow: var(--sh-2);
+}
+
+/*
+ * ⚠️ Reference me `474px` hai, jo do chhote card (230 + 230 + 14 gap) se **thoda bada** hai.
+ * Wahi rakha gaya — `align-items: stretch` ke saath bada card side column ki poori lambai
+ * le leta hai, aur wo hi design ka look hai.
+ */
+.fcard--lg {
+  min-height: 474px;
+}
+
+.fcard img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.72;
+  transition:
+    transform 0.55s,
+    opacity 0.3s;
+}
+
+.fcard:hover img {
+  transform: scale(1.05);
+  opacity: 0.82;
+}
+
+/* Text padhne laayak rahe — image ke upar neeche se gehra gradient. */
+.fcard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(9, 32, 55, 0.1) 30%, rgba(9, 32, 55, 0.88));
+}
+
+.fcard__b {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  padding: clamp(16px, 2vw, 24px);
+}
+
+.fcard h3 {
+  color: #fff;
+  font-size: clamp(16px, 1.9vw, 25px);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  margin-top: 9px;
+  text-wrap: balance;
+}
+
+.fcard--sm h3 {
+  font-size: clamp(15px, 1.5vw, 17.5px);
+}
+
+.fcard p {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: var(--fs-md);
+  line-height: 1.55;
+  margin-top: 9px;
+  max-width: 52ch;
+}
+
+.fcard__m {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  font-size: var(--fs-3xs);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.fcard__m i {
+  font-style: normal;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* --- topic ki filter bar --- */
+.bfilter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  padding: 11px 13px;
+  margin-bottom: 14px;
+}
+
+.bfilter__l {
+  font-size: var(--fs-4xs);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.bfilter__c {
+  margin-left: auto;
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* --- pager --- */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 20px;
+}
+
+.pager a,
+.pager span,
+.pager button {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  border-radius: var(--r2);
+  border: 1.5px solid var(--line);
+  background: #fff;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--body);
+}
+
+.pager button:hover:not(:disabled),
+.pager a:hover {
+  border-color: var(--blue-500);
+  color: var(--blue-600);
+}
+
+.pager .on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.pager .dots {
+  border: 0;
+  background: none;
+  color: var(--faint);
+  min-width: 20px;
+  padding: 0;
+}
+
+/*
+ * ⚠️ Tablet pe featured ek column me — reference ka apna rule (1024px). Uske bina bada card
+ * itna tang ho jaata hai ki uska `min-height: 474px` bemaani lagta hai.
+ */
+@media (max-width: 1024px) {
+  .feat {
+    grid-template-columns: 1fr;
+  }
+  .fcard--lg {
+    min-height: 320px;
+  }
+  .fcard--sm {
+    min-height: 200px;
+  }
+}

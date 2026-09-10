@@ -107,7 +107,18 @@ export default async function CatchAllPage({ params }) {
     return <PostPage entry={entry} settings={settings} />
   }
 
-  if (entry.type === 'page' || entry.type === 'tourPage') {
+  /**
+   * ⚠️ **`blogPage` 10 Sep ko yahan juda, aur uske bina wo fallback pe gir raha tha** — page
+   * pe sirf `<h1>` chhapta tha, na hero, na blocks, na sidebar.
+   *
+   * Jad wahi purani hai: API ke `PAGE_TYPES` me `blogPage` Slice A me jud gaya tha (payload
+   * poora sahi aa raha tha), par **theme ki branch me nahi**. Payload bharpoor, render
+   * khaali — bilkul wahi shakl jo D-89 me 13 me se zyada tar farak ki thi.
+   *
+   * ⚠️ **Do jagah ek hi list rakhne ka nateeja hai.** Server `PAGE_TYPES` se chalta hai aur
+   * theme in teen naamon se; naya page-type jodo to **dono** jagah jodna padta hai.
+   */
+  if (entry.type === 'page' || entry.type === 'tourPage' || entry.type === 'blogPage') {
     /**
      * Dono ka payload ek hi hai (`toPublicPage()`) aur field set bhi ek hi constant (D-87 §1) —
      * alag type sirf isliye hai ki menu, list aur URL teenon alag maange gaye the. Render me
@@ -127,14 +138,17 @@ export default async function CatchAllPage({ params }) {
   }
 
   /**
-   * Bache hue types — aaj **`blogPage`**, jiska template Slice D2 me banega (spec 008).
+   * **Aaj is fallback pe koi type aata hi nahi** — chaaron (`package` · `post` · `page` ·
+   * `tourPage` · `blogPage`) ke apne branch upar hain.
    *
-   * ⚠️ Pehle yahan `post` likha tha; wo Slice D me apni branch pe chala gaya. Ye comment us
-   * din update nahi hota to wo ek jhootha ishaara chhod jaata — theek wahi cheez jo D-89 me
-   * do baar mili (byline aur `.blk` pe reference dekhe bina maan liya gaya tha).
+   * ⚠️ Isse hatana **galat** hoga: `contentTypes` ek collection hai aur client apna type bana
+   * sakta hai (Phase 5). Us din bina is fallback ke wo page `undefined` render karta.
    *
-   * Yahan `notFound()` **nahi** hai: entry sach me maujood hai aur publish bhi ho chuki
+   * ⚠️ Yahan `notFound()` **nahi** hai: entry sach me maujood hai aur publish bhi ho chuki
    * hai; 404 dena jhooth hota. Ek saada render se kam se kam title dikh jaata hai.
+   *
+   * ⚠️ Do baar ye comment purana ho chuka hai (pehle `post` likha tha, phir `blogPage`) —
+   * naya branch jodo to **yahan bhi padho**, warna ye ek jhootha ishaara chhod jaata hai.
    */
   return (
     <main className="wrap" style={{ padding: '48px 0' }}>
