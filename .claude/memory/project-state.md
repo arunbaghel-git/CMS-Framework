@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 10 Sep 2026 (raat) — **254 commit**, **push ho chuke**, **988 test pass**
+> **Last updated:** 10 Sep 2026 (raat) — **251 commit**, **push ho chuke**, **988 test pass**
 > (39 file), lint + format clean, tree clean.
 
 ---
@@ -12,7 +12,7 @@
 
 | Kya           | Value                                                                                              |
 | ------------- | -------------------------------------------------------------------------------------------------- |
-| Commits       | **254** — sab push ho chuke                                                                        |
+| Commits       | **251** — sab push ho chuke                                                                        |
 | Tests         | **988 pass**, 39 file (`pnpm test`, exit 0)                                                        |
 | Builds        | admin ✅ · ⚠️ **`next build` aaj bhi nahi chala** — dev server chal raha tha (**A-21**)            |
 | Lint · Format | dono clean                                                                                         |
