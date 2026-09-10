@@ -164,3 +164,46 @@ describe('jab doc template ka hai hi nahi', () => {
     expect(inline.values.title.text).toBe('Andaman ferries')
   })
 })
+
+describe('FAQ ka heading section marker se takrata hai', () => {
+  /**
+   * ⚠️ **Ye asli content se nikla (10 Sep).** Client ke article me FAQ section ka heading
+   * literally "Frequently asked questions" hai — aur wahi vaakya `FAQ_SECTION_LABELS` me ek
+   * section marker bhi hai.
+   *
+   * Parser use heading ki value nahi, ek **doosra `faqStart`** samajh leta tha: `currentKey`
+   * reset ho jaata aur heading chup-chaap gir jaati. Chaaron sawaal theek aate the, sirf
+   * heading gayab — yaani nuksaan dikhta hi nahi tha.
+   */
+  const withHeading = (heading) =>
+    parsePostDoc(
+      '<p>Blog title</p><p>T</p><p>Content</p><p>Body.</p>' +
+        `<p>FAQs</p><p>Heading</p><p>${heading}</p>` +
+        '<p>Question</p><p>Q1?</p><p>answer</p><p>A1.</p>',
+    )
+
+  it('heading khud ek section marker ho to bhi bach_ta hai', () => {
+    const parsed = withHeading('Frequently asked questions')
+
+    expect(parsed.faqHeading).toBe('Frequently asked questions')
+    expect(parsed.faqs).toHaveLength(1)
+    expect(parsed.faqs[0].question.text).toBe('Q1?')
+  })
+
+  it('saada heading pehle jaisa hi chalta hai', () => {
+    expect(withHeading('Common questions about ferries').faqHeading).toBe(
+      'Common questions about ferries',
+    )
+  })
+
+  it('FAQ ke andar likha "Questions" ab section reset nahi karta', () => {
+    /** Ek aur shakl: jawab ke andar `Questions` shabd akela ek line pe. */
+    const parsed = parsePostDoc(
+      '<p>Blog title</p><p>T</p><p>Content</p><p>Body.</p>' +
+        '<p>FAQs</p><p>Question</p><p>Q1?</p><p>answer</p><p>A1.</p><p>Questions</p>',
+    )
+
+    expect(parsed.faqs).toHaveLength(1)
+    expect(parsed.faqs[0].answer.text).toMatch(/A1\./)
+  })
+})

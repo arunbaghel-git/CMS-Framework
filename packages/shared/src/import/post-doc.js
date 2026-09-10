@@ -132,13 +132,24 @@ export function parsePostDoc(html) {
       section === 'faqs' ? [FAQ_LABEL_ORDER, POST_FAQ_LABELS] : [TOP_LABEL_ORDER, POST_DOC_LABELS]
 
     /**
-     * Section marker dono hisson me pehchana jaata hai.
+     * Section marker **sirf tab tak dhoondha jaata hai jab tak hum FAQ me pahunche na hon**.
      *
-     * ⚠️ Kram ye hai: **pehle hisse ka apna label, phir section marker**. Ulta karne pe blog ka
-     * `Content` theek chalta, par package wale parser me `FAQs` ek din ka label ban jaata —
-     * wahi jaal jo D-81 me likha hai. Dono parser ek hi kram pe rakhe gaye hain.
+     * ⚠️ **Ye ek asli bug ka fix hai, aur wo asli content se nikla (10 Sep).** Client ke article
+     * me FAQ section ka heading literally _"Frequently asked questions"_ tha — aur wahi vaakya
+     * `FAQ_SECTION_LABELS` me ek section marker bhi hai. Parser use heading ki value nahi, ek
+     * **doosra `faqStart`** samajh leta tha: `currentKey` reset ho jaata aur heading chup-chaap
+     * gir jaati. FAQ ke chaaron sawaal theek aate the, sirf heading gayab — yaani nuksaan dikhta
+     * hi nahi tha.
+     *
+     * Post me sirf **ek** section hai, isliye FAQ ke andar doosra marker bemaani hai. Package ka
+     * parser is se alag hai aur wahan marker har hisse me dekhe jaate hain — wahan teen section
+     * hain aur itinerary ke baad `FAQs` aana asli baat hai (D-81).
+     *
+     * ⚠️ Kram wahi rehta hai: **pehle hisse ka apna label, phir section marker**.
      */
-    const hit = matchLabel(plain, order, map) ?? matchLabel(plain, SECTION_ORDER, SECTION_LABELS)
+    const hit =
+      matchLabel(plain, order, map) ??
+      (section === 'top' ? matchLabel(plain, SECTION_ORDER, SECTION_LABELS) : null)
 
     if (hit) {
       matchedAny = true

@@ -3035,15 +3035,26 @@ a.mega__gl:hover {
 }
 
 /*
- * ⚠️ **Google ke export me `<th>` hota hi nahi** — pehli row bhi `<td>` hi hoti hai, bas
- * bold. Isliye header ka look un tables pe `tr:first-child` se aata hai jinme ek bhi `<th>`
- * nahi.
+ * ⚠️ **Google `<thead>` to bhejta hai, par uske andar bhi `<td>` hi hota hai — `<th>` kabhi
+ * nahi.** Ye 10 Sep ko asli doc pe naapa gaya, aur ye pehle wale andaze ka palat hai: pehle
+ * yahan likha tha ki "thead hota hi nahi".
  *
- * `:has()` yahan zaroori hai: sirf `tbody > tr:first-child` likhne se client ki apni tables
- * bhi pakdi jaatin, jinme `<thead>` alag hota hai aur pehli `tbody` row asli **data** hoti hai.
+ * Isliye header ka look do raaste se aata hai:
+ *
+ * 1. `thead td` — jab Google ne `<thead>` bheja ho (doc me table ka header row set ho)
+ * 2. `tr:first-child` — jab na `<thead>` ho na `<th>` (saada pasted table)
+ *
+ * ⚠️ **Doosre wale me `:not(:has(thead))` bhi zaroori hai, sirf `:not(:has(th))` kaafi nahi.**
+ * `<thead>` aur `<tbody>` dono hone par `tr:first-child` **do** rows pakadta hai — thead ki
+ * header row, aur tbody ki **pehli data row**. Yaani ek data row chup-chaap header jaisi rang
+ * jaati.
+ *
+ * ⚠️ Client ki apni tables me `<thead><th>` hota hai, to unpe pehla selector (`.tbl th`) lagta
+ * hai aur baaki dono chhoote rehte hain.
  */
 .tbl th,
-.art .tblw > table:not(:has(th)) tr:first-child td {
+.art .tblw > table thead td,
+.art .tblw > table:not(:has(thead)):not(:has(th)) tr:first-child td {
   background: var(--blue-50);
   color: var(--blue-700);
   text-align: left;
