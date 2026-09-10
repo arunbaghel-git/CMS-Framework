@@ -1831,7 +1831,15 @@ a.mega__gl:hover {
   margin-top: 12px;
 }
 
-.blk p b {
+/*
+ * ⚠️ **`strong` bhi, sirf `b` nahi** (spec 008, 10 Sep).
+ *
+ * Client haath se `<b>` likhta hai, par import `<strong>` deta hai — Google bold ko
+ * `<span class="c2">` se bhejta hai aur `spansToTags()` use `<strong>` banata hai. Sirf `b`
+ * pakadne se imported article ka bold saada dikhta tha aur client ka gehra — ek hi page pe
+ * do alag look.
+ */
+.blk p :is(b, strong) {
   color: var(--ink);
   font-weight: var(--fw-heading);
 }
@@ -3001,7 +3009,20 @@ a.mega__gl:hover {
   border-radius: var(--r3);
 }
 
-.tbl {
+/*
+ * ⚠️ **Doosra selector import se aayi tables ke liye hai** (spec 008, 10 Sep).
+ *
+ * Google Doc se aayi table par **koi class nahi hoti** — sanitizer table ke saare attributes
+ * hata deta hai. `.tblw` ka dabba theme khud laga deta hai (`wrapTables()`, D-90), par uske
+ * andar wali table saadi browser-default table thi: na cell padding, na row ki lines, na
+ * poori chaudai.
+ *
+ * ⚠️ **Ilaaj yahan hai, importer me nahi.** Import se `class="tbl"` likhwana wahi galti
+ * hoti jo A-19 me pakdi gayi thi — look ko us markup ka mohtaaj rakhna jo editor **shayad**
+ * dega. Sawaal wahi hai: *agar client ye class na likhe to kya hoga?*
+ */
+.tbl,
+.art .tblw > table {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--fs-sm);
@@ -3009,7 +3030,16 @@ a.mega__gl:hover {
   min-width: 520px;
 }
 
-.tbl th {
+/*
+ * ⚠️ **Google ke export me `<th>` hota hi nahi** — pehli row bhi `<td>` hi hoti hai, bas
+ * bold. Isliye header ka look un tables pe `tr:first-child` se aata hai jinme ek bhi `<th>`
+ * nahi.
+ *
+ * `:has()` yahan zaroori hai: sirf `tbody > tr:first-child` likhne se client ki apni tables
+ * bhi pakdi jaatin, jinme `<thead>` alag hota hai aur pehli `tbody` row asli **data** hoti hai.
+ */
+.tbl th,
+.art .tblw > table:not(:has(th)) tr:first-child td {
   background: var(--blue-50);
   color: var(--blue-700);
   text-align: left;
@@ -3021,7 +3051,8 @@ a.mega__gl:hover {
   white-space: nowrap;
 }
 
-.tbl td {
+.tbl td,
+.art .tblw > table td {
   padding: 11px 14px;
   border-top: 1px solid var(--line-2);
   color: var(--body);
@@ -3041,7 +3072,8 @@ a.mega__gl:hover {
  * ke naam se alag ek "chhoti sooch na" jaisa dikhne lagta tha.
  */
 
-.tbl tr:hover td {
+.tbl tr:hover td,
+.art .tblw > table tr:hover td {
   background: var(--blue-50);
 }
 
@@ -6027,6 +6059,28 @@ a.mega__gl:hover {
   color: var(--muted);
   margin-top: 9px;
   font-weight: 600;
+}
+
+/*
+ * Article ke andar ki **koi bhi** image — spec 008 (10 Sep).
+ *
+ * ⚠️ Import se aayi image `<p><img></p>` hoti hai, `<figure class="artfig">` nahi — Google Doc
+ * me figure/caption ka koi tareeka hai hi nahi. Uske paas koi class na hone se use `.artfig img`
+ * ka kuch nahi milta tha, **aur is theme me koi global `img` reset bhi nahi hai**. Nateeja: 800px
+ * ki image ~700px ke column se bahar nikal rahi thi, aur phone pe kaafi bahar.
+ *
+ * ⚠️ `height: auto` `width` ke saath hi likhna zaroori hai — warna Google ke `width`/`height`
+ * attributes (jo sanitizer allow karta hai) anupaat bigaad dete hain.
+ *
+ * `.artfig img` iske baad bhi apna kaam karta hai; dono ek hi look dete hain, isliye takrav nahi.
+ * Yahi A-19 wala niyam hai: look us markup ka mohtaaj na ho jo editor **shayad** dega.
+ */
+.art .blk img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--r3);
+  background: var(--blue-100);
 }
 /*
  * ⚠️ **Yahan pehle `.art p` aur `.art p + p` ki apni copy thi — 15.5px / lh 1.75 / 15px gap,
