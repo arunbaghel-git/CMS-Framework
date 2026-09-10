@@ -6573,3 +6573,43 @@ a.mega__gl:hover {
   background: var(--blue-100);
   color: var(--blue-700);
 }
+
+/*
+ * `Topics` ke rows jab **button** hote hain (listing page pe filter ka roop).
+ *
+ * ⚠️ Upar wale selector me `button` jod dena kaafi nahi tha — browser ka apna button style
+ * (grey background, chaaron taraf border, shrink-to-fit width, apni font-family) uske saath
+ * hi lag jaata hai. Client ne screenshot se pakda: rows dabbe jaise dikh rahe the.
+ *
+ * ⚠️ `border-width: 0 0 1px` isliye, `border: 0` ke baad dobara `border-bottom` likhne ke
+ * bajaye — us shakl me shared rule ka dashed border yahin mar jaata aur rows ki lakeer gayab
+ * ho jaati.
+ *
+ * `font-size` aur `font-weight` yahan **nahi** hain — wo shared rule se aate hain. `font:
+ * inherit` likhne ka matlab hota unhe yahin dobara likhna, yaani ek hi naap do jagah.
+ */
+.cats li > button {
+  width: 100%;
+  background: none;
+  border-width: 0 0 1px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/*
+ * Block ke pehle heading ka apna top margin nahi — warna gap **dugna** ho jaata hai (client,
+ * 10 Sep: _"Frequently asked questions ke upar double margin-top"_).
+ *
+ * ⚠️ **Ye margin collapse hone chahiye the, par hote nahi** — aur wajah `.blk` ka
+ * `content-visibility: auto` hai (D-85). Wo apne saath containment leke aata hai, aur
+ * containment margin collapsing rok deti hai. Isliye `.art > .blk + .blk` ka
+ * `clamp(22px, 2.6vw, 32px)` aur `.art h2` ka `clamp(26px, 3vw, 38px)` **jud** jaate hain —
+ * 70px tak.
+ *
+ * Block ke beech ka gap block ka kaam hai, heading ka nahi. Beech me aane wali heading pe
+ * uska apna margin waise ka waisa rehta hai.
+ */
+.art > .blk > h2:first-child {
+  margin-top: 0;
+}
