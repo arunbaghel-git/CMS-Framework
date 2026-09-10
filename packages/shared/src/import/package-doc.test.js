@@ -7,12 +7,11 @@ import {
   clamp,
   normalizeLabel,
   parseCount,
-  parseMeals,
   parseMoney,
   parseNameList,
-  parsePackageDoc,
   parseSlug,
-} from './package-doc.js'
+} from './doc-parse.js'
+import { parseMeals, parsePackageDoc } from './package-doc.js'
 
 /**
  * ⚠️ **Ye fixture asli hai — client ke Google Doc ka apna export.**
