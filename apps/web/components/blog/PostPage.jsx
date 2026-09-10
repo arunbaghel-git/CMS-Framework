@@ -161,6 +161,7 @@ function Share({ url, title }) {
 
 export default function PostPage({ entry, settings }) {
   const {
+    fields = {},
     banner,
     breadcrumbs = [],
     category,
@@ -226,13 +227,24 @@ export default function PostPage({ entry, settings }) {
             {category && <span className="ahead__cat">{category.name}</span>}
 
             {/*
-             * ⚠️ **`entry.title`, koi `fields.heading` nahi** — aur ye `TourPage` se soch kar
-             * alag hai. D-90 ne wo field `tourPage` ke liye banaya tha kyunki wahan `<h1>` me
-             * `<em>` se rang chahiye tha. Ek article ka `<h1>` uska title **hi** hota hai; do
-             * field rakhne ka matlab hota ki breadcrumb, card aur `<title>` ek naam kahein aur
-             * page doosra (D-86).
+             * ⚠️ **`fields.heading` pehle, `title` fallback — 10 Sep ko badla (client).**
+             *
+             * 9 Sep ko yahan sirf `entry.title` tha. Client ne palta: _"blog ki heading aur slug
+             * alag rahenge jisse breadcrumb bhi thik ho jayega"_ — yaani `title` chhota rakha ja
+             * sake (slug · breadcrumb · admin list · SEO) aur page pe poori heading chhape.
+             *
+             * ⚠️ **Fallback theme me hai, payload me nahi** — `title` waise bhi payload me hai,
+             * aur dono jagah wahi text bhejne ka matlab hota ki ek din wo alag ho jaayein (D-86).
+             * Bilkul wahi jodi jo `TourPage` pe hai.
+             *
+             * HTML isliye ki `pageHeadingSchema` inline profile pe hai — bold/italic/link bachte
+             * hain, block tags write pe hi gir chuke hote hain (R20).
              */}
-            <h1 className="ahead__t">{entry.title}</h1>
+            {fields.heading ? (
+              <h1 className="ahead__t" dangerouslySetInnerHTML={{ __html: fields.heading }} />
+            ) : (
+              <h1 className="ahead__t">{entry.title}</h1>
+            )}
 
             {entry.excerpt && <p className="ahead__d">{entry.excerpt}</p>}
 

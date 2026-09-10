@@ -5484,8 +5484,16 @@ a.mega__gl:hover {
  * ⚠️ Ye sirf `.wdg__b` ke andar lagta hai, yaani sidebar ke widget me. Page ke content ki
  * `<ul>` par iska koi asar nahi — wahan bullets wahi rehte hain.
  */
+/*
+ * ⚠️ **Ye reset `.toc` aur `.cats` pe bhi lagta hai, aur lagna chahiye** — 10 Sep ko maine
+ * inhe galti se yahan se bhi nikaal diya tha aur TOC me browser ke apne bullet aur 40px ka
+ * left indent wapas aa gaye the (client ne screenshot se pakda).
+ *
+ * Nikaalna sirf neeche wale `li a` ke look se tha (`.wdgl` ka dashed underline), reset se
+ * nahi. Reset har list ko chahiye.
+ */
 .wdgl,
-.wdg__b ul:not(.toc):not(.cats) {
+.wdg__b ul {
   list-style: none;
   margin: 0;
   padding: 0;

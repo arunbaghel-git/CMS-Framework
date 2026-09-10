@@ -69,6 +69,7 @@ const TYPE_CONFIG = {
     basePath: '/tour',
     /** `Page header` panel — heading + sub heading. */
     header: true,
+    subheading: true,
     /** Eyebrow + Stat rail — `tour-v3.html` ke hero wale panel. */
     hero: true,
     /** Sidebar ka chunav page pe (D-88). */
@@ -90,6 +91,7 @@ const TYPE_CONFIG = {
     label: 'Blog Page',
     basePath: '/blog-page',
     header: true,
+    subheading: true,
     hero: false,
     sidebar: true,
     blocks: BLOG_PAGE_BLOCK_TYPES,
@@ -98,11 +100,15 @@ const TYPE_CONFIG = {
   /**
    * Blog post — `blog-detail-v1.html` (spec 008).
    *
-   * ⚠️ **`header: false`** — post ka `<h1>` uska **Title hi** hai. D-90 ne `fields.heading`
-   * `tourPage` ke liye banaya tha kyunki wahan `<h1>` me `<em>` se rang chahiye tha aur
-   * `title` har doosri jagah (SEO, `<title>` tag) bhi jaata hai. Blog pe reference ka
-   * `.ahead__t` bilkul wahi text hai jo breadcrumb aur card pe dikhta hai — do field ek hi
-   * cheez ke do naam bana dete (D-86).
+   * ⚠️ **`header: true`, par `subheading: false` — 10 Sep ko badla (client).**
+   *
+   * 9 Sep ko yahan `header: false` tha; maine tay kiya tha ki post ka `<h1>` uska `title` hi
+   * rahega. Client ne palta (R15): _"blog ki heading aur slug alag rahenge jisse breadcrumb bhi
+   * thik ho jayega"_ — wahi wajah jo D-90 me `tourPage` pe thi. Poora tark `content-types.js`
+   * me `POST_FIELDS` ke upar hai.
+   *
+   * `subheading` phir bhi nahi hai — uski jagah **Excerpt** hai, jo listing card pe bhi wahi
+   * text dikhata hai.
    *
    * ⚠️ **`sidebar: false`** — post ki sidebar `Settings ▸ Blog settings` me ek baar chunti hai
    * (client, 9 Sep: TOC ke liye bhi _"sabke liye"_). Har post pe do dropdown bharwane ka
@@ -112,7 +118,8 @@ const TYPE_CONFIG = {
     key: 'post',
     label: 'Post',
     basePath: '/posts',
-    header: false,
+    header: true,
+    subheading: false,
     hero: false,
     sidebar: false,
     /** Excerpt aur Category sirf post pe — `tourPage` ko dono ki zaroorat hi nahi. */
@@ -436,20 +443,31 @@ export default function PageEdit({ type = 'tourPage' }) {
                     />
                   </div>
                 )}
-                <div className="field">
-                  <label>Sub heading</label>
-                  <HtmlEditor
-                    value={form.fields.subheading ?? ''}
-                    onChange={(v) => setField('subheading', v)}
-                    disabled={readOnly}
-                    height={140}
-                  />
-                </div>
-                <div className="hint">
-                  The big heading comes from the Title above. The breadcrumb is built from the
-                  page&rsquo;s <b>Parent</b>. The banner image comes from Settings — a page with its
-                  own Featured image uses that instead.
-                </div>
+                {/*
+                 * ⚠️ **Post pe sub heading nahi hai** — uski jagah **Excerpt** ka panel hai, jo
+                 * listing card pe bhi wahi text dikhata hai. Do field rakhne ka matlab hota ki
+                 * card kuch kahe aur page kuch aur (D-86).
+                 *
+                 * Neeche wali hint bhi post pe galat hoti: uska banner Settings se nahi aata.
+                 */}
+                {config.subheading && (
+                  <>
+                    <div className="field">
+                      <label>Sub heading</label>
+                      <HtmlEditor
+                        value={form.fields.subheading ?? ''}
+                        onChange={(v) => setField('subheading', v)}
+                        disabled={readOnly}
+                        height={140}
+                      />
+                    </div>
+                    <div className="hint">
+                      The big heading comes from the Title above. The breadcrumb is built from the
+                      page&rsquo;s <b>Parent</b>. The banner image comes from Settings — a page with
+                      its own Featured image uses that instead.
+                    </div>
+                  </>
+                )}
               </div>
             </Panel>
           )}

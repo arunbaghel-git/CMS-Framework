@@ -170,7 +170,18 @@ function FaqsBlock({ props }) {
   if (!items.length) return null
 
   return (
-    <section className="blk">
+    /**
+     * `id` **server se** aati hai (`props.anchorId`) — blog post ki TOC ka link isi pe jaata
+     * hai (client, 10 Sep). Do jagah slug banane ka matlab hota ki wo ek din alag ho jaayein;
+     * wahi tark jo `withHeadingIds()` ke sar pe likha hai.
+     *
+     * Tour page pe ye `undefined` rehti hai (wahan TOC hai hi nahi) aur React attribute chhod
+     * deta hai — koi khaali `id=""` nahi banta.
+     *
+     * `scrollMarginTop` `.art h2` wali hi wajah se hai: bina uske anchor pe jaate hi heading
+     * sticky header ke peeche chali jaati hai.
+     */
+    <section className="blk" id={props.anchorId} style={{ scrollMarginTop: 96 }}>
       <BlockHead heading={props.heading} description={props.description} />
 
       {/*

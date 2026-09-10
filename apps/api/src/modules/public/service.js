@@ -17,6 +17,7 @@ import {
   readingMinutes,
   resolveSectionLabels,
   routeStrip,
+  slugify,
   withHeadingIds,
 } from '@cms/shared'
 
@@ -1674,6 +1675,28 @@ async function toPublicPost(doc, siteId, locale) {
    */
   const toc = []
   const blocks = (doc.content?.blocks ?? []).map((block) => {
+    /**
+     * FAQs block ka **heading** TOC me jaata hai — reference me bhi wahi hai
+     * (`#faq → Frequently asked questions`), client ne 10 Sep ko pakda.
+     *
+     * ⚠️ **Sirf heading, uske sawaal nahi.** Ek 9-sawaal wali FAQ apne har sawaal ke saath
+     * poori TOC nigal jaati — aur wo bhi reference se ulta hota, jahan ek hi row hai.
+     *
+     * ⚠️ `anchorId` payload me bhejna zaroori hai: theme ko wahi id `<section>` pe lagani hai
+     * jispe TOC ka link jaata hai. Do jagah alag se banane ka matlab hota ki link kahin na le
+     * jaaye — wahi tark jo `withHeadingIds()` ke sar pe likha hai.
+     */
+    if (block?.type === 'faqs') {
+      const heading = String(block.props?.heading ?? '').trim()
+      const hasItems = (block.props?.items ?? []).some((f) => f?.question)
+      if (!heading || !hasItems) return block
+
+      const anchorId = slugify(heading) || `faqs-${toc.length + 1}`
+      toc.push({ id: anchorId, text: heading })
+
+      return { ...block, props: { ...block.props, anchorId } }
+    }
+
     if (block?.type !== 'richText') return block
 
     const { html, toc: found } = withHeadingIds(block.props?.html ?? '')
@@ -1708,6 +1731,22 @@ async function toPublicPost(doc, siteId, locale) {
     banner,
     breadcrumbs,
     blocks,
+
+    /**
+     * Post ka dikhne wala `<h1>` — client, 10 Sep (spec 008).
+     *
+     * ⚠️ **Ye `fields` object isliye hai ki theme ka shape `toPublicPage()` jaisa hi rahe** —
+     * ek hi `PostPage`/`TourPage` padhne wale ko do alag shape yaad na rakhne padein.
+     *
+     * ⚠️ **Sirf `heading` jaata hai, poora `fields` nahi.** `entries.fields` `Mixed` hai —
+     * usme kuch bhi pada ho sakta hai (purane import ka kachra, hataye ja chuke field). Use
+     * jaisa ka waisa bhej dena wahi galti hoti jo R10 rokta hai.
+     *
+     * ⚠️ **Khaali pe theme `entry.title` pe girti hai — fallback theme me hai, yahan nahi.**
+     * `title` payload me pehle se hai; dono jagah wahi text bhejne ka matlab hota ki ek din wo
+     * alag ho jaayein (D-86). Bilkul wahi tark jo `toPublicPage()` pe likha hai.
+     */
+    fields: { heading: doc.fields?.heading ?? '' },
 
     /** `.ahead__cat` — post ki category. Khaali pe badge render hi nahi hota. */
     category: categories[0] ?? null,

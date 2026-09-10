@@ -342,6 +342,39 @@ const BLOG_PAGE_FIELDS = [
   },
 ]
 
+/**
+ * `post` ka field set — sirf **ek** field (spec 008, client 10 Sep).
+ *
+ * ## ⚠️ Ye 10 Sep ko juda, aur uske pehle post ka `fields` khaali tha
+ *
+ * Maine 9 Sep ko tay kiya tha ki post ka `<h1>` uska `title` hi rahega — tark ye tha ki
+ * article ka title har jagah wahi ek text hota hai. **Client ne wo palta** (R15):
+ *
+ * > _"blog ki heading aur slug alag rahenge jisse breadcrumb bhi thik ho jayega"_
+ *
+ * Wajah practical hai aur wahi hai jo D-90 me `tourPage` pe thi: page pe achha padhne wala
+ * `<h1>` (_"How to plan an Andaman trip: a step-by-step guide for 2026"_) breadcrumb me bahut
+ * lamba lagta hai. Ab `title` chhota rakha ja sakta hai — slug, breadcrumb, admin ki list aur
+ * SEO uske se — aur page pe poori heading chhapti hai.
+ *
+ * ## Jo yahan **nahi** hai
+ *
+ * - **`eyebrow`** — `blog-detail-v1.html` me uski jagah category ka badge hai (`.ahead__cat`),
+ *   jo taxonomy se aata hai. Ek aur free-text line dene ka matlab hota do cheezein ek hi jagah
+ * - **`subheading`** — uski jagah **excerpt** hai (`.ahead__d`), jo listing card pe bhi wahi
+ *   text dikhata hai. Do field rakhne ka matlab hota ki card kuch kahe aur page kuch aur (D-86)
+ * - **`sidebar`/`sidebarId`** — post ki sidebar `Settings ▸ Blog settings` me ek baar chunti
+ *   hai, har post pe nahi
+ */
+const POST_FIELDS = [
+  {
+    key: 'heading',
+    type: 'text',
+    label: 'Post heading',
+    help: 'The H1 shown on the post. Leave it empty and the Title is used.',
+  },
+]
+
 /** @type {ReadonlyArray<import('./types.js').ContentTypeSeed>} */
 export const BUILT_IN_CONTENT_TYPES = Object.freeze([
   {
@@ -554,7 +587,7 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
      * - **`author` / `readTime`** — dono derive hote hain, `blogSettings.author` aur
      *   `readingMinutes()` se
      */
-    fields: [],
+    fields: POST_FIELDS,
   },
 ])
 
