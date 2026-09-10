@@ -246,7 +246,17 @@ export default function PostPage({ entry, settings }) {
               <h1 className="ahead__t">{entry.title}</h1>
             )}
 
-            {entry.excerpt && <p className="ahead__d">{entry.excerpt}</p>}
+            {/*
+             * ⚠️ **Hero me excerpt NAHI aata — client, 10 Sep, aur reference bhi wahi kehta hai.**
+             *
+             * `blog-detail-v1.html` ke hero me sirf teen cheezein hain: category ka badge, `<h1>`,
+             * aur byline. `.ahead__d` ki CSS us file me maujood hai par **markup me kahin use
+             * nahi hoti** — maine use dekh kar apni taraf se excerpt wahan jod diya tha.
+             *
+             * Aur wo galat bhi tha: excerpt **listing card ki line** hai aur SEO description ka
+             * fallback — dono jagah wo chhota parichay hai. Article kholne ke baad usi text ko
+             * dobara dikhana lead paragraph se takraata hai, jo content me pehle se hai.
+             */}
 
             {/*
              * Byline — author `blogSettings` se, date `publishAt` se, read time derived.

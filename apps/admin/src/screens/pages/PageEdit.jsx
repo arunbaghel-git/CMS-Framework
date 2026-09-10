@@ -74,6 +74,8 @@ const TYPE_CONFIG = {
     hero: true,
     /** Sidebar ka chunav page pe (D-88). */
     sidebar: true,
+    /** `Parent` ka dropdown — breadcrumb isi se banta hai (D-87 §12). */
+    parent: true,
     blocks: ['richText', 'twoColumn', 'cards', 'packageList', 'faqs'],
   },
 
@@ -94,6 +96,15 @@ const TYPE_CONFIG = {
     subheading: true,
     hero: false,
     sidebar: true,
+    /**
+     * ⚠️ **`parent: false` — client, 10 Sep: _"ye to khud hi parent hai"_.**
+     *
+     * Blog listing page site ka ek top-level page hai, aur (spec 008 ke URL switch ke baad)
+     * **post uske bachche** honge. Use kisi aur page ke andar rakhne ka koi matlab nahi banta;
+     * dropdown wahan hota to wo ek aisa control hota jise chunne ki zaroorat kabhi na padti —
+     * aur khaali/bemaani control wahi cheez hai jo client se sawaal karwati hai (D-30).
+     */
+    parent: false,
     blocks: BLOG_PAGE_BLOCK_TYPES,
   },
 
@@ -122,6 +133,12 @@ const TYPE_CONFIG = {
     subheading: false,
     hero: false,
     sidebar: false,
+    /**
+     * ⚠️ **Post ka parent bhi dropdown se nahi chunta.** Uska URL `post` type ke `urlPattern`
+     * se banta hai (`/blog/{slug}`), aur wo chunav `Settings ▸ Blog settings` me ek baar hota
+     * hai — har post pe nahi. Yahan dropdown rakhne ka matlab hota do jagah ek hi faisla.
+     */
+    parent: false,
     /** Excerpt aur Category sirf post pe — `tourPage` ko dono ki zaroorat hi nahi. */
     excerpt: true,
     categories: true,
@@ -779,28 +796,35 @@ export default function PageEdit({ type = 'tourPage' }) {
                 </>
               )}
 
-              <div className="field">
-                <label>Parent</label>
-                <select
-                  className="sel"
-                  value={form.parentId}
-                  onChange={(e) => set({ parentId: e.target.value })}
-                  disabled={readOnly}
-                >
-                  <option value="">(no parent)</option>
-                  {parentOptions
-                    .filter((p) => p.id !== id)
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.title}
-                      </option>
-                    ))}
-                </select>
-                <div className="hint">
-                  The breadcrumb is built from this.
-                  {config.key === 'tourPage' && ' Tour page ka URL isse nahi badalta.'}
+              {/*
+               * ⚠️ **Parent sirf wahan jahan wo sach me chunna padta hai.** Blog page khud
+               * parent hai aur post ka parent URL pattern se aata hai — dono jagah ye dropdown
+               * ek aisa control hota jise koi kabhi chhoota hi nahi.
+               */}
+              {config.parent && (
+                <div className="field">
+                  <label>Parent</label>
+                  <select
+                    className="sel"
+                    value={form.parentId}
+                    onChange={(e) => set({ parentId: e.target.value })}
+                    disabled={readOnly}
+                  >
+                    <option value="">(no parent)</option>
+                    {parentOptions
+                      .filter((p) => p.id !== id)
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.title}
+                        </option>
+                      ))}
+                  </select>
+                  <div className="hint">
+                    The breadcrumb is built from this.
+                    {config.key === 'tourPage' && ' Tour page ka URL isse nahi badalta.'}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/*
                * ⚠️ `onSelect` ko **poora media document** milta hai, uski id nahi — wahi shape

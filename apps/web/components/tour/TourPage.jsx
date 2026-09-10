@@ -75,6 +75,14 @@ export default function TourPage({ entry, settings }) {
    */
   const hasSidebar = sidebar !== 'none' && sidebarWidgets.length > 0
 
+  /**
+   * Hero ke button aur trust badges **sirf Tour page pe** (client, 10 Sep).
+   *
+   * ⚠️ `page` pe bhi nahi — wo bhi `Tour settings` ki cheezein hain, aur ek About Us page pe
+   * _"Get my itinerary & price"_ ka koi matlab nahi banta.
+   */
+  const isTour = entry.type === 'tourPage'
+
   return (
     /**
      * ⚠️ Provider yahan bhi hai — `EnquiryForm` `useEnquiryDock()` padhta hai. Wo bina provider
@@ -191,7 +199,23 @@ export default function TourPage({ entry, settings }) {
              * Dono me se koi bhi na ho to uska button render hi nahi hota (D-30); dono na hon to
              * poori patti gayab.
              */}
-            {(settings?.heroButton || settings?.whatsapp) && (
+            {/*
+             * ⚠️ **Hero ke button aur trust badges sirf `tourPage` pe — client, 10 Sep:**
+             * _"hero me ye buttons kyu add kiye hai aur badges."_
+             *
+             * Dono `Settings ▸ Tour settings` ki cheezein hain (D-87 ke faisle #10/#11) aur wo
+             * naam ittefaq nahi hai: _"Get my itinerary & price"_ ek **package** bechne wala
+             * button hai, aur badges bhi package/tour ke bharose wali line hain.
+             * `blog-v1.html` ke hero me dono hain hi nahi.
+             *
+             * ⚠️ **Type se gate kiya gaya hai, aur wo yahan sahi hai** — `byline` pe bhi 8 Sep
+             * ko yahi hua tha. Ye **content** ka faisla hai ("is page pe ye cheez hai ya nahi"),
+             * dhaanche ka nahi; dhaanche wala sawaal `LEADS` map se hal hota hai.
+             *
+             * ⚠️ Ek doosra on/off `Tour settings` me **nahi** banaya — client ne kabhi maanga
+             * nahi, aur ek hi cheez ke do control wahi shakl bante jo D-86 me pakdi gayi thi.
+             */}
+            {isTour && (settings?.heroButton || settings?.whatsapp) && (
               <div className="vhero__cta">
                 {/*
                  * ⚠️ **`.btn--accent`, reference ka `.b-o` nahi.** Hamare paas `.b`/`.b-o` hain hi
@@ -236,7 +260,7 @@ export default function TourPage({ entry, settings }) {
              * `<b>` ek separator dot hai, text nahi — reference me bhi wahi hai, aur wo aakhri
              * badge ke baad nahi aata.
              */}
-            {settings?.trustBadges?.length > 0 && (
+            {isTour && settings?.trustBadges?.length > 0 && (
               <div className="vhero__trust">
                 {settings.trustBadges.map((badge, i) => (
                   <Fragment key={badge.id ?? i}>
@@ -277,6 +301,20 @@ export default function TourPage({ entry, settings }) {
 
         <section className="sec sec--blue">
           <div className="wrap">
+            {/*
+             * **Lead pass — jo hissa columns ke upar, poori chaudai pe jaata hai** (spec 008,
+             * client 10 Sep: _"Start here ka section upar hai, ye side me kyu aa raha hai"_).
+             *
+             * ⚠️ **Yahan koi block ka naam likha hua nahi hai, aur wo jaan-boojh kar hai.**
+             * Kaunsa block apna kya hissa upar bhejta hai wo `Blocks.jsx` ke `LEADS` map me hai.
+             * `type === 'postList'` yahan likhne ka matlab hota page ka dhaancha block ke naam se
+             * baandh dena — wahi hardcoding jise D-09 ne mana kiya tha.
+             *
+             * Jis page ke kisi block ka lead nahi hota (aaj har tour page), wahan ye kuch render
+             * hi nahi karta — ek khaali div bhi nahi.
+             */}
+            <Blocks blocks={entry.blocks ?? []} slot="lead" />
+
             {/*
              * ⚠️ **`.pgl--sideleft` ek modifier hai, `.pgl` badla nahi gaya.**
              *

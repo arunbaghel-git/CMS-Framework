@@ -2,15 +2,15 @@
 
 import { useMemo, useState } from 'react'
 
-import Img from '../Img.jsx'
-import PostCard, { categoryClass } from './PostCard.jsx'
+import PostCard from './PostCard.jsx'
 
 /**
  * `Post list` block — blog ka poora listing page (`blog-v1.html`, spec 008 Slice D2).
  *
+ * ⚠️ **`Start here` ka hissa yahan NAHI hai** — wo `PostListLead.jsx` me hai aur `.pgl` ke
+ * **bahar** render hota hai (client, 10 Sep). Poora tark wahin likha hai.
+ *
  * ```
- * .sh            Start here + `All articles` link
- * .feat          ek bada card + do chhote
  * #latest
  *   .sh          Latest articles + uski line
  *   .bfilter     Topic ki pills + `9 articles`
@@ -33,68 +33,11 @@ import PostCard, { categoryClass } from './PostCard.jsx'
  * badalna. Grid `1.45fr 1fr` tang column me bhi theek baithti hai.
  */
 
-/** `2026-08-12` → `12 Aug 2026`. */
-const shortDate = (value) =>
-  value
-    ? new Date(value).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      })
-    : ''
-
 const Arrow = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
     <path d="M5 12h14M13 6l6 6-6 6" />
   </svg>
 )
-
-/**
- * `Start here` ka card — reference ka `.fcard`.
- *
- * ⚠️ **Ye `PostCard` (`.bp`) se poori tarah alag markup hai**, isliye alag component hai: usme
- * image card ke **upar** hoti hai, yahan wo background hai aur text uske upar. Ek hi component
- * me dono karne ka matlab hota do bilkul alag JSX ek `variant` prop ke peeche — aur wo
- * `EnquiryForm` (D-87 §11) se ulta case hai, jahan dono roop 90% ek jaise the.
- *
- * Bada card apna excerpt dikhata hai, chhote nahi — reference me bhi wahi hai.
- */
-function FeaturedCard({ post, large }) {
-  return (
-    <a className={`fcard${large ? ' fcard--lg' : ' fcard--sm'}`} href={post.path}>
-      {/*
-       * ⚠️ `sizes` bada aur chhota card ke liye alag hai — bina iske browser dono ke liye ek hi
-       * naap chunta hai aur chhote card pe 3x badi image utar leta hai (D-84).
-       */}
-      {post.banner && (
-        <Img
-          image={post.banner}
-          alt={post.title}
-          sizes={large ? '(max-width: 1024px) 100vw, 45vw' : '(max-width: 1024px) 100vw, 30vw'}
-        />
-      )}
-
-      <div className="fcard__b">
-        {post.category && (
-          <span className={categoryClass(post.category.id)}>{post.category.name}</span>
-        )}
-        <h3>{post.title}</h3>
-
-        {large && post.excerpt ? <p>{post.excerpt}</p> : null}
-
-        <div className="fcard__m">
-          {shortDate(post.publishedAt)}
-          {post.readMinutes ? (
-            <>
-              <i />
-              {post.readMinutes} min read
-            </>
-          ) : null}
-        </div>
-      </div>
-    </a>
-  )
-}
 
 /**
  * Pager ke button — `1 2 3 … 7 Next`.
@@ -142,7 +85,7 @@ function Pager({ page, pages, onGo }) {
 }
 
 export default function PostList({ props = {}, data }) {
-  const { featured = [], cards = [], facets = [], author = '', capped = false } = data ?? {}
+  const { cards = [], facets = [], author = '', capped = false } = data ?? {}
 
   const [topic, setTopic] = useState('all')
   const [page, setPage] = useState(1)
@@ -170,44 +113,8 @@ export default function PostList({ props = {}, data }) {
     setPage(1)
   }
 
-  /** Dono zaroori hain — aadha link ek aisa button hai jo click pe kuch nahi karta (D-30). */
-  const hasLink = Boolean(props.linkLabel && props.linkUrl)
-
   return (
     <>
-      {featured.length > 0 && (
-        <>
-          <div className="sh">
-            <div>
-              <h2>{props.heading || 'Start here'}</h2>
-              {props.subheading ? <p>{props.subheading}</p> : null}
-            </div>
-
-            {/*
-             * ⚠️ Client ka apna link pehle; na ho to reference wala `#latest` — wo isi page pe
-             * neeche le jaata hai, aur featured section ka poora point yahi hai.
-             */}
-            <a className="viewall" href={hasLink ? props.linkUrl : '#latest'}>
-              {hasLink ? props.linkLabel : 'All articles'}
-              <Arrow />
-            </a>
-          </div>
-
-          <div className="feat">
-            {/* Pehla bada — kram client ka hai (`featuredIds`), `publishAt` ka nahi. */}
-            <FeaturedCard post={featured[0]} large />
-
-            {featured.length > 1 && (
-              <div className="feat__side">
-                {featured.slice(1).map((post) => (
-                  <FeaturedCard key={post.id} post={post} />
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
       <div id="latest" style={{ scrollMarginTop: 96 }}>
         <div className="sh">
           <div>

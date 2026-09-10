@@ -849,7 +849,22 @@ async function toPostCards(docs, siteId, locale) {
   return Promise.all(
     docs.map(async (d) => ({
       id: String(d._id),
-      title: d.title,
+
+      /**
+       * ⚠️ **Card pe wahi heading jo page pe `<h1>` me hai** — client, 10 Sep:
+       * _"featured cards me heading aana chahiye, slug kyu aa raha hai."_
+       *
+       * `entry.title` ab chhota rakha jaata hai (slug · breadcrumb · admin list · `<title>` tag),
+       * aur page pe dikhne wali poori heading `fields.heading` me hai (#5, 10 Sep). Card pe
+       * `title` bhejne ka matlab tha ki listing pe chhota naam dikhe aur khol-te hi poora — do
+       * alag naam ek hi cheez ke.
+       *
+       * ⚠️ **`htmlToText()` zaroori hai.** `pageHeadingSchema` inline HTML pe hai, yaani heading
+       * me `<em>`/`<b>` ho sakte hain (hero me `<em>` accent rang deta hai). Card ke `<h3>` me
+       * wo markup bhejne ka matlab hota wahan italic text — ya `dangerouslySetInnerHTML` ka ek
+       * aur raasta, sirf ek line ke liye.
+       */
+      title: htmlToText(d.fields?.heading ?? '') || d.title,
       path: d.path,
       excerpt: d.excerpt ?? '',
 
@@ -953,26 +968,37 @@ async function resolvePostNav(doc, siteId, locale) {
   const step = (direction) => {
     const op = direction === -1 ? '$lt' : '$gt'
 
-    return Entry.findOne({
-      ...scope,
-      $and: [
-        { $or: visible },
-        {
-          $or: [
-            { publishAt: { [op]: doc.publishAt } },
-            { publishAt: doc.publishAt, _id: { [op]: doc._id } },
-          ],
-        },
-      ],
-    })
-      .sort({ publishAt: direction, _id: direction })
-      .select('title path')
-      .lean()
+    return (
+      Entry.findOne({
+        ...scope,
+        $and: [
+          { $or: visible },
+          {
+            $or: [
+              { publishAt: { [op]: doc.publishAt } },
+              { publishAt: doc.publishAt, _id: { [op]: doc._id } },
+            ],
+          },
+        ],
+      })
+        .sort({ publishAt: direction, _id: direction })
+        /** ⚠️ `fields.heading` bhi — card ki tarah yahan bhi dikhne wala naam chahiye. */
+        .select('title path fields.heading')
+        .lean()
+    )
   }
 
   const [prev, next] = await Promise.all([step(-1), step(1)])
 
-  const toLink = (d) => (d ? { id: String(d._id), title: d.title, path: d.path } : null)
+  const toLink = (d) =>
+    d
+      ? {
+          id: String(d._id),
+          /** Wahi niyam jo card pe hai — dikhne wala naam, chhota `title` nahi. */
+          title: htmlToText(d.fields?.heading ?? '') || d.title,
+          path: d.path,
+        }
+      : null
 
   return { prev: toLink(prev), next: toLink(next) }
 }

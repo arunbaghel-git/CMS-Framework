@@ -1,4 +1,5 @@
 import PostList from '../blog/PostList.jsx'
+import PostListLead from '../blog/PostListLead.jsx'
 import PackageList from './PackageList.jsx'
 
 /**
@@ -227,9 +228,26 @@ const BLOCKS = {
   faqs: FaqsBlock,
 }
 
-export default function Blocks({ blocks = [] }) {
+/**
+ * Wo hisse jo **columns ke upar, poori chaudai** pe jaate hain (spec 008, client 10 Sep).
+ *
+ * ⚠️ **Ye map isliye hai ki `TourPage` ko ye pata na ho ki blog kya hai.** Wahan
+ * `type === 'postList'` likhna theek wahi hardcoding hoti jise D-09 ne mana kiya tha — page
+ * ka dhaancha block ke naam se nahi bandhna chahiye.
+ *
+ * Jis block ka yahan koi entry nahi, uska lead pass me kuch render hi nahi hota.
+ */
+const LEADS = { postList: PostListLead }
+
+/**
+ * @param {object} props
+ * @param {'lead'|'main'} [props.slot]
+ *   `lead` pass columns ke upar chalta hai, `main` unke andar. Ek hi `blocks` array dono baar
+ *   aati hai — jo block us slot me kuch nahi deta wo chup-chaap gir jaata hai.
+ */
+export default function Blocks({ blocks = [], slot = 'main' }) {
   return blocks.map((block, i) => {
-    const Block = BLOCKS[block.type]
+    const Block = slot === 'lead' ? LEADS[block.type] : BLOCKS[block.type]
 
     /**
      * ⚠️ Anjaan type chup-chaap gir jaata hai — 500 nahi, khaali dabba nahi.

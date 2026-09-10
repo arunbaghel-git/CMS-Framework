@@ -5819,8 +5819,10 @@ a.mega__gl:hover {
   font-size: var(--fs-3xs);
   font-weight: 800;
   color: var(--muted);
-  background: var(--line-2);
   padding: 2px 9px;
+}
+.cats span span {
+  background: var(--line-2);
   border-radius: var(--rf);
 }
 .pop {
@@ -5889,21 +5891,6 @@ a.mega__gl:hover {
  */
 .vhero h1.ahead__t {
   max-width: 26ch;
-}
-/*
- * ⚠️ **Naap aur gap dono `.vhero__sub` se liye gaye hain, reference se nahi** (client, 10 Sep).
- *
- * Dono ek hi cheez hain — hero ke `<h1>` ke neeche wali line. Reference blog page pe
- * `clamp(14px, 1.4vw, 16px)` aur 13px gap deta hai, tour page pe `clamp(13.5px, 1.3vw, 15.5px)`
- * aur 11px. Wo farak design ki apni asangati hai, koi faisla nahi — dono rakhne ka matlab hota
- * ki ek hi jagah do site pe do naap ho.
- */
-.ahead__d {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: clamp(13.5px, 1.3vw, 15.5px);
-  line-height: 1.6;
-  margin-top: 11px;
-  max-width: 62ch;
 }
 .ahead__m {
   display: flex;
@@ -6555,4 +6542,13 @@ a.mega__gl:hover {
   .fcard--sm {
     min-height: 200px;
   }
+}
+
+/*
+ * Featured ke baad columns — reference me `.pgl` pe inline `margin-top` hai
+ * (`blog-v1.html:1526`). Yahan wo ek rule hai, kyunki wo dhaanche ki cheez hai, content ki
+ * nahi. `.feat` na ho (koi featured post chuna hi na gaya ho) to gap bhi nahi aata.
+ */
+.feat + .pgl {
+  margin-top: clamp(20px, 2.6vw, 32px);
 }
