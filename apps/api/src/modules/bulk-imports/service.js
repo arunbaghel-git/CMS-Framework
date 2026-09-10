@@ -1,17 +1,14 @@
 import {
-  DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   docUrlsFromSheet,
   ENTRY_STATUS,
   IMPORT_MODE,
   IMPORT_ROW_STATUS,
   IMPORT_RUN_STATUS,
+  IMPORT_TARGET,
   MAX_IMPORT_ROWS,
-  normalizeName,
   parseCsv,
-  parsePackageDoc,
   slugify,
-  TAXONOMY_TYPE,
 } from '@cms/shared'
 
 import { env } from '../../core/env.js'
@@ -26,14 +23,13 @@ import {
 import { cleanGoogleHtml } from '../../core/google-html.js'
 import { logger } from '../../core/logger.js'
 import { createEntry, findEntryBySlug, publishEntry, updateEntry } from '../entries/service.js'
-import { allItemNames } from '../master-lists/service.js'
 import { createMediaFromUpload, mediaExists } from '../media/service.js'
 import { getRolePermissions } from '../roles/service.js'
-import { allTaxonomyNames } from '../taxonomies/service.js'
 import { User } from '../users/model.js'
-import { mediaIdFromUrl } from './inline-images.js'
-import { hasBlocker, toEntryInput } from './mapper.js'
+import { importInlineImages, mediaIdFromUrl } from './inline-images.js'
+import { hasBlocker } from './mapper.js'
 import { ImportRun } from './model.js'
+import { buildRefMaps, targetOf } from './targets.js'
 
 /**
  * Bulk Upload ka business logic (D-81).
@@ -83,53 +79,6 @@ const MAX_ATTEMPTS = 2
  * Isliye naya run banate waqt 20 se puraane hata diye jaate hain.
  */
 const MAX_KEPT_RUNS = 20
-
-/* ── naam se id ka naksha ─────────────────────────────────────────────────── */
-
-/**
- * Ek list ko `naam → entries[]` me badlo.
- *
- * ⚠️ Value **array** hai, ek object nahi — kyunki ek hi naam do baar aa sakta hai. Taxonomy ki
- * uniqueness `slug` pe hai, `name` pe nahi, aur master lists pe to koi uniqueness hai hi nahi.
- * Aise me chup-chaap pehla utha lena **galat hotel live page pe** daal deta hai. Array rakhne se
- * mapper wo haalat dekh kar blocker laga sakta hai.
- */
-const nameMap = (items) => {
-  const map = new Map()
-
-  for (const item of items) {
-    const key = normalizeName(item.name)
-    if (!key) continue
-
-    map.set(key, [...(map.get(key) ?? []), item])
-  }
-
-  return map
-}
-
-/**
- * Chaaron list ek baar — poore import ke liye.
- *
- * Har reference ko alag query karne ka matlab hota 20 package × ~20 reference = **400 query**.
- * Ye **paanch** hain.
- */
-export async function buildRefMaps(siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
-  const [destinations, packageTypes, hotels, addOns, transfers] = await Promise.all([
-    allTaxonomyNames(TAXONOMY_TYPE.DESTINATION, siteId, locale),
-    allTaxonomyNames(TAXONOMY_TYPE.PACKAGE_TYPE, siteId, locale),
-    allItemNames('hotel', siteId),
-    allItemNames('addOn', siteId),
-    allItemNames('transfer', siteId),
-  ])
-
-  return {
-    destinations: nameMap(destinations),
-    packageTypes: nameMap(packageTypes),
-    hotels: nameMap(hotels),
-    addOns: nameMap(addOns),
-    transfers: nameMap(transfers),
-  }
-}
 
 /* ── run shuru karna ──────────────────────────────────────────────────────── */
 
@@ -189,6 +138,7 @@ export async function startImport(input, actor, siteId = DEFAULT_SITE_ID, deps =
     sheetUrl: input.sheetUrl,
     sheetId,
     mode: input.mode,
+    target: input.target,
     startedBy: actor.user._id,
     warnings,
     rows,
@@ -277,12 +227,42 @@ async function importBanner(url, actor, siteId, deps) {
  */
 async function importRow(run, row, refs, actor, deps) {
   const siteId = run.siteId
-  const html = cleanGoogleHtml(await fetchDocHtml(row.docId, deps))
-  const parsed = parsePackageDoc(html)
-  const { input, issues, slug, bannerUrl } = toEntryInput(parsed, refs)
 
-  if (!input.title) {
-    throw new Error('This document has no "Package Name", so no package could be created')
+  /**
+   * Target se **teen** cheezein aati hain — doc kaise padha jaaye, payload kaise bane, aur
+   * `img` khule ya nahi. Baaki poora function dono ke liye ek jaisa hai (spec 008).
+   */
+  const target = targetOf(run.target)
+
+  const html = cleanGoogleHtml(await fetchDocHtml(row.docId, deps), {
+    allowImages: target.allowImages,
+  })
+
+  const parsed = target.parse(html)
+  const { input, issues, slug, bannerUrl } = target.map(parsed, refs)
+
+  if (!input.title) throw new Error(target.missingTitle)
+
+  /**
+   * Article ke andar ki images Media library me utaaro, aur `src` badal do.
+   *
+   * ⚠️ Ye `createEntry()` se **pehle** hona chahiye. Baad me karne ka matlab hota ki ek baar
+   * Google ke expire hone wale URL DB me likhe jaayein aur phir badle jaayein — aur beech me
+   * kuch bhi girne pe wahi toote hue URL live post pe reh jaate.
+   *
+   * ⚠️ **Sirf `richText` blocks** — package ka Overview aur post ka poora article dono wahi
+   * hain. Naya block type jodo jisme HTML ho, to use yahan bhi jodna padega. Chhoot jaane ka
+   * lakshan wahi purana hoga: image kuch hafte chalegi, phir chup-chaap toot jaayegi.
+   */
+  if (target.allowImages) {
+    for (const block of input.content?.blocks ?? []) {
+      if (block.type !== 'richText' || !block.props?.html) continue
+
+      const result = await importInlineImages(block.props.html, { actor, siteId, deps })
+
+      block.props.html = result.html
+      issues.push(...result.issues)
+    }
   }
 
   /**
@@ -310,11 +290,11 @@ async function importRow(run, row, refs, actor, deps) {
    * likhne ka matlab hota ki kal wo badle aur ye peeche reh jaaye.
    */
   const lookupSlug = slugify(slug || input.title)
-  const existing = lookupSlug ? await findEntryBySlug('package', lookupSlug, siteId) : null
+  const existing = lookupSlug ? await findEntryBySlug(target.entryType, lookupSlug, siteId) : null
 
   if (existing?.deletedAt) {
     throw new Error(
-      `A package with the URL "${slug}" is in the Trash. Restore it or empty the trash, then import again.`,
+      `A ${target.label} with the URL "${slug}" is in the Trash. Restore it or empty the trash, then import again.`,
     )
   }
 
@@ -331,13 +311,13 @@ async function importRow(run, row, refs, actor, deps) {
    */
   if (run.mode === IMPORT_MODE.NEW && existing) {
     throw new Error(
-      `A package with the URL "${slug}" already exists. This import was set to "New packages" — choose "Existing packages" to update it.`,
+      `A ${target.label} with the URL "${slug}" already exists. This import was set to "New ${target.labelPlural}" — choose "Existing ${target.labelPlural}" to update it.`,
     )
   }
 
   if (run.mode === IMPORT_MODE.EXISTING && !existing) {
     throw new Error(
-      `No package with the URL "${slug}" exists yet. This import was set to "Existing packages" — choose "New packages" to create it.`,
+      `No ${target.label} with the URL "${slug}" exists yet. This import was set to "Existing ${target.labelPlural}" — choose "New ${target.labelPlural}" to create it.`,
     )
   }
 
@@ -352,12 +332,13 @@ async function importRow(run, row, refs, actor, deps) {
           throw new Error('That image is no longer in the Media library')
         }
 
-        input.fields.bannerImage = ownMediaId
+        target.setImage(input, ownMediaId)
       } else {
         /** Pehle se banner ho to dobara download nahi — warna har run naye media bana deta hai. */
-        input.fields.bannerImage = existing?.fields?.bannerImage
-          ? existing.fields.bannerImage
-          : await importBanner(bannerUrl, actor, siteId, deps)
+        target.setImage(
+          input,
+          target.getImage(existing) ?? (await importBanner(bannerUrl, actor, siteId, deps)),
+        )
       }
     } catch (err) {
       issues.push({
@@ -405,9 +386,9 @@ async function importRow(run, row, refs, actor, deps) {
   if (entry.slug && lookupSlug && entry.slug !== lookupSlug) {
     issues.push({
       level: 'blocker',
-      label: 'Package URL',
+      label: target.slugLabel,
       value: lookupSlug,
-      message: `Another package already uses the address "${lookupSlug}", so this one was saved as "${entry.slug}". Set a different Package URL, or run this again in "Existing packages" mode to update the original.`,
+      message: `Another ${target.label} already uses the address "${lookupSlug}", so this one was saved as "${entry.slug}". Set a different ${target.slugLabel}, or run this again in "Existing ${target.labelPlural}" mode to update the original.`,
     })
   }
 
@@ -559,7 +540,7 @@ export async function processImportQueue(deps = {}) {
   }
 
   try {
-    const refs = deps.refs ?? (await buildRefMaps(run.siteId))
+    const refs = deps.refs ?? (await buildRefMaps(run.target, run.siteId))
 
     await finishRow(run._id, row._id, await importRow(run, row, refs, actor, deps))
   } catch (err) {
@@ -584,6 +565,7 @@ const toApi = (run) => ({
   id: String(run._id),
   sheetUrl: run.sheetUrl,
   mode: run.mode ?? IMPORT_MODE.NEW,
+  target: run.target ?? IMPORT_TARGET.PACKAGE,
   status: run.status,
   warnings: run.warnings ?? [],
   error: run.error ?? null,

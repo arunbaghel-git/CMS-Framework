@@ -5,6 +5,8 @@ import {
   IMPORT_ROW_STATUS,
   IMPORT_RUN_STATUS,
   IMPORT_RUN_STATUSES,
+  IMPORT_TARGET,
+  IMPORT_TARGETS,
 } from '@cms/shared'
 import mongoose from 'mongoose'
 
@@ -88,6 +90,18 @@ const importRunSchema = new mongoose.Schema(
      * chup-chaap overwrite kar deta.
      */
     mode: { type: String, enum: IMPORT_MODES, default: IMPORT_MODE.NEW },
+
+    /**
+     * Package ban rahe hain ya blog post (spec 008, client 10 Sep).
+     *
+     * ⚠️ **`package` default hai, aur isi wajah se koi migration nahi lagi.** Purane run me ye
+     * field hai hi nahi — wo is faisle se pehle bane the — aur unke liye `package` maanna sach
+     * hai, andaza nahi: us waqt import package ka hi hota tha.
+     *
+     * ⚠️ Ye `mode` se alag cheez hai aur dono saath chalte hain: `target` kehta hai **kya** ban
+     * raha hai, `mode` kehta hai **naya ya purana**.
+     */
+    target: { type: String, enum: IMPORT_TARGETS, default: IMPORT_TARGET.PACKAGE },
 
     status: {
       type: String,

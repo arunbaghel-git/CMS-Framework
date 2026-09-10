@@ -192,7 +192,7 @@ async function drain(deps) {
   throw new Error('Worker 50 baar chalne ke baad bhi khatam nahi hua')
 }
 
-async function runImport(docs, ids = Object.keys(docs), mode = undefined) {
+async function runImport(docs, ids = Object.keys(docs), mode = undefined, target = undefined) {
   const deps = { fetchImpl: fakeFetch(docs, csvOf(ids)) }
 
   /**
@@ -204,7 +204,7 @@ async function runImport(docs, ids = Object.keys(docs), mode = undefined) {
   const user = await User.findOne({ email: 'admin@test.com' }).lean()
   /** `deps` chautha argument hai — teesra `siteId` hai, isliye wo bhi saaf likhna padta hai. */
   const run = await startImport(
-    { sheetUrl: SHEET_URL, ...(mode ? { mode } : {}) },
+    { sheetUrl: SHEET_URL, ...(mode ? { mode } : {}), ...(target ? { target } : {}) },
     { user, permissions: [] },
     DEFAULT_SITE_ID,
     deps,
@@ -256,6 +256,7 @@ beforeEach(async () => {
     { type: 'destination', name: 'Port Blair', slug: 'port-blair' },
     { type: 'destination', name: 'Havelock', slug: 'havelock' },
     { type: 'packageType', name: 'Honeymoon', slug: 'honeymoon' },
+    { type: 'category', name: 'Trip planning', slug: 'trip-planning' },
   ])
 
   await Hotel.create({ name: 'City hotel', destinationId: portBlair._id, category: 'standard' })
@@ -825,5 +826,152 @@ describe('Past imports me fail hone ki wajah (client, 4 Sep)', () => {
     const res = await authed('get', '/api/bulk-imports', adminJar)
 
     expect(res.body.data.runs[0].failedReasons).toEqual([])
+  })
+})
+
+/**
+ * Blog post ka import — spec 008.
+ *
+ * ⚠️ Yahan wahi `runImport()` chal raha hai jo package ke tests chalate hain, sirf `target`
+ * alag hai. **Yahi is slice ka poora point tha:** sheet padhna, fetch, claim loop, New/Existing
+ * ka assertion, publish ke do niyam aur Past imports — sab ek hi code se aate hain. Do module
+ * banane ka matlab hota ki kal in me se koi ek fix ek jagah lagta aur doosri jagah nahi.
+ */
+describe('blog post ka import (spec 008)', () => {
+  const postDoc = (rows) => doc(rows.map(p).join(''))
+
+  const FULL = postDoc([
+    'Meta Title',
+    'Andaman ferry booking 2026',
+    'Meta Description',
+    'Timings, prices and how to book.',
+    'Blog title',
+    'Andaman ferry booking',
+    'Blog URL',
+    'andaman-ferry-booking',
+    'Blog heading',
+    'Everything you need before you sail',
+    'Excerpt',
+    'Three operators, two jetties, one rule.',
+    'Category',
+    'Trip planning',
+    'Content',
+    'Ferries are the only practical link between the islands.',
+    'Faq:',
+    'Heading',
+    'Common questions',
+    'Question',
+    'Can I book after I land?',
+    'answer',
+    'Only the government ferry, and only if seats are left.',
+  ])
+
+  it('post ban kar publish ho jaata hai', async () => {
+    const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+
+    expect(run.target).toBe('post')
+    expect(run.rows[0].status).toBe('published')
+    expect(run.rows[0].issues).toEqual([])
+
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(entry.type).toBe('post')
+    expect(entry.title).toBe('Andaman ferry booking')
+    expect(entry.slug).toBe('andaman-ferry-booking')
+    expect(entry.status).toBe(ENTRY_STATUS.PUBLISHED)
+  })
+
+  it('title, heading aur excerpt teen alag jagah jaate hain', async () => {
+    const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    /** ⚠️ D-90 ka batwara — `title` slug/breadcrumb ke liye, `heading` page ka `<h1>`. */
+    expect(entry.fields.heading).toBe('Everything you need before you sail')
+    expect(entry.excerpt).toMatch(/^Three operators/)
+    expect(entry.seo.title).toBe('Andaman ferry booking 2026')
+  })
+
+  it('category naam se judti hai', async () => {
+    const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+    const category = await Taxonomy.findOne({ type: 'category' }).lean()
+
+    expect(entry.taxonomies.categories.map(String)).toEqual([String(category._id)])
+  })
+
+  it('content aur FAQs do block bante hain', async () => {
+    const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(entry.content.blocks.map((b) => b.type)).toEqual(['richText', 'faqs'])
+    expect(entry.content.blocks[1].props.heading).toBe('Common questions')
+    expect(entry.content.blocks[1].props.items).toHaveLength(1)
+  })
+
+  it('category na mile to post banta hai par draft rukta hai', async () => {
+    const bad = postDoc([
+      'Blog title',
+      'Ferry guide',
+      'Blog URL',
+      'ferry-guide',
+      'Category',
+      'Trip Planing',
+      'Content',
+      'Body text here.',
+    ])
+
+    const run = await runImport({ d1: bad }, ['d1'], undefined, 'post')
+
+    expect(run.rows[0].status).toBe('draft')
+    expect(run.rows[0].issues[0].value).toBe('Trip Planing')
+
+    /** ⚠️ Content phir bhi jaata hai — sirf publish rukta hai. */
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+    expect(entry.content.blocks[0].props.html).toMatch(/Body text here/)
+  })
+
+  it('Blog title na ho to post ban hi nahi sakta — aur message post wala hota hai', async () => {
+    const run = await runImport(
+      { d1: postDoc(['Meta Title', 'Just a title']) },
+      ['d1'],
+      undefined,
+      'post',
+    )
+
+    expect(run.rows[0].status).toBe('failed')
+    /** ⚠️ "Package Name" wala message blog doc pe padh kar client galat khaana dhoondhta. */
+    expect(run.rows[0].error).toMatch(/Blog title/)
+  })
+
+  it('dobara chalane pe duplicate nahi banta — wahi post update hota hai', async () => {
+    await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+    const again = await runImport({ d1: FULL }, ['d1'], 'existing', 'post')
+
+    expect(again.rows[0].action).toBe('updated')
+    expect(await Entry.countDocuments({ type: 'post', deletedAt: null })).toBe(1)
+  })
+
+  it('mode ka assertion post pe bhi lagta hai, aur uska message post wala hai', async () => {
+    await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+    const again = await runImport({ d1: FULL }, ['d1'], 'new', 'post')
+
+    expect(again.rows[0].status).toBe('failed')
+    expect(again.rows[0].error).toMatch(/A post with the URL/)
+    expect(again.rows[0].error).toMatch(/New posts/)
+  })
+
+  it('purane run me target na ho to wo package hi mana jaata hai', async () => {
+    /**
+     * ⚠️ Ye field 10 Sep ko juda; usse pehle bane run me hai hi nahi. Un par `package` maanna
+     * sach hai, andaza nahi — us waqt import package ka hi hota tha. Isi wajah se koi migration
+     * nahi lagi.
+     */
+    const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+
+    await ImportRun.updateOne({ _id: run._id }, { $unset: { target: '' } })
+
+    const { getImportRun } = await import('../modules/bulk-imports/service.js')
+
+    expect((await getImportRun(String(run._id))).target).toBe('package')
   })
 })

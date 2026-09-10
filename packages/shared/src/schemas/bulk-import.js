@@ -98,10 +98,26 @@ export const IMPORT_MODE = Object.freeze({ NEW: 'new', EXISTING: 'existing' })
 
 export const IMPORT_MODES = Object.freeze(Object.values(IMPORT_MODE))
 
+/**
+ * Import kis cheez ka hai — package ya blog post (spec 008, client 10 Sep).
+ *
+ * ⚠️ **`package` default hai, aur wo sirf suvidha nahi hai.** Purane `importRuns` me ye field
+ * hai hi nahi (wo is faisle se pehle bane the), aur unhe padhte waqt kuch to maanna hi padega.
+ * `package` maanna sach hai — us waqt import package ka hi hota tha. Isi wajah se **koi
+ * migration nahi lagi**.
+ *
+ * ⚠️ Ye `mode` se alag cheez hai aur dono ek saath chalte hain: `target` kehta hai **kya** ban
+ * raha hai, `mode` kehta hai **naya ya purana**.
+ */
+export const IMPORT_TARGET = Object.freeze({ PACKAGE: 'package', POST: 'post' })
+
+export const IMPORT_TARGETS = Object.freeze(Object.values(IMPORT_TARGET))
+
 export const startImportSchema = z
   .object({
     sheetUrl: z.string().min(1, 'Paste the Google Sheet link').max(2000),
     mode: z.enum(IMPORT_MODES).default(IMPORT_MODE.NEW),
+    target: z.enum(IMPORT_TARGETS).default(IMPORT_TARGET.PACKAGE),
   })
   .strict()
 
