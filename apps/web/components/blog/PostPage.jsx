@@ -313,7 +313,7 @@ export default function PostPage({ entry, settings }) {
                    * ⚠️ Heading ke `id` server pe lag chuke hote hain (`withHeadingIds()`), aur
                    * TOC ke link unhi pe jaate hain — dono ek hi pass se aate hain.
                    */}
-                  <Blocks blocks={entry.blocks ?? []} />
+                  <Blocks blocks={entry.blocks ?? []} article />
 
                   <Share url={shareUrl} title={entry.title} />
 

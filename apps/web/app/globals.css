@@ -3035,26 +3035,19 @@ a.mega__gl:hover {
 }
 
 /*
- * ⚠️ **Google `<thead>` to bhejta hai, par uske andar bhi `<td>` hi hota hai — `<th>` kabhi
- * nahi.** Ye 10 Sep ko asli doc pe naapa gaya, aur ye pehle wale andaze ka palat hai: pehle
- * yahan likha tha ki "thead hota hi nahi".
+ * ⚠️ **Yahan pehle do aur selector the, aur wo dono galat the** (10 Sep).
  *
- * Isliye header ka look do raaste se aata hai:
+ * Pehla: `:not(:has(th)) tr:first-child td` — is soch pe ki Google `<thead>` bhejta hi nahi.
+ * Naapne pe pata chala ki wo `<thead>` **bhejta hai**, bas uske andar bhi cells `<td>` hote
+ * hain. Doosra: `thead td` + `:not(:has(thead))` — sahi to tha, par `tr:first-child` `<tbody>`
+ * ki **pehli data row** ko bhi pakad leta tha.
  *
- * 1. `thead td` — jab Google ne `<thead>` bheja ho (doc me table ka header row set ho)
- * 2. `tr:first-child` — jab na `<thead>` ho na `<th>` (saada pasted table)
- *
- * ⚠️ **Doosre wale me `:not(:has(thead))` bhi zaroori hai, sirf `:not(:has(th))` kaafi nahi.**
- * `<thead>` aur `<tbody>` dono hone par `tr:first-child` **do** rows pakadta hai — thead ki
- * header row, aur tbody ki **pehli data row**. Yaani ek data row chup-chaap header jaisi rang
- * jaati.
- *
- * ⚠️ Client ki apni tables me `<thead><th>` hota hai, to unpe pehla selector (`.tbl th`) lagta
- * hai aur baaki dono chhoote rehte hain.
+ * Ab dono ki zaroorat nahi: `ensureTableHeader()` (`lib/article-html.js`) render pe hi pehli
+ * row ke `<td>` ko `<th>` bana deta hai. Look, semantics aur markup — teenon ek saath theek
+ * ho jaate hain, aur CSS wahi rehti hai jo reference me hai.
  */
 .tbl th,
-.art .tblw > table thead td,
-.art .tblw > table:not(:has(thead)):not(:has(th)) tr:first-child td {
+.art .tblw > table th {
   background: var(--blue-50);
   color: var(--blue-700);
   text-align: left;

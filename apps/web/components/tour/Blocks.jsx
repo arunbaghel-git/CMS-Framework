@@ -1,6 +1,7 @@
 import { BlogFilterProvider } from '../blog/BlogFilter.jsx'
 import PostList from '../blog/PostList.jsx'
 import PostListLead from '../blog/PostListLead.jsx'
+import { leadParagraph, markedBlocks, wrapTables } from '../../lib/article-html.js'
 import PackageList from './PackageList.jsx'
 
 /**
@@ -41,41 +42,22 @@ function BlockHead({ heading, description }) {
   )
 }
 
-/**
- * Har `<table>` ko `.tblw` me lapet do — client, 9 Sep.
- *
- * ⚠️ **`.tblw` sirf border-radius ke liye nahi hai, usme `overflow-x: auto` bhi hai.** Uske bina
- * table apni `min-width: 520px` le kar mobile pe page se **bahar nikal jaati hai**. Client ne
- * dono cheezein pakdi: gol kone nahi aa rahe, aur scroll bhi nahi ho raha.
- *
- * ⚠️ **Pehle maine ise content ki galti kaha tha, aur wo galat tha.** Client ke teen table me se
- * do pe wrapper tha aur ek pe nahi — par ye us kism ki cheez hai jise **theme ko sambhalna
- * chahiye**, client ko yaad nahi rakhni chahiye. Wahi sabak jo `.wdgl` (A-19) aur `.faq p` pe
- * mila tha: look us markup ka mohtaaj mat rakho jo editor **shayad** dega.
- *
- * Kaam do kadam me hota hai aur wo kram maayne rakhta hai: pehle **purane wrapper hata**, phir
- * **sab pe ek jaisa laga**. Sirf doosra kadam karne se pehle se lipti hui tables **do baar** lipat
- * jaatin — do border, ek doosre ke andar.
- *
- * Regex HTML pe aam taur pe bura auzaar hai; yahan wo chalta hai kyunki daayra tang aur maloom
- * hai — `<table>` apne andar `<table>` nahi rakhti, aur ye HTML sanitizer se hokar aa chuki hai.
- */
-const wrapTables = (html) =>
-  String(html ?? '')
-    .replace(/<div class="tblw">\s*(<table[\s\S]*?<\/table>)\s*<\/div>/g, '$1')
-    .replace(/<table[\s\S]*?<\/table>/g, (table) => `<div class="tblw">${table}</div>`)
-
-/**
- * ⚠️ **Saari HTML `dangerouslySetInnerHTML` se jaati hai, aur wo theek hai** — safai **write pe**
- * ho chuki hai (`sanitizeContent()`, R20). Render pe dobara saaf karna do jagah ek hi tark
- * rakhna hota, aur wo dheere-dheere alag ho jaata.
- *
- * ⚠️ `wrapTables()` safai **nahi** hai — wo dhaancha theek karta hai, khatra nahi hatata.
- */
-function RichTextBlock({ props }) {
+function RichTextBlock({ props, article }) {
   if (!props.html) return null
 
-  return <div className="blk" dangerouslySetInnerHTML={{ __html: wrapTables(props.html) }} />
+  /**
+   * ⚠️ **`article` sirf blog post pe true hota hai**, aur wo zaroori hai.
+   *
+   * `.lead` aur `.callout` article ke design ka hissa hain (`blog-detail-v1.html`). Inhe har
+   * `richText` block pe chala dena tour aur package pages ka pehla paragraph bhi bada kar deta
+   * — ek badlaav jo kisi ne maanga hi nahi. `wrapTables()` iske bahar hai kyunki table ka
+   * header har jagah sahi hona chahiye.
+   */
+  const html = article
+    ? leadParagraph(markedBlocks(wrapTables(props.html)))
+    : wrapTables(props.html)
+
+  return <div className="blk" dangerouslySetInnerHTML={{ __html: html }} />
 }
 
 function TwoColumnBlock({ props }) {
@@ -262,7 +244,7 @@ export function BlocksScope({ blocks = [], children }) {
  *   `lead` pass columns ke upar chalta hai, `main` unke andar. Ek hi `blocks` array dono baar
  *   aati hai — jo block us slot me kuch nahi deta wo chup-chaap gir jaata hai.
  */
-export default function Blocks({ blocks = [], slot = 'main' }) {
+export default function Blocks({ blocks = [], slot = 'main', article = false }) {
   return blocks.map((block, i) => {
     const Block = slot === 'lead' ? LEADS[block.type] : BLOCKS[block.type]
 
@@ -278,6 +260,8 @@ export default function Blocks({ blocks = [], slot = 'main' }) {
      * `data` sirf `packageList` pe hota hai — wahi ek block hai jiske liye server query lagati
      * hai. Baaki ke liye ye `undefined` rehta hai aur wo use padhte hi nahi.
      */
-    return <Block key={block.id ?? i} props={block.props ?? {}} data={block.data} />
+    return (
+      <Block key={block.id ?? i} props={block.props ?? {}} data={block.data} article={article} />
+    )
   })
 }
