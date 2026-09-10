@@ -5036,8 +5036,9 @@ a.mega__gl:hover {
  * Har block apna poora section hai (D-88 §9) — heading uske apne panel se aati hai, aur
  * uske neeche ki line bhi.
  */
+/* `.sh p` wali hi jodi — muted subtitle, `--fs-md` pe. */
 .blk__intro {
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   line-height: 1.6;
   color: var(--muted);
   margin-bottom: 14px;
@@ -5051,8 +5052,9 @@ a.mega__gl:hover {
   margin-top: 8px;
 }
 
+/* ⚠️ Aakhri hardcoded naap — D-73 kehta hai har size token se aaye. Value badli nahi. */
 .blk__empty {
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   color: var(--muted);
 }
 
@@ -5072,8 +5074,13 @@ a.mega__gl:hover {
   font-weight: 800;
 }
 
+/*
+ * ⚠️ **Ye body text NAHI hai — heading ke neeche ki muted line hai**, aur uska naap
+ * `.blk__intro` ke saath milta hai (dono 13.5px). Do me se do ka milna hi is role ka standard
+ * hai, isliye naap chhua nahi gaya — sirf hardcoded px ki jagah token aaya (D-73).
+ */
 .sh p {
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   color: var(--muted);
   margin-top: 4px;
 }
@@ -5720,8 +5727,16 @@ a.mega__gl:hover {
 .bp:hover .bp__b h3 {
   color: var(--blue-700);
 }
+/*
+ * ⚠️ **`--fs-body`, reference ka 13.5px nahi** — client, 10 Sep.
+ *
+ * Ye card ka **body text** hai, aur us role ka naap is project me tay ho chuka hai: 8 Sep ko
+ * client ne `.dcard p` pe reference ke 12.5px ko mana kar ke **14px** chuna tha (`b69d5bb`).
+ * `.bp__x` bilkul wahi cheez hai, bas doosre card pe — do alag naap rakhne ka matlab hota ki
+ * ek hi site pe "card ka body" ke do jawab hon.
+ */
 .bp__x {
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   line-height: 1.6;
   color: var(--body);
 }
@@ -6426,9 +6441,10 @@ a.mega__gl:hover {
   font-size: clamp(15px, 1.5vw, 17.5px);
 }
 
+/* Wahi tark jo `.bp__x` pe — card ka body text `--fs-body` pe hai. */
 .fcard p {
   color: rgba(255, 255, 255, 0.78);
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   line-height: 1.55;
   margin-top: 9px;
   max-width: 52ch;
