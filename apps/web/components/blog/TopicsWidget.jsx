@@ -17,6 +17,10 @@ import { useBlogFilter } from './BlogFilter.jsx'
  * banane ka matlab hota client ko do naam dikhaana (`Topics` aur `Topics (list)`) aur ye yaad
  * rakhwana ki kaunsa kahan lagta hai.
  *
+ * ⚠️ **Yahan `All` ka row nahi hai** — reference me bhi nahi hai (sirf chhe categories). Filter
+ * hataane ka raasta `.bfilter` ki `All` pill hai, aur uske bina bhi kaam chalta hai: chuna hua
+ * topic **dobara click** karne pe filter hat jaata hai.
+ *
  * ⚠️ **Link kabhi nahi** — na yahan, na post page pe. Category ka apna URL hai hi nahi
  * (topic-wise page ek aur `blogPage` entry se banta hai), aur listing pe filter client-side
  * hai to navigation hota hi nahi. `href="#"` ek aisa link hota jo click pe kuch na kare —
@@ -43,32 +47,6 @@ export default function TopicsWidget({ props }) {
 
       <div className="wdg__b">
         <ul className="cats">
-          {/*
-           * `All` sirf filter wale roop me — bina filter ke wo ek aisa row hota jo kuch
-           * batata bhi nahi aur karta bhi nahi.
-           */}
-          {filter && (
-            <li>
-              <button
-                type="button"
-                className={filter.topic === 'all' ? 'on' : ''}
-                onClick={() => filter.setTopic('all')}
-              >
-                All topics
-                {/*
-                 * ⚠️ **Yahan ginti jaan-boojh kar nahi hai.** Neeche ke numbers **poore blog**
-                 * ke hain, aur grid ki ginti (`9 articles`) us page pe dikh rahe set ki — usme
-                 * featured teen nahi hote. Dono sach hain, par `All topics` pe unka jod likhne
-                 * ka matlab hota do jagah do alag "total" — aur client theek wahi poochhta jo
-                 * D-86 me baar-baar poochha gaya.
-                 *
-                 * Reference me ye row hai hi nahi (wahan rows link hain, filter nahi). Ye sirf
-                 * filter hataane ka raasta hai, aur uske liye number ki zaroorat nahi.
-                 */}
-              </button>
-            </li>
-          )}
-
           {topics.map((topic) => (
             <li key={topic.id}>
               {filter ? (
@@ -76,7 +54,21 @@ export default function TopicsWidget({ props }) {
                   type="button"
                   className={filter.topic === topic.id ? 'on' : ''}
                   onClick={() => {
-                    filter.setTopic(topic.id)
+                    /**
+                     * ⚠️ **Chuna hua dobara click = filter hat gaya.**
+                     *
+                     * Reference me sidebar me koi `All` row hai hi nahi (sirf chhe categories),
+                     * aur maine ek jodi thi — client ne pakda: _"ye to categories hai na."_ Wo
+                     * theek tha: `All topics` koi topic nahi, ek control hai, aur uspe ginti bhi
+                     * nahi banti.
+                     *
+                     * Par ek asli case bacha tha: client `Show the filter pills` off kar de to
+                     * sidebar hi ekmatra control hota, aur bina `All` ke user topic chun kar
+                     * **phans** jaata. Toggle usi ka ilaaj hai — aur wahi pattern
+                     * `PackageListBlock` ke page filter pe pehle se hai (_"chuna hua dobara
+                     * click karne pe `none` pe wapas"_).
+                     */
+                    filter.setTopic(filter.topic === topic.id ? 'all' : topic.id)
 
                     /**
                      * ⚠️ Grid neeche/doosri column me hai — sidebar se topic chunne pe agar

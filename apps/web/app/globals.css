@@ -5823,8 +5823,6 @@ a.mega__gl:hover {
   font-weight: 800;
   color: var(--muted);
   padding: 2px 9px;
-}
-.cats span span {
   background: var(--line-2);
   border-radius: var(--rf);
 }
