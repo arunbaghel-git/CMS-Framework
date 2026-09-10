@@ -197,6 +197,20 @@ export const entryListQuerySchema = z.object({
    * usse zyada), aur `nights=8plus` jaisa param padhne me jhootha lagta.
    */
   duration: z.enum(DURATION_BUCKETS).optional(),
+  /**
+   * `All dates` ka filter — `2026-08` (spec 008, client 10 Sep).
+   *
+   * ⚠️ **`publishAt` pe, `createdAt` pe nahi.** Blog ka poora kram `publishAt` pe hai (list,
+   * prev/next, `datePublished`); do alag tareekhein dikhaane ka matlab hota ki filter kuch
+   * kahe aur card kuch aur (D-86).
+   *
+   * Shape yahin baandhi gayi hai — bina iske `?month=` me kuch bhi seedha date query me chala
+   * jaata (R9).
+   */
+  month: z
+    .string()
+    .regex(/^d{4}-(0[1-9]|1[0-2])$/, 'Month must look like 2026-08')
+    .optional(),
   trashed: z.coerce.boolean().default(false),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(ENTRY_LIST_MAX_LIMIT).default(20),

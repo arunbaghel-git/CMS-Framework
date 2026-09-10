@@ -44,6 +44,19 @@ export function useTaxonomyList(type) {
   const [items, setItems] = useState([])
 
   useEffect(() => {
+    /**
+     * ⚠️ **`type` na ho to koi call nahi** — client, 10 Sep ke kaam me juda.
+     *
+     * `EntriesList` ye hook har screen pe bulata hai (conditional hook React ka rule tod deta
+     * hai), par category ki list sirf Posts pe chahiye. Bina is guard ke Tour aur Pages ki har
+     * list load pe `?type=null` jaati, jise API 400 karti — aur `.catch` use nigal leta, yaani
+     * ek **hamesha fail hone wali** request jo kabhi dikhti hi nahi.
+     */
+    if (!type) {
+      setItems([])
+      return
+    }
+
     api
       .get('/taxonomies', { params: { type, limit: 200, sort: 'name', order: 'asc' } })
       .then((res) => setItems(res.data.data.taxonomies))

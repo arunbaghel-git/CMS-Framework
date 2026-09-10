@@ -8,6 +8,7 @@ import { Entry } from '../modules/entries/model.js'
 import { ensureBuiltInContentTypes } from '../modules/content-types/service.js'
 import { Settings } from '../modules/settings/model.js'
 import { Sidebar } from '../modules/sidebars/model.js'
+import { entryCounts, listEntries } from '../modules/entries/service.js'
 import { Taxonomy } from '../modules/taxonomies/model.js'
 
 /**
@@ -608,5 +609,61 @@ describe('post ka sidebar blogSettings se aata hai', () => {
       expect(entry.sidebar).toBe('right')
       expect(entry.sidebarWidgets[0].type).toBe('topics')
     }
+  })
+})
+
+describe('admin list ke filter — category aur All dates', () => {
+  it('month filter mahine ke pehle aur aakhri instant dono pakadta hai', async () => {
+    // ⚠️ Yahi wo jagah hai jo chup-chaap toot-ti hai. `publishAt` UTC me store hoti hai;
+    // mahina local time me kaatne se boundary wale post kabhi idhar kabhi udhar chale jaate,
+    // aur wo galti sirf mahine me do din dikhti hai (D-41 wala hi jaal).
+    await makePost({ title: 'Pehla instant', slug: 'p1', publishAt: '2026-08-01T00:00:00.000Z' })
+    await makePost({ title: 'Aakhri instant', slug: 'p2', publishAt: '2026-08-31T23:59:59.999Z' })
+    await makePost({ title: 'Ek second baad', slug: 'p3', publishAt: '2026-09-01T00:00:00.000Z' })
+    await makePost({ title: 'Ek second pehle', slug: 'p4', publishAt: '2026-07-31T23:59:59.999Z' })
+
+    const res = await listEntries({ type: 'post', month: '2026-08', limit: 50 })
+
+    expect(res.entries.map((e) => e.title).sort()).toEqual(['Aakhri instant', 'Pehla instant'])
+  })
+
+  it('months ki list naye se purane, aur trash wale usme nahi', async () => {
+    await makePost({ title: 'Naya', slug: 'n', publishAt: day(3) })
+    await makePost({ title: 'Purana', slug: 'p', publishAt: day(1) })
+    await makePost({ title: 'Trashed', slug: 't', publishAt: day(2), deletedAt: new Date() })
+
+    const counts = await entryCounts('post')
+
+    // Trash list me dikhta hi nahi, to uska mahina dropdown me aana ek jhootha option hota
+    expect(counts.months).toEqual(['2026-03', '2026-01'])
+  })
+
+  it('category aur month ek saath lagte hain', async () => {
+    const ferries = await makeCategory('Ferries')
+    const beaches = await makeCategory('Beaches')
+
+    await makePost({ title: 'Sahi', slug: 'a', publishAt: day(1), categories: [ferries] })
+    await makePost({ title: 'Galat mahina', slug: 'b', publishAt: day(2), categories: [ferries] })
+    await makePost({ title: 'Galat category', slug: 'c', publishAt: day(1), categories: [beaches] })
+
+    const res = await listEntries({
+      type: 'post',
+      categories: ferries,
+      month: '2026-01',
+      limit: 50,
+    })
+
+    expect(res.entries.map((e) => e.title)).toEqual(['Sahi'])
+  })
+
+  it('bina publishAt wala draft na month filter me aata hai, na months ki list me', async () => {
+    await makePost({ title: 'Draft', slug: 'd', status: 'draft', publishAt: null })
+    await makePost({ title: 'Live', slug: 'l', publishAt: day(1) })
+
+    const counts = await entryCounts('post')
+    const res = await listEntries({ type: 'post', month: '2026-01', limit: 50 })
+
+    expect(counts.months).toEqual(['2026-01'])
+    expect(res.entries.map((e) => e.title)).toEqual(['Live'])
   })
 })

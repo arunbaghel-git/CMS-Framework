@@ -14,6 +14,21 @@ import StickySide from '../package/StickySide.jsx'
  * form` hai, par wo bhi bas ek chunav hai — array ka kram hi page ka kram hai.
  */
 
+/** `.pop` ki doosri line — reference: `5 Aug 2026 · 7 min read`. */
+const popMeta = (post) =>
+  [
+    post.publishedAt
+      ? new Date(post.publishedAt).toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : null,
+    post.readMinutes ? `${post.readMinutes} min read` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
 /**
  * Custom HTML widget — `html` ka `.wdg`.
  *
@@ -189,7 +204,14 @@ export default function Sidebar({ widgets = [], settings, sourcePath, before = n
                         )}
                         <span>
                           <b>{post.title}</b>
-                          <span>{post.readMinutes ? `${post.readMinutes} min read` : ''}</span>
+                          {/*
+                           * ⚠️ Reference me yahan **date aur read time dono** hain —
+                           * `5 Aug 2026 · 7 min read`. Pehle sirf read time tha.
+                           *
+                           * Jo tukda na ho wo apne separator ke saath gir jaata hai, taaki
+                           * kabhi akela `·` na bache (D-30).
+                           */}
+                          <span>{popMeta(post)}</span>
                         </span>
                       </a>
                     ))}

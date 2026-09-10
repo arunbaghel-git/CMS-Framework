@@ -321,6 +321,31 @@ export default function PostPage({ entry, settings }) {
                         <h2>Related reading</h2>
                         <p>The guides people open next</p>
                       </div>
+
+                      {/*
+                       * `All articles` — reference ka `.viewall` (client, 10 Sep).
+                       *
+                       * ⚠️ **Destination server se aata hai (`blogPath`), yahan hardcoded
+                       * `/blog` nahi hai.** Listing page ek aam entry hai jise client ne banaya
+                       * hai; uska slug kuch bhi ho sakta hai. Listing page abhi bana hi na ho to
+                       * `blogPath` `null` hota hai aur ye link **render hi nahi hota** — ek
+                       * link jo 404 pe le jaaye, us link se bura hai jo hai hi nahi (D-30).
+                       */}
+                      {entry.blogPath && (
+                        <a className="viewall" href={entry.blogPath}>
+                          All articles
+                          <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                          >
+                            <path d="M5 12h14M13 6l6 6-6 6" />
+                          </svg>
+                        </a>
+                      )}
                     </div>
 
                     {/*

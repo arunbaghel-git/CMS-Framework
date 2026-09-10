@@ -871,6 +871,25 @@ export async function listEntries(query, siteId = DEFAULT_SITE_ID, locale = DEFA
   Object.assign(filter, durationQuery(filters.duration) ?? {})
 
   /**
+   * `All dates` — ek mahine ke post (client, 10 Sep).
+   *
+   * ⚠️ **Range se, `$expr`/`$month` se nahi.** `$expr` har document pe date todta hai, yaani
+   * index ka koi faayda nahi milta; range `{siteId, type, status, publishAt: -1}` wale
+   * maujooda index (migration 001) pe seedha chalti hai.
+   *
+   * ⚠️ Mahina **UTC** me kaata gaya hai, kyunki `publishAt` UTC me store hoti hai. Local time
+   * me kaatne se mahine ke pehle/aakhri din ke post kabhi idhar kabhi udhar chale jaate —
+   * wahi jaal jo D-41 ke storage key pe likha hua hai.
+   */
+  if (filters.month) {
+    const [year, month] = filters.month.split('-').map(Number)
+    filter.publishAt = {
+      $gte: new Date(Date.UTC(year, month - 1, 1)),
+      $lt: new Date(Date.UTC(year, month, 1)),
+    }
+  }
+
+  /**
    * Search `searchText` pe chalti hai, `$text` pe nahi.
    *
    * `$text` poore document ka text index use karta par usse `type`/`status` filter ke
@@ -915,7 +934,32 @@ export async function entryCounts(type, siteId = DEFAULT_SITE_ID, locale = DEFAU
     Entry.countDocuments({ ...base, deletedAt: { $ne: null } }),
   ])
 
-  return { all, published, draft, pending, scheduled, private: isPrivate, trash }
+  /**
+   * `All dates` dropdown ki list — jin mahinon me sach me post hain (client, 10 Sep).
+   *
+   * ⚠️ **Yahan banti hai, list endpoint pe nahi** — wo ek page hi deta hai, aur uske 20 rows
+   * se banaya gaya dropdown har page pe badal jaata. Ye tabs ki ginti ke saath aata hai, jo
+   * waise bhi poore collection pe chalti hai.
+   *
+   * Trash ke post isme nahi hain (`live`) — wo list me dikhte hi nahi.
+   */
+  const months = await Entry.aggregate([
+    { $match: { ...live, publishAt: { $ne: null } } },
+    { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$publishAt' } } } },
+    { $sort: { _id: -1 } },
+    { $limit: 120 },
+  ])
+
+  return {
+    all,
+    published,
+    draft,
+    pending,
+    scheduled,
+    private: isPrivate,
+    trash,
+    months: months.map((m) => m._id),
+  }
 }
 
 /** Ek entry — trash me padi ho to bhi milti hai, taaki Trash screen use dikha sake. */

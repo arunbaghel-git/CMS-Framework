@@ -5485,14 +5485,14 @@ a.mega__gl:hover {
  * `<ul>` par iska koi asar nahi — wahan bullets wahi rehte hain.
  */
 .wdgl,
-.wdg__b ul {
+.wdg__b ul:not(.toc):not(.cats) {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .wdgl li a,
-.wdg__b ul li a {
+.wdg__b ul:not(.toc):not(.cats) li a {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5506,12 +5506,12 @@ a.mega__gl:hover {
 
 /* Aakhri row pe lakeer nahi — warna wo widget ke apne border se do lakeerein bana deti hai */
 .wdgl li:last-child a,
-.wdg__b ul li:last-child a {
+.wdg__b ul:not(.toc):not(.cats) li:last-child a {
   border-bottom: 0;
 }
 
 .wdgl li a:hover,
-.wdg__b ul li a:hover {
+.wdg__b ul:not(.toc):not(.cats) li a:hover {
   color: var(--blue-600);
 }
 
@@ -5605,7 +5605,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 5px;
   align-self: flex-start;
-  font-size: 10.5px;
+  font-size: var(--fs-5xs);
   font-weight: 900;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -5638,7 +5638,7 @@ a.mega__gl:hover {
   margin-bottom: 14px;
 }
 .bfilter__l {
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -5647,7 +5647,7 @@ a.mega__gl:hover {
 }
 .bfilter__c {
   margin-left: auto;
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   color: var(--muted);
 }
@@ -5705,7 +5705,7 @@ a.mega__gl:hover {
   gap: 8px;
 }
 .bp__b h3 {
-  font-size: 16px;
+  font-size: var(--fs-2xl);
   line-height: 1.35;
   letter-spacing: -0.02em;
 }
@@ -5713,7 +5713,7 @@ a.mega__gl:hover {
   color: var(--blue-700);
 }
 .bp__x {
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   line-height: 1.6;
   color: var(--body);
 }
@@ -5725,7 +5725,7 @@ a.mega__gl:hover {
   margin-top: auto;
   padding-top: 11px;
   border-top: 1px solid var(--line-2);
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   font-weight: 600;
   color: var(--muted);
 }
@@ -5760,7 +5760,7 @@ a.mega__gl:hover {
   border-radius: var(--r2);
   border: 1.5px solid var(--line);
   background: #fff;
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--body);
 }
@@ -5796,7 +5796,7 @@ a.mega__gl:hover {
   gap: 10px;
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   font-weight: 700;
   color: var(--ink-2);
 }
@@ -5808,7 +5808,7 @@ a.mega__gl:hover {
   color: var(--blue-600);
 }
 .cats span {
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   font-weight: 800;
   color: var(--muted);
   background: var(--line-2);
@@ -5838,7 +5838,7 @@ a.mega__gl:hover {
 }
 .pop b {
   display: block;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1.4;
   color: var(--ink);
@@ -5848,7 +5848,7 @@ a.mega__gl:hover {
 }
 .pop span {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   font-weight: 600;
   color: var(--muted);
   margin-top: 3px;
@@ -5865,7 +5865,7 @@ a.mega__gl:hover {
 .ahead__cat {
   display: inline-flex;
   align-items: center;
-  font-size: 10.5px;
+  font-size: var(--fs-5xs);
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -5874,16 +5874,27 @@ a.mega__gl:hover {
   padding: 5px 11px;
   border-radius: var(--rf);
 }
+/*
+ * ⚠️ `.vhero h1` pehle se `clamp(25px, 3.6vw, 40px)` deta hai. Reference ka `3.4vw` uska
+ * lagbhag-wahi doosra roop tha; use rakhne ka matlab tha ek hi heading ke do naap. Yahan sirf
+ * chaudai bachi hai — article ka title tour page ke title se lamba hota hai.
+ */
 .vhero h1.ahead__t {
   max-width: 26ch;
-  font-size: clamp(25px, 3.4vw, 40px);
-  line-height: 1.12;
 }
+/*
+ * ⚠️ **Naap aur gap dono `.vhero__sub` se liye gaye hain, reference se nahi** (client, 10 Sep).
+ *
+ * Dono ek hi cheez hain — hero ke `<h1>` ke neeche wali line. Reference blog page pe
+ * `clamp(14px, 1.4vw, 16px)` aur 13px gap deta hai, tour page pe `clamp(13.5px, 1.3vw, 15.5px)`
+ * aur 11px. Wo farak design ki apni asangati hai, koi faisla nahi — dono rakhne ka matlab hota
+ * ki ek hi jagah do site pe do naap ho.
+ */
 .ahead__d {
   color: rgba(255, 255, 255, 0.8);
-  font-size: clamp(14px, 1.4vw, 16px);
+  font-size: clamp(13.5px, 1.3vw, 15.5px);
   line-height: 1.6;
-  margin-top: 13px;
+  margin-top: 11px;
   max-width: 62ch;
 }
 .ahead__m {
@@ -5906,7 +5917,7 @@ a.mega__gl:hover {
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 900;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -5914,13 +5925,13 @@ a.mega__gl:hover {
 }
 .ahead__au b {
   display: block;
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   font-weight: 800;
   color: #fff;
 }
 .ahead__au b + span {
   display: block;
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   color: rgba(255, 255, 255, 0.62);
   font-weight: 600;
 }
@@ -5931,7 +5942,7 @@ a.mega__gl:hover {
   background: rgba(255, 255, 255, 0.35);
 }
 .ahead__x {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.72);
 }
@@ -6001,35 +6012,50 @@ a.mega__gl:hover {
   background: var(--blue-100);
 }
 .artfig figcaption {
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   color: var(--muted);
   margin-top: 9px;
   font-weight: 600;
 }
-.art p {
-  font-size: 15.5px;
-  line-height: 1.75;
-  color: var(--body);
-}
-.art p + p {
-  margin-top: 15px;
-}
+/*
+ * ⚠️ **Yahan pehle `.art p` aur `.art p + p` ki apni copy thi — 15.5px / lh 1.75 / 15px gap,
+ * seedha reference se. Wo hata di gayi (client, 10 Sep).**
+ *
+ * Body ka naap is project me **tay ho chuka hai**: `--fs-body` (14px). Wo 2 Sep ko client ne
+ * khud chuna tha, reference ke 12.5px ko mana karke (`b69d5bb`). Article me 15.5px likhne ka
+ * matlab tha ki ek hi site pe do "body" ban jaayein — tour page pe 14, blog pe 15.5 — aur
+ * D-73 ke poore token wale kaam ka ulta.
+ *
+ * Ab `.blk p` (`--fs-body`, lh 1.65) aur `.blk p + p` (10px) hi chalte hain, jo package aur
+ * tour page pe bhi wahi hain. **Reference se mismatch ho to poora copy karne ki zaroorat
+ * nahi** — client ka apna niyam (10 Sep).
+ */
+/* Naap `.blk .lead` (`--fs-lead`) se — yahan sirf rang aur weight, jo article ke apne hain. */
 .art .lead {
-  font-size: 17px;
-  line-height: 1.65;
   color: var(--ink-2);
   font-weight: 500;
 }
+/*
+ * ⚠️ **Naap aur neeche ka gap dono `.blk h2` se aate hain** (`--fs-h2`, 10px) — client,
+ * 10 Sep: _"standard check karke jo most of time aa raha hai wo choose karo."_ Theme me wahi
+ * standard hai; reference ka 12px uski teesri alag value hoti.
+ *
+ * **Upar ka margin article ka apna hai** — wo heading aur uske description ke beech ka gap
+ * nahi, ek section ko doosre se alag karta hai. Tour page pe `.blk h2` block ka pehla element
+ * hota hai, isliye wahan uski zaroorat hi nahi.
+ *
+ * `scroll-margin-top` TOC ke anchor ke liye hai — bina iske heading sticky header ke peeche
+ * chhup jaati hai.
+ */
 .art h2 {
-  font-size: clamp(19px, 2.2vw, 25px);
   letter-spacing: -0.03em;
-  margin: clamp(26px, 3vw, 38px) 0 12px;
+  margin-top: clamp(26px, 3vw, 38px);
   scroll-margin-top: 96px;
 }
+/* Naap aur neeche ka 7px gap `.blk h3` se — sirf upar ka margin article ka apna. */
 .art h3 {
-  font-size: 17px;
   letter-spacing: -0.02em;
-  margin: 24px 0 9px;
+  margin-top: 24px;
 }
 .art b,
 .art strong {
@@ -6055,7 +6081,7 @@ a.mega__gl:hover {
   position: relative;
   display: block;
   padding-left: 19px;
-  font-size: 15px;
+  font-size: var(--fs-body);
   line-height: 1.65;
   color: var(--body);
 }
@@ -6076,7 +6102,7 @@ a.mega__gl:hover {
   position: relative;
   display: block;
   padding-left: 36px;
-  font-size: 15px;
+  font-size: var(--fs-body);
   line-height: 1.65;
   color: var(--body);
   min-height: 25px;
@@ -6092,7 +6118,7 @@ a.mega__gl:hover {
   border-radius: 50%;
   background: var(--blue-50);
   color: var(--blue-700);
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 900;
   display: grid;
   place-items: center;
@@ -6125,13 +6151,13 @@ a.mega__gl:hover {
 }
 .callout b {
   display: block;
-  font-size: 13.5px;
+  font-size: var(--fs-md);
   font-weight: 900;
   color: var(--ink);
   margin-bottom: 4px;
 }
 .callout p {
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.6;
   color: var(--body);
 }
@@ -6167,7 +6193,7 @@ a.mega__gl:hover {
   border-top: 1px solid var(--line-2);
 }
 .share b {
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -6206,7 +6232,7 @@ a.mega__gl:hover {
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 16px;
+  font-size: var(--fs-2xl);
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -6214,13 +6240,13 @@ a.mega__gl:hover {
 }
 .authorbox b {
   display: block;
-  font-size: 14.5px;
+  font-size: var(--fs-lg);
   font-weight: 800;
   color: var(--ink);
 }
 .authorbox b + span {
   display: block;
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -6228,7 +6254,7 @@ a.mega__gl:hover {
   margin: 3px 0 7px;
 }
 .authorbox p {
-  font-size: 13.5px;
+  font-size: var(--fs-base);
   line-height: 1.6;
   color: var(--body);
 }
@@ -6253,7 +6279,7 @@ a.mega__gl:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -6261,7 +6287,7 @@ a.mega__gl:hover {
   margin-bottom: 7px;
 }
 .pn b {
-  font-size: 14.5px;
+  font-size: var(--fs-lg);
   font-weight: 800;
   line-height: 1.35;
   color: var(--ink);
@@ -6281,7 +6307,7 @@ a.mega__gl:hover {
   display: block;
   padding: 8px 0 8px 13px;
   border-left: 2px solid var(--line-2);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--body);
   line-height: 1.45;
@@ -6296,11 +6322,19 @@ a.mega__gl:hover {
 }
 
 @media (max-width: 860px) {
-  .pn {
-    grid-template-columns: 1fr;
-  }
   .authorbox {
     flex-direction: column;
     gap: 12px;
+  }
+}
+
+/*
+ * ⚠️ **Prev/next tablet pe bhi do column** — client, 10 Sep. Reference 860px pe ek column
+ * kar deta hai, par tablet pe do card aaram se aate hain aur ek-ek karke rakhne se wo jagah
+ * bina wajah lambi ho jaati hai. Ek column sirf phone pe.
+ */
+@media (max-width: 600px) {
+  .pn {
+    grid-template-columns: 1fr;
   }
 }

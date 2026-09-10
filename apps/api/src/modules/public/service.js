@@ -881,6 +881,35 @@ async function toPostCards(docs, siteId, locale) {
 }
 
 /**
+ * Blog listing page ka path — `All articles` link aur breadcrumb dono ke liye (spec 008).
+ *
+ * ⚠️ **Ye hardcoded `/blog` NAHI hai.** Listing page ek aam entry hai jise client ne khud
+ * banaya hai; uska slug `guides` bhi ho sakta hai. Hardcode karne ka matlab hota ki jis din
+ * wo slug badle, ye link chup-chaap 404 pe le jaaye — theek wahi jaal jo `resolvePath()` ke
+ * sar pe likha hai (admin ek path dikhata rahe, DB me doosra ho).
+ *
+ * ⚠️ **Wahi query jo `blogListingTags()` ki hai** (`entries/service.js`) — jis `blogPage` me
+ * `postList` hai wahi asli listing hai. Do jagah do alag kasautiyaan rakhne ka matlab hota ki
+ * cache ek page saaf kare aur link doosre pe le jaaye (D-86).
+ *
+ * Koi listing page na bana ho to `null` — aur tab theme wo link render hi nahi karti (D-30).
+ */
+async function resolveBlogPath(siteId, locale) {
+  const page = await Entry.findOne({
+    siteId,
+    locale,
+    type: 'blogPage',
+    'content.blocks.type': 'postList',
+    ...publiclyVisibleQuery(),
+  })
+    .sort({ createdAt: 1 })
+    .select('path')
+    .lean()
+
+  return page?.path ?? null
+}
+
+/**
  * Prev / Next — padhne ki chain (`.pn`, `blog-detail-v1.html`).
  *
  * ## Kram aur matlab
@@ -1619,11 +1648,12 @@ const RELATED_POSTS_LIMIT = 4
  * chaar `if`, aur wahi bikhraav jise D-09 ne routing pe mana kiya tha.
  */
 async function toPublicPost(doc, siteId, locale) {
-  const [settings, breadcrumbs, nav, related] = await Promise.all([
+  const [settings, breadcrumbs, nav, related, blogPath] = await Promise.all([
     getSettings(siteId),
     resolveBreadcrumbs(doc, siteId, locale),
     resolvePostNav(doc, siteId, locale),
     resolveRelatedPosts(doc, siteId, locale, RELATED_POSTS_LIMIT),
+    resolveBlogPath(siteId, locale),
   ])
 
   const blog = settings.blogSettings ?? {}
@@ -1712,6 +1742,15 @@ async function toPublicPost(doc, siteId, locale) {
 
     /** `Related reading` — usi category ke, 4 tak. Kam mile to kam. */
     related,
+
+    /**
+     * `All articles` ka destination — listing page ka apna path.
+     *
+     * ⚠️ `null` ho sakta hai (listing page abhi bana hi na ho), aur tab theme wo link
+     * **render nahi karti** — ek aisa link jo 404 pe le jaaye, us link se bura hai jo hai hi
+     * nahi (D-30).
+     */
+    blogPath,
 
     /**
      * Sidebar — **`blogSettings` se, post pe nahi** (client, 9 Sep).

@@ -18,6 +18,8 @@ export default function PostList() {
       addLabel="Add New Post"
       basePath="/posts"
       searchLabel="Search posts…"
+      thirdColumn="category"
+      postFilters
     />
   )
 }

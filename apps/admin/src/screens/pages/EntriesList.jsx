@@ -3,7 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
-import { useEntryCounts, useEntryList } from '../../lib/use-entries.js'
+import { useEntryCounts, useEntryList, useMediaById } from '../../lib/use-entries.js'
+import { useTaxonomyList } from '../packages/usePackages.js'
 import '../packages/Packages.css'
 
 /**
@@ -82,9 +83,31 @@ function shortDate(value) {
  * @param {string} props.addLabel      "Add New Page" / "Add New Tour Page"
  * @param {string} props.basePath      `/pages` ya `/tour`
  * @param {string} props.searchLabel   Search box ka placeholder
- * @param {string} props.thirdColumn   `author` ya `packages`
+ * @param {string} props.thirdColumn   `author` · `packages` · `category`
+ * @param {boolean} [props.postFilters]  Category aur All dates ke dropdown (sirf Posts pe)
  */
-export default function EntriesList({ type, title, addLabel, basePath, searchLabel, thirdColumn }) {
+/** Teesre column ka heading — `type` DB ka data hai, label sirf UI ka (R6 wala hi tark). */
+const THIRD_LABEL = { author: 'Author', category: 'Category', packages: 'Packages' }
+
+/** `2026-08` → `August 2026`. Dropdown me client mahine ka naam padhta hai, number nahi. */
+const monthLabel = (value) => {
+  const [year, month] = String(value).split('-').map(Number)
+  return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString('en-IN', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+}
+
+export default function EntriesList({
+  type,
+  title,
+  addLabel,
+  basePath,
+  searchLabel,
+  thirdColumn,
+  postFilters = false,
+}) {
   const { can } = useAuth()
   const [params, setParams] = useSearchParams()
 
@@ -106,6 +129,16 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
   const appliedSearch = params.get('q') ?? ''
   const [search, setSearch] = useState(appliedSearch)
 
+  /**
+   * Category aur All dates — **URL me** rehte hain, component ke state me nahi.
+   *
+   * Wahi tark jo `q` aur `tab` pe hai: filter laga kar link bhejna, back button, aur refresh
+   * teenon kaam karte hain. State me rakhne ka matlab hota ki refresh pe filter chup-chaap
+   * gir jaaye.
+   */
+  const appliedCategory = params.get('categories') ?? ''
+  const appliedMonth = params.get('month') ?? ''
+
   const counts = useEntryCounts(type, writes)
 
   /** Tab → query. Trash ek alag view hai, status ka filter nahi (R12). */
@@ -117,8 +150,22 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
   }, [tab])
 
   const query = useMemo(
-    () => ({ page, limit: 20, ...tabQuery, ...(appliedSearch ? { q: appliedSearch } : {}) }),
-    [page, tabQuery, appliedSearch],
+    () => ({
+      page,
+      limit: 20,
+      ...tabQuery,
+      ...(appliedSearch ? { q: appliedSearch } : {}),
+      /**
+       * ⚠️ Param ka naam `categories` hai, `category` nahi — wahi jo storage key ka hai.
+       * `entryListQuerySchema` me wo `TAXONOMY_REF_KEYS` se banta hai, aur uske comment me
+       * likha hai ki do naam rakhne ka matlab ek mapping hota jise har naye type pe yaad
+       * rakhna padta.
+       */
+      ...(appliedCategory ? { categories: appliedCategory } : {}),
+      ...(appliedMonth ? { month: appliedMonth } : {}),
+    }),
+    /** ⚠️ Naye filter yahan bhi jodo — warna URL badalta hai aur list waisi ki waisi rehti hai. */
+    [page, tabQuery, appliedSearch, appliedCategory, appliedMonth],
   )
 
   const { data, meta, loading, error, reload } = useEntryList(type, query)
@@ -198,6 +245,28 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
   const userNames = useUserNames(thirdColumn === 'author' && can('user.read'))
 
   /**
+   * Row ka thumbnail — client, 10 Sep (_"title ke paas image nahi aa rahi jaise admin me
+   * aati hai"_). `PackagesList` ye shuru se dikhati hai; Posts aur Tour dono pe wo chhoot
+   * gaya tha.
+   *
+   * ⚠️ **`featuredImageId`, `fields.bannerImage` nahi** — wo package ka apna field hai.
+   * Page/post/tour teenon standard `featuredImageId` use karte hain.
+   */
+  const media = useMediaById(data.map((entry) => entry.featuredImageId).filter(Boolean))
+
+  /**
+   * Category ke naam — teesre column aur filter dropdown dono ke liye.
+   *
+   * ⚠️ **Wahi hook jo Packages ke Destinations/Package Type bharta hai** — nayi list nahi
+   * likhi (D-65/D-51/D-58 wala hi sabak).
+   */
+  const categories = useTaxonomyList(thirdColumn === 'category' || postFilters ? 'category' : null)
+  const categoryNames = useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.id, c.name])),
+    [categories],
+  )
+
+  /**
    * Teesra column ki cell.
    *
    * ⚠️ Tour pe `Packages` ki ginti abhi **blocks ki ginti** hai, packages ki nahi — design me
@@ -208,6 +277,20 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
    */
   function thirdCell(entry) {
     if (thirdColumn === 'author') return userNames[entry.authorId] ?? '—'
+
+    /**
+     * Post ki category (spec 008).
+     *
+     * ⚠️ **Pehle Posts ki list pe yahan `Packages` ki ginti dikhti thi** — `thirdColumn` pass
+     * hi nahi hua tha, to wo default pe gir kar har post ke `content.blocks` me `packageList`
+     * gin raha tha, jo hamesha 0 hota. Client ne pakda: _"ye Packages ka nav kyu hai?"_
+     *
+     * Ek hi category hoti hai (spec 008), par storage array hai (D-49) — isliye `[0]`.
+     */
+    if (thirdColumn === 'category') {
+      const id = (entry.taxonomies?.categories ?? [])[0]
+      return id ? (categoryNames[id] ?? '—') : '—'
+    }
 
     const lists = (entry.content?.blocks ?? []).filter((b) => b.type === 'packageList').length
     return lists === 0 ? '—' : `${lists} list${lists > 1 ? 's' : ''}`
@@ -284,6 +367,49 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
           </>
         )}
 
+        {/*
+         * Category aur All dates — sirf Posts pe (client, 10 Sep).
+         *
+         * ⚠️ **Filter server pe lagta hai, browser me nahi** (R14). `categories` param
+         * `entryListQuerySchema` me pehle se tha; `month` uske saath 10 Sep ko juda.
+         *
+         * ⚠️ Khaali list wala dropdown **dikhta hi nahi** — ek dropdown jisme sirf "All"
+         * ho, wo ek jhootha control hai (D-30).
+         */}
+        {postFilters && categories.length > 0 && (
+          <select
+            className="sel"
+            style={{ width: 'auto' }}
+            value={appliedCategory}
+            onChange={(e) => setFilter({ categories: e.target.value })}
+            aria-label="Filter by category"
+          >
+            <option value="">All categories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {postFilters && counts?.months?.length > 0 && (
+          <select
+            className="sel"
+            style={{ width: 'auto' }}
+            value={appliedMonth}
+            onChange={(e) => setFilter({ month: e.target.value })}
+            aria-label="Filter by date"
+          >
+            <option value="">All dates</option>
+            {counts.months.map((m) => (
+              <option key={m} value={m}>
+                {monthLabel(m)}
+              </option>
+            ))}
+          </select>
+        )}
+
         <div className="spacer" />
 
         <form
@@ -340,8 +466,9 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
                 />
               </th>
             )}
+            <th className="col-thumb" />
             <th>Title</th>
-            <th>{thirdColumn === 'author' ? 'Author' : 'Packages'}</th>
+            <th>{THIRD_LABEL[thirdColumn] ?? 'Packages'}</th>
             <th>Status</th>
             <th>Updated</th>
           </tr>
@@ -349,13 +476,13 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
         <tbody>
           {loading && (
             <tr>
-              <td colSpan={5}>Loading…</td>
+              <td colSpan={6}>Loading…</td>
             </tr>
           )}
 
           {!loading && data.length === 0 && (
             <tr>
-              <td colSpan={5}>{tab === 'trash' ? 'Trash is empty.' : 'Nothing here yet.'}</td>
+              <td colSpan={6}>{tab === 'trash' ? 'Trash is empty.' : 'Nothing here yet.'}</td>
             </tr>
           )}
 
@@ -371,6 +498,26 @@ export default function EntriesList({ type, title, addLabel, basePath, searchLab
                   />
                 </td>
               )}
+              <td>
+                {/*
+                 * Banner ka thumbnail — `PackagesList` wala hi pattern (client, 10 Sep).
+                 *
+                 * ⚠️ Media resolve na ho to khaali placeholder wapas aata hai, toota hua
+                 * `<img>` kabhi nahi (D-42 §2): id set hone ke bawajood media delete ho sakti
+                 * hai, aur tab `src` 404 deta.
+                 */}
+                {(() => {
+                  const doc = media[entry.featuredImageId]
+                  const variant =
+                    doc?.variants?.find((v) => v.key === 'thumb') ?? doc?.variants?.[0]
+
+                  return variant ? (
+                    <img className="thumb" src={variant.url} alt="" loading="lazy" />
+                  ) : (
+                    <span className="thumb" />
+                  )
+                })()}
+              </td>
               <td>
                 {/*
                  * Nested pages design me `— Our Team — child of About Us` ki tarah dikhte
