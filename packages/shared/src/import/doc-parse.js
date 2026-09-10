@@ -88,8 +88,31 @@ export const normalizeLabel = (value) => normalizeName(value).replace(/\s*:\s*$/
  * saare non-digit hata kar `837724999` bana deta — yaani daam ki jagah ek bemaani number, jo
  * `pricingSchema` ki hadd paar kar ke poore package ko gira deta. Iska test hai.
  *
+ * ⚠️ **Named entities (`&mdash;`, `&rsquo;`) chhod dena wahi bug hai, doosri shakl me.** Blog
+ * ke asli export me `&mdash;` chaar baar aur `&ndash;` paanch baar mile. Bina decode kiye wo
+ * plain-text khaanon me **literally** baith jaate hain — yaani card pe aur meta description me
+ * `Port Blair &mdash; plus when to book` chhapta. HTML wale khaanon me nuksaan nahi hota (wahan
+ * `&mdash;` valid HTML hai aur browser use theek dikhata hai), isliye ye sirf `text` side pe
+ * dikhta — aur usi wajah se ye aasaani se chhoot jaata.
+ *
+ * Poori entity table yahan nahi hai (wo ek nayi dependency hoti — R3). Sirf wo hain jo asli
+ * doc me aate hain: dash, quote, ellipsis. `&nbsp;` upar hi khap chuka hota hai.
+ *
  * `&amp;` sabse aakhir me hai taaki `&amp;#39;` do baar decode na ho jaaye.
  */
+const NAMED_ENTITIES = Object.freeze({
+  mdash: '—',
+  ndash: '–',
+  lsquo: '‘',
+  rsquo: '’',
+  ldquo: '“',
+  rdquo: '”',
+  hellip: '…',
+  times: '×',
+  deg: '°',
+  apos: "'",
+})
+
 const decodeEntities = (text) =>
   String(text ?? '')
     .replace(/&nbsp;/gi, ' ')
@@ -98,6 +121,7 @@ const decodeEntities = (text) =>
     .replace(/&quot;/gi, '"')
     .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
     .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&([a-z]+);/gi, (tag, name) => NAMED_ENTITIES[name.toLowerCase()] ?? tag)
     .replace(/&amp;/gi, '&')
 
 /**

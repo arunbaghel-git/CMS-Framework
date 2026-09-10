@@ -5,6 +5,7 @@ export * from './field-types.js'
 export * from './import/csv.js'
 export * from './import/doc-parse.js'
 export * from './import/package-doc.js'
+export * from './import/post-doc.js'
 export * from './path.js'
 export * from './schemas/index.js'
 /**
