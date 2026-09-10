@@ -151,10 +151,27 @@ export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
   await assertFooterMenusExist(input, siteId)
   await ensureSettings(siteId)
 
+  /**
+   * Kaunse nested objects **merge** hote hain, replace nahi.
+   *
+   * ⚠️ **Ye list 10 Sep ko `blogSettings` ke saath badi hui, aur uski wajah ek asli data loss
+   * thi.** `$set['blogSettings'] = value` poore object ko **badal deta hai** — yaani sirf
+   * `{ postUrlMode: 'root' }` bhejne se author, TOC aur sidebar teenon uud gaye. Admin ka form
+   * hamesha poora object bhejta hai isliye wahan ye kabhi nahi dikha; ek script se ek field
+   * patch karte hi dikha.
+   *
+   * `social` yahan shuru se tha — wahi jaal, us din pakda gaya tha.
+   *
+   * ⚠️ Merge **ek hi star** gehra hai: `blogSettings.author` khud ek object hai aur wo poora
+   * badalta hai. Wo theek hai — admin use hamesha teenon field ke saath bhejta hai — par naya
+   * nested object jodo to yahi sawaal dobara poochhna hoga.
+   */
+  const MERGED_KEYS = ['social', 'blogSettings']
+
   const $set = {}
   for (const [key, value] of Object.entries(input)) {
-    if (key === 'social' && value && typeof value === 'object') {
-      for (const [k, v] of Object.entries(value)) $set[`social.${k}`] = v
+    if (MERGED_KEYS.includes(key) && value && typeof value === 'object' && !Array.isArray(value)) {
+      for (const [k, v] of Object.entries(value)) $set[`${key}.${k}`] = v
     } else {
       $set[key] = value
     }

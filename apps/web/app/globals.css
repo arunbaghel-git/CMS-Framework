@@ -5797,7 +5797,8 @@ a.mega__gl:hover {
    mohtaaj nahi hona chahiye. Yahi D-90 wala sawaal hai: *"agar link na ho to kya hoga?"*
 */
 .cats li a,
-.cats li > span {
+.cats li > span,
+.cats li > button {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -5809,10 +5810,12 @@ a.mega__gl:hover {
   color: var(--ink-2);
 }
 .cats li:last-child a,
-.cats li:last-child > span {
+.cats li:last-child > span,
+.cats li:last-child > button {
   border-bottom: 0;
 }
-.cats li a:hover {
+.cats li a:hover,
+.cats li > button:hover {
   color: var(--blue-600);
 }
 .cats span {
@@ -6551,4 +6554,22 @@ a.mega__gl:hover {
  */
 .feat + .pgl {
   margin-top: clamp(20px, 2.6vw, 32px);
+}
+
+/*
+ * Chuna hua topic — sidebar aur pill bar dono ek hi state padhte hain (spec 008).
+ *
+ * ⚠️ Reference me `.cats` ka koi active roop hai hi nahi, kyunki wahan wo links hain aur
+ * filter sirf pills se chalta tha. Client ne dono ka sync maanga (9 Sep), aur bina active
+ * roop ke sidebar se topic chunne pe wahan **kuch badalta hua dikhta hi nahi** — wo "click
+ * kaam nahi kiya" jaisa lagta hai. Rang hover wala hi hai, koi naya token nahi.
+ */
+.cats li > button.on {
+  color: var(--blue-700);
+  font-weight: 800;
+}
+
+.cats li > button.on span {
+  background: var(--blue-100);
+  color: var(--blue-700);
 }

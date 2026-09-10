@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 
+import { useBlogFilter } from './BlogFilter.jsx'
 import PostCard from './PostCard.jsx'
 
 /**
@@ -87,8 +88,23 @@ function Pager({ page, pages, onGo }) {
 export default function PostList({ props = {}, data }) {
   const { cards = [], facets = [], author = '', capped = false } = data ?? {}
 
-  const [topic, setTopic] = useState('all')
-  const [page, setPage] = useState(1)
+  /**
+   * ⚠️ **State provider me hai, yahan nahi** (spec 008) — usi state ko sidebar ka `Topics` bhi
+   * padhta hai. Do `useState` rakhne ka matlab hota ki client sidebar se `Ferries` chune aur
+   * yahan pill bar par abhi bhi `All` chamak raha ho. Poora tark `BlogFilter.jsx` me hai.
+   *
+   * ⚠️ Fallback isliye ki ye component bina provider ke bhi na toote — `BlocksScope` use
+   * hamesha lapetta hai, par ek din koi `PostList` kahin aur render kare to wo chup-chaap
+   * chalna chahiye, crash nahi.
+   */
+  const shared = useBlogFilter()
+  const [localTopic, setLocalTopic] = useState('all')
+  const [localPage, setLocalPage] = useState(1)
+
+  const topic = shared ? shared.topic : localTopic
+  const page = shared ? shared.page : localPage
+  const setTopic = shared ? shared.setTopic : setLocalTopic
+  const setPage = shared ? shared.setPage : setLocalPage
 
   const perPage = props.perPage ?? 9
 
@@ -108,9 +124,10 @@ export default function PostList({ props = {}, data }) {
   const current = Math.min(page, pages)
   const visible = filtered.slice((current - 1) * perPage, current * perPage)
 
+  /** Provider ka `setTopic` page khud 1 pe le aata hai — wo jodi ek hi jagah rehni chahiye. */
   const pick = (next) => {
     setTopic(next)
-    setPage(1)
+    if (!shared) setLocalPage(1)
   }
 
   return (

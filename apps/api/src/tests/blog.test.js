@@ -767,3 +767,42 @@ describe('post ke URL ki shakl — Blog settings ka switch (#10)', () => {
     expect(await pathOf('trashed')).toBe('/trashed')
   })
 })
+
+describe('blogSettings ka partial patch baaki field nahi udaata', () => {
+  it('sirf postUrlMode bhejne se author aur sidebar bache rehte hain', async () => {
+    // ⚠️ Ye test ek asli data loss ke baad likha gaya (10 Sep): `$set['blogSettings'] = value`
+    // poore object ko badal deta tha, aur ek script se ek field patch karte hi client ka
+    // author text uud gaya. Admin ka form hamesha poora object bhejta hai, isliye wahan ye
+    // kabhi nahi dikha — yaani ek aisa bug jise sirf ye test pakadta hai.
+    await updateSettings({
+      blogSettings: {
+        author: { name: 'Andaman Tourism team', role: 'Planners', bio: 'Hum log.' },
+        postSidebar: 'right',
+        postSidebarId: 'abc',
+        showToc: false,
+      },
+    })
+
+    await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+
+    const saved = (await Settings.findOne({ siteId: 'default' }).lean()).blogSettings
+
+    expect(saved.author.name).toBe('Andaman Tourism team')
+    expect(saved.postSidebar).toBe('right')
+    expect(saved.postSidebarId).toBe('abc')
+    expect(saved.showToc).toBe(false)
+    expect(saved.postUrlMode).toBe('root')
+  })
+
+  it('social pe bhi wahi — wo is jaal ka pehla instance tha', async () => {
+    await updateSettings({
+      social: { facebook: 'https://fb.com/x', instagram: 'https://ig.com/y' },
+    })
+    await updateSettings({ social: { facebook: 'https://fb.com/z' } })
+
+    const saved = (await Settings.findOne({ siteId: 'default' }).lean()).social
+
+    expect(saved.facebook).toBe('https://fb.com/z')
+    expect(saved.instagram).toBe('https://ig.com/y')
+  })
+})

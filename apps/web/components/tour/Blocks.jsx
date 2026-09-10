@@ -1,3 +1,4 @@
+import { BlogFilterProvider } from '../blog/BlogFilter.jsx'
 import PostList from '../blog/PostList.jsx'
 import PostListLead from '../blog/PostListLead.jsx'
 import PackageList from './PackageList.jsx'
@@ -238,6 +239,22 @@ const BLOCKS = {
  * Jis block ka yahan koi entry nahi, uska lead pass me kuch render hi nahi hota.
  */
 const LEADS = { postList: PostListLead }
+
+/**
+ * Jo blocks apni state doosri column ke saath baantte hain, unhe ek provider chahiye.
+ *
+ * ⚠️ **Ye faisla yahan hai, `TourPage` me nahi.** Wahan `type === 'postList'` likhne ka matlab
+ * hota page ka dhaancha block ke naam se baandh dena (D-09) — wahi wajah jiske liye `LEADS`
+ * map bana tha. `TourPage` sirf itna janta hai ki "in blocks ko ek scope chahiye ho sakta hai".
+ *
+ * Jis page pe aisa koi block nahi (aaj har tour aur package page), wahan **koi provider render
+ * hi nahi hota** — ek khaali context bhi nahi.
+ */
+export function BlocksScope({ blocks = [], children }) {
+  const needsFilter = blocks.some((block) => block?.type === 'postList')
+
+  return needsFilter ? <BlogFilterProvider>{children}</BlogFilterProvider> : children
+}
 
 /**
  * @param {object} props

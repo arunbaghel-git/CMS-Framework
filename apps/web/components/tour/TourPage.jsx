@@ -6,7 +6,7 @@ import { waHref } from '../../lib/links.js'
 import CtaSection from '../package/CtaSection.jsx'
 import { EnquiryDockProvider } from '../package/EnquiryDock.jsx'
 import MobileBar from '../package/MobileBar.jsx'
-import Blocks from './Blocks.jsx'
+import Blocks, { BlocksScope } from './Blocks.jsx'
 import Sidebar from './Sidebar.jsx'
 import TourSchema from './TourSchema.jsx'
 
@@ -300,63 +300,73 @@ export default function TourPage({ entry, settings }) {
         )}
 
         <section className="sec sec--blue">
-          <div className="wrap">
-            {/*
-             * **Lead pass — jo hissa columns ke upar, poori chaudai pe jaata hai** (spec 008,
-             * client 10 Sep: _"Start here ka section upar hai, ye side me kyu aa raha hai"_).
-             *
-             * ⚠️ **Yahan koi block ka naam likha hua nahi hai, aur wo jaan-boojh kar hai.**
-             * Kaunsa block apna kya hissa upar bhejta hai wo `Blocks.jsx` ke `LEADS` map me hai.
-             * `type === 'postList'` yahan likhne ka matlab hota page ka dhaancha block ke naam se
-             * baandh dena — wahi hardcoding jise D-09 ne mana kiya tha.
-             *
-             * Jis page ke kisi block ka lead nahi hota (aaj har tour page), wahan ye kuch render
-             * hi nahi karta — ek khaali div bhi nahi.
-             */}
-            <Blocks blocks={entry.blocks ?? []} slot="lead" />
+          {/*
+           * ⚠️ **Provider `.pgl` ke bahar hai, aur wo zaroori hai** — usme main column ka filter
+           * bar (`PostList`) **aur** sidebar ka `Topics` dono aate hain. Sirf `.pgl__main` ko
+           * lapetne ka matlab hota ki sidebar wale rows ko wo state milti hi nahi, aur client ek
+           * taraf `Ferries` chun kar doosri taraf `All` chamakta dekhta.
+           *
+           * Kaunse page pe wo banega ye `BlocksScope` khud tay karta hai.
+           */}
+          <BlocksScope blocks={entry.blocks ?? []}>
+            <div className="wrap">
+              {/*
+               * **Lead pass — jo hissa columns ke upar, poori chaudai pe jaata hai** (spec 008,
+               * client 10 Sep: _"Start here ka section upar hai, ye side me kyu aa raha hai"_).
+               *
+               * ⚠️ **Yahan koi block ka naam likha hua nahi hai, aur wo jaan-boojh kar hai.**
+               * Kaunsa block apna kya hissa upar bhejta hai wo `Blocks.jsx` ke `LEADS` map me hai.
+               * `type === 'postList'` yahan likhne ka matlab hota page ka dhaancha block ke naam se
+               * baandh dena — wahi hardcoding jise D-09 ne mana kiya tha.
+               *
+               * Jis page ke kisi block ka lead nahi hota (aaj har tour page), wahan ye kuch render
+               * hi nahi karta — ek khaali div bhi nahi.
+               */}
+              <Blocks blocks={entry.blocks ?? []} slot="lead" />
 
-            {/*
-             * ⚠️ **`.pgl--sideleft` ek modifier hai, `.pgl` badla nahi gaya.**
-             *
-             * `.pgl` package detail page pe bhi chalti hai aur wahan sidebar **right** hai. Uska
-             * `grid-template-columns` seedha badalne ka matlab hota us page ka layout tod dena —
-             * ye Slice D ka pehle se likha hua maloom kaanta tha.
-             */}
-            {/*
-             * ⚠️ `pgl--tour` **hamesha** lagti hai, `pgl--sideleft` sirf left pe.
-             *
-             * Wo mobile ke ek rule ke liye chahiye: package page pe `.pgl__side` ke widgets
-             * chhup jaate hain (unke contact `.mobar` me chale jaate hain), par tour page pe koi
-             * `.mobar` hai hi nahi — wahan chhupane ka matlab hota poori sidebar gayab, form samet.
-             */}
-            <div
-              className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
-            >
-              <div className="pgl__main">
-                {/*
-                 * ⚠️ **Byline sirf `page` pe, `tourPage` pe nahi — client ne 8 Sep ko pakda.**
-                 *
-                 * Maine ise D-87 ke faisle #9 ("byline poori tarah automatic") ke bharose har page
-                 * pe laga diya tha. Par wo faisla ye batata hai ki byline ka **data kahan se aata
-                 * hai**, ye nahi ki wo **kis page pe dikhta hai**.
-                 *
-                 * Reference dekhne pe saaf hua: `tour-v3.html` me byline **hai hi nahi** (0
-                 * matches), aur `itinerary-v3.html` me bhi nahi. Wo sirf `page-template-text.html`
-                 * me hai — yaani wo ek **article** page ki cheez hai, listing page ki nahi.
-                 *
-                 * ⚠️ Payload me `byline` phir bhi jaata hai aur uske tests bhi hain — wo galat nahi
-                 * tha. Sirf uski jagah galat thi.
-                 */}
-                {entry.type === 'page' && <Byline byline={byline} />}
+              {/*
+               * ⚠️ **`.pgl--sideleft` ek modifier hai, `.pgl` badla nahi gaya.**
+               *
+               * `.pgl` package detail page pe bhi chalti hai aur wahan sidebar **right** hai. Uska
+               * `grid-template-columns` seedha badalne ka matlab hota us page ka layout tod dena —
+               * ye Slice D ka pehle se likha hua maloom kaanta tha.
+               */}
+              {/*
+               * ⚠️ `pgl--tour` **hamesha** lagti hai, `pgl--sideleft` sirf left pe.
+               *
+               * Wo mobile ke ek rule ke liye chahiye: package page pe `.pgl__side` ke widgets
+               * chhup jaate hain (unke contact `.mobar` me chale jaate hain), par tour page pe koi
+               * `.mobar` hai hi nahi — wahan chhupane ka matlab hota poori sidebar gayab, form samet.
+               */}
+              <div
+                className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
+              >
+                <div className="pgl__main">
+                  {/*
+                   * ⚠️ **Byline sirf `page` pe, `tourPage` pe nahi — client ne 8 Sep ko pakda.**
+                   *
+                   * Maine ise D-87 ke faisle #9 ("byline poori tarah automatic") ke bharose har page
+                   * pe laga diya tha. Par wo faisla ye batata hai ki byline ka **data kahan se aata
+                   * hai**, ye nahi ki wo **kis page pe dikhta hai**.
+                   *
+                   * Reference dekhne pe saaf hua: `tour-v3.html` me byline **hai hi nahi** (0
+                   * matches), aur `itinerary-v3.html` me bhi nahi. Wo sirf `page-template-text.html`
+                   * me hai — yaani wo ek **article** page ki cheez hai, listing page ki nahi.
+                   *
+                   * ⚠️ Payload me `byline` phir bhi jaata hai aur uske tests bhi hain — wo galat nahi
+                   * tha. Sirf uski jagah galat thi.
+                   */}
+                  {entry.type === 'page' && <Byline byline={byline} />}
 
-                <Blocks blocks={entry.blocks ?? []} />
+                  <Blocks blocks={entry.blocks ?? []} />
+                </div>
+
+                {hasSidebar && (
+                  <Sidebar widgets={sidebarWidgets} settings={settings} sourcePath={entry.path} />
+                )}
               </div>
-
-              {hasSidebar && (
-                <Sidebar widgets={sidebarWidgets} settings={settings} sourcePath={entry.path} />
-              )}
             </div>
-          </div>
+          </BlocksScope>
         </section>
 
         {/*

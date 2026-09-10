@@ -1,4 +1,9 @@
 import Icon from '../Icon.jsx'
+/**
+ * ⚠️ `Topics` ka apna component isliye hai ki wo **client** hai — listing page pe uske rows
+ * grid ko filter karte hain (`useBlogFilter()`). Baaki widgets server pe hi rehte hain.
+ */
+import TopicsWidget from '../blog/TopicsWidget.jsx'
 import EnquiryForm from '../package/EnquiryForm.jsx'
 import Planner from '../package/Planner.jsx'
 import StickySide from '../package/StickySide.jsx'
@@ -137,41 +142,7 @@ export default function Sidebar({ widgets = [], settings, sourcePath, before = n
            *
            */
           case 'topics':
-            return (
-              <div className="wdg" key={widget.id}>
-                {widget.props.heading ? (
-                  <div className="wdg__h">
-                    <Icon name={widget.props.icon} size={14} strokeWidth={2.4} />
-                    {widget.props.heading}
-                  </div>
-                ) : null}
-                <div className="wdg__b">
-                  {/*
-                   * ⚠️ **Rows `<span>` hain, `<a>` nahi — aur wo jaan-boojh kar hai.**
-                   *
-                   * Category ka koi apna URL hai hi nahi: topic-wise page ek aur `blogPage`
-                   * entry se banta hai, kisi magic route se nahi (spec 008). To is page pe
-                   * un links ke paas jaane ki jagah hi nahi — `href="#"` ek aisa link hota
-                   * jo click pe kuch na kare, aur wo us cheez se bura hai jo link lagti hi
-                   * nahi (D-30, aur wahi rok jo adhoore button pe hai).
-                   *
-                   * ⚠️ Slice D2 me listing page pe yahi list `.bfilter` ki pills ke saath ek hi
-                   * state padhegi — tab ye **filter ke control** ban jaayengi, tab bhi link
-                   * nahi (client-side filter, koi navigation nahi).
-                   */}
-                  <ul className="cats">
-                    {widget.props.topics.map((topic) => (
-                      <li key={topic.id}>
-                        <span>
-                          {topic.name}
-                          <span>{topic.count}</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )
+            return <TopicsWidget key={widget.id} props={widget.props} />
 
           /**
            * `Post picks` — reference ka `Most read` (`.pop`).
