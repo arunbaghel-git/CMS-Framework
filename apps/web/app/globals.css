@@ -1832,12 +1832,16 @@ a.mega__gl:hover {
 }
 
 /*
- * ⚠️ **`strong` bhi, sirf `b` nahi** (spec 008, 10 Sep).
+ * ⚠️ **`strong` bhi, sirf `b` nahi** — par **blog ke liye nahi** (10 Sep).
  *
- * Client haath se `<b>` likhta hai, par import `<strong>` deta hai — Google bold ko
- * `<span class="c2">` se bhejta hai aur `spansToTags()` use `<strong>` banata hai. Sirf `b`
- * pakadne se imported article ka bold saada dikhta tha aur client ka gehra — ek hi page pe
- * do alag look.
+ * Pehle yahan likha tha ki imported article ka bold saada dikhta hai. **Wo galat tha.** Blog
+ * post `.art` ke andar hota hai, aur `.art b, .art strong` (reference ki apni line) dono ko
+ * pehle se pakadta hai. Blog pe kabhi kuch toota hi nahi tha.
+ *
+ * Ye badlaav phir bhi rakha gaya, kyunki asli faayda **doosri jagah** hai: `.blk` tour aur
+ * package pages pe bhi chalta hai, jahan `.art` hai hi nahi. Wahan content TinyMCE se aata hai
+ * aur wo bold ko `<strong>` likhta hai — yaani un pages pe `.blk p b` kabhi match hi nahi karta
+ * tha.
  */
 .blk p :is(b, strong) {
   color: var(--ink);
