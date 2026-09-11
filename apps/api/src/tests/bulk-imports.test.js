@@ -1,6 +1,6 @@
 import { DEFAULT_SITE_ID, ENTRY_STATUS } from '@cms/shared'
 import request from 'supertest'
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { createApp } from '../app.js'
 import { COOKIE } from '../core/tokens.js'
@@ -15,6 +15,8 @@ import { AddOn, Hotel, Transfer } from '../modules/master-lists/model.js'
 import { Media } from '../modules/media/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
+import { Settings } from '../modules/settings/model.js'
+import { updateSettings } from '../modules/settings/service.js'
 import { Taxonomy } from '../modules/taxonomies/model.js'
 import { User } from '../modules/users/model.js'
 import { createUser } from '../modules/users/service.js'
@@ -999,6 +1001,54 @@ describe('blog post ka import (spec 008)', () => {
     expect(entry.title).toBe('Andaman ferry booking')
     expect(entry.slug).toBe('andaman-ferry-booking')
     expect(entry.status).toBe(ENTRY_STATUS.PUBLISHED)
+  })
+
+  describe('Blog settings ke hisaab se URL aur parent (D-92 §13, client 11 Sep)', () => {
+    /**
+     * Client: _"bulk upload post current blog setting check kare so that correct Post URLs
+     * generate"_. URL pehle se sahi tha (`createEntry()` `urlPattern` se path banata hai); parent
+     * nahi — Bulk Upload ka har post bina parent ke bana, yaani breadcrumb setting se alag.
+     */
+    const makeListing = () =>
+      Entry.create({
+        siteId: DEFAULT_SITE_ID,
+        locale: 'en',
+        type: 'blogPage',
+        title: 'Andaman travel guide',
+        slug: 'blog',
+        path: '/blog',
+        status: 'published',
+        publishAt: new Date(),
+        content: { version: 1, blocks: [{ id: 'pl1', type: 'postList', props: {} }] },
+      })
+
+    /** ⚠️ Is file ka `beforeEach` Settings saaf nahi karta — mode yahin wapas, warna agle test me leak. */
+    afterEach(async () => {
+      await Settings.deleteMany({})
+    })
+
+    it('/blog/… mode — URL /blog/slug, parent blog page', async () => {
+      const listing = await makeListing()
+
+      const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+      const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+      expect(entry.path).toBe('/blog/andaman-ferry-booking')
+      expect(entry.parentId).toBe(String(listing._id))
+    })
+
+    it('/… mode — URL /slug, koi parent nahi', async () => {
+      await makeListing()
+      await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+
+      const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+      const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+      expect(entry.path).toBe('/andaman-ferry-booking')
+      expect(entry.parentId).toBeNull()
+      /** Nateeje ki screen pe bhi wahi URL — client wahi link kholta hai. */
+      expect(run.rows[0].path).toBe('/andaman-ferry-booking')
+    })
   })
 
   it('title, heading aur excerpt teen alag jagah jaate hain', async () => {

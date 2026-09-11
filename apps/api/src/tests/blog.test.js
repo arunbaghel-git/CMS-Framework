@@ -797,6 +797,104 @@ describe('post ke URL ki shakl — Blog settings ka switch (#10)', () => {
   })
 })
 
+describe('post ka parent Blog settings ke URL mode se (D-92 §13, client 11 Sep)', () => {
+  /**
+   * Client ka niyam: _"/blog/blogname set karun to dash aaye, /blogname karun to hat jaaye"_.
+   * Parent **sirf breadcrumb** banata hai (post `hierarchical: false` hai), aur admin list ka `—`
+   * usi ko dikhata hai. Pehle ye setting se juda hi nahi tha — 9 Sep ke 12 post pe parent tha,
+   * uske baad ke kisi pe nahi, chahe setting kuch bhi ho.
+   */
+  const makeListing = () =>
+    Entry.create({
+      siteId: 'default',
+      locale: 'en',
+      type: 'blogPage',
+      title: 'Andaman travel guide',
+      slug: 'blog',
+      path: '/blog',
+      status: 'published',
+      publishAt: new Date(),
+      content: { version: 1, blocks: [{ id: 'pl1', type: 'postList', props: {} }] },
+    })
+
+  const parentOf = async (slug) =>
+    (await Entry.findOne({ type: 'post', slug }).select('parentId').lean())?.parentId ?? null
+
+  /** `assertCan()` broad permission milte hi lauta deta hai — login ki zaroorat nahi. */
+  const actor = { user: { _id: '64b000000000000000000001' }, permissions: ['entry.update'] }
+
+  it('/blog/… pe parent blog page, /… pe koi nahi — aur breadcrumb URL ke saath chalta hai', async () => {
+    const listing = await makeListing()
+    await makePost({ title: 'Ferry guide', slug: 'ferry-guide', publishAt: day(1) })
+
+    await updateSettings({ blogSettings: { postUrlMode: 'nested' } })
+
+    expect(await parentOf('ferry-guide')).toBe(String(listing._id))
+    const nested = await resolve('/blog/ferry-guide')
+    expect(nested.body.data.entry.breadcrumbs).toEqual([
+      { name: 'Andaman travel guide', path: '/blog' },
+    ])
+
+    await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+
+    expect(await parentOf('ferry-guide')).toBeNull()
+    const root = await resolve('/ferry-guide')
+    expect(root.body.data.entry.breadcrumbs).toEqual([])
+  })
+
+  it('pattern na badle to bhi Save bhatke hue parent theek karta hai', async () => {
+    /**
+     * ⚠️ Pehle `syncPostUrlPattern()` pattern same hone pe seedha lauta jaata tha — yaani bina
+     * parent ke bane post Blog settings dobara Save karne se bhi kabhi theek nahi hote.
+     */
+    const listing = await makeListing()
+    await makePost({ title: 'Stray', slug: 'stray', publishAt: day(1) })
+
+    const { syncPostUrlPattern } = await import('../modules/entries/service.js')
+    const result = await syncPostUrlPattern('default')
+
+    expect(result.moved).toBe(0)
+    expect(result.reparented).toBe(1)
+    /** Breadcrumb badla — us post ka page saaf ho, par listing/sitemap ko chhune ki wajah nahi. */
+    expect(result.tags).toEqual(['path:/blog/stray'])
+    expect(await parentOf('stray')).toBe(String(listing._id))
+  })
+
+  it('naya post setting se parent leta hai — request me bheja parent nahi maana jaata', async () => {
+    const listing = await makeListing()
+    const { createEntry } = await import('../modules/entries/service.js')
+
+    const nested = await createEntry(
+      { type: 'post', title: 'Nested one', slug: 'nested-one', parentId: 'kuch-bhi' },
+      actor,
+    )
+    expect(nested.parentId).toBe(String(listing._id))
+
+    await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+
+    const root = await createEntry({ type: 'post', title: 'Root one', slug: 'root-one' }, actor)
+    expect(root.parentId).toBeNull()
+    expect(root.path).toBe('/root-one')
+  })
+
+  it('post save karne pe purana parent laut kar nahi aata', async () => {
+    /** Admin ka form `parentId` hamesha wapas bhejta hai — wahi purana, jo form khulte waqt tha. */
+    const listing = await makeListing()
+    const post = await makePost({ title: 'Saved', slug: 'saved', publishAt: day(1) })
+
+    await updateSettings({ blogSettings: { postUrlMode: 'root' } })
+
+    const fresh = await Entry.findById(post._id).lean()
+    const updated = await updateEntry(
+      post._id,
+      { version: fresh.version, title: 'Saved again', parentId: String(listing._id) },
+      actor,
+    )
+
+    expect(updated.parentId).toBeNull()
+  })
+})
+
 describe('blogSettings ka partial patch baaki field nahi udaata', () => {
   it('sirf postUrlMode bhejne se author aur sidebar bache rehte hain', async () => {
     // ⚠️ Ye test ek asli data loss ke baad likha gaya (10 Sep): `$set['blogSettings'] = value`

@@ -7522,3 +7522,44 @@ unhe `collection.insertOne` se banata hai — Mongoose ka default wo haalat bana
 Koi migration nahi, koi naya index nahi (collection me ab zyada se zyada 40 run hain). Filter design
 me nahi hai — Bulk Upload ki poori screen hi `admin-design-v2.html` me nahi hai; shakl wahi
 `.subsubsub` jo run ke nateeje wali screen pe hai. **1023 test pass.**
+
+### §13 — 11 Sep: post ka parent Blog settings se (admin list ka `—` aur breadcrumb)
+
+Client ne Posts list me pakda ki kuch post ke aage `—` hai, kuch ke nahi. `—` post ke `parentId` se
+aata hai (`EntriesList.jsx`), aur **parent kahin tay hi nahi hota tha**: 9 Sep ke 12 post ko ek baar
+mila (D-91 §3), uske baad ka har post — admin ka ek, Bulk Upload ke do — bina parent ke bana. URL
+switch (`syncPostUrlPattern()`) sirf path badalta tha. Nateeja: setting `root` thi, phir bhi 12 pe
+dash; aur live API pe 3 post ka breadcrumb `Home › Post` tha jabki baaki ka
+`Home › Andaman Travel Guide › Post`.
+
+Client ka niyam: _"/blog/blogname set karun to dash aaye, /blogname karun to hat jaaye — yahi to hona
+chahiye"_. Yaani breadcrumb URL ke saath chale — D-91 §3 ka hi siddhant:
+
+| `postUrlMode` | URL          | parent            | admin list | breadcrumb           |
+| ------------- | ------------ | ----------------- | ---------- | -------------------- |
+| `nested`      | `/blog/post` | blog listing page | `—`        | `Home › Blog › Post` |
+| `root`        | `/post`      | koi nahi          | —          | `Home › Post`        |
+
+**1. Parent server tay karta hai — `postParentFor()`.** `createEntry()` post ka bheja hua parent
+nahi maanta. `updateEntry()` har save pe setting se milaata hai: admin ka form purana `parentId`
+hamesha wapas bhejta hai, use maana jaata to setting badalne ke baad bhi wo laut aata. Path nahi
+chhuta — post ka path `urlPattern` se banta hai, parent se nahi. Bulk Upload dono raaston se guzarta
+hai (New → create, Existing → update), isliye wahan alag code nahi laga.
+
+**2. `syncPostUrlPattern()` pattern na badle to bhi parent jaanchta hai.** Pehle wo seedha lautta
+tha, isliye bhatke hue post Blog settings dobara Save karne se bhi theek nahi hote. Sirf parent badle
+to sirf us post ka `path:` tag jaata hai — listing, sitemap aur feed pe uska asar nahi.
+
+**3. Migration 024** — pehle se pada data usi niyam pe. Cache wahan saaf nahi hota (`SITE_URL` wala
+revalidate migration ke paas nahi); badle hue pages `CACHE_SECONDS` me khud naya breadcrumb dikhate
+hain. Local DB pe mode `root` tha — 12 post ka parent hata, ab 15 me se kisi pe nahi.
+
+⚠️ **URL wala hissa pehle se sahi tha.** Client ne poochha ki Bulk Upload current setting dekh kar
+URL banaye — wo pehle se hota tha: Bulk Upload `createEntry()` se banata hai, jo `urlPattern` se
+path banata hai, aur doc ke `Blog URL` ka sirf aakhri tukda slug banta hai (`/blog/x` likha ho to
+bhi `root` mode me `/x`). Chhoota sirf parent tha. Ab dono modes ka test Bulk Upload ke raaste se
+hai.
+
+⚠️ **Seema:** listing page (`postList` wala `blogPage`) baad me bane ya trash ho, to posts ka parent
+tab tak purana rehta hai jab tak Blog settings Save na ho ya post save na ho. Wahi seema URL prefix
+pe pehle se hai. **1029 test pass.**

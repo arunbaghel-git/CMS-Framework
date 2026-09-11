@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**1023 tests passing**, 11 Sep). Public package page ke **saare** section live hain.
+hain** (**1029 tests passing**, 11 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -629,6 +629,10 @@ Bulk Upload ki images pe ab `width`/`height` lagta hai (CLS); purane imported po
 `Existing` mode me dobara import chahiye.
 Past imports me ab filter hai (`All · Packages · Blog posts`), aur 20 run **har type ke** bachte
 hain — pehle dono milaa kar 20 the, yaani blog ke import package ka itihaas mita dete (D-92 §12).
+⚠️ **Post ka parent ab Blog settings se, server pe** (D-92 §13, **migration 024**): `/blog/…` mode me
+har post blog page ke neeche (admin list me `—`, breadcrumb `Home › Blog › Post`), `/…` mode me koi
+parent nahi. Pehle ye kahin tay hi nahi hota tha — admin ka `—` aur page ka breadcrumb setting se alag
+chal rahe the. Post ka bheja hua `parentId` ab maana nahi jaata.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

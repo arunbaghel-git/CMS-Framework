@@ -541,6 +541,10 @@ export default function EntriesList({
                  * hain. Sirf `page` hierarchical hai (D-87 §1), isliye ye Tour pe kabhi
                  * nahi lagta — wahan `parentId` breadcrumb ke liye hota hai, path ke liye
                  * nahi.
+                 *
+                 * Posts pe ye `—` Blog settings batata hai (D-92 §13): `/blog/…` mode me har
+                 * post blog page ke neeche hai (dash), `/…` mode me koi nahi. Parent server
+                 * tay karta hai, client nahi.
                  */}
                 {entry.parentId && <span className="muted">— </span>}
                 <Link className="row-title" to={`${basePath}/${entry.id}`}>

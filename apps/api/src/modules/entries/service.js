@@ -781,6 +781,41 @@ async function blogListingTags(entries) {
 }
 
 /**
+ * Blog ki listing page — `postList` wala sabse purana `blogPage`. Wahi kasauti jo
+ * `blogListingTags()` aur `resolveBlogPath()` ki hai.
+ */
+function findBlogListing(siteId, locale) {
+  return Entry.findOne({
+    ...scope(siteId, locale),
+    type: 'blogPage',
+    deletedAt: null,
+    'content.blocks.type': 'postList',
+  })
+    .sort({ createdAt: 1 })
+    .select('_id slug')
+    .lean()
+}
+
+/**
+ * Post ka parent — **Blog settings ke URL mode se, kabhi client se nahi** (D-92 §13, client 11 Sep).
+ *
+ * Post `hierarchical: false` hai; parent **sirf breadcrumb** banata hai (D-91 §3). Client ka niyam:
+ * breadcrumb URL ke saath chale — `/blog/…` pe `Home › Blog › Post`, `/…` pe `Home › Post`.
+ *
+ * ⚠️ Pehle ye kahin tay hi nahi hota tha. 9 Sep ke 12 post ko parent ek baar mila, uske baad ka har
+ * post (admin ho ya Bulk Upload) bina parent ke bana, aur URL switch sirf path badalta tha — to
+ * admin list ka `—` aur page ka breadcrumb setting se bilkul alag chal rahe the.
+ */
+const postParentOf = (mode, listing) => (mode === 'root' || !listing ? null : String(listing._id))
+
+async function postParentFor(siteId, locale) {
+  const settings = await Settings.findOne({ siteId }).select('blogSettings.postUrlMode').lean()
+  const mode = settings?.blogSettings?.postUrlMode ?? 'nested'
+
+  return postParentOf(mode, mode === 'root' ? null : await findBlogListing(siteId, locale))
+}
+
+/**
  * Post ke URL ki shakl badalna — `/blog/{slug}` ↔ `/{slug}` (spec 008, client 10 Sep).
  *
  * ## ⚠️ Ye ek "setting save" nahi hai, ek **bulk rename** hai
@@ -819,19 +854,12 @@ export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFA
   const settings = await Settings.findOne({ siteId }).lean()
   const mode = settings?.blogSettings?.postUrlMode ?? 'nested'
 
-  /** Wahi kasauti jo `blogListingTags()` aur `resolveBlogPath()` ki hai — ek hi listing page. */
-  const listing = await Entry.findOne({
-    ...scope(siteId, locale),
-    type: 'blogPage',
-    deletedAt: null,
-    'content.blocks.type': 'postList',
-  })
-    .sort({ createdAt: 1 })
-    .select('slug')
-    .lean()
+  const listing = await findBlogListing(siteId, locale)
 
   const prefix = listing?.slug || 'blog'
   const pattern = mode === 'root' ? '/{slug}' : `/${prefix}/{slug}`
+  /** Breadcrumb URL ke saath chalta hai — `postParentOf()` (D-92 §13). */
+  const parent = postParentOf(mode, listing)
 
   /**
    * ⚠️ **`scope()` yahan use NAHI kiya ja sakta — wo `locale` bhi bhejta hai.**
@@ -844,10 +872,18 @@ export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFA
    * ek legacy `locale` field pada hai. Yahi wo kism ka farak hai jise sirf test pakadta hai.
    */
   const contentType = await ContentType.findOne({ siteId, key: 'post' })
-  if (!contentType) return { changed: false, pattern, moved: 0 }
-  if (contentType.urlPattern === pattern) return { changed: false, pattern, moved: 0 }
+  if (!contentType) return { changed: false, pattern, moved: 0, reparented: 0, tags: [] }
 
-  await ContentType.updateOne({ _id: contentType._id }, { $set: { urlPattern: pattern } })
+  /**
+   * ⚠️ **Pattern na badla ho to bhi function aage chalta hai** — parent ki jaanch ke liye (D-92
+   * §13). Pehle yahan seedha `return` tha, isliye jo post parent se bhatak gaye the (9 Sep ke 12,
+   * ya bina parent ke bane naye) wo Blog settings dobara Save karne se bhi theek nahi hote the.
+   */
+  const patternChanged = contentType.urlPattern !== pattern
+
+  if (patternChanged) {
+    await ContentType.updateOne({ _id: contentType._id }, { $set: { urlPattern: pattern } })
+  }
 
   /**
    * ⚠️ **Trash ke post bhi** — unka path unke document me pada hai aur restore hone pe wahi
@@ -859,12 +895,28 @@ export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFA
    * dhoondhta hai. Inke bina wo khaali lautata aur listing ka cache phir chhoot jaata.
    */
   const posts = await Entry.find({ ...scope(siteId, locale), type: 'post' })
-    .select('_id slug path type siteId')
+    .select('_id slug path type siteId parentId')
     .lean()
 
-  const moved = posts
-    .map((post) => ({ ...post, newPath: normalizePath(pattern.replace('{slug}', post.slug)) }))
-    .filter((post) => post.newPath !== post.path)
+  /** Path sirf pattern badalne pe dobara likhe jaate hain — wahi bartaav jo pehle tha. */
+  const moved = patternChanged
+    ? posts
+        .map((post) => ({ ...post, newPath: normalizePath(pattern.replace('{slug}', post.slug)) }))
+        .filter((post) => post.newPath !== post.path)
+    : []
+
+  const reparented = posts.filter((post) => (post.parentId ?? null) !== parent)
+
+  if (!moved.length && !reparented.length) {
+    return { changed: patternChanged, pattern, moved: 0, reparented: 0, tags: [] }
+  }
+
+  if (reparented.length) {
+    await Entry.updateMany(
+      { _id: { $in: reparented.map((post) => post._id) } },
+      { $set: { parentId: parent } },
+    )
+  }
 
   let tags = []
 
@@ -900,12 +952,20 @@ export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFA
       'sitemap',
       'feed',
     ]
-
-    await revalidateTags(tags)
   }
 
+  /**
+   * Parent badla matlab breadcrumb badla — us post ka apna page saaf ho. **Naya** path, kyunki
+   * purana ab 301 hai aur uska tag upar ja chuka hai.
+   */
+  const newPathOf = new Map(moved.map((post) => [String(post._id), post.newPath]))
+  tags.push(...reparented.map((post) => `path:${newPathOf.get(String(post._id)) ?? post.path}`))
+  tags = [...new Set(tags)]
+
+  await revalidateTags(tags)
+
   /** `tags` isliye lautte hain ki test dekh sake **kaunse** tags gaye — wahi hissa jo chup tha. */
-  return { changed: true, pattern, moved: moved.length, tags }
+  return { changed: true, pattern, moved: moved.length, reparented: reparented.length, tags }
 }
 
 /** Entry + uske cascade hue descendants, sab ek hi call me. */
@@ -1113,11 +1173,17 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
   await assertTaxonomyRefs(input.taxonomies, contentType, siteId, locale)
   await assertPackageRefs(input.fields, contentType, siteId, locale)
 
+  /**
+   * ⚠️ **Post ka parent server tay karta hai, input nahi** — Blog settings ke URL mode se (D-92
+   * §13). Admin aur Bulk Upload dono yahin se guzarte hain, isliye dono ek jaisa post banate hain.
+   */
+  const parentId = input.type === 'post' ? await postParentFor(siteId, locale) : input.parentId
+
   const { slug, path } = await resolveSlugAndPath({
     slug: input.slug,
     title: input.title,
     type: input.type,
-    parentId: input.parentId,
+    parentId,
     contentType,
     siteId,
     locale,
@@ -1148,6 +1214,7 @@ export async function createEntry(input, actor, siteId = DEFAULT_SITE_ID, locale
     ...scope(siteId, locale),
     slug,
     path,
+    parentId,
     status,
     /** Overview ka rich text — HTML hai, isliye write pe saaf (D-80). */
     content,
@@ -1226,7 +1293,13 @@ export async function updateEntry(
     throw unprocessable('The content type of an existing item cannot be changed')
   }
 
-  const parentChanged = input.parentId !== undefined && input.parentId !== current.parentId
+  /**
+   * ⚠️ Post ka `parentId` input se **nahi** liya jaata (D-92 §13). Admin ka form purana parent
+   * hamesha wapas bhejta hai; use maana jaata to setting badalne ke baad har save purana parent
+   * laut aata. Post ka parent neeche, Blog settings se.
+   */
+  const parentInput = current.type === 'post' ? undefined : input.parentId
+  const parentChanged = parentInput !== undefined && parentInput !== current.parentId
   const slugChanged = input.slug !== undefined && input.slug !== current.slug
   const titleChanged = input.title !== undefined && input.title !== current.title
 
@@ -1288,6 +1361,16 @@ export async function updateEntry(
     ])
   } else if (parentChanged) {
     $set.parentId = input.parentId
+  }
+
+  /**
+   * Har save pe post ka parent setting se mila diya jaata hai — Bulk Upload ka `Existing` mode bhi
+   * isi raaste se aata hai. Path nahi chhua jaata: post ka path `urlPattern` se banta hai, parent se
+   * nahi.
+   */
+  if (current.type === 'post') {
+    const parent = await postParentFor(siteId, locale)
+    if (parent !== (current.parentId ?? null)) $set.parentId = parent
   }
 
   $set.searchText = buildSearchText({ ...next, ...$set })
