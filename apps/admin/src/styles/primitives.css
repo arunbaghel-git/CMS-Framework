@@ -351,7 +351,9 @@ tr:hover .row-actions {
 :is(.panel-body:not(.row2, .row3), .panel-body:not(.row2, .row3) > form)
   > .field
   > :is(select.inp, .sel) {
-  max-width: 622px;
+  @media (min-width: 750px) {
+    max-width: 50%;
+  }
 }
 
 .field > :is(.inp, .sel, .ta) + :is(.inp, .sel, .ta) {
