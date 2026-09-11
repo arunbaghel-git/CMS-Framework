@@ -354,8 +354,10 @@ importRuns     * siteId, sheetUrl, sheetId, mode(new|existing),       ← D-81, 
                  rows SUBDOCUMENT hain, alag collection nahi — hamesha run ke
                  saath padhi jaati hain, akele kabhi query nahi hoti
                  sheet me kuch LIKHA nahi jaata — status ka ghar yahi hai (client)
-                 sirf 20 run bachte hain; naya run banne pe purane done/failed
-                 hat-te hain (chalta hua kabhi nahi)
+                 sirf 20 run bachte hain — HAR TYPE ke 20 (D-92 §12, 11 Sep); naya
+                 run banne pe usi type ke purane done/failed hat-te hain (chalta
+                 hua kabhi nahi). Bina `target` wale purane run package me gine jaate
+                 hain — `{ $in: ['package', null] }`
                  target ka default `package` — purane run pe wo SACH hai (us waqt
                  import package ka hi hota tha), isliye migration NAHI lagi
                  issues ka shape `packages/shared` ke issueSchema se (R8), model
@@ -958,6 +960,7 @@ POST   /api/bulk-imports                 { sheetUrl, mode, target }             
                                          me. Run turant lautta hai. `target` D-92 me
                                          juda — package | post, default package
 GET    /api/bulk-imports?page=&limit=    Past imports — rows NAHI, sirf failedReasons ✅
+       &target=package|post              optional; khaali = dono type (D-92 §12)
 GET    /api/bulk-imports/:id             ek run, rows ke saath — admin ise poll karta ✅
                                          hai. Teeno `tools.import` pe (sirf admin)
 ```

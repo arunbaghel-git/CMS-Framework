@@ -7494,3 +7494,31 @@ khinch deta. `.art .blk :not(.artfig) > img` pe wo pehle se tha.
 
 ⚠️ **Pehle se import hue post** tabhi theek honge jab `Existing` mode me dobara import ho. Image
 dobara nahi utarti (naam `data:` URI ke hash se), sirf naap lagta hai. **1016 test pass.**
+
+### §12 — 11 Sep: Past imports ka filter, aur 20 har type ke
+
+Client ne poochha: _"Past imports should be filter like i only want packages Past imports to see or
+post?"_ Tab tak backend me koi filter tha hi nahi — `GET /api/bulk-imports` sirf `page`/`limit`
+leta tha, aur screen pe `Type` column tha par chhaanne ka raasta nahi.
+
+**1. Filter — `All · Packages · Blog posts`, default `All`.** `importRunQuerySchema` me optional
+`target`; khaali ho to dono type, yaani 10 Sep wala bartaav. Filter server pe hai, screen pe nahi —
+20 ki list ko screen pe chhaanne se `Packages` pe utne hi dikhte jitne us 20 me package the.
+
+⚠️ **Filter "What are you importing?" dropdown se juda nahi hai.** Wo tay karta hai kya banega, ye
+tay karta hai kya dikhe. Dono ek karne pe Posts import chunte hi package ka itihaas chup-chaap chhup
+jaata.
+
+**2. 20 har type ke — dono milaa kar nahi.** Ye sawaal ke andar chhupa hua bug tha: `pruneOldRuns()`
+ek hi ginti rakhta tha, to blog ke 20 import lagataar chalte hi package ka **poora** itihaas mit
+jaata — aur naya `Packages` filter khaali dikhta. Sirf filter bana dena us bug ko dhak deta. Ab
+safai sirf naye run ke type me hoti hai.
+
+⚠️ **Bina `target` wale purane run package hain** — dono jagah (`listImportRuns()` aur
+`pruneOldRuns()`) `{ $in: ['package', null] }` se, jo ghaayab field ko bhi pakadta hai. Iske bina
+`Packages` filter unhe chhod deta, aur safai unhe kabhi na ginti, to wo hamesha pade rehte. Test
+unhe `collection.insertOne` se banata hai — Mongoose ka default wo haalat bana hi nahi paata.
+
+Koi migration nahi, koi naya index nahi (collection me ab zyada se zyada 40 run hain). Filter design
+me nahi hai — Bulk Upload ki poori screen hi `admin-design-v2.html` me nahi hai; shakl wahi
+`.subsubsub` jo run ke nateeje wali screen pe hai. **1023 test pass.**

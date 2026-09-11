@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**1016 tests passing**, 11 Sep). Public package page ke **saare** section live hain.
+hain** (**1023 tests passing**, 11 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -627,6 +627,8 @@ A-21 ke chaaron naap ho gaye — post URL switch pe **blog listing ka cache saaf
 (ab `blogListingTags()`), hydration errors 0, aur speed `/blog` **85**, article **67** (A-17).
 Bulk Upload ki images pe ab `width`/`height` lagta hai (CLS); purane imported post ke liye
 `Existing` mode me dobara import chahiye.
+Past imports me ab filter hai (`All · Packages · Blog posts`), aur 20 run **har type ke** bachte
+hain — pehle dono milaa kar 20 the, yaani blog ke import package ka itihaas mita dete (D-92 §12).
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

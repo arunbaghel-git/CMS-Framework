@@ -24,9 +24,22 @@ import { startImport, useImportRuns } from './useBulkImports.js'
  * yahan koi nayi shakl nahi gadhi gayi — wahi `.panel` + `table.list` hai jo baaki screens pe
  * hai. Iska apna design chahiye ho to wo client se aayega (R15).
  */
+/**
+ * Past imports ka filter (client, 11 Sep).
+ *
+ * ⚠️ **Upar wale "What are you importing?" se juda nahi hai**, aur wo jaan-boojh kar. Wo tay karta
+ * hai ki **kya banega**; ye tay karta hai ki **kya dikhe**. Dono ek karne pe Posts import chunte hi
+ * package ka itihaas chup-chaap chhup jaata.
+ */
+const RUN_TABS = [
+  { key: '', label: 'All' },
+  ...IMPORT_TARGETS.map((key) => ({ key, label: IMPORT_TARGET_LABEL[key].plural })),
+]
+
 export default function BulkUpload() {
   const navigate = useNavigate()
-  const { runs, loading, error, reload } = useImportRuns()
+  const [shown, setShown] = useState('')
+  const { runs, loading, error, reload } = useImportRuns(shown)
   const [sheetUrl, setSheetUrl] = useState('')
   const [mode, setMode] = useState('new')
   const [target, setTarget] = useState(IMPORT_TARGET.PACKAGE)
@@ -170,6 +183,23 @@ export default function BulkUpload() {
       </div>
 
       <h2 className="bu-h2">Past imports</h2>
+
+      <ul className="subsubsub">
+        {RUN_TABS.map(({ key, label }) => (
+          <li key={key || 'all'}>
+            <a
+              href={`#${key || 'all'}`}
+              className={shown === key ? 'current' : ''}
+              onClick={(e) => {
+                e.preventDefault()
+                setShown(key)
+              }}
+            >
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
 
       {error && (
         <p className="notice err" role="alert">

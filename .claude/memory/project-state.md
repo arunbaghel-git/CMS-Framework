@@ -69,6 +69,8 @@ web 3001. Client ka dev server aur asli DB dono nahi chhue.
   Best practices ek hotlinked image se. Poora hisaab **A-17** me
 - ✅ Bulk Upload ki images pe ab `width`/`height` (D-92 §11). Purane imported post ke liye
   `Existing` mode me dobara import chahiye
+- ✅ Past imports ka filter `All · Packages · Blog posts` (`?target=`), aur 20 run **har type ke**
+  — pehle blog ke import package ka itihaas mita dete the (D-92 §12). 1023 test
 - A-18 confirm: index khaali `importRuns` pe, asli data `importruns` bina index ke
 
 ✅ a21 setup hata diya — `merncms_a21` drop, 3001/4001 band, worktree git se hata. Asli `merncms` aur

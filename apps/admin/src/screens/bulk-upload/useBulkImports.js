@@ -11,8 +11,13 @@ import { api, errorMessage } from '../../lib/api.js'
  * nahi khaata.
  */
 
-/** Purane run ki list — Bulk Upload screen ke neeche. */
-export function useImportRuns() {
+/**
+ * Purane run ki list — Bulk Upload screen ke neeche.
+ *
+ * `target` khaali ho to dono type (client, 11 Sep). Filter **server pe** hota hai, yahan nahi:
+ * 20 ki list ko yahan chhaanne se `Packages` pe utne hi dikhte jitne us 20 me package the.
+ */
+export function useImportRuns(target = '') {
   const [runs, setRuns] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -20,7 +25,9 @@ export function useImportRuns() {
   const reload = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await api.get('/bulk-imports', { params: { page: 1, limit: 20 } })
+      const res = await api.get('/bulk-imports', {
+        params: { page: 1, limit: 20, ...(target ? { target } : {}) },
+      })
       setRuns(res.data.data.runs)
       setError(null)
     } catch (err) {
@@ -28,7 +35,7 @@ export function useImportRuns() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [target])
 
   useEffect(() => {
     reload()

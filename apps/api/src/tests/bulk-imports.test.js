@@ -783,6 +783,126 @@ describe('Past imports — sirf 20 bachte hain (client, 4 Sep)', () => {
   })
 })
 
+describe('Past imports — type ka filter, aur 20 har type ke (client, 11 Sep)', () => {
+  /** `done` run seedha DB me — safai sirf khatam ho chuke run ginti hai. */
+  async function seedRuns(target, count, prefix) {
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+
+    for (let i = 0; i < count; i += 1) {
+      await ImportRun.create({
+        sheetUrl: `https://docs.google.com/spreadsheets/d/${prefix}${i}/edit`,
+        sheetId: `${prefix}${i}`,
+        target,
+        startedBy: user._id,
+        status: 'done',
+        rows: [],
+        createdAt: new Date(2020, 0, i + 1),
+      })
+    }
+  }
+
+  /**
+   * 10 Sep se pehle ka run — `target` field **hai hi nahi**. `collection.insertOne` isliye ki
+   * Mongoose ka default use chupke se `package` bhar deta, aur test wo haalat bana hi nahi paata
+   * jo asli DB me padi hai.
+   */
+  async function seedLegacyRun(sheetId) {
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+    const now = new Date(2019, 0, 1)
+
+    await ImportRun.collection.insertOne({
+      siteId: DEFAULT_SITE_ID,
+      sheetUrl: `https://docs.google.com/spreadsheets/d/${sheetId}/edit`,
+      sheetId,
+      mode: 'new',
+      startedBy: user._id,
+      status: 'done',
+      warnings: [],
+      rows: [],
+      createdAt: now,
+      updatedAt: now,
+    })
+  }
+
+  it('?target=post pe sirf post ke run aate hain', async () => {
+    await seedRuns('package', 2, 'PKG')
+    await seedRuns('post', 3, 'POST')
+
+    const res = await authed('get', '/api/bulk-imports?target=post', adminJar).expect(200)
+
+    expect(res.body.data.runs).toHaveLength(3)
+    expect(res.body.data.runs.every((run) => run.target === 'post')).toBe(true)
+    expect(res.body.meta.total).toBe(3)
+  })
+
+  it('?target=package me bina target wale purane run bhi aate hain', async () => {
+    await seedRuns('package', 2, 'PKG')
+    await seedRuns('post', 1, 'POST')
+    await seedLegacyRun('LEGACY')
+
+    const res = await authed('get', '/api/bulk-imports?target=package', adminJar).expect(200)
+    /** API `sheetId` nahi bhejti — `sheetUrl` me wahi id hai. */
+    const urls = res.body.data.runs.map((run) => run.sheetUrl).join(' ')
+
+    expect(res.body.data.runs).toHaveLength(3)
+    expect(urls).toContain('/LEGACY/')
+    expect(urls).not.toContain('/POST0/')
+    /** Purana run bhi `package` hi dikhta hai — `toApi()` ka fallback. */
+    expect(res.body.data.runs.every((run) => run.target === 'package')).toBe(true)
+  })
+
+  it('bina target ke dono type saath — pehle jaisa', async () => {
+    await seedRuns('package', 2, 'PKG')
+    await seedRuns('post', 2, 'POST')
+
+    const res = await authed('get', '/api/bulk-imports', adminJar).expect(200)
+
+    expect(res.body.data.runs).toHaveLength(4)
+  })
+
+  it('anjaan target thukraya jaata hai', async () => {
+    const res = await authed('get', '/api/bulk-imports?target=hotel', adminJar).expect(400)
+
+    expect(res.body.error.code).toBe('VALIDATION_FAILED')
+  })
+
+  it('blog ke import package ka itihaas nahi mitate', async () => {
+    /**
+     * ⚠️ Yahi asli bug tha — ginti dono type ki milaa kar hoti thi, to 20 package run ke upar ek
+     * post import chalte hi sabse purana **package** run chala jaata.
+     */
+    await seedRuns('package', 20, 'PKG')
+
+    await runImport({ A: goodDoc('Post Run', 'post-run') }, ['A'], undefined, 'post')
+
+    expect(await ImportRun.countDocuments({ target: 'package' })).toBe(20)
+    expect(await ImportRun.countDocuments({ target: 'post' })).toBe(1)
+  })
+
+  it('21 va post run sabse purana post run hatata hai — package waise ke waise', async () => {
+    await seedRuns('post', 20, 'POST')
+    await seedRuns('package', 5, 'PKG')
+
+    await runImport({ A: goodDoc('Post Run', 'post-run') }, ['A'], undefined, 'post')
+
+    expect(await ImportRun.countDocuments({ target: 'post' })).toBe(20)
+    expect(await ImportRun.findOne({ sheetId: 'POST0' }).lean()).toBeNull()
+    expect(await ImportRun.countDocuments({ target: 'package' })).toBe(5)
+  })
+
+  it('bina target wale purane run package ki ginti me aate hain', async () => {
+    /** Warna wo kabhi gine hi nahi jaate aur hamesha pade rehte. */
+    await seedLegacyRun('LEGACY')
+    await seedRuns('package', 19, 'PKG')
+
+    await runImport({ A: goodDoc('Pkg Run', 'pkg-run') })
+
+    const total = await ImportRun.countDocuments({ target: { $in: ['package', null] } })
+    expect(total).toBe(20)
+    expect(await ImportRun.findOne({ sheetId: 'LEGACY' }).lean()).toBeNull()
+  })
+})
+
 describe('Past imports me fail hone ki wajah (client, 4 Sep)', () => {
   /**
    * List payload rows nahi bhejti (20 run x 20 row ka payload bina wajah bhaari hai), par

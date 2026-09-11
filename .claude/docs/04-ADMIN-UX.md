@@ -656,11 +656,17 @@ button ki taraf bhejta jo us naam se hai hi nahi.
 
 ### Past imports
 
+Filter (`.subsubsub`): `All` · `Packages` · `Blog posts` — default `All` (client, 11 Sep).
+
 `When` · **`Type`** · `Sheet` · `New` · `Existing` · `Published` · `Draft` · `Failed` · `Status`
 
 - **`Type` 10 Sep ko juda.** Us field se pehle ke run `Packages` dikhate hain — us waqt import package
   ka hi hota tha, isliye ye sach hai, andaza nahi (koi migration nahi lagi)
-- **Sirf 20 run** bachte hain (client, 4 Sep: _"i need only 20 past import"_)
+- **Filter upar wale "What are you importing?" se juda nahi hai** — wo tay karta hai kya banega, ye
+  tay karta hai kya dikhe. Filter server pe hota hai (`?target=`), screen pe nahi
+- **Sirf 20 run** bachte hain (client, 4 Sep: _"i need only 20 past import"_) — **har type ke 20**
+  (11 Sep). Pehle dono milaa kar 20 the, yaani blog ke import package ka itihaas mita dete
+- ⚠️ Filter `admin-design-v2.html` me nahi hai (poori screen hi nahi hai) — client ka faisla, D-92 §12
 - `Failed` pe hover → alag-alag wajah, zyada se zyada paanch. Ek hi wajah se das row fail hon to wo
   ek hi line hai
 - `New`/`Existing` wo hai jo **sach me hua** (`row.action`), wo nahi jo client ne radio pe chuna

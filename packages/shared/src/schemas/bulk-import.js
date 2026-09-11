@@ -139,9 +139,15 @@ export const startImportSchema = z
   })
   .strict()
 
+/**
+ * Past imports ki list — `target` ho to sirf us type ke run (client, 11 Sep).
+ *
+ * Na ho to dono type saath — wahi jo 10 Sep se hota aaya hai.
+ */
 export const importRunQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(20),
+  target: z.enum(IMPORT_TARGETS).optional(),
 })
 
 /** Ek run me kitni rows — 20 aam hai; ye hadd bhaagti hui sheet se bachati hai. */

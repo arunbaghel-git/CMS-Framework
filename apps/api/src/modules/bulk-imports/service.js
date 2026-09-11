@@ -77,8 +77,23 @@ const MAX_ATTEMPTS = 2
  * hota, kyunki list 20 se aage jaati hi nahi.
  *
  * Isliye naya run banate waqt 20 se puraane hata diye jaate hain.
+ *
+ * ⚠️ **20 har type ke, dono ke milaa kar nahi** (client, 11 Sep). Pehle ginti ek saath thi, yaani
+ * blog ke 20 import lagataar chalte hi package ka **poora** itihaas chup-chaap mit jaata — aur
+ * Past imports ka `Packages` filter khaali dikhta.
  */
 const MAX_KEPT_RUNS = 20
+
+/**
+ * Ek type ke run pakadne ki shart.
+ *
+ * ⚠️ **Package me wo run bhi aate hain jinme `target` hai hi nahi.** 10 Sep se pehle ke run is
+ * field ke bina bane the, aur wo sab package ke the (`targetOf()` bhi unhe package hi maanta hai).
+ * Mongo me `null` ki shart ghaayab field ko bhi pakadti hai. Iske bina `Packages` filter purane
+ * run chup-chaap chhod deta, aur safai unhe **kabhi** na ginti — wo hamesha pade rehte.
+ */
+const runsOfTarget = (target) =>
+  target === IMPORT_TARGET.PACKAGE ? { $in: [IMPORT_TARGET.PACKAGE, null] } : target
 
 /* ── run shuru karna ──────────────────────────────────────────────────────── */
 
@@ -147,13 +162,14 @@ export async function startImport(input, actor, siteId = DEFAULT_SITE_ID, deps =
       : IMPORT_RUN_STATUS.DONE,
   })
 
-  await pruneOldRuns(siteId)
+  /** `run.target`, `input.target` nahi — schema ka default wahin laga hota hai. */
+  await pruneOldRuns(siteId, run.target)
 
   return toApi(run)
 }
 
 /**
- * 20 se puraane run hata do.
+ * Isi type ke 20 se puraane run hata do — doosre type ko chhua nahi jaata.
  *
  * ⚠️ **Sirf khatam ho chuke run** hatte hain. Ek chalta hua run (`queued`/`running`) is ginti me
  * to aata hai par hataya kabhi nahi jaayega — use hataane ka matlab hota ki worker ke haath se
@@ -162,9 +178,11 @@ export async function startImport(input, actor, siteId = DEFAULT_SITE_ID, deps =
  * Fail-soft: safai na ho paaye to import phir bhi chalna chahiye. Ye kaam sirf jagah bachaata
  * hai, aur uske liye ek chalta hua import rok dena galat sauda hai.
  */
-async function pruneOldRuns(siteId) {
+async function pruneOldRuns(siteId, target) {
+  const scope = { siteId, target: runsOfTarget(target) }
+
   try {
-    const keep = await ImportRun.find({ siteId })
+    const keep = await ImportRun.find(scope)
       .sort({ createdAt: -1 })
       .limit(MAX_KEPT_RUNS)
       .select('_id')
@@ -173,7 +191,7 @@ async function pruneOldRuns(siteId) {
     if (keep.length < MAX_KEPT_RUNS) return
 
     const { deletedCount } = await ImportRun.deleteMany({
-      siteId,
+      ...scope,
       _id: { $nin: keep.map((run) => run._id) },
       status: { $in: [IMPORT_RUN_STATUS.DONE, IMPORT_RUN_STATUS.FAILED] },
     })
@@ -658,8 +676,8 @@ function failedReasonsOf(rows = []) {
 }
 
 export async function listImportRuns(query, siteId = DEFAULT_SITE_ID) {
-  const { page, limit } = query
-  const filter = { siteId }
+  const { page, limit, target } = query
+  const filter = target ? { siteId, target: runsOfTarget(target) } : { siteId }
 
   const [docs, total] = await Promise.all([
     ImportRun.find(filter)
