@@ -346,13 +346,21 @@ tr:hover .row-actions {
  * Package Defaults pe) wahan ye **nahi** lagta — pehli koshish sab pe lagti thi aur badi screen pe
  * un rows ka design bigaad deti thi.
  *
- * `622px` client ka apna naap hai (pehle 360 tha) — "design se match" ke naam pe mat badalna.
+ * Naap client ka apna hai (360 → 622px → 750px se upar `50%`, taaki badi screen pe baaki fields
+ * ke saath line me aaye; phir `max(50%, 300px)` taaki sidebar ka dropdown aadha na rahe) —
+ * "design se match" ke naam pe mat badalna.
  */
 :is(.panel-body:not(.row2, .row3), .panel-body:not(.row2, .row3) > form)
   > .field
   > :is(select.inp, .sel) {
   @media (min-width: 750px) {
-    max-width: 50%;
+    /*
+     * `max()` — badi screen pe 50% (baaki fields ke saath line me aata hai), par tang column me
+     * kam se kam 300px. Sidebar ke panel (~255px, jaise Publish ka Status) me 300px poori
+     * chaudai se zyada hai, to wahan dropdown pehle jaisa poora bharta hai — sirf `50%` pe wo
+     * aadha reh jaata tha.
+     */
+    max-width: max(50%, 300px);
   }
 }
 

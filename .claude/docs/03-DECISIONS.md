@@ -7662,7 +7662,10 @@ screen ka tha; hata diya.
 ⚠️ **Doosri baar sudhra, usi shaam.** Sab dropdown pe lagi rok badi screen pe un rows ko bigaad rahi
 thi jahan do-teen dropdown saath hain. Client: _"i was asking you fix only for one dropdown in a
 row"_. Ab rok sirf tab jab `.field` seedha ek-column panel body (ya uske `<form>`) me ho —
-`panel-body row2/row3` aur `.row2`/`.row3` ke andar nahi. Naap **622px**, client ka apna (360 se).
+`panel-body row2/row3` aur `.row2`/`.row3` ke andar nahi. Naap client ne khud tune kiya: 360 →
+622px → 750px se upar **`50%`** (badi screen pe baaki fields ke saath line me). `50%` sidebar ke
+panel (Publish ka Status) ko aadha kar deta tha, isliye ab **`max(50%, 300px)`** — tang column me
+300px poori chaudai se zyada hai, to wahan dropdown poora bharta hai.
 
 **Live:** API pe payload `categories[]`, bina `fields` ke. Client ne isi beech Blog settings
 `/blog/…` pe kiya — D-92 §13 ne saare post ka parent blog page kar diya (dash wapas), redirect bane.
