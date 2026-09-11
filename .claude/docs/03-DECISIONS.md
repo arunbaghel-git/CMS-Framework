@@ -7700,3 +7700,11 @@ ka phone breakpoint, jahan logo bhi chhota hota hai). Pehle 1040px pe tha, yaani
 ⚠️ Reference me Awards 1150px se neeche icon ban jaata tha (_"no room for the label next to Get
 quote"_). Ab label tablet pe dikhta hai, aur jab Awards `left` ho to desktop pe nav ke saath jagah
 baant-ta hai — 1100–1200px pe nav ki tangi client ko dekhni hai. **1040 test pass.**
+
+**4. Menu dono taraf barabar doori pe (usi shaam, screenshot ke baad).** Awards→Home ~44px aur
+Contact Us→Get quote ~118px tha. Client: _"reward button exact place pe rahega, nav ko thoda right
+le jakar space equal"_. Desktop (≥1041px) pe `.hdr__top--lbtn` ab grid hai —
+`logo | 2fr | left | 1fr | nav | 1fr | right`. Khaali jagah 2:1:1: left buttons se pehle aadhi (wahi
+jo do `margin-left: auto` dete the, isliye Awards bilkul nahi hilta), bachi aadhi nav ke dono taraf
+barabar. Fixed jagah bhi pehle jitni (`column-gap: 8px` spacer ke dono taraf = purana 16px gap).
+Tablet/mobile pe flex hi.

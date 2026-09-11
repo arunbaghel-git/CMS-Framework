@@ -1307,6 +1307,42 @@ a.mega__gl:hover {
 }
 
 /*
+ * Desktop pe menu dono taraf **barabar** doori pe — client, 11 Sep (D-94 §4): _"reward button
+ * exact place pe rahega, nav ko thoda right le jakar space equal"_.
+ *
+ * Grid ke saat track: `logo | 2fr | left buttons | 1fr | nav | 1fr | right buttons`. Khaali jagah
+ * 2:1:1 me bant-ti hai — left buttons se pehle **aadhi** (bilkul wahi jo upar ke do `margin-left:
+ * auto` dete the, isliye Awards apni jagah se hilta nahi), aur bachi aadhi nav ke **dono** taraf
+ * barabar. `column-gap: 8px` do baar (spacer ke dono taraf) = pehle wala 16px ka gap; nav ka apna
+ * `margin-inline: 8px` wahi hai — to kul fixed jagah pehle jitni hi.
+ *
+ * `minmax(0, …)` — tang desktop pe spacer aur nav sikud sakein. Burger desktop pe `display: none`
+ * hai aur drawer `position: fixed`, to dono grid me koi cell nahi lete. 1040px se neeche wahi flex
+ * layout (dono group ek saath daayein).
+ */
+@media (min-width: 1041px) {
+  .hdr__top--lbtn {
+    display: grid;
+    grid-template-columns:
+      auto minmax(0, 2fr) auto minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr)
+      auto;
+    column-gap: 8px;
+  }
+  .hdr__top--lbtn > .brand {
+    grid-column: 1;
+  }
+  .hdr__top--lbtn > .hdr__actions--l {
+    grid-column: 3;
+  }
+  .hdr__top--lbtn > .nav {
+    grid-column: 5;
+  }
+  .hdr__top--lbtn > .hdr__actions:not(.hdr__actions--l) {
+    grid-column: 7;
+  }
+}
+
+/*
  * Header ke buttons reference ke **small** variant pe hain — `b-s` (`8px 14px` / 13px).
  *
  * Dono designs me header wahi dikhata hai: `<a class="b b-o b-s">Get quote</a>` aur
@@ -6660,7 +6696,15 @@ a.mega__gl:hover {
  * ⚠️ Tablet pe featured ek column me — reference ka apna rule (1024px). Uske bina bada card
  * itna tang ho jaata hai ki uska `min-height: 474px` bemaani lagta hai.
  */
-@media (max-width: 1024px) {
+@media (min-width: 750px) and (max-width: 1024px) {
+  .fcard--lg {
+    min-height: 320px;
+  }
+  .fcard--sm {
+    min-height: 190px;
+  }
+}
+@media (max-width: 750px) {
   .feat {
     grid-template-columns: 1fr;
   }
@@ -6671,7 +6715,6 @@ a.mega__gl:hover {
     min-height: 200px;
   }
 }
-
 /*
  * Featured ke baad columns — reference me `.pgl` pe inline `margin-top` hai
  * (`blog-v1.html:1526`). Yahan wo ek rule hai, kyunki wo dhaanche ki cheez hai, content ki
