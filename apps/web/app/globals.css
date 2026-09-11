@@ -3014,19 +3014,12 @@ a.mega__gl:hover {
 }
 
 /*
- * ⚠️ **Doosra selector import se aayi tables ke liye hai** (spec 008, 10 Sep).
- *
- * Google Doc se aayi table par **koi class nahi hoti** — sanitizer table ke saare attributes
- * hata deta hai. `.tblw` ka dabba theme khud laga deta hai (`wrapTables()`, D-90), par uske
- * andar wali table saadi browser-default table thi: na cell padding, na row ki lines, na
- * poori chaudai.
- *
- * ⚠️ **Ilaaj yahan hai, importer me nahi.** Import se `class="tbl"` likhwana wahi galti
- * hoti jo A-19 me pakdi gayi thi — look ko us markup ka mohtaaj rakhna jo editor **shayad**
- * dega. Sawaal wahi hai: *agar client ye class na likhe to kya hoga?*
+ * Import wali table ko bhi yahi class milti hai — `normalizeTable()` (`lib/article-html.js`)
+ * render pe `class="tbl"`, `<thead><th>` aur `<tbody>` bana deta hai, aur cell ke andar ke
+ * `<p>` khol deta hai (client, 11 Sep). Isliye yahan koi doosra selector nahi — CSS wahi hai
+ * jo reference me hai.
  */
-.tbl,
-.art .tblw > table {
+.tbl {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--fs-sm);
@@ -3034,20 +3027,7 @@ a.mega__gl:hover {
   min-width: 520px;
 }
 
-/*
- * ⚠️ **Yahan pehle do aur selector the, aur wo dono galat the** (10 Sep).
- *
- * Pehla: `:not(:has(th)) tr:first-child td` — is soch pe ki Google `<thead>` bhejta hi nahi.
- * Naapne pe pata chala ki wo `<thead>` **bhejta hai**, bas uske andar bhi cells `<td>` hote
- * hain. Doosra: `thead td` + `:not(:has(thead))` — sahi to tha, par `tr:first-child` `<tbody>`
- * ki **pehli data row** ko bhi pakad leta tha.
- *
- * Ab dono ki zaroorat nahi: `ensureTableHeader()` (`lib/article-html.js`) render pe hi pehli
- * row ke `<td>` ko `<th>` bana deta hai. Look, semantics aur markup — teenon ek saath theek
- * ho jaate hain, aur CSS wahi rehti hai jo reference me hai.
- */
-.tbl th,
-.art .tblw > table th {
+.tbl th {
   background: var(--blue-50);
   color: var(--blue-700);
   text-align: left;
@@ -3059,8 +3039,7 @@ a.mega__gl:hover {
   white-space: nowrap;
 }
 
-.tbl td,
-.art .tblw > table td {
+.tbl td {
   padding: 11px 14px;
   border-top: 1px solid var(--line-2);
   color: var(--body);
@@ -3080,8 +3059,7 @@ a.mega__gl:hover {
  * ke naam se alag ek "chhoti sooch na" jaisa dikhne lagta tha.
  */
 
-.tbl tr:hover td,
-.art .tblw > table tr:hover td {
+.tbl tr:hover td {
   background: var(--blue-50);
 }
 
@@ -6070,20 +6048,18 @@ a.mega__gl:hover {
 }
 
 /*
- * Article ke andar ki **koi bhi** image — spec 008 (10 Sep).
+ * Article ki wo image jo `figure.artfig` ke andar **nahi** hai — spec 008.
  *
- * ⚠️ Import se aayi image `<p><img></p>` hoti hai, `<figure class="artfig">` nahi — Google Doc
- * me figure/caption ka koi tareeka hai hi nahi. Uske paas koi class na hone se use `.artfig img`
- * ka kuch nahi milta tha, **aur is theme me koi global `img` reset bhi nahi hai**. Nateeja: 800px
- * ki image ~700px ke column se bahar nikal rahi thi, aur phone pe kaafi bahar.
+ * Paragraph me akeli image ko `wrapFigures()` (`lib/article-html.js`) `figure.artfig` bana deta
+ * hai, aur uska look upar wala `.artfig img` hai — hoobahoo reference. Ye rule sirf bachi hui
+ * images ke liye hai (text ke beech, list ya table ke andar), taaki wo column se bahar na
+ * niklein — is theme me koi global `img` reset nahi hai.
  *
- * ⚠️ `height: auto` `width` ke saath hi likhna zaroori hai — warna Google ke `width`/`height`
- * attributes (jo sanitizer allow karta hai) anupaat bigaad dete hain.
- *
- * `.artfig img` iske baad bhi apna kaam karta hai; dono ek hi look dete hain, isliye takrav nahi.
- * Yahi A-19 wala niyam hai: look us markup ka mohtaaj na ho jo editor **shayad** dega.
+ * ⚠️ `:not(.artfig) > img` isliye ki figure wali image pe ye na lage. Reference me wo image
+ * inline hai, aur `figcaption` ka faasla usi hisaab se naapa gaya hai — `display: block` use
+ * badal deta.
  */
-.art .blk img {
+.art .blk :not(.artfig) > img {
   display: block;
   width: 100%;
   height: auto;

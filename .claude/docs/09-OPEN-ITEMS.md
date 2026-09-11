@@ -217,8 +217,12 @@ code ki nahi.
 | #   | Kya                                                     | Kyun poochhna hai                                                                                                                                                                                             |
 | --- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | **Nishaan ke shabd** — `Note:` · `Warning:` · `Quote:`  | Ye maine chune. Client Hindi chahe, ya `Tip:`/`Important:` jaise aur variants chahe, to ek line ka badlaav hai — par **guide bhejne ke baad** badalna matlab team ke likhe doc dobara chhoona                  |
-| 2   | **Image ki caption**                                    | Abhi import se caption aa hi nahi sakti (reference me `figcaption` hai). Guide me likha hai "image ke neeche italic line likho". Asli caption chahiye to doc me ek naya label banega                            |
-| 3   | **Table ki pehli row hamesha header**                   | `ensureTableHeader()` ye **maan leta** hai. Jis table me pehli row asli data ho wo header jaisi dikhegi — nuksaan sirf dikhne ka hai, data ka nahi. Client ko ye pata hona chahiye                              |
+| 2   | ✅ **Image ki caption** — band (11 Sep) | Client ne nishaan ki ijaazat di. Ab image ke turant neeche `Caption:` wali line `figcaption` banti hai (D-92 §10) |
+| 3   | ✅ **Table ki pehli row hamesha header** — band (11 Sep) | Client ne khud kaha: _"only first row will be table head other will be table body"_ |
+
+⚠️ **Guide v2 bhi ab ek jagah galat hai (11 Sep)** — usme likha hai "caption nahi hai, image ke
+neeche italic line likho". Ab wo `Caption:` hai. Guide v3 banani hogi (Drive ka API content update
+nahi kar sakta) — client aaj aur badlaav bata raha hai, isliye sab ke baad ek saath.
 
 ⚠️ **Purana guide doc ab galat hai** (`18Dd6_o8…`) — usme content wala hissa hai hi nahi. Naya
 [guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)

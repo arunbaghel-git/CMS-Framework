@@ -811,7 +811,8 @@ banata hai — **ek hi module, ek hi screen, ek dropdown**.
 Apne aap: `h2`/`h3`, pehla paragraph (`.lead`), table (pehli row hamesha header), image (Media
 library me utar kar), bullet aur numbered list, bold/italic, link.
 
-Nishaan se: `Note:` → `.callout`, `Warning:` → `.callout--w`, `Quote:` → `.pullq`. Title ke liye
+Nishaan se: `Note:` → `.callout`, `Warning:` → `.callout--w`, `Quote:` → `.pullq`, aur image ke turant neeche `Caption:` → `figure.artfig` ka
+`figcaption` (D-92 §10). Title ke liye
 writer ka apna bold.
 
 Team ka guide: [Blog post guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)

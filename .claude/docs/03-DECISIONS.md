@@ -7415,3 +7415,51 @@ Reference ki apni line (`blog-detail-v1.html:985`) pe hi `.art b, .art strong` d
 hamare paas bhi hai — blog pe bold kabhi toota hi nahi tha. `.blk p :is(b, strong)` phir bhi rakha
 gaya, par asli faayda **tour/package pages** pe hai jahan `.art` hai hi nahi aur TinyMCE `<strong>`
 likhta hai.
+
+### §10 — 11 Sep: table ka dhaancha, image + caption, aur do lead
+
+Client ne test post chala kar teen cheezein gina di. Teeno ka ilaaj theme me hai
+(`apps/web/lib/article-html.js`), importer me nahi — wahi jagah jahan `wrapTables()` hai.
+
+**1. Table — pehli row `<thead>`, baaki `<tbody>`, cell me `<p>` nahi.** Google har cell ki value
+`<p>` me bhejta hai, aur `.art p` ka font-size/margin cell ke andar lag kar `.tbl td` ko hara deta
+tha — styling "lagti hi nahi" thi. Client ki maang: _"only first row will be table head other will
+be table body"_. `normalizeTable()` ab bina `<th>` wali table ko **rows aur cells nikaal kar dobara
+banata hai**: `class="tbl"`, `<thead><th>`, `<tbody>`, cell ke `<p>` khule (kai ho to `<br>`), aur
+Google ka `colspan="1"` gira. Kal ka `ensureTableHeader()` sirf `<td>` → `<th>` karta tha; toota
+hua nesting aur `<p>` waise ke waise reh jaate the.
+
+⚠️ Jis table me `<th>` pehle se ho uska dhaancha **nahi** chhuta — 11 Sep ko DB me gina: tour page
+ki 3 aur do post ki 2-2 tables, sab `class="tbl"` + `<th>`. Un par sirf cell ke `<p>` khulte hain.
+
+⚠️ Iske saath CSS ke kal wale chaaron `.art .tblw > table` selector **hata diye**. Table ko ab
+`.tbl` class hi mil jaati hai, to CSS wapas reference ki shakl me hai.
+
+**2. Image aur caption ek `<figure class="artfig">` me.** Google image ko `<p><img></p>` me
+bhejta hai aur uske neeche ki line ek alag `<p>`. `leadParagraph()` image wale paragraph ko chhod
+kar **agle** paragraph ko lead maan leta tha — yaani caption hi `.lead` ban jaati thi. Ab
+`wrapFigures()`: akeli image → `figure.artfig`, aur uske turant neeche `Caption:` wali line →
+`figcaption`. Poori line italic ho to italic hat jaata hai — reference ka caption seedha hai.
+
+⚠️ **Caption nishaan se banti hai, andaze se nahi.** "Image ke neeche italic line = caption" maan
+lena aasaan tha, par tab image ke turant baad ka **koi bhi** italic paragraph chup-chaap caption ban
+jaata. Client ne nishaan ki ijaazat khud di: _"if you need you can add tags like note, warning"_.
+
+**3. Do lead paragraph — 10 Sep se live, kisi ne dekha nahi.** Haath se likhe
+`/how-to-plan-an-andaman-trip` me `<p class="lead">` pehle se tha. `leadParagraph()` sirf saada
+`<p>` pakadta hai, to usne use chhod kar agle paragraph ko bhi lead bana diya. Ab content me lead
+pehle se ho to kuch nahi hota. Ye `ce8ed98` ki galti thi, aur page chalane pe hi pakdi gayi.
+
+**4. Kram ab `articleHtml()` me.** Caption ka lead ban jaana **kram ka bug** tha — figure banne se
+pehle lead dhoondha ja raha tha. Jab tak kram `Blocks.jsx` me likha tha uska test ho hi nahi
+sakta tha; ab `wrapTables → wrapFigures → leadParagraph → markedBlocks` ek function me hai aur
+uska apna test hai. `leadParagraph()` nishaan wale paragraph (`Note:` · `Warning:` · `Quote:` ·
+`Caption:`) bhi chhodta hai — warna `Note:` se shuru hone wala article callout banne se reh jaata.
+
+⚠️ Reference ke `<tr class="on">` (highlighted row) ke liye nishaan **jaan-boojh kar nahi** banaya —
+reference me bhi uska koi style hai hi nahi (`.on` sirf map aur pills pe hai).
+
+**Live (asli DB):** test post — `table.tbl` 2/2, `<thead>`/`<tbody>` 2/2, 6 `th`, cell me 0 `<p>`;
+haath ka post — lead 1 (pehle 2), figure/figcaption waise ke waise; tour page — koi farak nahi (uska
+ek `.lead` uske apne content ka hai). Test post pe caption tab tak lead rahega jab tak doc me
+`Caption:` na likha jaaye. **1009 test pass.**

@@ -1,7 +1,7 @@
 import { BlogFilterProvider } from '../blog/BlogFilter.jsx'
 import PostList from '../blog/PostList.jsx'
 import PostListLead from '../blog/PostListLead.jsx'
-import { leadParagraph, markedBlocks, wrapTables } from '../../lib/article-html.js'
+import { articleHtml, wrapTables } from '../../lib/article-html.js'
 import PackageList from './PackageList.jsx'
 
 /**
@@ -48,14 +48,15 @@ function RichTextBlock({ props, article }) {
   /**
    * ⚠️ **`article` sirf blog post pe true hota hai**, aur wo zaroori hai.
    *
-   * `.lead` aur `.callout` article ke design ka hissa hain (`blog-detail-v1.html`). Inhe har
-   * `richText` block pe chala dena tour aur package pages ka pehla paragraph bhi bada kar deta
-   * — ek badlaav jo kisi ne maanga hi nahi. `wrapTables()` iske bahar hai kyunki table ka
-   * header har jagah sahi hona chahiye.
+   * `.lead`, `.callout` aur `figure.artfig` article ke design ka hissa hain
+   * (`blog-detail-v1.html`). Inhe har `richText` block pe chala dena tour aur package pages ka
+   * pehla paragraph bhi bada kar deta — ek badlaav jo kisi ne maanga hi nahi. `wrapTables()`
+   * iske bahar hai kyunki table ka dhaancha har jagah sahi hona chahiye.
+   *
+   * ⚠️ Kram `articleHtml()` ke andar hai, yahan nahi — caption ka `.lead` ban jaana kram ka hi
+   * bug tha (11 Sep), aur yahan likhe kram ka test ho hi nahi sakta tha.
    */
-  const html = article
-    ? leadParagraph(markedBlocks(wrapTables(props.html)))
-    : wrapTables(props.html)
+  const html = article ? articleHtml(props.html) : wrapTables(props.html)
 
   return <div className="blk" dangerouslySetInnerHTML={{ __html: html }} />
 }

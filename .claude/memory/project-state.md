@@ -56,6 +56,24 @@ pnpm dev
 
 ---
 
+## 11 Sep — client ki pehli do improvements (D-92 §10)
+
+1. **Table:** cell ke `<p>` khule, pehli row `<thead><th>`, baaki `<tbody>`, `class="tbl"` —
+   `normalizeTable()`. Haath se likhi (`<th>` wali) tables ka dhaancha nahi chhuta. CSS ke kal wale
+   `.art .tblw > table` selector hata diye
+2. **Image + caption:** `figure.artfig` + `figcaption`, `Caption:` nishaan se — `wrapFigures()`
+3. **Do lead ka bug** (10 Sep se live): haath ke post pe `<p class="lead">` pehle se tha aur
+   `leadParagraph()` doosra bhi bana raha tha. Theek
+4. Kram `articleHtml()` me, test ke saath
+
+⚠️ **Test post pe caption tab tak lead dikhega jab tak client doc me us line ke aage `Caption:`
+na likhe** — ye code ki nahi, content ki baat hai.
+
+⚠️ **Guide v2 caption pe galat hai** — v3 banani hai, par client aaj aur badlaav bata raha hai,
+isliye sab ke baad ek saath (A-22).
+
+---
+
 ## 10 Sep (shaam-raat) — Bulk Upload for blog (D-92)
 
 **16 commit.** Poore faisle **D-92** me, contract **spec 008 §11** me. Neeche sirf wo jo agli
