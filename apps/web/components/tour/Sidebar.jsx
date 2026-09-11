@@ -60,29 +60,21 @@ function HtmlWidget({ props }) {
 }
 
 /**
- * Poori sidebar **pinned**, jab tak article khatam na ho — post ka `On this post` wala (D-93).
+ * Post ki sidebar (jisme `On this post` ho) — **bilkul reference jaisi**: saada `.pgl__side`,
+ * jiski CSS pehle se `position: sticky; top: 78px` hai (`blog-detail-v1.html`). Poori column —
+ * TOC, form, baaki widgets — ek saath upar chipki rehti hai aur `.pgl` (article + PostNav +
+ * Related) khatam hone pe upar chali jaati hai. Koi JS nahi, andar koi scroll nahi.
  *
- * Client, 11 Sep: _"untill left content (article) poora scroll nahi ho jata On this post jis
- * sidebar me hai completely sticky rahega"_. `StickySide` column ko scroll ke saath khiskata hai,
- * to TOC upar se nikal jaata aur padhte-padhte usse click nahi hota.
+ * ⚠️ **Is tak do galat koshishon ke baad pahuncha (11 Sep, D-93 §7).** Pehle sirf TOC sticky tha
+ * aur widgets uske peeche se nikalte the; phir poori sidebar ek andar-scroll wale dabbe me thi aur
+ * Related ek alag row me. Client ne dono baar reference dikhaya — reference me script ka zikr hai
+ * par script **hai hi nahi**; asli bartaav saada sticky hai.
  *
- * ⚠️ **Pehli koshish galat thi (usi din):** sirf TOC sticky tha, widgets normal scroll hote the —
- * yaani form aur baaki widgets TOC ke **neeche se upar** chadh kar uske peeche chhup jaate.
- * Client ne pakda. Ab TOC **aur saare widgets** ek hi `.pgl__pin` me hain, jo sticky hai.
- *
- * Column (`aside`) khud sticky nahi — `align-self: stretch` se wo **sirf article** jitni lambi
- * hai (`PostPage` article ko `.pgl` ki pehli row me rakhta hai, PostNav/Related doosri me). Isliye
- * article khatam hote hi sidebar apne aap upar chali jaati hai — koi JS nahi.
- *
- * ⚠️ Sidebar screen se lambi ho to `.pgl__pin` apne andar scroll hota hai (`max-height`). Uske
- * bina form ka neeche wala hissa (Submit) article khatam hone tak pahunch me hi nahi aata.
+ * `StickySide` (scroll ki disha ke saath `top` khiskana) baaki pages pe waisa hi chalta hai —
+ * package aur tour page pe client ne wahi maanga tha (8 Sep).
  */
 function PinnedSide({ children }) {
-  return (
-    <aside className="pgl__side pgl__side--pin">
-      <div className="pgl__pin">{children}</div>
-    </aside>
-  )
+  return <aside className="pgl__side">{children}</aside>
 }
 
 /**

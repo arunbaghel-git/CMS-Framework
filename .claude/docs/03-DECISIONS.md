@@ -7636,17 +7636,23 @@ rehta hai (andaza nahi). Admin me Excerpt panel ab **Content (aur FAQ) ke baad**
 
 ### §7 — Usi shaam do sudhaar, client ke dekhne ke baad
 
-**1. Pinned sidebar — sirf TOC nahi, poori.** §5 me sirf TOC sticky tha; client ne sidebar me
-widgets jode to form aur baaki widgets TOC ke neeche se upar chadh kar uske peeche chhupne lage.
-Client: _"untill left content (article) poora scroll nahi ho jata On this post jis sidebar me hai
-completely sticky rahega"_. Ab:
+**1. Pinned sidebar — ab bilkul reference (`blog-detail-v1.html`) jaisi.** Do galat koshishein
+pehle hui, dono client ne pakdi:
 
-- TOC **aur saare widgets** ek hi `.pgl__pin` me, jo sticky hai
-- Sidebar **article** jitni lambi — `PostPage` ne `.pgl` ko do row me baanta (row 1 article +
-  sidebar, row 2 `.pgl__after` = PostNav + Related). Pehle sidebar Related ke end tak tiki rehti
-- Sidebar screen se lambi ho to **andar scroll** (`max-height`) — warna form ka Submit article
-  khatam hone tak pahunch me nahi aata. ⚠️ StickySide ke comment me nested scroll ko mobile ka bug
-  kaha gaya tha; yahan wo sirf desktop pe hai (1024px se neeche pin hi nahi)
+- §5 wali — sirf TOC sticky, widgets normal scroll → form TOC ke peeche se nikalta tha
+- doosri — poori sidebar ek **andar-scroll** wale dabbe (`.pgl__pin`, `max-height`) me, aur
+  PostNav/Related `.pgl` ki alag row me. Client: _"blog-detail-v1.html check in this how scrolling
+  is happening becouse what you applied is not good"_
+
+Reference me CSS ke comment me ek "script" ka zikr hai (`top` ko disha ke saath khiskana), par wo
+script file me **hai hi nahi**. Asli bartaav: `.pgl__side { position: sticky; top: 78px }` — poori
+column (TOC → form → Most read) ek saath chipki, koi andar-scroll nahi, aur `.pgl__main` (article +
+`.pn` + Related) khatam hone pe upar. Ab post pe wahi hai: `PinnedSide` ek saada `.pgl__side`,
+`StickySide` ki JS nahi. `.pgl__pin`/`.pgl__after`/`.pgl--post` hata diye.
+
+**Sabak:** reference ka comment nahi, reference ka **chalta hua bartaav** padho. Pehli baar
+`StickySide` bhi usi comment ko padh kar bana tha. ⚠️ Iski keemat: sidebar screen se lambi ho to
+uska neeche ka hissa `.pgl` khatam hone pe hi dikhta hai — reference me bhi yahi hai
 
 **2. Admin ke dropdown kabhi poori chaudai nahi** — _"koi bhi dropdown full page width nahi
 lega"_. `primitives.css` me `select.inp, .sel { max-width: 360px }` — har screen pe ek saath.

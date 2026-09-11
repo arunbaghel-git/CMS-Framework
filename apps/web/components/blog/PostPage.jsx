@@ -302,7 +302,7 @@ export default function PostPage({ entry, settings }) {
              * (D-87 §11 ka maloom kaanta).
              */}
             <div
-              className={`pgl pgl--tour pgl--post${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
+              className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
             >
               <div className="pgl__main">
                 <article className="art">
@@ -335,17 +335,7 @@ export default function PostPage({ entry, settings }) {
                     </div>
                   )}
                 </article>
-              </div>
 
-              {/*
-               * ⚠️ **PostNav aur Related `.pgl` ki doosri row me** — client, 11 Sep (D-93). Sidebar
-               * sirf pehli row (article) jitni lambi hoti hai, isliye pinned sidebar article khatam
-               * hote hi chhoot jaati hai. Pehle ye sab ek hi `.pgl__main` me the aur sidebar Related
-               * ke end tak tiki rehti thi.
-               *
-               * Mobile pe DOM ka kram chalta hai: article → PostNav/Related → sidebar, jaisa pehle.
-               */}
-              <div className="pgl__after">
                 <PostNav prev={entry.prev} next={entry.next} />
 
                 {related.length > 0 && (

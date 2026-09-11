@@ -2587,76 +2587,10 @@ a.mega__gl:hover {
 }
 
 /*
- * Post ka `On this post` pinned — client, 11 Sep (D-93): _"jab tak content end na ho jaye fir
- * scroll ho jayega"_.
- *
- * Column khud sticky **nahi** hai: `stretch` se wo main column jitni lambi hai, aur andar ka
- * `.pgl__pin` sticky hai. Isliye TOC main column khatam hone tak tika rehta hai aur phir apne
- * aap upar chala jaata hai — koi JS nahi. Neeche koi widget ho to wo TOC ke peeche se nikalta
- * hai (`z-index`).
+ * ⚠️ Post page (`On this post` wala) isi saade sticky pe chalta hai — **bina `StickySide` ki JS**
+ * (D-93 §7). Wahi `blog-detail-v1.html` ka asli bartaav hai: poori column ek saath chipki, andar
+ * koi scroll nahi, `.pgl` khatam hone pe upar.
  */
-.pgl__side--pin {
-  position: static;
-  align-self: stretch;
-  display: block;
-}
-/*
- * TOC **aur saare widgets** ek saath pinned (client ne pakda ki pehle sirf TOC tha aur form uske
- * peeche se nikalta tha). Screen se lamba ho to andar scroll — warna form ka Submit article khatam
- * hone tak pahunch me hi nahi aata. `padding` isliye ki `overflow` widgets ki shadow na kaate.
- */
-.pgl__pin {
-  position: sticky;
-  top: 78px;
-  display: grid;
-  gap: 14px;
-  align-content: start;
-  max-height: calc(100vh - 94px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  padding: 2px 4px 4px;
-  margin: -2px -4px -4px;
-}
-
-/*
- * Post page — article pehli row, PostNav/Related doosri, sidebar sirf pehli row me (D-93). Isi se
- * pinned sidebar **article** ki lambai tak rehti hai, Related ke end tak nahi.
- *
- * ⚠️ Placement sirf desktop pe — 1024px se neeche ek hi column hai aur DOM ka kram chalta hai.
- * `.pgl--sideleft .pgl__main/.pgl__side` (tour page wale) main/side ko pehle se row 1 me rakhte
- * hain; yahan sirf `.pgl__after` aur non-sideleft ki jagah tay hoti hai.
- */
-.pgl--post {
-  row-gap: clamp(22px, 2.8vw, 38px);
-}
-.pgl__after {
-  min-width: 0;
-  display: grid;
-  gap: clamp(22px, 2.8vw, 38px);
-}
-.pgl__after > * {
-  min-width: 0;
-}
-@media (min-width: 1025px) {
-  .pgl--post > .pgl__main {
-    grid-row: 1;
-  }
-  .pgl--post > .pgl__after {
-    grid-row: 2;
-    grid-column: 1;
-  }
-  .pgl--post.pgl--sideleft > .pgl__after {
-    grid-column: 2;
-  }
-  .pgl--post:not(.pgl--sideleft) > .pgl__main {
-    grid-column: 1;
-  }
-  .pgl--post:not(.pgl--sideleft) > .pgl__side {
-    grid-column: 2;
-    grid-row: 1;
-  }
-}
 
 /* Sidebar widget — reference ka `.wdg`. */
 .wdg {
@@ -2809,24 +2743,10 @@ a.mega__gl:hover {
     display: grid;
     grid-template-columns: 1fr 1fr;
   }
-
-  /*
-   * Sidebar yahan content ke neeche hai — pin karne ka koi matlab nahi (D-93). Widgets ab `.pgl__pin`
-   * ke andar hain, to do column wala grid bhi wahi leta hai (`.pgl__side` jaisa).
-   */
-  .pgl__pin {
-    position: static;
-    max-height: none;
-    overflow: visible;
-    padding: 0;
-    margin: 0;
-    grid-template-columns: 1fr 1fr;
-  }
 }
 
 @media (max-width: 760px) {
-  .pgl__side,
-  .pgl__pin {
+  .pgl__side {
     grid-template-columns: 1fr;
   }
 }
