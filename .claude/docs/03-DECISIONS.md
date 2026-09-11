@@ -7659,6 +7659,11 @@ lega"_. `primitives.css` me `select.inp, .sel { max-width: 360px }` — har scre
 Pehla ilaaj (`.bu-target { width: auto }`) `.inp` ke `width: 100%` se haar gaya tha aur sirf ek
 screen ka tha; hata diya.
 
+⚠️ **Doosri baar sudhra, usi shaam.** Sab dropdown pe lagi rok badi screen pe un rows ko bigaad rahi
+thi jahan do-teen dropdown saath hain. Client: _"i was asking you fix only for one dropdown in a
+row"_. Ab rok sirf tab jab `.field` seedha ek-column panel body (ya uske `<form>`) me ho —
+`panel-body row2/row3` aur `.row2`/`.row3` ke andar nahi. Naap **622px**, client ka apna (360 se).
+
 **Live:** API pe payload `categories[]`, bina `fields` ke. Client ne isi beech Blog settings
 `/blog/…` pe kiya — D-92 §13 ne saare post ka parent blog page kar diya (dash wapas), redirect bane.
 ⚠️ Port 3000 pe `next start` ka **12:58 wala build** chal raha tha — site ke badlaav wahan tabhi

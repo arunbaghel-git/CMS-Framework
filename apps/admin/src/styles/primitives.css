@@ -338,14 +338,20 @@ tr:hover .row-actions {
  * `:is()` se teenon (`inp`/`sel`/`ta`) ka har jodi ek hi line me aa jaata hai.
  */
 /*
- * ⚠️ **Dropdown kabhi poori chaudai nahi leta** — client, 11 Sep (D-93): _"koi bhi dropdown full
- * page width nahi lega becouse its confusing to look on whole page"_. Upar ka `width: 100%` sirf
- * tang column (sidebar, `row3`) ke liye theek hai; wahan column khud 360px se chhota hai, to ye
- * rok wahan kuch nahi badalti. Text input aur textarea poori chaudai hi rehte hain.
+ * ⚠️ **Row me akela dropdown poori chaudai nahi leta** — client, 11 Sep (D-93): _"koi bhi dropdown
+ * full page width nahi lega … fix only for one dropdown in a row"_.
+ *
+ * Sirf wo dropdown jiska `.field` seedha ek-column panel body me (ya uske `<form>` me) hai. Jahan
+ * do-teen dropdown ek row me hain (`.row2`/`.row3`, ya `panel-body row2/row3` jaise General aur
+ * Package Defaults pe) wahan ye **nahi** lagta — pehli koshish sab pe lagti thi aur badi screen pe
+ * un rows ka design bigaad deti thi.
+ *
+ * `622px` client ka apna naap hai (pehle 360 tha) — "design se match" ke naam pe mat badalna.
  */
-select.inp,
-.sel {
-  max-width: 360px;
+:is(.panel-body:not(.row2, .row3), .panel-body:not(.row2, .row3) > form)
+  > .field
+  > :is(select.inp, .sel) {
+  max-width: 622px;
 }
 
 .field > :is(.inp, .sel, .ta) + :is(.inp, .sel, .ta) {
