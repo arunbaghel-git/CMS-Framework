@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**988 tests passing**, 10 Sep). Public package page ke **saare** section live hain.
+hain** (**1016 tests passing**, 11 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -618,6 +618,15 @@ aap (pehla paragraph). Ghar theme hai, importer nahi (wahi jagah jahan `wrapTabl
 DB me content saaf rehta hai aur nishaan hata dene se page saade paragraph pe wapas aa jaata hai.
 ✅ Nishaan ke shabd maine chune the; 11 Sep ko client ne chaaron (`Caption:` ke saath) rakh liye
 aur asli doc pe khud chala kar dekhe (A-22 band).
+
+**11 Sep — article ka design aur A-21 (D-92 §10–§11).** Table ab theme me dobara banti hai
+(`normalizeTable()` — pehli row `<thead><th>`, baaki `<tbody>`, cell me `<p>` nahi), image ke
+neeche `Caption:` wali line `<figure class="artfig">` ka `figcaption` banti hai, aur do lead
+paragraph wala bug theek hua. Kram ek function me hai: `articleHtml()` (`apps/web/lib/article-html.js`).
+A-21 ke chaaron naap ho gaye — post URL switch pe **blog listing ka cache saaf nahi hota tha**
+(ab `blogListingTags()`), hydration errors 0, aur speed `/blog` **85**, article **67** (A-17).
+Bulk Upload ki images pe ab `width`/`height` lagta hai (CLS); purane imported post ke liye
+`Existing` mode me dobara import chahiye.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
