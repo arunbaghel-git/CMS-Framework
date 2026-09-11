@@ -690,3 +690,43 @@ Tabs: `All` · `Published` · `Draft` · `Failed`. Columns: **`Packages` / `Blog
 Blog doc ke nishaan — `Note:` · `Warning:` · `Quote:` · `Caption:` — **page pe** block bante hain
 (theme, `lib/article-html.js`), DB me nahi. Post ke editor (TinyMCE) me client ko wahi saadi line
 dikhti hai, dabba nahi. Jaan-boojh kar — **A-23**.
+
+## 11 Sep — client ki list aur header ki jagah (D-93, D-94)
+
+⚠️ Inme se **koi bhi** `admin-design-v2.html` me nahi hai — sab client ke 11 Sep ke faisle hain.
+
+### Posts
+
+- **Menu:** `All Posts · Add New · Categories · Blog Page · Blog settings`. Blog settings
+  `Settings` se yahan aaya (`/posts/settings`, heading `Blog settings`, `SettingsTabs` nahi) — wahi
+  raasta jo `Tour settings` ne 8 Sep ko liya
+- **Post edit:** **Page Header panel nahi** — `<h1>` ab Title hai. **Categories = checkboxes** (kram
+  list ka, tick karne ka nahi). **Excerpt** panel Content (aur uske FAQ block) ke **baad**, optional —
+  khaali pe card content ki pehli 24 shabd dikhata hai
+- **Categories screen:** ginti ka column **`Posts`** (pehle `Packages` likha tha), naya **Badge
+  colour** — colour picker + `Use automatic` (khaali = Automatic, reference ke chaar rang me se), aur
+  list me naam ke aage rang ka chhota dot
+- **All Posts** ka Category column — saari categories, comma se
+
+### Reviews
+
+Stars dropdown: `5 · 4.5 · 4 · 3.5 · 3 · 2.5 · 2 · 1.5 · 1`. List me `★★★★☆ 4.5` — text me aadha
+taara nahi banta, isliye number saath.
+
+### Tour Pages
+
+List ka `Packages` column hata (client ne mana kiya).
+
+### Dropdown ki chaudai — sab screens (`primitives.css`)
+
+Row me **akela** dropdown (jiska `.field` seedha ek-column panel body ya uske `<form>` me ho) 750px se
+upar **`max(50%, 300px)`**. `.row2`/`.row3` (ya `panel-body row2/row3`) wale nahi — wahan wo apne
+column me poore rehte hain. Naap client ne khud tune kiya (360 → 622px → 50% → `max()`, taaki
+sidebar ka Publish Status aadha na rahe).
+
+### Appearance ▸ Menus ▸ Header Buttons
+
+Har button pe **Position**: `Left — before the menu` / `Right — end of header` (default **Right** —
+purane button wahin). Left button site pe nav ke theek pehle aata hai; tablet/mobile pe dono group
+ek saath daayein. **"Icon only on mobile"** ab sach me sirf phone (750px se neeche) pe label chhupata
+hai — pehle 1040px pe tha.

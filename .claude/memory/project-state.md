@@ -1,49 +1,64 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 10 Sep 2026 (raat) — **251 commit**, **push ho chuke**, **988 test pass**
-> (39 file), lint + format clean, tree clean.
+> **Last updated:** 11 Sep 2026 (raat) — **269 commit**, **aakhri 17 push nahi hue** (client ke
+> kehne pe hi), **1040 test pass** (38 file), lint + format clean, tree clean.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (11 Sep)
+## ⏭️ Nayi session yahan se shuru kare (12 Sep)
 
-### Abhi ki asli haalat (naapi hui)
+### Abhi ki asli haalat (naapi hui, 11 Sep raat)
 
-| Kya           | Value                                                                                              |
-| ------------- | -------------------------------------------------------------------------------------------------- |
-| Commits       | **251** — sab push ho chuke                                                                        |
-| Tests         | **988 pass**, 39 file (`pnpm test`, exit 0)                                                        |
-| Builds        | admin ✅ · ⚠️ **`next build` aaj bhi nahi chala** — dev server chal raha tha (**A-21**)            |
-| Lint · Format | dono clean                                                                                         |
-| Migrations    | **23 files**, 23/23 applied — **Bulk Upload for blog me koi nayi nahi lagi**                       |
-| Decisions     | **D-92** tak                                                                                       |
-| DB            | 5 package (+8 trash) · 1 tour page · 1 blog page · **15 post** · 6 category · 3 sidebar · 19 media |
+| Kya           | Value                                                                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Commits       | **269** — aakhri **17 push nahi hue** (`94ce46f` se is handoff wale docs commit tak). Push **sirf client ke kehne pe**                                                                |
+| Tests         | **1040 pass**, 38 file (`pnpm test`, exit 0)                                                                                                                                          |
+| Builds        | ⚠️ Port 3000 pe client ka **`next start` 12:58 wala build** hai — aaj ke saare site badlaav usme **nahi** dikhte. Naya build client chalayega (dev band karke — D-89)                 |
+| Lint · Format | dono clean                                                                                                                                                                            |
+| Migrations    | **24 files**, 24/24 applied — **024** = post ka parent Blog settings se (D-92 §13)                                                                                                    |
+| Decisions     | **D-94** tak                                                                                                                                                                          |
+| DB            | 5 package (+12 trash) · 1 tour page · 1 blog page (`/blog`) · **15 post** · 6 category · 3 sidebar · 16 media · Blog mode **`nested`** · header: **Awards `left`**, Get quote `right` |
 
-### Client ne kaha: "kal kuch improvements bataunga"
+### 11 Sep ko kya hua — poora hisaab D-92 §10–§13, D-93, D-94 me
 
-Session **jaan-boojh kar yahin band** ki gayi. Client 11 Sep ko blog ke bulk upload pe kuch aur
-badlaav bataayega. Tab tak neeche wali teen cheezein unse poochhni hain (**A-22**).
+- **Article ka design** — table (`<thead>`/`<tbody>`, cell me `<p>` nahi), `Caption:` → `figure`,
+  do lead ka bug (D-92 §10); import wali images pe `width`/`height` (§11)
+- **A-21 chaaron naap** — URL switch pe blog listing ka cache saaf nahi hota tha (theek); hydration 0;
+  `/blog` 85, article 67 (A-17)
+- **Past imports** — `All · Packages · Blog posts` filter, 20 run **har type ke** (§12)
+- **Post ka parent Blog settings se**, server pe — admin ka `—` aur breadcrumb URL ke saath (§13,
+  migration 024). Client ne shaam ko mode `nested` kiya — code ne sahi kiya
+- **Client ki 11 Sep list (D-93)** — post ka `<h1>` = Title (Page Header gaya), kai categories +
+  badge rang, excerpt optional (card content ke 24 shabd), hero byline me date · read time, review
+  me aadhe taare, Blog settings → Posts submenu, Tour list ka Packages column aur `/blog` ki ginti hati
+- **Post sidebar** — do galat koshishon ke baad ab **reference jaisi saada sticky** (D-93 §7).
+  Sabak: reference ka comment nahi, uska chalta hua bartaav padho
+- **Admin dropdown** — row me akela ho to 750px se upar `max(50%, 300px)` (client ka apna tune,
+  `primitives.css` — "design se match" ke naam pe mat palatna)
+- **Header button `position`** (D-94) — `left` nav ke pehle, tablet/mobile pe dono ek saath daayein,
+  icon-only sirf 750px se neeche; desktop pe menu dono taraf **barabar** doori (§4, grid 2:1:1)
 
-### ~~Pehla kaam: A-22 ke teen sawaal~~ — ✅ 11 Sep ko teeno band (neeche "11 Sep" dekho)
+### Pehla kaam: A-24 — aaj ke badlaav client ki aankh se
 
-1. **Nishaan ke shabd** — `Note:` · `Warning:` · `Quote:` **maine chune, client ne nahi**. Ye
-   guide **bhejne se pehle** tay hone chahiye, warna team ke likhe doc dobara chhoone padenge
-2. **Purana guide doc trash karna hai** (`18Dd6_o8…`) — wo ab galat hai, aur Drive ka API content
-   update nahi kar sakta. Naya [guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)
-3. **Test post `/how-to-plan-an-andaman-trip-test` live hai** — client ke kehne pe hatana hai
+Aaj ka koi bhi site badlaav **render hote hue dekha nahi gaya** (port 3000 pe purana build). Sab
+tests/lint se verify hain, aankh se nahi. List **09-OPEN-ITEMS A-24** me — header ki 1100–1200px
+wali tangi sabse pehle.
 
-### Doosra kaam: A-21 (pehle se khula)
+### Dhyan rahe
 
-`next build` + `next start` pe blog ka pehra. **Ab usme Bulk Upload wale post bhi shaamil hain** —
-naya post import karke dekho ki `/blog` ki listing turant update hoti hai ya nahi. Wo test dev
-server pe **hamesha jhootha pass** deta hai (D-83 wali shakl).
-
-```bash
-# ⚠️ Dev BAND karo pehle — dono ek hi .next use karte hain (D-89)
-pnpm --filter @cms/web build
-pnpm --filter @cms/web start
-```
+- ⚠️ `next build` **sirf dev band karke** — dono ek hi `.next` use karte hain (D-89). Client ka
+  `next start` bhi usi `.next` pe hai — use chhedna nahi, client khud chalata hai
+- **Tunnel** (docker: `merncms-admin-tunnel`, `merncms-site-tunnel`) — URL har restart pe badalta
+  hai. Admin tunnel badle to `apps/api/.env` ke `EXTRA_CORS_ORIGINS` me naya URL aur `pnpm dev:api`
+  **restart** (`--watch` `.env` nahi dekhta). URL nikaalna: `docker logs merncms-admin-tunnel 2>&1 |
+grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' | tail -1`
+- `C:\Users\deepa\Downloads\blog-detail-v1.html` — client ki **trial copy** (header ke prayog), repo
+  ke bahar. Asli reference `.claude/docs/reference/blog-detail-v1.html` chhua nahi gaya
+- `C:\Users\deepa\merncms-a21` — A-21 ka bacha hua worktree folder (303 MB); git se hat chuka,
+  folder client ko khud mitana hai (`rm` ki ijaazat nahi mili thi)
+- Commit se pehle **`git status` padho** — client khud CSS tune karta hai (aaj `primitives.css`);
+  uska badlaav apne commit me mat kheencho, alag commit (client ki ijaazat se)
 
 ### Shuru karne ke liye
 
@@ -52,7 +67,8 @@ docker compose up -d mongo
 pnpm dev
 ```
 
-`pnpm seed` ki zaroorat nahi — is kaam me na koi naya content type bana, na koi migration.
+`pnpm seed` ki zaroorat nahi. Nayi migration **024** pehle hi chal chuki hai; kisi naye instance pe
+`pnpm cms migrate` chahiye (pehle `pnpm format`, phir migrate — D-82).
 
 ---
 

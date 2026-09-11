@@ -209,6 +209,32 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
+### A-24 · 11 Sep ke badlaav render hote hue dekhe hi nahi gaye (D-93, D-94)
+
+**Deadline:** agli session ka **pehla** kaam
+**Kuch toota hua nahi hai** — 1040 test, lint, format sab pass. Par port 3000 pe client ka `next start`
+**12:58 ka build** tha, aur dev ke saath `next build` chal nahi sakta (D-89) — yaani neeche ki har
+cheez sirf code/test/maths se verify hui hai, aankh se nahi. Client naya build chala kar dekhe.
+
+| #   | Kya dekhna hai | Kyun |
+| --- | --- | --- |
+| 1 | **Header 1100–1200px** — Awards (Left, label ke saath) + menu ek line me aate hain ya nahi | Label ab sirf 750px se neeche chhupta hai, aur Left button nav ke saath jagah baant-ta hai (D-94). Reference me Awards 1150px se neeche icon ban jaata tha |
+| 2 | Header ki **barabar doori** — Awards→Home = Contact Us→Get quote, Awards apni jagah | D-94 §4, grid `2:1:1` — sirf hisaab se verify |
+| 3 | Tablet/mobile header — logo … [Awards][Get quote][☰] | D-94 §2 |
+| 4 | **Post sidebar** — reference jaisa saada sticky. Lambi sidebar ka neeche wala hissa `.pgl` khatam hone pe hi dikhta hai | D-93 §7 — reference me bhi yahi hai; client ne do baar palta tha |
+| 5 | Card aur hero pe **kai category badge**, apne rang me; halke rang pe text gehra | D-93 §2–§3 |
+| 6 | Bina excerpt wale card pe content ke **24 shabd** + `…` | D-93 §4 |
+| 7 | Review card ka **aadha taara** (`☆` ke upar aadha `★`) | D-93 §6 — design me aadhe taare ka glyph nahi tha |
+| 8 | Hero byline — naam ke neeche `Published … · N min read`, role sirf author box me | D-93 §5 |
+
+⚠️ **4 post ka `fields.heading` DB me pada hai** (title se lamba) — page pe ab title chhapta hai.
+Client ne kaha wo title khud theek karega; migration jaan-boojh kar nahi.
+
+⚠️ Purane imported post ki images pe `width`/`height` tabhi aayega jab unhe **`Existing` mode** me
+dobara import kiya jaaye (D-92 §11).
+
+---
+
 ### A-22 · Bulk Upload for blog — ✅ teeno sawaal band (11 Sep); sirf safai baaki (D-92)
 
 **Deadline:** guide team ko bhejne se **pehle**

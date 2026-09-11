@@ -646,7 +646,11 @@ pinned (`PinnedSide`). Review me **aadhe taare**. Blog settings ab **Posts ke su
 **11 Sep — header button ki jagah (D-94), koi migration nahi.** `headerButtons[].position`:
 `left` = nav ke theek pehle (nav ke saath beech me), `right` = aakhir (default — purane button wahin).
 Tablet/mobile pe dono group ek saath daayein. "Icon only on mobile" ab sirf **750px** se neeche
-(pehle 1040 — tablet pe bhi label chhupta tha).
+(pehle 1040 — tablet pe bhi label chhupta tha). Desktop pe (left button ho to) header grid `2:1:1` —
+Awards apni jagah, menu dono taraf **barabar** (§4). Admin me row me akela dropdown 750px se upar
+`max(50%, 300px)` — **client ka apna tune** (`primitives.css`), palatna nahi.
+⚠️ **Aaj ka koi site badlaav render hote hue dekha nahi gaya** — port 3000 pe purana build tha
+(**A-24**).
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
