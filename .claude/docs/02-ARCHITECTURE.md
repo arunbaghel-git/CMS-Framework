@@ -221,6 +221,11 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
 revisions        entryId, snapshot, createdBy, createdAt, label, kind(save|publish)
 media          * siteId, filename, mime, size, width, height, folderId, deletedAt,
                  variants[{ key, url, w, h }], alt, title, caption, uploadedBy
+                 filename `doc-image-<sha1 ke 16 akshar>` = Bulk Upload se utri image
+                 (D-92) — dobara import pe usi naam se dhoondhi jaati hai, isliye ye
+                 naming ek CONTRACT hai. Koi naya field nahi (client, D-79 wali soch).
+                 Google image `data:` URI me bhejta hai, to naam asal me content ka
+                 hash hai — wahi image kabhi dobara nahi utarti
 mediaRefs      * siteId, mediaId, entityType(entry|settings|menu), entityId, field
 mediaFolders   * siteId, name, parentId
 menus          * siteId, locale, key, name, version, deletedAt,
@@ -339,6 +344,27 @@ enquiries      * siteId, formId, formName, sourcePath, values{}, status,
                  frozen naam hain aur aaj koi route unpe khada nahi hai. Jis din
                  inbox banegi, dono me se ek naam chunna padega — us din tak ye farq
                  yahan likha hua hai taaki chup na rahe
+importRuns     * siteId, sheetUrl, sheetId, mode(new|existing),       ← D-81, migration 021
+                 target(package|post),                                ← D-92, 10 Sep
+                 status(queued|running|done|failed), startedBy,
+                 warnings[], error, finishedAt,
+                 rows[{ docUrl, docId, status, action(created|updated), entryId,
+                        title, path, issues[{ level, label, value, message }],
+                        error, claimedAt, attempts }]                  max 200
+                 rows SUBDOCUMENT hain, alag collection nahi — hamesha run ke
+                 saath padhi jaati hain, akele kabhi query nahi hoti
+                 sheet me kuch LIKHA nahi jaata — status ka ghar yahi hai (client)
+                 sirf 20 run bachte hain; naya run banne pe purane done/failed
+                 hat-te hain (chalta hua kabhi nahi)
+                 target ka default `package` — purane run pe wo SACH hai (us waqt
+                 import package ka hi hota tha), isliye migration NAHI lagi
+                 issues ka shape `packages/shared` ke issueSchema se (R8), model
+                 me Mixed — do jagah likhne se ek din wo alag ho jaate
+                 startedBy sirf hisaab nahi — worker ke paas request nahi hoti,
+                 createEntry/publishEntry ka actor usi se banta hai
+                 claimedAt/attempts sirf atki hui row wapas laane ke liye
+                 ⚠️ Mongo me naam `importruns` hai (mongoose lowercase karta hai);
+                 migration 021 ke index `importRuns` pe ho sakte hain — A-18
 activityLog      userId, action, entityType, entityId, meta, createdAt   (DEFER — Q-4)
 ```
 
@@ -925,6 +951,15 @@ GET    /api/public/search?q=
 GET    /api/public/menus/:location
 GET    /api/public/settings
 GET    /api/public/sitemap  ·  /api/public/feed
+
+POST   /api/bulk-imports                 { sheetUrl, mode, target }             ✅ D-81
+                                         sheet ABHI padhi jaati hai (galat link pe
+                                         turant 422); docs baad me ek-ek karke, worker
+                                         me. Run turant lautta hai. `target` D-92 me
+                                         juda — package | post, default package
+GET    /api/bulk-imports?page=&limit=    Past imports — rows NAHI, sirf failedReasons ✅
+GET    /api/bulk-imports/:id             ek run, rows ke saath — admin ise poll karta ✅
+                                         hai. Teeno `tools.import` pe (sirf admin)
 ```
 
 Admin aur public routes alag: public read-only, admin authed.

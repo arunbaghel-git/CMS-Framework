@@ -7389,7 +7389,8 @@ Ab writer ek nishaan likhta hai aur theme use asli block banati hai — `Note:` 
 `Quote:`, aur title ke liye uska apna **bold**. `lead` apne aap lagta hai (pehla paragraph), kyunki
 use nishaan ke bharose chhodna sirf bhoolne ka mauka dena hai.
 
-⚠️ **Nishaan ke shabd maine chune hain, client ne nahi** — A-22.
+⚠️ **Nishaan ke shabd maine chune the, client ne nahi** — A-22. ✅ 11 Sep: client ne chaaron
+(`Caption:` ke saath) rakh liye aur asli doc pe khud chala kar dekhe.
 
 ⚠️ **Teenon ka ghar theme hai, importer nahi** — wahi jagah jahan `wrapTables()` hai (D-90 §5).
 Isse ye TinyMCE se likhe content pe bhi chalte hain, aur DB me content saaf rehta hai: nishaan

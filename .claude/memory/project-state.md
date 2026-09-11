@@ -25,7 +25,7 @@
 Session **jaan-boojh kar yahin band** ki gayi. Client 11 Sep ko blog ke bulk upload pe kuch aur
 badlaav bataayega. Tab tak neeche wali teen cheezein unse poochhni hain (**A-22**).
 
-### Pehla kaam: A-22 ke teen sawaal
+### ~~Pehla kaam: A-22 ke teen sawaal~~ — ✅ 11 Sep ko teeno band (neeche "11 Sep" dekho)
 
 1. **Nishaan ke shabd** — `Note:` · `Warning:` · `Quote:` **maine chune, client ne nahi**. Ye
    guide **bhejne se pehle** tay hone chahiye, warna team ke likhe doc dobara chhoone padenge
@@ -69,8 +69,9 @@ pnpm dev
 ⚠️ **Test post pe caption tab tak lead dikhega jab tak client doc me us line ke aage `Caption:`
 na likhe** — ye code ki nahi, content ki baat hai.
 
-⚠️ **Guide v2 caption pe galat hai** — v3 banani hai, par client aaj aur badlaav bata raha hai,
-isliye sab ke baad ek saath (A-22).
+✅ **Client ne chaaron nishaan asli doc pe khud chala kar dekh liye**, aur **guide v3 nahi banegi**
+— shabd unhone note kar liye (A-22 band). Docs ka chhoota hissa bhi likha gaya: `02-ARCHITECTURE`
+§3 me `importRuns` + §9 me endpoints, aur `04-ADMIN-UX` me Bulk Upload ki screen.
 
 ---
 

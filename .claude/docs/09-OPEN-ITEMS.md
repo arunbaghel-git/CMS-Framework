@@ -209,20 +209,19 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
-### A-22 · Bulk Upload for blog — teen cheezein client se poochhni hain (10 Sep, D-92)
+### A-22 · Bulk Upload for blog — ✅ teeno sawaal band (11 Sep); sirf safai baaki (D-92)
 
 **Deadline:** guide team ko bhejne se **pehle**
 **Kuch toota hua nahi hai** — teenon "maine chuna, client ne nahi" wale hain
 
 | #   | Kya                                                     | Kyun poochhna hai                                                                                                                                                                                             |
 | --- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | **Nishaan ke shabd** — `Note:` · `Warning:` · `Quote:`  | Ye maine chune. Client Hindi chahe, ya `Tip:`/`Important:` jaise aur variants chahe, to ek line ka badlaav hai — par **guide bhejne ke baad** badalna matlab team ke likhe doc dobara chhoona                  |
+| 1   | ✅ **Nishaan ke shabd** — band (11 Sep) | Client ne chaaron rakh liye — `Note:` · `Warning:` · `Quote:` · `Caption:` — aur **asli doc pe khud chala kar dekhe**. Shabd unhone apne paas note kar liye |
 | 2   | ✅ **Image ki caption** — band (11 Sep) | Client ne nishaan ki ijaazat di. Ab image ke turant neeche `Caption:` wali line `figcaption` banti hai (D-92 §10) |
 | 3   | ✅ **Table ki pehli row hamesha header** — band (11 Sep) | Client ne khud kaha: _"only first row will be table head other will be table body"_ |
 
-⚠️ **Guide v2 bhi ab ek jagah galat hai (11 Sep)** — usme likha hai "caption nahi hai, image ke
-neeche italic line likho". Ab wo `Caption:` hai. Guide v3 banani hogi (Drive ka API content update
-nahi kar sakta) — client aaj aur badlaav bata raha hai, isliye sab ke baad ek saath.
+✅ **Guide v3 nahi banegi** (client, 11 Sep) — nishaan unhone khud note kar liye. Dhyan rahe ki guide
+v2 ka caption wala hissa ab purana hai ("image ke neeche italic line likho"); asli niyam `Caption:` hai.
 
 ⚠️ **Purana guide doc ab galat hai** (`18Dd6_o8…`) — usme content wala hissa hai hi nahi. Naya
 [guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)

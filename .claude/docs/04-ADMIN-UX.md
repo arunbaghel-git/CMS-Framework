@@ -616,3 +616,70 @@ ka pata lagta tha — us text ko copy karke koi khol hi nahi sakta tha. **Wahi b
 
 ⚠️ **List me abhi bhi `sourcePath` hai** — `enq-src` column chhota hai, wahan poora URL bemaani
 hota.
+
+---
+
+## Bulk Upload — ek screen, do target (D-81, D-92)
+
+Google Sheet me Google Docs ki list, aur har doc se ek page. Pehle sirf package (D-81, 3–4 Sep);
+10 Sep se blog post bhi (D-92).
+
+⚠️ **Ye screen admin design me hai hi nahi** — client ne design ke baad maanga. Isliye koi nayi
+shakl nahi gadhi gayi: wahi `.panel` + `table.list` jo baaki screens pe hai. Iska apna design
+chahiye ho to wo client se aayega (R15).
+
+| Kya | Kahan |
+| --- | --- |
+| Sidebar | **top-level `Bulk Upload`, submenu nahi** — client, 3 Sep: _"sidebar me menu banana hai not submenu"_ |
+| Routes | `/bulk-upload` (form + Past imports) · `/bulk-upload/:id` (ek run ka nateeja) |
+| Permission | dono screen `tools.import` pe — aaj sirf `admin` ke paas (migration 021) |
+
+### Import ka form
+
+| Field | Kya hai |
+| --- | --- |
+| `What are you importing?` | dropdown — `Packages` / `Blog posts`. Har kism ka apna doc template hai |
+| `Google Sheet link` | sheet me `Doc File` column, har row me ek doc ka link |
+| `What is in this sheet?` | radio — `New packages` / `Existing packages` (ya `… posts`) |
+
+⚠️ **Dropdown hai, sidebar me doosra menu nahi** — client ka faisla (10 Sep). Do top-level menu
+banana D-81 wali unki apni baat ke ulta jaata, aur Past imports ki list bhi ek hi rehti hai.
+
+⚠️ **Radio ek elaan hai, filter nahi** (D-81): jo row us baat se alag nikle wo `Failed` hoti hai.
+Bina iske ek purana URL galti se nayi sheet me reh jaaye to wo ek live page ko chup-chaap overwrite
+kar deta.
+
+⚠️ **Radio ke label aur API ke error message ek hi jagah se aate hain** — `IMPORT_TARGET_LABEL`
+(`packages/shared`). Error kehta hai _"choose New posts"_ aur radio pe literally `New posts` likha
+hai. Do jagah haath se likhne pe ek din ek badalta aur doosra nahi — tab error client ko ek aise
+button ki taraf bhejta jo us naam se hai hi nahi.
+
+### Past imports
+
+`When` · **`Type`** · `Sheet` · `New` · `Existing` · `Published` · `Draft` · `Failed` · `Status`
+
+- **`Type` 10 Sep ko juda.** Us field se pehle ke run `Packages` dikhate hain — us waqt import package
+  ka hi hota tha, isliye ye sach hai, andaza nahi (koi migration nahi lagi)
+- **Sirf 20 run** bachte hain (client, 4 Sep: _"i need only 20 past import"_)
+- `Failed` pe hover → alag-alag wajah, zyada se zyada paanch. Ek hi wajah se das row fail hon to wo
+  ek hi line hai
+- `New`/`Existing` wo hai jo **sach me hua** (`row.action`), wo nahi jo client ne radio pe chuna
+
+### Ek run ka nateeja
+
+Tabs: `All` · `Published` · `Draft` · `Failed`. Columns: **`Packages` / `Blog posts`** · `Status` ·
+`What’s missing` · `Page`.
+
+- Pehle column ka naam run ke target se aata hai
+- `What’s missing` me har issue ka **khaana, doc me kya likha tha, aur kya karna hai** — teeno.
+  `value` isliye ki client doc me seedha Ctrl-F kar sake
+- `Page` ka link **poora URL** hai (`env.SITE_URL` se). Sirf path dene pe admin (`:5173`) use apna
+  hi pata samajhta tha — wahi bug jo baad me `View` link aur `Enquiry Details` pe bhi mila
+- Chalte run pe har 3 second poll, khatam hote hi **band** — prod ka rate limiter per-IP hai, aur
+  ek bhoola hua poll poore office ko 429 dila sakta hai
+
+### Jo admin me dikhta hi nahi
+
+Blog doc ke nishaan — `Note:` · `Warning:` · `Quote:` · `Caption:` — **page pe** block bante hain
+(theme, `lib/article-html.js`), DB me nahi. Post ke editor (TinyMCE) me client ko wahi saadi line
+dikhti hai, dabba nahi. Jaan-boojh kar — **A-23**.

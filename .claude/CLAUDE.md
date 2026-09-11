@@ -610,13 +610,14 @@ section marker hona, aur `<thead>` aane par mere CSS ka pehli **data row** ko he
 ⚠️ **Jo sirf render pe chalta hai use JSX me mat rakho.** `wrapTables()` aur uske saathi
 `Blocks.jsx` me the, jahan unka test likha hi nahi ja sakta tha — table ka header usi wajah se
 **do baar** galat bana, dono baar galti live page pe pakdi gayi. Ab wo `apps/web/lib/article-html.js`
-me hain, 16 test ke saath.
+me hain, apne test ke saath.
 
 ⚠️ **Design ke wo hisse jo Google Doc likh hi nahi sakta, theme sambhalti hai** — `Note:` ·
 `Warning:` · `Quote:` nishaan se `.callout` · `.callout--w` · `.pullq` bante hain, aur `.lead` apne
 aap (pehla paragraph). Ghar theme hai, importer nahi (wahi jagah jahan `wrapTables()` hai), isliye
 DB me content saaf rehta hai aur nishaan hata dene se page saade paragraph pe wapas aa jaata hai.
-⚠️ Nishaan ke shabd **maine chune, client ne nahi** — A-22.
+✅ Nishaan ke shabd maine chune the; 11 Sep ko client ne chaaron (`Caption:` ke saath) rakh liye
+aur asli doc pe khud chala kar dekhe (A-22 band).
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 
