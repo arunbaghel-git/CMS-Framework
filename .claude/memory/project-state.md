@@ -64,11 +64,13 @@ web 3001. Client ka dev server aur asli DB dono nahi chhue.
 - ✅ **#1** publish → listing turant update. Cache sach me on hai — seedha DB edit se saabit
 - ✅ **#2** URL switch → 308. **Listing ke purane links wala bug mila aur theek hua**
   (`syncPostUrlPattern()` ab `blogListingTags()` bhi bhejta hai, test ke saath)
-- ⬜ **#3** filter/hydration aur **#4** speed — Lighthouse ki permission nahi mili
+- ✅ **#3** hydration / console errors 0 (dono page). ⚠️ Pill pe click wala filter naapa nahi
+- ✅ **#4** `/blog` **85**, article **67** — LCP render-bound (Style & Layout), article ka CLS aur
+  Best practices ek hotlinked image se. Poora hisaab **A-17** me
 - A-18 confirm: index khaali `importRuns` pe, asli data `importruns` bina index ke
 
-⚠️ a21 setup (worktree + `merncms_a21` + 3001/4001) client ke #3/#4 wale jawab tak chalu hai. Uske
-baad worktree hatana (`git worktree remove --force`) aur `merncms_a21` drop karna hai.
+✅ a21 setup hata diya — `merncms_a21` drop, 3001/4001 band, worktree git se hata. Asli `merncms` aur
+client ke servers nahi chhue.
 
 ---
 

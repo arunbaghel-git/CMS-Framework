@@ -248,7 +248,7 @@ preview, ya nishaan ko asli block me badalna (jo Phase 5 ke builder ka kaam hai)
 
 ---
 
-### A-21 · Blog ka `next build` wala pehra — ✅ #1, #2 ho gaye (11 Sep); #3, #4 baaki (D-91)
+### A-21 · Blog ka `next build` wala pehra — ✅ chaaron naap liye (11 Sep); speed ka kaam A-17 me (D-91)
 
 **11 Sep — production build pe naapa, alag setup me:** git worktree + DB ki copy `merncms_a21` +
 ports 3001/4001. Client ka dev server aur asli DB dono chhue nahi gaye — switch har post ka path
@@ -258,8 +258,8 @@ aur redirect badalta hai, wo asli data pe chalana galat hota.
 | --- | ------- |
 | 1   | ✅ **Cache sach me chal raha hai, aur publish use saaf karta hai.** Ek post ki heading/excerpt **seedha DB me** badli (bina revalidate) → `/blog` 6+ second tak purana dikhata raha; service se publish karte hi dono badlaav aa gaye. Isse D-83 wala jhootha pass nahi ho sakta. ⚠️ Pehli koshish me maine `title` badla tha — wo card pe dikhta hi nahi (card `fields.heading` dikhata hai), yaani wo test kuch saabit nahi karta tha |
 | 2   | ✅ Purana URL → **308** → naya URL, naya URL 200. ⚠️ **Bug mila aur theek hua:** switch ke baad `/blog` ke card **ek ghante tak** (`CACHE_SECONDS`) purane URL pe link karte the — `syncPostUrlPattern()` listing ka `path:` tag bhejta hi nahi tha. Ab wahan bhi `blogListingTags()` (wahi helper jo `invalidate()` me hai), test ke saath. Live: switch ke **turant** baad links naye |
-| 3   | ⬜ **Nahi naapa** — Lighthouse ka command permission pe ruk gaya |
-| 4   | ⬜ **Nahi naapa** — wahi |
+| 3   | ✅ **Hydration / console errors: 0** — `/blog` aur article, 5-5 run (Lighthouse `errors-in-console`). Production me hydration mismatch console error banta hai, to ye wahi jaanch hai jo dev pe chhoot jaati. ⚠️ Pill pe **click** karke filter chalana naapa nahi gaya — Lighthouse interaction nahi karta |
+| 4   | ✅ **Naapa** — `/blog` **85**, article **67** (mobile, 5 run median). Poora hisaab aur wajah **A-17** me |
 
 ⚠️ Redirect **308** hai, 301 nahi — Next permanent redirect ko 308 bhejta hai, jabki DB me
 `statusCode: 301` hai. Dono permanent hain aur search engine dono ko ek jaisa maante hain; bas D-91
@@ -378,6 +378,31 @@ karo ya model me `collection: 'importRuns'` pin kar do. Khaali collection tab ha
 ---
 
 ### A-17 · Speed — naap ho chuki hai. Mobile **91**, desktop **98** (4 Sep)
+
+⚠️ **11 Sep — blog ke do page pehli baar naape gaye** (A-21 ke saath, production build, Lighthouse
+mobile, D-85 wali settings, 5 run ka median). Upar ke 91/98 **sirf package page** ke hain:
+
+| Page | Perf | LCP | FCP | TBT | CLS | Best practices |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/blog` | **85** (80–86) | 3.8s | 1.4s | 188ms | 0 | 100 |
+| Article `/how-to-plan-an-andaman-trip` | **67** (59–80) | 4.1s | 2.1s | 550ms | **0.103** | **79** |
+
+- **LCP render ka intezaar hai, image ka load nahi.** LCP ka sabse bada hissa **Render Delay** hai
+  (`/blog` 2.6s, article 3.6s); image ka load time sirf ~0.1s. Main thread pe **Style & Layout**
+  `/blog` pe 1.1s aur article pe **2.9s** — wahi mujrim jo D-85 me package page pe mila tha
+  (poore page ka layout), aur article pe zyada bhaari
+- **Article ka CLS aur Best practices — dono ek hi image se.** Client ke haath se likhe post me
+  `andamantourism.org` se **hotlink** ki hui image, bina `width`/`height`: load hote hi `p.lead`
+  khisakta hai (0.106), aur uske saath Cloudflare ki third-party cookie (`__cf_bm`) aati hai. Ye
+  content ka mamla hai — image Media library me daal di jaaye to dono chale jaate hain
+- ⚠️ **Bulk Upload se aayi images pe bhi `width`/`height` nahi hai.** Media record me naap hota hai,
+  par `importInlineImages()` sirf `src` badalta hai (Google naap `style` me bhejta hai, jo
+  sanitizer hata deta hai). Imported post pe bhi yahi CLS aayegi — D-84 ne baaki images pe 12/12
+  `width`/`height` kiya tha
+- Do CSS files render-blocking hain (~320ms + ~170ms) — dono page pe
+
+⚠️ Is machine pe noise 2× tak hai (D-85), aur naap ke waqt client ke apne dev servers bhi chal
+rahe the. Article ke 5 run 59 se 80 tak gaye — isliye sirf median pe bharosa.
 
 > **Update (4 Sep, shaam):** naap ho gayi — **D-85**. Neeche wala "naapa nahi gaya" wala
 > hissa us waqt ka hai jab sirf D-84 hua tha.
