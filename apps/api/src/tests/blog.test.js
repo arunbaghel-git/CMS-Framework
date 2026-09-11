@@ -766,6 +766,35 @@ describe('post ke URL ki shakl — Blog settings ka switch (#10)', () => {
 
     expect(await pathOf('trashed')).toBe('/trashed')
   })
+
+  it('switch pe listing page ka cache bhi saaf hota hai — sirf post ke apne path nahi', async () => {
+    /**
+     * ⚠️ **A-21 ki jaanch me pakda (11 Sep, production build pe).** Switch ke baad `/blog` ke
+     * card **ek ghante tak** (`CACHE_SECONDS`) purane URL pe link karte the. `syncPostUrlPattern()`
+     * har moved post ke dono path bhejta tha, par listing ka `path:/blog` nahi — aur `type:post`
+     * ko web me koi padhta hi nahi.
+     *
+     * Wahi galti jo 9 Sep ko `invalidate()` me theek hui thi (`blogListingTags()`); us fix se
+     * ye doosra raasta chhoot gaya tha. Aaj tak koi test ye dekhta hi nahi tha ki **kaunse tags**
+     * gaye, isliye ye chup raha.
+     */
+    await makeListing()
+    await makePost({ title: 'Ferry guide', slug: 'ferry-guide', publishAt: day(1) })
+    await Settings.updateOne(
+      { siteId: 'default' },
+      { $set: { 'blogSettings.postUrlMode': 'root' } },
+      { upsert: true },
+    )
+
+    const { syncPostUrlPattern } = await import('../modules/entries/service.js')
+    const result = await syncPostUrlPattern('default')
+
+    expect(result.moved).toBe(1)
+    expect(result.tags).toContain('path:/blog')
+    expect(result.tags).toEqual(
+      expect.arrayContaining(['path:/blog/ferry-guide', 'path:/ferry-guide']),
+    )
+  })
 })
 
 describe('blogSettings ka partial patch baaki field nahi udaata', () => {

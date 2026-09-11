@@ -854,13 +854,19 @@ export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFA
    * wapas live ho jaata. Unhe chhodne ka matlab hota ki restore ke baad wo purane pattern pe
    * baithe rahein, jise ab koi route nahi janta.
    */
+  /**
+   * `type` aur `siteId` bhi — `blogListingTags()` inhi se post pehchanta hai aur listing page
+   * dhoondhta hai. Inke bina wo khaali lautata aur listing ka cache phir chhoot jaata.
+   */
   const posts = await Entry.find({ ...scope(siteId, locale), type: 'post' })
-    .select('_id slug path')
+    .select('_id slug path type siteId')
     .lean()
 
   const moved = posts
     .map((post) => ({ ...post, newPath: normalizePath(pattern.replace('{slug}', post.slug)) }))
     .filter((post) => post.newPath !== post.path)
+
+  let tags = []
 
   if (moved.length) {
     await Entry.bulkWrite(
@@ -881,16 +887,25 @@ export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFA
     /**
      * ⚠️ Purane **aur** naye dono path ke tag saaf hote hain. Sirf naya bhejne ka matlab hota
      * ki purana URL cache me 200 deta rahe jabki ab wahan 301 hona chahiye.
+     *
+     * ⚠️ **Aur listing page ka bhi** — `blogListingTags()`, wahi jo `invalidate()` use karta hai.
+     * Ye 11 Sep ko A-21 ki jaanch me pakda gaya (production build pe): iske bina `/blog` ke card
+     * **ek ghante tak** (`CACHE_SECONDS`) purane URL pe link karte the. `type:post` akela kuch
+     * nahi karta — web me use koi fetch lagati hi nahi.
      */
-    await revalidateTags([
+    tags = [
       ...moved.flatMap((post) => [`path:${post.path}`, `path:${post.newPath}`]),
+      ...(await blogListingTags(moved)),
       'type:post',
       'sitemap',
       'feed',
-    ])
+    ]
+
+    await revalidateTags(tags)
   }
 
-  return { changed: true, pattern, moved: moved.length }
+  /** `tags` isliye lautte hain ki test dekh sake **kaunse** tags gaye — wahi hissa jo chup tha. */
+  return { changed: true, pattern, moved: moved.length, tags }
 }
 
 /** Entry + uske cascade hue descendants, sab ek hi call me. */

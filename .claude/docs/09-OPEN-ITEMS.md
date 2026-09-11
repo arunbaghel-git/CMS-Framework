@@ -248,7 +248,26 @@ preview, ya nishaan ko asli block me badalna (jo Phase 5 ke builder ka kaam hai)
 
 ---
 
-### A-21 · Blog ka `next build` wala pehra abhi liya hi nahi (10 Sep, D-91)
+### A-21 · Blog ka `next build` wala pehra — ✅ #1, #2 ho gaye (11 Sep); #3, #4 baaki (D-91)
+
+**11 Sep — production build pe naapa, alag setup me:** git worktree + DB ki copy `merncms_a21` +
+ports 3001/4001. Client ka dev server aur asli DB dono chhue nahi gaye — switch har post ka path
+aur redirect badalta hai, wo asli data pe chalana galat hota.
+
+| #   | Nateeja |
+| --- | ------- |
+| 1   | ✅ **Cache sach me chal raha hai, aur publish use saaf karta hai.** Ek post ki heading/excerpt **seedha DB me** badli (bina revalidate) → `/blog` 6+ second tak purana dikhata raha; service se publish karte hi dono badlaav aa gaye. Isse D-83 wala jhootha pass nahi ho sakta. ⚠️ Pehli koshish me maine `title` badla tha — wo card pe dikhta hi nahi (card `fields.heading` dikhata hai), yaani wo test kuch saabit nahi karta tha |
+| 2   | ✅ Purana URL → **308** → naya URL, naya URL 200. ⚠️ **Bug mila aur theek hua:** switch ke baad `/blog` ke card **ek ghante tak** (`CACHE_SECONDS`) purane URL pe link karte the — `syncPostUrlPattern()` listing ka `path:` tag bhejta hi nahi tha. Ab wahan bhi `blogListingTags()` (wahi helper jo `invalidate()` me hai), test ke saath. Live: switch ke **turant** baad links naye |
+| 3   | ⬜ **Nahi naapa** — Lighthouse ka command permission pe ruk gaya |
+| 4   | ⬜ **Nahi naapa** — wahi |
+
+⚠️ Redirect **308** hai, 301 nahi — Next permanent redirect ko 308 bhejta hai, jabki DB me
+`statusCode: 301` hai. Dono permanent hain aur search engine dono ko ek jaisa maante hain; bas D-91
+ka "301" page pe literally 301 nahi hai.
+
+---
+
+_Neeche 10 Sep ka asli hisaab — waisa ka waisa:_
 
 **Deadline:** blog live jaane se **pehle**
 **Ye "verify karo" nahi, "abhi tak jaancha hi nahi" hai** — aur ek item aisa hai jo dev pe
@@ -330,6 +349,10 @@ likhte waqt sawaal ye hai: _"agar client ye class na likhe to kya hoga?"_
 ---
 
 ### A-18 · `importRuns` aur `importruns` — do collection ban gayi hain (4 Sep)
+
+✅ **11 Sep ko confirm hua** (A-21 ke liye DB copy karte waqt): `importRuns` — 0 docs, **2 index**;
+`importruns` — 20 docs, **0 index**. Yaani index khaali collection pe hain aur asli data bina index
+ke — theek wahi jo neeche shak tha. Ilaaj abhi bhi baaki hai.
 
 **Deadline:** koi nahi — aaj kuch toot nahi raha
 **D-86 ki jaanch me dikhi**, us kaam ka hissa nahi thi

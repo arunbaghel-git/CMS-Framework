@@ -56,6 +56,22 @@ pnpm dev
 
 ---
 
+## 11 Sep — A-21 ki jaanch (production build)
+
+Alag setup me chalaya — git worktree `C:/Users/deepa/merncms-a21`, DB copy `merncms_a21`, API 4001,
+web 3001. Client ka dev server aur asli DB dono nahi chhue.
+
+- ✅ **#1** publish → listing turant update. Cache sach me on hai — seedha DB edit se saabit
+- ✅ **#2** URL switch → 308. **Listing ke purane links wala bug mila aur theek hua**
+  (`syncPostUrlPattern()` ab `blogListingTags()` bhi bhejta hai, test ke saath)
+- ⬜ **#3** filter/hydration aur **#4** speed — Lighthouse ki permission nahi mili
+- A-18 confirm: index khaali `importRuns` pe, asli data `importruns` bina index ke
+
+⚠️ a21 setup (worktree + `merncms_a21` + 3001/4001) client ke #3/#4 wale jawab tak chalu hai. Uske
+baad worktree hatana (`git worktree remove --force`) aur `merncms_a21` drop karna hai.
+
+---
+
 ## 11 Sep — client ki pehli do improvements (D-92 §10)
 
 1. **Table:** cell ke `<p>` khule, pehli row `<thead><th>`, baaki `<tbody>`, `class="tbl"` —

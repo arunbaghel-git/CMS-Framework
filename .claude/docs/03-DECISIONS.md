@@ -7291,6 +7291,18 @@ jo maine reference **dekhe bina** maan li thin:
 ⚠️ **Yahi galti D-89 me do baar ho chuki thi** (byline aur `.blk`). Ab teen baar. **Reference ki
 CSS dekh kar markup maan lena** is repo ki ek pehchani hui galti hai.
 
+
+### §x — 11 Sep: switch listing ka cache saaf nahi karta tha (A-21 me pakda)
+
+Production build pe naapa: switch ke baad purana URL sahi redirect karta tha, par `/blog` ke card
+**ek ghante tak** (`CACHE_SECONDS`) purane URL pe link karte the. `syncPostUrlPattern()` har moved
+post ke dono path bhejta tha, par listing page ka `path:` tag nahi — aur `type:post` ko web me
+koi fetch lagati hi nahi.
+
+Ye **wahi galti** hai jo 9 Sep ko `invalidate()` me pakdi gayi thi aur `blogListingTags()` se
+theek hui thi. Us fix se switch wala doosra raasta chhoot gaya. Ab dono ek hi helper use karte
+hain, aur `syncPostUrlPattern()` apne bheje hue `tags` lautata hai taaki test dekh sake **kaunse**
+tags gaye — aaj tak koi test ye dekhta hi nahi tha, isliye ye chup raha.
 ---
 
 ## D-92
