@@ -60,21 +60,29 @@ function HtmlWidget({ props }) {
 }
 
 /**
- * Sidebar jisme `before` (post ka `On this post`) **pinned** rehta hai — client, 11 Sep (D-93).
+ * Poori sidebar **pinned**, jab tak article khatam na ho — post ka `On this post` wala (D-93).
  *
- * Client: _"On this post sticky first … jab tak content end na ho jaye fir scroll ho jayega"_.
- * `StickySide` poori column ko scroll ke saath khiskata hai — TOC upar se nikal jaata aur user
- * padhte-padhte usse click nahi kar pata.
+ * Client, 11 Sep: _"untill left content (article) poora scroll nahi ho jata On this post jis
+ * sidebar me hai completely sticky rahega"_. `StickySide` column ko scroll ke saath khiskata hai,
+ * to TOC upar se nikal jaata aur padhte-padhte usse click nahi hota.
  *
- * Yahan column khud sticky **nahi** hai; wo `align-self: stretch` se main column jitni lambi
- * hai, aur uske andar `.pgl__pin` `position: sticky` hai. Isliye TOC tab tak tika rehta hai jab
- * tak main column khatam na ho, phir apne aap upar chala jaata hai — koi JS nahi.
+ * ⚠️ **Pehli koshish galat thi (usi din):** sirf TOC sticky tha, widgets normal scroll hote the —
+ * yaani form aur baaki widgets TOC ke **neeche se upar** chadh kar uske peeche chhup jaate.
+ * Client ne pakda. Ab TOC **aur saare widgets** ek hi `.pgl__pin` me hain, jo sticky hai.
  *
- * ⚠️ Iske neeche koi widget ho (aaj post ki sidebar me koi nahi hai) to wo normal scroll hota
- * hai aur pinned TOC ke **peeche** se nikal jaata hai.
+ * Column (`aside`) khud sticky nahi — `align-self: stretch` se wo **sirf article** jitni lambi
+ * hai (`PostPage` article ko `.pgl` ki pehli row me rakhta hai, PostNav/Related doosri me). Isliye
+ * article khatam hote hi sidebar apne aap upar chali jaati hai — koi JS nahi.
+ *
+ * ⚠️ Sidebar screen se lambi ho to `.pgl__pin` apne andar scroll hota hai (`max-height`). Uske
+ * bina form ka neeche wala hissa (Submit) article khatam hone tak pahunch me hi nahi aata.
  */
 function PinnedSide({ children }) {
-  return <aside className="pgl__side pgl__side--pin">{children}</aside>
+  return (
+    <aside className="pgl__side pgl__side--pin">
+      <div className="pgl__pin">{children}</div>
+    </aside>
+  )
 }
 
 /**
@@ -122,7 +130,7 @@ export default function Sidebar({
      * 1024px se neeche wo `top` ko haath bhi nahi lagata (wahan CSS use `static` kar deti hai).
      */
     <Wrap>
-      {Wrap === PinnedSide ? <div className="pgl__pin">{before}</div> : before}
+      {before}
       {widgets.map((widget) => {
         switch (widget.type) {
           case 'html':

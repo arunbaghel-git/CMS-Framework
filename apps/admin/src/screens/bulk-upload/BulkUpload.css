@@ -26,12 +26,6 @@
   border-top: 1px solid var(--line, #dcdcde);
 }
 
-/* "What are you importing?" — do hi vikalp hain, poori chaudai ka dropdown bekaar (client, 11 Sep) */
-.bu-target {
-  width: auto;
-  min-width: 200px;
-}
-
 .bu-h2 {
   margin: 24px 0 8px;
   font-size: 15px;

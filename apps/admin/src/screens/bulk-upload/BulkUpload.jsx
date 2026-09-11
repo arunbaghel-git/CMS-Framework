@@ -92,7 +92,7 @@ export default function BulkUpload() {
               <label htmlFor="target">What are you importing?</label>
               <select
                 id="target"
-                className="inp bu-target"
+                className="inp"
                 value={target}
                 disabled={busy}
                 onChange={(e) => setTarget(e.target.value)}

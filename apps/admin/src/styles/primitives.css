@@ -337,6 +337,17 @@ tr:hover .row-actions {
  * lage — do alag `.field` ke beech ki doori `.field` ke apne margin se hi aani chahiye.
  * `:is()` se teenon (`inp`/`sel`/`ta`) ka har jodi ek hi line me aa jaata hai.
  */
+/*
+ * ⚠️ **Dropdown kabhi poori chaudai nahi leta** — client, 11 Sep (D-93): _"koi bhi dropdown full
+ * page width nahi lega becouse its confusing to look on whole page"_. Upar ka `width: 100%` sirf
+ * tang column (sidebar, `row3`) ke liye theek hai; wahan column khud 360px se chhota hai, to ye
+ * rok wahan kuch nahi badalti. Text input aur textarea poori chaudai hi rehte hain.
+ */
+select.inp,
+.sel {
+  max-width: 360px;
+}
+
 .field > :is(.inp, .sel, .ta) + :is(.inp, .sel, .ta) {
   margin-top: 8px;
 }

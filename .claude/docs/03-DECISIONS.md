@@ -7634,6 +7634,25 @@ rehta hai (andaza nahi). Admin me Excerpt panel ab **Content (aur FAQ) ke baad**
 | Tour Pages list ka `Packages` column | hataya (`thirdColumn` nahi) |
 | `/blog` ki `9 articles` ginti | hati (`.bfilter__c`) |
 
+### §7 — Usi shaam do sudhaar, client ke dekhne ke baad
+
+**1. Pinned sidebar — sirf TOC nahi, poori.** §5 me sirf TOC sticky tha; client ne sidebar me
+widgets jode to form aur baaki widgets TOC ke neeche se upar chadh kar uske peeche chhupne lage.
+Client: _"untill left content (article) poora scroll nahi ho jata On this post jis sidebar me hai
+completely sticky rahega"_. Ab:
+
+- TOC **aur saare widgets** ek hi `.pgl__pin` me, jo sticky hai
+- Sidebar **article** jitni lambi — `PostPage` ne `.pgl` ko do row me baanta (row 1 article +
+  sidebar, row 2 `.pgl__after` = PostNav + Related). Pehle sidebar Related ke end tak tiki rehti
+- Sidebar screen se lambi ho to **andar scroll** (`max-height`) — warna form ka Submit article
+  khatam hone tak pahunch me nahi aata. ⚠️ StickySide ke comment me nested scroll ko mobile ka bug
+  kaha gaya tha; yahan wo sirf desktop pe hai (1024px se neeche pin hi nahi)
+
+**2. Admin ke dropdown kabhi poori chaudai nahi** — _"koi bhi dropdown full page width nahi
+lega"_. `primitives.css` me `select.inp, .sel { max-width: 360px }` — har screen pe ek saath.
+Pehla ilaaj (`.bu-target { width: auto }`) `.inp` ke `width: 100%` se haar gaya tha aur sirf ek
+screen ka tha; hata diya.
+
 **Live:** API pe payload `categories[]`, bina `fields` ke. Client ne isi beech Blog settings
 `/blog/…` pe kiya — D-92 §13 ne saare post ka parent blog page kar diya (dash wapas), redirect bane.
 ⚠️ Port 3000 pe `next start` ka **12:58 wala build** chal raha tha — site ke badlaav wahan tabhi
