@@ -82,6 +82,9 @@ web 3001. Client ka dev server aur asli DB dono nahi chhue.
   review aadhe taare, Blog settings → Posts submenu (`/posts/settings`), Tour list ka Packages
   column aur `/blog` ki ginti hati. Koi migration nahi. **1038 test**
   ⚠️ Port 3000 pe `next start` (12:58 ka build) — site ke badlaav naya build chalane pe dikhenge
+- ✅ **D-94 — header button `position`** (left = nav ke pehle, right = aakhir, default right).
+  Tablet/mobile pe dono ek saath daayein; icon-only label sirf 750px se neeche. Pehle
+  `Downloads/blog-detail-v1.html` pe trial (client ne dekha, nav ke paas pasand). 1040 test
 - A-18 confirm: index khaali `importRuns` pe, asli data `importruns` bina index ke
 
 ✅ a21 setup hata diya — `merncms_a21` drop, 3001/4001 band, worktree git se hata. Asli `merncms` aur

@@ -7668,3 +7668,32 @@ row"_. Ab rok sirf tab jab `.field` seedha ek-column panel body (ya uske `<form>
 `/blog/…` pe kiya — D-92 §13 ne saare post ka parent blog page kar diya (dash wapas), redirect bane.
 ⚠️ Port 3000 pe `next start` ka **12:58 wala build** chal raha tha — site ke badlaav wahan tabhi
 dikhenge jab client naya build chalaye. **1038 test pass.**
+
+---
+
+## D-94
+
+**11 Sep — header button ki jagah: nav ke pehle ya aakhir (`position`).** Client ne pehle
+`blog-detail-v1.html` ki ek copy pe trial maanga (_"dont change code now … i want to check first"_):
+Awards logo ke baad rakha — client ne kaha _"can we do it with nav not logo"_ — phir nav ke theek
+pehle, aur wo pasand aaya (_"nav ke pass me thik hai"_). Uske baad teen baatein, teenon ab code me:
+
+**1. `headerButtons[].position` — `left` | `right`, default `right`.** `left` = nav ke theek pehle,
+nav ke saath beech me; `right` = header ke aakhir, jaisa 25 Aug se hai. Purane button bina kuch kiye
+`right` pe rehte hain — **koi migration nahi** (model ka default + public map ka guard). ⚠️ Model ka
+nested schema **strict** hai — `position` wahan na hota to Zod pass karta aur Mongoose chup-chaap
+gira deta. Admin: `Appearance ▸ Menus ▸ Header Buttons` me har button pe **Position** dropdown.
+
+**2. Layout — sirf tab badalta hai jab koi `left` button ho** (`.hdr__top--lbtn`). Nav `flex: 1` se
+apni chaudai (`flex: 0 1 auto`) pe aata hai aur **dono** button group `margin-left: auto` lete hain,
+to [left buttons + nav] beech me rehta hai. Tablet/mobile (≤1040, nav chhup jaata hai) pe dono group
+**ek saath daayein** — client: _"tablet and mobile par dono buttons ek sath hone chahiye"_. Left
+group bhi `order: 2` pe aata hai aur right ka auto margin hat-ta hai: logo … [Awards][Get quote][☰].
+
+**3. "Icon only on mobile" ab sach me sirf mobile pe** — label **750px** se neeche chhupta hai (header
+ka phone breakpoint, jahan logo bhi chhota hota hai). Pehle 1040px pe tha, yaani tablet pe bhi
+"Awards" ka text gayab. Client: _"only on mobile award text should be hidden"_.
+
+⚠️ Reference me Awards 1150px se neeche icon ban jaata tha (_"no room for the label next to Get
+quote"_). Ab label tablet pe dikhta hai, aur jab Awards `left` ho to desktop pe nav ke saath jagah
+baant-ta hai — 1100–1200px pe nav ki tangi client ko dekhni hai. **1040 test pass.**

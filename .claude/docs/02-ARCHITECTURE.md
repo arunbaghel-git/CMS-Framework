@@ -98,7 +98,8 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  faviconMediaId, timezone, dateFormat, currency,
                  phone, whatsapp, address, social{facebook,instagram,youtube,x},
                  headerButtons[{ label, url, target, variant, icon,
-                                 iconOnlyOnMobile, className, enabled }]   max 4
+                                 iconOnlyOnMobile, className, enabled,
+                                 position(left|right, default right — D-94) }]   max 4
                  footerLogoMediaId, footerCopyright, footerNote, footerDisclaimer,
                  footerColumns[{ id, heading, type(menu|text|both),         max 6
                                  width(normal|wide), menuId,

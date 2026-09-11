@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react'
-import { BUTTON_VARIANTS, ICONS, ICON_LABELS, LINK_TARGETS, MENU_TYPES } from '@cms/shared'
+import {
+  BUTTON_VARIANTS,
+  HEADER_BUTTON_POSITIONS,
+  ICONS,
+  ICON_LABELS,
+  LINK_TARGETS,
+  MENU_TYPES,
+} from '@cms/shared'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
@@ -43,6 +50,9 @@ const TARGET_LABELS = { _self: 'Same tab', _blank: 'New tab' }
 
 /** Button ke look ke labels — value hi contract hai, ye sirf UI ka naam hai (R11/R17). */
 const VARIANT_LABELS = { outline: 'Outline', primary: 'Primary', accent: 'Accent' }
+
+/** Button ki jagah — value hi contract hai (`HEADER_BUTTON_POSITIONS`), ye sirf UI ka naam (D-94). */
+const POSITION_LABELS = { left: 'Left — before the menu', right: 'Right — end of header' }
 
 /** Server bhi yahi cap lagata hai (`settingsSchema.headerButtons`) — do jagah ek hi number. */
 const MAX_HEADER_BUTTONS = 4
@@ -377,6 +387,7 @@ export default function Menus() {
         variant: 'outline',
         className: '',
         icon: 'none',
+        position: 'right',
         enabled: true,
       },
     ])
@@ -740,6 +751,24 @@ export default function Menus() {
                     </div>
 
                     <div className="hdr-btn__row">
+                      {/*
+                        Jagah — nav ke pehle ya header ke aakhir (client, 11 Sep, D-94). Purane
+                        button pe value hoti hi nahi, to `right` — wahi jahan wo pehle the.
+                      */}
+                      <select
+                        className="sel"
+                        value={button.position ?? 'right'}
+                        disabled={!canEditSettings}
+                        aria-label="Position"
+                        title="Where this button sits in the header"
+                        onChange={(e) => setButton(i, { position: e.target.value })}
+                      >
+                        {HEADER_BUTTON_POSITIONS.map((p) => (
+                          <option key={p} value={p}>
+                            {POSITION_LABELS[p] ?? p}
+                          </option>
+                        ))}
+                      </select>
                       {/*
                         Chhoti screen pe sirf icon — design me "Awards" yahi banta hai.
                         Pehle theme CSS tay karti thi ki kaunsa button mobile pe kaisa

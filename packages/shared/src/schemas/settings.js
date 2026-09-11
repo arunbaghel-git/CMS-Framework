@@ -103,6 +103,18 @@ const socialUpdateSchema = z.object(socialShape(socialUrl.optional()))
  */
 export const BUTTON_ICONS = ICONS
 
+/**
+ * Header button kahan baithe — client, 11 Sep (D-94).
+ *
+ * - `left` — nav ke **theek pehle**, nav ke saath beech me (logo ke paas nahi — client ne trial
+ *   dekh kar _"nav ke pass me thik hai"_ kaha)
+ * - `right` — header ke aakhir me, jaisa 25 Aug se hota aaya hai
+ *
+ * Tablet/mobile pe nav chhup jaata hai; tab dono taraf ke button **ek saath** daayein aate hain.
+ * `right` default hai — purane buttons bina kuch kiye wahin rehte hain, migration nahi.
+ */
+export const HEADER_BUTTON_POSITIONS = Object.freeze(['left', 'right'])
+
 const headerButtonSchema = z.object({
   label: z.string().trim().max(60).default(''),
   // Khaali chalega; bhara ho to menu wale hi rules (relative, anchor, https, mailto, tel)
@@ -124,6 +136,8 @@ const headerButtonSchema = z.object({
   className: classNameSchema,
   /** Label ke pehle dikhne wala icon. `none` = koi icon nahi. */
   icon: z.enum(/** @type {[string, ...string[]]} */ (BUTTON_ICONS)).default('none'),
+  /** Nav ke pehle (`left`) ya header ke aakhir (`right`) — `HEADER_BUTTON_POSITIONS` (D-94). */
+  position: z.enum(/** @type {[string, ...string[]]} */ (HEADER_BUTTON_POSITIONS)).default('right'),
   enabled: z.boolean().default(true),
 })
 

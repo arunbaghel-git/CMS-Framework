@@ -55,6 +55,11 @@ const settingsSchema = new mongoose.Schema(
             iconOnlyOnMobile: { type: Boolean, default: false },
             className: { type: String, default: '' },
             icon: { type: String, default: 'none' },
+            /**
+             * `left` (nav ke pehle) ya `right` (aakhir) — D-94. ⚠️ Ye nested schema **strict** hai:
+             * yahan na hota to Zod pass karta aur Mongoose field chup-chaap gira deta.
+             */
+            position: { type: String, default: 'right' },
             enabled: { type: Boolean, default: true },
           },
           { _id: false },

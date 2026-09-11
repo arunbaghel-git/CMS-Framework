@@ -158,14 +158,38 @@ function MegaItem({ item }) {
   )
 }
 
+/** Header ka ek button — left aur right dono group isi se banate hain. */
+function HeaderButton({ button }) {
+  return (
+    <a
+      className={`btn btn--${button.variant} ${button.iconOnlyOnMobile ? 'btn--m-icon' : ''} ${button.className}`.trim()}
+      href={button.url}
+      target={button.target}
+    >
+      <Icon name={button.icon} className="btn__icon" size={15} />
+      <span className="btn__label">{button.label}</span>
+    </a>
+  )
+}
+
 export default async function SiteHeader() {
   const [settings, menu] = await Promise.all([getSettings(), getMenu(HEADER_MENU_LOCATION_ID)])
 
   const items = menu.items ?? []
 
+  /**
+   * Button do group me — `left` nav ke pehle, baaki aakhir me (client, 11 Sep, D-94).
+   *
+   * ⚠️ `hdr__top--lbtn` sirf tab jab koi `left` button ho. Wahi class nav ko `flex: 1` se uski
+   * apni chaudai pe laati hai; bina left button ke header bilkul pehle jaisa rehta hai.
+   */
+  const buttons = settings?.headerButtons ?? []
+  const leftButtons = buttons.filter((button) => button.position === 'left')
+  const rightButtons = buttons.filter((button) => button.position !== 'left')
+
   return (
     <header className="hdr">
-      <div className="wrap hdr__top">
+      <div className={`wrap hdr__top${leftButtons.length > 0 ? ' hdr__top--lbtn' : ''}`}>
         <a className="brand" href="/">
           {/*
            * ⚠️ Q-7 INTERIM — logo na mile to yahan **kuch nahi** render hota.
@@ -197,6 +221,18 @@ export default async function SiteHeader() {
           ) : null}
         </a>
 
+        {/*
+         * `left` buttons — nav ke theek pehle, nav ke saath beech me (D-94). Tablet/mobile pe CSS
+         * inhe right wale buttons ke saath daayein le jaati hai (`order`), kyunki wahan nav hi nahi.
+         */}
+        {leftButtons.length > 0 && (
+          <div className="hdr__actions hdr__actions--l">
+            {leftButtons.map((button, i) => (
+              <HeaderButton key={i} button={button} />
+            ))}
+          </div>
+        )}
+
         <nav className="nav" aria-label="Main">
           <ul className="nav__list">
             {items.map((item) => (
@@ -214,18 +250,10 @@ export default async function SiteHeader() {
          * Ye `<nav>` ke **bahar** hain, aur mobile pe nav chhupne par bhi dikhte rehte
          * hain — behaviour reference me bhi yahi hai (D-43, spec 006 §7).
          */}
-        {(settings?.headerButtons ?? []).length > 0 && (
+        {rightButtons.length > 0 && (
           <div className="hdr__actions">
-            {settings.headerButtons.map((button, i) => (
-              <a
-                key={i}
-                className={`btn btn--${button.variant} ${button.iconOnlyOnMobile ? 'btn--m-icon' : ''} ${button.className}`.trim()}
-                href={button.url}
-                target={button.target}
-              >
-                <Icon name={button.icon} className="btn__icon" size={15} />
-                <span className="btn__label">{button.label}</span>
-              </a>
+            {rightButtons.map((button, i) => (
+              <HeaderButton key={i} button={button} />
             ))}
           </div>
         )}

@@ -1294,6 +1294,19 @@ a.mega__gl:hover {
 }
 
 /*
+ * `left` buttons — nav ke theek pehle (client, 11 Sep, D-94). Sirf tab jab koi `left` button ho
+ * (`hdr__top--lbtn`): nav `flex: 1` chhod kar apni chaudai pe aata hai, aur **dono** button group
+ * `margin-left: auto` lete hain — khaali jagah barabar bant-ti hai aur [left buttons + nav] beech
+ * me rehta hai, jaise pehle akela nav tha. Bina left button ke kuch nahi badalta.
+ */
+.hdr__top--lbtn .nav {
+  flex: 0 1 auto;
+}
+.hdr__top--lbtn .hdr__actions {
+  margin-left: auto;
+}
+
+/*
  * Header ke buttons reference ke **small** variant pe hain — `b-s` (`8px 14px` / 13px).
  *
  * Dono designs me header wahi dikhata hai: `<a class="b b-o b-s">Get quote</a>` aur
@@ -1334,10 +1347,8 @@ a.mega__gl:hover {
 /* ---------- chhoti screen pe buttons ----------
    Pehle yahan `nth-child(n + 3)` tha — yaani **theme tay karti thi** ki client ka kaunsa
    button gayab hoga. Wo faisla client ka hai. Ab har button pe `iconOnlyOnMobile` hai aur
-   admin use checkbox se chunta hai.
-
-   Breakpoint wahi 1040px hai jahan nav chhup kar burger banta hai — do alag breakpoint
-   rakhne se beech ki widths pe ajeeb halat banti. */
+   admin use checkbox se chunta hai. Label **sirf phone pe** chhupta hai — neeche 750px wala
+   block (client, 11 Sep, D-94); pehle ye yahin 1040px pe tha, yaani tablet pe bhi. */
 @media (max-width: 1040px) {
   /* Chhoti screen pe header thoda sikud jaata hai — reference ke exact numbers */
   .hdr__top {
@@ -1354,14 +1365,13 @@ a.mega__gl:hover {
     font-size: var(--fs-xs);
   }
 
-  /* Sirf icon — reference me "Awards" mobile pe yahi banta hai */
-  .btn--m-icon .btn__label {
-    display: none;
-  }
-
-  .btn--m-icon {
-    padding-inline: 10px;
-    gap: 0;
+  /*
+   * Nav yahan nahi hai — `left` buttons **right wale ke saath** daayein (client, 11 Sep, D-94).
+   * Dono `order: 2` pe (upar wala block), DOM me left pehle; right group ka auto margin hatne se
+   * dono chipak jaate hain: logo … [Awards][Get quote][☰].
+   */
+  .hdr__actions--l ~ .hdr__actions {
+    margin-left: 0;
   }
 }
 
@@ -1372,6 +1382,19 @@ a.mega__gl:hover {
 @media (max-width: 750px) {
   .brand__img {
     height: 34px;
+  }
+
+  /*
+   * Sirf icon — **sirf phone pe** (client, 11 Sep, D-94: _"only on mobile award text should be
+   * hidden"_). Pehle 1040px pe tha, yaani tablet pe bhi label chhup jaata.
+   */
+  .btn--m-icon .btn__label {
+    display: none;
+  }
+
+  .btn--m-icon {
+    padding-inline: 10px;
+    gap: 0;
   }
 }
 

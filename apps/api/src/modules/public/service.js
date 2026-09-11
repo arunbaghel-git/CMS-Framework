@@ -222,13 +222,15 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
      */
     headerButtons: (settings.headerButtons ?? [])
       .filter((b) => b.enabled && b.label && b.url)
-      .map(({ label, url, target, variant, className, icon, iconOnlyOnMobile }) => ({
+      .map(({ label, url, target, variant, className, icon, iconOnlyOnMobile, position }) => ({
         label,
         url,
         target,
         variant,
         className,
         icon,
+        /** Purane button (bina `position` ke) `right` — wahi jagah jahan wo pehle se the (D-94). */
+        position: position === 'left' ? 'left' : 'right',
         /**
          * Icon-only bina icon ke bemaani hai — button poori tarah khaali ho jaata.
          *

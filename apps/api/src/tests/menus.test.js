@@ -399,6 +399,7 @@ describe('GET /api/public/settings', () => {
         variant: 'outline',
         className: 'primary',
         icon: 'none',
+        position: 'right',
         iconOnlyOnMobile: false,
       },
     ])
@@ -490,8 +491,34 @@ describe('GET /api/public/settings', () => {
       variant: 'primary',
       className: '',
       icon: 'award',
+      position: 'right',
       iconOnlyOnMobile: false,
     })
+  })
+
+  it('button ki jagah — left jaati hai, na di ho to right (D-94)', async () => {
+    /** Client, 11 Sep: header button nav ke pehle ya aakhir. Purane button `right` hi rehte hain. */
+    await authed('patch', '/api/settings', adminJar).send({
+      headerButtons: [
+        { label: 'Awards', url: '/awards', icon: 'award', position: 'left' },
+        { label: 'Get quote', url: '/contact' },
+      ],
+    })
+
+    const { headerButtons } = (await request(app).get('/api/public/settings')).body.data.settings
+
+    expect(headerButtons.map((b) => [b.label, b.position])).toEqual([
+      ['Awards', 'left'],
+      ['Get quote', 'right'],
+    ])
+  })
+
+  it('anjaan jagah 400 deti hai', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      headerButtons: [{ label: 'X', url: '/x', position: 'middle' }],
+    })
+
+    expect(res.status).toBe(400)
   })
 
   it('anjaan icon 400 deta hai — value hi contract hai', async () => {
