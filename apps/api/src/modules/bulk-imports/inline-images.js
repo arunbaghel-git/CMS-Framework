@@ -50,6 +50,14 @@ import { createMediaFromUpload } from '../media/service.js'
  * `src` do export ke beech wahi rahe. Na rahe to hash badal jaayega aur image dobara utregi —
  * yaani **ek extra media record**, par kabhi **galat image nahi**. Sabse bura nateeja bekaar
  * ka kaam hai, gadbad nahi.
+ *
+ * ## ⚠️ Har image pe `width`/`height` — 11 Sep, A-21 ke naap ke baad
+ *
+ * Production build pe Lighthouse ne dikhaya ki article ki bina naap wali image load hote hi
+ * neeche ka text khiskaati hai (CLS 0.103). Google apna naap `style` me bhejta hai, jo sanitizer
+ * theek hi hata deta hai — to import wali har image bina naap ke thi. Media record me naap pehle
+ * se hota hai (`variants[].w/h`), bas use lagaya nahi ja raha tha. Ab `src` ke saath wahi naap
+ * lagta hai. D-84 ne baaki site ki images pe yahi kaam kiya tha (12/12).
  */
 
 /** Sirf yahi teen extension ban sakte hain — `MIME_EXTENSION` (`upload-validation.js`). */
@@ -89,11 +97,18 @@ const attrValue = (tag, name) =>
 const stemFor = (url) =>
   `doc-image-${createHash('sha1').update(String(url)).digest('hex').slice(0, 16)}`
 
-/** Media ke `large` variant ka URL — wahi jo public payload chunta hai. */
-const largeUrlOf = (media) =>
-  (media?.variants ?? []).find((v) => v.key === 'large')?.url ??
-  (media?.variants ?? [])[0]?.url ??
-  null
+/**
+ * Media ka `large` variant — URL **aur naap**. Wahi variant jo public payload chunta hai.
+ *
+ * Naap usi variant ka hai jiska URL `src` me jaata hai; kisi aur variant ka naap lagana
+ * browser ko galat aspect ratio de deta.
+ */
+const largeOf = (media) => {
+  const variants = media?.variants ?? []
+  const variant = variants.find((v) => v.key === 'large') ?? variants[0]
+
+  return variant?.url ? { url: variant.url, w: variant.w ?? null, h: variant.h ?? null } : null
+}
 
 /**
  * Media tak pahunchne ka raasta — **inject ho sakta hai**.
@@ -156,12 +171,12 @@ function decodeDataUri(src) {
   return { bytes: Buffer.from(match[2], 'base64'), mime: match[1].toLowerCase() }
 }
 
-/** Ek image utaar kar Media me daalo — `data:` URI se ya bahar ke URL se. */
+/** Ek image utaar kar Media me daalo — `data:` URI se ya bahar ke URL se. `{ url, w, h }` lautta hai. */
 async function importOne(url, actor, siteId, deps) {
   const port = deps.mediaPort ?? mongoMediaPort
 
   const existing = await findImportedMedia(url, siteId, port)
-  if (existing) return largeUrlOf(existing)
+  if (existing) return largeOf(existing)
 
   /**
    * ⚠️ `data:` pe **koi fetch nahi hoti** — bytes doc me hi hain.
@@ -184,11 +199,31 @@ async function importOne(url, actor, siteId, deps) {
     { siteId },
   )
 
-  return largeUrlOf(media)
+  return largeOf(media)
 }
 
 /**
- * Article ki HTML me har `<img>` ka `src` hamare apne URL se badlo.
+ * `src` badlo aur Media ka naap lagao.
+ *
+ * ⚠️ Pehle ka `width`/`height` **hataya jaata hai**, sirf naya joda nahi jaata. Do baar likha
+ * attribute browser pehla wala padhta hai — yaani Google ya kisi paste ka purana naap jeet
+ * jaata aur image galat aspect ratio me khulti.
+ *
+ * Naap na ho (purana variant, jisme `w`/`h` store hi nahi hua) to sirf `src` badalta hai — wahi
+ * jo 11 Sep se pehle hota tha. Galat naap se koi naap na hona behtar hai.
+ */
+function withImage(tag, src, image) {
+  const swapped = tag
+    .replace(/\s(?:width|height)\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(src, image.url)
+
+  if (!image.w || !image.h) return swapped
+
+  return swapped.replace(/\s*(\/?>)$/, ` width="${image.w}" height="${image.h}"$1`)
+}
+
+/**
+ * Article ki HTML me har `<img>` ka `src` hamare apne URL se badlo, aur naap lagao.
  *
  * @param {string} html `cleanGoogleHtml()` se guzri hui article HTML
  * @param {{ actor: object, siteId?: string, deps?: object }} options
@@ -211,6 +246,8 @@ export async function importInlineImages(
    * Bina iske ek doc me chaar baar aayi image chaar media record banati. `findImportedMedia()`
    * bhi ise pakad leta par tabhi jab pehli wali **save ho chuki** ho — aur ye sab ek hi run me
    * chalta hai, isliye naksha yahan bhi chahiye.
+   *
+   * Value `{ url, w, h }` hai, ya `null` jab image hatani ho.
    */
   const resolved = new Map()
 
@@ -231,16 +268,16 @@ export async function importInlineImages(
 
     /** Hamari apni image — download nahi, waisi ki waisi rehne do. */
     if (mediaIdFromUrl(src)) {
-      resolved.set(src, src)
+      resolved.set(src, { url: src, w: null, h: null })
       continue
     }
 
     try {
-      const url = await importOne(src, actor, siteId, deps)
+      const image = await importOne(src, actor, siteId, deps)
 
-      resolved.set(src, url)
+      resolved.set(src, image)
 
-      if (!url) {
+      if (!image) {
         issues.push({
           level: 'note',
           label: 'Content image',
@@ -271,10 +308,11 @@ export async function importInlineImages(
 
     if (!resolved.has(src)) return tag
 
-    const url = resolved.get(src)
-    if (!url) return ''
+    const image = resolved.get(src)
+    if (!image) return ''
 
-    return url === src ? tag : tag.replace(src, url)
+    /** Apni image ka tag chhua nahi jaata — uska naap bhi jo hai wahi rahe. */
+    return image.url === src ? tag : withImage(tag, src, image)
   })
 
   return { html: out, issues }

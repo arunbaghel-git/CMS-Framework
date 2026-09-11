@@ -81,9 +81,20 @@ function fakeMediaPort() {
       const row = {
         id,
         filename: `${input.filename}.png`,
+        /** Asli Media ki tarah har variant ka apna naap — `large` 800×600, `thumb` 300×225. */
         variants: [
-          { key: 'large', url: `/uploads/sites/default/media/2026/09/${id}/large.webp` },
-          { key: 'thumb', url: `/uploads/sites/default/media/2026/09/${id}/thumb.webp` },
+          {
+            key: 'large',
+            url: `/uploads/sites/default/media/2026/09/${id}/large.webp`,
+            w: 800,
+            h: 600,
+          },
+          {
+            key: 'thumb',
+            url: `/uploads/sites/default/media/2026/09/${id}/thumb.webp`,
+            w: 300,
+            h: 225,
+          },
         ],
       }
 
@@ -107,13 +118,78 @@ beforeEach(() => {
   port = fakeMediaPort()
 })
 
+describe('har image pe width/height — CLS (11 Sep, A-21)', () => {
+  /**
+   * ⚠️ A-21 me production build pe naapa: article ki bina naap wali image load hote hi neeche ka
+   * text khiskaati thi (CLS 0.103). Import wali har image bina naap ke thi — Google naap `style`
+   * me bhejta hai aur sanitizer use hata deta hai. Media record me naap pehle se tha, bas lagta
+   * nahi tha.
+   */
+  it('Media ke large variant ka naap lagta hai', async () => {
+    const { html } = await run(`<p><img src="${REMOTE}"></p>`)
+
+    expect(html).toMatch(
+      /<img src="\/uploads\/sites\/default\/media\/[^"]+\/large\.webp" width="800" height="600">/,
+    )
+  })
+
+  it('thumb ka naap nahi — naap usi variant ka jiska URL src me hai', async () => {
+    const { html } = await run(`<p><img src="${REMOTE}"></p>`)
+
+    expect(html).not.toContain('width="300"')
+  })
+
+  it('pehle ka width/height hat kar asli naap lagta hai — do baar nahi', async () => {
+    /** Do baar likha attribute browser pehla wala padhta hai — purana naap jeet jaata. */
+    const { html } = await run(`<p><img src="${REMOTE}" width="624" height="468" alt="Jetty"></p>`)
+
+    expect(html).not.toContain('624')
+    expect(html).not.toContain('468')
+    expect(html.match(/width=/g)).toHaveLength(1)
+    expect(html).toContain('alt="Jetty"')
+    expect(html).toContain('width="800" height="600"')
+  })
+
+  it('self-closing tag pe bhi', async () => {
+    const { html } = await run(`<p><img src="${REMOTE}" /></p>`)
+
+    expect(html).toMatch(/width="800" height="600"\/>/)
+  })
+
+  it('dobara import pe bhi naap lagta hai — pehle se utri image se', async () => {
+    await run(`<p><img src="${REMOTE}"></p>`)
+    const second = await run(`<p><img src="${REMOTE}"></p>`, deadFetch)
+
+    expect(second.html).toContain('width="800" height="600"')
+  })
+
+  it('variant me naap na ho to sirf src badalta hai — galat naap se koi naap behtar', async () => {
+    const bare = fakeMediaPort()
+    const original = bare.create
+    bare.create = async (input) => {
+      const row = await original(input)
+      row.variants = row.variants.map(({ w: _w, h: _h, ...rest }) => rest)
+      return row
+    }
+
+    const { html } = await importInlineImages(`<p><img src="${REMOTE}"></p>`, {
+      actor,
+      siteId: DEFAULT_SITE_ID,
+      deps: { fetchImpl: okFetch, mediaPort: bare },
+    })
+
+    expect(html).toMatch(/<img src="\/uploads\/[^"]+\/large\.webp">/)
+    expect(html).not.toContain('width=')
+  })
+})
+
 describe('bahar ki image Media library me utarti hai', () => {
   it('src hamare apne URL se badal jaata hai', async () => {
     const { html, issues } = await run(`<p>Before</p><p><img src="${REMOTE}"></p><p>After</p>`)
 
     expect(issues).toEqual([])
     expect(html).not.toContain('googleusercontent.com')
-    expect(html).toMatch(/<img src="\/uploads\/sites\/default\/media\/[^"]+\/large\.webp">/)
+    expect(html).toMatch(/<img src="\/uploads\/sites\/default\/media\/[^"]+\/large\.webp"/)
     expect(port.rows).toHaveLength(1)
   })
 

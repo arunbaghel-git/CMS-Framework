@@ -395,10 +395,11 @@ mobile, D-85 wali settings, 5 run ka median). Upar ke 91/98 **sirf package page*
   `andamantourism.org` se **hotlink** ki hui image, bina `width`/`height`: load hote hi `p.lead`
   khisakta hai (0.106), aur uske saath Cloudflare ki third-party cookie (`__cf_bm`) aati hai. Ye
   content ka mamla hai — image Media library me daal di jaaye to dono chale jaate hain
-- ⚠️ **Bulk Upload se aayi images pe bhi `width`/`height` nahi hai.** Media record me naap hota hai,
-  par `importInlineImages()` sirf `src` badalta hai (Google naap `style` me bhejta hai, jo
-  sanitizer hata deta hai). Imported post pe bhi yahi CLS aayegi — D-84 ne baaki images pe 12/12
-  `width`/`height` kiya tha
+- ✅ **Bulk Upload se aayi images pe `width`/`height` — theek ho gaya (11 Sep, D-92 §11).** Pehle
+  `importInlineImages()` sirf `src` badalta tha (Google naap `style` me bhejta hai, jo sanitizer
+  hata deta hai). Ab Media ke `large` variant ka `w`/`h` bhi lagta hai. ⚠️ **Pehle se import hue
+  post** tabhi theek honge jab unhe `Existing` mode me dobara import kiya jaaye — image dobara
+  nahi utarti, sirf naap lagta hai
 - Do CSS files render-blocking hain (~320ms + ~170ms) — dono page pe
 
 ⚠️ Is machine pe noise 2× tak hai (D-85), aur naap ke waqt client ke apne dev servers bhi chal

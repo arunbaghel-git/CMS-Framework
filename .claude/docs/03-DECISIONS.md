@@ -7476,3 +7476,21 @@ reference me bhi uska koi style hai hi nahi (`.on` sirf map aur pills pe hai).
 haath ka post — lead 1 (pehle 2), figure/figcaption waise ke waise; tour page — koi farak nahi (uska
 ek `.lead` uske apne content ka hai). Test post pe caption tab tak lead rahega jab tak doc me
 `Caption:` na likha jaaye. **1009 test pass.**
+
+### §11 — 11 Sep: import wali image pe `width`/`height`
+
+A-21 ke naap (A-17) me article pe **CLS 0.103** mila. Us page pe wajah hotlinked image thi, par
+jaanch me nikla ki **Bulk Upload se aayi har image** bhi bina naap ke thi: Google naap `style` me
+bhejta hai, sanitizer use hata deta hai, aur `importInlineImages()` sirf `src` badalta tha. Media
+record me `variants[].w/h` pehle se tha (model me required) — bas lagta nahi tha.
+
+Ab `src` ke saath **`large` variant ka hi** `width`/`height` lagta hai — wahi variant jiska URL
+`src` me jaata hai, warna aspect ratio galat hota. Pehle ka `width`/`height` **hat kar** naya
+lagta hai: do baar likha attribute browser pehla padhta hai. Variant me naap na ho to sirf `src`
+badalta hai (galat naap se koi naap behtar). Hamari apni media ka tag chhua nahi jaata.
+
+⚠️ `.artfig img` pe **`height: auto`** juda — `width: 100%` ke saath `height` attribute image ko
+khinch deta. `.art .blk :not(.artfig) > img` pe wo pehle se tha.
+
+⚠️ **Pehle se import hue post** tabhi theek honge jab `Existing` mode me dobara import ho. Image
+dobara nahi utarti (naam `data:` URI ke hash se), sirf naap lagta hai. **1016 test pass.**

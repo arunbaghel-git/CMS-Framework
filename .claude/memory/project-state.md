@@ -67,6 +67,8 @@ web 3001. Client ka dev server aur asli DB dono nahi chhue.
 - ✅ **#3** hydration / console errors 0 (dono page). ⚠️ Pill pe click wala filter naapa nahi
 - ✅ **#4** `/blog` **85**, article **67** — LCP render-bound (Style & Layout), article ka CLS aur
   Best practices ek hotlinked image se. Poora hisaab **A-17** me
+- ✅ Bulk Upload ki images pe ab `width`/`height` (D-92 §11). Purane imported post ke liye
+  `Existing` mode me dobara import chahiye
 - A-18 confirm: index khaali `importRuns` pe, asli data `importruns` bina index ke
 
 ✅ a21 setup hata diya — `merncms_a21` drop, 3001/4001 band, worktree git se hata. Asli `merncms` aur

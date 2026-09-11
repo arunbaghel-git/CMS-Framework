@@ -6035,8 +6035,17 @@ a.mega__gl:hover {
 .artfig {
   margin: 0 0 clamp(18px, 2.4vw, 26px);
 }
+/*
+ * ⚠️ `height: auto` reference me nahi hai, par yahan zaroori hai (11 Sep).
+ *
+ * Bulk Upload se aayi image pe ab `width`/`height` attribute lagte hain (Media ke naap se), taaki
+ * image load hone se pehle browser jagah chhod de aur neeche ka text na khiske (CLS). Par
+ * `width: 100%` ke saath bina `height: auto` ke browser attribute wali height hi le leta aur image
+ * **kheench kar bigad jaati**. Jin images pe attribute nahi hai unpe `auto` pehle se default hai.
+ */
 .artfig img {
   width: 100%;
+  height: auto;
   border-radius: var(--r3);
   background: var(--blue-100);
 }
