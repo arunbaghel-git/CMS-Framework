@@ -60,7 +60,26 @@ function HtmlWidget({ props }) {
 }
 
 /**
+ * Sidebar jisme `before` (post ka `On this post`) **pinned** rehta hai — client, 11 Sep (D-93).
+ *
+ * Client: _"On this post sticky first … jab tak content end na ho jaye fir scroll ho jayega"_.
+ * `StickySide` poori column ko scroll ke saath khiskata hai — TOC upar se nikal jaata aur user
+ * padhte-padhte usse click nahi kar pata.
+ *
+ * Yahan column khud sticky **nahi** hai; wo `align-self: stretch` se main column jitni lambi
+ * hai, aur uske andar `.pgl__pin` `position: sticky` hai. Isliye TOC tab tak tika rehta hai jab
+ * tak main column khatam na ho, phir apne aap upar chala jaata hai — koi JS nahi.
+ *
+ * ⚠️ Iske neeche koi widget ho (aaj post ki sidebar me koi nahi hai) to wo normal scroll hota
+ * hai aur pinned TOC ke **peeche** se nikal jaata hai.
+ */
+function PinnedSide({ children }) {
+  return <aside className="pgl__side pgl__side--pin">{children}</aside>
+}
+
+/**
  * @param {object} props
+ * @param {boolean} [props.pinBefore]  `before` ko pinned rakho (post ka TOC, D-93)
  * @param {import('react').ReactNode} [props.before]
  *   Widgets se **pehle** aane wala hissa — blog post ka `On this post` (spec 008).
  *
@@ -71,7 +90,13 @@ function HtmlWidget({ props }) {
  *   Isliye wo yahan se **andar** aati hai, taaki usi sticky column me rahe. Bahar rakhne ka
  *   matlab hota ki wo `.pgl__side` ke bahar ek teesra column ban jaaye.
  */
-export default function Sidebar({ widgets = [], settings, sourcePath, before = null }) {
+export default function Sidebar({
+  widgets = [],
+  settings,
+  sourcePath,
+  before = null,
+  pinBefore = false,
+}) {
   /**
    * Khaali sidebar ka matlab hai ki `<aside>` render hi na ho — warna grid me ek khaali column
    * bacha rehta aur content bina wajah tang dikhta (D-30).
@@ -80,6 +105,8 @@ export default function Sidebar({ widgets = [], settings, sourcePath, before = n
    * column banna chahiye — warna client ka on kiya hua TOC chup-chaap gayab ho jaata.
    */
   if (!widgets.length && !before) return null
+
+  const Wrap = pinBefore && before ? PinnedSide : StickySide
 
   return (
     /*
@@ -94,8 +121,8 @@ export default function Sidebar({ widgets = [], settings, sourcePath, before = n
      * Wo khud `<aside className="pgl__side">` deta hai, isliye yahan apna wrapper nahi hai.
      * 1024px se neeche wo `top` ko haath bhi nahi lagata (wahan CSS use `static` kar deti hai).
      */
-    <StickySide>
-      {before}
+    <Wrap>
+      {Wrap === PinnedSide ? <div className="pgl__pin">{before}</div> : before}
       {widgets.map((widget) => {
         switch (widget.type) {
           case 'html':
@@ -199,6 +226,6 @@ export default function Sidebar({ widgets = [], settings, sourcePath, before = n
             return null
         }
       })}
-    </StickySide>
+    </Wrap>
   )
 }

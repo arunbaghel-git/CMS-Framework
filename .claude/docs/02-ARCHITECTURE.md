@@ -261,7 +261,8 @@ templates      * siteId, name, type(page|post|archive|single|404|search),
                  regions{header,footer}, layout, isDefault
 patterns       * siteId, name, kind(pattern|synced), blocks[], category
 taxonomies     * siteId, locale, type(category|tag|destination|packageType), name,
-                 slug, parentId, isDefault, seo, description, bannerMediaId, order
+                 slug, parentId, isDefault, seo, description, bannerMediaId, order,
+                 color (`#rrggbb` | '', sirf category ka badge — D-93; khaali = theme ka rang)
                  destination hierarchical (India → Kerala → Munnar), packageType flat
                  locale day 1 se — uniqueness {siteId, locale, type, slug} hai.
                  Menus pe ye chhoot gaya tha aur D-43 me theek karna pada

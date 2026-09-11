@@ -2586,6 +2586,25 @@ a.mega__gl:hover {
   align-content: start;
 }
 
+/*
+ * Post ka `On this post` pinned — client, 11 Sep (D-93): _"jab tak content end na ho jaye fir
+ * scroll ho jayega"_.
+ *
+ * Column khud sticky **nahi** hai: `stretch` se wo main column jitni lambi hai, aur andar ka
+ * `.pgl__pin` sticky hai. Isliye TOC main column khatam hone tak tika rehta hai aur phir apne
+ * aap upar chala jaata hai — koi JS nahi. Neeche koi widget ho to wo TOC ke peeche se nikalta
+ * hai (`z-index`).
+ */
+.pgl__side--pin {
+  position: static;
+  align-self: stretch;
+}
+.pgl__pin {
+  position: sticky;
+  top: 78px;
+  z-index: 2;
+}
+
 /* Sidebar widget — reference ka `.wdg`. */
 .wdg {
   background: #fff;
@@ -2736,6 +2755,11 @@ a.mega__gl:hover {
     top: auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  /* Sidebar yahan content ke neeche hai — TOC ko pin karne ka koi matlab nahi (D-93). */
+  .pgl__pin {
+    position: static;
   }
 }
 
@@ -4150,6 +4174,24 @@ a.mega__gl:hover {
   font-weight: var(--fw-heading);
   color: var(--gold);
   letter-spacing: 0.08em;
+}
+
+/*
+ * Aadha taara (client, 11 Sep, D-93) — khaali `☆` ke upar bhara `★`, jiska sirf baayan aadha
+ * dikhta hai. Design ke wahi do glyph, koi naya icon nahi.
+ */
+.revc__half {
+  position: relative;
+  display: inline-block;
+}
+.revc__half > i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+  font-style: normal;
+  white-space: nowrap;
 }
 
 .revc__d {
@@ -5725,10 +5767,20 @@ a.mega__gl:hover {
 .bp:hover .bp__m img {
   transform: scale(1.05);
 }
-.bp__m .bcat {
+/*
+ * Badge ab `.bcats` ke andar — post ki **saari** categories (client, 11 Sep, D-93). Jagah wahi
+ * jo pehle akele `.bcat` ki thi; kai hon to ek line me, zaroorat pe agli line.
+ */
+.bcats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.bp__m .bcats {
   position: absolute;
   top: 10px;
   left: 10px;
+  right: 10px;
 }
 .bp__b {
   display: flex;
@@ -5917,6 +5969,13 @@ a.mega__gl:hover {
   background: var(--blue-600);
   padding: 5px 11px;
   border-radius: var(--rf);
+  margin-top: 6px;
+}
+/* Hero me saari categories ek line me (D-93) — pehle ek hi `.ahead__cat` tha. */
+.ahead__cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 /*
  * ⚠️ `.vhero h1` pehle se `clamp(25px, 3.6vw, 40px)` deta hai. Reference ka `3.4vw` uska

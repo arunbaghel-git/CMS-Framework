@@ -39,6 +39,9 @@ const taxonomySchema = new mongoose.Schema(
     /** Destination ka banner — media id, URL nahi (D-41). */
     bannerMediaId: { type: String, default: null },
 
+    /** Category ke badge ka rang — `#rrggbb` ya khaali (D-93). Khaali = theme ka apna rang. */
+    color: { type: String, default: '' },
+
     /**
      * "Uncategorized" jaisa — delete nahi hota.
      *

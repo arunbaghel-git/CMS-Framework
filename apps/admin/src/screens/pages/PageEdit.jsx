@@ -111,12 +111,10 @@ const TYPE_CONFIG = {
   /**
    * Blog post — `blog-detail-v1.html` (spec 008).
    *
-   * ⚠️ **`header: true`, par `subheading: false` — 10 Sep ko badla (client).**
-   *
-   * 9 Sep ko yahan `header: false` tha; maine tay kiya tha ki post ka `<h1>` uska `title` hi
-   * rahega. Client ne palta (R15): _"blog ki heading aur slug alag rahenge jisse breadcrumb bhi
-   * thik ho jayega"_ — wahi wajah jo D-90 me `tourPage` pe thi. Poora tark `content-types.js`
-   * me `POST_FIELDS` ke upar hai.
+   * ⚠️ **`header: false` — 11 Sep (client, D-93).** Page Header hat gaya, post ka `<h1>` ab
+   * uska **Title** hai: _"heading will be title now no need extra same heading same title"_.
+   * 10 Sep ko yahan `header: true` tha (_"blog ki heading aur slug alag rahenge"_). Poora tark
+   * `content-types.js` me `POST_FIELDS` ke upar hai.
    *
    * `subheading` phir bhi nahi hai — uski jagah **Excerpt** hai, jo listing card pe bhi wahi
    * text dikhata hai.
@@ -129,7 +127,7 @@ const TYPE_CONFIG = {
     key: 'post',
     label: 'Post',
     basePath: '/posts',
-    header: true,
+    header: false,
     subheading: false,
     hero: false,
     sidebar: false,
@@ -216,11 +214,8 @@ export default function PageEdit({ type = 'tourPage' }) {
 
       /** Sirf `post` pe dikhta hai, par state hamesha bharta hai — ek hi shape (spec 008). */
       excerpt: entry?.excerpt ?? '',
-      /**
-       * ⚠️ Form me **ek** id, par DB me wo `taxonomies.categories[]` hai (D-49 ka shape).
-       * Wahi jodi jo `sidebarId` pe hai: UI ek dropdown, storage apne asli shape me.
-       */
-      categoryId: entry?.taxonomies?.categories?.[0] ?? '',
+      /** Kai categories — checkboxes (client, 11 Sep, D-93). DB ka shape wahi `categories[]`. */
+      categoryIds: entry?.taxonomies?.categories ?? [],
     })
   }, [id, entry])
 
@@ -290,9 +285,7 @@ export default function PageEdit({ type = 'tourPage' }) {
        * pe hai aur galat key chup-chaap girti nahi, phenkti hai (D-43 §3 ka trap).
        */
       ...(config.excerpt ? { excerpt: form.excerpt } : {}),
-      ...(config.categories
-        ? { taxonomies: { categories: form.categoryId ? [form.categoryId] : [] } }
-        : {}),
+      ...(config.categories ? { taxonomies: { categories: form.categoryIds } } : {}),
     }
 
     try {
@@ -489,32 +482,6 @@ export default function PageEdit({ type = 'tourPage' }) {
             </Panel>
           )}
 
-          {/* ---- EXCERPT ---- sirf post pe (spec 008) ---- */}
-          {config.excerpt && (
-            /*
-             * ⚠️ Excerpt do jagah dikhta hai — listing card ka `.bp__x` **aur** meta
-             * description ka fallback. Isiliye hint me wo likha hai: client ise "sirf card ki
-             * line" samajh kar chhota likh de to SEO wali jagah bhi chhoti ho jaati hai.
-             */
-            <Panel title="Excerpt">
-              <div className="panel-body">
-                <div className="field">
-                  <textarea
-                    className="inp"
-                    rows={3}
-                    value={form.excerpt ?? ''}
-                    onChange={(e) => set({ excerpt: e.target.value })}
-                    disabled={readOnly}
-                  />
-                  <div className="hint">
-                    The line under the title on listing cards. Also used as the meta description
-                    when the <b>SEO</b> panel below is left empty.
-                  </div>
-                </div>
-              </div>
-            </Panel>
-          )}
-
           {/* ---- STAT RAIL ---- reference ka `.vrail`, sirf Tour page pe ---- */}
           {config.hero && (
             /*
@@ -620,6 +587,36 @@ export default function PageEdit({ type = 'tourPage' }) {
               </div>
             </div>
           </Panel>
+
+          {/* ---- EXCERPT ---- sirf post pe (spec 008) ---- */}
+          {config.excerpt && (
+            /*
+             * ⚠️ **Content (aur uske FAQ block) ke baad** — client, 11 Sep (D-93). Pehle ye Page
+             * Header ke neeche, content se upar tha.
+             *
+             * **Optional hai.** Khaali ho to card content ki pehli lines dikhata hai (server pe,
+             * `autoExcerpt()`), aur post page pe excerpt waise bhi nahi chhapta. Likha ho to wo meta
+             * description ka fallback bhi hai — isiliye hint me dono baatein likhi hain.
+             */
+            <Panel title="Excerpt">
+              <div className="panel-body">
+                <div className="field">
+                  <textarea
+                    className="inp"
+                    rows={3}
+                    value={form.excerpt ?? ''}
+                    onChange={(e) => set({ excerpt: e.target.value })}
+                    disabled={readOnly}
+                  />
+                  <div className="hint">
+                    Optional. The line under the title on listing cards — leave it empty and the
+                    card shows the first lines of the content instead. When filled in, it is also
+                    the meta description if the <b>SEO</b> panel is left empty.
+                  </div>
+                </div>
+              </div>
+            </Panel>
+          )}
         </div>
 
         {/* ================= SIDEBAR ================= */}
@@ -692,30 +689,41 @@ export default function PageEdit({ type = 'tourPage' }) {
               {/* ---- CATEGORY ---- sirf post pe (spec 008) ---- */}
               {config.categories && (
                 /*
-                 * ⚠️ **Ek hi category**, list nahi — aur wo `entry.taxonomies.categories[]`
-                 * ke andar bhejti jaati hai (D-49 ka shape). Reference me card pe ek hi badge
-                 * hai (`.bcat`) aur sidebar ke Topics me har post ek hi baar ginta hai; do
-                 * category ki ijaazat dene ka matlab hota ki wo ginti do jagah bhare aur
-                 * `.bfilter` ka total cards se zyada ho jaaye.
+                 * ⚠️ **Kai categories — checkboxes** (client, 11 Sep, D-93: _"category will be
+                 * checkbox not dropdown so user can choose multiple"_). 10 Sep se yahan ek
+                 * dropdown tha. Nateeje client ne jaan kar chune: card aur hero pe **saare**
+                 * badge, aur pills/Topics me post har chuni hui category me ginta hai.
+                 *
+                 * Kram **list ka** hai, tick karne ka nahi — warna do post pe wahi categories
+                 * alag kram me badge dikhatin.
                  *
                  * ⚠️ **Tags yahan nahi hain** — client ne 9 Sep ko mana kiya, aur `post` ke
                  * `taxonomyTypes` se bhi wo hat chuka hai.
                  */
                 <div className="field">
-                  <label>Category</label>
-                  <select
-                    className="sel"
-                    value={form.categoryId ?? ''}
-                    onChange={(e) => set({ categoryId: e.target.value })}
-                    disabled={readOnly}
-                  >
-                    <option value="">— no category —</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                  <label>Categories</label>
+                  {categories.map((c) => (
+                    <label
+                      key={c.id}
+                      className="inline-lbl"
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.categoryIds.includes(c.id)}
+                        disabled={readOnly}
+                        onChange={(e) => {
+                          const next = new Set(form.categoryIds)
+                          if (e.target.checked) next.add(c.id)
+                          else next.delete(c.id)
+                          set({
+                            categoryIds: categories.map((x) => x.id).filter((x) => next.has(x)),
+                          })
+                        }}
+                      />
+                      {c.name}
+                    </label>
+                  ))}
                   {categories.length === 0 && (
                     <div className="hint">
                       No categories yet — add one under <b>Posts ▸ Categories</b>.

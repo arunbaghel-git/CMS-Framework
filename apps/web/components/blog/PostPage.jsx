@@ -5,7 +5,7 @@ import MobileBar from '../package/MobileBar.jsx'
 import Blocks from '../tour/Blocks.jsx'
 import Sidebar from '../tour/Sidebar.jsx'
 import BlogSchema from './BlogSchema.jsx'
-import PostCard from './PostCard.jsx'
+import PostCard, { categoryStyle } from './PostCard.jsx'
 import PostNav from './PostNav.jsx'
 
 /**
@@ -161,10 +161,9 @@ function Share({ url, title }) {
 
 export default function PostPage({ entry, settings }) {
   const {
-    fields = {},
     banner,
     breadcrumbs = [],
-    category,
+    categories = [],
     author = {},
     sidebar,
     sidebarWidgets = [],
@@ -178,6 +177,14 @@ export default function PostPage({ entry, settings }) {
    */
   const hasSidebar =
     sidebar !== 'none' && (sidebarWidgets.length > 0 || (entry.toc ?? []).length > 0)
+
+  /** `Published 12 Aug 2026 · 9 min read` — jo tukda na ho wo apne `·` ke saath gir jaata hai (D-30). */
+  const byline = [
+    entry.publishedAt ? `Published ${longDate(entry.publishedAt)}` : null,
+    entry.readMinutes > 0 ? `${entry.readMinutes} min read` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? settings?.siteUrl
   const shareUrl = siteUrl ? `${siteUrl.replace(/\/$/, '')}${entry.path}` : null
@@ -224,27 +231,26 @@ export default function PostPage({ entry, settings }) {
               <b>{entry.title}</b>
             </nav>
 
-            {category && <span className="ahead__cat">{category.name}</span>}
+            {/*
+             * **Saari** categories ke badge, har ek apne rang me (client, 11 Sep, D-93). Rang na
+             * chuna ho to hero ka apna neela — reference ka `.ahead__cat`.
+             */}
+            {categories.length > 0 && (
+              <div className="ahead__cats">
+                {categories.map((category) => (
+                  <span key={category.id} className="ahead__cat" style={categoryStyle(category)}>
+                    {category.name}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/*
-             * ⚠️ **`fields.heading` pehle, `title` fallback — 10 Sep ko badla (client).**
-             *
-             * 9 Sep ko yahan sirf `entry.title` tha. Client ne palta: _"blog ki heading aur slug
-             * alag rahenge jisse breadcrumb bhi thik ho jayega"_ — yaani `title` chhota rakha ja
-             * sake (slug · breadcrumb · admin list · SEO) aur page pe poori heading chhape.
-             *
-             * ⚠️ **Fallback theme me hai, payload me nahi** — `title` waise bhi payload me hai,
-             * aur dono jagah wahi text bhejne ka matlab hota ki ek din wo alag ho jaayein (D-86).
-             * Bilkul wahi jodi jo `TourPage` pe hai.
-             *
-             * HTML isliye ki `pageHeadingSchema` inline profile pe hai — bold/italic/link bachte
-             * hain, block tags write pe hi gir chuke hote hain (R20).
+             * `<h1>` post ka **title** hai — client, 11 Sep (D-93): _"heading will be title now no
+             * need extra same heading same title"_. 10–11 Sep ke beech yahan `fields.heading` tha
+             * aur `title` fallback; wo field post se hat gaya.
              */}
-            {fields.heading ? (
-              <h1 className="ahead__t" dangerouslySetInnerHTML={{ __html: fields.heading }} />
-            ) : (
-              <h1 className="ahead__t">{entry.title}</h1>
-            )}
+            <h1 className="ahead__t">{entry.title}</h1>
 
             {/*
              * ⚠️ **Hero me excerpt NAHI aata — client, 10 Sep, aur reference bhi wahi kehta hai.**
@@ -264,30 +270,26 @@ export default function PostPage({ entry, settings }) {
              * ⚠️ **Author khaali ho to uska poora hissa gir jaata hai**, "Unknown" nahi chhapta —
              * aur admin ka naam yahan kabhi pahunchta hi nahi (wo payload me hai hi nahi, R10).
              */}
+            {/*
+             * ⚠️ **Hero me author ka role nahi, uski jagah date · read time** — client, 11 Sep
+             * (D-93): _"Andaman Tourism team ke niche aayege Published 12 Aug 2026 · 9 min read"_.
+             * Reference me role (`Planners in Port Blair`) naam ke neeche tha aur date/read time
+             * usi line me aage. Role author box me rehta hai (neeche).
+             *
+             * Author na ho to date · read time akele, heading ke neeche.
+             */}
             <div className="ahead__m">
-              {author.name && (
+              {author.name ? (
                 <span className="ahead__au">
                   <span className="ahead__av">{initials(author.name)}</span>
                   <span>
                     <b>{author.name}</b>
-                    {author.role ? <span>{author.role}</span> : null}
+                    {byline ? <span>{byline}</span> : null}
                   </span>
                 </span>
-              )}
-
-              {entry.publishedAt && (
-                <>
-                  {author.name && <i className="ahead__dot" />}
-                  <span className="ahead__x">Published {longDate(entry.publishedAt)}</span>
-                </>
-              )}
-
-              {entry.readMinutes > 0 && (
-                <>
-                  <i className="ahead__dot" />
-                  <span className="ahead__x">{entry.readMinutes} min read</span>
-                </>
-              )}
+              ) : byline ? (
+                <span className="ahead__x">{byline}</span>
+              ) : null}
             </div>
           </div>
         </section>
@@ -395,6 +397,7 @@ export default function PostPage({ entry, settings }) {
                   settings={settings}
                   sourcePath={entry.path}
                   before={<Toc items={entry.toc} />}
+                  pinBefore={(entry.toc ?? []).length > 0}
                 />
               )}
             </div>

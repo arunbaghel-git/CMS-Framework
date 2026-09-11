@@ -7563,3 +7563,78 @@ hai.
 ⚠️ **Seema:** listing page (`postList` wala `blogPage`) baad me bane ya trash ho, to posts ka parent
 tab tak purana rehta hai jab tak Blog settings Save na ho ya post save na ho. Wahi seema URL prefix
 pe pehle se hai. **1029 test pass.**
+
+---
+
+## D-93
+
+**11 Sep — client ki list: admin ke 5 aur public ke 4 badlaav (blog + reviews).** Client ne kaha tha
+_"ask if any question if didnt understand so unnecessary mashup na ho"_ — chaar sawaal pooche gaye
+(heading, categories, hero byline, TOC), baaki code se saaf the. **Koi migration nahi lagi.**
+
+### §1 — Post ka `<h1>` ab **Title** hai — D-91/10 Sep ka `Post heading` palta
+
+Client: _"Edit/Add post will not be having Page Header becouse heading will be title now no need
+extra same heading same title"_. 10 Sep ko ulta faisla tha (_"blog ki heading aur slug alag
+rahenge"_) — wo **superseded** hai.
+
+- `POST_FIELDS = []`, post pe Page Header panel nahi (`header: false`), payload me `fields` nahi,
+  card ka title bhi `title`
+- 4 post me heading title se alag thi. Client: _"ye to content hai update ho jayega"_ — koi
+  migration nahi; purana `fields.heading` DB me pada hai, koi padhta nahi
+- Bulk Upload: `Blog heading` label parser me pehchana jaata hai (warna uski line Content me
+  ghusti), par kahin nahi jaata — bhara ho to **note**. `tourPage` ka `fields.heading` (D-90)
+  chhua nahi gaya
+
+### §2 — Post me **kai categories** (checkboxes)
+
+Client: _"category will be checkbox not dropdown so user can choose multiple"_ aur sawaal pe
+**"Saari categories"** — card aur hero pe har chuni hui category ka badge. Storage pehle se array
+tha (D-49), sirf UI aur padhne wale badle:
+
+- payload me `category` → **`categories[]`** (card, lead card, post page, schema `articleSection`)
+- pills aur Topics me post **har** category me ginta hai — jod posts se zyada ho sakta hai, client
+  ne jaan kar chuna. List pe filter `categories.some()`
+- Related reading **kisi bhi** category se (`$in`) — pehle sirf pehli dekhi jaati thi
+- Badge ka kram **category list ka** hai, tick karne ka nahi
+- Bulk Upload me comma se kai pehle se chalti thin (`parseNameList`); ab wo sab dikhti bhi hain
+
+### §3 — Category ka badge rang (colour picker)
+
+Naya `taxonomies.color` (`#rrggbb` ya khaali). 10 Sep ko ye field **jaan-boojh kar nahi** bana tha
+(PostCard.jsx ka tark: "client se aisa chunav jo uska nahi"); client ne ab maanga. **Khaali =
+Automatic** — wahi id-based rang jo pehle tha, isliye purani categories waisi hi dikhti hain.
+Picker khaali value rakh nahi sakta, isliye "Use automatic" ka button hai. Halke rang pe text gehra
+ho jaata hai (`inkOn()`). ⚠️ `updateTaxonomy()` ki whitelist me `color` juda — test DB padhta hai.
+
+### §4 — Excerpt optional, card content se bharta hai, panel content ke baad
+
+Khaali excerpt pe card **content ke text blocks** ki pehli **24 shabd** (`autoExcerpt()`, reference
+ke card 20–22 shabd ke hain), kate hue pe `…`. Likha hua hamesha jeetta hai. Sirf card ke liye —
+post page pe excerpt waise bhi nahi chhapta, aur meta description ka fallback likha hua excerpt hi
+rehta hai (andaza nahi). Admin me Excerpt panel ab **Content (aur FAQ) ke baad**.
+
+### §5 — Post hero ki byline, aur pinned TOC
+
+- Hero me role (`Planners in Port Blair`) ki jagah naam ke neeche **`Published … · 9 min read`**
+  (client ke shabd). Role author box me rehta hai
+- `On this post` **pinned** — client: _"jab tak content end na ho jaye fir scroll ho jayega"_.
+  `StickySide` ki jagah `PinnedSide`: column `align-self: stretch`, andar `.pgl__pin` sticky. Koi JS
+  nahi. Sirf TOC wale post pe; 1024px se neeche pin nahi. ⚠️ Aaj post sidebar me koi widget nahi
+  (blogSettings me sidebar chuni hi nahi) — widget juda to wo pinned TOC ke peeche se nikalega
+
+### §6 — Chhote badlaav
+
+| Kya | Kaise |
+| --- | --- |
+| Review me aadhe taare (1.5–4.5) | `multipleOf(0.5)`; card pe `☆` ke upar aadha `★` (`starParts()`); text me number saath. ⚠️ `starString()` pehle `Math.round` karta tha — 4.5 **paanch** taare dikhta |
+| Bulk Upload ka dropdown chhota | `.bu-target` |
+| Blog settings → **Posts** ke submenu | `/posts/settings`, `SettingsTabs` hati — `Tour settings` (8 Sep) wala hi raasta. Storage/permission wahi |
+| Categories screen ka column | `Packages` → **`Posts`** (`countLabel`) |
+| Tour Pages list ka `Packages` column | hataya (`thirdColumn` nahi) |
+| `/blog` ki `9 articles` ginti | hati (`.bfilter__c`) |
+
+**Live:** API pe payload `categories[]`, bina `fields` ke. Client ne isi beech Blog settings
+`/blog/…` pe kiya — D-92 §13 ne saare post ka parent blog page kar diya (dash wapas), redirect bane.
+⚠️ Port 3000 pe `next start` ka **12:58 wala build** chal raha tha — site ke badlaav wahan tabhi
+dikhenge jab client naya build chalaye. **1038 test pass.**

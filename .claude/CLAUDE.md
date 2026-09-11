@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**1029 tests passing**, 11 Sep). Public package page ke **saare** section live hain.
+hain** (**1038 tests passing**, 11 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-92                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-93                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -633,6 +633,15 @@ hain — pehle dono milaa kar 20 the, yaani blog ke import package ka itihaas mi
 har post blog page ke neeche (admin list me `—`, breadcrumb `Home › Blog › Post`), `/…` mode me koi
 parent nahi. Pehle ye kahin tay hi nahi hota tha — admin ka `—` aur page ka breadcrumb setting se alag
 chal rahe the. Post ka bheja hua `parentId` ab maana nahi jaata.
+
+**11 Sep — client ki list (D-93), koi migration nahi.** ⚠️ **Post ka `<h1>` ab Title hai** — Page
+Header aur `fields.heading` post se gaye (10 Sep wala _"heading aur slug alag"_ palta); purane post
+ka `fields.heading` DB me pada hai, koi padhta nahi. **Kai categories** (checkbox) — payload me
+`category` ki jagah **`categories[]`**, card/hero pe saare badge, pills me post har category me
+ginta hai. Category ka **badge rang** (`taxonomies.color`, khaali = Automatic). Excerpt optional —
+khaali pe card content ke **24 shabd** leta hai. Hero byline me role ki jagah date · read time, TOC
+pinned (`PinnedSide`). Review me **aadhe taare**. Blog settings ab **Posts ke submenu** me
+(`/posts/settings`).
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

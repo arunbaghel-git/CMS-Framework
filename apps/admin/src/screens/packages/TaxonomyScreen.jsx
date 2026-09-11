@@ -25,7 +25,21 @@ import './Packages.css'
  * hain. Wahi precedent jo `UsersList` pe hai: aisa checkbox jo select to ho par kuch kar
  * na sake, wo "khaali" nahi "toota hua" lagta hai.
  */
-export default function TaxonomyScreen({ type, title, subtitle, hierarchical, hasBanner }) {
+/**
+ * @param {object} props
+ * @param {boolean} [props.hasColor]    Badge ka rang — sirf Categories pe (client, 11 Sep, D-93)
+ * @param {string} [props.countLabel]   Ginti wale column ka naam — Categories pe `Posts`, baaki
+ *   pe `Packages`. Pehle har jagah `Packages` likha tha, Categories pe bhi (client ne pakda).
+ */
+export default function TaxonomyScreen({
+  type,
+  title,
+  subtitle,
+  hierarchical,
+  hasBanner,
+  hasColor = false,
+  countLabel = 'Packages',
+}) {
   const { can } = useAuth()
 
   const [items, setItems] = useState([])
@@ -37,7 +51,13 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
 
   /** `null` = "Add New" form, warna us row ka edit. */
   const [editingId, setEditingId] = useState(null)
-  const [form, setForm] = useState({ name: '', slug: '', parentId: '', description: '' })
+  const [form, setForm] = useState({
+    name: '',
+    slug: '',
+    parentId: '',
+    description: '',
+    color: '',
+  })
   const [bannerMediaId, setBannerMediaId] = useState(null)
 
   const media = useMediaById([bannerMediaId].filter(Boolean))
@@ -102,7 +122,7 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
 
   function resetForm() {
     setEditingId(null)
-    setForm({ name: '', slug: '', parentId: '', description: '' })
+    setForm({ name: '', slug: '', parentId: '', description: '', color: '' })
     setBannerMediaId(null)
   }
 
@@ -113,6 +133,7 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
       slug: item.slug,
       parentId: item.parentId ?? '',
       description: item.description ?? '',
+      color: item.color ?? '',
     })
     setBannerMediaId(item.bannerMediaId ?? null)
     setNotice(null)
@@ -150,6 +171,8 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
       ...(form.slug ? { slug: form.slug } : {}),
       ...(hierarchical ? { parentId: form.parentId || null } : {}),
       ...(hasBanner ? { bannerMediaId } : {}),
+      /** Sirf Categories pe — Destination/Package Type ke document me khaali `color` na pade. */
+      ...(hasColor ? { color: form.color } : {}),
     }
 
     try {
@@ -267,6 +290,42 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
                 />
               </div>
 
+              {/*
+               * Badge ka rang — client, 11 Sep (D-93): _"badge color option a colorpicker"_.
+               *
+               * ⚠️ **Khaali = Automatic**, aur wo ek asli vikalp hai: site reference ke chaar rang me
+               * se ek khud chunti hai (10 Sep se wahi hota aaya hai). `<input type="color">` khaali
+               * value rakh hi nahi sakta, isliye "Automatic" ka alag button hai — warna ek baar rang
+               * chunne ke baad wapas jaane ka raasta hi nahi bachta.
+               */}
+              {hasColor && (
+                <div className="field">
+                  <label>Badge colour</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <input
+                      type="color"
+                      value={form.color || '#1a73e8'}
+                      onChange={(e) => setForm({ ...form, color: e.target.value })}
+                      aria-label="Badge colour"
+                    />
+                    <span className="muted">{form.color || 'Automatic'}</span>
+                    {form.color && (
+                      <button
+                        className="btn btn-sm btn-plain"
+                        type="button"
+                        onClick={() => setForm({ ...form, color: '' })}
+                      >
+                        Use automatic
+                      </button>
+                    )}
+                  </div>
+                  <div className="hint">
+                    The colour of this category’s badge on post cards and at the top of each post.
+                    Leave it on Automatic and the site picks one.
+                  </div>
+                </div>
+              )}
+
               {hasBanner && (
                 <MediaDrop
                   label="Banner Image"
@@ -297,7 +356,7 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
               <th>Name</th>
               <th>Slug</th>
               <th>Description</th>
-              <th>Packages</th>
+              <th>{countLabel}</th>
             </tr>
           </thead>
           <tbody>
@@ -321,6 +380,21 @@ export default function TaxonomyScreen({ type, title, subtitle, hierarchical, ha
               <tr key={item.id}>
                 <td>
                   {item.depth > 0 && <span className="muted">{'—'.repeat(item.depth)} </span>}
+                  {/* Chuna hua badge rang — ek nazar me dikhe ki kis category ka kaunsa hai (D-93). */}
+                  {hasColor && item.color && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        display: 'inline-block',
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        background: item.color,
+                        marginRight: 6,
+                        verticalAlign: 'middle',
+                      }}
+                    />
+                  )}
                   <a
                     className="row-title"
                     href="#edit"

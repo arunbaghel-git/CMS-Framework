@@ -14,7 +14,7 @@ import PostCard from './PostCard.jsx'
  * ```
  * #latest
  *   .sh          Latest articles + uski line
- *   .bfilter     Topic ki pills + `9 articles`
+ *   .bfilter     Topic ki pills (ginti `9 articles` 11 Sep ko hati — client, D-93)
  *   .bpg         cards ka grid
  *   .pager       page numbers
  * ```
@@ -110,7 +110,11 @@ export default function PostList({ props = {}, data }) {
 
   /** Filter aur page dono yahan tay hote hain — ek hi jagah, taaki wo kabhi alag na ho jaayein. */
   const filtered = useMemo(
-    () => (topic === 'all' ? cards : cards.filter((c) => c.category?.id === topic)),
+    /** Post kai categories me ho sakta hai (D-93) — kisi bhi ek se mile to wo topic me hai. */
+    () =>
+      topic === 'all'
+        ? cards
+        : cards.filter((c) => (c.categories ?? []).some((category) => category.id === topic)),
     [cards, topic],
   )
 
@@ -168,9 +172,10 @@ export default function PostList({ props = {}, data }) {
               </button>
             ))}
 
-            <span className="bfilter__c">
-              {filtered.length} article{filtered.length === 1 ? '' : 's'}
-            </span>
+            {/*
+             * `9 articles` ki ginti (`.bfilter__c`) **hata di gayi** — client, 11 Sep (D-93). Reference
+             * me wo thi; client ne mana kiya.
+             */}
           </div>
         )}
 

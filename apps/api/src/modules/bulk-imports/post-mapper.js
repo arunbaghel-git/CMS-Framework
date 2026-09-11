@@ -301,7 +301,23 @@ export function toPostEntryInput(parsed, refs) {
    * hai — kaam hota hua dikhta hai, aur uska batane wala hissa chup-chaap gir jaata hai.
    */
   const excerpt = clamp(textOf(values, 'excerpt'), LIMITS.excerpt, 'Excerpt', warnings)
-  const heading = clamp(textOf(values, 'heading'), LIMITS.heading, 'Blog heading', warnings)
+
+  /**
+   * ⚠️ **`Blog heading` ab kahin nahi jaata** (client, 11 Sep, D-93) — post ka `<h1>` uska title
+   * hai. Label parser me abhi bhi pehchana jaata hai, taaki purane doc me uski line `Content` me
+   * na ghus jaaye. Bhara ho to client ko ek note milta hai — chup-chaap girna D-86 wala lakshan
+   * hota ("kuch na hona").
+   */
+  const oldHeading = textOf(values, 'heading')
+  if (oldHeading) {
+    issues.push(
+      note(
+        'Blog heading',
+        oldHeading.slice(0, 300),
+        'Blog heading is not used any more — the Blog title is the heading on the page. You can delete this line from the document.',
+      ),
+    )
+  }
 
   for (const warning of warnings) issues.push(note('Document', '', warning))
 
@@ -319,18 +335,8 @@ export function toPostEntryInput(parsed, refs) {
 
     content: { version: 1, blocks },
 
+    /** Doc me comma se kai categories — sab jaati hain, usi kram me (D-93). */
     taxonomies: { categories },
-
-    fields: {
-      /**
-       * ⚠️ **`text`, `html` nahi** — aur wo jaan-boojh kar hai. `fields.heading`
-       * `pageHeadingSchema` pe hai, yaani `inlineHtmlSchema`, jisme block tags allowed hi
-       * nahi hain. Parser ka `html` hamesha `<p>…</p>` hota hai; use bhejne ka matlab hota ki
-       * sanitizer use write pe utaar de aur bacha sirf text — yaani wahi nateeja, ek chakkar
-       * ghoom kar. Client ka heading waise bhi ek saadi line hai.
-       */
-      heading,
-    },
   }
 
   return {

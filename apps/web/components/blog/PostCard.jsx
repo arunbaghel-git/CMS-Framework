@@ -46,6 +46,51 @@ export function categoryClass(id) {
   return `bcat${CAT_VARIANTS[sum % CAT_VARIANTS.length]}`
 }
 
+/**
+ * `#rrggbb` pe padhne laayak text — halke rang pe gehra, gehre pe safed.
+ *
+ * Client koi bhi rang chun sakta hai (D-93), aur peele badge pe safed text padha hi nahi jaata.
+ * Ye andaaz (0.299/0.587/0.114) aankh ki roshni ka seedha hisaab hai — koi library nahi.
+ */
+function inkOn(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  const light = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255
+
+  return light > 0.62 ? 'var(--ink)' : '#fff'
+}
+
+/**
+ * Badge ka inline rang — sirf tab jab category ka apna rang chuna gaya ho (client, 11 Sep, D-93).
+ * Khaali pe `undefined`, yaani class wala rang (`categoryClass()`) hi chalta hai.
+ */
+export function categoryStyle(category) {
+  return category?.color ? { background: category.color, color: inkOn(category.color) } : undefined
+}
+
+/**
+ * Post ki **saari** categories ke badge (client, 11 Sep: _"Saari categories"_, D-93).
+ *
+ * `.bcats` ek wrapper hai jo image ke upar badge ki jagah leta hai — pehle wahan ek hi `.bcat`
+ * baithta tha, aur do-teen badge ek doosre ke upar chad jaate.
+ */
+export function CategoryBadges({ categories = [] }) {
+  if (!categories.length) return null
+
+  return (
+    <span className="bcats">
+      {categories.map((category) => (
+        <span
+          key={category.id}
+          className={categoryClass(category.id)}
+          style={categoryStyle(category)}
+        >
+          {category.name}
+        </span>
+      ))}
+    </span>
+  )
+}
+
 export default function PostCard({ post, author, showExcerpt = true }) {
   if (!post) return null
 
@@ -69,9 +114,7 @@ export default function PostCard({ post, author, showExcerpt = true }) {
            * chunav kar sake (D-84). Grid do column ka hai, mobile pe ek.
            */}
           <Img image={post.banner} alt={post.title} sizes="(max-width: 860px) 100vw, 50vw" />
-          {post.category && (
-            <span className={categoryClass(post.category.id)}>{post.category.name}</span>
-          )}
+          <CategoryBadges categories={post.categories} />
         </div>
       )}
 

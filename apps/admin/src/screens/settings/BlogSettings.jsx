@@ -4,18 +4,18 @@ import { useEffect, useState } from 'react'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { useSidebars } from '../appearance/useSidebars.js'
-import SettingsTabs from './SettingsTabs.jsx'
 import './Settings.css'
 
 /**
- * Settings → Blog settings — author, TOC aur post ki sidebar (spec 008, client 9 Sep).
+ * Posts → Blog settings — author, TOC aur post ki sidebar (spec 008, client 9 Sep).
  *
- * ## Yahan kyun, Posts ke submenu me kyun nahi
+ * ## Posts ke submenu me — 11 Sep se (client, D-93)
  *
- * Client ne saaf kaha: _"in settings there will be a post/blog settings"_. Yaani `Tour
- * settings` wala raasta yahan **nahi** liya gaya — wo 8 Sep ko `Settings` se `Tour` ke
- * submenu me chala gaya tha. Dono client ke faisle hain; UI ki jagah aur storage ki jagah ka
- * koi bandhan nahi (wahi baat `Appearance ▸ Footer` pe pehle se likhi hai).
+ * 9 Sep ko client ne kaha tha _"in settings there will be a post/blog settings"_, to ye
+ * `Settings` me tha. 11 Sep ko palta: _"Blog settings will go inside Post submenu"_ — theek wahi
+ * raasta jo `Tour settings` ne 8 Sep ko liya. Isliye `SettingsTabs` yahan se hati (wo sirf
+ * Settings group ki screens ki tab bar hai) aur heading ab `Blog settings` hai. Storage
+ * (`settings.blogSettings`) aur permission wahi.
  *
  * ## Teenon cheezein "sabke liye ek" hain, aur wahi is screen ka poora tark hai
  *
@@ -112,9 +112,8 @@ export default function BlogSettings() {
   return (
     <>
       <div className="page-head">
-        <h1>Settings</h1>
+        <h1>Blog settings</h1>
       </div>
-      <SettingsTabs />
 
       <p className="subtitle">
         The byline, the contents list and the sidebar — these are the same on every post.

@@ -28,7 +28,8 @@ _"kya ek non-technical banda ye bina call kiye kar lega?"_
 Dashboard
 
 Pages                     All · Trash                         (+ Add New)
-Posts                     All · Categories · Tags · Trash     (+ Add New)
+Posts                     All Posts · Add New · Categories · Blog Page · Blog settings
+                          (Tags 9 Sep ko hata; Blog settings 11 Sep ko Settings se yahan — D-93)
 [Services] [Portfolio]    contentType se auto-generate        (Phase 6)
 
 Media                     Library · Folders · Trash

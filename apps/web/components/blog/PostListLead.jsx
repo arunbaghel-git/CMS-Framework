@@ -1,5 +1,5 @@
 import Img from '../Img.jsx'
-import { categoryClass } from './PostCard.jsx'
+import { CategoryBadges } from './PostCard.jsx'
 
 /**
  * `Start here` — listing page ka featured hissa (`blog-v1.html`, spec 008 Slice D2).
@@ -71,9 +71,7 @@ function FeaturedCard({ post, large }) {
       )}
 
       <div className="fcard__b">
-        {post.category && (
-          <span className={categoryClass(post.category.id)}>{post.category.name}</span>
-        )}
+        <CategoryBadges categories={post.categories} />
         <h3>{post.title}</h3>
 
         {large && post.excerpt ? <p>{post.excerpt}</p> : null}

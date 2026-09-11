@@ -457,17 +457,28 @@ async function resolveTaxonomies(ids, siteId, locale) {
   if (unique.length === 0) return []
 
   const docs = await Taxonomy.find({ _id: { $in: unique }, siteId, locale })
-    .select('name slug type')
+    .select('name slug type color')
     .lean()
     .catch(() => [])
 
   const byId = new Map(docs.map((d) => [String(d._id), d]))
 
   // Order wahi rakho jo entry me tha — client ne unhe us kram me chuna hai
-  return unique
-    .map((id) => byId.get(id))
-    .filter(Boolean)
-    .map((d) => ({ id: String(d._id), name: d.name, slug: d.slug }))
+  return (
+    unique
+      .map((id) => byId.get(id))
+      .filter(Boolean)
+      /**
+       * `color` sirf tab jab bhara ho (category ka badge, D-93). Khaali pe key hi nahi jaati —
+       * theme tab apna rang chunti hai, aur destination/package type pe ye kabhi hota hi nahi.
+       */
+      .map((d) => ({
+        id: String(d._id),
+        name: d.name,
+        slug: d.slug,
+        ...(d.color ? { color: d.color } : {}),
+      }))
+  )
 }
 
 /**
@@ -836,6 +847,38 @@ const publiclyVisibleQuery = (now = new Date()) => ({
  * Categories **ek query me** aati hain, har card ke liye alag nahi — wahi tark jo
  * `toPackageCards()` ke stays/types pe hai.
  */
+/**
+ * Card ke excerpt ki lambai jab wo content se banta hai — shabdon me.
+ *
+ * Reference (`blog-v1.html`) ke teen card ke excerpt 20–22 shabd ke hain; 24 us line ko do line
+ * me rakhta hai. Client ki baat: _"jitne word ki need ho utne hi bas"_.
+ */
+const AUTO_EXCERPT_WORDS = 24
+
+/**
+ * Excerpt na likha ho to content ke **text blocks** ki pehli lines (client, 11 Sep, D-93).
+ *
+ * ⚠️ Sirf `richText` — FAQ ka sawaal card pe excerpt jaisa padha nahi jaata. Nishaan (`Note:`,
+ * `Caption:`) waise hi text me aate hain jaise likhe hain; card pe wo sirf tab dikhte hain jab
+ * article unhi se shuru ho.
+ *
+ * Kata hua ho to aakhir me `…`, aur usse pehle ka viraam hata diya jaata hai (`sail,…` nahi).
+ */
+function autoExcerpt(blocks) {
+  const html = blocks
+    .filter((block) => block?.type === 'richText')
+    .map((block) => block.props?.html ?? '')
+    .join(' ')
+
+  const words = htmlToText(html).split(/\s+/).filter(Boolean)
+  if (words.length <= AUTO_EXCERPT_WORDS) return words.join(' ')
+
+  return `${words
+    .slice(0, AUTO_EXCERPT_WORDS)
+    .join(' ')
+    .replace(/[\s,.;:!?–—-]+$/, '')}…`
+}
+
 async function toPostCards(docs, siteId, locale) {
   if (!docs.length) return []
 
@@ -851,36 +894,34 @@ async function toPostCards(docs, siteId, locale) {
       id: String(d._id),
 
       /**
-       * ⚠️ **Card pe wahi heading jo page pe `<h1>` me hai** — client, 10 Sep:
-       * _"featured cards me heading aana chahiye, slug kyu aa raha hai."_
-       *
-       * `entry.title` ab chhota rakha jaata hai (slug · breadcrumb · admin list · `<title>` tag),
-       * aur page pe dikhne wali poori heading `fields.heading` me hai (#5, 10 Sep). Card pe
-       * `title` bhejne ka matlab tha ki listing pe chhota naam dikhe aur khol-te hi poora — do
-       * alag naam ek hi cheez ke.
-       *
-       * ⚠️ **`htmlToText()` zaroori hai.** `pageHeadingSchema` inline HTML pe hai, yaani heading
-       * me `<em>`/`<b>` ho sakte hain (hero me `<em>` accent rang deta hai). Card ke `<h3>` me
-       * wo markup bhejne ka matlab hota wahan italic text — ya `dangerouslySetInnerHTML` ka ek
-       * aur raasta, sirf ek line ke liye.
+       * Card pe post ka **title** — wahi jo page ka `<h1>` hai (client, 11 Sep, D-93: _"heading
+       * will be title now"_). 10–11 Sep ke beech yahan `fields.heading` tha; wo field ab post pe
+       * hai hi nahi. Card aur page ek hi text dikhate hain, bas ab wo `title` hai.
        */
-      title: htmlToText(d.fields?.heading ?? '') || d.title,
+      title: d.title,
       path: d.path,
-      excerpt: d.excerpt ?? '',
+
+      /**
+       * Khaali excerpt pe **content ki pehli lines** (client, 11 Sep, D-93). Likha hua excerpt
+       * hamesha jeetta hai. Sirf card ke liye hai — post ka apna payload (meta description ka
+       * fallback) likha hua excerpt hi bhejta hai, andaza nahi.
+       */
+      excerpt: d.excerpt || autoExcerpt(d.content?.blocks ?? []),
 
       /** `medium` — card ka thumbnail hai, hero nahi. */
       banner: await toDisplayImage(d.featuredImageId, 'medium', siteId),
 
       /**
-       * Image ke upar ka badge — **pehli** category (`.bcat`).
+       * Image ke upar ke badge — **saari** chuni hui categories, usi kram me (client, 11 Sep,
+       * D-93). 10 Sep se yahan sirf **pehli** jaati thi (`category`), kyunki post pe ek hi chunti
+       * thi.
        *
-       * ⚠️ Badge ka **rang** payload me nahi hai. Reference me chaar variant hain
-       * (`bcat--b`/`--g`/`--d`/plain) aur wo presentation hai — theme use category ki id se
-       * deterministically chunegi, taaki ek category ka rang har jagah wahi rahe. Uske liye
-       * taxonomy pe ek `color` field banana client ko ek aisa faisla dena hota jo uska nahi
-       * hai (wahi tark jo `showBadges` pe laga tha).
+       * Rang category ka apna (`color`) — khaali ho to theme id se chunti hai (`categoryClass()`).
+       * 10 Sep ko rang ka field jaan-boojh kar nahi bana tha; client ne 11 Sep ko maanga.
        */
-      category: categoryById.get((d.taxonomies?.categories ?? [])[0]) ?? null,
+      categories: (d.taxonomies?.categories ?? [])
+        .map((id) => categoryById.get(String(id)))
+        .filter(Boolean),
 
       /**
        * ⚠️ **`publishAt`, `createdAt` nahi.** `publishEntry()` publish pe wo hamesha bharta
@@ -1016,21 +1057,22 @@ async function resolvePostNav(doc, siteId, locale) {
  * `.bpg` ka grid `auto-fit` hai, to dono chalte hain.
  */
 async function resolveRelatedPosts(doc, siteId, locale, limit) {
-  const categoryId = (doc.taxonomies?.categories ?? [])[0]
+  /** Post ki **koi bhi** category mile to related — ab ek post kai categories me hota hai (D-93). */
+  const categoryIds = doc.taxonomies?.categories ?? []
 
   /**
-   * Bina category wale post ka koi "related" nahi hota. Bina is guard ke `undefined` khud ek
+   * Bina category wale post ka koi "related" nahi hota. Bina is guard ke khaali `$in` ek
    * kasauti ban jaata aur har bina-category post doosre ka related ban jaata — theek wahi jaal
    * jo `resolveSimilarPackages()` ke `nights == null` guard ne roka tha.
    */
-  if (!categoryId) return []
+  if (!categoryIds.length) return []
 
   const docs = await Entry.find({
     siteId,
     locale,
     type: 'post',
     _id: { $ne: doc._id },
-    'taxonomies.categories': categoryId,
+    'taxonomies.categories': { $in: categoryIds },
     ...publiclyVisibleQuery(),
   })
     .sort({ publishAt: -1, _id: -1 })
@@ -1276,9 +1318,14 @@ async function resolvePostListBlock(props, siteId, locale) {
 async function categoryFacets(docs, siteId, locale) {
   const counts = new Map()
 
+  /**
+   * Post **har** chuni hui category me ginta hai (D-93) — to pills ki ginti ka jod posts se
+   * zyada ho sakta hai. Client ne ye jaan kar chuna (11 Sep, _"Saari categories"_).
+   */
   for (const doc of docs) {
-    const id = (doc.taxonomies?.categories ?? [])[0]
-    if (id) counts.set(String(id), (counts.get(String(id)) ?? 0) + 1)
+    for (const id of new Set((doc.taxonomies?.categories ?? []).map(String))) {
+      counts.set(id, (counts.get(id) ?? 0) + 1)
+    }
   }
 
   if (!counts.size) return []
@@ -1769,23 +1816,14 @@ async function toPublicPost(doc, siteId, locale) {
     blocks,
 
     /**
-     * Post ka dikhne wala `<h1>` — client, 10 Sep (spec 008).
-     *
-     * ⚠️ **Ye `fields` object isliye hai ki theme ka shape `toPublicPage()` jaisa hi rahe** —
-     * ek hi `PostPage`/`TourPage` padhne wale ko do alag shape yaad na rakhne padein.
-     *
-     * ⚠️ **Sirf `heading` jaata hai, poora `fields` nahi.** `entries.fields` `Mixed` hai —
-     * usme kuch bhi pada ho sakta hai (purane import ka kachra, hataye ja chuke field). Use
-     * jaisa ka waisa bhej dena wahi galti hoti jo R10 rokta hai.
-     *
-     * ⚠️ **Khaali pe theme `entry.title` pe girti hai — fallback theme me hai, yahan nahi.**
-     * `title` payload me pehle se hai; dono jagah wahi text bhejne ka matlab hota ki ek din wo
-     * alag ho jaayein (D-86). Bilkul wahi tark jo `toPublicPage()` pe likha hai.
+     * ⚠️ **`fields` ab post ke payload me nahi jaata** (client, 11 Sep, D-93). 10 Sep se yahan
+     * `fields.heading` jaata tha aur `<h1>` usse banta tha; ab `<h1>` `title` hai. Purane post ke
+     * `fields.heading` DB me pade hain — unhe bhejna theme ko ek aisi cheez dena hota jise ab
+     * koi padhta nahi, aur ek din koi use phir se padhne lagta (R10).
      */
-    fields: { heading: doc.fields?.heading ?? '' },
 
-    /** `.ahead__cat` — post ki category. Khaali pe badge render hi nahi hota. */
-    category: categories[0] ?? null,
+    /** `.ahead__cat` — post ki **saari** categories (D-93). Khaali pe badge render hi nahi hota. */
+    categories,
 
     /**
      * Byline — **`blogSettings.author` se, `authorId` se nahi**.

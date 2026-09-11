@@ -1,6 +1,6 @@
 'use client'
 
-import { formatReviewMonth, starString } from '@cms/shared'
+import { formatReviewMonth, starParts } from '@cms/shared'
 import { useEffect, useRef, useState } from 'react'
 
 /**
@@ -92,6 +92,7 @@ export default function Reviews({ reviews }) {
       <div className="rev__track" ref={trackRef}>
         {reviews.map((review) => {
           const month = formatReviewMonth(review.month)
+          const stars = starParts(review.rating)
 
           return (
             <div className="revc" key={review.id}>
@@ -102,7 +103,20 @@ export default function Reviews({ reviews }) {
                  * jagah ek saaf vaakya deta hai.
                  */}
                 <span className="revc__s" aria-label={`${review.rating} out of 5`}>
-                  <span aria-hidden="true">{starString(review.rating)}</span>
+                  {/*
+                   * Aadha taara (client, 11 Sep, D-93) — khaali `☆` ke upar ek `★` jiska sirf
+                   * baayan aadha dikhta hai (`.revc__half`). Text ka koi "aadha taara" glyph har
+                   * font me nahi hota; ye wahi do glyph hain jo design me pehle se hain.
+                   */}
+                  <span aria-hidden="true">
+                    {'★'.repeat(stars.full)}
+                    {stars.half && (
+                      <span className="revc__half">
+                        ☆<i>★</i>
+                      </span>
+                    )}
+                    {'☆'.repeat(stars.empty)}
+                  </span>
                 </span>
                 {month && <span className="revc__d">{month}</span>}
               </div>

@@ -56,6 +56,12 @@ export const NAV = [
       { label: 'Add New', to: '/posts/new', permission: PERMISSION.ENTRY_CREATE },
       { label: 'Categories', to: '/posts/categories', permission: PERMISSION.TAXONOMY_READ },
       { label: 'Blog Page', to: '/blog-page', permission: PERMISSION.ENTRY_READ },
+      /**
+       * ⚠️ **11 Sep ko `Settings ▸ Blog settings` se yahan aaya** (client, D-93) — theek wahi
+       * raasta jo `Tour settings` ne 8 Sep ko liya tha. Storage (`settings.blogSettings`) aur
+       * permission (`settings.read`) wahi; sirf menu me jagah badli.
+       */
+      { label: 'Blog settings', to: '/posts/settings', permission: PERMISSION.SETTINGS_READ },
     ],
   },
   { id: 'media', icon: '▤', label: 'Media', to: '/media', permission: PERMISSION.MEDIA_READ },
@@ -313,15 +319,7 @@ export const NAV = [
        */
       { label: 'CTA Section', to: '/settings/cta', permission: PERMISSION.SETTINGS_READ },
       /* `Tour settings` yahan se **Tour ke submenu** me chala gaya (client, 8 Sep) — upar dekho. */
-      /**
-       * Blog settings — author · TOC · post ki sidebar (spec 008).
-       *
-       * ⚠️ **Ye Settings me hai, Posts ke submenu me nahi — client ne saaf kaha** (_"in
-       * settings there will be a post/blog settings"_). Yaani `Tour settings` wala raasta
-       * yahan **nahi** liya gaya, jo 8 Sep ko Settings se Tour ke submenu me chala gaya tha.
-       * Dono client ke faisle hain; UI ki jagah aur storage ki jagah ka koi bandhan nahi.
-       */
-      { label: 'Blog settings', to: '/settings/blog', permission: PERMISSION.SETTINGS_READ },
+      /* `Blog settings` yahan se **Posts ke submenu** me chala gaya (client, 11 Sep, D-93) — upar dekho. */
       { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
       { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
       {
@@ -445,6 +443,8 @@ export const ROUTE_GUARDS = Object.freeze({
    * storage `settings.tourSettings` me hai. Jagah badalne se permission nahi badalti.
    */
   '/tour/settings': PERMISSION.SETTINGS_READ,
+  /** Blog settings — menu me ab **Posts** ke neeche (client, 11 Sep, D-93), guard wahi. */
+  '/posts/settings': PERMISSION.SETTINGS_READ,
   /**
    * Menus screen khud `menu.update` na hone pe form disable kar deti hai — `author` aur
    * `contributor` menu **dekh** sakte hain (link banate waqt ye kaam ka hai), badal nahi.

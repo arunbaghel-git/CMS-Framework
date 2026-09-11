@@ -257,7 +257,8 @@ export default function MasterListScreen({ list }) {
      * Stars aur month wahi helpers se bante hain jo public page pe chalte hain — list me
      * kuch aur dikhna aur page pe kuch aur chhapna is repo ki pehchani hui galti hai.
      */
-    if (key === 'rating') return starString(item[key])
+    /** Number saath me — text me aadha taara nahi banta, `4.5` akele taaron se `4` lagta (D-93). */
+    if (key === 'rating') return `${starString(item[key])} ${item[key]}`
     if (key === 'month') return formatReviewMonth(item[key]) || '—'
 
     return item[key] || '—'
@@ -304,10 +305,10 @@ export default function MasterListScreen({ list }) {
     }
 
     /**
-     * 1 se 5 poore taare — dropdown, number input nahi.
+     * 1 se 5, aadhe ke saath — dropdown, number input nahi (aadhe: client, 11 Sep, D-93).
      *
-     * Number input pe `4.5` ya `7` likha ja sakta tha; schema use reject karta, par error
-     * form bharne ke **baad** aata. Paanch tay vikalp me galat value likhi hi nahi ja sakti.
+     * Number input pe `4.3` ya `7` likha ja sakta tha; schema use reject karta, par error
+     * form bharne ke **baad** aata. Tay vikalp me galat value likhi hi nahi ja sakti.
      */
     if (field.type === 'stars') {
       return (
@@ -318,7 +319,7 @@ export default function MasterListScreen({ list }) {
           required={field.required}
         >
           <option value="">Choose…</option>
-          {[5, 4, 3, 2, 1].map((n) => (
+          {[5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1].map((n) => (
             <option key={n} value={n}>
               {starString(n)} — {n}
             </option>

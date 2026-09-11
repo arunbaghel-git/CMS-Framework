@@ -14,7 +14,7 @@ import { toPostEntryInput } from './post-mapper.js'
  * kar ke **poore package** ko gira deta. Sirf output ki shakl dekhne wala test us bug ko
  * kabhi na pakadta.
  *
- * Yahan bhi wahi khatra hai: `title` 300, `excerpt` 1000, `heading` 300, FAQ ka sawaal 300.
+ * Yahan bhi wahi khatra hai: `title` 300, `excerpt` 1000, FAQ ka sawaal 300.
  * Inme se ek bhi paar ho to Zod poore post ko gira deta hai.
  */
 const TEMPLATE = readFileSync(
@@ -57,10 +57,18 @@ describe('toPostEntryInput — asli doc', () => {
     expect(blockers(issues)).toEqual([])
   })
 
-  it('title, slug aur heading teen alag cheezein hain', () => {
+  it('title aur slug — Blog heading ab kahin nahi jaata, sirf note banta hai (D-93)', () => {
+    /**
+     * Client, 11 Sep: _"heading will be title now"_. Template me `Blog heading` abhi bhi bhara hai
+     * (purana doc) — wo `fields.heading` me nahi jaata, aur client ko ek note milta hai.
+     */
     expect(input.title).toBe('Andaman ferry booking')
     expect(slug).toBe('andaman-ferry-booking')
-    expect(input.fields.heading).toBe('Andaman ferry booking: everything you need before you sail')
+    expect(input).not.toHaveProperty('fields')
+
+    const found = issues.find((i) => i.label === 'Blog heading')
+    expect(found.level).toBe('note')
+    expect(found.value).toBe('Andaman ferry booking: everything you need before you sail')
   })
 
   it('category naam se id ban jaati hai', () => {
@@ -76,7 +84,8 @@ describe('toPostEntryInput — asli doc', () => {
 
   it('banner ka URL alag lautta hai — service use resolve karti hai', () => {
     expect(bannerUrl).toMatch(/\/uploads\/sites\/default\/media\//)
-    expect(input.fields).not.toHaveProperty('bannerImage')
+    /** Post pe ab `fields` hi nahi jaata (D-93) — banner kisi field me ghusa na ho, bas yahi dekhna hai. */
+    expect(input.fields?.bannerImage).toBeUndefined()
     expect(input).not.toHaveProperty('featuredImageId')
   })
 })

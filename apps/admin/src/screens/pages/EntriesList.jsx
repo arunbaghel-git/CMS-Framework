@@ -300,11 +300,13 @@ export default function EntriesList({
      * hi nahi hua tha, to wo default pe gir kar har post ke `content.blocks` me `packageList`
      * gin raha tha, jo hamesha 0 hota. Client ne pakda: _"ye Packages ka nav kyu hai?"_
      *
-     * Ek hi category hoti hai (spec 008), par storage array hai (D-49) — isliye `[0]`.
+     * Post kai categories me ho sakta hai (client, 11 Sep, D-93) — saare naam, comma se.
      */
     if (thirdColumn === 'category') {
-      const id = (entry.taxonomies?.categories ?? [])[0]
-      return id ? (categoryNames[id] ?? '—') : '—'
+      const names = (entry.taxonomies?.categories ?? [])
+        .map((id) => categoryNames[id])
+        .filter(Boolean)
+      return names.length ? names.join(', ') : '—'
     }
 
     const lists = (entry.content?.blocks ?? []).filter((b) => b.type === 'packageList').length

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
 
-import { emptyHtml, isEmptyHtml, textToHtml } from '@cms/shared'
+import { emptyHtml, isEmptyHtml, starParts, starString, textToHtml } from '@cms/shared'
 
 import { createApp } from '../app.js'
 import { connectTestDb, disconnectTestDb } from './db.js'
@@ -401,13 +401,26 @@ describe('reviews', () => {
     })
   })
 
-  it('rating 1 se 5 ke bahar reject hoti hai — aadhe taare bhi nahi', async () => {
-    // Design me sirf bhare/khaali taare hain, isliye 4.5 ka koi roop hi nahi banta
-    for (const rating of [0, 6, 4.5]) {
+  it('rating 1 se 5, aadhe ke saath — 4.5 chalta hai, 4.3 aur bahar wale nahi (D-93)', async () => {
+    /** 1–11 Sep tak 4.5 bhi reject hota tha; client ne aadhe taare maange (11 Sep). */
+    const half = await authed('post', '/api/reviews', adminJar).send(aReview({ rating: 4.5 }))
+
+    expect(half.status).toBe(201)
+    expect((await Review.findById(half.body.data.item.id).lean()).rating).toBe(4.5)
+
+    for (const rating of [0, 6, 4.3]) {
       expect(
         (await authed('post', '/api/reviews', adminJar).send(aReview({ rating }))).status,
       ).toBe(400)
     }
+  })
+
+  it('starParts — 4.5 me ek aadha taara; starString use khaali ginta hai, poora nahi', () => {
+    expect(starParts(4.5)).toEqual({ full: 4, half: true, empty: 0 })
+    expect(starParts(3)).toEqual({ full: 3, half: false, empty: 2 })
+    expect(starParts(1.5)).toEqual({ full: 1, half: true, empty: 3 })
+    /** ⚠️ Pehle `Math.round` tha — 4.5 paanch bhare taare ban jaata, review asli se behtar dikhta. */
+    expect(starString(4.5)).toBe('★★★★☆')
   })
 
   it('month YYYY-MM hi hota hai — khaali chalta hai, kachra nahi', async () => {
@@ -456,6 +469,35 @@ describe('reviews', () => {
 
     expect((await authed('delete', `/api/reviews/${id}`, adminJar)).status).toBe(200)
     expect(await Review.findById(id).lean()).toBeNull()
+  })
+})
+
+describe('category ka badge rang (client, 11 Sep, D-93)', () => {
+  const createCategory = (body) =>
+    authed('post', '/api/taxonomies', adminJar).send({ type: 'category', ...body })
+
+  it('create aur PATCH dono pe rang DB me jaata hai — aur khaali karke wapas Automatic', async () => {
+    /**
+     * ⚠️ **DB padha jaata hai, response nahi.** `updateTaxonomy()` ka `$set` ek whitelist hai —
+     * `color` wahan na hota to Zod pass karta, API 200 deti aur DB me purana rang rehta
+     * (`updatePackageDefaults()` wala jaal, chauthi baar).
+     */
+    const created = await createCategory({ name: 'Ferries', color: '#1a73e8' })
+    const { id } = created.body.data.taxonomy
+
+    expect((await Taxonomy.findById(id).lean()).color).toBe('#1a73e8')
+
+    await authed('patch', `/api/taxonomies/${id}`, adminJar).send({ color: '#cc0000' }).expect(200)
+    expect((await Taxonomy.findById(id).lean()).color).toBe('#cc0000')
+
+    await authed('patch', `/api/taxonomies/${id}`, adminJar).send({ color: '' }).expect(200)
+    expect((await Taxonomy.findById(id).lean()).color).toBe('')
+  })
+
+  it('galat rang thukraya jaata hai', async () => {
+    for (const color of ['red', '#fff', '#12345g']) {
+      expect((await createCategory({ name: `X ${color}`, color })).status).toBe(400)
+    }
   })
 })
 

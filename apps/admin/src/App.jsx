@@ -165,6 +165,8 @@ const APP_ROUTES = [
         type="category"
         title="Category"
         subtitle="Flat list — the topic shown on each post card, and in the blog sidebar."
+        countLabel="Posts"
+        hasColor
       />
     ),
   },
@@ -254,8 +256,11 @@ const APP_ROUTES = [
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
   { path: '/settings/cta', element: <CtaSection /> },
-  /** Blog settings — author · TOC · post ki sidebar (spec 008, Slice C). */
-  { path: '/settings/blog', element: <BlogSettings /> },
+  /**
+   * Blog settings — author · TOC · post ki sidebar (spec 008). 11 Sep ko menu me Posts ke neeche
+   * gaya, to URL bhi `/posts/settings` (D-93) — `Tour settings` ka `/tour/settings` jaisa.
+   */
+  { path: '/posts/settings', element: <BlogSettings /> },
   { path: '/appearance/menus', element: <Menus /> },
   { path: '/appearance/sidebars', element: <Sidebars /> },
   { path: '/appearance/sidebars/:id', element: <SidebarEdit /> },

@@ -15,7 +15,6 @@ export default function TourList() {
       addLabel="Add New Tour Page"
       basePath="/tour"
       searchLabel="Search tour pages…"
-      thirdColumn="packages"
     />
   )
 }

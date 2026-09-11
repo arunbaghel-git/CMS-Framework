@@ -69,7 +69,8 @@ export default function BlogSchema({ entry, settings }) {
     datePublished: isoDate(entry.publishedAt),
     dateModified: isoDate(entry.updatedAt ?? entry.publishedAt),
     wordCount: entry.readMinutes ? entry.readMinutes * 200 : undefined,
-    articleSection: entry.category?.name || undefined,
+    /** Saari categories (D-93) — schema.org `articleSection` kai text le sakta hai. */
+    articleSection: entry.categories?.length ? entry.categories.map((c) => c.name) : undefined,
     mainEntityOfPage: siteUrl
       ? { '@type': 'WebPage', '@id': absolute(siteUrl, entry.path) }
       : undefined,

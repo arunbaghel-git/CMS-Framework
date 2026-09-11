@@ -240,7 +240,12 @@ export async function updateTaxonomy(id, input, siteId = DEFAULT_SITE_ID, locale
 
   const $set = {}
 
-  for (const key of ['name', 'description', 'bannerMediaId', 'order', 'seo']) {
+  /**
+   * ⚠️ Ye ek **whitelist** hai — naya field yahan na ho to Zod pass karega, API 200 degi aur DB
+   * me purani value rahegi (`updatePackageDefaults()` wala jaal). `color` isi wajah se yahan hai
+   * (D-93), aur uska test DB padhta hai, response nahi.
+   */
+  for (const key of ['name', 'description', 'bannerMediaId', 'color', 'order', 'seo']) {
     if (input[key] !== undefined) $set[key] = input[key]
   }
 

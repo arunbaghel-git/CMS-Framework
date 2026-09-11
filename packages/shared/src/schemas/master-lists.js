@@ -156,16 +156,19 @@ export const reviewSchema = z.object({
   siteId: z.string().default(DEFAULT_SITE_ID),
 
   /**
-   * Poore taare — **1 se 5, aadha nahi**.
+   * Taare — **1 se 5, aadhe ke saath** (`1.5` · `2.5` · `3.5` · `4.5`) — client, 11 Sep (D-93).
    *
-   * Design (`itinerary-v3.html`) me card pe `★★★★★` aur `★★★★☆` hain, yaani bhare ya
-   * khaali. Aadhe taare ka koi glyph us design me hai hi nahi, aur `4.5` ko do adhoore
-   * taare me dikhane ke liye SVG/clip chahiye hota — ek naya visual jo design me nahi hai.
+   * 1 Sep se 11 Sep tak yahan sirf poore taare the, kyunki design (`itinerary-v3.html`) me
+   * sirf bhare/khaali glyph hain. Client ne aadhe maange; card pe aadha taara `starParts()` se
+   * banta hai (khaali `☆` ke upar aadha bhara `★`), text jagah pe `starString()` number ke saath.
+   *
+   * `multipleOf(0.5)` — `4.3` jaisi value dropdown se aa hi nahi sakti, par API se aaye to
+   * ruk jaaye. Warna card pe kaunsa taara aadha dikhe, ye andaza ban jaata.
    *
    * ⚠️ Ye **card ka** rating hai. Page ke upar wala `4.9` isse alag hai aur wo dashmalav me
    * hai — wo `packageDefaults.rating.value` hai.
    */
-  rating: z.coerce.number().int().min(1).max(5),
+  rating: z.coerce.number().min(1).max(5).multipleOf(0.5),
 
   /**
    * Kab gaye the — `2026-03`. Din nahi, sirf **mahina aur saal** (client, 1 Sep).
@@ -213,13 +216,31 @@ export const updateReviewSchema = createReviewSchema.partial()
  * ki list kuch dikhati aur page pe kuch aur chhapta — wahi sabak jo `PACKAGE_SECTIONS` ke
  * fallback pe likha hai (D-65).
  *
- * Aadhe taare nahi hain (dekho `reviewSchema.rating`), isliye ye seedha do characters ka
- * dohraav hai — koi SVG ya clip nahi.
+ * Text me aadha taara nahi ban sakta (uska glyph har font me nahi hota), isliye yahan wo
+ * **khaali** gina jaata hai — `4.5` → `★★★★☆`. Jahan ye text dikhta hai wahan number saath
+ * likho (admin ki list aur dropdown). Card pe aadha taara `starParts()` se banta hai.
+ *
+ * ⚠️ Pehle yahan `Math.round` tha — `4.5` **paanch** bhare taare ban jaata, yaani review
+ * asli se behtar dikhta.
  */
 export function starString(rating) {
-  const filled = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)))
+  const { full } = starParts(rating)
 
-  return '★'.repeat(filled) + '☆'.repeat(5 - filled)
+  return '★'.repeat(full) + '☆'.repeat(5 - full)
+}
+
+/**
+ * `4.5` → `{ full: 4, half: true, empty: 0 }` — card ke taare (client, 11 Sep, D-93).
+ *
+ * Theme isse teen hisse banati hai: bhare, ek aadha, aur khaali. Hisaab yahan hai taaki admin
+ * aur theme ek hi niyam padhein (D-65 wala tark).
+ */
+export function starParts(rating) {
+  const value = Math.max(0, Math.min(5, Number(rating) || 0))
+  const full = Math.floor(value)
+  const half = value - full >= 0.5
+
+  return { full, half, empty: 5 - full - (half ? 1 : 0) }
 }
 
 /**

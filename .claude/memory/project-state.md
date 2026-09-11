@@ -74,6 +74,14 @@ web 3001. Client ka dev server aur asli DB dono nahi chhue.
 - ✅ Post ka parent ab Blog settings se (D-92 §13): `/blog/…` → blog page (admin me `—`, breadcrumb
   `Home › Blog › Post`), `/…` → koi nahi. Server tay karta hai (create · update · switch), Bulk
   Upload bhi. **Migration 024** local pe chal chuki (15 post, sab bina parent — mode `root`). 1029 test
+  ⚠️ Usi shaam client ne mode `nested` + blog page slug `blog` kiya — ab saare post `/blog/…`, parent
+  blog page (dash dikhta hai). Code ne sahi kiya.
+- ✅ **D-93 — client ki 11 Sep list** (admin 5 + public 4): post ka `<h1>` = Title (Page Header
+  gaya, D-91 palta), kai categories (checkbox, har jagah saare badge), category ka badge rang,
+  excerpt optional + card content se (24 shabd), hero byline me date · read time, TOC pinned,
+  review aadhe taare, Blog settings → Posts submenu (`/posts/settings`), Tour list ka Packages
+  column aur `/blog` ki ginti hati. Koi migration nahi. **1038 test**
+  ⚠️ Port 3000 pe `next start` (12:58 ka build) — site ke badlaav naya build chalane pe dikhenge
 - A-18 confirm: index khaali `importRuns` pe, asli data `importruns` bina index ke
 
 ✅ a21 setup hata diya — `merncms_a21` drop, 3001/4001 band, worktree git se hata. Asli `merncms` aur

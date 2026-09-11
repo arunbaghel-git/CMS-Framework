@@ -962,7 +962,7 @@ describe('Past imports me fail hone ki wajah (client, 4 Sep)', () => {
 describe('blog post ka import (spec 008)', () => {
   const postDoc = (rows) => doc(rows.map(p).join(''))
 
-  const FULL = postDoc([
+  const FULL_ROWS = [
     'Meta Title',
     'Andaman ferry booking 2026',
     'Meta Description',
@@ -971,8 +971,6 @@ describe('blog post ka import (spec 008)', () => {
     'Andaman ferry booking',
     'Blog URL',
     'andaman-ferry-booking',
-    'Blog heading',
-    'Everything you need before you sail',
     'Excerpt',
     'Three operators, two jetties, one rule.',
     'Category',
@@ -986,7 +984,8 @@ describe('blog post ka import (spec 008)', () => {
     'Can I book after I land?',
     'answer',
     'Only the government ferry, and only if seats are left.',
-  ])
+  ]
+  const FULL = postDoc(FULL_ROWS)
 
   it('post ban kar publish ho jaata hai', async () => {
     const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
@@ -1051,14 +1050,46 @@ describe('blog post ka import (spec 008)', () => {
     })
   })
 
-  it('title, heading aur excerpt teen alag jagah jaate hain', async () => {
-    const run = await runImport({ d1: FULL }, ['d1'], undefined, 'post')
+  it('Blog heading ab kahin nahi jaata — bhara ho to note, publish nahi rukta (D-93)', async () => {
+    /**
+     * Client, 11 Sep: _"heading will be title now"_. Purane doc me `Blog heading` bhara ho sakta
+     * hai — wo `fields.heading` me nahi jaata, `Content` me bhi nahi ghusta, aur client ko ek
+     * note milta hai. Chup-chaap girna D-86 wala "kuch na hona" hota.
+     */
+    const withHeading = postDoc([
+      ...FULL_ROWS.slice(0, 8),
+      'Blog heading',
+      'Everything you need before you sail',
+      ...FULL_ROWS.slice(8),
+    ])
+
+    const run = await runImport({ d1: withHeading }, ['d1'], undefined, 'post')
     const entry = await Entry.findById(run.rows[0].entryId).lean()
 
-    /** ⚠️ D-90 ka batwara — `title` slug/breadcrumb ke liye, `heading` page ka `<h1>`. */
-    expect(entry.fields.heading).toBe('Everything you need before you sail')
+    expect(run.rows[0].status).toBe('published')
+    expect(run.rows[0].issues.map((issue) => issue.label)).toContain('Blog heading')
+    expect(entry.title).toBe('Andaman ferry booking')
+    expect(entry.fields?.heading).toBeUndefined()
+    expect(JSON.stringify(entry.content)).not.toContain('Everything you need before you sail')
     expect(entry.excerpt).toMatch(/^Three operators/)
     expect(entry.seo.title).toBe('Andaman ferry booking 2026')
+  })
+
+  it('Category me comma se kai — sab judti hain, usi kram me (D-93)', async () => {
+    await Taxonomy.create({ type: 'category', name: 'Ferries', slug: 'ferries' })
+
+    const rows = [...FULL_ROWS]
+    rows[rows.indexOf('Trip planning')] = 'Trip planning, Ferries'
+
+    const run = await runImport({ d1: postDoc(rows) }, ['d1'], undefined, 'post')
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+    const names = await Taxonomy.find({ _id: { $in: entry.taxonomies.categories } }).lean()
+    const byId = new Map(names.map((t) => [String(t._id), t.name]))
+
+    expect(entry.taxonomies.categories.map((id) => byId.get(String(id)))).toEqual([
+      'Trip planning',
+      'Ferries',
+    ])
   })
 
   it('category naam se judti hai', async () => {

@@ -478,11 +478,131 @@ describe('postList block', () => {
     const [card] = (await resolvedListing()).data.cards
 
     expect(card.excerpt).toBe('Chhota sa parichay')
-    expect(card.category.name).toBe('Planning')
+    expect(card.categories[0].name).toBe('Planning')
     expect(card.readMinutes).toBe(1)
     expect(card.publishedAt).toBeTruthy()
     // Author har post pe wahi hai — 60 cards pe wahi string dohraana fizool hai
     expect(card).not.toHaveProperty('author')
+  })
+
+  it('excerpt khaali ho to card content ki pehli lines leta hai — likha hua jeetta hai (D-93)', async () => {
+    /** Client, 11 Sep: _"jitne word ki need ho utne hi bas"_ — 24 shabd, aakhir me `…`. */
+    const long = Array.from({ length: 40 }, (_, i) => `shabd${i + 1}`).join(' ')
+    await makePost({
+      title: 'Khaali',
+      publishAt: day(3),
+      blocks: [textBlock('r1', `<p>${long}</p>`)],
+    })
+    await makePost({
+      title: 'Likha',
+      publishAt: day(2),
+      excerpt: 'Apna excerpt',
+      blocks: [textBlock('r2', `<p>${long}</p>`)],
+    })
+    await makePost({
+      title: 'Chhota',
+      publishAt: day(1),
+      blocks: [textBlock('r3', '<p>Bas itna sa text.</p>')],
+    })
+
+    const byTitle = Object.fromEntries(
+      (await resolvedListing()).data.cards.map((c) => [c.title, c.excerpt]),
+    )
+
+    expect(byTitle.Khaali.split(' ')).toHaveLength(24)
+    expect(byTitle.Khaali.startsWith('shabd1 shabd2')).toBe(true)
+    expect(byTitle.Khaali.endsWith('shabd24…')).toBe(true)
+    expect(byTitle.Likha).toBe('Apna excerpt')
+    /** Poora aa jaaye to na kaata jaata hai, na `…` lagta hai. */
+    expect(byTitle.Chhota).toBe('Bas itna sa text.')
+  })
+
+  it('kai categories — card pe saari, pills me har ek me ginti (D-93)', async () => {
+    const ferries = await makeCategory('Ferries')
+    const beaches = await makeCategory('Beaches')
+    await makePost({ title: 'Dono', publishAt: day(2), categories: [ferries, beaches] })
+    await makePost({ title: 'Sirf ferry', publishAt: day(1), categories: [ferries] })
+
+    const block = await resolvedListing()
+    const dono = block.data.cards.find((c) => c.title === 'Dono')
+
+    expect(dono.categories.map((c) => c.name)).toEqual(['Ferries', 'Beaches'])
+    expect(Object.fromEntries(block.data.facets.map((f) => [f.name, f.count]))).toEqual({
+      Ferries: 2,
+      Beaches: 1,
+    })
+  })
+
+  it('category ka rang card tak jaata hai — khaali ho to key hi nahi (D-93)', async () => {
+    const red = await Taxonomy.create({
+      siteId: 'default',
+      type: 'category',
+      name: 'Red',
+      slug: 'red',
+      color: '#cc0000',
+    })
+    const plain = await makeCategory('Plain')
+    await makePost({ title: 'Rangeen', publishAt: day(1), categories: [String(red._id), plain] })
+
+    const [card] = (await resolvedListing()).data.cards
+
+    expect(card.categories[0].color).toBe('#cc0000')
+    /** Khaali rang = theme apna chunti hai (`categoryClass()`), isliye payload me key hi nahi. */
+    expect(card.categories[1]).not.toHaveProperty('color')
+  })
+})
+
+describe('post page — title hi heading, saari categories (client, 11 Sep, D-93)', () => {
+  it('payload me `fields` nahi — purana `fields.heading` anadekha, card pe bhi title', async () => {
+    const a = await makeCategory('Ferries')
+    const b = await makeCategory('Beaches')
+    await Entry.create({
+      siteId: 'default',
+      locale: 'en',
+      type: 'post',
+      title: 'Asli title',
+      slug: 'asli',
+      path: '/blog/asli',
+      status: 'published',
+      publishAt: day(1),
+      /** 10–11 Sep ke beech bane post me ye pada ho sakta hai — ab koi ise nahi padhta. */
+      fields: { heading: 'Purani heading' },
+      taxonomies: { categories: [a, b] },
+      content: { version: 1, blocks: [] },
+    })
+
+    const entry = (await resolve('/blog/asli')).body.data.entry
+
+    expect(entry.title).toBe('Asli title')
+    expect(entry).not.toHaveProperty('fields')
+    expect(entry.categories.map((c) => c.name)).toEqual(['Ferries', 'Beaches'])
+
+    const [card] = (await resolvedListing()).data.cards
+    expect(card.title).toBe('Asli title')
+  })
+
+  it('related reading kisi bhi category se milta hai', async () => {
+    const ferries = await makeCategory('Ferries')
+    const beaches = await makeCategory('Beaches')
+    const other = await makeCategory('Other')
+    await makePost({
+      title: 'Main',
+      slug: 'main',
+      publishAt: day(3),
+      categories: [ferries, beaches],
+    })
+    await makePost({
+      title: 'Beach wala',
+      slug: 'beach-wala',
+      publishAt: day(2),
+      categories: [beaches],
+    })
+    await makePost({ title: 'Alag', slug: 'alag', publishAt: day(1), categories: [other] })
+
+    const entry = (await resolve('/blog/main')).body.data.entry
+
+    /** Pehle sirf **pehli** category (`Ferries`) dekhi jaati thi — `Beach wala` chhoot jaata. */
+    expect(entry.related.map((p) => p.title)).toEqual(['Beach wala'])
   })
 })
 

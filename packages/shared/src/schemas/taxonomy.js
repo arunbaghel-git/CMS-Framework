@@ -54,6 +54,18 @@ export const taxonomySchema = z.object({
   /** Destinations ka banner — spec 007 §1.1. Media id, URL nahi (D-41). */
   bannerMediaId: z.string().nullable().default(null),
 
+  /**
+   * Category ke badge ka rang — `#rrggbb`, ya khaali (client, 11 Sep, D-93).
+   *
+   * Khaali ka matlab hai **"theme apna rang chune"** — reference ke chaar variant me se, category
+   * ki id se (`categoryClass()`), jo 10 Sep se hota aaya hai. Isliye purani categories bina kuch
+   * kiye waisi hi dikhti hain. Sirf `category` ki screen pe iska control hai.
+   */
+  color: z
+    .string()
+    .regex(/^(#[0-9a-fA-F]{6})?$/, 'Colour must look like #1a73e8')
+    .default(''),
+
   /** "Uncategorized" jaisa — delete nahi hota, aur khaali entry isi pe girti hai. */
   isDefault: z.boolean().default(false),
 
