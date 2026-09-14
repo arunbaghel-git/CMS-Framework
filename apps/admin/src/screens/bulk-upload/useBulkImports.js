@@ -17,8 +17,20 @@ import { api, errorMessage } from '../../lib/api.js'
  * `target` khaali ho to dono type (client, 11 Sep). Filter **server pe** hota hai, yahan nahi:
  * 20 ki list ko yahan chhaanne se `Packages` pe utne hi dikhte jitne us 20 me package the.
  */
-export function useImportRuns(target = '') {
+/**
+ * ⚠️ **Page 1 pe atka hua tha — client, 14 Sep.** DB me har type ke **apne** 20 run bachte hain
+ * (D-92 §12), yaani teeno milaa kar 60 tak. Par list hamesha sirf `page: 1, limit: 20` maangti thi
+ * aur uska koi agla page nahi tha — to `All` me sabse naye 20 hi dikhte the, jabki `Packages` kholne
+ * pe package ke purane run mil jaate. Client ko lagta ki All me kuch gayab hai.
+ *
+ * Ab `page` bahar se aata hai aur `meta.total` lautta hai: All me saare run pages me, har type ka
+ * tab apne 20.
+ */
+export const IMPORT_RUNS_PER_PAGE = 20
+
+export function useImportRuns(target = '', page = 1) {
   const [runs, setRuns] = useState([])
+  const [meta, setMeta] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -26,22 +38,23 @@ export function useImportRuns(target = '') {
     setLoading(true)
     try {
       const res = await api.get('/bulk-imports', {
-        params: { page: 1, limit: 20, ...(target ? { target } : {}) },
+        params: { page, limit: IMPORT_RUNS_PER_PAGE, ...(target ? { target } : {}) },
       })
       setRuns(res.data.data.runs)
+      setMeta(res.data.meta ?? null)
       setError(null)
     } catch (err) {
       setError(errorMessage(err))
     } finally {
       setLoading(false)
     }
-  }, [target])
+  }, [target, page])
 
   useEffect(() => {
     reload()
   }, [reload])
 
-  return { runs, loading, error, reload }
+  return { runs, meta, loading, error, reload }
 }
 
 /** Chalta hua import kitni der me dobara poochha jaaye. */

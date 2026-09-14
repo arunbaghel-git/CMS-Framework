@@ -609,9 +609,6 @@ export const pageHeadingSchema = inlineHtmlSchema.pipe(z.string().max(300)).defa
  * Khaali `label` **ya** khaali `url` — dono pe button render hi nahi hota. Bina url ka button
  * click pe kuch nahi karta (D-30).
  */
-/** Page ke on/off khaane — `showWhatsapp`, `showToc` (D-95). Asli boolean, `"false"` string nahi. */
-export const pageToggleSchema = z.boolean()
-
 export const heroButtonSchema = z
   .object({
     label: z.string().trim().max(80).default(''),

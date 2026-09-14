@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import { BlogFilterProvider } from '../blog/BlogFilter.jsx'
 import PostList from '../blog/PostList.jsx'
 import PostListLead from '../blog/PostListLead.jsx'
@@ -154,10 +156,36 @@ function CardsBlock({ props }) {
  * ⚠️ `details`/`summary` sanitizer me D-87 ki jaanch me jode gaye the — wo pehle the hi nahi,
  * aur client editor me khud `<details>` likhta to wo write pe chup-chaap gayab hota.
  */
-function FaqsBlock({ props }) {
+function FaqsBlock({ props, plainFaqs }) {
   const items = (props.items ?? []).filter((faq) => faq?.question)
 
   if (!items.length) return null
+
+  /**
+   * **Saada FAQ — sirf `page` pe** (client, 14 Sep, D-95).
+   *
+   * `page-template-text.html` me FAQ accordion **nahi** hai — content ka hi hissa hai: `h2` heading,
+   * har sawaal `h3`, jawab paragraph. Client ne screenshot se dikhaya aur ye tareeka chuna: data
+   * **FAQs block me hi** rahe (schema hamesha bane, Bulk Upload waisa hi chale), sirf dikhe editor ke
+   * content jaisa. Isliye koi nayi CSS nahi — `.art h2`/`h3`/`p` hi lagte hain, aur `.art--page h2`
+   * ki upar wali line bhi.
+   *
+   * Tour aur Blog pe accordion hi rehta hai — unke reference me wahi hai.
+   */
+  if (plainFaqs) {
+    return (
+      <section className="blk" id={props.anchorId} style={{ scrollMarginTop: 96 }}>
+        <BlockHead heading={props.heading} description={props.description} />
+
+        {items.map((faq, i) => (
+          <Fragment key={faq.id ?? i}>
+            <h3>{faq.question}</h3>
+            <div dangerouslySetInnerHTML={{ __html: faq.answer ?? '' }} />
+          </Fragment>
+        ))}
+      </section>
+    )
+  }
 
   return (
     /**
@@ -249,7 +277,17 @@ export function BlocksScope({ blocks = [], children }) {
  *   `lead` pass columns ke upar chalta hai, `main` unke andar. Ek hi `blocks` array dono baar
  *   aati hai — jo block us slot me kuch nahi deta wo chup-chaap gir jaata hai.
  */
-export default function Blocks({ blocks = [], slot = 'main', article = false, lead = true }) {
+/**
+ * @param {object} props
+ * @param {boolean} [props.plainFaqs]  FAQs accordion ki jagah saade `h3` + jawab — sirf `page` (D-95)
+ */
+export default function Blocks({
+  blocks = [],
+  slot = 'main',
+  article = false,
+  lead = true,
+  plainFaqs = false,
+}) {
   return blocks.map((block, i) => {
     const Block = slot === 'lead' ? LEADS[block.type] : BLOCKS[block.type]
 
@@ -272,6 +310,7 @@ export default function Blocks({ blocks = [], slot = 'main', article = false, le
         data={block.data}
         article={article}
         lead={lead}
+        plainFaqs={plainFaqs}
       />
     )
   })

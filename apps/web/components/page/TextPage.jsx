@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import Img from '../Img.jsx'
 import Toc from '../blog/Toc.jsx'
 import CtaSection from '../package/CtaSection.jsx'
@@ -84,12 +86,10 @@ export default function TextPage({ entry, settings }) {
    * ⚠️ **Author yahan nahi aata**, payload me hone ke bawajood — client ne `Andaman Tourism team`
    * hataya. `byline.author` Tour ke purane tests aur payload ka hissa hai; page use padhta nahi.
    */
-  const bylineText = [
+  const bylineParts = [
     byline.updatedAt ? `Updated ${monthYear(byline.updatedAt)}` : null,
     byline.readMinutes > 0 ? `${byline.readMinutes} min read` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ')
+  ].filter(Boolean)
 
   return (
     <EnquiryDockProvider>
@@ -98,7 +98,7 @@ export default function TextPage({ entry, settings }) {
       {/* `.tour` — page ka tinted shell (poora tark `PostPage.jsx` me). */}
       <main className="tour">
         <section className="vhero">
-          {/* Sirf Featured image — koi Settings wala fallback nahi (client, 14 Sep). */}
+          {/* Featured image, warna Pages ▸ Pages settings ki image — server tay karta hai (D-95 §12). */}
           {banner && (
             <div className="vhero__bg">
               <Img image={banner} alt="" sizes="100vw" priority />
@@ -135,20 +135,28 @@ export default function TextPage({ entry, settings }) {
              * ⚠️ `.ahead__m`/`.ahead__x` — post ki hero byline ki hi class, jab author na ho. Wahi
              * safed rang, wahi naap; nayi class ka matlab hota ek hi line ke do naam.
              */}
-            {bylineText && (
+            {/*
+             * ⚠️ **Har hissa apna `<span>`, beech me `.ahead__dot`** — reference ki `.pbyline` jaisa
+             * (client, 14 Sep). Pehle `' · '` se jodi hui ek hi line thi, to dot ke dono taraf sirf ek
+             * space aata tha; ab `.ahead__m` ka flex `gap` barabar jagah deta hai.
+             */}
+            {bylineParts.length > 0 && (
               <div className="ahead__m">
-                <span className="ahead__x">{bylineText}</span>
+                {bylineParts.map((part, i) => (
+                  <Fragment key={part}>
+                    {i > 0 && <i className="ahead__dot" />}
+                    <span className="ahead__x">{part}</span>
+                  </Fragment>
+                ))}
               </div>
             )}
 
             {/*
-             * Button **page ka apna** (client: _"pages par specific rahega inside edit page"_);
-             * WhatsApp ka number Settings ▸ General se, page sirf tick karta hai.
+             * Button **page ka apna** (client: _"pages par specific rahega inside edit page"_).
+             * WhatsApp **hamesha** (client, 14 Sep shaam) — number Settings ▸ General se; number na
+             * ho to button nahi.
              */}
-            <HeroButtons
-              button={fields.heroButton}
-              whatsapp={fields.showWhatsapp ? settings?.whatsapp : null}
-            />
+            <HeroButtons button={fields.heroButton} whatsapp={settings?.whatsapp} />
           </div>
         </section>
 
@@ -167,7 +175,8 @@ export default function TextPage({ entry, settings }) {
                  * hover nahi hai.
                  */}
                 <article className="art art--page">
-                  <Blocks blocks={entry.blocks ?? []} article lead={false} />
+                  {/* `plainFaqs` — FAQ reference jaisa saada h2/h3/paragraph, accordion nahi (client, 14 Sep) */}
+                  <Blocks blocks={entry.blocks ?? []} article lead={false} plainFaqs />
                 </article>
               </div>
 

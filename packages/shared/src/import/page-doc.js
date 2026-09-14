@@ -60,7 +60,9 @@ export const PAGE_DOC_LABELS = Object.freeze({
   'button link': 'buttonLink',
   'button url': 'buttonLink',
   /**
-   * `On this page: Yes` — sidebar ki TOC ka checkbox, doc se (client ne 14 Sep ko doc me joda).
+   * `On this page: Yes` — client ne 14 Sep ko doc me joda. **Usi shaam ye setting Pages settings me
+   * chali gayi** (D-95 §12), to value kahin nahi jaati — mapper sirf note deta hai. Label phir bhi
+   * pehchana jaata hai, aur neeche wali wajah se wo zaroori hai.
    *
    * ⚠️ **Iske bina ye line pichhle khaane me jud jaati thi** — client ke doc me ye `Parent page` ke
    * theek baad hai, to parent `"Andaman Beaches\nOn this page: Yes"` ban kar **nahi milta** tha aur

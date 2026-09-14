@@ -1,15 +1,45 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 14 Sep 2026 — **274 commit** (handoff ke waqt; 14 Sep ka kaam **ek commit**, push
-> **nahi** hua — client ki ijaazat chahiye). Lint + format clean; bina DB wale saare test pass.
-> ⚠️ Page import ke **11 DB test chale hi nahi** (Mongo/Docker band tha) — pehla kaam `pnpm test`.
+> **Last updated:** 14 Sep 2026 (raat) — **276 commit** (handoff ke waqt), push **nahi** hua — client
+> ki ijaazat chahiye. **1092 test pass (DB ke saath)**, lint + format clean.
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (15 Sep)
+## ⏭️ Nayi session yahan se shuru kare — **Home page build** (client, 14 Sep raat)
+
+Client agli session me **home page** banana chahta hai. Abhi `/` **404** deta hai — koi home entry nahi
+hai (A-17 me likha hai). Shuru karne se pehle:
+
+1. **Client se reference file** maango (jaise `page-template-text.html` / `blog-v1.html` aayi thi) aur
+   `.claude/docs/reference/` me rakho. Reference dekhe bina markup mat maano — ye galti D-89 · D-91 me
+   teen baar hui
+2. **Maujooda raasta:** `settings.frontPageType` + `settings.homepageEntryId` schema me **pehle se hain**
+   (D-40), par unka koi screen/resolve nahi bana. `apps/web/app/[[...slug]]/page.jsx` `/` ke liye
+   `resolvePath('/')` karta hai. Yaani faisla ye hai: home ek `page` entry ho (Settings se chuni) ya
+   apna type (`homePage`, jaise `tourPage`/`blogPage`) — **client se poochho**, apne se mat chuno
+3. Tour page (D-87) ka blocks wala saancha sabse kareeb hai — `PageEdit.jsx` `TYPE_CONFIG` row +
+   `Blocks.jsx` + `toPublicPage()`. Naya block chahiye to `schemas/page.js` + `sanitizeContent()` +
+   admin `PageBlocks.jsx` + theme `Blocks.jsx` — **chaaron** (CLAUDE.md ki chetavni)
+
+### Is session (14 Sep) ka bacha hua
+
+- **`pnpm test` DB ke saath 1092/1092 pass** (Docker chalu tha). A-11 wala `media.test.js` kabhi-kabhi
+  parallel load me girta hai — akele 3/3 pass
+- Live pe dekhne ke liye: `pnpm seed` (page field set sync) → **API restart** (`pageSettings` naya) →
+  admin me **Pages ▸ Pages settings** me banner + On this page set karo
+- Client ke doc (`1AtY5YIu…`) se **`On this page: Yes` wali line hata do** — ab note deti hai. Fixture
+  (`page-template.html`) me wo line hai aur tests usi note ko expect karte hain; doc badalne se fixture
+  nahi badalta (wo repo me ek copy hai). Fixture dobara lena ho to tests ke "On this page ka note" wale
+  expect bhi hatane honge
+- Commit 14 Sep raat: do commit — mera kaam, aur client ka `PageBlocks.jsx` hint hataana (alag)
+- ⚠️ `origin/main..HEAD` me 3+ commit hain — **push nahi hua**, client ki ijaazat se hi
+
+---
+
+## ⏭️ (purana) Nayi session yahan se shuru kare (15 Sep)
 
 ### Pehle ye teen (is kram me)
 

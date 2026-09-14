@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import Img from '../Img.jsx'
 import CtaSection from '../package/CtaSection.jsx'
 import { EnquiryDockProvider } from '../package/EnquiryDock.jsx'
@@ -134,12 +136,22 @@ export default function PostPage({ entry, settings }) {
     sidebar !== 'none' && (sidebarWidgets.length > 0 || (entry.toc ?? []).length > 0)
 
   /** `Published 12 Aug 2026 · 9 min read` — jo tukda na ho wo apne `·` ke saath gir jaata hai (D-30). */
-  const byline = [
+  const bylineParts = [
     entry.publishedAt ? `Published ${longDate(entry.publishedAt)}` : null,
     entry.readMinutes > 0 ? `${entry.readMinutes} min read` : null,
-  ]
-    .filter(Boolean)
-    .join(' · ')
+  ].filter(Boolean)
+
+  /**
+   * ⚠️ **Har hissa apna `<span>`, beech me `.ahead__dot`** — reference jaisa (client, 14 Sep). Pehle
+   * `' · '` se jodi hui ek line thi aur dot ke dono taraf sirf ek space aata tha. Page (`TextPage`)
+   * pe yahi usi din hua.
+   */
+  const bylineItems = bylineParts.map((part, i) => (
+    <Fragment key={part}>
+      {i > 0 && <i className="ahead__dot" />}
+      <span className="ahead__x">{part}</span>
+    </Fragment>
+  ))
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? settings?.siteUrl
   const shareUrl = siteUrl ? `${siteUrl.replace(/\/$/, '')}${entry.path}` : null
@@ -239,12 +251,14 @@ export default function PostPage({ entry, settings }) {
                   <span className="ahead__av">{initials(author.name)}</span>
                   <span>
                     <b>{author.name}</b>
-                    {byline ? <span>{byline}</span> : null}
+                    {bylineParts.length > 0 ? (
+                      <span className="ahead__sub">{bylineItems}</span>
+                    ) : null}
                   </span>
                 </span>
-              ) : byline ? (
-                <span className="ahead__x">{byline}</span>
-              ) : null}
+              ) : (
+                bylineItems
+              )}
             </div>
           </div>
         </section>

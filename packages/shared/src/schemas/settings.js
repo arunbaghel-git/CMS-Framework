@@ -231,6 +231,21 @@ export const tourSettingsSchema = z.object({
 })
 
 /**
+ * `Pages ▸ Pages settings` — saade pages (`page`) ki site-level settings (client, 14 Sep, D-95 §12).
+ *
+ * ⚠️ **Usi din subah ke do faisle palte:** subah `On this page` ka checkbox **har page pe** tha aur
+ * Featured image na ho to **koi banner nahi**. Shaam ko client ne dono yahan maange — ek hi jagah,
+ * sab pages ke liye. `tourSettings`/`blogSettings` wala hi saancha.
+ */
+export const pageSettingsSchema = z.object({
+  /** Featured image na ho to hero ka banner. Page ki apni Featured image jeet-ti hai. */
+  bannerMediaId: z.string().nullable().default(null),
+
+  /** `On this page` — sab pages pe. `blogSettings.showToc` jaisa, default on. */
+  showToc: z.boolean().default(true),
+})
+
+/**
  * Blog ki site-level settings — **spec 008** (client, 9 Sep).
  *
  * `tourSettings` ka hi joda: jo cheez har post pe **ek jaisi** hai wo yahan hai, per-post
@@ -553,6 +568,14 @@ export const settingsSchema = z.object({
    * Isi liye iska test **response nahi, DB** padhta hai.
    */
   blogSettings: blogSettingsSchema.default({}),
+
+  /**
+   * `Pages ▸ Pages settings` — banner ka fallback + `On this page` (client, 14 Sep, D-95 §12).
+   *
+   * ⚠️ `blogSettings` wali hi chetavni: **model me bhi** hai (`settings/model.js`), warna Mongoose
+   * `strict` ise chup-chaap gira deta aur admin `"Saved."` dikhata.
+   */
+  pageSettings: pageSettingsSchema.default({}),
 
   /**
    * `{year}` placeholder theme replace karta hai, taaki har 1 January ko client ko

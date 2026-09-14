@@ -21,7 +21,6 @@ import {
   pricingSchema,
   ratingSchema,
   pageHeadingSchema,
-  pageToggleSchema,
   sidebarIdSchema,
   sidebarPositionSchema,
   statRailSchema,
@@ -264,15 +263,12 @@ function normalizeFields(fields, contentType) {
   if (has('sidebarId')) out.sidebarId = sidebarIdSchema.parse(fields.sidebarId)
 
   /**
-   * Page ka apna hero button aur do toggle (client, 14 Sep, D-95).
+   * Page ka apna hero button (client, 14 Sep, D-95). Parse isliye ki `url` seedha `href` banta hai.
    *
-   * ⚠️ **Parse yahan zaroori hai** — `heroButton.url` seedha `href` banta hai aur toggle theme
-   * me `if` banta hai. `fields` Mixed hai (D-46), to bina rok ke `showToc: "false"` (string)
-   * bhi store ho jaata aur theme use **sach** maan leti.
+   * ⚠️ `showWhatsapp`/`showToc` ke parse **usi shaam hate** (D-95 §12) — WhatsApp hamesha dikhta hai
+   * aur TOC `pageSettings` me hai. Wo field ab page ke field set me hi nahi.
    */
   if (has('heroButton')) out.heroButton = heroButtonSchema.parse(fields.heroButton)
-  if (has('showWhatsapp')) out.showWhatsapp = pageToggleSchema.parse(fields.showWhatsapp)
-  if (has('showToc')) out.showToc = pageToggleSchema.parse(fields.showToc)
 
   /*
    * ⚠️ **`blocks` yahan **nahi** hai — 7 Sep ko badla (D-87 §7).**

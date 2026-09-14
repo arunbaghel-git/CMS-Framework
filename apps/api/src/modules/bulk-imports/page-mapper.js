@@ -275,12 +275,23 @@ export function toPageEntryInput(parsed, refs) {
   }
 
   /**
-   * `On this page: Yes/No` — `fields.showToc`. **Doc me likha ho tabhi bheja jaata hai**: label hi
-   * na ho (ya khaali ho) to naya page default (on) pe rehta hai, aur purane page ka admin me chuna
-   * hua waisa ka waisa (`prepare` milaata hai).
+   * ⚠️ **`On this page` ab doc se kahin nahi jaata** (client, 14 Sep shaam, D-95 §12) — wo
+   * **Pages ▸ Pages settings** me sab pages ke liye ek hai.
+   *
+   * Label parser me phir bhi pehchana jaata hai: bina uske ye line pichhle khaane (`Parent page`) me
+   * jud jaati aur page draft rehta. Bhara ho to note — chup-chaap girna D-86 wala lakshan hota.
+   * Wahi tareeka jo `Blog heading` pe 11 Sep ko laga (D-93).
    */
   const tocText = textOf(values, 'showToc')
-  const tocField = tocText ? { showToc: isYes(tocText) } : {}
+  if (tocText) {
+    issues.push(
+      note(
+        'On this page',
+        tocText,
+        'This line is not used any more — "On this page" is set for all pages in Pages ▸ Pages settings. You can delete it from the document.',
+      ),
+    )
+  }
 
   const statRail = buildStats(parsed.stats, issues)
   const faqItems = buildFaqItems(parsed.faqs, issues)
@@ -329,16 +340,14 @@ export function toPageEntryInput(parsed, refs) {
     content: { version: 1, blocks },
 
     /**
-     * ⚠️ Sirf **doc ke** khaane. `showWhatsapp`/`sidebar` yahan nahi, aur `showToc` sirf tab jab doc
-     * me `On this page` likha ho — service purane page ke `fields` pe inhe **milaata** hai
-     * (`TARGET_CONFIG.page.prepare`), warna ek re-import admin me kiye gaye chunav mita deta
-     * (`updateEntry()` `fields` poora badalta hai).
+     * ⚠️ Sirf **doc ke** khaane. `sidebar`/`sidebarId` yahan nahi — service purane page ke `fields`
+     * pe inhe **milaata** hai (`TARGET_CONFIG.page.prepare`), warna ek re-import admin me chuni
+     * sidebar mita deta (`updateEntry()` `fields` poora badalta hai).
      */
     fields: {
       subheading,
       statRail,
       heroButton: { label: buttonLabel, url: buttonLink },
-      ...tocField,
     },
   }
 

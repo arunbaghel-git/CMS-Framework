@@ -866,6 +866,24 @@ describe('Past imports — type ka filter, aur 20 har type ke (client, 11 Sep)',
     expect(res.body.data.runs).toHaveLength(4)
   })
 
+  it('All me teeno type ke 20-20 jud kar 60 — pages me, koi gayab nahi (client, 14 Sep)', async () => {
+    // Pehle admin sirf page 1 maangta tha, to All me sabse naye 20 hi dikhte the jabki DB me har
+    // type ke apne 20 the. Ab total 60 aata hai aur teesre page pe aakhri 20
+    await seedRuns('package', 20, 'PKG')
+    await seedRuns('post', 20, 'POST')
+    await seedRuns('page', 20, 'PAGE')
+
+    const first = await authed('get', '/api/bulk-imports?page=1&limit=20', adminJar).expect(200)
+    const third = await authed('get', '/api/bulk-imports?page=3&limit=20', adminJar).expect(200)
+
+    expect(first.body.meta.total).toBe(60)
+    expect(first.body.data.runs).toHaveLength(20)
+    expect(third.body.data.runs).toHaveLength(20)
+
+    const pageTab = await authed('get', '/api/bulk-imports?target=page', adminJar).expect(200)
+    expect(pageTab.body.meta.total).toBe(20)
+  })
+
   it('anjaan target thukraya jaata hai', async () => {
     const res = await authed('get', '/api/bulk-imports?target=hotel', adminJar).expect(400)
 
@@ -1231,11 +1249,14 @@ describe('page ka import (D-95, client 14 Sep)', () => {
     })
   })
 
-  it('page parent ke neeche ban kar publish hota hai — koi issue nahi', async () => {
+  it('page parent ke neeche ban kar publish hota hai — sirf On this page ka note', async () => {
     const run = await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
 
     expect(run.target).toBe('page')
-    expect(run.rows[0].issues).toEqual([])
+    // Client ke doc me `On this page: Yes` hai — wo setting ab Pages settings me hai (D-95 §12)
+    expect(run.rows[0].issues).toEqual([
+      expect.objectContaining({ level: 'note', label: 'On this page' }),
+    ])
     expect(run.rows[0].status).toBe('published')
 
     const entry = await Entry.findById(run.rows[0].entryId).lean()
@@ -1283,40 +1304,41 @@ describe('page ka import (D-95, client 14 Sep)', () => {
     expect(fields.sidebar).toBeUndefined()
     expect(run.rows[0].status).toBe('published')
     expect(run.rows[0].issues).toEqual([
+      expect.objectContaining({ level: 'note', label: 'On this page' }),
       expect.objectContaining({ level: 'note', label: 'Sidebar' }),
     ])
   })
 
-  it('existing me admin ke chunav bachte hain — sidebar aur WhatsApp; TOC doc ka', async () => {
-    // `updateEntry()` `fields` poora badalta hai. Bina `prepare` ke re-import inhe mita deta.
-    // ⚠️ `showToc` client ke doc me likha hai (`On this page: Yes`) — isliye wahan doc jeet-ta hai
+  it('existing me admin ki chuni sidebar bachti hai — doc ki On this page line kuch nahi likhti', async () => {
+    // `updateEntry()` `fields` poora badalta hai. Bina `prepare` ke re-import sidebar mita deta
     const first = await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
     const id = first.rows[0].entryId
 
-    await Entry.updateOne(
-      { _id: id },
-      { $set: { 'fields.sidebar': 'left', 'fields.showWhatsapp': false, 'fields.showToc': false } },
-    )
+    await Entry.updateOne({ _id: id }, { $set: { 'fields.sidebar': 'left' } })
 
     const again = await runImport({ P1: pageDoc }, ['P1'], 'existing', 'page')
     const { fields } = await Entry.findById(id).lean()
 
     expect(again.rows[0].action).toBe('updated')
     expect(fields.sidebar).toBe('left')
-    expect(fields.showWhatsapp).toBe(false)
-    expect(fields.showToc).toBe(true)
     expect(fields.heroButton.label).toBe('Plan a trip here')
+    // `On this page` 14 Sep shaam se Pages settings me hai — doc se page pe kuch nahi jaata
+    expect(fields).not.toHaveProperty('showToc')
   })
 
-  it('doc me On this page na ho to admin ka TOC wala chunav bachta hai', async () => {
-    const noToc = pageDoc.replace(/On this page:\s*Yes/, '')
-    const first = await runImport({ P1: noToc }, ['P1'], undefined, 'page')
-    const id = first.rows[0].entryId
+  it('doc me On this page na ho to koi note nahi', async () => {
+    // ⚠️ Poora paragraph hatao — Google me `On this page: ` aur `Yes` do alag `<span>` me hain, to
+    // `On this page:\s*Yes` jaisa regex kuch pakadta hi nahi aur test chup-chaap doc waisa hi chalata
+    const noToc = pageDoc.replace(
+      /<p\b[^>]*>(?:(?!<\/p>)[\s\S])*On this page(?:(?!<\/p>)[\s\S])*<\/p>/,
+      '',
+    )
+    expect(noToc).not.toContain('On this page')
 
-    await Entry.updateOne({ _id: id }, { $set: { 'fields.showToc': false } })
-    await runImport({ P1: noToc }, ['P1'], 'existing', 'page')
+    const run = await runImport({ P1: noToc }, ['P1'], undefined, 'page')
 
-    expect((await Entry.findById(id).lean()).fields.showToc).toBe(false)
+    expect(run.rows[0].issues).toEqual([])
+    expect(run.rows[0].status).toBe('published')
   })
 
   it('content ki image Media me utarti hai aur Caption ke saath rehti hai', async () => {
@@ -1338,7 +1360,7 @@ describe('page ka import (D-95, client 14 Sep)', () => {
     )
 
     expect(run.rows[0].status).toBe('draft')
-    expect(run.rows[0].issues).toEqual([
+    expect(run.rows[0].issues.filter((issue) => issue.level === 'blocker')).toEqual([
       expect.objectContaining({ level: 'blocker', label: 'Parent page' }),
     ])
   })

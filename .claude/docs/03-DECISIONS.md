@@ -7796,3 +7796,29 @@ Yes"`) aur page draft rehta — asli doc pe chala kar pakda. Stat Rail client ne
 
 Fixture ab **wahi client ka doc** hai (`packages/shared/src/import/__fixtures__/page-template.html`),
 sirf image ka ~100KB `data:` URI ek 1200×800 solid PNG se badla gaya.
+
+**11. Page pe FAQ saada, accordion nahi (usi din, client).** Reference (`page-template-text.html`) me FAQ
+content ka hissa hai — `h2` heading, har sawaal `h3`, jawab paragraph. Data **FAQs block me hi** raha
+(schema hamesha, Bulk Upload waisa hi); sirf `page` pe `Blocks` ko `plainFaqs` milta hai. Koi nayi CSS
+nahi — `.art` ke `h2/h3/p` aur `.art--page h2` ki line. Tour aur Blog pe accordion hi.
+
+**12. Pages settings — subah ke teen chunav palte (usi shaam, client).**
+- **`Pages ▸ Pages settings`** (`/pages/settings`, `settings.pageSettings`, model me bhi) — do cheezein
+  sab pages ke liye: `bannerMediaId` (Featured image na ho to hero ka banner; §2 ka _"koi banner nahi"_
+  palta) aur `showToc` (default on; §6 ka per-page checkbox palta). Tour settings ki image page pe
+  **nahi** aati — har type ka fallback apni screen se.
+- **`Show WhatsApp button` hata** (§3 palta) — button hamesha, number `settings.whatsapp` se.
+  `showWhatsapp`/`showToc` page ke field set, `normalizeFields()` aur payload teeno se gaye. Purane page
+  ke `fields` me pade reh sakte hain; koi nahi padhta (test hai).
+- **Bulk Upload:** doc ki `On this page` line ab page pe kuch nahi likhti — label pehchana jaata hai
+  (warna `Parent page` me judti) aur ek note aata hai. `Blog heading` (D-93) wala hi tareeka.
+- **Content card pe hover wapas** — `.art--page:hover` ka override hata (wo mera chunav tha, §5); ab
+  blog jaisa neela border.
+- **Form ke input pe focus ka neela border/glow nahi — har jagah** (base `.fld :focus`). Pehle sirf
+  sidebar pe lagaya, client ne _"in all even packages and tour"_ kaha; `.fld` sirf `EnquiryForm` use
+  karta hai, to package ka book form, tour/blog/page ka cta form aur mobile popup — sab.
+- **Past imports me pagination** — All me teeno type ke run jud kar (60 tak), har type ka tab apne 20.
+- **Page ka FAQ saada** (§11), **TOC pe current section `.on`** (IntersectionObserver, reference ka hi
+  `rootMargin`), breadcrumb ke `›` ki jagah (`.vcrumb > span { display: contents }`), figure ke upar
+  14px, hero byline me dot alag element (page + post), aur header ka band flyout `display: none`
+  (touch device pe page 1385px ka ban kar zoom-out ho raha tha).

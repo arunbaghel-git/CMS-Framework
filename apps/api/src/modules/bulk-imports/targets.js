@@ -182,7 +182,7 @@ export const TARGET_CONFIG = Object.freeze({
      * `fields` ko purane page se **milao** — create/update se theek pehle.
      *
      * ⚠️ `updateEntry()` `fields` ko **poora badalta** hai. Page ke kuch khaane doc me hain hi nahi
-     * (`sidebar` · `sidebarId` · `showWhatsapp` · `showToc`) — wo admin me chune jaate hain. Bina
+     * (`sidebar` · `sidebarId`) — wo admin me chune jaate hain. Bina
      * is milaap ke har re-import unhe chup-chaap mita deta, aur lakshan "sidebar gayab ho gayi"
      * hota, koi error nahi.
      *

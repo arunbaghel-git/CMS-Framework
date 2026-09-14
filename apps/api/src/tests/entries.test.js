@@ -2261,8 +2261,7 @@ describe('Tour Page ka type (D-87)', () => {
       'subheading',
       'statRail',
       'heroButton',
-      'showWhatsapp',
-      'showToc',
+      // `showWhatsapp`/`showToc` 14 Sep shaam hate — WhatsApp hamesha, TOC Pages settings me
       'sidebar',
       'sidebarId',
     ])
@@ -2999,29 +2998,45 @@ describe('saada page — hero button, TOC aur banner (D-95)', () => {
     textBlock('t2', '<h2>Best time</h2><p>c</p>'),
   )
 
-  it('hero button aur dono toggle write pe parse hote hain', async () => {
+  /** `pageSettings` seedha DB me — har test apna banata aur `finally` me mitata hai. */
+  async function withPageSettings(pageSettings, fn) {
+    await Settings.deleteMany({})
+    await Settings.create({ pageSettings })
+    try {
+      await fn()
+    } finally {
+      await Settings.deleteMany({})
+    }
+  }
+
+  it('Pages settings save hoti hai — DB me, sirf response me nahi', async () => {
+    // ⚠️ `blogSettings` wala jaal: model me key na ho to Mongoose `strict` chup-chaap gira deta aur
+    // API phir bhi 200 deti. Isliye DB padha jaata hai
+    await Settings.deleteMany({})
+
+    try {
+      const res = await authed('patch', '/api/settings', adminJar).send({
+        pageSettings: { bannerMediaId: null, showToc: false },
+      })
+
+      expect(res.status).toBe(200)
+      expect((await Settings.findOne({ siteId: 'default' }).lean()).pageSettings.showToc).toBe(
+        false,
+      )
+    } finally {
+      await Settings.deleteMany({})
+    }
+  })
+
+  it('hero button write pe parse hota hai', async () => {
     const res = await createPage(adminJar, {
       title: 'Parsed',
-      fields: {
-        heroButton: { label: '  Plan a trip here ', url: '#enquiry' },
-        showWhatsapp: false,
-        showToc: true,
-      },
+      fields: { heroButton: { label: '  Plan a trip here ', url: '#enquiry' } },
     })
 
     const doc = await Entry.findById(res.body.data.entry.id).lean()
 
     expect(doc.fields.heroButton).toEqual({ label: 'Plan a trip here', url: '#enquiry' })
-    expect(doc.fields.showWhatsapp).toBe(false)
-    expect(doc.fields.showToc).toBe(true)
-  })
-
-  it('toggle pe "false" string 400 khaata hai — theme use sach maan leti', async () => {
-    // `fields` Mixed hai (D-46). Bina parse ke `"false"` store ho jaata aur theme ke `if` me
-    // wo truthy hai — client checkbox hataata aur button phir bhi dikhta
-    const res = await createPage(adminJar, { title: 'Bad', fields: { showToc: 'false' } })
-
-    expect(res.status).toBe(400)
   })
 
   it('TOC page ke h2 se banti hai, aur heading pe wahi id lagti hai', async () => {
@@ -3033,13 +3048,23 @@ describe('saada page — hero button, TOC aur banner (D-95)', () => {
     expect(entry.blocks[0].props.html).toContain(`id="${entry.toc[0].id}"`)
   })
 
-  it('showToc false pe TOC khaali — heading ke id phir bhi rehte hain', async () => {
-    await publishedPage('No Toc', { content: THREE_H2, fields: { showToc: false } })
+  it('Pages settings me showToc off pe TOC khaali — heading ke id phir bhi rehte hain', async () => {
+    // 14 Sep shaam se checkbox global hai (`pageSettings.showToc`), page ka apna nahi (D-95 §12)
+    await withPageSettings({ showToc: false }, async () => {
+      await publishedPage('No Toc', { content: THREE_H2 })
 
-    const { entry } = (await resolve('/no-toc')).body.data
+      const { entry } = (await resolve('/no-toc')).body.data
 
-    expect(entry.toc).toEqual([])
-    expect(entry.blocks[0].props.html).toContain('<h2 id="where-it-is">')
+      expect(entry.toc).toEqual([])
+      expect(entry.blocks[0].props.html).toContain('<h2 id="where-it-is">')
+    })
+  })
+
+  it('page ka purana fields.showToc ab kuch nahi karta — Pages settings jeet-ti hai', async () => {
+    // Subah ke pages ke `fields` me `showToc: false` pada ho sakta hai; use koi nahi padhta
+    await publishedPage('Old Toc', { content: THREE_H2, fields: { showToc: false } })
+
+    expect((await resolve('/old-toc')).body.data.entry.toc).toHaveLength(3)
   })
 
   it('3 se kam heading pe TOC nahi — checkbox "dikhao" kehta hai, "zabardasti" nahi', async () => {
@@ -3078,43 +3103,61 @@ describe('saada page — hero button, TOC aur banner (D-95)', () => {
     expect((await resolve('/half-button')).body.data.entry.fields.heroButton).toBeNull()
   })
 
-  it('WhatsApp ka checkbox default on hai, aur untick pe off', async () => {
-    await publishedPage('Wa Default')
-    await publishedPage('Wa Off', { fields: { showWhatsapp: false } })
+  it('WhatsApp ka koi toggle payload me nahi — button hamesha (client, 14 Sep shaam)', async () => {
+    await publishedPage('Wa Always', { fields: { showWhatsapp: false } })
 
-    expect((await resolve('/wa-default')).body.data.entry.fields.showWhatsapp).toBe(true)
-    expect((await resolve('/wa-off')).body.data.entry.fields.showWhatsapp).toBe(false)
+    expect((await resolve('/wa-always')).body.data.entry.fields).not.toHaveProperty('showWhatsapp')
   })
 
-  it('Featured image na ho to banner null — Tour settings ki image page pe NAHI aati', async () => {
-    // Client, 14 Sep: "koi banner nahi". Tour page pe wahi image fallback hai (faisla #10)
-    const uploader = await User.findOne({ email: 'admin@test.com' }).lean()
-    const media = await Media.create({
-      filename: 'beach.png',
-      mime: 'image/png',
-      size: 4096,
-      width: 1200,
-      height: 800,
-      variants: [{ key: 'large', url: '/uploads/x/large.webp', w: 1200, h: 800 }],
-      uploadedBy: uploader._id,
-    })
-    // ⚠️ Pehle saaf — ye file `Settings` ko `beforeEach` me nahi mitati, aur pichhle test ka
-    // `ensureSettings()` wala doc bacha ho to `findOne` usi ko padhta, naye ko nahi
-    await Settings.deleteMany({})
-    await Settings.create({ tourSettings: { bannerMediaId: String(media._id) } })
-
-    try {
-      await publishedPage('No Banner')
-      const tour = await authed('post', '/api/entries', adminJar).send({
-        type: 'tourPage',
-        title: 'With Banner',
+  describe('banner ka fallback', () => {
+    async function makeMedia(name) {
+      const uploader = await User.findOne({ email: 'admin@test.com' }).lean()
+      return Media.create({
+        filename: `${name}.png`,
+        mime: 'image/png',
+        size: 4096,
+        width: 1200,
+        height: 800,
+        variants: [{ key: 'large', url: `/uploads/x/${name}.webp`, w: 1200, h: 800 }],
+        uploadedBy: uploader._id,
       })
-      await authed('post', `/api/entries/${tour.body.data.entry.id}/publish`, adminJar).send({})
+    }
+
+    it('Featured image na ho to Pages settings ki image — Tour settings wali NAHI (D-95 §12)', async () => {
+      const pageBanner = await makeMedia('page-banner')
+      const tourBanner = await makeMedia('tour-banner')
+
+      // ⚠️ Pehle saaf — ye file `Settings` ko `beforeEach` me nahi mitati
+      await Settings.deleteMany({})
+      await Settings.create({
+        pageSettings: { bannerMediaId: String(pageBanner._id) },
+        tourSettings: { bannerMediaId: String(tourBanner._id) },
+      })
+
+      try {
+        await publishedPage('Page Banner')
+        const tour = await authed('post', '/api/entries', adminJar).send({
+          type: 'tourPage',
+          title: 'Tour Banner',
+        })
+        await authed('post', `/api/entries/${tour.body.data.entry.id}/publish`, adminJar).send({})
+
+        expect((await resolve('/page-banner')).body.data.entry.banner.url).toBe(
+          '/uploads/x/page-banner.webp',
+        )
+        expect((await resolve('/tour-banner')).body.data.entry.banner.url).toBe(
+          '/uploads/x/tour-banner.webp',
+        )
+      } finally {
+        await Promise.all([Settings.deleteMany({}), Media.deleteMany({})])
+      }
+    })
+
+    it('Pages settings me bhi image na ho to banner null', async () => {
+      await Settings.deleteMany({})
+      await publishedPage('No Banner')
 
       expect((await resolve('/no-banner')).body.data.entry.banner).toBeNull()
-      expect((await resolve('/with-banner')).body.data.entry.banner).toBeTruthy()
-    } finally {
-      await Promise.all([Settings.deleteMany({}), Media.deleteMany({})])
-    }
+    })
   })
 })

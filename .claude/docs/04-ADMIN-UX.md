@@ -657,7 +657,13 @@ button ki taraf bhejta jo us naam se hai hi nahi.
 
 ### Past imports
 
-Filter (`.subsubsub`): `All` · `Packages` · `Blog posts` — default `All` (client, 11 Sep).
+Filter (`.subsubsub`): `All` · `Packages` · `Blog posts` · `Pages` — default `All` (client, 11 Sep;
+Pages 14 Sep).
+
+**Pagination (client, 14 Sep)** — 20 ek page pe, list ke upar `N items ‹ 1 ›`. `All` me teeno type ke
+run **jud kar** aate hain (har type ke 20, yaani 60 tak); har type ka tab apne 20. Pehle list sirf
+page 1 maangti thi, to All me sabse naye 20 hi dikhte aur baaki type ke run "gayab" lagte. Tab
+badalne pe page 1.
 
 `When` · **`Type`** · `Sheet` · `New` · `Existing` · `Published` · `Draft` · `Failed` · `Status`
 
@@ -724,11 +730,12 @@ aur Posts jaisa **All dates** dropdown (client, 14 Sep — design me nahi hai; C
 **Edit Page** — design ke `#s-page-edit` se farak, sab client ke:
 
 - **Page heading nahi** — `<h1>` Title hai. **Eyebrow nahi**
-- Page header me **Button label · Button link · Show WhatsApp button** (hero button page ka apna,
-  Settings me nahi; number Settings ▸ General se)
+- Page header me **Button label · Button link** (hero button page ka apna). WhatsApp button **hamesha**,
+  number Settings ▸ General se — checkbox 14 Sep shaam hata
+- **Pages ▸ Pages settings** (`/pages/settings`): Banner image (Featured image na ho to) · Show "On this
+  page" — sab pages ke liye (D-95 §12)
 - Content ke blocks sirf **Text + FAQs**
-- Page settings me **Show "On this page"** — tabhi dikhta hai jab Sidebar `none` na ho
-- Featured image ki hint: khaali = koi banner nahi (Settings wala fallback nahi)
+- Featured image ki hint: khaali = Pages settings ki banner image
 - Permalink parent ke path ke neeche dikhta hai
 
 ### Dropdown ki chaudai — sab screens (`primitives.css`)

@@ -36,6 +36,7 @@ import TourList from './screens/pages/TourList.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import General from './screens/settings/General.jsx'
 import BlogSettings from './screens/settings/BlogSettings.jsx'
+import PageSettings from './screens/settings/PageSettings.jsx'
 import TourSettings from './screens/settings/TourSettings.jsx'
 import DeleteUser from './screens/users/DeleteUser.jsx'
 import UserForm from './screens/users/UserForm.jsx'
@@ -142,6 +143,8 @@ const APP_ROUTES = [
    */
   { path: '/pages', element: <PageList /> },
   { path: '/pages/new', element: <PageEdit type="page" /> },
+  /** `/pages/:id` se **pehle** — `/tour/settings` wala hi kram (D-95 §12). */
+  { path: '/pages/settings', element: <PageSettings /> },
   { path: '/pages/:id', element: <PageEdit type="page" /> },
 
   { path: '/tour', element: <TourList /> },

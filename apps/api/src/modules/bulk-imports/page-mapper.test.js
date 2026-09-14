@@ -37,8 +37,9 @@ const run = (html = TEMPLATE, refs = REFS) => toPageEntryInput(parsePageDoc(html
 describe('toPageEntryInput — asli template', () => {
   const out = run()
 
-  it('koi issue nahi, aur payload entryCreateSchema se guzarta hai', () => {
-    expect(out.issues).toEqual([])
+  it('sirf On this page ka note, aur payload entryCreateSchema se guzarta hai', () => {
+    // Client ke doc me `On this page: Yes` hai — wo setting 14 Sep shaam Pages settings me gayi
+    expect(out.issues).toEqual([expect.objectContaining({ level: 'note', label: 'On this page' })])
     expect(entryCreateSchema.safeParse(out.input).success).toBe(true)
   })
 
@@ -73,22 +74,14 @@ describe('toPageEntryInput — asli template', () => {
     )
   })
 
-  it('On this page: Yes → showToc true', () => {
-    expect(out.input.fields.showToc).toBe(true)
+  it('On this page doc se page pe nahi jaata — setting Pages settings me hai (D-95 §12)', () => {
+    expect(out.input.fields).not.toHaveProperty('showToc')
   })
 
-  it('doc me On this page na ho to showToc bheja hi nahi jaata', () => {
+  it('doc me On this page na ho to koi note nahi', () => {
     const bare = run('<p>Page title</p><p>X</p><p>Page URL</p><p>x</p><p>Content</p><p>Hi</p>')
 
-    expect(bare.input.fields).not.toHaveProperty('showToc')
-  })
-
-  it('On this page: No → showToc false', () => {
-    const off = run(
-      '<p>Page title</p><p>X</p><p>Page URL</p><p>x</p><p>On this page: No</p><p>Content</p><p>Hi</p>',
-    )
-
-    expect(off.input.fields.showToc).toBe(false)
+    expect(bare.issues).toEqual([])
   })
 
   it('banner ka URL aata hai', () => {

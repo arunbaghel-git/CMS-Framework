@@ -72,6 +72,8 @@ export const NAV = [
     children: [
       { label: 'All Pages', to: '/pages', permission: PERMISSION.ENTRY_READ },
       { label: 'Add New', to: '/pages/new', permission: PERMISSION.ENTRY_CREATE },
+      /** Banner ka fallback + `On this page` — sab pages ke liye (client, 14 Sep, D-95 §12). */
+      { label: 'Pages settings', to: '/pages/settings', permission: PERMISSION.SETTINGS_READ },
     ],
   },
   /**
@@ -392,6 +394,7 @@ export const ROUTE_GUARDS = Object.freeze({
    */
   '/pages': PERMISSION.ENTRY_READ,
   '/pages/new': PERMISSION.ENTRY_CREATE,
+  '/pages/settings': PERMISSION.SETTINGS_READ,
   '/pages/:id': PERMISSION.ENTRY_READ,
 
   '/tour': PERMISSION.ENTRY_READ,

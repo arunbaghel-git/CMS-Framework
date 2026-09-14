@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**1051 tests passing**, 14 Sep). Public package page ke **saare** section live hain.
+hain** (**1092 tests passing**, 14 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -663,7 +663,12 @@ false })` — callout/caption hain, bada pehla paragraph nahi), `On this page` p
 Usi din **All Pages ka All dates** (aur `month` regex ka backslash — Posts ka filter 10 Sep se toota
 tha) aur **Bulk Upload for pages** (D-95 §10): `IMPORT_TARGET.PAGE`, `page-doc.js` + `page-mapper.js`,
 naya page `Pages Sidebar` right pe, `prepare` hook re-import pe admin ke chunav bachata hai.
-⚠️ Page import ke DB tests **chale nahi** (Mongo band tha) — pehle `pnpm test`.
+**Usi shaam (D-95 §11–§12):** `Pages ▸ Pages settings` (`settings.pageSettings` — banner ka fallback +
+`On this page`, sab pages ke liye), edit page se WhatsApp aur TOC ke checkbox hate (WhatsApp hamesha),
+page ka FAQ saada h2/h3 (data FAQs block me hi), TOC pe current section highlight, form ke focus ka
+glow har jagah se hata, Past imports me pagination, aur header ka band flyout `display: none` (touch
+device pe page zoom-out ho raha tha). **1092 test pass (DB ke saath).**
+⏭️ **Agla kaam: home page** — `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

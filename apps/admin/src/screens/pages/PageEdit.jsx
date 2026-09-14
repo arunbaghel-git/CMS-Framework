@@ -69,7 +69,7 @@ const TYPE_CONFIG = {
    * | `eyebrow: false` | _"Andaman beaches · updated for 2026"_ hataya |
    * | `statRail: true` | _"ha rahegi"_ |
    * | `heroButtons: true` | _"pages par specific rahega inside edit page"_ — Settings me nahi |
-   * | `toc: true` | `On this page` ka checkbox **har page pe** (sidebar bhi per-page hai) |
+   * | ~~`toc: true`~~ | `On this page` ka checkbox **Pages ▸ Pages settings** me gaya (14 Sep shaam) |
    * | `blocks` | Text + FAQs — Post wale hi (`POST_BLOCK_TYPES`) |
    */
   page: {
@@ -81,16 +81,15 @@ const TYPE_CONFIG = {
     eyebrow: false,
     statRail: true,
     heroButtons: true,
-    toc: true,
     sidebar: true,
     parent: true,
     /** Page ka URL parent ke neeche banta hai (`hierarchical: true`, D-09) — Tour ka nahi. */
     nested: true,
     /** Byline me author nahi — client ne `Andaman Tourism team` hataya. */
     bylineHint: 'Updated · min read',
-    /** Featured image na ho to hero bina image ke — koi Settings wala fallback nahi. */
+    /** Featured image na ho to Pages ▸ Pages settings ki image (14 Sep shaam — subah fallback nahi tha). */
     featuredHint:
-      'Optional. The banner behind the page heading — leave it empty and there is no banner.',
+      'Optional. The banner behind the page heading — leave it empty and the image from Pages settings is used.',
     blocks: POST_BLOCK_TYPES,
   },
 
@@ -524,21 +523,6 @@ export default function PageEdit({ type = 'tourPage' }) {
                         height={140}
                       />
                     </div>
-                    <div className="hint">
-                      {config.key === 'page' ? (
-                        <>
-                          The big heading is the <b>Title</b> above. The breadcrumb is built from
-                          the page&rsquo;s <b>Parent</b>. The banner image is the page&rsquo;s{' '}
-                          <b>Featured image</b>.
-                        </>
-                      ) : (
-                        <>
-                          The big heading comes from the Title above. The breadcrumb is built from
-                          the page&rsquo;s <b>Parent</b>. The banner image comes from Settings — a
-                          page with its own Featured image uses that instead.
-                        </>
-                      )}
-                    </div>
                   </>
                 )}
 
@@ -547,9 +531,8 @@ export default function PageEdit({ type = 'tourPage' }) {
                  * rahega inside edit page"_. Tour page ka button `Tour settings` me hai, sab Tour
                  * pages ke liye ek.
                  *
-                 * ⚠️ WhatsApp ka **number yahan nahi** — Settings ▸ General ka hi. Page sirf tick
-                 * karta hai ki button dikhe. Default **ticked** (payload `!== false` padhta hai),
-                 * reference me dono button hain.
+                 * ⚠️ WhatsApp ka **number yahan nahi** — Settings ▸ General ka hi, aur button
+                 * **hamesha** dikhta hai (client, 14 Sep shaam — checkbox hata).
                  */}
                 {config.heroButtons && (
                   <>
@@ -575,18 +558,14 @@ export default function PageEdit({ type = 'tourPage' }) {
                         />
                       </div>
                     </div>
-                    <label className="inline-lbl">
-                      <input
-                        type="checkbox"
-                        checked={form.fields.showWhatsapp !== false}
-                        onChange={(e) => setField('showWhatsapp', e.target.checked)}
-                        disabled={readOnly}
-                      />{' '}
-                      Show WhatsApp button
-                    </label>
+                    {/*
+                     * ⚠️ `Show WhatsApp button` ka checkbox **hat gaya** (client, 14 Sep shaam) —
+                     * WhatsApp button ab hamesha aata hai, number Settings ▸ General se.
+                     */}
                     <div className="hint">
-                      Leave the label or the link empty and that button does not appear. The
-                      WhatsApp number comes from <b>Settings ▸ General</b>.
+                      Leave the label or the link empty and this button does not appear. The green
+                      WhatsApp button next to it is always shown — its number comes from{' '}
+                      <b>Settings ▸ General</b>.
                     </div>
                   </>
                 )}
@@ -915,30 +894,9 @@ export default function PageEdit({ type = 'tourPage' }) {
                   )}
 
                   {/*
-                   * `On this page` — **har page pe** (client, 14 Sep, D-95). Post pe yahi checkbox
-                   * `Blog settings` me sab posts ke liye ek hai; page ki sidebar hi per-page hai.
-                   *
-                   * ⚠️ Sirf sidebar chuni ho tabhi dikhta hai — TOC sidebar ke **andar** baithti hai.
-                   * `none` pe checkbox dikhana ek aisa control hota jo kuch nahi karta (D-30). Value
-                   * mitti nahi, `sidebarId` jaisi hi.
+                   * ⚠️ `Show "On this page"` ka checkbox **yahan se hat gaya** (client, 14 Sep shaam) —
+                   * ab **Pages ▸ Pages settings** me sab pages ke liye ek hai.
                    */}
-                  {config.toc && (form.fields.sidebar ?? 'none') !== 'none' && (
-                    <div className="field">
-                      <label className="inline-lbl">
-                        <input
-                          type="checkbox"
-                          checked={form.fields.showToc !== false}
-                          onChange={(e) => setField('showToc', e.target.checked)}
-                          disabled={readOnly}
-                        />{' '}
-                        Show &ldquo;On this page&rdquo;
-                      </label>
-                      <div className="hint">
-                        A contents list at the top of the sidebar, built from the H2 headings in the
-                        content. It appears once the page has at least three.
-                      </div>
-                    </div>
-                  )}
                 </>
               )}
 

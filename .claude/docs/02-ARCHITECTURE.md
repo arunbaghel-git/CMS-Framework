@@ -111,6 +111,9 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  uske liye yahan koi field NAHI (ek number do jagah nahi)
                  dono khaane bhare hon tabhi pehla button dikhta hai (D-30)
                  screen ab `Tour ▸ Tour settings` hai, `Settings ▸` nahi (D-89 §8)
+                 pageSettings{ bannerMediaId, showToc(default true) }       ← D-95 §12
+                 `page` ka banner fallback + On this page — sab pages ke liye.
+                 Screen `Pages ▸ Pages settings`. Model me bhi key (strict jaal)
                  ctaSection{ enabled, badge, heading, bullets[] max 6,       ← D-67
                              boxTitle, boxNote,
                              buttons[{label,url,target,variant,enabled}] max 2 }
@@ -192,7 +195,8 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          nahi — store wahi jo client ne likha (D-65 wala tark)
                          ⚠️ page ka field set 14 Sep se ALAG hai (D-95):
                          subheading · statRail[] · heroButton{label,url} ·
-                         showWhatsapp · showToc · sidebar · sidebarId.
+                         sidebar · sidebarId. (showWhatsapp/showToc usi shaam
+                         hate — TOC + banner fallback settings.pageSettings me)
                          heading aur eyebrow page pe NAHI (h1 = title).
                          heroButton ka shape heroButtonSchema — wahi constant jo
                          tourSettings.heroButton ka. Toggle asli boolean, parse

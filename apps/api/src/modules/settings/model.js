@@ -103,6 +103,9 @@ const settingsSchema = new mongoose.Schema(
      */
     blogSettings: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 
+    /** `Pages ▸ Pages settings` — banner ka fallback + `On this page` (D-95 §12). Upar wali chetavni yahan bhi. */
+    pageSettings: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+
     footerColumns: {
       type: [
         new mongoose.Schema(

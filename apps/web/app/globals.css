@@ -634,13 +634,26 @@ a {
   top: 0;
   left: 100%;
   border-radius: var(--r3);
+
+  /*
+   * ⚠️ **Band flyout `display: none` hai, sirf `visibility: hidden` nahi** (client, 14 Sep).
+   *
+   * `visibility: hidden` element layout me jagah ghere rehta hai. Nav ke daayein wale menu (Ferry)
+   * ka flyout `left: 100%` pe **1385px** tak jaata tha, jabki screen 1280 ki thi. Desktop pe `body`
+   * ka `overflow-x: hidden` use chhupa leta hai, par **touch device** (DevTools ka Nest Hub Max) poore
+   * page ko 1385px ka maan kar zoom-out karta hai — right me khaali patti aur content chhota. Client
+   * ne CTA ke paas ye patti dekhi thi; wajah header thi.
+   *
+   * Keemat: flyout ka 0.15s fade nahi rehta (parent `.drop` ka fade waisa hi hai).
+   */
+  display: none;
 }
 
 .drop li:hover > .drop--fly {
+  display: block;
   opacity: 1;
   visibility: visible;
 }
-
 /* ============================================================
    MEGA
    Width `layout` se, grid `--mega-cols` se — do alag axes (D-43).
@@ -2560,6 +2573,16 @@ a.mega__gl:hover {
   padding-top: clamp(14px, 2vw, 22px);
 }
 
+/*
+ * Parent wale kadam `<span><i>›</i><a>…</a></span>` me lipte hain (React ko ek key wala wrapper
+ * chahiye). Flex ka `gap` sirf **seedhe bachchon** pe lagta hai, to span ke andar `›` aur link chipak
+ * jaate the (client, 14 Sep). `display: contents` span ko layout se hata deta hai — `i` aur `a`
+ * seedhe `.vcrumb` ke bachche ban jaate hain aur reference jaisa `gap: 7px` paate hain.
+ */
+.vcrumb > span {
+  display: contents;
+}
+
 .vcrumb a {
   color: inherit;
   text-decoration: none;
@@ -3636,12 +3659,15 @@ a.mega__gl:hover {
   transition: 0.14s;
 }
 
+/*
+ * ⚠️ **Focus pe neela border + glow nahi — har form pe** (client, 14 Sep). Package, Tour, Blog, Page —
+ * sab `EnquiryForm` hi hain (`.fld` sirf wahi use karta hai), mobile popup samet. Pehle yahan
+ * `border-color: --blue-500` + 3px `--blue-100` ki ring thi. Input apna normal border rakhta hai.
+ */
 .fld input:focus,
 .fld select:focus,
 .fld textarea:focus {
   outline: 0;
-  border-color: var(--blue-500);
-  box-shadow: 0 0 0 3px var(--blue-100);
 }
 
 .fld input::placeholder,
@@ -5522,7 +5548,6 @@ a.mega__gl:hover {
 .wdg--cta .fld label {
   color: rgba(255, 255, 255, 0.62);
 }
-
 /* Footnote — button ke neeche ki chhoti line (form ka `footnote`) */
 .wdg--cta small {
   display: block;
@@ -6020,7 +6045,7 @@ a.mega__gl:hover {
 .ahead__m {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
   flex-wrap: wrap;
   margin-top: 20px;
 }
@@ -6067,12 +6092,30 @@ a.mega__gl:hover {
   color: rgba(255, 255, 255, 0.72);
 }
 
+/*
+ * Post pe date · read time **naam ke neeche** hai (D-93) — wahan har hissa apna `.ahead__x` hai aur
+ * beech me `.ahead__dot` (client, 14 Sep). Flex isliye ki dot ke dono taraf barabar jagah aaye;
+ * naap aur rang wahi rehte hain jo naam ke neeche wali line ke pehle the (`b + span`), `.ahead__x`
+ * ka bada naap nahi.
+ */
+.ahead__au .ahead__sub {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-wrap: wrap;
+}
+
+.ahead__sub .ahead__x {
+  font-size: inherit;
+  color: inherit;
+}
+
 /* --- article body --- */
 .art {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: var(--r4);
-  padding: clamp(20px, 2.6vw, 38px);
+  padding: clamp(18px, 2.6vw, 28px);
 }
 
 /*
@@ -6126,6 +6169,16 @@ a.mega__gl:hover {
 .artfig {
   margin: 0 0 clamp(18px, 2.4vw, 26px);
 }
+
+/*
+ * Figure ke **upar** bhi jagah (client, 14 Sep). Reference me `p` ka apna `margin-bottom` hai; hamare
+ * yahan paragraph ka gap `p + p` se aata hai, to paragraph ke baad aayi image us se chipak jaati thi.
+ * Sirf tab jab upar kuch ho — block ki pehli cheez figure ho to card ke upar extra jagah nahi.
+ */
+* + .artfig {
+  /* 14px — reference me paragraph ka `margin-bottom` itna hi hai (client ne 26px ko zyada kaha) */
+  margin-top: 14px;
+}
 /*
  * ⚠️ `height: auto` reference me nahi hai, par yahan zaroori hai (11 Sep).
  *
@@ -6143,7 +6196,7 @@ a.mega__gl:hover {
 .artfig figcaption {
   font-size: var(--fs-2xs);
   color: var(--muted);
-  margin-top: 9px;
+  /* margin-top: 9px; */
   font-weight: 600;
 }
 
@@ -6198,7 +6251,7 @@ a.mega__gl:hover {
  */
 .art h2 {
   letter-spacing: -0.03em;
-  margin-top: clamp(26px, 3vw, 38px);
+  margin-top: clamp(26px, 3vw, 36px);
   scroll-margin-top: 96px;
 }
 /* Naap aur neeche ka 7px gap `.blk h3` se — sirf upar ka margin article ka apna. */
@@ -6300,7 +6353,7 @@ a.mega__gl:hover {
 }
 .callout b {
   display: block;
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: 900;
   color: var(--ink);
   margin-bottom: 4px;
@@ -6776,22 +6829,16 @@ a.mega__gl:hover {
 /* ---------- page (`page-template-text.html`, D-95) ---------- */
 
 /*
- * Saade page ka content — wahi `.art` card aur typography, do farak ke saath.
+ * Saade page ka content — wahi `.art` card aur typography, ek farak ke saath: **har `<h2>` ke upar
+ * ek line** — reference ka `.rte h2` (`border-top` + `padding-top`). Pehle block ki pehli heading pe
+ * nahi, reference ke `.rte h2:first-child` jaisa.
  *
- * 1. **Hover nahi.** `.art:hover` ka uthna client ne **blog** ke liye maanga tha (9 Sep).
- *    Reference page ka content `.blk` hai, aur uspe koi hover nahi hai.
- * 2. **Har `<h2>` ke upar ek line** — reference ka `.rte h2` (`border-top` + `padding-top`), jo
- *    lambe page ko hisson me baant-ta hai. Pehle block ki pehli heading pe nahi, reference ke
- *    `.rte h2:first-child` jaisa.
+ * ⚠️ **Hover ab blog jaisa hi hai** (neela border, client 14 Sep shaam). Subah yahan `.art--page:hover`
+ * se hover band kiya tha — wo mera chunav tha; client ne kaha doosre pages jaisi neeli line chahiye.
  *
  * ⚠️ Naap (font-size) yahan **nahi** likhe — client, 14 Sep: _"font jo decide kiya bo rahega
  * reference ka nahi"_. Wo `.blk`/`.art` ke tokens se hi aate hain.
  */
-.art--page:hover {
-  border-color: var(--line);
-  box-shadow: none;
-  transform: none;
-}
 
 .art--page h2 {
   padding-top: clamp(20px, 2.4vw, 26px);

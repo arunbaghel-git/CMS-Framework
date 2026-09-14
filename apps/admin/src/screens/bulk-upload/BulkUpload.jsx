@@ -39,7 +39,13 @@ const RUN_TABS = [
 export default function BulkUpload() {
   const navigate = useNavigate()
   const [shown, setShown] = useState('')
-  const { runs, loading, error, reload } = useImportRuns(shown)
+  /**
+   * Past imports ka page (client, 14 Sep) — `All` me teeno type ke run jud kar aate hain (60 tak),
+   * isliye 20-20 ke page. Tab badalne pe page 1 pe wapas, warna Pages ke page 3 pe khaali list.
+   */
+  const [runPage, setRunPage] = useState(1)
+  const { runs, meta, loading, error, reload } = useImportRuns(shown, runPage)
+  const hasNextRunPage = Boolean(meta && runPage * meta.limit < meta.total)
   const [sheetUrl, setSheetUrl] = useState('')
   const [mode, setMode] = useState('new')
   const [target, setTarget] = useState(IMPORT_TARGET.PACKAGE)
@@ -193,6 +199,7 @@ export default function BulkUpload() {
               onClick={(e) => {
                 e.preventDefault()
                 setShown(key)
+                setRunPage(1)
               }}
             >
               {label}
@@ -209,6 +216,35 @@ export default function BulkUpload() {
           </button>
         </p>
       )}
+
+      {/* Wahi `.pagination` jo All Pages / Posts ki list pe hai — naya pattern nahi. */}
+      <div className="tablenav">
+        <div className="spacer" />
+        <div className="pagination">
+          <span>{meta ? `${meta.total} items` : ''}</span>
+          <a
+            className="pg"
+            href="#prev"
+            onClick={(e) => {
+              e.preventDefault()
+              if (runPage > 1) setRunPage(runPage - 1)
+            }}
+          >
+            ‹
+          </a>
+          <a className="pg on">{runPage}</a>
+          <a
+            className="pg"
+            href="#next"
+            onClick={(e) => {
+              e.preventDefault()
+              if (hasNextRunPage) setRunPage(runPage + 1)
+            }}
+          >
+            ›
+          </a>
+        </div>
+      </div>
 
       <table className="list bu-runs">
         <thead>

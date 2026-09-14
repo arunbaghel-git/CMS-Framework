@@ -352,8 +352,10 @@ const BLOG_PAGE_FIELDS = [
  * | Field | Kyun page pe, Settings me nahi |
  * | --- | --- |
  * | `heroButton` | client: _"pages par specific rahega inside edit page"_ — Tour ka button Settings me hai |
- * | `showWhatsapp` | number Settings ▸ General ka; page sirf tay karta hai ki button dikhe ya nahi |
- * | `showToc` | Post pe ye `blogSettings` me ek baar hai; page ki sidebar hi per-page hai, to TOC bhi |
+ *
+ * ⚠️ **`showWhatsapp` aur `showToc` usi shaam hate (client, 14 Sep, D-95 §12).** WhatsApp button ab
+ * **hamesha** aata hai (number Settings ▸ General se), aur `On this page` **Pages ▸ Pages settings**
+ * me sab pages ke liye ek hai. Purane page ke `fields` me dono pade reh sakte hain — koi padhta nahi.
  */
 const PAGE_FIELDS = [
   {
@@ -374,23 +376,6 @@ const PAGE_FIELDS = [
     type: 'link',
     label: 'Hero button',
     help: 'Label and link. Leave either empty and the button does not appear.',
-  },
-  {
-    /**
-     * `WhatsApp us` — doosra button. Number yahan **nahi** hai: wo `settings.whatsapp` me hai,
-     * aur ek hi number do jagah rakhna wahi galti hoti jo `contactEmail` pe palti gayi thi.
-     */
-    key: 'showWhatsapp',
-    type: 'toggle',
-    label: 'Show WhatsApp button',
-    help: 'The number comes from Settings ▸ General',
-  },
-  {
-    /** `On this page` — page ke apne `<h2>` se banti hai (`withHeadingIds()`). */
-    key: 'showToc',
-    type: 'toggle',
-    label: 'Show "On this page"',
-    help: 'Contents list in the sidebar, built from the page headings',
   },
   {
     key: 'sidebar',

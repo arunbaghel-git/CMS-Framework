@@ -1926,17 +1926,21 @@ async function toPublicPage(doc, siteId, locale) {
    * `sectionLabels` (D-65) pe hai: site ki default niche, page ka apna upar.
    */
   /**
-   * ⚠️ **`page` pe koi fallback nahi** — client, 14 Sep (D-95): Featured image na ho to _"koi
-   * banner nahi"_. Tour settings ki universal image Tour/Blog listing ke hero ke liye hai; ek
-   * saade page pe wo har jagah wahi ek photo chhaap deti.
+   * ⚠️ **`page` ka fallback apna hai — `pageSettings.bannerMediaId`** (client, 14 Sep shaam, D-95 §12).
+   *
+   * Usi din subah page pe _"koi banner nahi"_ tha. Shaam ko client ne **Pages ▸ Pages settings** me
+   * ek global image maangi. Tour settings wali image page pe **nahi** aati — wo Tour/Blog listing ke
+   * hero ki hai, aur do alag screens ek hi image badlein to client ko pata hi nahi chalta kaunsi kahan lagi.
    */
   const isTextPage = doc.type === 'page'
 
   const banner =
     (await toDisplayImage(doc.featuredImageId, 'large', siteId)) ??
-    (isTextPage
-      ? null
-      : await toDisplayImage(settings.tourSettings?.bannerMediaId, 'large', siteId))
+    (await toDisplayImage(
+      isTextPage ? settings.pageSettings?.bannerMediaId : settings.tourSettings?.bannerMediaId,
+      'large',
+      siteId,
+    ))
 
   const resolved = await resolvePageBlocks(doc.content?.blocks, siteId, locale, defaults)
 
@@ -1944,13 +1948,15 @@ async function toPublicPage(doc, siteId, locale) {
    * `On this page` — **sirf `page` pe** (D-95). Tour/Blog listing ke `<h2>` pe `id` lagana ek
    * aisa badlaav hota jo kisi ne maanga nahi.
    *
-   * Do shart, wahi jo post pe hain (`toPublicPost()`): page ka checkbox, aur
-   * `TOC_MIN_HEADINGS`. Khaali `toc[]` ka matlab "mat dikhao" — theme ko koi niyam yaad nahi
-   * rakhna. ⚠️ Checkbox **per-page** hai, `blogSettings` jaisa global nahi — page ki sidebar hi
-   * per-page hai (client).
+   * Do shart, wahi jo post pe hain (`toPublicPost()`): Pages settings ka checkbox, aur
+   * `TOC_MIN_HEADINGS`. Khaali `toc[]` ka matlab "mat dikhao" — theme ko koi niyam yaad nahi rakhna.
+   *
+   * ⚠️ Checkbox **global** hai (`pageSettings.showToc`, client 14 Sep shaam) — subah wo har page pe
+   * tha. Purane page ka `fields.showToc` DB me pada ho sakta hai; use ab koi nahi padhta.
    */
   const { blocks, toc } = isTextPage ? withToc(resolved) : { blocks: resolved, toc: [] }
-  const showToc = isTextPage && fields.showToc !== false && toc.length >= TOC_MIN_HEADINGS
+  const showToc =
+    isTextPage && settings.pageSettings?.showToc !== false && toc.length >= TOC_MIN_HEADINGS
 
   /**
    * ⚠️ Sidebar tabhi resolve hoti hai jab page ne use **maanga** ho (`sidebar` `none` na ho).
@@ -2020,14 +2026,10 @@ async function toPublicPage(doc, siteId, locale) {
           ? { label: fields.heroButton.label, url: fields.heroButton.url }
           : null,
 
-      /**
-       * ⚠️ Sirf **"dikhe ya nahi"** — number `settings.whatsapp` se theme lagati hai. Number na ho
-       * to ticked checkbox pe bhi button nahi aata (D-30).
-       *
-       * `!== false` — **default on**, `showToc` jaisa hi. Reference me dono button hain, aur
-       * admin ka checkbox bhi naye page pe ticked khulta hai.
+      /*
+       * ⚠️ `showWhatsapp` **ab nahi** (client, 14 Sep shaam) — WhatsApp button hamesha aata hai, jab
+       * tak `settings.whatsapp` me number ho. Theme wahi padhti hai.
        */
-      showWhatsapp: isTextPage && fields.showWhatsapp !== false,
     },
 
     /** `On this page` — khaali array ka matlab "mat dikhao". */
