@@ -1,8 +1,10 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 11 Sep 2026 (raat) — **270 commit**, **sab push ho chuke** (client ne khud
-> push kiya), **1040 test pass** (38 file), lint + format clean, tree clean.
+> **Last updated:** 11 Sep 2026 (raat) — **~272 commit** (client ne 11 Sep ka sab khud push kiya),
+> **1040 test pass** (38 file), lint + format clean, tree clean.
+> ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
+> yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 
 ---
 
@@ -10,15 +12,15 @@
 
 ### Abhi ki asli haalat (naapi hui, 11 Sep raat)
 
-| Kya           | Value                                                                                                                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Commits       | **270** — **sab push ho chuke** (client ne khud kiya; aakhri `300f907` unka apna `Packages.css` tweak hai). Push hamesha **sirf client ke kehne pe**                                  |
-| Tests         | **1040 pass**, 38 file (`pnpm test`, exit 0)                                                                                                                                          |
-| Builds        | ⚠️ Port 3000 pe client ka **`next start` 12:58 wala build** hai — aaj ke saare site badlaav usme **nahi** dikhte. Naya build client chalayega (dev band karke — D-89)                 |
-| Lint · Format | dono clean                                                                                                                                                                            |
-| Migrations    | **24 files**, 24/24 applied — **024** = post ka parent Blog settings se (D-92 §13)                                                                                                    |
-| Decisions     | **D-94** tak                                                                                                                                                                          |
-| DB            | 5 package (+12 trash) · 1 tour page · 1 blog page (`/blog`) · **15 post** · 6 category · 3 sidebar · 16 media · Blog mode **`nested`** · header: **Awards `left`**, Get quote `right` |
+| Kya           | Value                                                                                                                                                                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Commits       | **~272** — 11 Sep ka kaam client ne khud push kiya (`300f907` unka apna `Packages.css` tweak). Uske baad ke handoff/format commit push hone baaki ho sakte hain — `git log --oneline origin/main..HEAD` dekho. Push hamesha **sirf client ke kehne pe** |
+| Tests         | **1040 pass**, 38 file (`pnpm test`, exit 0)                                                                                                                                                                                                            |
+| Builds        | ⚠️ Port 3000 pe client ka **`next start` 12:58 wala build** hai — aaj ke saare site badlaav usme **nahi** dikhte. Naya build client chalayega (dev band karke — D-89)                                                                                   |
+| Lint · Format | dono clean                                                                                                                                                                                                                                              |
+| Migrations    | **24 files**, 24/24 applied — **024** = post ka parent Blog settings se (D-92 §13)                                                                                                                                                                      |
+| Decisions     | **D-94** tak                                                                                                                                                                                                                                            |
+| DB            | 5 package (+12 trash) · 1 tour page · 1 blog page (`/blog`) · **15 post** · 6 category · 3 sidebar · 16 media · Blog mode **`nested`** · header: **Awards `left`**, Get quote `right`                                                                   |
 
 ### 11 Sep ko kya hua — poora hisaab D-92 §10–§13, D-93, D-94 me
 
