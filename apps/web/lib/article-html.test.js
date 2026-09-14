@@ -327,3 +327,28 @@ describe('articleHtml — poora kram, jaisa blog post pe chalta hai', () => {
     expect(all).toMatch(/class="callout callout--w"/)
   })
 })
+
+describe('articleHtml({ lead: false }) — page pe (D-95)', () => {
+  /**
+   * Client, 14 Sep: _"body font only no lead font"_. Par callout, caption aur table page pe bhi
+   * wahi chahiye — Bulk Upload unhi nishaan se likhega.
+   */
+  const out = articleHtml(
+    '<p>Intro.</p>' +
+      GOOGLE_TABLE +
+      '<p><img src="/b.webp"></p><p>Caption: Jetty</p>' +
+      '<p>Note: <strong>Heads up</strong> Ferries sell out.</p>',
+    { lead: false },
+  )
+
+  it('koi paragraph lead nahi banta', () => {
+    expect(out).not.toContain('class="lead"')
+    expect(out).toContain('<p>Intro.</p>')
+  })
+
+  it('table, caption aur callout phir bhi bante hain', () => {
+    expect(out).toContain('<div class="tblw"><table class="tbl">')
+    expect(out).toContain('<figcaption>Jetty</figcaption>')
+    expect(out).toMatch(/<div class="callout">/)
+  })
+})

@@ -288,7 +288,8 @@ async function importRow(run, row, refs, actor, deps) {
   }
 
   const parsed = target.parse(html)
-  const { input, issues, slug, bannerUrl } = target.map(parsed, refs)
+  const mapped = target.map(parsed, refs)
+  const { input, issues, slug, bannerUrl } = mapped
 
   issues.push(...imageIssues)
 
@@ -349,6 +350,12 @@ async function importRow(run, row, refs, actor, deps) {
       `No ${target.label} with the URL "${slug}" exists yet. This import was set to "Existing ${target.labelPlural}" — choose "New ${target.labelPlural}" to create it.`,
     )
   }
+
+  /**
+   * Target ka apna aakhri milaap, purane entry ko jaan lene ke baad — aaj sirf page ke paas hai
+   * (`fields` merge + naye page ki sidebar, D-95). Package/post pe ye hota hi nahi.
+   */
+  if (target.prepare) issues.push(...target.prepare(input, existing, mapped))
 
   /** Blocker ho to publish nahi hoga — banner ke bina bhi package ban jaana chahiye. */
   if (bannerUrl) {

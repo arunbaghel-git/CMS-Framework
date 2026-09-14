@@ -2,6 +2,7 @@ import { notFound, permanentRedirect, redirect } from 'next/navigation'
 
 import PostPage from '../../components/blog/PostPage.jsx'
 import PackagePage from '../../components/package/PackagePage.jsx'
+import TextPage from '../../components/page/TextPage.jsx'
 import TourPage from '../../components/tour/TourPage.jsx'
 import { getPackageDefaults, getSettings, resolvePath } from '../../lib/cms.js'
 
@@ -118,15 +119,25 @@ export default async function CatchAllPage({ params }) {
    * ⚠️ **Do jagah ek hi list rakhne ka nateeja hai.** Server `PAGE_TYPES` se chalta hai aur
    * theme in teen naamon se; naya page-type jodo to **dono** jagah jodna padta hai.
    */
-  if (entry.type === 'page' || entry.type === 'tourPage' || entry.type === 'blogPage') {
+  if (entry.type === 'page') {
     /**
-     * Dono ka payload ek hi hai (`toPublicPage()`) aur field set bhi ek hi constant (D-87 §1) —
-     * alag type sirf isliye hai ki menu, list aur URL teenon alag maange gaye the. Render me
-     * unme koi farak nahi.
+     * Saada page — `page-template-text.html` (client, 14 Sep, D-95).
      *
-     * ⚠️ `page` ki screens abhi bani nahi hain (A-9), yaani aaj practically sirf `tourPage`
-     * yahan aata hai. Branch phir bhi dono pe hai — jis din Pages ka kaam aayega, yahan kuch
-     * nahi badlega.
+     * ⚠️ **14 Sep tak `page` neeche wali `TourPage` branch me tha.** Payload abhi bhi wahi
+     * `toPublicPage()` hai, par render alag: content article jaisa, TOC, h1 = Title, page ka apna
+     * hero button. `TourPage` me wo sab `type === 'page'` ki shartein ban jaata.
+     *
+     * ⚠️ Server `PAGE_TYPES` me `page` ab bhi hai — wo payload ka niyam hai, render ka nahi.
+     */
+    const settings = await getSettings()
+
+    return <TextPage entry={entry} settings={settings} />
+  }
+
+  if (entry.type === 'tourPage' || entry.type === 'blogPage') {
+    /**
+     * Dono ka payload ek hi hai (`toPublicPage()`) — alag type sirf isliye hai ki menu, list aur
+     * URL alag maange gaye the. Render me unme koi farak nahi.
      *
      * ⚠️ **`getPackageDefaults()` yahan nahi aata.** Wo `sectionLabels`, pricing note, hotels
      * aur booking steps hai — sab package page ki cheezein. Ek aur fetch ka matlab hota ek aur

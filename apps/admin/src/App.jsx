@@ -30,6 +30,7 @@ import TaxonomyScreen from './screens/packages/TaxonomyScreen.jsx'
 import PackagesList from './screens/packages/PackagesList.jsx'
 import PageEdit from './screens/pages/PageEdit.jsx'
 import BlogPageList from './screens/pages/BlogPageList.jsx'
+import PageList from './screens/pages/PageList.jsx'
 import PostList from './screens/pages/PostList.jsx'
 import TourList from './screens/pages/TourList.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
@@ -135,6 +136,14 @@ function Shell({ children }) {
  * lagta hai, aur profile ko usse chhoot deni padti — wo chhoot hi aage toot-ti.
  */
 const APP_ROUTES = [
+  /**
+   * Pages — `page-template-text.html` (client, 14 Sep, D-95). A-9 ka `page` wala aadha yahan
+   * band hua; 8 Sep se ye `NotBuiltYet` pe the.
+   */
+  { path: '/pages', element: <PageList /> },
+  { path: '/pages/new', element: <PageEdit type="page" /> },
+  { path: '/pages/:id', element: <PageEdit type="page" /> },
+
   { path: '/tour', element: <TourList /> },
   { path: '/tour/new', element: <PageEdit /> },
   /**
@@ -275,14 +284,10 @@ const PENDING_ROUTES = [
    * na banega: client ne use mana kiya aur `post.taxonomyTypes` se bhi wo hat chuka hai.
    */
   /**
-   * Pages — D-87 me **scope me thi hi nahi**. Slice C me ye screens galti se ban gayi thin
-   * (kaam Tour ka tha), aur client ne 8 Sep ko wo pakda: _"Pages par kaam to ho hi nahi raha"_.
-   *
-   * Screens ka code git me hai (commit 1e7688d) aur unka saancha bhi bacha hua hai —
-   * `EntriesList.jsx` aur `PageEdit.jsx` dono type se chalte hain. Jis din Pages ka kaam
-   * aayega, wo do route jodne ka kaam hai (A-9).
+   * ~~Pages ka splat~~ — **14 Sep ko hat gaya** (D-95). All Pages aur Add New upar `APP_ROUTES`
+   * me hain. 8 Sep ko ye `NotBuiltYet` pe wapas aaye the (_"Pages par kaam to ho hi nahi raha"_);
+   * ab Pages ka apna kaam aaya.
    */
-  { path: '/pages/*', title: 'Pages', phase: 'Phase 1' },
   /**
    * Packages ke bane hue teen screens upar `APP_ROUTES` me hain. Ye splat sirf uske andar
    * ke baaki raaston ke liye hai — Destinations, Package Type, Hotels, Add Ons, Transfer,

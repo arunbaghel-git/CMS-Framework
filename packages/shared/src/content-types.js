@@ -343,6 +343,70 @@ const BLOG_PAGE_FIELDS = [
 ]
 
 /**
+ * `page` ka field set — text-first page, `page-template-text.html` (client, 14 Sep, D-95).
+ *
+ * ⚠️ **`TOUR_PAGE_FIELDS` reuse nahi kiya** — wahi tark jo `BLOG_PAGE_FIELDS` ke upar hai. Do
+ * cheezein client ne page se **hatayi** (`heading` — `<h1>` Title hai, aur `eyebrow` —
+ * _"Andaman beaches · updated for 2026"_), aur teen cheezein **sirf page ki** hain:
+ *
+ * | Field | Kyun page pe, Settings me nahi |
+ * | --- | --- |
+ * | `heroButton` | client: _"pages par specific rahega inside edit page"_ — Tour ka button Settings me hai |
+ * | `showWhatsapp` | number Settings ▸ General ka; page sirf tay karta hai ki button dikhe ya nahi |
+ * | `showToc` | Post pe ye `blogSettings` me ek baar hai; page ki sidebar hi per-page hai, to TOC bhi |
+ */
+const PAGE_FIELDS = [
+  {
+    key: 'subheading',
+    type: 'richText',
+    label: 'Sub heading',
+    help: 'The paragraph under the title',
+  },
+  {
+    key: 'statRail',
+    type: 'repeater',
+    label: 'Stat rail',
+    help: 'The four numbers under the hero',
+  },
+  {
+    /** `Plan a trip here` — `.vhero__cta` ka pehla button. Shape `heroButtonSchema` ka. */
+    key: 'heroButton',
+    type: 'link',
+    label: 'Hero button',
+    help: 'Label and link. Leave either empty and the button does not appear.',
+  },
+  {
+    /**
+     * `WhatsApp us` — doosra button. Number yahan **nahi** hai: wo `settings.whatsapp` me hai,
+     * aur ek hi number do jagah rakhna wahi galti hoti jo `contactEmail` pe palti gayi thi.
+     */
+    key: 'showWhatsapp',
+    type: 'toggle',
+    label: 'Show WhatsApp button',
+    help: 'The number comes from Settings ▸ General',
+  },
+  {
+    /** `On this page` — page ke apne `<h2>` se banti hai (`withHeadingIds()`). */
+    key: 'showToc',
+    type: 'toggle',
+    label: 'Show "On this page"',
+    help: 'Contents list in the sidebar, built from the page headings',
+  },
+  {
+    key: 'sidebar',
+    type: 'select',
+    label: 'Sidebar',
+    help: 'Whether this page has a sidebar, and on which side',
+  },
+  {
+    key: 'sidebarId',
+    type: 'select',
+    label: 'Which sidebar',
+    help: 'One of the sidebars made under Appearance ▸ Sidebar',
+  },
+]
+
+/**
  * `post` ka field set — **khaali** (client, 11 Sep, D-93).
  *
  * ## ⚠️ `heading` 10 Sep ko juda aur 11 Sep ko wapas gaya
@@ -417,16 +481,15 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     taxonomyTypes: [],
 
     /**
-     * ⚠️ **Khaali — aur wo D-87 se pehle wali haalat hai** (8 Sep me wapas laayi gayi).
+     * ⚠️ **14 Sep se bhara hua (D-95)** — 8 Sep se yahan `[]` tha.
      *
-     * Kuch ghante ke liye yahan Tour ke fields aa gaye the (Eyebrow · Sub heading · Stat rail),
-     * kyunki "ek hi edit screen" ko "ek jaise types" samajh liya gaya tha. Client ne wo mana
-     * kiya: _"Pages par kaam to ho hi nahi raha."_
-     *
-     * Pages ka apna field set tab banega jab uska kaam aayega (A-9). Poora tark
-     * `TOUR_PAGE_FIELDS` ke upar hai.
+     * 7–8 Sep ke beech kuch ghante yahan Tour ke fields aa gaye the, kyunki "ek hi edit screen"
+     * ko "ek jaise types" samajh liya gaya tha, aur client ne mana kiya: _"Pages par kaam to ho
+     * hi nahi raha."_ Ab Pages ka apna kaam aaya hai, apne reference ke saath
+     * (`page-template-text.html`) — isliye apna field set, Tour ka nahi. Poora tark
+     * `PAGE_FIELDS` ke upar hai.
      */
-    fields: [],
+    fields: PAGE_FIELDS,
   },
 
   {

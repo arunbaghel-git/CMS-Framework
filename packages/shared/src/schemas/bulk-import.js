@@ -109,7 +109,7 @@ export const IMPORT_MODES = Object.freeze(Object.values(IMPORT_MODE))
  * ⚠️ Ye `mode` se alag cheez hai aur dono ek saath chalte hain: `target` kehta hai **kya** ban
  * raha hai, `mode` kehta hai **naya ya purana**.
  */
-export const IMPORT_TARGET = Object.freeze({ PACKAGE: 'package', POST: 'post' })
+export const IMPORT_TARGET = Object.freeze({ PACKAGE: 'package', POST: 'post', PAGE: 'page' })
 
 export const IMPORT_TARGETS = Object.freeze(Object.values(IMPORT_TARGET))
 
@@ -129,6 +129,8 @@ export const IMPORT_TARGETS = Object.freeze(Object.values(IMPORT_TARGET))
 export const IMPORT_TARGET_LABEL = Object.freeze({
   [IMPORT_TARGET.PACKAGE]: { one: 'package', many: 'packages', plural: 'Packages' },
   [IMPORT_TARGET.POST]: { one: 'post', many: 'posts', plural: 'Blog posts' },
+  /** Saade page — `page-template-text.html` (client, 14 Sep, D-95). */
+  [IMPORT_TARGET.PAGE]: { one: 'page', many: 'pages', plural: 'Pages' },
 })
 
 export const startImportSchema = z

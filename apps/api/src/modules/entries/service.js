@@ -12,6 +12,7 @@ import {
   TAXONOMY_TYPE_BY_REF_KEY,
   extractBlockText,
   faqsSchema,
+  heroButtonSchema,
   itinerarySchema,
   packageAddOnsSchema,
   packageHotelsSchema,
@@ -20,6 +21,7 @@ import {
   pricingSchema,
   ratingSchema,
   pageHeadingSchema,
+  pageToggleSchema,
   sidebarIdSchema,
   sidebarPositionSchema,
   statRailSchema,
@@ -260,6 +262,17 @@ function normalizeFields(fields, contentType) {
    * Uska jawab payload me hai — resolve na ho to sidebar render hi nahi hota (D-42 §2).
    */
   if (has('sidebarId')) out.sidebarId = sidebarIdSchema.parse(fields.sidebarId)
+
+  /**
+   * Page ka apna hero button aur do toggle (client, 14 Sep, D-95).
+   *
+   * ⚠️ **Parse yahan zaroori hai** — `heroButton.url` seedha `href` banta hai aur toggle theme
+   * me `if` banta hai. `fields` Mixed hai (D-46), to bina rok ke `showToc: "false"` (string)
+   * bhi store ho jaata aur theme use **sach** maan leti.
+   */
+  if (has('heroButton')) out.heroButton = heroButtonSchema.parse(fields.heroButton)
+  if (has('showWhatsapp')) out.showWhatsapp = pageToggleSchema.parse(fields.showWhatsapp)
+  if (has('showToc')) out.showToc = pageToggleSchema.parse(fields.showToc)
 
   /*
    * ⚠️ **`blocks` yahan **nahi** hai — 7 Sep ko badla (D-87 §7).**
@@ -1871,6 +1884,24 @@ export async function restoreRevision(
  * @param {string} slug
  * @returns {Promise<object|null>}
  */
+/**
+ * Ek type ki saari entries ke title — Bulk Upload for pages ka `Parent page` (D-95).
+ *
+ * Doc me parent ka **title** likha jaata hai (client, 14 Sep). Title unique nahi hai, isliye
+ * poori list jaati hai aur mapper do-milne wali haalat khud rokta hai — `allItemNames()` wali
+ * shakl. Trash ki entry parent nahi ban sakti, isliye wo nahi aati.
+ *
+ * @param {string} type
+ */
+export async function allEntryTitles(type, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const docs = await Entry.find(
+    { ...scope(siteId, locale), type, deletedAt: null },
+    { title: 1, slug: 1 },
+  ).lean()
+
+  return docs.map((doc) => ({ id: String(doc._id), name: doc.title ?? '', slug: doc.slug ?? '' }))
+}
+
 export async function findEntryBySlug(
   type,
   slug,

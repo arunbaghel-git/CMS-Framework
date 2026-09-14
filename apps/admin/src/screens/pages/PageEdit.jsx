@@ -24,10 +24,8 @@ import '../packages/Packages.css'
  * Client ne 7 Sep ko "do template" wala plan rad kiya: koi chooser nahi, koi template dropdown
  * nahi, koi switch-confirm nahi.
  *
- * ⚠️ **Aaj sirf `/tour` isko use karta hai.** Kuch ghante ke liye `/pages` bhi isi pe tha, par
- * Pages par kaam ho hi nahi raha (client, 8 Sep) — wo wapas `NotBuiltYet` pe hai. Component
- * `type` prop se chalta hai, isliye jis din Pages ka kaam aayega tab `TYPE_CONFIG` me ek row
- * aur do route jodne se ye wahan bhi chal jaayega.
+ * Chaar type isko use karte hain — `page` (`/pages`, 14 Sep se, D-95), `tourPage` (`/tour`),
+ * `blogPage` aur `post`. Kya dikhega wo sab `TYPE_CONFIG` ki row se tay hota hai.
  *
  * Screen ka dhaancha `admin-design-v3.html` ke `#s-page-edit` se hai:
  *
@@ -53,16 +51,49 @@ import '../packages/Packages.css'
 /**
  * Kaunsa type kaunse panel aur blocks paata hai.
  *
- * ⚠️ **Abhi sirf `tourPage` hai** — Pages par kaam ho hi nahi raha (client, 8 Sep), aur uski
- * screens `NotBuiltYet` pe hain. Kuch ghante ke liye yahan `page` bhi tha aur use Tour ke saare
- * panel mil gaye the (Eyebrow · Stat rail · `Package list` block); wo teenon `tour-v3.html` ke
- * hero/listing ki cheezein hain aur ek About Us page pe unka koi kaam nahi.
+ * ⚠️ 7–8 Sep ke beech kuch ghante yahan `page` ko Tour ke saare panel mil gaye the, aur client ne
+ * mana kiya. 14 Sep ko `page` apni **alag** row ke saath aaya (D-95) — Tour ki copy nahi.
  *
- * Jis din Pages ka kaam aayega, yahan **ek row** jodni hai aur do route — component `type` prop
- * se pehle se chalta hai. `hero`/`blocks` yahin tay hote hain, JSX me bikhre
- * `type === 'tourPage'` se nahi (wahi hardcoding jise D-09 ne mana kiya tha).
+ * Panel aur blocks yahin tay hote hain, JSX me bikhre `type === 'tourPage'` se nahi (wahi
+ * hardcoding jise D-09 ne mana kiya tha).
  */
 const TYPE_CONFIG = {
+  /**
+   * Saada page — `page-template-text.html` (client, 14 Sep, D-95).
+   *
+   * ⚠️ **Tour ki row copy nahi ki.** Client ne jo maanga:
+   *
+   * | Kya | Kyun |
+   * | --- | --- |
+   * | `header: false` | `<h1>` = **Title** (Post jaisa, D-93) — `Page heading` nahi |
+   * | `eyebrow: false` | _"Andaman beaches · updated for 2026"_ hataya |
+   * | `statRail: true` | _"ha rahegi"_ |
+   * | `heroButtons: true` | _"pages par specific rahega inside edit page"_ — Settings me nahi |
+   * | `toc: true` | `On this page` ka checkbox **har page pe** (sidebar bhi per-page hai) |
+   * | `blocks` | Text + FAQs — Post wale hi (`POST_BLOCK_TYPES`) |
+   */
+  page: {
+    key: 'page',
+    label: 'Page',
+    basePath: '/pages',
+    header: false,
+    subheading: true,
+    eyebrow: false,
+    statRail: true,
+    heroButtons: true,
+    toc: true,
+    sidebar: true,
+    parent: true,
+    /** Page ka URL parent ke neeche banta hai (`hierarchical: true`, D-09) — Tour ka nahi. */
+    nested: true,
+    /** Byline me author nahi — client ne `Andaman Tourism team` hataya. */
+    bylineHint: 'Updated · min read',
+    /** Featured image na ho to hero bina image ke — koi Settings wala fallback nahi. */
+    featuredHint:
+      'Optional. The banner behind the page heading — leave it empty and there is no banner.',
+    blocks: POST_BLOCK_TYPES,
+  },
+
   tourPage: {
     key: 'tourPage',
     label: 'Tour Page',
@@ -71,18 +102,20 @@ const TYPE_CONFIG = {
     header: true,
     subheading: true,
     /** Eyebrow + Stat rail — `tour-v3.html` ke hero wale panel. */
-    hero: true,
+    eyebrow: true,
+    statRail: true,
     /** Sidebar ka chunav page pe (D-88). */
     sidebar: true,
     /** `Parent` ka dropdown — breadcrumb isi se banta hai (D-87 §12). */
     parent: true,
+    featuredHint: 'Optional. Na daali to Settings wali universal image aayegi.',
     blocks: ['richText', 'twoColumn', 'cards', 'packageList', 'faqs'],
   },
 
   /**
    * Blog ka listing page — `blog-v1.html` (spec 008).
    *
-   * ⚠️ `hero: false` — na Eyebrow, na Stat rail. Dono `tour-v3.html` ke hero ki cheezein hain
+   * ⚠️ `eyebrow`/`statRail` `false` — na Eyebrow, na Stat rail. Dono `tour-v3.html` ke hero ki cheezein hain
    * aur `blog-v1.html` me hain hi nahi; Eyebrow ko client ne **saaf mana kiya** (_"Written on
    * the islands · updated for 2026"_ hataana tha). Isiliye `BLOG_PAGE_FIELDS` bhi
    * `TOUR_PAGE_FIELDS` se alag hai — do khaali khaane admin me padey rehna hi wo sawaal
@@ -94,7 +127,8 @@ const TYPE_CONFIG = {
     basePath: '/blog-page',
     header: true,
     subheading: true,
-    hero: false,
+    eyebrow: false,
+    statRail: false,
     sidebar: true,
     /**
      * ⚠️ **`parent: false` — client, 10 Sep: _"ye to khud hi parent hai"_.**
@@ -105,6 +139,7 @@ const TYPE_CONFIG = {
      * aur khaali/bemaani control wahi cheez hai jo client se sawaal karwati hai (D-30).
      */
     parent: false,
+    featuredHint: 'Optional. Na daali to Settings wali universal image aayegi.',
     blocks: BLOG_PAGE_BLOCK_TYPES,
   },
 
@@ -129,7 +164,8 @@ const TYPE_CONFIG = {
     basePath: '/posts',
     header: false,
     subheading: false,
-    hero: false,
+    eyebrow: false,
+    statRail: false,
     sidebar: false,
     /**
      * ⚠️ **Post ka parent bhi dropdown se nahi chunta.** Uska URL `post` type ke `urlPattern`
@@ -140,6 +176,7 @@ const TYPE_CONFIG = {
     /** Excerpt aur Category sirf post pe — `tourPage` ko dono ki zaroorat hi nahi. */
     excerpt: true,
     categories: true,
+    featuredHint: 'Optional. Na daali to Settings wali universal image aayegi.',
     blocks: POST_BLOCK_TYPES,
   },
 }
@@ -262,7 +299,7 @@ export default function PageEdit({ type = 'tourPage' }) {
      * `entries.fields` Mixed hai, yaani undeclared field bhi chup-chaap store ho jaata —
      * ek saade page ke `fields` me `statRail: []` padi rehti, jiska koi matlab nahi.
      */
-    const fields = config.hero
+    const fields = config.statRail
       ? { ...form.fields, statRail: stats.filter((s) => s?.value?.trim()) }
       : form.fields
 
@@ -341,8 +378,22 @@ export default function PageEdit({ type = 'tourPage' }) {
     }
   }
 
-  /** Dono types root pe baithte hain — `/{slug}` (D-87 §1). */
-  const permalink = `/${form.slug || '…'}`
+  /**
+   * Tour/Blog page root pe baithte hain — `/{slug}` (D-87 §1). **Page** parent ke neeche
+   * (`hierarchical`, D-09): `/andaman-beaches/beach-name`. Asli path server banata hai; ye sirf
+   * dikhane ke liye hai.
+   */
+  const parentPath = config.nested
+    ? (parentOptions.find((p) => p.id === form.parentId)?.path ?? '').replace(/\/$/, '')
+    : ''
+  const permalink = `${parentPath}/${form.slug || '…'}`
+
+  /**
+   * Hero button ka ek khaana badlo — dusra waisa ka waisa. Khaali object se shuru, taaki naye
+   * page pe `fields.heroButton` na ho tab bhi chale.
+   */
+  const setHeroButton = (key, value) =>
+    setField('heroButton', { label: '', url: '', ...form.fields.heroButton, [key]: value })
 
   return (
     <>
@@ -403,7 +454,7 @@ export default function PageEdit({ type = 'tourPage' }) {
           </div>
 
           {/* ---- PAGE HEADER ---- */}
-          {config.header && (
+          {(config.header || config.subheading || config.heroButtons) && (
             <Panel title="Page header">
               <div className="panel-body">
                 {/* Eyebrow `tour-v3.html` ke hero se aata hai — saade page pe wo nahi hai. */}
@@ -426,23 +477,25 @@ export default function PageEdit({ type = 'tourPage' }) {
                  * Client ko wo pehle se bata dena hi ek raasta bacha, kyunki toolbar ab chhota nahi
                  * kiya ja sakta.
                  */}
-                <div className="field">
-                  <label>Page heading</label>
-                  <HtmlEditor
-                    value={form.fields.heading ?? ''}
-                    onChange={(heading) => setField('heading', heading)}
-                    disabled={readOnly}
-                    height={160}
-                  />
-                  <div className="hint">
-                    Shown as the page’s H1. Leave it empty and the <b>Title</b> above is used.{' '}
-                    <b>Italic</b> marks the part that should stand out in the accent colour. Only
-                    bold, italic and links are kept here — headings, lists and images are dropped
-                    when you save, because this is a heading.
+                {config.header && (
+                  <div className="field">
+                    <label>Page heading</label>
+                    <HtmlEditor
+                      value={form.fields.heading ?? ''}
+                      onChange={(heading) => setField('heading', heading)}
+                      disabled={readOnly}
+                      height={160}
+                    />
+                    <div className="hint">
+                      Shown as the page’s H1. Leave it empty and the <b>Title</b> above is used.{' '}
+                      <b>Italic</b> marks the part that should stand out in the accent colour. Only
+                      bold, italic and links are kept here — headings, lists and images are dropped
+                      when you save, because this is a heading.
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {config.hero && (
+                {config.eyebrow && (
                   <div className="field">
                     <label>Eyebrow line</label>
                     <input
@@ -472,9 +525,68 @@ export default function PageEdit({ type = 'tourPage' }) {
                       />
                     </div>
                     <div className="hint">
-                      The big heading comes from the Title above. The breadcrumb is built from the
-                      page&rsquo;s <b>Parent</b>. The banner image comes from Settings — a page with
-                      its own Featured image uses that instead.
+                      {config.key === 'page' ? (
+                        <>
+                          The big heading is the <b>Title</b> above. The breadcrumb is built from
+                          the page&rsquo;s <b>Parent</b>. The banner image is the page&rsquo;s{' '}
+                          <b>Featured image</b>.
+                        </>
+                      ) : (
+                        <>
+                          The big heading comes from the Title above. The breadcrumb is built from
+                          the page&rsquo;s <b>Parent</b>. The banner image comes from Settings — a
+                          page with its own Featured image uses that instead.
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/*
+                 * Hero ke do button — **page ka apna** (client, 14 Sep, D-95): _"pages par specific
+                 * rahega inside edit page"_. Tour page ka button `Tour settings` me hai, sab Tour
+                 * pages ke liye ek.
+                 *
+                 * ⚠️ WhatsApp ka **number yahan nahi** — Settings ▸ General ka hi. Page sirf tick
+                 * karta hai ki button dikhe. Default **ticked** (payload `!== false` padhta hai),
+                 * reference me dono button hain.
+                 */}
+                {config.heroButtons && (
+                  <>
+                    <div className="row2">
+                      <div className="field">
+                        <label>Button label</label>
+                        <input
+                          className="inp"
+                          placeholder="Plan a trip here"
+                          value={form.fields.heroButton?.label ?? ''}
+                          onChange={(e) => setHeroButton('label', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                      <div className="field">
+                        <label>Button link</label>
+                        <input
+                          className="inp"
+                          placeholder="#enquiry or /contact-us"
+                          value={form.fields.heroButton?.url ?? ''}
+                          onChange={(e) => setHeroButton('url', e.target.value)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                    </div>
+                    <label className="inline-lbl">
+                      <input
+                        type="checkbox"
+                        checked={form.fields.showWhatsapp !== false}
+                        onChange={(e) => setField('showWhatsapp', e.target.checked)}
+                        disabled={readOnly}
+                      />{' '}
+                      Show WhatsApp button
+                    </label>
+                    <div className="hint">
+                      Leave the label or the link empty and that button does not appear. The
+                      WhatsApp number comes from <b>Settings ▸ General</b>.
                     </div>
                   </>
                 )}
@@ -482,8 +594,8 @@ export default function PageEdit({ type = 'tourPage' }) {
             </Panel>
           )}
 
-          {/* ---- STAT RAIL ---- reference ka `.vrail`, sirf Tour page pe ---- */}
-          {config.hero && (
+          {/* ---- STAT RAIL ---- reference ka `.vrail` — Tour aur Page (D-95) ---- */}
+          {config.statRail && (
             /*
              * ⚠️ **Design me ye band khulta hai** (`#s-page-edit` me `▸` aur
              * `panel-body style="display:none"`). Chaar row hamesha dikhti hain aur wo poori
@@ -678,8 +790,8 @@ export default function PageEdit({ type = 'tourPage' }) {
               </div>
 
               <div className="hint">
-                The byline on the page (<i>author · Updated · min read</i>) is built from these{' '}
-                <b>automatically</b> — there is no field for it.
+                The byline on the page (<i>{config.bylineHint ?? 'author · Updated · min read'}</i>)
+                is built from these <b>automatically</b> — there is no field for it.
               </div>
             </div>
           </Panel>
@@ -801,6 +913,32 @@ export default function PageEdit({ type = 'tourPage' }) {
                       )}
                     </div>
                   )}
+
+                  {/*
+                   * `On this page` — **har page pe** (client, 14 Sep, D-95). Post pe yahi checkbox
+                   * `Blog settings` me sab posts ke liye ek hai; page ki sidebar hi per-page hai.
+                   *
+                   * ⚠️ Sirf sidebar chuni ho tabhi dikhta hai — TOC sidebar ke **andar** baithti hai.
+                   * `none` pe checkbox dikhana ek aisa control hota jo kuch nahi karta (D-30). Value
+                   * mitti nahi, `sidebarId` jaisi hi.
+                   */}
+                  {config.toc && (form.fields.sidebar ?? 'none') !== 'none' && (
+                    <div className="field">
+                      <label className="inline-lbl">
+                        <input
+                          type="checkbox"
+                          checked={form.fields.showToc !== false}
+                          onChange={(e) => setField('showToc', e.target.checked)}
+                          disabled={readOnly}
+                        />{' '}
+                        Show &ldquo;On this page&rdquo;
+                      </label>
+                      <div className="hint">
+                        A contents list at the top of the sidebar, built from the H2 headings in the
+                        content. It appears once the page has at least three.
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -830,6 +968,7 @@ export default function PageEdit({ type = 'tourPage' }) {
                   <div className="hint">
                     The breadcrumb is built from this.
                     {config.key === 'tourPage' && ' Tour page ka URL isse nahi badalta.'}
+                    {config.nested && ' The page address goes under the parent’s address too.'}
                   </div>
                 </div>
               )}
@@ -840,7 +979,7 @@ export default function PageEdit({ type = 'tourPage' }) {
                */}
               <MediaDrop
                 label="Featured image"
-                hint="Optional. Na daali to Settings wali universal image aayegi."
+                hint={config.featuredHint}
                 media={media[form.featuredImageId]}
                 onSelect={(chosen) => set({ featuredImageId: chosen.id })}
                 onClear={() => set({ featuredImageId: null })}

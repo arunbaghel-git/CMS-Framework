@@ -7708,3 +7708,91 @@ le jakar space equal"_. Desktop (≥1041px) pe `.hdr__top--lbtn` ab grid hai —
 jo do `margin-left: auto` dete the, isliye Awards bilkul nahi hilta), bachi aadhi nav ke dono taraf
 barabar. Fixed jagah bhi pehle jitni (`column-gap: 8px` spacer ke dono taraf = purana 16px gap).
 Tablet/mobile pe flex hi.
+
+## D-95
+
+**14 Sep — saada page: `page-template-text.html` (A-9 ka `page` wala aadha band).** Client ne apni
+reference file di aur ek list me bataya kya hatana hai, kya badalna hai. Build se pehle har khula
+sawaal poochha gaya (client: _"do not assume if not confirmed"_). Koi migration nahi.
+
+**1. Reference se hataya (client):** eyebrow `Andaman beaches · updated for 2026` · byline ka author
+`Andaman Tourism team` / `Written in Port Blair` · sidebar ka `Quick facts` · content ke baad ki
+`.ctastrip` `Get a free itinerary`.
+
+**2. Hero.** `<h1>` = **Title**, saada text, koi accent rang nahi (Post jaisa, D-93 — `fields.heading`
+page pe nahi). Sub heading rich text. Byline sub heading ke **neeche**: `Updated Aug 2026 · 6 min read`
+— date **last edit** (`updatedAt`) ki, aur **sirf mahina + saal** (_"20 aug ye nahi"_). Banner **sirf
+Featured image** se — Tour settings wali universal image page pe fallback **nahi** (_"koi banner
+nahi"_). Stat rail rahi.
+
+**3. Hero ke do button — page ka apna** (_"pages par specific rahega inside edit page"_), Tour ki tarah
+Settings me nahi. `fields.heroButton {label, url}` (shape `heroButtonSchema` — `tourSettings.heroButton`
+bhi ab wahi constant) aur `fields.showWhatsapp` checkbox; number `settings.whatsapp` se. Label ya link
+khaali → button nahi. ⚠️ Checkbox **default on** (`!== false`) — reference me dono button hain.
+
+**4. Content — Text block + FAQs block** (Post wale `POST_BLOCK_TYPES`). Client ne poochha tha ki FAQ
+editor ke andar ho sakta hai ya nahi. Jawab: ho sakta hai (server `<h3>`/`<p>` padh kar schema bana
+sakta hai), par mashwara **alag block** ka tha — editor ke andar sawaal ko `<h3>` ki jagah bold kar
+dene se schema **chup-chaap** nahi banta (D-86 wala jaal), aur Google Aug 2023 se FAQ rich result
+travel site pe waise bhi kam dikhata hai. Client ne alag block chuna. Schema wahi `TourSchema` —
+Breadcrumb + FAQPage (_"abhi jaisa hai thik hai"_).
+
+**5. Font — _"body font only no lead font"_.** `articleHtml(html, { lead: false })`: callout
+(`Note:`/`Warning:`/`Quote:`), caption aur table page pe bhi bante hain — kyunki page ka Bulk Upload
+bhi unhi nishaan se likhega — sirf bada pehla paragraph nahi. Naap reference ke nahi, hamare tokens ke
+(_"font jo decide kiya bo rahega"_). Content `.art.art--page` card me: `.art` ki typography, par
+**hover nahi** (wo blog ke liye maanga gaya tha) aur har `<h2>` ke upar reference wali line (`.rte h2`).
+
+**6. Sidebar per page** (`sidebar` + `sidebarId`, Tour jaisa) aur **`On this page` ka checkbox bhi per
+page** (`fields.showToc`, default on) — Post pe wo `blogSettings` me sab posts ke liye ek hai. TOC ka
+loop `toPublicPost()` se nikal kar `withToc()` bana, dono ki saanjhi. ⚠️ **Sirf `page` pe chalta hai** —
+Tour/Blog listing ke `<h2>` pe `id` lagana kisi ne maanga nahi. Admin me checkbox tabhi dikhta hai jab
+sidebar chuni ho (TOC sidebar ke andar baithti hai).
+
+**7. Mobile — form popup, `Talk to a planner` chhupta hai, CTA static settings se.** Teeno pehle se bane
+the (`EnquiryDockProvider` + `MobileBar`, `.pgl__side .wdg--planner`, `CtaSection`) — naya kuch nahi.
+
+**8. Render — `components/page/TextPage.jsx`, `TourPage` nahi.** 14 Sep tak `page` `TourPage` se render
+hota tha (sirf ek byline ki shart ke saath). Paanch cheezein alag hone pe wo paanch `type === 'page'`
+ban jaati — `PostPage` bhi isi wajah se alag hai. Saanjhe tukde bahar nikle: `blog/Toc.jsx`,
+`tour/HeroButtons.jsx`, `tour/StatRail.jsx`. `TourPage` ka `Byline` aur `.vbyline` CSS hataye (ab koi
+padhne wala nahi tha).
+
+**9. Admin — `Pages ▸ All Pages · Add New`** (`/pages`, `NotBuiltYet` se bahar). List: Title · Author ·
+Status · Updated (design `#s-pages`). Edit: `TYPE_CONFIG.page` — Page header (Sub heading · Button label
+· Button link · Show WhatsApp), Stat rail, Content, Publish, Page settings (Sidebar · Which sidebar ·
+Show "On this page" · Parent · Featured image), SEO. Permalink parent ke neeche dikhta hai (`page`
+`hierarchical`). `hero` flag do me bata: `eyebrow` + `statRail`.
+
+⚠️ **Deploy pe `pnpm seed` chahiye** — `page` ka field set ab khaali nahi, aur `normalizeFields()` sirf
+declared fields parse karta hai. Bina seed ke `heroButton`/`showToc` store to honge par parse nahi
+(`"false"` string bhi chala jaata). API restart bhi.
+
+⚠️ **Render hote hue dekha nahi gaya** — port 3000 pe client ka `next start` hai. **1051 test pass**,
+admin build pass. Aankh wala kaam **A-25**.
+
+**10. Bulk Upload for pages (usi din, client).** Wahi `bulk-imports` module, teesra target `page`
+(`IMPORT_TARGET.PAGE`). Admin ka dropdown, New/Existing pages ke label aur Past imports ka `Pages`
+filter `IMPORT_TARGETS` se apne aap aaye; 20 run har type ke (D-92 §12) bhi. Naya: `page-doc.js`
+(parser), `page-mapper.js`, `TARGET_CONFIG.page`.
+
+Doc ke labels — client ke template ke (`Meta Title` · `Meta Description` · `Page title` · `Page URL` ·
+`Banner Image URL` · `Stat Rail` · `Content` · `Faq:` → `Heading` · `Question` · `answer`) aur client
+ke chune teen: `Parent page` (title se) · `Sub heading` · `Button label` / `Button link`.
+**Stat Rail optional**, har card ke chaar label — `Value` · `Suffix` · `Label` · `Highlight` (`Yes`);
+har `Value` naya card, 4 tak. Sidebar doc me nahi: **naya** page `Pages Sidebar` (naam se) ke saath
+right pe; na mile to note aur bina sidebar.
+
+⚠️ **`prepare` hook** — `updateEntry()` `fields` poora badalta hai, to re-import admin me chune
+`sidebar`/`sidebarId`/`showWhatsapp`/`showToc` mita deta. Page target purane `fields` pe doc ke khaane
+milaata hai. ⚠️ `Parent page` na mile → blocker (root pe publish hota, baad me URL badalta); khaali →
+`parentId` bheja hi nahi jaata. Sub heading 2000 se lambi → chhodi jaati hai (HTML kaati nahi jaati).
+
+**Usi din client ne apna doc khud bhara** (sheet wala `1AtY5YIu…`) aur ek label joda: **`On this page:
+Yes/No`** → `fields.showToc` — doc me likha ho tabhi bheja jaata hai, na ho to admin ka chunav bachta
+hai. ⚠️ Bina iske wo line `Parent page` ke khaane me jud jaati thi (`"Andaman Beaches\nOn this page:
+Yes"`) aur page draft rehta — asli doc pe chala kar pakda. Stat Rail client ne **ek line me** likhi
+(`Value: Free`, `Suffix : entry`) — parser use pehle se samajhta tha.
+
+Fixture ab **wahi client ka doc** hai (`packages/shared/src/import/__fixtures__/page-template.html`),
+sirf image ka ~100KB `data:` URI ek 1200×800 solid PNG se badla gaya.

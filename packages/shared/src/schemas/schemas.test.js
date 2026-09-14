@@ -215,6 +215,24 @@ describe('entrySchema', () => {
   })
 })
 
+describe('entryListQuerySchema — month (All dates)', () => {
+  /**
+   * ⚠️ 10–14 Sep regex `^d{4}` tha (backslash gayab) — har asli mahina 400 khaata tha, aur
+   * Posts/Pages ka `All dates` ek bhi baar chala nahi. `blog.test.js` `listEntries()` ko seedha
+   * bulata hai, is schema se guzre bina, isliye wo pass tha. Ye test schema ko hi pakadta hai.
+   */
+  it('asli mahina maanta hai', () => {
+    expect(entryListQuerySchema.parse({ month: '2026-09' }).month).toBe('2026-09')
+    expect(entryListQuerySchema.parse({ month: '2026-12' }).month).toBe('2026-12')
+  })
+
+  it('galat shakl mana karta hai', () => {
+    for (const bad of ['dddd-09', '2026-13', '2026-9', 'september', '2026-09-01']) {
+      expect(entryListQuerySchema.safeParse({ month: bad }).success).toBe(false)
+    }
+  })
+})
+
 describe('entryListQuerySchema', () => {
   it('query params coerce karta hai aur limit cap karta hai', () => {
     const q = entryListQuerySchema.parse({ page: '2', limit: '50', trashed: 'true' })

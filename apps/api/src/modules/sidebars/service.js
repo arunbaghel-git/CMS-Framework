@@ -197,3 +197,16 @@ export async function deleteSidebar(id, siteId = DEFAULT_SITE_ID, locale = DEFAU
 
   return { deleted: true }
 }
+
+/**
+ * Saari sidebars ke naam — Bulk Upload for pages (D-95) ke liye.
+ *
+ * Import hua page `Pages Sidebar` naam se sidebar dhoondhta hai (client, 14 Sep). Naam pe
+ * uniqueness nahi hai, isliye poori list jaati hai aur mapper do-milne wali haalat khud dekhta
+ * hai — `allItemNames()` wali hi shakl.
+ */
+export async function allSidebarNames(siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const docs = await Sidebar.find({ ...scope(siteId, locale), deletedAt: null }, { name: 1 }).lean()
+
+  return docs.map((doc) => ({ id: String(doc._id), name: doc.name ?? '' }))
+}

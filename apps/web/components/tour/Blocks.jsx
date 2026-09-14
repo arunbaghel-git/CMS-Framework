@@ -42,7 +42,7 @@ function BlockHead({ heading, description }) {
   )
 }
 
-function RichTextBlock({ props, article }) {
+function RichTextBlock({ props, article, lead }) {
   if (!props.html) return null
 
   /**
@@ -56,7 +56,11 @@ function RichTextBlock({ props, article }) {
    * ⚠️ Kram `articleHtml()` ke andar hai, yahan nahi — caption ka `.lead` ban jaana kram ka hi
    * bug tha (11 Sep), aur yahan likhe kram ka test ho hi nahi sakta tha.
    */
-  const html = article ? articleHtml(props.html) : wrapTables(props.html)
+  /**
+   * ⚠️ `lead` — `page` pe `false` (D-95): callout · caption · table sab, par bada pehla
+   * paragraph nahi. Post pe default `true`.
+   */
+  const html = article ? articleHtml(props.html, { lead }) : wrapTables(props.html)
 
   return <div className="blk" dangerouslySetInnerHTML={{ __html: html }} />
 }
@@ -245,7 +249,7 @@ export function BlocksScope({ blocks = [], children }) {
  *   `lead` pass columns ke upar chalta hai, `main` unke andar. Ek hi `blocks` array dono baar
  *   aati hai — jo block us slot me kuch nahi deta wo chup-chaap gir jaata hai.
  */
-export default function Blocks({ blocks = [], slot = 'main', article = false }) {
+export default function Blocks({ blocks = [], slot = 'main', article = false, lead = true }) {
   return blocks.map((block, i) => {
     const Block = slot === 'lead' ? LEADS[block.type] : BLOCKS[block.type]
 
@@ -262,7 +266,13 @@ export default function Blocks({ blocks = [], slot = 'main', article = false }) 
      * hai. Baaki ke liye ye `undefined` rehta hai aur wo use padhte hi nahi.
      */
     return (
-      <Block key={block.id ?? i} props={block.props ?? {}} data={block.data} article={article} />
+      <Block
+        key={block.id ?? i}
+        props={block.props ?? {}}
+        data={block.data}
+        article={article}
+        lead={lead}
+      />
     )
   })
 }

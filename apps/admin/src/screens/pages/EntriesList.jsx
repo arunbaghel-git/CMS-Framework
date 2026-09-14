@@ -91,6 +91,9 @@ function shortDate(value) {
  *   entry ke blocks me `packageList` gina ja raha tha, jo hamesha 0 hota. Ab column tabhi
  *   banta hai jab screen ne uske liye kuch maanga ho.
  * @param {boolean} [props.postFilters]  Category aur All dates ke dropdown (sirf Posts pe)
+ * @param {boolean} [props.dateFilter]
+ *   Sirf `All dates` — Pages pe (client, 14 Sep, D-95). Pages ki koi category nahi, isliye
+ *   `postFilters` wahan nahi lagta.
  */
 /** Teesre column ka heading — `type` DB ka data hai, label sirf UI ka (R6 wala hi tark). */
 const THIRD_LABEL = { author: 'Author', category: 'Category', packages: 'Packages' }
@@ -113,6 +116,7 @@ export default function EntriesList({
   searchLabel,
   thirdColumn,
   postFilters = false,
+  dateFilter = false,
 }) {
   const { can } = useAuth()
   const [params, setParams] = useSearchParams()
@@ -410,7 +414,12 @@ export default function EntriesList({
           </select>
         )}
 
-        {postFilters && counts?.months?.length > 0 && (
+        {/*
+         * ⚠️ Mahine `publishAt` se bante hain (`entryCounts()`), aur wo type se bandhe nahi — Pages
+         * pe bhi wahi server logic chalta hai. Kabhi publish na hua draft kisi mahine me nahi aata,
+         * Posts jaisa hi.
+         */}
+        {(postFilters || dateFilter) && counts?.months?.length > 0 && (
           <select
             className="sel"
             style={{ width: 'auto' }}

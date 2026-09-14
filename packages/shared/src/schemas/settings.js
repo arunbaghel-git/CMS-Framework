@@ -9,7 +9,7 @@ import { BUTTON_VARIANTS, LINK_TARGETS, classNameSchema, menuUrlSchema } from '.
  * pe hai, sirf uski jagah alag hai (entry ke bajaye settings). Dobara likhne ka matlab hota
  * ki ek din unke enum alag ho jaayein — wahi jaal jo `menu.location` pe pakda gaya tha.
  */
-import { sidebarIdSchema, sidebarPositionSchema } from './page.js'
+import { heroButtonSchema, sidebarIdSchema, sidebarPositionSchema } from './page.js'
 import { emailSchema } from './user.js'
 
 /**
@@ -227,12 +227,7 @@ export const tourSettingsSchema = z.object({
    * wo ek aisa button hai jo click pe kuch nahi karta (D-30 ka wahi tark jo D-67 ke khaali URL
    * wale button pe laga tha).
    */
-  heroButton: z
-    .object({
-      label: z.string().trim().max(80).default(''),
-      url: z.string().trim().max(500).default(''),
-    })
-    .default({}),
+  heroButton: heroButtonSchema,
 })
 
 /**

@@ -1,14 +1,77 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 11 Sep 2026 (raat) — **~272 commit** (client ne 11 Sep ka sab khud push kiya),
-> **1040 test pass** (38 file), lint + format clean, tree clean.
+> **Last updated:** 14 Sep 2026 — **274 commit** (handoff ke waqt; 14 Sep ka kaam **ek commit**, push
+> **nahi** hua — client ki ijaazat chahiye). Lint + format clean; bina DB wale saare test pass.
+> ⚠️ Page import ke **11 DB test chale hi nahi** (Mongo/Docker band tha) — pehla kaam `pnpm test`.
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare (12 Sep)
+## ⏭️ Nayi session yahan se shuru kare (15 Sep)
+
+### Pehle ye teen (is kram me)
+
+1. **Docker Desktop chalu karo** → `pnpm test`. `bulk-imports.test.js` ka `page ka import` describe (11
+   test) aur 14 Sep ke naye entries tests ek baar bhi DB pe nahi chale — Mongo band tha
+2. `pnpm seed` (page ka naya field set sync) → API restart
+3. Admin me **Bulk Upload ▸ Pages ▸ New pages** — client ki sheet
+   (`1_60GIBswRgWM33l1xXO2H0PBZvuizxT3XV5rXFDg_2g`). Page `/andaman-beaches/bharatpur-beach` pe bane,
+   Pages Sidebar right pe. **Client test ke baad design ke badlaav batayega**
+
+### 14 Sep — Bulk Upload for pages (D-95 §10)
+
+- `IMPORT_TARGET.PAGE` — admin dropdown, New/Existing pages, Past imports ka Pages filter + 20 run apne aap
+- `page-doc.js` (parser) · `page-mapper.js` · `TARGET_CONFIG.page` ka **`prepare`** hook — re-import admin
+  ke `sidebar`/`sidebarId`/`showWhatsapp` nahi mitata; `showToc` sirf tab jab doc me `On this page` ho
+- Doc labels: Meta Title · Meta Description · Page title · Page URL · Parent page (title) · Sub heading ·
+  On this page: Yes/No · Banner Image URL · Button label · Button link · Stat Rail (Value/Suffix/Label/
+  Highlight, optional) · Content · Faq: (Heading/Question/answer)
+- Naya page → `Pages Sidebar` (naam se) right pe; na mile to note
+- ⚠️ Client ke doc pe pakda: `On this page` anjaan label tha → `Parent page` me judta → draft. Theek
+- Fixture = client ka asli doc (image 1200×800 PNG se badli). **`.prettierignore` me hai** — prettier ne
+  use reformat karke test toda tha
+- Client ki Drive me mera banaya test doc `Page template — Bharatpur Beach (test)` (`1lTBzMbC…`, private)
+  ab zaroori nahi — client ne apna doc bhar liya. Hatana client ka faisla
+
+### Usi din: sidebar
+
+Client: _"sidebar me kuch nahi karna abhi sab thik hai"_ — screenshot milaan me desktop/tablet reference
+jaisa tha. Custom HTML widget me design sirf `<ul><li><a>naam<b>right</b></a></li></ul>` pe lagta hai;
+baaki markup (qfacts, wdgt tags, saada p) ki CSS nahi hai — client ko bataya.
+
+---
+
+## ⏭️ 14 Sep — saada page (D-95). Pehla kaam: A-25
+
+**Kya bana:** `page-template-text.html` — client ki list (4 hatao · 4 badlo · 2 admin) aur uske baad
+chaar sawaal-jawab. Poora hisaab **D-95** me. **1051 test**, lint/format clean, admin build pass.
+Commit ho gaya (14 Sep), push nahi.
+
+| Kahan  | Kya                                                                                                                                                                                              |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| shared | `page` ka **apna** field set (`PAGE_FIELDS`), `heroButtonSchema` + `pageToggleSchema`                                                                                                            |
+| api    | `normalizeFields()` me teen naye parse; `withToc()` (post se nikla, page bhi use karta hai); `toPublicPage()` me page ka banner bina fallback, `toc`, `fields.heroButton`/`showWhatsapp`         |
+| web    | `components/page/TextPage.jsx` (naya), `blog/Toc.jsx` · `tour/HeroButtons.jsx` · `tour/StatRail.jsx` bahar nikle, `articleHtml({ lead })`, `.art--page` CSS, `TourPage` se page ka `Byline` gaya |
+| admin  | `/pages` routes + guards, `PageList.jsx`, `TYPE_CONFIG.page` (`hero` flag → `eyebrow` + `statRail`)                                                                                              |
+
+⚠️ **Live pe dekhne se pehle:** `pnpm seed` → API restart → dev band karke `next build` (D-89).
+
+**Usi din baad me:** All Pages me `All dates` dropdown (`EntriesList` ka `dateFilter`). Client ne
+chalaya to _"Month must look like 2026-08"_ aaya — `entryListQuerySchema.month` ka regex `^d{4}` tha
+(backslash gayab, 10 Sep se). **Posts ka All dates bhi kabhi nahi chala tha**; tests `listEntries()`
+seedha bulate the. Regex theek + schema test. API restart ke baad hi live pe theek hoga.
+
+⚠️ **Do chunav mere hain, client ke nahi** — `Show WhatsApp` aur `Show "On this page"` default
+ticked; aur har `<h2>` ke upar reference wali patli line (`.rte h2`) + content card pe hover nahi.
+
+⚠️ Post ki edit screen pe Featured image ki hint _"Na daali to Settings wali universal image aayegi"_
+**pehle se galat** hai — post pe koi fallback nahi (`toPublicPost()`). Chhua nahi, client ko batana hai.
+
+---
+
+## ⏭️ (purana) Nayi session yahan se shuru kare (12 Sep)
 
 ### Abhi ki asli haalat (naapi hui, 11 Sep raat)
 

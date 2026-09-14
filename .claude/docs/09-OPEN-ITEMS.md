@@ -209,6 +209,35 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
+### A-25 · Saada page (D-95) render hote hue dekha nahi gaya
+
+**Deadline:** client ke pehle page banane se **pehle**
+**Kuch toota hua nahi hai** — 1051 test, lint, format, admin build pass. Par API aur `next start`
+dono client ke chalte hue process hain, to naya code live pe chala hi nahi.
+
+**Pehle teen kadam (is kram me):**
+
+1. `pnpm seed` — `page` ka naya field set DB me sync (warna `normalizeFields()` naye fields parse nahi karta)
+2. API restart (`pnpm dev:api`)
+3. Dev band karke `next build` + `next start` (D-89)
+
+| # | Kya dekhna hai | Kyun |
+| --- | --- | --- |
+| 1 | `Pages ▸ Add New` — Page header (Sub heading · Button label/link · Show WhatsApp), Stat rail, Content me sirf **Text** + **FAQs** | `TYPE_CONFIG.page` naya hai |
+| 2 | Parent chunne pe Permalink `/parent/slug` dikhe, aur save ke baad URL wahi bane | page `hierarchical` hai (D-09) |
+| 3 | Hero: saada Title · Sub heading · `Updated Sep 2026 · N min read` · do button | D-95 §2–§3 |
+| 4 | Content ek safed card, **hover pe na uthe**, har `<h2>` ke upar patli line, **pehla paragraph bada nahi** | `.art--page`, `lead: false` |
+| 5 | `Note:` / `Warning:` / `Caption:` page pe bhi dabba/caption banaate hain | `articleHtml` |
+| 6 | Sidebar chuni ho aur 3+ `<h2>` hon to `On this page` sabse upar, link sahi heading pe jaaye | `withToc()` |
+| 7 | Mobile: form popup, Talk to a planner gayab, neeche patti | pehle se bana — page pe pehli baar |
+| 8 | Featured image na ho to hero bina image ke theek dikhe | page pe fallback nahi |
+| 9 | **Bulk Upload ▸ Pages** — test doc `Page template — Bharatpur Beach (test)` sheet me daal kar chalao; page `/andaman-beaches/bharatpur-beach` pe bane, Pages Sidebar right pe | D-95 §10. ⚠️ DB wale 9 integration test **chale hi nahi** — Mongo band tha (Docker). Pehle `pnpm test` |
+
+⚠️ `Show WhatsApp` aur `Show "On this page"` dono **default ticked** hain — ye mera chunav tha
+(reference me dono hain), client ne alag se nahi kaha.
+
+---
+
 ### A-24 · 11 Sep ke badlaav render hote hue dekhe hi nahi gaye (D-93, D-94)
 
 **Deadline:** agli session ka **pehla** kaam
@@ -694,6 +723,10 @@ jeetega jab tak client saaf na kahe.
 ---
 
 ### A-9 · Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe hain
+
+> ✅ **Band — 14 Sep (D-95).** `post` wala aadha 9 Sep ko spec 008 me band hua tha; `page` wala aaj.
+> `Pages ▸ All Pages · Add New` ab asli screens hain, `page` ka apna field set hai, aur public site pe
+> `components/page/TextPage.jsx` (`page-template-text.html`). Neeche ka hisaab itihaas hai.
 
 > ⚠️ **Ek din ke liye Pages ka hissa band ho gaya tha, phir wapas khul gaya (8 Sep).**
 >

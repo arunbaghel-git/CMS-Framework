@@ -5122,15 +5122,6 @@ a.mega__gl:hover {
   grid-row: 1;
 }
 
-/* ---------- byline ---------- */
-
-.vbyline {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--muted);
-  margin: 0;
-}
-
 /* ---------- block ke andar ka heading block ---------- */
 
 /*
@@ -6780,4 +6771,34 @@ a.mega__gl:hover {
  */
 .art > .blk > h2:first-child {
   margin-top: 0;
+}
+
+/* ---------- page (`page-template-text.html`, D-95) ---------- */
+
+/*
+ * Saade page ka content — wahi `.art` card aur typography, do farak ke saath.
+ *
+ * 1. **Hover nahi.** `.art:hover` ka uthna client ne **blog** ke liye maanga tha (9 Sep).
+ *    Reference page ka content `.blk` hai, aur uspe koi hover nahi hai.
+ * 2. **Har `<h2>` ke upar ek line** — reference ka `.rte h2` (`border-top` + `padding-top`), jo
+ *    lambe page ko hisson me baant-ta hai. Pehle block ki pehli heading pe nahi, reference ke
+ *    `.rte h2:first-child` jaisa.
+ *
+ * ⚠️ Naap (font-size) yahan **nahi** likhe — client, 14 Sep: _"font jo decide kiya bo rahega
+ * reference ka nahi"_. Wo `.blk`/`.art` ke tokens se hi aate hain.
+ */
+.art--page:hover {
+  border-color: var(--line);
+  box-shadow: none;
+  transform: none;
+}
+
+.art--page h2 {
+  padding-top: clamp(20px, 2.4vw, 26px);
+  border-top: 1px solid var(--line-2);
+}
+
+.art--page > .blk:first-child > h2:first-child {
+  padding-top: 0;
+  border-top: 0;
 }

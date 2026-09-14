@@ -717,6 +717,20 @@ taara nahi banta, isliye number saath.
 
 List ka `Packages` column hata (client ne mana kiya).
 
+### Pages (D-95, 14 Sep)
+
+`NotBuiltYet` se bahar. **All Pages** — design `#s-pages` jaisa: Title · Author · Status · Updated,
+aur Posts jaisa **All dates** dropdown (client, 14 Sep — design me nahi hai; Category wala nahi).
+**Edit Page** — design ke `#s-page-edit` se farak, sab client ke:
+
+- **Page heading nahi** — `<h1>` Title hai. **Eyebrow nahi**
+- Page header me **Button label · Button link · Show WhatsApp button** (hero button page ka apna,
+  Settings me nahi; number Settings ▸ General se)
+- Content ke blocks sirf **Text + FAQs**
+- Page settings me **Show "On this page"** — tabhi dikhta hai jab Sidebar `none` na ho
+- Featured image ki hint: khaali = koi banner nahi (Settings wala fallback nahi)
+- Permalink parent ke path ke neeche dikhta hai
+
 ### Dropdown ki chaudai — sab screens (`primitives.css`)
 
 Row me **akela** dropdown (jiska `.field` seedha ek-column panel body ya uske `<form>` me ho) 750px se

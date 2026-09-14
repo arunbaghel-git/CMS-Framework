@@ -2,12 +2,13 @@ import { Fragment } from 'react'
 
 import Icon from '../Icon.jsx'
 import Img from '../Img.jsx'
-import { waHref } from '../../lib/links.js'
 import CtaSection from '../package/CtaSection.jsx'
 import { EnquiryDockProvider } from '../package/EnquiryDock.jsx'
 import MobileBar from '../package/MobileBar.jsx'
 import Blocks, { BlocksScope } from './Blocks.jsx'
+import HeroButtons from './HeroButtons.jsx'
 import Sidebar from './Sidebar.jsx'
+import StatRail from './StatRail.jsx'
 import TourSchema from './TourSchema.jsx'
 
 /**
@@ -23,13 +24,10 @@ import TourSchema from './TourSchema.jsx'
  *   .pgl__side  widgets (Appearance ▸ Sidebar se)
  * ```
  *
- * ⚠️ **`page` aur `tourPage` dono yahi component use karte hain.** Unka field set ek hi constant
- * hai (D-87 §1) aur payload bhi ek hi (`toPublicPage()`). Alag type sirf isliye hai ki menu, list
- * aur URL teenon alag maange gaye the — render me unme koi farak nahi.
- *
- * ⚠️ **`page` ki screens abhi bani nahi hain** (A-9), yaani aaj practically sirf `tourPage` yahan
- * aata hai. Ye component phir bhi type se nahi bandha gaya — jis din Pages ka kaam aayega, yahan
- * kuch nahi badlega.
+ * ⚠️ **`tourPage` aur `blogPage` yahi component use karte hain — `page` 14 Sep se NAHI** (D-95).
+ * Page ka apna reference hai (`page-template-text.html`) aur apna component (`page/TextPage.jsx`):
+ * uska content article jaisa hai, TOC hai, h1 Title hai, aur hero button page ka apna. Yahan
+ * `type === 'page'` ki shartein bhar dena wahi bikhraav hota jise D-09 ne mana kiya tha.
  */
 
 /** Hero ka eyebrow star — reference ka `.vhero__eye` ka icon. */
@@ -39,33 +37,8 @@ const Star = () => (
   </svg>
 )
 
-/**
- * Byline — `author · updated · read time`.
- *
- * **Teenon hisse derive hote hain, ek bhi field nahi** (client ka faisla #9). Isiliye yahan koi
- * fallback text nahi hai: jo tukda na aaye wo gayab ho jaata hai, uski jagah "Unknown" nahi
- * chhapta (D-30).
- */
-function Byline({ byline }) {
-  const parts = [
-    byline?.author || null,
-    byline?.updatedAt
-      ? `Updated ${new Date(byline.updatedAt).toLocaleDateString('en-IN', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        })}`
-      : null,
-    byline?.readMinutes ? `${byline.readMinutes} min read` : null,
-  ].filter(Boolean)
-
-  if (!parts.length) return null
-
-  return <p className="vbyline">{parts.join(' · ')}</p>
-}
-
 export default function TourPage({ entry, settings }) {
-  const { fields = {}, byline, banner, breadcrumbs = [], sidebar, sidebarWidgets = [] } = entry
+  const { fields = {}, banner, breadcrumbs = [], sidebar, sidebarWidgets = [] } = entry
 
   /**
    * Sidebar tabhi hai jab page ne use maanga ho **aur** usme kuch ho.
@@ -215,33 +188,7 @@ export default function TourPage({ entry, settings }) {
              * ⚠️ Ek doosra on/off `Tour settings` me **nahi** banaya — client ne kabhi maanga
              * nahi, aur ek hi cheez ke do control wahi shakl bante jo D-86 me pakdi gayi thi.
              */}
-            {isTour && (settings?.heroButton || settings?.whatsapp) && (
-              <div className="vhero__cta">
-                {/*
-                 * ⚠️ **`.btn--accent`, reference ka `.b-o` nahi.** Hamare paas `.b`/`.b-o` hain hi
-                 * nahi (ye `09-OPEN-ITEMS` me Slice D ke maloom kaanton me likha tha), aur
-                 * `.btn--accent` **bilkul wahi** hai — wahi `--orange-500`, wahi `box-shadow`.
-                 * Nayi class banane ka matlab hota ek hi button ke do naam.
-                 */}
-                {settings.heroButton && (
-                  <a className="btn btn--accent" href={settings.heroButton.url}>
-                    {settings.heroButton.label}
-                  </a>
-                )}
-
-                {settings.whatsapp && (
-                  <a
-                    className="btn btn--whatsapp"
-                    href={waHref(settings.whatsapp)}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <Icon name="chat" size={17} />
-                    WhatsApp us
-                  </a>
-                )}
-              </div>
-            )}
+            {isTour && <HeroButtons button={settings?.heroButton} whatsapp={settings?.whatsapp} />}
 
             {/*
              * Trust badges — `Settings ▸ Tour settings` se (client ka faisla #11).
@@ -280,24 +227,7 @@ export default function TourPage({ entry, settings }) {
          * Stat rail — hero pe chadhi hui. Khaali `value` wale cards server pe hi gir chuke hote
          * hain (D-30), isliye yahan sirf ginti dekhi jaati hai.
          */}
-        {fields.statRail?.length > 0 && (
-          <div className="wrap vrail">
-            <div className="vrail__in">
-              {fields.statRail.map((stat, i) => (
-                <div
-                  className={`vrail__c${stat.highlight ? ' vrail__c--p' : ''}`}
-                  key={stat.id ?? i}
-                >
-                  <b>
-                    {stat.value}
-                    {stat.suffix ? <i>{stat.suffix}</i> : null}
-                  </b>
-                  {stat.label ? <span>{stat.label}</span> : null}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <StatRail stats={fields.statRail} />
 
         <section className="sec sec--blue">
           {/*
@@ -342,22 +272,6 @@ export default function TourPage({ entry, settings }) {
                 className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
               >
                 <div className="pgl__main">
-                  {/*
-                   * ⚠️ **Byline sirf `page` pe, `tourPage` pe nahi — client ne 8 Sep ko pakda.**
-                   *
-                   * Maine ise D-87 ke faisle #9 ("byline poori tarah automatic") ke bharose har page
-                   * pe laga diya tha. Par wo faisla ye batata hai ki byline ka **data kahan se aata
-                   * hai**, ye nahi ki wo **kis page pe dikhta hai**.
-                   *
-                   * Reference dekhne pe saaf hua: `tour-v3.html` me byline **hai hi nahi** (0
-                   * matches), aur `itinerary-v3.html` me bhi nahi. Wo sirf `page-template-text.html`
-                   * me hai — yaani wo ek **article** page ki cheez hai, listing page ki nahi.
-                   *
-                   * ⚠️ Payload me `byline` phir bhi jaata hai aur uske tests bhi hain — wo galat nahi
-                   * tha. Sirf uski jagah galat thi.
-                   */}
-                  {entry.type === 'page' && <Byline byline={byline} />}
-
                   <Blocks blocks={entry.blocks ?? []} />
                 </div>
 

@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**1040 tests passing**, 11 Sep). Public package page ke **saare** section live hain.
+hain** (**1051 tests passing**, 14 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-94                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-95                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -651,6 +651,19 @@ Awards apni jagah, menu dono taraf **barabar** (§4). Admin me row me akela drop
 `max(50%, 300px)` — **client ka apna tune** (`primitives.css`), palatna nahi.
 ⚠️ **Aaj ka koi site badlaav render hote hue dekha nahi gaya** — port 3000 pe purana build tha
 (**A-24**).
+
+**14 Sep — saada page (D-95), A-9 band, koi migration nahi.** `page-template-text.html`:
+`Pages ▸ All Pages · Add New` asli screens, `page` ka **apna** field set (Tour ka nahi —
+`subheading · statRail · heroButton · showWhatsapp · showToc · sidebar · sidebarId`), aur theme me
+`components/page/TextPage.jsx`. `<h1>` = Title, byline `Updated Aug 2026 · N min read` (sirf
+mahina + saal), hero button **page ka apna**, content Text + FAQs block (`articleHtml(…, { lead:
+false })` — callout/caption hain, bada pehla paragraph nahi), `On this page` per-page checkbox
+(`withToc()` ab post aur page ki saanjhi), banner sirf Featured image. **1051 test.**
+⚠️ Deploy pe **`pnpm seed`** (field set sync) aur API restart. ⚠️ Render dekha nahi gaya — **A-25**.
+Usi din **All Pages ka All dates** (aur `month` regex ka backslash — Posts ka filter 10 Sep se toota
+tha) aur **Bulk Upload for pages** (D-95 §10): `IMPORT_TARGET.PAGE`, `page-doc.js` + `page-mapper.js`,
+naya page `Pages Sidebar` right pe, `prepare` hook re-import pe admin ke chunav bachata hai.
+⚠️ Page import ke DB tests **chale nahi** (Mongo band tha) — pehle `pnpm test`.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

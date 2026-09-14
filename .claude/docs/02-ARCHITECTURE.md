@@ -190,7 +190,14 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          package ka apna number use OVERRIDE karta hai, mitata
                          nahi. Fallback PAYLOAD banate waqt lagta hai, write pe
                          nahi — store wahi jo client ne likha (D-65 wala tark)
-                         page + tourPage ke apne: heading (HTML), eyebrow,
+                         ⚠️ page ka field set 14 Sep se ALAG hai (D-95):
+                         subheading · statRail[] · heroButton{label,url} ·
+                         showWhatsapp · showToc · sidebar · sidebarId.
+                         heading aur eyebrow page pe NAHI (h1 = title).
+                         heroButton ka shape heroButtonSchema — wahi constant jo
+                         tourSettings.heroButton ka. Toggle asli boolean, parse
+                         normalizeFields() me (Mixed pe "false" string truthy hota)
+                         tourPage ke apne: heading (HTML), eyebrow,
                          subheading (HTML), statRail[] — contract
                          packages/shared/schemas/page.js me (D-87)
                          heading = page ka DIKHNE WALA <h1> (D-90 §2, 9 Sep).

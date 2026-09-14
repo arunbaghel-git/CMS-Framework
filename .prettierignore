@@ -11,3 +11,7 @@ pnpm-lock.yaml
 .claude/agents/
 .claude/skills/
 .claude/commands/
+
+# Page import ka fixture Google ka kachcha export hai — reformat hone pe uske inline spans ke beech
+# newline aa jaati hai aur test wo HTML padhta hai jo asli import me kabhi nahi aata (D-95)
+packages/shared/src/import/__fixtures__/page-template.html

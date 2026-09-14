@@ -7,6 +7,7 @@ import Sidebar from '../tour/Sidebar.jsx'
 import BlogSchema from './BlogSchema.jsx'
 import PostCard, { categoryStyle } from './PostCard.jsx'
 import PostNav from './PostNav.jsx'
+import Toc from './Toc.jsx'
 
 /**
  * Blog post ka template — `blog-detail-v1.html` (spec 008, Slice D).
@@ -84,52 +85,6 @@ const SHARE = [
     path: 'M17.5 14.4c-.3-.2-1.7-.9-2-1s-.5-.1-.7.2-.7 1-.9 1.2-.4.2-.7 0a8.2 8.2 0 0 1-2.4-1.5 9 9 0 0 1-1.7-2.1c-.2-.3 0-.5.1-.6l.5-.6.3-.5v-.5l-1-2.3c-.2-.6-.5-.5-.7-.5h-.6a1.2 1.2 0 0 0-.9.4 3.6 3.6 0 0 0-1.1 2.7 6.3 6.3 0 0 0 1.3 3.3 14.3 14.3 0 0 0 5.5 4.8c2.6 1 2.6.7 3.1.6a3.2 3.2 0 0 0 2.1-1.5 2.6 2.6 0 0 0 .2-1.5zM12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2z',
   },
 ]
-
-/**
- * `On this post` — reference ka `.toc` (spec 008).
- *
- * ⚠️ **Ye ek sidebar widget NAHI hai.** Wo `blogSettings.showToc` ke ek checkbox pe hai (client,
- * 9 Sep: _"blog settings me checkbox bana denge sabke liye"_) aur post ke apne `<h2>` se banti
- * hai. Widget banane ka matlab hota **do control** — checkbox aur "list me hona" — aur do me se
- * ek hi yaad rehta (wahi tark jise D-88 ne `talkToPlanner` pe likha tha).
- *
- * ⚠️ **Dono shart server pe lag chuki hain** — `showToc` off ho ya 3 se kam heading hon, dono
- * soorat me `entry.toc` **khaali** aata hai. Isliye yahan sirf lambai dekhi jaati hai: theme ko
- * koi niyam yaad nahi rakhna, aur wo niyam do jagah alag nahi ho sakta (D-65 wala hi tark).
- *
- * ⚠️ Heading ke `id` bhi server pe lagte hain (`withHeadingIds()`), usi ek pass me jisme ye list
- * bani. Do jagah slug banane pe wo ek din alag ho jaate aur har link kahin na le jaata.
- */
-function Toc({ items = [] }) {
-  if (!items.length) return null
-
-  return (
-    <div className="wdg">
-      <div className="wdg__h">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-        >
-          <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
-        </svg>
-        On this post
-      </div>
-      <div className="wdg__b">
-        <ul className="toc">
-          {items.map((item) => (
-            <li key={item.id}>
-              <a href={`#${item.id}`}>{item.text}</a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )
-}
 
 function Share({ url, title }) {
   /**

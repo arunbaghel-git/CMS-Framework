@@ -1717,49 +1717,23 @@ async function allPostCategories(siteId, locale) {
 const RELATED_POSTS_LIMIT = 4
 
 /**
- * Ek blog post ka public payload — `blog-detail-v1.html` (spec 008).
+ * Blocks pe heading ke `id` lagao aur usi pass me TOC banao — post aur page dono (D-95).
  *
- * ## ⚠️ `toPublicEntry()` se alag kyun
+ * ⚠️ **Heading ke `id` yahan bharte hain, aur TOC wahin se banti hai** — ek hi pass.
  *
- * Wo poori tarah **package-shaped** hai — `pricing`, `itinerary`, `hotels`, `addOns`,
- * `similar`, `reviews`. Post ko unme se ek bhi nahi chahiye, aur usme se guzarne ka matlab
- * hota `resolveSimilarPackages()` ka poora daur sirf khaali arrays banane ke liye. Theek yahi
- * D-87 Slice B me `page` pe pakda gaya tha aur usi liye `toPublicPage()` alag hui thi.
+ * Do jagah slug banane ka matlab hota ki TOC ka link aur heading ka anchor ek din alag ho
+ * jaayein. Poora tark `packages/shared/src/toc.js` ke sar pe hai.
  *
- * ## Aur `toPublicPage()` se bhi alag kyun
+ * ⚠️ **Ye pehle `toPublicPost()` ke andar tha**, aur 14 Sep ko bahar aaya jab page ko bhi
+ * `On this page` chahiye tha. Copy karne ka matlab hota ki FAQ ke anchor ka niyam ek jagah
+ * badle aur doosri jagah nahi — D-65/D-51/D-58 wali galti.
  *
- * Post ke paas teen cheezein hain jo kisi page ke paas nahi — **prev/next**, **related** aur
- * **TOC** — aur do cheezein nahi hain jo har page ke paas hain (`statRail`, per-page sidebar
- * ka chunav). Ek hi function me dono rakhne ka matlab hota har page pe `type === 'post'` ke
- * chaar `if`, aur wahi bikhraav jise D-09 ne routing pe mana kiya tha.
+ * @param {Array<object>} source
  */
-async function toPublicPost(doc, siteId, locale) {
-  const [settings, breadcrumbs, nav, related, blogPath] = await Promise.all([
-    getSettings(siteId),
-    resolveBreadcrumbs(doc, siteId, locale),
-    resolvePostNav(doc, siteId, locale),
-    resolveRelatedPosts(doc, siteId, locale, RELATED_POSTS_LIMIT),
-    resolveBlogPath(siteId, locale),
-  ])
-
-  const blog = settings.blogSettings ?? {}
-
-  const [banner, categories] = await Promise.all([
-    toDisplayImage(doc.featuredImageId, 'large', siteId),
-    resolveTaxonomies(doc.taxonomies?.categories ?? [], siteId, locale),
-  ])
-
-  /**
-   * ⚠️ **Heading ke `id` yahan bharte hain, aur TOC wahin se banti hai** — ek hi pass.
-   *
-   * Do jagah slug banane ka matlab hota ki TOC ka link aur heading ka anchor ek din alag ho
-   * jaayein. Poora tark `packages/shared/src/toc.js` ke sar pe hai.
-   *
-   * Sirf `richText` blocks — `faqs` ka apna `<details>` accordion hai, uske sawaal TOC me
-   * daalne ka matlab hota ki ek 9-sawaal wali FAQ poori TOC nigal jaaye.
-   */
+function withToc(source) {
   const toc = []
-  const blocks = (doc.content?.blocks ?? []).map((block) => {
+
+  const blocks = source.map((block) => {
     /**
      * FAQs block ka **heading** TOC me jaata hai — reference me bhi wahi hai
      * (`#faq → Frequently asked questions`), client ne 10 Sep ko pakda.
@@ -1782,6 +1756,10 @@ async function toPublicPost(doc, siteId, locale) {
       return { ...block, props: { ...block.props, anchorId } }
     }
 
+    /**
+     * Sirf `richText` ke `<h2>` — baaki blocks (Two column, Cards…) ka heading apna hai aur wo
+     * page pe nahi hai, jahan TOC chalti hai.
+     */
     if (block?.type !== 'richText') return block
 
     const { html, toc: found } = withHeadingIds(block.props?.html ?? '')
@@ -1789,6 +1767,44 @@ async function toPublicPost(doc, siteId, locale) {
 
     return { ...block, props: { ...block.props, html } }
   })
+
+  return { blocks, toc }
+}
+
+/**
+ * Ek blog post ka public payload — `blog-detail-v1.html` (spec 008).
+ *
+ * ## ⚠️ `toPublicEntry()` se alag kyun
+ *
+ * Wo poori tarah **package-shaped** hai — `pricing`, `itinerary`, `hotels`, `addOns`,
+ * `similar`, `reviews`. Post ko unme se ek bhi nahi chahiye, aur usme se guzarne ka matlab
+ * hota `resolveSimilarPackages()` ka poora daur sirf khaali arrays banane ke liye. Theek yahi
+ * D-87 Slice B me `page` pe pakda gaya tha aur usi liye `toPublicPage()` alag hui thi.
+ *
+ * ## Aur `toPublicPage()` se bhi alag kyun
+ *
+ * Post ke paas do cheezein hain jo kisi page ke paas nahi — **prev/next** aur **related** — aur
+ * do cheezein nahi hain jo har page ke paas hain (`statRail`, per-page sidebar ka chunav).
+ * (**TOC** 14 Sep se `page` pe bhi hai — D-95; wo `withToc()` me dono ki saanjhi hai.) Ek hi function me dono rakhne ka matlab hota har page pe `type === 'post'` ke
+ * chaar `if`, aur wahi bikhraav jise D-09 ne routing pe mana kiya tha.
+ */
+async function toPublicPost(doc, siteId, locale) {
+  const [settings, breadcrumbs, nav, related, blogPath] = await Promise.all([
+    getSettings(siteId),
+    resolveBreadcrumbs(doc, siteId, locale),
+    resolvePostNav(doc, siteId, locale),
+    resolveRelatedPosts(doc, siteId, locale, RELATED_POSTS_LIMIT),
+    resolveBlogPath(siteId, locale),
+  ])
+
+  const blog = settings.blogSettings ?? {}
+
+  const [banner, categories] = await Promise.all([
+    toDisplayImage(doc.featuredImageId, 'large', siteId),
+    resolveTaxonomies(doc.taxonomies?.categories ?? [], siteId, locale),
+  ])
+
+  const { blocks, toc } = withToc(doc.content?.blocks ?? [])
 
   /**
    * TOC pe **do** shart hain, aur dono zaroori hain.
@@ -1909,11 +1925,32 @@ async function toPublicPage(doc, siteId, locale) {
    * Settings wala universal banner sirf fallback hai. Wahi shakl jo rating (D-87 §3) aur
    * `sectionLabels` (D-65) pe hai: site ki default niche, page ka apna upar.
    */
+  /**
+   * ⚠️ **`page` pe koi fallback nahi** — client, 14 Sep (D-95): Featured image na ho to _"koi
+   * banner nahi"_. Tour settings ki universal image Tour/Blog listing ke hero ke liye hai; ek
+   * saade page pe wo har jagah wahi ek photo chhaap deti.
+   */
+  const isTextPage = doc.type === 'page'
+
   const banner =
     (await toDisplayImage(doc.featuredImageId, 'large', siteId)) ??
-    (await toDisplayImage(settings.tourSettings?.bannerMediaId, 'large', siteId))
+    (isTextPage
+      ? null
+      : await toDisplayImage(settings.tourSettings?.bannerMediaId, 'large', siteId))
 
-  const blocks = await resolvePageBlocks(doc.content?.blocks, siteId, locale, defaults)
+  const resolved = await resolvePageBlocks(doc.content?.blocks, siteId, locale, defaults)
+
+  /**
+   * `On this page` — **sirf `page` pe** (D-95). Tour/Blog listing ke `<h2>` pe `id` lagana ek
+   * aisa badlaav hota jo kisi ne maanga nahi.
+   *
+   * Do shart, wahi jo post pe hain (`toPublicPost()`): page ka checkbox, aur
+   * `TOC_MIN_HEADINGS`. Khaali `toc[]` ka matlab "mat dikhao" — theme ko koi niyam yaad nahi
+   * rakhna. ⚠️ Checkbox **per-page** hai, `blogSettings` jaisa global nahi — page ki sidebar hi
+   * per-page hai (client).
+   */
+  const { blocks, toc } = isTextPage ? withToc(resolved) : { blocks: resolved, toc: [] }
+  const showToc = isTextPage && fields.showToc !== false && toc.length >= TOC_MIN_HEADINGS
 
   /**
    * ⚠️ Sidebar tabhi resolve hoti hai jab page ne use **maanga** ho (`sidebar` `none` na ho).
@@ -1973,7 +2010,28 @@ async function toPublicPage(doc, siteId, locale) {
       subheading: fields.subheading ?? '',
       /** Khaali `value` wale cards gir jaate hain — khaali cheez khaali dikhe, tooti hui nahi (D-30). */
       statRail: (Array.isArray(fields.statRail) ? fields.statRail : []).filter((s) => s?.value),
+
+      /**
+       * Page ka apna hero button (D-95). **Label aur url dono ho tabhi** — warna `null`, aur
+       * theme button render nahi karti. Wahi rok jo `tourSettings.heroButton` pe hai.
+       */
+      heroButton:
+        isTextPage && fields.heroButton?.label && fields.heroButton?.url
+          ? { label: fields.heroButton.label, url: fields.heroButton.url }
+          : null,
+
+      /**
+       * ⚠️ Sirf **"dikhe ya nahi"** — number `settings.whatsapp` se theme lagati hai. Number na ho
+       * to ticked checkbox pe bhi button nahi aata (D-30).
+       *
+       * `!== false` — **default on**, `showToc` jaisa hi. Reference me dono button hain, aur
+       * admin ka checkbox bhi naye page pe ticked khulta hai.
+       */
+      showWhatsapp: isTextPage && fields.showWhatsapp !== false,
     },
+
+    /** `On this page` — khaali array ka matlab "mat dikhao". */
+    toc: showToc ? toc : [],
 
     /**
      * Sidebar — `none` · `left` · `right` (client, 8 Sep).

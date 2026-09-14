@@ -5,13 +5,17 @@ import {
   IMPORT_TARGET_LABEL,
   normalizeName,
   parsePackageDoc,
+  parsePageDoc,
   parsePostDoc,
   TAXONOMY_TYPE,
 } from '@cms/shared'
 
+import { allEntryTitles } from '../entries/service.js'
 import { allItemNames } from '../master-lists/service.js'
+import { allSidebarNames } from '../sidebars/service.js'
 import { allTaxonomyNames } from '../taxonomies/service.js'
 import { toEntryInput } from './mapper.js'
+import { toPageEntryInput } from './page-mapper.js'
 import { toPostEntryInput } from './post-mapper.js'
 
 /**
@@ -91,6 +95,19 @@ async function postRefs(siteId, locale) {
 }
 
 /**
+ * Page ko do list chahiye — `Parent page` ke liye pages, aur `Pages Sidebar` ke liye sidebars
+ * (D-95). Dono ek baar, poore import ke liye.
+ */
+async function pageRefs(siteId, locale) {
+  const [pages, sidebars] = await Promise.all([
+    allEntryTitles('page', siteId, locale),
+    allSidebarNames(siteId, locale),
+  ])
+
+  return { pages, sidebars }
+}
+
+/**
  * Har target ka apna teen-cheez ka set.
  *
  * ⚠️ **`allowImages` yahan hai, `cleanGoogleHtml` ke default me nahi.** Google ke image URL
@@ -139,6 +156,49 @@ export const TARGET_CONFIG = Object.freeze({
       input.featuredImageId = mediaId
     },
     getImage: (existing) => existing?.featuredImageId ?? null,
+  },
+
+  /**
+   * Saade page — `page-template-text.html` (client, 14 Sep, D-95).
+   *
+   * Banner post jaisa `featuredImageId` me. Ek cheez sirf page ki hai — **`prepare`**.
+   */
+  [IMPORT_TARGET.PAGE]: {
+    entryType: 'page',
+    label: IMPORT_TARGET_LABEL[IMPORT_TARGET.PAGE].one,
+    labelPlural: IMPORT_TARGET_LABEL[IMPORT_TARGET.PAGE].many,
+    parse: parsePageDoc,
+    map: toPageEntryInput,
+    buildRefs: pageRefs,
+    allowImages: true,
+    slugLabel: 'Page URL',
+    missingTitle: 'This document has no "Page title", so no page could be created',
+    setImage: (input, mediaId) => {
+      input.featuredImageId = mediaId
+    },
+    getImage: (existing) => existing?.featuredImageId ?? null,
+
+    /**
+     * `fields` ko purane page se **milao** — create/update se theek pehle.
+     *
+     * ⚠️ `updateEntry()` `fields` ko **poora badalta** hai. Page ke kuch khaane doc me hain hi nahi
+     * (`sidebar` · `sidebarId` · `showWhatsapp` · `showToc`) — wo admin me chune jaate hain. Bina
+     * is milaap ke har re-import unhe chup-chaap mita deta, aur lakshan "sidebar gayab ho gayi"
+     * hota, koi error nahi.
+     *
+     * Naye page pe `Pages Sidebar` right pe (client, 14 Sep). Purane page pe kabhi nahi.
+     *
+     * @returns {object[]} extra issues
+     */
+    prepare: (input, existing, mapped) => {
+      if (existing) {
+        input.fields = { ...(existing.fields ?? {}), ...input.fields }
+        return []
+      }
+
+      input.fields = { ...mapped.newOnlyFields, ...input.fields }
+      return mapped.newOnlyIssues ?? []
+    },
   },
 })
 

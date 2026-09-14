@@ -11,10 +11,12 @@ import { ensureBuiltInContentTypes } from '../modules/content-types/service.js'
 import { Entry, Revision } from '../modules/entries/model.js'
 import { publishDueEntries } from '../modules/entries/service.js'
 import { AddOn, Hotel, Review, Transfer } from '../modules/master-lists/model.js'
+import { Media } from '../modules/media/model.js'
 import { PackageDefaults } from '../modules/package-defaults/model.js'
 import { Redirect } from '../modules/redirects/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
+import { Settings } from '../modules/settings/model.js'
 import { Taxonomy } from '../modules/taxonomies/model.js'
 import { User } from '../modules/users/model.js'
 import { createUser } from '../modules/users/service.js'
@@ -2244,19 +2246,26 @@ describe('Tour Page ka type (D-87)', () => {
     expect(await pathOf(tour.body.data.entry.id)).toBe('/andaman-tour-packages-2')
   })
 
-  it('fields sirf tourPage pe hain — page D-87 se pehle jaisa hi hai', async () => {
+  it('page aur tourPage ke field set ALAG hain — page ka apna, Tour ka nahi (D-95)', async () => {
     // ⚠️ Ek din ke liye dono ka field set EK HI tha: faisla #2 ("ek hi edit screen") ko itna
     // kheench liya gaya tha ki "ek hi screen" ka matlab "ek jaise types" maan liya gaya.
-    // Nateeja — ek About Us page pe bhi Eyebrow aur Stat rail dikhte the, jo dono
-    // `tour-v3.html` ke hero ki cheezein hain.
+    // Client ne 8 Sep ko mana kiya aur `page` `[]` pe wapas gaya.
     //
-    // Client ne do kadam me wo mana kiya (8 Sep): pehle "page me tour ka content kyun aa raha
-    // hai", phir "Pages par kaam to ho hi nahi raha". D-87 ka kaam Tour ka tha, aur `page`
-    // wapas apni purani haalat me hai — uski screens bhi `NotBuiltYet` pe (A-9 phir se khula)
+    // 14 Sep ko Pages ka apna kaam aaya (`page-template-text.html`). Uska field set Tour se
+    // alag hai: `heading` aur `eyebrow` NAHI (h1 = Title, eyebrow client ne hataya), aur
+    // hero button · WhatsApp · TOC page ke apne
     const page = await ContentType.findOne({ key: 'page' }).lean()
     const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
 
-    expect(page.fields).toEqual([])
+    expect(page.fields.map((f) => f.key)).toEqual([
+      'subheading',
+      'statRail',
+      'heroButton',
+      'showWhatsapp',
+      'showToc',
+      'sidebar',
+      'sidebarId',
+    ])
     // `blocks` yahan NAHI hai — 7 Sep ko wo `content.blocks[]` me chala gaya (D-87 §7).
     // `sidebar` 8 Sep me juda: page pe sidebar dikhe ya nahi, aur kis taraf
     // `sidebarId` D-88 me juda: unme se KAUNSA. Do alag sawaal, isliye do field
@@ -2485,14 +2494,15 @@ describe('tour page ke apne fields (D-87)', () => {
     expect(doc.fields.subheading).not.toContain('script')
   })
 
-  it('page pe wahi fields bheje jaayein to wo parse nahi hote', async () => {
+  it('jis type pe field declared nahi, wahan wo parse nahi hota', async () => {
     // `entries.fields` Mixed hai (D-46), isliye undeclared field **store** to ho jaata hai —
     // par `normalizeFields()` use chhoota nahi, yaani `statRail` ko stable id nahi milti.
     //
-    // Ye rok data ki nahi, **matlab** ki hai: Pages par kaam ho hi nahi raha, aur uska field
-    // set khaali hai. Admin wo bhejta bhi nahi
-    const res = await createPage(adminJar, {
-      title: 'Saada Page',
+    // ⚠️ Ye test pehle `page` pe tha. 14 Sep (D-95) se `page` ka apna field set hai aur usme
+    // `statRail` hai — isliye ab `post` pe, jiska field set khaali hai (D-93)
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'post',
+      title: 'Saada Post',
       fields: { statRail: [{ value: '40+', label: 'Itineraries' }] },
     })
 
@@ -2964,5 +2974,147 @@ describe('rating ka fallback (D-87 §3)', () => {
 
     expect(entry.rating).toEqual({ value: 4.7, count: 96 })
     expect(entry.similar[0].rating).toEqual({ value: 4.9, count: 412 })
+  })
+})
+
+// ── D-95 — saada page (`page-template-text.html`) ────────────────────────────
+
+describe('saada page — hero button, TOC aur banner (D-95)', () => {
+  async function publishedPage(title, { fields, content, featuredImageId } = {}) {
+    const created = await createPage(adminJar, {
+      title,
+      ...(content ? { content } : {}),
+      ...(fields ? { fields } : {}),
+      ...(featuredImageId ? { featuredImageId } : {}),
+    })
+    const id = created.body.data.entry.id
+    await authed('post', `/api/entries/${id}/publish`, adminJar).send({})
+    return id
+  }
+
+  const resolve = (path) => request(app).get(`/api/public/resolve?path=${path}`)
+
+  const THREE_H2 = contentOf(
+    textBlock('t1', '<p>Intro.</p><h2>Where it is</h2><p>a</p><h2>Things to do</h2><p>b</p>'),
+    textBlock('t2', '<h2>Best time</h2><p>c</p>'),
+  )
+
+  it('hero button aur dono toggle write pe parse hote hain', async () => {
+    const res = await createPage(adminJar, {
+      title: 'Parsed',
+      fields: {
+        heroButton: { label: '  Plan a trip here ', url: '#enquiry' },
+        showWhatsapp: false,
+        showToc: true,
+      },
+    })
+
+    const doc = await Entry.findById(res.body.data.entry.id).lean()
+
+    expect(doc.fields.heroButton).toEqual({ label: 'Plan a trip here', url: '#enquiry' })
+    expect(doc.fields.showWhatsapp).toBe(false)
+    expect(doc.fields.showToc).toBe(true)
+  })
+
+  it('toggle pe "false" string 400 khaata hai — theme use sach maan leti', async () => {
+    // `fields` Mixed hai (D-46). Bina parse ke `"false"` store ho jaata aur theme ke `if` me
+    // wo truthy hai — client checkbox hataata aur button phir bhi dikhta
+    const res = await createPage(adminJar, { title: 'Bad', fields: { showToc: 'false' } })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('TOC page ke h2 se banti hai, aur heading pe wahi id lagti hai', async () => {
+    await publishedPage('Beach Name', { content: THREE_H2 })
+
+    const { entry } = (await resolve('/beach-name')).body.data
+
+    expect(entry.toc.map((t) => t.text)).toEqual(['Where it is', 'Things to do', 'Best time'])
+    expect(entry.blocks[0].props.html).toContain(`id="${entry.toc[0].id}"`)
+  })
+
+  it('showToc false pe TOC khaali — heading ke id phir bhi rehte hain', async () => {
+    await publishedPage('No Toc', { content: THREE_H2, fields: { showToc: false } })
+
+    const { entry } = (await resolve('/no-toc')).body.data
+
+    expect(entry.toc).toEqual([])
+    expect(entry.blocks[0].props.html).toContain('<h2 id="where-it-is">')
+  })
+
+  it('3 se kam heading pe TOC nahi — checkbox "dikhao" kehta hai, "zabardasti" nahi', async () => {
+    await publishedPage('Short', {
+      content: contentOf(textBlock('t1', '<h2>One</h2><p>a</p><h2>Two</h2>')),
+    })
+
+    expect((await resolve('/short')).body.data.entry.toc).toEqual([])
+  })
+
+  it('Tour page pe TOC nahi banti aur uske h2 pe id nahi lagti', async () => {
+    // `withToc()` sirf `page` pe — Tour/Blog listing ki HTML badalna kisi ne maanga nahi
+    const created = await authed('post', '/api/entries', adminJar).send({
+      type: 'tourPage',
+      title: 'Tour Toc',
+      content: THREE_H2,
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const { entry } = (await resolve('/tour-toc')).body.data
+
+    expect(entry.toc).toEqual([])
+    expect(entry.blocks[0].props.html).not.toContain('id=')
+  })
+
+  it('hero button tabhi jab label aur link dono hon', async () => {
+    await publishedPage('Full Button', {
+      fields: { heroButton: { label: 'Plan a trip here', url: '#enquiry' } },
+    })
+    await publishedPage('Half Button', { fields: { heroButton: { label: 'Plan', url: '' } } })
+
+    expect((await resolve('/full-button')).body.data.entry.fields.heroButton).toEqual({
+      label: 'Plan a trip here',
+      url: '#enquiry',
+    })
+    expect((await resolve('/half-button')).body.data.entry.fields.heroButton).toBeNull()
+  })
+
+  it('WhatsApp ka checkbox default on hai, aur untick pe off', async () => {
+    await publishedPage('Wa Default')
+    await publishedPage('Wa Off', { fields: { showWhatsapp: false } })
+
+    expect((await resolve('/wa-default')).body.data.entry.fields.showWhatsapp).toBe(true)
+    expect((await resolve('/wa-off')).body.data.entry.fields.showWhatsapp).toBe(false)
+  })
+
+  it('Featured image na ho to banner null — Tour settings ki image page pe NAHI aati', async () => {
+    // Client, 14 Sep: "koi banner nahi". Tour page pe wahi image fallback hai (faisla #10)
+    const uploader = await User.findOne({ email: 'admin@test.com' }).lean()
+    const media = await Media.create({
+      filename: 'beach.png',
+      mime: 'image/png',
+      size: 4096,
+      width: 1200,
+      height: 800,
+      variants: [{ key: 'large', url: '/uploads/x/large.webp', w: 1200, h: 800 }],
+      uploadedBy: uploader._id,
+    })
+    // ⚠️ Pehle saaf — ye file `Settings` ko `beforeEach` me nahi mitati, aur pichhle test ka
+    // `ensureSettings()` wala doc bacha ho to `findOne` usi ko padhta, naye ko nahi
+    await Settings.deleteMany({})
+    await Settings.create({ tourSettings: { bannerMediaId: String(media._id) } })
+
+    try {
+      await publishedPage('No Banner')
+      const tour = await authed('post', '/api/entries', adminJar).send({
+        type: 'tourPage',
+        title: 'With Banner',
+      })
+      await authed('post', `/api/entries/${tour.body.data.entry.id}/publish`, adminJar).send({})
+
+      expect((await resolve('/no-banner')).body.data.entry.banner).toBeNull()
+      expect((await resolve('/with-banner')).body.data.entry.banner).toBeTruthy()
+    } finally {
+      await Promise.all([Settings.deleteMany({}), Media.deleteMany({})])
+    }
   })
 })

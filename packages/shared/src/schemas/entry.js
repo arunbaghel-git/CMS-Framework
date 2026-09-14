@@ -206,10 +206,15 @@ export const entryListQuerySchema = z.object({
    *
    * Shape yahin baandhi gayi hai — bina iske `?month=` me kuch bhi seedha date query me chala
    * jaata (R9).
+   *
+   * ⚠️ **10 Sep se 14 Sep tak yahan `^d{4}` tha, `^\d{4}` nahi** — backslash chhoot gaya tha, to
+   * regex sirf literal `dddd-08` maanta tha aur **har asli mahina 400** khaata tha. Posts ka
+   * `All dates` bhi usi din se toota tha; Pages pe client ne pakda (14 Sep). Tests `listEntries()`
+   * ko seedha bulate the, is schema se guzre bina — isliye pass the. Ab route ka test bhi hai.
    */
   month: z
     .string()
-    .regex(/^d{4}-(0[1-9]|1[0-2])$/, 'Month must look like 2026-08')
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Month must look like 2026-08')
     .optional(),
   trashed: z.coerce.boolean().default(false),
   page: z.coerce.number().int().positive().default(1),

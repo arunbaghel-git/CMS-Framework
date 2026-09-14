@@ -387,14 +387,13 @@ export const ROUTE_GUARDS = Object.freeze({
    * `permissionForRoute()` exact pattern se milaata hai, prefix se nahi.
    */
   /*
-   * ⚠️ `/pages` ke guard yahan **nahi** hain — wo screens abhi bani hi nahi (`NotBuiltYet`).
-   * `permissionForRoute()` exact pattern se milaata hai, aur jo route hi nahi hai uska guard
-   * likhna sirf ye jhootha ishaara deta ki wahan kuch hai.
-   *
-   * `NAV` me un links pe `permission` phir bhi lagi hui hai — wo ek alag baat hai: wahan sawaal
-   * ye hai ki menu me item **dikhe ya nahi**, aur uska jawab screen banne ka intezaar nahi
-   * karta.
+   * `/pages` ke guard **14 Sep se** (D-95) — 8 Sep se yahan nahi the, kyunki screens
+   * `NotBuiltYet` pe thin aur jo route hi nahi uska guard jhootha ishaara deta.
    */
+  '/pages': PERMISSION.ENTRY_READ,
+  '/pages/new': PERMISSION.ENTRY_CREATE,
+  '/pages/:id': PERMISSION.ENTRY_READ,
+
   '/tour': PERMISSION.ENTRY_READ,
   '/tour/new': PERMISSION.ENTRY_CREATE,
   '/tour/:id': PERMISSION.ENTRY_READ,

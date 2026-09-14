@@ -594,6 +594,32 @@ export const subheadingSchema = htmlSchema.pipe(z.string().max(2000)).default(''
 export const pageHeadingSchema = inlineHtmlSchema.pipe(z.string().max(300)).default('')
 
 /**
+ * Hero ka ek button — `label` + `url`.
+ *
+ * Do jagah chalta hai, aur shape **ek hi** hai:
+ *
+ * | Kahan | Kiske liye |
+ * | --- | --- |
+ * | `tourSettings.heroButton` | saare Tour pages — ek baar Settings me (client, 8 Sep) |
+ * | `page` ka `fields.heroButton` | **har page ka apna** — edit screen me (client, 14 Sep, D-95) |
+ *
+ * ⚠️ Dono me se kisi ek ka shape badla to doosra usi ke saath badlega — isliye ek constant.
+ * Do copy hoti to wo ek din alag ho jaatin (D-86 wala sabak).
+ *
+ * Khaali `label` **ya** khaali `url` — dono pe button render hi nahi hota. Bina url ka button
+ * click pe kuch nahi karta (D-30).
+ */
+/** Page ke on/off khaane — `showWhatsapp`, `showToc` (D-95). Asli boolean, `"false"` string nahi. */
+export const pageToggleSchema = z.boolean()
+
+export const heroButtonSchema = z
+  .object({
+    label: z.string().trim().max(80).default(''),
+    url: z.string().trim().max(500).default(''),
+  })
+  .default({})
+
+/**
  * Page pe sidebar — **sirf dikhe ya nahi, aur kis taraf** (client, 8 Sep).
  *
  * ⚠️ **Kaunsa form dikhega, wo yahan tay nahi hota** — client ne wo saaf kiya: _"sidebar me

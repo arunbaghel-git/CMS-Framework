@@ -302,5 +302,16 @@ export function leadParagraph(html) {
  * 2. `wrapFigures` — image + caption, taaki caption paragraph na rahe
  * 3. `leadParagraph` — ab pehla **asli** paragraph lead banta hai
  * 4. `markedBlocks` — nishaan wale paragraph (lead unhe chhod chuka hota hai)
+ *
+ * ⚠️ **`lead: false` — `page` ke liye** (client, 14 Sep, D-95): _"body font only no lead font"_.
+ * Page pe bhi callout, caption aur table wahi chahiye (Bulk Upload unhi nishaan se likhega),
+ * sirf bada pehla paragraph nahi. Kram wahi rehta hai — bas teesra kadam chhoot jaata hai.
+ *
+ * @param {string} html
+ * @param {{ lead?: boolean }} [options]
  */
-export const articleHtml = (html) => markedBlocks(leadParagraph(wrapFigures(wrapTables(html))))
+export const articleHtml = (html, { lead = true } = {}) => {
+  const framed = wrapFigures(wrapTables(html))
+
+  return markedBlocks(lead ? leadParagraph(framed) : framed)
+}

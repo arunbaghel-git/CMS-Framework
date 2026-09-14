@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
 import { DEFAULT_SITE_ID, ENTRY_STATUS } from '@cms/shared'
 import request from 'supertest'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
@@ -17,6 +20,7 @@ import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
 import { Settings } from '../modules/settings/model.js'
 import { updateSettings } from '../modules/settings/service.js'
+import { Sidebar } from '../modules/sidebars/model.js'
 import { Taxonomy } from '../modules/taxonomies/model.js'
 import { User } from '../modules/users/model.js'
 import { createUser } from '../modules/users/service.js'
@@ -1174,5 +1178,207 @@ describe('blog post ka import (spec 008)', () => {
     const { getImportRun } = await import('../modules/bulk-imports/service.js')
 
     expect((await getImportRun(String(run._id))).target).toBe('package')
+  })
+})
+
+describe('page ka import (D-95, client 14 Sep)', () => {
+  /**
+   * ⚠️ **Asli Google Doc ka export** — wahi fixture jo `page-doc.test.js` padhta hai. Banner ka URL
+   * client ki local media ka hai; test me wo id hai hi nahi, isliye har test apni media bana kar
+   * id badal deta hai.
+   */
+  const TEMPLATE = readFileSync(
+    fileURLToPath(
+      new URL(
+        '../../../../packages/shared/src/import/__fixtures__/page-template.html',
+        import.meta.url,
+      ),
+    ),
+    'utf8',
+  )
+  const TEMPLATE_MEDIA_ID = '6a982cedb298ea0c64eeab4f'
+
+  let pageDoc
+  let pagesSidebar
+  let parent
+
+  beforeEach(async () => {
+    const uploader = await User.findOne({ email: 'admin@test.com' }).lean()
+    const media = await Media.create({
+      filename: 'banner.webp',
+      mime: 'image/webp',
+      size: 1234,
+      width: 1600,
+      height: 900,
+      uploadedBy: uploader._id,
+      variants: [],
+    })
+
+    pageDoc = TEMPLATE.replaceAll(TEMPLATE_MEDIA_ID, String(media._id))
+
+    await Sidebar.deleteMany({})
+    pagesSidebar = await Sidebar.create({ name: 'Pages Sidebar', widgets: [] })
+
+    parent = await Entry.create({
+      siteId: DEFAULT_SITE_ID,
+      locale: 'en',
+      type: 'page',
+      title: 'Andaman Beaches',
+      slug: 'andaman-beaches',
+      path: '/andaman-beaches',
+      status: ENTRY_STATUS.PUBLISHED,
+      content: { version: 1, blocks: [] },
+    })
+  })
+
+  it('page parent ke neeche ban kar publish hota hai — koi issue nahi', async () => {
+    const run = await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
+
+    expect(run.target).toBe('page')
+    expect(run.rows[0].issues).toEqual([])
+    expect(run.rows[0].status).toBe('published')
+
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(entry.type).toBe('page')
+    expect(entry.title).toBe('Bharatpur Beach')
+    expect(String(entry.parentId)).toBe(String(parent._id))
+    expect(entry.path).toBe('/andaman-beaches/bharatpur-beach')
+    expect(entry.featuredImageId).toBeTruthy()
+    expect(entry.seo.title).toMatch(/^Bharatpur Beach, Neil Island/)
+  })
+
+  it('doc ke page wale khaane fields me aate hain', async () => {
+    const run = await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
+    const { fields, content } = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(fields.heroButton).toEqual({ label: 'Plan a trip here', url: '#enquiry' })
+    expect(fields.subheading).toContain('the one thing that decides')
+    expect(fields.statRail.map((s) => [s.value, s.suffix, s.label, s.highlight])).toEqual([
+      ['Free', 'entry', 'Ticket · qualifier', true],
+      ['40 min', '', 'From the jetty', false],
+      ['Oct – May', '', 'Best season', false],
+      ['2–3 hrs', '', 'Time needed', false],
+    ])
+
+    expect(content.blocks.map((b) => b.type)).toEqual(['richText', 'faqs'])
+    expect(content.blocks[1].props.heading).toBe('Frequently asked questions')
+    expect(content.blocks[1].props.items).toHaveLength(3)
+  })
+
+  it('naya page Pages Sidebar ke saath right pe banta hai (client, 14 Sep)', async () => {
+    const run = await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
+    const { fields } = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(fields.sidebar).toBe('right')
+    expect(fields.sidebarId).toBe(String(pagesSidebar._id))
+  })
+
+  it('Pages Sidebar na ho to page bina sidebar ke — note ke saath, publish nahi rukta', async () => {
+    await Sidebar.deleteMany({})
+
+    const run = await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
+    const { fields } = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(fields.sidebar).toBeUndefined()
+    expect(run.rows[0].status).toBe('published')
+    expect(run.rows[0].issues).toEqual([
+      expect.objectContaining({ level: 'note', label: 'Sidebar' }),
+    ])
+  })
+
+  it('existing me admin ke chunav bachte hain — sidebar aur WhatsApp; TOC doc ka', async () => {
+    // `updateEntry()` `fields` poora badalta hai. Bina `prepare` ke re-import inhe mita deta.
+    // ⚠️ `showToc` client ke doc me likha hai (`On this page: Yes`) — isliye wahan doc jeet-ta hai
+    const first = await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
+    const id = first.rows[0].entryId
+
+    await Entry.updateOne(
+      { _id: id },
+      { $set: { 'fields.sidebar': 'left', 'fields.showWhatsapp': false, 'fields.showToc': false } },
+    )
+
+    const again = await runImport({ P1: pageDoc }, ['P1'], 'existing', 'page')
+    const { fields } = await Entry.findById(id).lean()
+
+    expect(again.rows[0].action).toBe('updated')
+    expect(fields.sidebar).toBe('left')
+    expect(fields.showWhatsapp).toBe(false)
+    expect(fields.showToc).toBe(true)
+    expect(fields.heroButton.label).toBe('Plan a trip here')
+  })
+
+  it('doc me On this page na ho to admin ka TOC wala chunav bachta hai', async () => {
+    const noToc = pageDoc.replace(/On this page:\s*Yes/, '')
+    const first = await runImport({ P1: noToc }, ['P1'], undefined, 'page')
+    const id = first.rows[0].entryId
+
+    await Entry.updateOne({ _id: id }, { $set: { 'fields.showToc': false } })
+    await runImport({ P1: noToc }, ['P1'], 'existing', 'page')
+
+    expect((await Entry.findById(id).lean()).fields.showToc).toBe(false)
+  })
+
+  it('content ki image Media me utarti hai aur Caption ke saath rehti hai', async () => {
+    const run = await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
+    const { content } = await Entry.findById(run.rows[0].entryId).lean()
+    const html = content.blocks[0].props.html
+
+    expect(html).not.toContain('data:')
+    expect(html).toMatch(/<img[^>]+src="\/uploads\//)
+    expect(html).toContain('Caption: The coral shelf sits close to the surface')
+  })
+
+  it('Parent page na mile to page banta hai par draft — root pe publish nahi hota', async () => {
+    const run = await runImport(
+      { P1: pageDoc.replace('Andaman Beaches', 'Andaman Beeches') },
+      ['P1'],
+      undefined,
+      'page',
+    )
+
+    expect(run.rows[0].status).toBe('draft')
+    expect(run.rows[0].issues).toEqual([
+      expect.objectContaining({ level: 'blocker', label: 'Parent page' }),
+    ])
+  })
+
+  it('new mode me wahi doc dobara chalane pe saaf rukta hai', async () => {
+    await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
+    const again = await runImport({ P1: pageDoc }, ['P1'], 'new', 'page')
+
+    expect(again.rows[0].status).toBe('failed')
+    expect(again.rows[0].error).toMatch(/choose "Existing pages"/)
+    expect(await Entry.countDocuments({ type: 'page' })).toBe(2)
+  })
+
+  it('Stat Rail doc me na ho to rail khaali — optional', async () => {
+    const bare = doc(
+      [
+        p('Page title'),
+        p('Saada Page'),
+        p('Page URL'),
+        p('saada-page'),
+        p('Content'),
+        p('Hello.'),
+      ].join(''),
+    )
+
+    const run = await runImport({ P2: bare }, ['P2'], undefined, 'page')
+    const { fields, parentId } = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(fields.statRail).toEqual([])
+    expect(parentId ?? null).toBeNull()
+    expect(run.rows[0].status).toBe('published')
+  })
+
+  it('Past imports me ?target=page sirf page ke run', async () => {
+    await runImport({ P1: pageDoc }, ['P1'], undefined, 'page')
+    await runImport({ d1: doc([p('Blog title'), p('X')].join('')) }, ['d1'], undefined, 'post')
+
+    const res = await authed('get', '/api/bulk-imports?target=page', adminJar)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.runs.map((r) => r.target)).toEqual(['page'])
   })
 })
