@@ -77,8 +77,8 @@
 .edit-grid.tax-grid {
   grid-template-columns: 320px minmax(0, 1fr);
   align-items: start;
-  .panel-body{
-    .btn-plain{
+  .panel-body {
+    .btn-plain {
       margin-left: 8px;
     }
   }
