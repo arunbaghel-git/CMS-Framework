@@ -234,7 +234,6 @@ function SectionHeadingFields({ props, onChange, disabled }) {
           disabled={disabled}
           height={130}
         />
-        <div className="hint">Leave it empty and the line does not appear on the page.</div>
       </div>
     </>
   )
