@@ -7664,9 +7664,10 @@ a.imcc:hover img {
   font-weight: var(--fw-heading);
 }
 
+/* Naam — body font (client, 15 Sep), design ka 13.5px nahi. */
 .tmc figcaption b {
   display: block;
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   color: var(--ink);
 }
