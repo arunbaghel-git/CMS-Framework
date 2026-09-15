@@ -23,11 +23,38 @@
  * checkbox unke beech baithta hai. Bina iske wo baayein kinare pe chipak jaate hain aur
  * header ke saath line me nahi dikhte.
  */
-.field-table td:nth-child(2),
 .field-table td:nth-child(3),
-.field-table th:nth-child(2),
-.field-table th:nth-child(3) {
+.field-table td:nth-child(4),
+.field-table th:nth-child(3),
+.field-table th:nth-child(4) {
   text-align: center;
+}
+
+/*
+ * ⠿ grip — pehla column (client, 15 Sep). ⚠️ Iske aane se Show/Required ka `nth-child` 2/3 se 3/4
+ * hua; column jodo to upar wala rule bhi dekho.
+ */
+.field-table .field-grip {
+  padding-right: 0;
+}
+
+.field-table .grip {
+  color: #a7aaad;
+  cursor: grab;
+  font-size: 16px;
+}
+
+.field-table .grip:active {
+  cursor: grabbing;
+}
+
+/* `useListDrag` ke data-attribute — wahi jo blocks aur itinerary pe hain. */
+.field-table tr[data-dragging] {
+  opacity: 0.4;
+}
+
+.field-table tr[data-dragover] td {
+  box-shadow: inset 0 2px 0 var(--primary);
 }
 
 /*

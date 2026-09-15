@@ -186,15 +186,6 @@
   --fs-intro: clamp(15px, 1.6vw, 17px);
   --fs-display: clamp(21px, 2.6vw, 30px);
 
-  /*
-   * Home hero (`home-nav-v3.html`, D-96). ⚠️ Maujooda scale me inka koi saathi nahi tha: `--fs-title`
-   * (26–42) Tour ke hero ka hai aur is design ka h1 usse chhota hai (24–38); sub line 13.5–15.5 ka
-   * clamp hai, aur number/card heading 19px. Teenon naye isliye, andaze se kisi paas wale pe nahi.
-   */
-  --fs-hero: clamp(24px, 3.4vw, 38px);
-  --fs-hero-sub: clamp(13.5px, 1.3vw, 15.5px);
-  --fs-hero-num: 19px;
-
   /* Headings — `.blk h1`–`h6` ke saath CTA/offer ka bada heading bhi. */
   --fs-h1: clamp(19px, 2.1vw, 24px);
   --fs-h2: clamp(18px, 2vw, 23px);
@@ -4960,7 +4951,9 @@ a.mega__gl:hover {
   color: var(--gold);
 }
 
-.vhero h1 {
+/* `.hf-hero h1` — home ka hero bhi yahi font (client, 15 Sep: "sabka same rahe", D-96). */
+.vhero h1,
+.hf-hero h1 {
   color: #fff;
   font-size: clamp(25px, 3.6vw, 40px);
   line-height: 1.1;
@@ -4972,12 +4965,14 @@ a.mega__gl:hover {
 }
 
 /* Reference me daam wala tukda `<em>` me hai — client editor me wahi likh sakta hai */
-.vhero h1 em {
+.vhero h1 em,
+.hf-hero h1 em {
   font-style: normal;
   color: #7cc7ff;
 }
 
-.vhero__sub {
+.vhero__sub,
+.hf-hero__sub {
   color: rgba(255, 255, 255, 0.8);
   font-size: clamp(13.5px, 1.3vw, 15.5px);
   line-height: 1.6;
@@ -4986,11 +4981,13 @@ a.mega__gl:hover {
 }
 
 /* Sub heading ek editor hai (faisla #3) — uske `<p>` ka apna margin nahi chahiye */
-.vhero__sub p {
+.vhero__sub p,
+.hf-hero__sub p {
   margin: 0;
 }
 
-.vhero__sub p + p {
+.vhero__sub p + p,
+.hf-hero__sub p + p {
   margin-top: 8px;
 }
 
@@ -5069,7 +5066,9 @@ a.mega__gl:hover {
   border-left: 0;
 }
 
-.vrail__c b {
+/* Home hero ke number bhi yahi naap — rang neeche `.hf-stat` me (D-96). */
+.vrail__c b,
+.hf-stat b {
   display: block;
   font-size: clamp(20px, 2.4vw, 28px);
   font-weight: 900;
@@ -5078,7 +5077,8 @@ a.mega__gl:hover {
   line-height: 1.05;
 }
 
-.vrail__c span {
+.vrail__c span,
+.hf-stat span {
   display: block;
   font-size: 11px;
   font-weight: 800;
@@ -5521,13 +5521,16 @@ a.mega__gl:hover {
   color: rgba(255, 255, 255, 0.78);
 }
 
-.wdg--cta h3 {
+/* Home ke form card ka heading/line bhi Tour ke card jaisa (D-96) — rang/margin `.hf-card__head` me. */
+.wdg--cta h3,
+.hf-card__head h3 {
   color: #fff;
   font-size: 16px;
   margin-bottom: 6px;
 }
 
-.wdg--cta p {
+.wdg--cta p,
+.hf-card__head p {
   font-size: 12.5px;
   line-height: 1.55;
   margin-bottom: 14px;
@@ -5560,7 +5563,8 @@ a.mega__gl:hover {
   color: rgba(255, 255, 255, 0.62);
 }
 /* Footnote — button ke neeche ki chhoti line (form ka `footnote`) */
-.wdg--cta small {
+.wdg--cta small,
+.hf-card .bkg__b .hf-card__note {
   display: block;
   text-align: center;
   font-size: 11px;
@@ -6921,35 +6925,16 @@ a.mega__gl:hover {
   min-width: 0;
 }
 
-.hf-hero h1 {
-  color: #fff;
-  font-size: var(--fs-hero);
-  font-weight: var(--fw-black);
-  letter-spacing: -0.035em;
-  text-wrap: balance;
-  max-width: 19ch;
-}
-
 /*
- * Accent — editor ka **Italic** (Tour page jaisa, client 15 Sep). Reference me `<span>` hai; admin
- * me span banane ka koi button nahi, isliye `<em>` ka tircha-pan hata kar rang diya.
+ * ⚠️ **Font ka naap yahan nahi** — `.vhero h1` ke saath ek hi rule me hai (client, 15 Sep: _"font jo
+ * decide kiya hai use rakho, sabka same rahe"_). Reference ke 24–38px nahi liye. Yahan sirf wo jo
+ * home pe alag hai: upar eyebrow nahi, to Tour wala 11px ka margin nahi.
  */
-.hf-hero h1 em {
-  font-style: normal;
-  color: #7cc7ff;
+.hf-hero h1 {
+  margin-top: 0;
 }
 
-.hf-hero__sub {
-  color: rgb(255 255 255 / 80%);
-  font-size: var(--fs-hero-sub);
-  margin-top: 10px;
-  max-width: 58ch;
-}
-
-/* ⚠️ Editor `<p>` me lapet-ta hai — class ke bina bhi saada dikhe (A-19 wala sawaal). */
-.hf-hero__sub p + p {
-  margin-top: 8px;
-}
+/* Accent (Italic) aur sub line ke `<p>` — dono `.vhero` ke rules ke saath grouped hain. */
 
 .hf-hero__sub a {
   color: #fff;
@@ -6965,17 +6950,12 @@ a.mega__gl:hover {
   border-top: 1px solid rgb(255 255 255 / 18%);
 }
 
+/* Naap `.vrail__c b/span` wala; yahan sirf gehre background ka rang. */
 .hf-stat b {
-  display: block;
-  font-size: var(--fs-hero-num);
-  font-weight: var(--fw-black);
   color: #fff;
-  letter-spacing: -0.02em;
 }
 
 .hf-stat span {
-  font-size: var(--fs-3xs);
-  font-weight: var(--fw-semi);
   color: rgb(255 255 255 / 72%);
 }
 
@@ -7007,17 +6987,15 @@ a.mega__gl:hover {
   margin-bottom: 16px;
 }
 
+/* Naap `.wdg--cta h3/p` wala; card safed hai, to rang aur margin yahan. */
 .hf-card__head h3 {
-  font-size: var(--fs-hero-num);
-  font-weight: var(--fw-black);
   color: var(--ink);
-  letter-spacing: -0.025em;
+  margin-bottom: 0;
 }
 
 .hf-card__head p {
-  font-size: var(--fs-xs);
   color: var(--muted);
-  margin-top: 4px;
+  margin: 4px 0 0;
 }
 
 /*
@@ -7056,7 +7034,6 @@ a.mega__gl:hover {
   justify-content: center;
   gap: 6px;
   margin-top: 11px;
-  font-size: var(--fs-3xs);
   color: var(--muted);
 }
 

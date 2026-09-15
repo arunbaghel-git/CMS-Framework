@@ -7926,8 +7926,33 @@ badlaav tour/page/blog pe **ek ghante** (`CACHE_SECONDS`) baad dikhta hai. **A-2
   karne pe client ka rang parde ke neeche dab jaata. Default rang pe bilkul reference jaisa
 - Mobile image: `Img` ka naya `mobile` prop → `<picture><source media="(max-width: 760px)">`. CSS
   background nahi (preload scanner use nahi dekhta, D-85 ka LCP jaata). 760 = site ka mobile breakpoint
-- Naye tokens: `--fs-hero` · `--fs-hero-sub` · `--fs-hero-num` · `--sh-4` (maujooda scale me saathi nahi
-  tha — D-73)
+- ~~Naye tokens `--fs-hero` · `--fs-hero-sub` · `--fs-hero-num`~~ — **usi din hataye** (§8). Sirf `--sh-4`
+  bacha (card ki shadow)
+
+### 8. Font baaki pages jaisa — reference ka nahi (client, usi din)
+
+Client: _"font jo decide kiya hai use rakho jaise other pages me hai, so sabka same rahe"_ — wahi niyam jo
+D-95 pe tha (_"font jo decide kiya bo rahega reference ka nahi"_). Pehle hero ne reference ke naap liye the
+(h1 24–38px, number 19px).
+
+Ab home ke selectors **maujooda rules ke saath grouped** hain, copy nahi — taaki client jab Tour ka font
+tune kare, home apne aap saath chale:
+
+| Home | Kiske saath |
+| --- | --- |
+| `.hf-hero h1` · `h1 em` · `__sub` · `__sub p` | `.vhero h1` · `.vhero__sub` (Tour/Page/Blog hero) |
+| `.hf-stat b` · `span` | `.vrail__c b` · `span` (stat rail) — rang home ke rule me safed |
+| `.hf-card__head h3` · `p` · `.hf-card__note` | `.wdg--cta h3` · `p` · `small` (sidebar ka form card) — rang/margin home ke rule me |
+
+⚠️ Grouped rule ka **rang/margin** home pe galat hai (Tour ka card neela, home ka safed), isliye home ke
+apne rule usi selector se file me **baad me** aate hain aur sirf wahi override karte hain. Font ki koi
+property home ke rule me nahi — wo likhna phir se do jagah ka naap bana deta.
+
+### 9. Enquiry Forms — fields drag se (client, usi din)
+
+_"delete then create karna padta hai"_ — `FormBuilder` ki fields table me ⠿ grip, wahi `useListDrag`
+(keyboard ↑/↓ bhi). Kram sirf array ki position hai: koi migration nahi, enquiries ke `values` key se
+baithe hain. ⚠️ Kram page pe asar karta hai — do **lagataar** `half` hi ek row bante hain (`toRows()`).
 
 ### 7. Jo jaan-boojh kar nahi bana
 

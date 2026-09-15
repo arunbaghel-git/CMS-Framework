@@ -11,6 +11,7 @@ import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
+import { useListDrag } from '../../lib/drag-list.js'
 import { useForm } from './useForms.js'
 import './Forms.css'
 
@@ -121,6 +122,27 @@ export default function FormBuilder() {
 
   const canWrite = can(id ? 'form.update' : 'form.create')
   const readOnly = !canWrite
+
+  /**
+   * Fields ka kram — **drag se, grip pe** (client, 15 Sep: _"delete then create karna padta hai"_).
+   *
+   * Kram form pe fields ka hi kram hai (`toRows()` usi se do `half` jodta hai), aur wo sirf array ki
+   * position hai — koi migration nahi, purani enquiries ke `values` key se baithe hain, kram se nahi.
+   * Wahi `useListDrag` jo blocks, itinerary aur menus pe hai (keyboard ↑/↓ bhi).
+   *
+   * ⚠️ Hook yahan, neeche wale `if (loading) return` se **pehle** — conditional hook React ka rule
+   * todta. Isliye `setForm` ka functional roop: is waqt `form` abhi `null` ho sakta hai.
+   */
+  const moveField = (from, to) =>
+    setForm((f) => {
+      if (!f || to < 0 || to >= f.fields.length) return f
+      const fields = [...f.fields]
+      const [row] = fields.splice(from, 1)
+      fields.splice(to, 0, row)
+      return { ...f, fields }
+    })
+
+  const { handleProps, rowProps } = useListDrag(moveField, !readOnly)
 
   useEffect(() => {
     if (id) {
@@ -365,6 +387,7 @@ export default function FormBuilder() {
             <table className="list field-table">
               <thead>
                 <tr>
+                  <th style={{ width: 28 }} aria-label="Reorder" />
                   <th>Field</th>
                   <th style={{ width: 80 }}>Show</th>
                   <th style={{ width: 90 }}>Required</th>
@@ -373,7 +396,14 @@ export default function FormBuilder() {
               </thead>
               <tbody>
                 {form.fields.map((field, index) => (
-                  <tr key={field.key}>
+                  <tr key={field.key} {...rowProps(index)}>
+                    <td className="field-grip">
+                      {!readOnly && (
+                        <span className="grip" {...handleProps(index)}>
+                          ⠿
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <input
                         className="inp"
