@@ -106,6 +106,45 @@ const PATHS = {
       <path d="M8.5 8h3M8.5 12h3M8.5 16h3" />
     </>
   ),
+
+  /* Home ke Info cards (D-96 §11) — path `home-nav-v3.html` ke Achievements/Certified/Why us/Articles se */
+  shieldCheck: (
+    <>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="m9 12 2 2 4-4" />
+    </>
+  ),
+  users: (
+    <>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.9" />
+    </>
+  ),
+  briefcase: (
+    <path d="M20 7h-3V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+  ),
+  globe: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z" />
+    </>
+  ),
+  vehicle: (
+    <>
+      <path d="M5 17h14M6 17V9l2-4h8l2 4v8" />
+      <circle cx="8" cy="17" r="2" />
+      <circle cx="16" cy="17" r="2" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2 12s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </>
+  ),
+  home: <path d="M3 21h18M4 21V8l8-5 8 5v13M9 21v-5h6v5" />,
+  rupee: <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />,
 }
 
 /**

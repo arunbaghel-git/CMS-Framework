@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { ICONS } from '../constants/icons.js'
 import { faqSchema } from './faq.js'
 import { htmlSchema, inlineHtmlSchema } from './rich-html.js'
 
@@ -94,7 +95,7 @@ export const BLOG_PAGE_BLOCK_TYPES = Object.freeze(['richText', 'postList', 'faq
  * Poora page ek saath nahi banega; jo section maanga gaya wahi yahan hai. Reference ke comment
  * wale number (`3. HERO`, `5. COUNTERS`…) kram nahi hain — kram client drag se lagata hai.
  */
-export const HOME_PAGE_BLOCK_TYPES = Object.freeze(['heroForm'])
+export const HOME_PAGE_BLOCK_TYPES = Object.freeze(['heroForm', 'infoCards'])
 
 /**
  * Section ka background — **koi bhi rang, picker se** (client, 15 Sep, D-96).
@@ -169,6 +170,81 @@ export const heroFormPropsSchema = z.object({
   formId: z.string().trim().max(60).default(''),
   formHeading: z.string().trim().max(200).default(''),
   formDescription: htmlSchema.pipe(z.string().max(1000)).default(''),
+})
+
+/** Card ya accent ka rang — wahi hex rok jo section ke background pe hai, alag naam sirf padhne ke liye. */
+const colourSchema = sectionBackgroundSchema
+
+/** Ek section me kitne card — reference ke har section me chaar hain; 12 teen line ki chhat hai. */
+export const INFO_CARDS_MAX = 12
+
+/**
+ * Info cards ka ek card — icon · label · title · description · link (client, 15 Sep, D-96 §11).
+ *
+ * | Field | Reference me |
+ * | --- | --- |
+ * | `icon` / `imageId` | `.achc__i` · `.certc__i` · `.whyc h3 svg` · `.art__i` |
+ * | `label` | `.art__t` — `BLOG` / `ARTICLE` (client: _"haath se"_) |
+ * | `text` | `p` — Achievements me saal **bold**, Why us me `Contact us` **link** (client: chhota editor) |
+ * | `url` | `a.art` — poora card link; khaali pe saada card, bina hover (client) |
+ *
+ * ⚠️ **`imageId` `icon` ke upar jeet-ta hai** (client: _"icon list + upload"_). Image jaisi hai waisi
+ * dikhti hai — `iconColor` us pe nahi lagta.
+ */
+export const infoCardSchema = z.object({
+  id: z.string().min(1).optional(),
+  icon: z.enum(/** @type {[string, ...string[]]} */ (ICONS)).default('none'),
+  imageId: z.string().trim().max(60).nullable().default(null),
+  label: z.string().trim().max(40).default(''),
+  title: z.string().trim().max(160).default(''),
+  /** Inline profile — bold, italic, link. Card ki ek-do line hai; `<p>`/list layout todte. */
+  text: inlineHtmlSchema.pipe(z.string().max(800)).default(''),
+  url: z.string().trim().max(500).default(''),
+})
+
+/** Card ka border — reference ke chaar look ke teen alag border + "none". */
+export const INFO_CARD_BORDERS = Object.freeze(['none', 'full', 'top', 'left'])
+
+/**
+ * `Info cards` — reference ke chaar sections ka **ek** section (client, 15 Sep, D-96 §11).
+ *
+ * `7. ACHIEVEMENTS` · `21. CERTIFIED BY` · `25. WHY US` · `19. POPULAR ARTICLES` — charon ka grid aur card ka
+ * dhaancha ek hai (icon → label → title → text), farak sirf **look** ka. Isliye chaar block type nahi,
+ * look ki settings. Admin ka "Start from" dropdown charon look ek click me bharta hai — wo **store nahi
+ * hota**, sirf neeche ki values bharta hai.
+ *
+ * ⚠️ Tour ka `cards` block reuse **nahi** kiya — uska look `tour-v3.html` ka hai aur usme label/link
+ * nahi. Use badalna Tour page ka design badalta.
+ *
+ * ⚠️ Look **poore section ka ek** hai, har card ka nahi — reference me bhi ek section ke card ek jaise.
+ *
+ * Khaali rang = theme ka default (neela accent, halka neela icon box) — hex rok `sectionBackgroundSchema` wali.
+ */
+export const infoCardsPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+  /** Certified by / Why us: center. Popular articles: left + daayein `View all →`. */
+  headingAlign: z.enum(['center', 'left']).default('center'),
+  /** `.viewall` — dono chahiye, warna link nahi (D-30). Sirf `left` pe dikhta hai — center me jagah nahi. */
+  linkLabel: z.string().trim().max(80).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+
+  /** Desktop ke column. Tablet pe 2, phone pe 1 — reference ka hi niyam, admin ka chunav nahi. */
+  columns: z.coerce.number().int().min(2).max(4).default(4),
+  border: z.enum(INFO_CARD_BORDERS).default('full'),
+  /** `top`/`left` wali 3px patti ka rang. */
+  accentColor: colourSchema,
+  /** `above` — icon upar (Achievements/Certified/Articles). `inline` — title ki line me (Why us). */
+  iconPosition: z.enum(['above', 'inline']).default('above'),
+  /** Icon ke peeche rangeen dabba (Why us me nahi hai). */
+  iconBox: z.boolean().default(true),
+  iconBg: colourSchema,
+  iconColor: colourSchema,
+  textAlign: z.enum(['left', 'center']).default('left'),
+
+  items: z.array(infoCardSchema).max(INFO_CARDS_MAX).default([]),
 })
 
 /** `richText` — "Text" block. Poora content ek HTML string me, jaisa D-80 se hai. */
@@ -602,6 +678,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   faqs: faqsPropsSchema,
   postList: postListPropsSchema,
   heroForm: heroFormPropsSchema,
+  infoCards: infoCardsPropsSchema,
 })
 
 /**

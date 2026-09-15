@@ -301,6 +301,7 @@ export function sanitizeInlineHtml(html) {
  * | `cards` | `props.items[].text` — **inline** profile |
  * | `faqs` | `props.description` · `props.items[].answer` |
  * | `heroForm` | `props.title` (**inline**) · `props.description` · `props.formDescription` |
+ * | `infoCards` | `props.description` · `props.items[].text` (**inline**) |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
  * ki content gir jaayega — wo bilkul theek save hoga, **bina safai ke**, aur page pe
@@ -378,6 +379,22 @@ export function sanitizeContent(content) {
               title: sanitizeInlineHtml(p.title),
               description: sanitizeBlockHtml(p.description),
               formDescription: sanitizeBlockHtml(p.formDescription),
+            },
+          }
+
+        /**
+         * Home ke Info cards (D-96 §11). Card ka text **inline** — wahi tark jo `cards.items[].text`
+         * pe hai: ek-do line, `<p>`/list card ka layout todte.
+         */
+        case 'infoCards':
+          return {
+            ...block,
+            props: {
+              ...p,
+              description: sanitizeBlockHtml(p.description),
+              items: (p.items ?? []).map((item) =>
+                item ? { ...item, text: sanitizeInlineHtml(item.text) } : item,
+              ),
             },
           }
 

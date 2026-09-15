@@ -187,6 +187,10 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          ribbon, formId, formHeading, formDescription }.
                          background PROPS me hai, envelope ke style me nahi.
                          Payload me ids nahi jaatin — data{image,mobileImage,form}
+                         infoCards (D-96 §11): heading/description/headingAlign/link ·
+                         look {columns, border none|full|top|left, accentColor,
+                         iconPosition above|inline, iconBox, iconBg, iconColor, textAlign}
+                         · items[{icon (ICONS), imageId, label, title, text inline, url}]≤12
                  fields  { ...customFields },            contentType ke fields
                          package ka itinerary[] yahin hai — poora contract
                          packages/shared/schemas/itinerary.js me (D-51).

@@ -1,4 +1,5 @@
 import HeroForm from './HeroForm.jsx'
+import InfoCards from './InfoCards.jsx'
 
 /**
  * Home page — `home-nav-v3.html` (client, 15 Sep, D-96).
@@ -15,6 +16,7 @@ import HeroForm from './HeroForm.jsx'
  */
 const SECTIONS = {
   heroForm: HeroForm,
+  infoCards: InfoCards,
 }
 
 export default function HomePage({ entry }) {

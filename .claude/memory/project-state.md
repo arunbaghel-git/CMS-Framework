@@ -38,6 +38,13 @@ flake nikla (akele pass). Lint · format · admin build pass.
   save kiya (DB me dikha). Yaani naya field live chal raha hai
 - ⚠️ Browser me aankh se **nahi** dekha (desktop/mobile layout, 1040px, rang ka parda) — **A-28**
 
+### Usi din baad me
+
+- Hero design se milaya — **sirf heading aur body ka font hamara**, baaki design ke naap (D-96 §8, §10)
+- All Pages ke upar Home Page ki row; Enquiry Forms me fields drag se (§9)
+- **Section 2 — Info cards** (§11): Achievements/Certified by/Why us/Popular articles ek section, "Start from"
+  presets, icon list + upload, label, optional link, chhota editor. 16 home test. Render aankh se nahi dekha (A-28 #7)
+
 ### Agla kadam
 
 1. Client home page khud banaye (Pages ▸ Home Page) aur dekhe — A-28 ki list

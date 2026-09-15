@@ -27,6 +27,19 @@ export const ICONS = Object.freeze([
   'clock',
   'mapPin',
   'building',
+  /**
+   * Home ke Info cards ke liye — `home-nav-v3.html` ke Achievements · Certified by · Why us · Popular
+   * articles me yahi icon hain (client, 15 Sep, D-96 §11). Ek hi list me jode, alag `CARD_ICONS` nahi —
+   * upar ka tark: do list ek din alag ho jaati hain. Header/footer ke dropdown me bhi ab ye dikhenge.
+   */
+  'shieldCheck',
+  'users',
+  'briefcase',
+  'globe',
+  'vehicle',
+  'eye',
+  'home',
+  'rupee',
 ])
 
 /**
@@ -47,4 +60,12 @@ export const ICON_LABELS = Object.freeze({
   clock: 'Clock',
   mapPin: 'Location',
   building: 'Building',
+  shieldCheck: 'Shield',
+  users: 'People',
+  briefcase: 'Briefcase',
+  globe: 'Globe',
+  vehicle: 'Vehicle',
+  eye: 'Eye',
+  home: 'Home',
+  rupee: 'Money',
 })

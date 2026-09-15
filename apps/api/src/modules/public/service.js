@@ -2090,6 +2090,7 @@ async function toPublicPage(doc, siteId, locale) {
  * `sidebarId` tark). Chhoot jaane ka lakshan "kuch na hona" hota hai, isliye props se hataye gaye.
  */
 async function resolveHomeSection(block, siteId) {
+  if (block?.type === 'infoCards') return resolveInfoCards(block, siteId)
   if (block?.type !== 'heroForm') return block
 
   const { imageId, mobileImageId, formId, ...props } = block.props ?? {}
@@ -2113,6 +2114,33 @@ async function resolveHomeSection(block, siteId) {
       stats: (props.stats ?? []).filter((s) => s?.value),
     },
     data: { image, mobileImage, form },
+  }
+}
+
+/**
+ * `Info cards` — har card ki upload image resolve (D-96 §11).
+ *
+ * ⚠️ Image **card ke andar** `image` bankar jaati hai, `imageId` hat jaata hai — wahi niyam jo hero pe.
+ * Media na mile to `null`, aur theme `icon` pe girti hai (D-42 §2 — toota `<img>` nahi).
+ *
+ * Khaali card (na title, na text, na icon, na image) gir jaata hai — admin ka "＋ Add card" dabake
+ * chhoda hua dabba page pe ek khaali dibba banta (D-30).
+ */
+async function resolveInfoCards(block, siteId) {
+  const items = await Promise.all(
+    (block.props?.items ?? []).map(async ({ imageId, ...card }) => ({
+      ...card,
+      /** `thumb` (300px) — icon ka dabba 38–46px ka hai; bada variant bekaar ka bojh. */
+      image: await toDisplayImage(imageId, 'thumb', siteId),
+    })),
+  )
+
+  return {
+    ...block,
+    props: {
+      ...block.props,
+      items: items.filter((c) => c.title || c.text || c.image || (c.icon && c.icon !== 'none')),
+    },
   }
 }
 

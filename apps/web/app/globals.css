@@ -185,6 +185,9 @@
   --fs-price: clamp(28px, 3.4vw, 38px);
   --fs-intro: clamp(15px, 1.6vw, 17px);
   --fs-display: clamp(21px, 2.6vw, 30px);
+  /* Home Info cards — design ke card title aur label (D-96 §11). Maujooda scale me 15px/10px nahi the. */
+  --fs-card-title: 15px;
+  --fs-card-label: 10px;
   /* Home hero ke number aur form card ka heading — design ka 19px (D-96 §10). Heading/body font nahi. */
   --fs-hero-num: 19px;
 
@@ -5197,7 +5200,9 @@ a.mega__gl:hover {
   flex-wrap: wrap;
 }
 
-.sh h2 {
+/* `.ic__sh h2` — home ke Info cards ka heading bhi yahi (client: heading font hamara, D-96 §11). */
+.sh h2,
+.ic__sh h2 {
   font-size: clamp(19px, 2.2vw, 25px);
   font-weight: 800;
 }
@@ -5207,7 +5212,8 @@ a.mega__gl:hover {
  * `.blk__intro` ke saath milta hai (dono 13.5px). Do me se do ka milna hi is role ka standard
  * hai, isliye naap chhua nahi gaya — sirf hardcoded px ki jagah token aaya (D-73).
  */
-.sh p {
+.sh p,
+.ic__sd {
   font-size: var(--fs-md);
   color: var(--muted);
   margin-top: 4px;
@@ -7075,5 +7081,239 @@ a.mega__gl:hover {
   .hf-hero__grid {
     grid-template-columns: 1fr;
     gap: 30px;
+  }
+}
+
+/* ---- Info cards (D-96 §11) — Achievements · Certified by · Why us · Popular articles ----
+   Section heading/line ka font `.sh` ke saath grouped (hamara). Card ke naap design ke. */
+
+.ic {
+  --ic-bg: #fff;
+  --ic-accent: var(--blue-500);
+  --ic-icon-bg: var(--blue-50);
+  --ic-icon: var(--blue-600);
+  background: var(--ic-bg);
+  padding: clamp(28px, 3.4vw, 46px) 0;
+}
+
+.ic__sh {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  margin-bottom: clamp(16px, 2vw, 22px);
+}
+
+/* Popular articles — heading left, daayein `View all →` (reference ka `.sh`). */
+.ic__sh--left {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 18px;
+  text-align: left;
+}
+
+/* Line editor se aati hai — `<p>` ho ya na ho, naap `.ic__sd` pe (A-19). */
+.ic__sd p + p {
+  margin-top: 6px;
+}
+
+.ic__all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue-600);
+  white-space: nowrap;
+}
+
+.ic__all svg {
+  transition: transform 0.18s;
+}
+
+.ic__all:hover svg {
+  transform: translateX(3px);
+}
+
+.ic__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ic-cols, 4), 1fr);
+  gap: 14px;
+}
+
+/* ---- card ---- */
+
+.icc {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  padding: 18px;
+  transition: 0.18s;
+}
+
+.icc--b-none {
+  border-color: transparent;
+}
+
+/* `.achc` — upar 3px ki patti */
+.icc--b-top {
+  border-top: 3px solid var(--ic-accent);
+}
+
+/* `.whyc` — baayein 3px ki patti */
+.icc--b-left {
+  border-left: 3px solid var(--ic-accent);
+}
+
+/* `.certc` — sab beech me */
+.icc--center {
+  align-items: center;
+  text-align: center;
+}
+
+/* Icon ka dabba — `.achc__i` / `.certc__i` / `.art__i` */
+.icc__i {
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--ic-icon-bg);
+  color: var(--ic-icon);
+  margin-bottom: 6px;
+}
+
+.icc__i--img {
+  background: transparent;
+  overflow: hidden;
+}
+
+.icc__i--img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Dabba band — sirf icon, rang wahi (Why us) */
+.icc--bare .icc__i:not(.icc__i--img) {
+  background: transparent;
+  width: auto;
+  height: auto;
+}
+
+/* Icon title ki line me — `.whyc h3 svg` */
+.icc--i-inline h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icc--center.icc--i-inline h3 {
+  justify-content: center;
+}
+
+.icc--i-inline .icc__i {
+  margin-bottom: 0;
+}
+
+/* Line ke saath chhota dabba — dabba band (`--bare`) ho ya upload image, to nahi. */
+.icc--i-inline:not(.icc--bare) .icc__i:not(.icc__i--img) {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+/* `.art__t` — BLOG / ARTICLE */
+.icc__t {
+  font-size: var(--fs-card-label);
+  font-weight: var(--fw-black);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--orange-500);
+}
+
+.icc h3 {
+  font-size: var(--fs-card-title);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.icc p {
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--body);
+}
+
+.icc p :is(b, strong) {
+  color: var(--ink);
+  font-weight: var(--fw-heading);
+}
+
+.icc p a {
+  position: relative;
+  z-index: 1;
+  color: var(--blue-600);
+  font-weight: var(--fw-bold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/*
+ * Link wala card — title ka link poore card pe phaila (`::after`), taaki description ke link
+ * `<a>` ke andar `<a>` na banein. Hover `.art` ka: neela border, shadow, 2px upar.
+ */
+.icc__a {
+  color: inherit;
+  line-height: inherit;
+}
+
+.icc__a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.icc--link:hover {
+  border-color: var(--blue-500);
+  box-shadow: var(--sh-2);
+  transform: translateY(-2px);
+}
+
+/* Patti wale card pe hover me patti ka rang bacha rahe */
+.icc--link.icc--b-top:hover {
+  border-top-color: var(--ic-accent);
+}
+
+.icc--link.icc--b-left:hover {
+  border-left-color: var(--ic-accent);
+}
+
+@media (max-width: 1024px) {
+  .ic__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .ic__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icc--link:hover {
+    transform: none;
   }
 }

@@ -753,6 +753,12 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
   image · Title (Italic = accent) · Description · 4 Stats (Value/Label) · Form (sirf Active) · Ribbon ·
   Heading · Description
 - **Enquiry Forms ▸ Basics** me naya **Button label** (placeholder `Get this itinerary`)
+- **Info cards** section: Background · Heading (Heading · Description · Centre/Left, Left pe Link label/URL) ·
+  Card look (**Start from** — Achievements / Certified by / Why us / Popular articles · Columns · Card border ·
+  Top/left colour · Icon position · Text alignment · Coloured box + Icon box colour · Icon colour) · Cards (⠿ drag,
+  Icon ya apni image · Label · Title · Description · Link)
+- **All Pages** ke upar Home Page ki row (Edit · View)
+- **Enquiry Forms** ki fields table me ⠿ — drag se kram
 
 ### Dropdown ki chaudai — sab screens (`primitives.css`)
 

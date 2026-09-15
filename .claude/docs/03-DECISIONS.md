@@ -7986,3 +7986,40 @@ dekha), aur naap sirf `.hf-card__head p` pe tha — to text card ka 16px le raha
 **All Pages me Home Page** — list ke upar ek row (`EntriesList` ka `pinnedType`), sirf All tab ke pehle page
 pe aur bina search/date filter ke. Edit → `/pages/home`, View → site ka `/`. Na checkbox, na Trash.
 `homePage` ko `page` nahi banaya — list query use laati nahi, aur type badalna `/` aur "ek hi home" dono todta.
+
+### 11. Section 2 — `Info cards` (client, usi din)
+
+Client: _"box layout — card me icon, title, description, label (blog/article jaisa); card ka look: border
+ya bina, top/left border, icon aur title ka layout, icon ka bg rang, text center ya left"_. Reference ke
+chaar section dekh kar setting ka dhaancha banana tha: **Achievements** (Trusted by ke upar), **Certified
+by**, **Why us?**, **Popular articles**.
+
+**Charon ek hi section (`infoCards`)**, chaar block type nahi — grid aur card ka dhaancha ek hai (icon →
+label → title → text), farak sirf look ka:
+
+| Look | Border | Icon | Text | Heading |
+| --- | --- | --- | --- | --- |
+| Achievements | + upar sunehri patti | 42px dabba, upar | left | — |
+| Certified by | poora | dabba, upar | **center** | center |
+| Why us | + baayein neeli patti | **bina dabba, title ki line me** | left | center |
+| Popular articles | poora, hover + link | dabba, upar, **label** | left | **left + View all** |
+
+Client ke chaar jawab (sawaal pooche gaye): icon **list + upload** (upload jeet-ti hai) · label **haath
+se** · link **optional, poora card** · description **chhota editor** (bold/italic/link, inline profile).
+
+- **Props:** `background` · `heading` · `description` · `headingAlign` (`center|left`) · `linkLabel`/`linkUrl`
+  · `columns` (2–4) · `border` (`none|full|top|left`) · `accentColor` · `iconPosition` (`above|inline`) ·
+  `iconBox` · `iconBg` · `iconColor` · `textAlign` · `items[]` ≤12 `{icon, imageId, label, title, text, url}`.
+  Saare rang wahi hex rok (`sectionBackgroundSchema`)
+- **Admin "Start from"** — chaaron look ek click me; **store nahi hota**, sirf look ki values bharta hai
+  (heading/cards/background nahi chhoota). Naya section "Certified by" look se khulta hai
+- **Icons** shared `ICONS` me jude (`shieldCheck · users · briefcase · globe · vehicle · eye · home · rupee`),
+  alag list nahi (`icons.js` ka tark) — header/footer ke dropdown me bhi dikhenge
+- Tour ka `cards` block **reuse nahi** — uska look `tour-v3.html` ka hai, label/link nahi
+- ⚠️ **Link wala card `<a>` nahi** — description me link ho sakta hai aur `<a>` ke andar `<a>` HTML todta hai.
+  Title ka link `::after` se poore card pe phaila hai
+- Payload: `resolveInfoCards()` — card ki image `thumb` resolve, `imageId` bahar nahi; **khaali card gira**
+- Font: section heading/line `.sh h2`/`.sh p` ke saath grouped (hamara); card ke naap design ke (title 15px,
+  label 10px — naye tokens `--fs-card-title`/`--fs-card-label`, text 12.5px)
+
+⚠️ Render aankh se nahi dekha (client ke home me section nahi joda) — **A-28** me jodna.

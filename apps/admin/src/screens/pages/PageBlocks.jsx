@@ -1,5 +1,8 @@
 import {
   ENTRY_LIST_MAX_LIMIT,
+  ICONS,
+  ICON_LABELS,
+  INFO_CARDS_MAX,
   PAGE_BLOCK_TYPES,
   POST_LIST_MAX_FEATURED,
   POST_LIST_PER_PAGE_DEFAULT,
@@ -35,6 +38,7 @@ const BLOCK_LABEL = {
   postList: 'Post list',
   faqs: 'FAQs',
   heroForm: 'Hero with form',
+  infoCards: 'Info cards',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -46,6 +50,7 @@ const BLOCK_CLASS = {
   postList: 'list',
   faqs: 'faq',
   heroForm: 'hero',
+  infoCards: 'info',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -68,6 +73,13 @@ function emptyBlock(type) {
     packageList: {},
     postList: { heading: '', subheading: '', linkLabel: '', linkUrl: '', featuredIds: [] },
     faqs: { heading: '', description: '', items: [] },
+    /** Naya section "Certified by" ke look se khulta hai — khaali settings se kuch samajh nahi aata. */
+    infoCards: {
+      ...INFO_CARDS_PRESETS.certified.values,
+      heading: '',
+      description: '',
+      items: [],
+    },
     heroForm: {
       background: '',
       imageId: null,
@@ -114,6 +126,8 @@ function summarize(block) {
       return p.heading || 'Package list'
     case 'faqs':
       return `${p.heading || 'FAQs'} — ${(p.items ?? []).length} question(s)`
+    case 'infoCards':
+      return `${p.heading || 'Info cards'} — ${(p.items ?? []).length} card(s)`
     case 'heroForm': {
       const text = String(p.title ?? '')
         .replace(/<[^>]*>/g, '')
@@ -1075,17 +1089,22 @@ const HERO_DEFAULT_BACKGROUND = '#0b2b4a'
  * sakta, isliye "Use default" ka alag button — warna ek baar rang chunne ke baad section ke apne
  * rang pe lautne ka raasta nahi bachta (wahi jo category ke badge rang pe hai, D-93).
  */
-function SectionBackground({ value, fallback, onChange, disabled }) {
+function SectionBackground(props) {
+  return <ColourField label="Background colour" {...props} />
+}
+
+/** Ek rang ka khaana — picker + hex + "Use default". Background, accent aur icon ke rang sab isi se. */
+function ColourField({ label, value, fallback, onChange, disabled }) {
   return (
     <div className="field">
-      <label>Background colour</label>
+      <label>{label}</label>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <input
           type="color"
           value={value || fallback}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          aria-label="Background colour"
+          aria-label={label}
         />
         <span className="muted">{value || `Default (${fallback})`}</span>
         {value && !disabled && (
@@ -1277,8 +1296,407 @@ function HeroFormBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * "Start from" — reference ke chaar look, ek click me (client, 15 Sep, D-96 §11).
+ *
+ * ⚠️ **Store nahi hota** — sirf look ki values bharta hai. Heading, cards aur background client ke hi
+ * rehte hain; preset badalne se unka likha kuch nahi mitta. Rang reference ki CSS se.
+ */
+const INFO_CARDS_PRESETS = {
+  achievements: {
+    label: 'Achievements — coloured top border',
+    values: {
+      columns: 4,
+      border: 'top',
+      accentColor: '#f5a623',
+      iconPosition: 'above',
+      iconBox: true,
+      iconBg: '#fdf5e3',
+      iconColor: '#b8860b',
+      textAlign: 'left',
+      headingAlign: 'center',
+    },
+  },
+  certified: {
+    label: 'Certified by — centred, green icon',
+    values: {
+      columns: 4,
+      border: 'full',
+      accentColor: '',
+      iconPosition: 'above',
+      iconBox: true,
+      iconBg: '#e3f6ec',
+      iconColor: '#0f8a4d',
+      textAlign: 'center',
+      headingAlign: 'center',
+    },
+  },
+  whyUs: {
+    label: 'Why us — coloured left border, icon beside title',
+    values: {
+      columns: 4,
+      border: 'left',
+      accentColor: '#2a86d4',
+      iconPosition: 'inline',
+      iconBox: false,
+      iconBg: '',
+      iconColor: '#2a86d4',
+      textAlign: 'left',
+      headingAlign: 'center',
+    },
+  },
+  articles: {
+    label: 'Popular articles — heading left, link cards',
+    values: {
+      columns: 4,
+      border: 'full',
+      accentColor: '',
+      iconPosition: 'above',
+      iconBox: true,
+      iconBg: '#f2f8fd',
+      iconColor: '#1668ae',
+      textAlign: 'left',
+      headingAlign: 'left',
+    },
+  },
+}
+
+/** Info cards ka default section rang — reference me charon `sec--white` hain. */
+const INFO_CARDS_DEFAULT_BACKGROUND = '#ffffff'
+
+const emptyCard = () => ({
+  id: newId(),
+  icon: 'none',
+  imageId: null,
+  label: '',
+  title: '',
+  text: '',
+  url: '',
+})
+
+/**
+ * `Info cards` — reference ke Achievements · Certified by · Why us · Popular articles (D-96 §11).
+ *
+ * Panel teen hisson me: **Heading** (section ka), **Card look** (poore section ka ek look), **Cards**
+ * (drag se kram). Card ka icon list se ya upload se — upload jeet-ti hai (client: _"icon list + upload"_).
+ */
+function InfoCardsBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const items = props.items ?? []
+
+  const media = useMediaById(items.map((item) => item.imageId).filter(Boolean))
+
+  const setItems = (next) => set({ items: next })
+  const patchItem = (i, patch) =>
+    setItems(items.map((item, idx) => (idx === i ? { ...item, ...patch } : item)))
+
+  /** Cards ka apna drag — blocks list ka alag instance, to card section ke bahar nahi girta. */
+  const moveItem = (from, to) => {
+    if (to < 0 || to >= items.length) return
+    const next = [...items]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    setItems(next)
+  }
+  const { handleProps, rowProps } = useListDrag(moveItem, !disabled)
+
+  const accentBorder = props.border === 'top' || props.border === 'left'
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback={INFO_CARDS_DEFAULT_BACKGROUND}
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <label className="blk-sublabel">Heading</label>
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+      <div className="row2">
+        <div className="field">
+          <label>Heading position</label>
+          <select
+            className="sel"
+            value={props.headingAlign ?? 'center'}
+            onChange={(e) => set({ headingAlign: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="center">Centre</option>
+            <option value="left">Left — with a link on the right</option>
+          </select>
+        </div>
+      </div>
+      {props.headingAlign === 'left' && (
+        <div className="row2">
+          <div className="field">
+            <label>Link label</label>
+            <input
+              className="inp"
+              placeholder="View all"
+              value={props.linkLabel ?? ''}
+              onChange={(e) => set({ linkLabel: e.target.value })}
+              disabled={disabled}
+            />
+          </div>
+          <div className="field">
+            <label>Link URL</label>
+            <input
+              className="inp"
+              placeholder="/blog"
+              value={props.linkUrl ?? ''}
+              onChange={(e) => set({ linkUrl: e.target.value })}
+              disabled={disabled}
+            />
+          </div>
+        </div>
+      )}
+      <div className="hint">
+        Leave the heading empty and the section starts straight with the cards.
+      </div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Card look
+      </label>
+      <div className="row2">
+        <div className="field">
+          <label>Start from</label>
+          <select
+            className="sel"
+            value=""
+            onChange={(e) => {
+              const preset = INFO_CARDS_PRESETS[e.target.value]
+              if (preset) set(preset.values)
+            }}
+            disabled={disabled}
+          >
+            <option value="">— pick a ready look —</option>
+            {Object.entries(INFO_CARDS_PRESETS).map(([key, preset]) => (
+              <option key={key} value={key}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+          <div className="hint">
+            Fills the look settings below. Your heading and cards stay as they are.
+          </div>
+        </div>
+        <div className="field">
+          <label>Columns</label>
+          <select
+            className="sel"
+            value={props.columns ?? 4}
+            onChange={(e) => set({ columns: Number(e.target.value) })}
+            disabled={disabled}
+          >
+            <option value={2}>2</option>
+            <option value={3}>3</option>
+            <option value={4}>4</option>
+          </select>
+          <div className="hint">On desktop. Tablets show 2, phones 1.</div>
+        </div>
+      </div>
+
+      <div className="row2">
+        <div className="field">
+          <label>Card border</label>
+          <select
+            className="sel"
+            value={props.border ?? 'full'}
+            onChange={(e) => set({ border: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="none">No border</option>
+            <option value="full">Border all round</option>
+            <option value="top">Border + coloured top</option>
+            <option value="left">Border + coloured left side</option>
+          </select>
+        </div>
+        {accentBorder && (
+          <ColourField
+            label="Top / left colour"
+            value={props.accentColor}
+            fallback="#2a86d4"
+            onChange={(accentColor) => set({ accentColor })}
+            disabled={disabled}
+          />
+        )}
+      </div>
+
+      <div className="row2">
+        <div className="field">
+          <label>Icon position</label>
+          <select
+            className="sel"
+            value={props.iconPosition ?? 'above'}
+            onChange={(e) => set({ iconPosition: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="above">Above the title</option>
+            <option value="inline">Beside the title</option>
+          </select>
+        </div>
+        <div className="field">
+          <label>Text alignment</label>
+          <select
+            className="sel"
+            value={props.textAlign ?? 'left'}
+            onChange={(e) => set({ textAlign: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="left">Left</option>
+            <option value="center">Centre</option>
+          </select>
+        </div>
+      </div>
+
+      <label className="inline-lbl" style={{ display: 'block', marginBottom: 8 }}>
+        <input
+          type="checkbox"
+          checked={props.iconBox !== false}
+          onChange={(e) => set({ iconBox: e.target.checked })}
+          disabled={disabled}
+        />{' '}
+        Coloured box behind the icon
+      </label>
+      <div className="row2">
+        {props.iconBox !== false && (
+          <ColourField
+            label="Icon box colour"
+            value={props.iconBg}
+            fallback="#f2f8fd"
+            onChange={(iconBg) => set({ iconBg })}
+            disabled={disabled}
+          />
+        )}
+        <ColourField
+          label="Icon colour"
+          value={props.iconColor}
+          fallback="#1668ae"
+          onChange={(iconColor) => set({ iconColor })}
+          disabled={disabled}
+        />
+      </div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Cards
+      </label>
+      {items.map((item, i) => (
+        <div className="info-card" key={item.id ?? i} {...rowProps(i)}>
+          <div className="info-card__head">
+            {!disabled && (
+              <span className="grip" {...handleProps(i)}>
+                ⠿
+              </span>
+            )}
+            <b>{item.title || `Card ${i + 1}`}</b>
+            {!disabled && (
+              <button
+                className="blk-x"
+                type="button"
+                title="Remove card"
+                onClick={() => {
+                  if (!window.confirm('Remove this card?')) return
+                  setItems(items.filter((_, idx) => idx !== i))
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="row2">
+            <div className="field">
+              <label>Icon</label>
+              <select
+                className="sel"
+                value={item.icon ?? 'none'}
+                onChange={(e) => patchItem(i, { icon: e.target.value })}
+                disabled={disabled}
+              >
+                {ICONS.map((icon) => (
+                  <option key={icon} value={icon}>
+                    {ICON_LABELS[icon] ?? icon}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <MediaDrop
+              label="Or your own image"
+              hint="Optional — shown instead of the icon."
+              media={media[item.imageId]}
+              onSelect={(chosen) => patchItem(i, { imageId: chosen.id })}
+              onClear={() => patchItem(i, { imageId: null })}
+            />
+          </div>
+
+          <div className="row2">
+            <div className="field">
+              <label>Label</label>
+              <input
+                className="inp"
+                placeholder="Blog"
+                value={item.label ?? ''}
+                onChange={(e) => patchItem(i, { label: e.target.value })}
+                disabled={disabled}
+              />
+            </div>
+            <div className="field">
+              <label>Title</label>
+              <input
+                className="inp"
+                value={item.title ?? ''}
+                onChange={(e) => patchItem(i, { title: e.target.value })}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+
+          <div className="field">
+            <label>Description</label>
+            <HtmlEditor
+              value={item.text ?? ''}
+              onChange={(text) => patchItem(i, { text })}
+              disabled={disabled}
+              height={110}
+            />
+          </div>
+
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label>Link</label>
+            <input
+              className="inp"
+              placeholder="Optional — e.g. /blog/where-to-stay"
+              value={item.url ?? ''}
+              onChange={(e) => patchItem(i, { url: e.target.value })}
+              disabled={disabled}
+            />
+          </div>
+        </div>
+      ))}
+
+      {!disabled && items.length < INFO_CARDS_MAX && (
+        <button
+          className="btn btn-sm"
+          type="button"
+          onClick={() => setItems([...items, emptyCard()])}
+        >
+          ＋ Add card
+        </button>
+      )}
+
+      <div className="hint">
+        <b>Label</b> is the small coloured word above the title (&ldquo;Blog&rdquo;). With a{' '}
+        <b>Link</b> the whole card is clickable and lifts on hover. In the description only bold,
+        italic and links are kept. A card with nothing filled in does not appear.
+      </div>
+    </>
+  )
+}
+
 const EDITORS = {
   heroForm: HeroFormBlock,
+  infoCards: InfoCardsBlock,
   richText: TextBlock,
   twoColumn: TwoColumnBlock,
   cards: CardsBlock,

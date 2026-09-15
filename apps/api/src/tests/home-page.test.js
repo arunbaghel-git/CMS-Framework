@@ -287,3 +287,69 @@ describe('form ka button label aur cache', () => {
     expect(await pathTagsForForm('000000000000000000000000')).toEqual([])
   })
 })
+
+describe('Info cards section (D-96 §11)', () => {
+  const cardsBlock = (props = {}) => ({
+    type: 'infoCards',
+    props: {
+      heading: 'Certified by',
+      headingAlign: 'center',
+      border: 'top',
+      accentColor: '#F5A623',
+      items: [
+        {
+          icon: 'shieldCheck',
+          label: 'Blog',
+          title: 'Ministry of Tourism',
+          text: 'Enlisted in <b>2009</b><script>alert(1)</script><p>x</p>',
+          url: '/about',
+          imageId: 'nahi-hai',
+        },
+        { icon: 'none', title: '', text: '' },
+      ],
+      ...props,
+    },
+  })
+
+  it('write pe card ko id, text inline saaf, rang lowercase', async () => {
+    const res = await createHome({ content: { version: 1, blocks: [cardsBlock()] } })
+
+    expect(res.status).toBe(201)
+    const { props } = (await Entry.findById(res.body.data.entry.id).lean()).content.blocks[0]
+
+    expect(props.accentColor).toBe('#f5a623')
+    expect(props.items[0].id).toBeTruthy()
+    expect(props.items[0].text).toContain('<b>2009</b>')
+    expect(props.items[0].text).not.toMatch(/<script|<p>/)
+  })
+
+  it('anjaan icon aur galat border 4xx — chup-chaap store nahi', async () => {
+    for (const bad of [
+      cardsBlock({ border: 'dashed' }),
+      cardsBlock({ items: [{ icon: 'rocket', title: 'x' }] }),
+      cardsBlock({ iconBg: 'url(x)' }),
+    ]) {
+      const res = await createHome({ content: { version: 1, blocks: [bad] } })
+      expect(res.status).toBeGreaterThanOrEqual(400)
+      expect(res.status).toBeLessThan(500)
+    }
+    expect(await Entry.countDocuments({ type: 'homePage' })).toBe(0)
+  })
+
+  it('payload — imageId bahar nahi, media na mile to image null, khaali card gira', async () => {
+    const created = (await createHome({ content: { version: 1, blocks: [cardsBlock()] } })).body
+      .data.entry
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.props.items).toHaveLength(1)
+    expect(section.props.items[0]).toMatchObject({
+      icon: 'shieldCheck',
+      label: 'Blog',
+      image: null,
+    })
+    expect(section.props.items[0].imageId).toBeUndefined()
+  })
+})
