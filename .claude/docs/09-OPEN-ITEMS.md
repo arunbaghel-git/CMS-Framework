@@ -222,6 +222,8 @@ family (`--font`) `next/font` se build pe aata hai — runtime pe badalna alag s
 
 ### A-29 · Hotels · Add-ons · Transfers badalne pe package page ka cache saaf nahi hota
 
+⚠️ **D-96 §19 ke baad:** `packageDefaults` (site ki default rating, jo package card pe fallback hai) badalne pe bhi sirf `type:package` jaata hai — home ka Package grid aur Tour page ek ghanta purane. Wahi ilaaj: `packageListingTags()` jaisa `path:` tag.
+
 **D-96 §13 ki jaanch me mila.** `master-lists` service kisi write pe `revalidateTags` nahi bulati thi.
 Reviews aur video reviews ke liye `LISTS.*.tags` juda; baaki teen lists pe abhi bhi koi tag nahi — hotel ka
 naam/room/note badlo to package page ek ghanta (`CACHE_SECONDS`) purana dikhata hai. Ilaaj ek line har list
@@ -249,6 +251,7 @@ dikhta hai.
 | 11 | **Media Library / picker se upload** — interceptor fix ke baad asli file | Node me axios ka bartaav dohra kar pakka; browser se upload nahi kiya |
 | 12 | **Testimonials** (§16): picker + drag, quote icon ka rang, initials (`Priya & Rahul` → PR), 4/2/1 column | Tests + compile se verify |
 | 13 | **Logo grid** (§17): chaude/lambe logo tile me fit, heading neeche, bina image ke text tile, 6/4/3 column, closing line; admin ki patli row me image dabba | Tests + compile se verify |
+| 14 | **Package grid** (§19): kai badge wrap, discount, pills se chhaantna, 16 ki chhat; **Tour page ka Package Type filter** (bug fix) | Tests + compile se verify |
 
 ---
 

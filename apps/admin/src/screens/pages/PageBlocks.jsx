@@ -6,6 +6,7 @@ import {
   IMAGE_CARD_SHAPES,
   INFO_CARDS_MAX,
   LOGO_GRID_MAX,
+  PACKAGE_GRID_MAX,
   TESTIMONIALS_MAX,
   THEME_COLORS,
   VIDEO_REVIEWS_MAX,
@@ -50,6 +51,7 @@ const BLOCK_LABEL = {
   videoReviews: 'Customer reviews',
   testimonials: 'Testimonials',
   logoGrid: 'Logo grid',
+  packageGrid: 'Package grid',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -66,6 +68,7 @@ const BLOCK_CLASS = {
   videoReviews: 'reviews',
   testimonials: 'reviews',
   logoGrid: 'logos',
+  packageGrid: 'list',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -106,6 +109,15 @@ function emptyBlock(type) {
       linkLabel: '',
       linkUrl: '',
       items: [],
+    },
+    packageGrid: {
+      background: '',
+      heading: '',
+      description: '',
+      headingAlign: 'left',
+      linkLabel: '',
+      linkUrl: '',
+      showFilter: true,
     },
     logoGrid: {
       background: '',
@@ -185,6 +197,8 @@ function summarize(block) {
       return `${p.heading || 'FAQs'} — ${(p.items ?? []).length} question(s)`
     case 'imageCards':
       return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
+    case 'packageGrid':
+      return `${p.heading || 'Package grid'} — latest published packages`
     case 'logoGrid':
       return `${p.heading || 'Logo grid'} — ${(p.items ?? []).length} logo(s)`
     case 'testimonials':
@@ -2300,7 +2314,50 @@ function LogoGridBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * `Package grid` — _Andaman's best-selling packages_ (client, 15 Sep, D-96 §19).
+ *
+ * **Chunna kuch nahi** — saare published packages apne aap, sabse naya pehle, ek waqt me 16 (client). Isliye
+ * panel me sirf heading aur filter ka on/off hai; hint batati hai ki cards kahan se aate hain.
+ */
+function PackageGridBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback={THEME_COLORS.blue50}
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <label className="blk-sublabel">Heading</label>
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+      <HeadingPositionFields props={props} onChange={onChange} disabled={disabled} />
+
+      <label className="inline-lbl" style={{ display: 'block', margin: '12px 0 6px' }}>
+        <input
+          type="checkbox"
+          checked={props.showFilter !== false}
+          onChange={(e) => set({ showFilter: e.target.checked })}
+          disabled={disabled}
+        />{' '}
+        Show Package Type filter
+      </label>
+
+      <div className="hint">
+        Cards come from your <b>published packages</b> automatically — newest first,{' '}
+        {PACKAGE_GRID_MAX} at a time. Each card shows every Package Type as a badge, the duration,
+        Ferry and Breakfast, the lowest price and the rating (the package&rsquo;s own, otherwise the
+        site default). Point the link on the right to your full packages page.
+      </div>
+    </>
+  )
+}
+
 const EDITORS = {
+  packageGrid: PackageGridBlock,
   logoGrid: LogoGridBlock,
   testimonials: TestimonialsBlock,
   imageCards: ImageCardsBlock,

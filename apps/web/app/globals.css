@@ -7836,3 +7836,225 @@ a.imcc:hover img {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* ---- Package grid (D-96 §19) — reference ka `.ipills` + `.pk` ---- */
+
+.ipk__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 16px;
+}
+
+.ipk__pill {
+  padding: 6px 12px;
+  border-radius: var(--rf);
+  border: 1.5px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  color: var(--body);
+  cursor: pointer;
+}
+
+.ipk__pill:hover {
+  border-color: var(--blue-500);
+  color: var(--blue-600);
+}
+
+.ipk__pill.on {
+  background: var(--blue-600);
+  border-color: var(--blue-600);
+  color: #fff;
+}
+
+.ipk {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.ipkc {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  overflow: hidden;
+  transition: 0.2s;
+}
+
+.ipkc:hover {
+  border-color: var(--blue-500);
+  box-shadow: var(--sh-2);
+  transform: translateY(-2px);
+}
+
+.ipkc__m {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--blue-100);
+}
+
+.ipkc__m img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s;
+}
+
+.ipkc:hover .ipkc__m img {
+  transform: scale(1.05);
+}
+
+/* Baayein badge — har Package Type ka ek (client: "sare badge"); kai hon to wrap */
+.ipkc__tags {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  right: 70px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ipkc__tag,
+.ipkc__off {
+  padding: 4px 9px;
+  border-radius: var(--r1);
+  font-size: var(--fs-4xs);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--orange-500);
+}
+
+/* Daayein — `22% off` */
+.ipkc__off {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 2;
+  text-transform: none;
+  background: color-mix(in srgb, var(--ink) 82%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.ipkc__b {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 8px;
+  padding: 12px 14px 14px;
+}
+
+.ipkc__b h3 {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-heading);
+  line-height: 1.35;
+  min-height: 2.7em;
+}
+
+.ipkc__route {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semi);
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.ipkc__route svg {
+  flex-shrink: 0;
+  color: var(--blue-500);
+}
+
+.ipkc__inc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ipkc__inc span {
+  padding: 3px 7px;
+  border-radius: var(--r1);
+  background: var(--line-2);
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-bold);
+  color: var(--body);
+}
+
+.ipkc__f {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-2);
+}
+
+.ipkc__pr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ipkc__pr del {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  color: var(--faint);
+}
+
+.ipkc__pr b {
+  font-size: var(--fs-hero-num);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+  letter-spacing: -0.03em;
+}
+
+.ipkc__rt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-heading);
+}
+
+.ipkc__rt b {
+  padding: 2px 6px;
+  border-radius: var(--r1);
+  background: var(--green-600);
+  color: #fff;
+  font-size: var(--fs-3xs);
+}
+
+.ipkc__rt span {
+  color: var(--muted);
+  font-weight: var(--fw-semi);
+}
+
+@media (max-width: 1024px) {
+  .ipk {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .ipk {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ipkc:hover,
+  .ipkc:hover .ipkc__m img {
+    transform: none;
+  }
+}

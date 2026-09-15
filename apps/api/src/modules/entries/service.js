@@ -1052,6 +1052,32 @@ async function pathTagsForBlockRef(field, id, siteId) {
   return [...new Set(pages.map((p) => (p.path ? `path:${p.path}` : null)).filter(Boolean))]
 }
 
+/**
+ * Packages dikhane wale pages ke `path:` tag — home ka **Package grid** aur Tour page ka **Package list**
+ * (D-96 §19).
+ *
+ * ⚠️ `tagsFor()` package pe `type:package` bhejta hai, jo web ki resolve fetch pe **laga hi nahi** hota —
+ * yaani naya package publish, daam ya naam badalne ke baad home aur tour page ek ghanta purane rehte. Wahi
+ * shakl jo `blogListingTags()` pe likhi hai, wahi ilaaj: tag wahan se lo jahan fetch sach me hai.
+ *
+ * Sirf `package` pe query chalti hai.
+ */
+async function packageListingTags(entries) {
+  const packages = entries.filter((e) => e?.type === 'package')
+  if (!packages.length) return []
+
+  const siteIds = [...new Set(packages.map((e) => e.siteId).filter(Boolean))]
+  const pages = await Entry.find({
+    ...(siteIds.length ? { siteId: { $in: siteIds } } : {}),
+    deletedAt: null,
+    'content.blocks.type': { $in: ['packageGrid', 'packageList'] },
+  })
+    .select('path')
+    .lean()
+
+  return pages.map((p) => (p.path ? `path:${p.path}` : null)).filter(Boolean)
+}
+
 /** Entry + uske cascade hue descendants, sab ek hi call me. */
 async function invalidate(entry, descendants = []) {
   const all = [entry, ...descendants].filter(Boolean)
@@ -1060,6 +1086,7 @@ async function invalidate(entry, descendants = []) {
     ...tagsFor(entry),
     ...descendants.flatMap(tagsFor),
     ...(await blogListingTags(all)),
+    ...(await packageListingTags(all)),
   ])
 }
 

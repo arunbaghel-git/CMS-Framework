@@ -103,6 +103,7 @@ export const HOME_PAGE_BLOCK_TYPES = Object.freeze([
   'videoReviews',
   'testimonials',
   'logoGrid',
+  'packageGrid',
 ])
 
 /**
@@ -330,6 +331,42 @@ export const imageCardsPropsSchema = z.object({
   textPosition: z.enum(['bottom', 'middle']).default('bottom'),
 
   items: z.array(imageCardSchema).max(IMAGE_CARDS_MAX).default([]),
+})
+
+/** Home ke Package grid me ek waqt me kitne card — reference me solah (client, 15 Sep, D-96 §19). */
+export const PACKAGE_GRID_MAX = 16
+
+/**
+ * Filter ke liye payload me kitne package tak — pill pe **us type ke** pehle 16 dikhne chahiye, sirf "All" ke
+ * 16 me se chhaante hue nahi. Isliye list thodi badi jaati hai; card sirf 16 render hote hain.
+ */
+export const PACKAGE_GRID_SCAN = 60
+
+/**
+ * `Package grid` — reference ka `10. PACKAGES` / _Andaman's best-selling packages_ (client, 15 Sep, D-96 §19).
+ *
+ * Client ke faisle:
+ *
+ * | Sawaal | Jawab |
+ * | --- | --- |
+ * | Kaunse packages | **saare published, apne aap** — chunna nahi; ek waqt me max 16, aage "View all" link |
+ * | Image ka badge | **jitne Package Type chune, sab** |
+ * | Chips | sirf jo apne aap bante hain — duration · Ferry · Breakfast |
+ * | Filter pills | All + **saare** Package Type (jinme koi package hai) |
+ * | Rating | package ki apni, warna site ki default |
+ *
+ * Props me isliye sirf heading aur filter ka on/off hai — cards ka koi chunav store nahi hota. Kram: sabse naya
+ * publish pehle.
+ */
+export const packageGridPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+  headingAlign: z.enum(['center', 'left']).default('left'),
+  linkLabel: z.string().trim().max(80).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+  /** Package Type ki pills — reference me hain, default on. */
+  showFilter: z.boolean().default(true),
 })
 
 /** Logo grid me kitne logo — reference me athaarah; 48 aath line (6 column). */
@@ -851,6 +888,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   imageCards: imageCardsPropsSchema,
   testimonials: testimonialsPropsSchema,
   logoGrid: logoGridPropsSchema,
+  packageGrid: packageGridPropsSchema,
 })
 
 /**

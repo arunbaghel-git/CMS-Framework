@@ -57,6 +57,9 @@ flake nikla (akele pass). Lint · format · admin build pass.
 - **Section 6 — Testimonials** (§16): text reviews se, picker (`ListPicker` saanjha), quote icon ka rang, initials,
   4 column fixed. Koi migration nahi
 - Home section heading `--fs-h2` + line body font (pehle galti se `.sh` ke saath grouped the)
+- Rang/font tokens pe (§18) — customizer ki taiyaari, A-30
+- **Section 8 — Package grid** (§19): saare published apne aap (16), saare type badge, pills; Tour page ka Package Type
+  filter bug aur package badalne pe listing cache — dono band
 - **Section 7 — Logo grid** (§17): image + optional heading, 6/4/3 column, optional closing line (mera chunav)
 - **Section 4 — Image cards** (§14): islands/beaches/places ek section, shape/columns/alignment, subtitle + tag
   optional (mera chunav, client dekhega). Client lunch ke baad data bharega (A-28 #10–#11)

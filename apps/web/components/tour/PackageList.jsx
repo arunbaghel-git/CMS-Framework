@@ -50,8 +50,17 @@ export default function PackageList({ props, data }) {
    * literally `data-f="d8,d9,d12"` likha hai. Us matlab ko yahan dobara likhne ka nateeja wahi
    * hota jo D-86 ke slug pe tha: ek hi cheez do jagah, aur ek din wo alag.
    */
-  const shown =
-    active === ALL ? cards : cards.filter((card) => durationBucket(card.nights) === active)
+  /**
+   * ⚠️ **Filter ke type se chhaano, hamesha duration se nahi** (D-96 §19 me pakda). Pehle yahan sirf
+   * `durationBucket()` tha — `Package Type`/`Destination` pill ki key taxonomy ki id hai, to wo kabhi match nahi
+   * hoti aur pill dabate hi list khaali ho jaati.
+   */
+  const matches = (card) => {
+    if (props.pageFilter === 'packageType') return (card.packageTypeIds ?? []).includes(active)
+    if (props.pageFilter === 'destination') return (card.destinationIds ?? []).includes(active)
+    return durationBucket(card.nights) === active
+  }
+  const shown = active === ALL ? cards : cards.filter(matches)
 
   /**
    * Bar **sirf tab** jab client ne `pageFilter` chuna ho — warna server khaali `facets` bhejta
@@ -107,7 +116,10 @@ export default function PackageList({ props, data }) {
 
       {showFilters && (
         <div className="fbar">
-          <span className="fbar__l">Duration</span>
+          <span className="fbar__l">
+            {{ packageType: 'Package type', destination: 'Destination' }[props.pageFilter] ??
+              'Duration'}
+          </span>
 
           <button
             type="button"
@@ -155,7 +167,7 @@ export default function PackageList({ props, data }) {
        * jaaye. Aaj wo ho nahi sakta (dono ek hi list se bante hain), par khaali jagah chhod
        * dena "page toot gaya" jaisa dikhta hai.
        */}
-      {shown.length === 0 && <p className="blk__empty">No packages for this duration.</p>}
+      {shown.length === 0 && <p className="blk__empty">No packages match this filter.</p>}
     </section>
   )
 }

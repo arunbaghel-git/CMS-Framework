@@ -8218,3 +8218,39 @@ value wahi hai, sirf ghar badla.
 
 ⚠️ **Jo is kaam me nahi hai:** tokens ke naam abhi ek site ke hain (`--blue-900`, `--orange-500`), kaam ke nahi
 (`--brand`, `--accent`). Customizer banate waqt 5-6 kaam ke naam wale tokens upar se banenge — **A-30**.
+
+### 19. Section 8 — Package grid (client, usi din)
+
+Reference ka `10. PACKAGES` / _Andaman's best-selling packages_. Pehle jaanch (card ke har khaane ka data
+`toPackageCards()` me pehle se hai; DB me 5 package — banner, route, ferry, breakfast, daam + strike sab bhare;
+rating sirf ek ki apni), phir client ke jawab:
+
+| Sawaal | Jawab |
+| --- | --- |
+| Kaunse packages | **saare published, apne aap** — max 16, aage "View all" link |
+| Baayein badge | **jitne Package Type chune, sab** |
+| Chips | sirf apne aap wale — duration · Ferry · Breakfast |
+| Filter pills | All + **saare** Package Type (jinme koi package hai) |
+| Rating | package ki apni, warna site ki default |
+
+- Section `packageGrid`: `background · heading · description · headingAlign (left) · link · showFilter`. Cards
+  ka koi chunav store nahi hota
+- Payload `resolvePackageGrid()` — published (+ scheduled jiska waqt aa gaya), **sabse naya publish pehle**
+  (**mera chunav** — client ne kram nahi bataya), `PACKAGE_GRID_SCAN` = 60 tak. Theme ek waqt me 16 dikhati hai;
+  list badi isliye ki pill pe us type ke pehle 16 aayein. `data: { cards, facets, currency }`
+- `toPackageCards()` me naye: `tags[]` (saare type ke naam), `packageTypeIds[]`, `destinationIds[]`
+- Web: `PackageGrid.jsx` + `PackageGridCards.jsx` (`'use client'`, pills) — reference ka vertical `.pk`
+  card (`.ipkc`), Tour ka `.prow` nahi. Discount wahi hisaab (strike vs asli daam)
+
+**Do purane bug saath me band:**
+
+1. **Tour page ka Package list — `Package Type`/`Destination` filter kabhi chala hi nahi.** Web sirf
+   `durationBucket()` se chhaantta tha aur card me taxonomy ids thin hi nahi — pill dabate hi list khaali. Ab
+   `pageFilter` ke hisaab se `packageTypeIds`/`destinationIds`; bar ka label bhi filter ke hisaab se
+   (pehle hamesha "Duration")
+2. **Package badalne pe home/tour page ka cache saaf nahi hota tha** — `tagsFor()` `type:package` bhejta hai, jo
+   resolve fetch pe laga hi nahi. Naya `packageListingTags()` (`invalidate()` me) — jin pages me
+   `packageGrid`/`packageList` hai unke `path:`. ⚠️ `packageDefaults` (site ki default rating) badalne pe ab
+   bhi sirf `type:package` jaata hai — A-29 me joda
+
+2 naye API test. Koi migration nahi.

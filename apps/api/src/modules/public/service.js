@@ -2,6 +2,7 @@ import {
   DEFAULT_LOCALE,
   DEFAULT_SITE_ID,
   LONG_STAY_FROM,
+  PACKAGE_GRID_SCAN,
   POST_LIST_CAP,
   TOC_MIN_HEADINGS,
   cheapestPricing,
@@ -435,7 +436,7 @@ export async function resolvePublicPath(
     entry.type === 'post'
       ? await toPublicPost(entry, siteId, locale)
       : entry.type === 'homePage'
-        ? await toPublicHome(entry, siteId)
+        ? await toPublicHome(entry, siteId, locale)
         : PAGE_TYPES.has(entry.type)
           ? await toPublicPage(entry, siteId, locale)
           : await toPublicEntry(entry, siteId, locale)
@@ -782,6 +783,17 @@ async function toPackageCards(docs, siteId, locale, defaultRating) {
 
         /** Image ke upar ka badge — pehla Package Type (`HONEYMOON`, `2 DIVES`). */
         tag: typeById.get((d.taxonomies?.packageTypes ?? [])[0])?.name ?? '',
+        /** **Saare** Package Type ke naam — home ke card pe har type ka badge (client, 15 Sep, D-96 §19). */
+        tags: (d.taxonomies?.packageTypes ?? [])
+          .map((id) => typeById.get(id)?.name)
+          .filter(Boolean),
+        /**
+         * Pills se chhaantne ke liye ids (D-96 §19). ⚠️ Inke bina Tour page ka Package list `Package Type` /
+         * `Destination` filter pe **sirf duration se** chhaant-ta tha — pill dabate hi list khaali. Facet ki
+         * `key` taxonomy ki id hai, to card ke paas bhi id honi chahiye.
+         */
+        packageTypeIds: (d.taxonomies?.packageTypes ?? []).map(String),
+        destinationIds: (d.taxonomies?.destinations ?? []).map(String),
 
         /**
          * `first-timers on a short break` — route ke neeche wali line (client, 2 Sep).
@@ -2091,7 +2103,8 @@ async function toPublicPage(doc, siteId, locale) {
  * ⚠️ **`imageId`/`formId` theme tak nahi jaate** — theme ke paas id ka koi kaam nahi (D-88 wala
  * `sidebarId` tark). Chhoot jaane ka lakshan "kuch na hona" hota hai, isliye props se hataye gaye.
  */
-async function resolveHomeSection(block, siteId) {
+async function resolveHomeSection(block, siteId, ctx = {}) {
+  if (block?.type === 'packageGrid') return resolvePackageGrid(block, siteId, ctx)
   if (block?.type === 'infoCards') return resolveInfoCards(block, siteId)
   if (block?.type === 'videoReviews') return resolveVideoReviews(block, siteId)
   if (block?.type === 'imageCards') return resolveImageCards(block, siteId)
@@ -2121,6 +2134,38 @@ async function resolveHomeSection(block, siteId) {
     },
     data: { image, mobileImage, form },
   }
+}
+
+/**
+ * `Package grid` — **saare published packages, apne aap** (client, 15 Sep, D-96 §19).
+ *
+ * Sabse naya publish pehle, `PACKAGE_GRID_SCAN` tak. Theme ek waqt me `PACKAGE_GRID_MAX` (16) dikhati hai —
+ * list badi isliye ki "Honeymoon" pill pe Honeymoon ke pehle 16 aayein, "All" ke 16 me se bache hue nahi.
+ * Facets **saare** Package Type jinme koi package hai (client: "jitni hai sari"); zero wali pill khaali grid deti.
+ *
+ * ⚠️ `status` query me hai — wahi shart jo `resolvePackageListBlock()` pe hai (scheduled bhi, waqt aa gaya ho to).
+ */
+async function resolvePackageGrid(block, siteId, ctx) {
+  const now = new Date()
+  const docs = await Entry.find({
+    siteId,
+    locale: ctx.locale ?? DEFAULT_LOCALE,
+    type: 'package',
+    deletedAt: null,
+    $or: [{ status: 'published' }, { status: 'scheduled', publishAt: { $lte: now } }],
+  })
+    .sort({ publishAt: -1, createdAt: -1 })
+    .limit(PACKAGE_GRID_SCAN)
+    .lean()
+
+  const [cards, facets] = await Promise.all([
+    toPackageCards(docs, siteId, ctx.locale ?? DEFAULT_LOCALE, ctx.defaults?.rating),
+    block.props?.showFilter === false
+      ? []
+      : taxonomyFacets(docs, 'packageTypes', siteId, ctx.locale ?? DEFAULT_LOCALE),
+  ])
+
+  return { ...block, data: { cards, facets, currency: ctx.currency ?? 'INR' } }
 }
 
 /**
@@ -2249,7 +2294,14 @@ async function resolveInfoCards(block, siteId) {
  * banner ka fallback, TOC, sidebar widgets) home pe bemaani hai, aur har resolve pe chalta. Wahi
  * galti jo Slice B me `toPublicEntry()` pe pakdi gayi thi.
  */
-async function toPublicHome(doc, siteId) {
+async function toPublicHome(doc, siteId, locale) {
+  /** Package grid ko rating ka default aur currency chahiye — sirf tab padho jab wo section ho. */
+  const needsPackages = (doc.content?.blocks ?? []).some((b) => b?.type === 'packageGrid')
+  const [defaults, settings] = needsPackages
+    ? await Promise.all([ensurePackageDefaults(siteId), getSettings(siteId)])
+    : [null, null]
+  const ctx = { locale, defaults, currency: settings?.currency ?? 'INR' }
+
   return {
     id: String(doc._id),
     type: doc.type,
@@ -2260,7 +2312,7 @@ async function toPublicHome(doc, siteId) {
     seo: doc.seo ?? {},
     updatedAt: doc.updatedAt ?? null,
     blocks: await Promise.all(
-      (doc.content?.blocks ?? []).map((b) => resolveHomeSection(b, siteId)),
+      (doc.content?.blocks ?? []).map((b) => resolveHomeSection(b, siteId, ctx)),
     ),
   }
 }

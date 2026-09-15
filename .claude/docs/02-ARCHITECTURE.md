@@ -196,6 +196,8 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          textPosition · items[{imageId, title, subtitle, tag, url}]≤24
                          videoReviews (§13): heading/link · reviewIds[]≤20
                          testimonials (§16): heading/link · iconColor · testimonialIds[]≤20
+                         packageGrid (§19): heading/link · showFilter — cards DB se
+                         (saare published package, naye pehle), koi chunav store nahi
                          logoGrid (§17): heading/link · items[{imageId, title}]≤48 ·
                          closingTitle · closingText
                          (reviews collection ki ids — naam reviewIds se ALAG, cache query ke liye)

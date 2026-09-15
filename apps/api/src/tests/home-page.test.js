@@ -17,6 +17,7 @@ import {
   pathTagsForVideoReview,
 } from '../modules/entries/service.js'
 import { Review, VideoReview } from '../modules/master-lists/model.js'
+import { Taxonomy } from '../modules/taxonomies/model.js'
 import { Enquiry, Form } from '../modules/forms/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
@@ -127,6 +128,7 @@ beforeEach(async () => {
     Enquiry.deleteMany({}),
     Review.deleteMany({}),
     VideoReview.deleteMany({}),
+    Taxonomy.deleteMany({}),
   ])
   invalidateRoleCache()
   await ensureDefaultRoles()
@@ -627,5 +629,73 @@ describe('Logo grid (D-96 §17)', () => {
     ])
     expect(section.props.items[0].imageId).toBeUndefined()
     expect(section.props.closingTitle).toBe('EXPERIENCE. EXCELLENCE. TRUST.')
+  })
+})
+
+describe('Package grid (D-96 §19)', () => {
+  it('saare published packages apne aap, naya pehle, draft nahi, saare type badge + ids, facets', async () => {
+    const [honeymoon, family] = await Taxonomy.create([
+      {
+        siteId: 'default',
+        locale: 'en',
+        type: 'packageType',
+        name: 'Honeymoon',
+        slug: 'honeymoon',
+      },
+      { siteId: 'default', locale: 'en', type: 'packageType', name: 'Family', slug: 'family' },
+    ])
+    const base = { siteId: 'default', locale: 'en', type: 'package', content: { blocks: [] } }
+    await Entry.create([
+      {
+        ...base,
+        title: 'Old',
+        slug: 'old',
+        path: '/packages/old',
+        status: 'published',
+        publishAt: new Date('2026-01-01'),
+        taxonomies: { packageTypes: [String(honeymoon._id), String(family._id)] },
+      },
+      {
+        ...base,
+        title: 'New',
+        slug: 'new',
+        path: '/packages/new',
+        status: 'published',
+        publishAt: new Date('2026-06-01'),
+        taxonomies: { packageTypes: [String(family._id)] },
+      },
+      { ...base, title: 'Draft', slug: 'draft', path: '/packages/draft', status: 'draft' },
+    ])
+
+    const created = (
+      await createHome({
+        content: {
+          version: 1,
+          blocks: [{ type: 'packageGrid', props: { heading: 'Best-selling' } }],
+        },
+      })
+    ).body.data.entry
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const { data } = res.body.data.entry.blocks[0]
+
+    expect(data.cards.map((c) => c.title)).toEqual(['New', 'Old'])
+    expect(data.cards[1].tags).toEqual(['Honeymoon', 'Family'])
+    expect(data.cards[1].packageTypeIds).toEqual([String(honeymoon._id), String(family._id)])
+    expect(data.facets.map((f) => f.label).sort()).toEqual(['Family', 'Honeymoon'])
+    expect(data.currency).toBeTruthy()
+  })
+
+  it('filter band ho to facets khaali', async () => {
+    const created = (
+      await createHome({
+        content: { version: 1, blocks: [{ type: 'packageGrid', props: { showFilter: false } }] },
+      })
+    ).body.data.entry
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    expect(res.body.data.entry.blocks[0].data.facets).toEqual([])
   })
 })

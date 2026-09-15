@@ -304,6 +304,7 @@ export function sanitizeInlineHtml(html) {
  * | `infoCards` | `props.description` · `props.items[].text` (**inline**) |
  * | `videoReviews` | `props.description` |
  * | `imageCards` | `props.description` (cards plain text hain) |
+ * | `packageGrid` | `props.description` (cards server banata hai) |
  * | `logoGrid` | `props.description` (logo ke khaane plain text) |
  * | `testimonials` | `props.description` (review ka text plain hai, reviews collection me) |
  *
@@ -407,6 +408,7 @@ export function sanitizeContent(content) {
         case 'imageCards':
         case 'testimonials':
         case 'logoGrid':
+        case 'packageGrid':
         case 'videoReviews':
           return { ...block, props: { ...p, description: sanitizeBlockHtml(p.description) } }
 
