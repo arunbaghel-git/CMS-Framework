@@ -104,6 +104,7 @@ export const HOME_PAGE_BLOCK_TYPES = Object.freeze([
   'testimonials',
   'logoGrid',
   'packageGrid',
+  'offerCards',
 ])
 
 /**
@@ -331,6 +332,80 @@ export const imageCardsPropsSchema = z.object({
   textPosition: z.enum(['bottom', 'middle']).default('bottom'),
 
   items: z.array(imageCardSchema).max(IMAGE_CARDS_MAX).default([]),
+})
+
+/** Offer cards me kitne card — reference ki rails me 6–8; 24 client ne rakha (15 Sep, D-96 §21). */
+export const OFFER_CARDS_MAX = 24
+
+/** Card ka look — image upar (sightseeing/activities/ferries) ya image background (category strip). */
+export const OFFER_CARD_STYLES = Object.freeze(['imageTop', 'imageBackground'])
+
+/** Image ki shape — `photo` 3:2 (`.tt__m`) · `wide` 16:9 (`.cr__m`) · `square` 1:1 · `landscape` 4:3. */
+export const OFFER_CARD_SHAPES = Object.freeze(['photo', 'wide', 'square', 'landscape'])
+
+/** Rating `4.7` — khaali/`null` ho to card pe nahi. `''` form se aata hai, use `null` banao. */
+const optionalRating = z.preprocess(
+  (v) => (v === '' || v === undefined ? null : v),
+  z.coerce.number().min(0).max(5).nullable(),
+)
+
+/**
+ * Offer card — **static, section me hi bhara hua** (client, 15 Sep, D-96 §21: _"static block for all"_).
+ *
+ * Reference ke `.tt` (sightseeing/activities), `.cr` (ferries) aur `.cat` (category strip) teeno ka dhaancha ek hai.
+ * Jo khaana khaali, wo card pe nahi — isi se ek card charon look deta hai.
+ *
+ * ⚠️ **Daam text hai, number nahi** — `₹3,950`, `On request`, sab chalta hai (client ne dhaancha dekh ke haan kaha).
+ * Keemat: `22% off` jaisa discount yahan apne aap nahi banta, aur ₹ khud likhna padta hai.
+ */
+export const offerCardSchema = z.object({
+  id: z.string().min(1).optional(),
+  imageId: z.string().trim().max(60).nullable().default(null),
+  /** Image pe baayein — `PRIVATE CAB`, `BESTSELLER` */
+  badge: z.string().trim().max(40).default(''),
+  /** Khaali = theme ka narangi; hex rok `sectionBackgroundSchema` wali */
+  badgeColor: sectionBackgroundSchema,
+  title: z.string().trim().max(160).default(''),
+  /** `Port Blair → Havelock · 90 min` (ferry) · `Private cruise, candlelit dinner` (category) */
+  subtitle: z.string().trim().max(160).default(''),
+  /** `Full day` · `Convoy 06:00` — reference me do-teen */
+  chips: z.array(z.string().trim().max(40)).max(3).default([]),
+  price: z.string().trim().max(40).default(''),
+  /** Kaata hua purana daam — optional */
+  oldPrice: z.string().trim().max(40).default(''),
+  /** `/cab` · `Deluxe` · `from` */
+  priceNote: z.string().trim().max(40).default(''),
+  rating: optionalRating.default(null),
+  url: z.string().trim().max(500).default(''),
+})
+
+/**
+ * `Offer cards` — reference ke **Popular sightseeing · Trending activities · Popular cruises & ferries · Andaman's
+ * trusted travel company** ka **ek** section (client, 15 Sep, D-96 §21).
+ *
+ * | Reference | cardStyle | shape | layout |
+ * | --- | --- | --- | --- |
+ * | Sightseeing / Activities (`.tt`) | `imageTop` | `photo` | slider, 4 |
+ * | Cruises & ferries (`.cr`) | `imageTop` | `wide` | slider, 4 |
+ * | Category strip (`.cat`) | `imageBackground` | — | slider, 5 |
+ *
+ * ⚠️ Items **alag list me nahi** — client ne static maanga. Ek hi activity do section me ho to do baar likhni
+ * padegi; wo keemat client ne jaan ke li (master list wala raasta bhi dikhaya gaya tha).
+ */
+export const offerCardsPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+  headingAlign: z.enum(['center', 'left']).default('left'),
+  linkLabel: z.string().trim().max(80).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+  cardStyle: z.enum(OFFER_CARD_STYLES).default('imageTop'),
+  shape: z.enum(OFFER_CARD_SHAPES).default('photo'),
+  /** `slider` — reference ki `.rail` (side scroll, bina JS library). `grid` — sab ek saath. */
+  layout: z.enum(['slider', 'grid']).default('slider'),
+  /** Desktop pe ek baar me kitne card dikhein. */
+  columns: z.coerce.number().int().min(2).max(6).default(4),
+  items: z.array(offerCardSchema).max(OFFER_CARDS_MAX).default([]),
 })
 
 /** Home ke Package grid me ek waqt me kitne card — reference me solah (client, 15 Sep, D-96 §19). */
@@ -889,6 +964,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   testimonials: testimonialsPropsSchema,
   logoGrid: logoGridPropsSchema,
   packageGrid: packageGridPropsSchema,
+  offerCards: offerCardsPropsSchema,
 })
 
 /**

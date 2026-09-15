@@ -252,6 +252,7 @@ dikhta hai.
 | 12 | **Testimonials** (§16): picker + drag, quote icon ka rang, initials (`Priya & Rahul` → PR), 4/2/1 column | Tests + compile se verify |
 | 13 | **Logo grid** (§17): chaude/lambe logo tile me fit, heading neeche, bina image ke text tile, 6/4/3 column, closing line; admin ki patli row me image dabba | Tests + compile se verify |
 | 14 | **Package grid** (§19): kai badge wrap, discount, pills se chhaantna, 16 ki chhat; **Tour page ka Package Type filter** (bug fix) | Tests + compile se verify |
+| 15 | **Offer cards** (§21): slider scroll + snap (desktop/tablet/phone), dono card style, 3:2/16:9, background card ka "from ₹" | Tests + compile se verify |
 
 ---
 

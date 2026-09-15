@@ -6,6 +6,8 @@ import {
   IMAGE_CARD_SHAPES,
   INFO_CARDS_MAX,
   LOGO_GRID_MAX,
+  OFFER_CARDS_MAX,
+  OFFER_CARD_SHAPES,
   PACKAGE_GRID_MAX,
   TESTIMONIALS_MAX,
   THEME_COLORS,
@@ -52,6 +54,7 @@ const BLOCK_LABEL = {
   testimonials: 'Testimonials',
   logoGrid: 'Logo grid',
   packageGrid: 'Package grid',
+  offerCards: 'Offer cards',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -69,6 +72,7 @@ const BLOCK_CLASS = {
   testimonials: 'reviews',
   logoGrid: 'logos',
   packageGrid: 'list',
+  offerCards: 'image',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -108,6 +112,19 @@ function emptyBlock(type) {
       headingAlign: 'left',
       linkLabel: '',
       linkUrl: '',
+      items: [],
+    },
+    offerCards: {
+      background: '',
+      heading: '',
+      description: '',
+      headingAlign: 'left',
+      linkLabel: '',
+      linkUrl: '',
+      cardStyle: 'imageTop',
+      shape: 'photo',
+      layout: 'slider',
+      columns: 4,
       items: [],
     },
     packageGrid: {
@@ -197,6 +214,8 @@ function summarize(block) {
       return `${p.heading || 'FAQs'} — ${(p.items ?? []).length} question(s)`
     case 'imageCards':
       return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
+    case 'offerCards':
+      return `${p.heading || 'Offer cards'} — ${(p.items ?? []).length} card(s)`
     case 'packageGrid':
       return `${p.heading || 'Package grid'} — latest published packages`
     case 'logoGrid':
@@ -2356,7 +2375,322 @@ function PackageGridBlock({ props, onChange, disabled }) {
   )
 }
 
+const OFFER_CARD_SHAPE_LABEL = {
+  photo: 'Photo (3 : 2)',
+  wide: 'Wide (16 : 9)',
+  square: 'Square (1 : 1)',
+  landscape: 'Landscape (4 : 3)',
+}
+
+const emptyOfferCard = () => ({
+  id: newId(),
+  imageId: null,
+  badge: '',
+  badgeColor: '',
+  title: '',
+  subtitle: '',
+  chips: [],
+  price: '',
+  oldPrice: '',
+  priceNote: '',
+  rating: null,
+  url: '',
+})
+
+/**
+ * `Offer cards` — sightseeing · activities · ferries · category strip, ek static section (client, 15 Sep, D-96 §21).
+ *
+ * Panel: **Heading** · **Card look** (style, shape, slider/grid, kitne dikhein) · **Cards** (⠿ drag). Card ke jo
+ * khaane khaali, wo site pe nahi dikhte — hint me yahi likha hai, kyunki isi se ek card charon look deta hai.
+ */
+function OfferCardsBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const items = props.items ?? []
+  const isBackground = props.cardStyle === 'imageBackground'
+
+  const media = useMediaById(items.map((item) => item.imageId).filter(Boolean))
+
+  const setItems = (next) => set({ items: next })
+  const patchItem = (i, patch) =>
+    setItems(items.map((item, idx) => (idx === i ? { ...item, ...patch } : item)))
+  const setChip = (i, c, value) => {
+    const chips = Array.from({ length: 3 }, (_, idx) => (items[i].chips ?? [])[idx] ?? '')
+    chips[c] = value
+    patchItem(i, { chips })
+  }
+
+  const moveItem = (from, to) => {
+    if (to < 0 || to >= items.length) return
+    const next = [...items]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    setItems(next)
+  }
+  const { handleProps, rowProps } = useListDrag(moveItem, !disabled)
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback={THEME_COLORS.surface}
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <label className="blk-sublabel">Heading</label>
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+      <HeadingPositionFields props={props} onChange={onChange} disabled={disabled} />
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Card look
+      </label>
+      <div className="row2">
+        <div className="field">
+          <label>Card style</label>
+          <select
+            className="sel"
+            value={props.cardStyle ?? 'imageTop'}
+            onChange={(e) => set({ cardStyle: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="imageTop">Image on top — text below</option>
+            <option value="imageBackground">Image in the background — text on top</option>
+          </select>
+        </div>
+        {!isBackground && (
+          <div className="field">
+            <label>Image shape</label>
+            <select
+              className="sel"
+              value={props.shape ?? 'photo'}
+              onChange={(e) => set({ shape: e.target.value })}
+              disabled={disabled}
+            >
+              {OFFER_CARD_SHAPES.map((shape) => (
+                <option key={shape} value={shape}>
+                  {OFFER_CARD_SHAPE_LABEL[shape] ?? shape}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+      <div className="row2">
+        <div className="field">
+          <label>Layout</label>
+          <select
+            className="sel"
+            value={props.layout ?? 'slider'}
+            onChange={(e) => set({ layout: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="slider">Slider — scrolls sideways</option>
+            <option value="grid">Grid — all cards at once</option>
+          </select>
+        </div>
+        <div className="field">
+          <label>Cards visible on desktop</label>
+          <select
+            className="sel"
+            value={props.columns ?? 4}
+            onChange={(e) => set({ columns: Number(e.target.value) })}
+            disabled={disabled}
+          >
+            {[2, 3, 4, 5, 6].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Cards
+      </label>
+      {items.map((item, i) => (
+        <div className="info-card" key={item.id ?? i} {...rowProps(i)}>
+          <div className="info-card__head">
+            {!disabled && (
+              <span className="grip" {...handleProps(i)}>
+                ⠿
+              </span>
+            )}
+            <b>{item.title || `Card ${i + 1}`}</b>
+            {!disabled && (
+              <button
+                className="blk-x"
+                type="button"
+                title="Remove card"
+                onClick={() => {
+                  if (!window.confirm('Remove this card?')) return
+                  setItems(items.filter((_, idx) => idx !== i))
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="row2">
+            <MediaDrop
+              label="Image"
+              media={media[item.imageId]}
+              onSelect={(chosen) => patchItem(i, { imageId: chosen.id })}
+              onClear={() => patchItem(i, { imageId: null })}
+            />
+            <div>
+              <div className="field">
+                <label>Title</label>
+                <input
+                  className="inp"
+                  placeholder="Baratang — limestone caves & mud volcano"
+                  value={item.title ?? ''}
+                  onChange={(e) => patchItem(i, { title: e.target.value })}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="field">
+                <label>Small line</label>
+                <input
+                  className="inp"
+                  placeholder="Optional — e.g. Port Blair → Havelock · 90 min"
+                  value={item.subtitle ?? ''}
+                  onChange={(e) => patchItem(i, { subtitle: e.target.value })}
+                  disabled={disabled}
+                />
+              </div>
+              {!isBackground && (
+                <div className="row2">
+                  <div className="field">
+                    <label>Badge</label>
+                    <input
+                      className="inp"
+                      placeholder="Optional — e.g. PRIVATE CAB"
+                      value={item.badge ?? ''}
+                      onChange={(e) => patchItem(i, { badge: e.target.value })}
+                      disabled={disabled}
+                    />
+                  </div>
+                  <ColourField
+                    label="Badge colour"
+                    value={item.badgeColor}
+                    fallback="#f4701c"
+                    onChange={(badgeColor) => patchItem(i, { badgeColor })}
+                    disabled={disabled}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {!isBackground && (
+            <div className="row3">
+              {[0, 1, 2].map((c) => (
+                <div className="field" key={c}>
+                  <label>Chip {c + 1}</label>
+                  <input
+                    className="inp"
+                    placeholder={c === 0 ? 'Optional — e.g. Full day' : 'Optional'}
+                    value={(item.chips ?? [])[c] ?? ''}
+                    onChange={(e) => setChip(i, c, e.target.value)}
+                    disabled={disabled}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="row3">
+            <div className="field">
+              <label>Price</label>
+              <input
+                className="inp"
+                placeholder="₹3,950"
+                value={item.price ?? ''}
+                onChange={(e) => patchItem(i, { price: e.target.value })}
+                disabled={disabled}
+              />
+            </div>
+            <div className="field">
+              <label>Price note</label>
+              <input
+                className="inp"
+                placeholder={isBackground ? 'e.g. from' : 'e.g. /cab or Deluxe'}
+                value={item.priceNote ?? ''}
+                onChange={(e) => patchItem(i, { priceNote: e.target.value })}
+                disabled={disabled}
+              />
+            </div>
+            {!isBackground && (
+              <div className="field">
+                <label>Old price</label>
+                <input
+                  className="inp"
+                  placeholder="Optional — shown struck out"
+                  value={item.oldPrice ?? ''}
+                  onChange={(e) => patchItem(i, { oldPrice: e.target.value })}
+                  disabled={disabled}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="row2">
+            {!isBackground && (
+              <div className="field">
+                <label>Rating</label>
+                <input
+                  className="inp"
+                  type="number"
+                  min="0"
+                  max="5"
+                  step="0.1"
+                  placeholder="Optional — e.g. 4.7"
+                  value={item.rating ?? ''}
+                  onChange={(e) =>
+                    patchItem(i, { rating: e.target.value === '' ? null : e.target.value })
+                  }
+                  disabled={disabled}
+                />
+              </div>
+            )}
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Link</label>
+              <input
+                className="inp"
+                placeholder="Optional — the whole card becomes clickable"
+                value={item.url ?? ''}
+                onChange={(e) => patchItem(i, { url: e.target.value })}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {!disabled && items.length < OFFER_CARDS_MAX && (
+        <button
+          className="btn btn-sm"
+          type="button"
+          onClick={() => setItems([...items, emptyOfferCard()])}
+        >
+          ＋ Add card
+        </button>
+      )}
+
+      <div className="hint">
+        Anything left empty is not shown on the card. Type the price as you want it to read, with
+        the currency sign — &ldquo;₹3,950&rdquo; or &ldquo;On request&rdquo;. The price note sits
+        after the price on image-on-top cards (&ldquo;/cab&rdquo;) and before it on background cards
+        (&ldquo;from&rdquo;). Up to {OFFER_CARDS_MAX} cards.
+      </div>
+    </>
+  )
+}
+
 const EDITORS = {
+  offerCards: OfferCardsBlock,
   packageGrid: PackageGridBlock,
   logoGrid: LogoGridBlock,
   testimonials: TestimonialsBlock,

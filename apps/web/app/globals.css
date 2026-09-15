@@ -8058,3 +8058,278 @@ a.imcc:hover img {
     transform: none;
   }
 }
+
+/* ---- Offer cards (D-96 §21) — reference ka `.rail` + `.tt` / `.cr` / `.cat` ---- */
+
+/*
+ * Slider — reference ki `.rail`: side scroll, snap, patli scrollbar, koi JS library nahi. Card ki chaudai
+ * `--ofc-cols` se — desktop pe utne poore dikhte hain; tablet pe dhai, phone pe sava (agla card jhaankta hai,
+ * taaki pata chale ki scroll hota hai).
+ */
+.ofc {
+  --ofc-gap: 14px;
+  --ofc-n: var(--ofc-cols, 4);
+}
+
+.ofc--slider {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - var(--ofc-gap) * (var(--ofc-n) - 1)) / var(--ofc-n));
+  gap: var(--ofc-gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+}
+
+.ofc--slider > * {
+  scroll-snap-align: start;
+}
+
+.ofc--slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.ofc--slider::-webkit-scrollbar-track {
+  background: var(--line-2);
+  border-radius: 99px;
+}
+
+.ofc--slider::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: 99px;
+}
+
+.ofc--grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ofc-cols, 4), 1fr);
+  gap: var(--ofc-gap);
+}
+
+/* ---- image upar — `.tt` / `.cr` ---- */
+
+.ofcc--top {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  overflow: hidden;
+  transition: 0.18s;
+}
+
+.ofcc--top.ofcc--link:hover {
+  border-color: var(--blue-500);
+  box-shadow: var(--sh-2);
+}
+
+.ofcc__m {
+  position: relative;
+  aspect-ratio: var(--ofc-ratio, 3 / 2);
+  overflow: hidden;
+  background: var(--blue-100);
+}
+
+.ofcc__m img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+
+.ofcc--link:hover .ofcc__m img {
+  transform: scale(1.05);
+}
+
+.ofcc__badge {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  z-index: 2;
+  padding: 4px 9px;
+  border-radius: var(--r1);
+  background: var(--orange-500);
+  color: #fff;
+  font-size: var(--fs-4xs);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ofcc--top .ofcc__b {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 7px;
+  padding: 11px 12px 13px;
+}
+
+.ofcc--top h3 {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-heading);
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.ofcc--top .ofcc__sub {
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semi);
+  color: var(--muted);
+}
+
+.ofcc__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.ofcc__chips span {
+  padding: 3px 7px;
+  border-radius: var(--r1);
+  background: var(--line-2);
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-bold);
+  color: var(--body);
+}
+
+.ofcc__f {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.ofcc--top .ofcc__pr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ofcc--top .ofcc__pr del {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  color: var(--faint);
+}
+
+.ofcc--top .ofcc__pr b {
+  font-size: var(--fs-hero-num);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+  letter-spacing: -0.03em;
+}
+
+.ofcc--top .ofcc__pr i {
+  font-style: normal;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semi);
+  color: var(--muted);
+}
+
+.ofcc__rt {
+  padding: 2px 6px;
+  border-radius: var(--r1);
+  background: var(--green-600);
+  color: #fff;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-heading);
+}
+
+/* ---- image background — `.cat` ---- */
+
+.ofcc--bg {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 150px;
+  border-radius: var(--r3);
+  overflow: hidden;
+  background: var(--blue-900);
+  color: #fff;
+}
+
+.ofcc--bg img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.62;
+  transition:
+    transform 0.5s,
+    opacity 0.3s;
+}
+
+.ofcc--bg.ofcc--link:hover img {
+  transform: scale(1.06);
+  opacity: 0.75;
+}
+
+.ofcc--bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--shade) 92%, transparent) 10%,
+    color-mix(in srgb, var(--shade) 15%, transparent) 75%
+  );
+}
+
+.ofcc--bg .ofcc__b {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  padding: 14px;
+}
+
+.ofcc--bg .ofcc__t {
+  display: block;
+  color: #fff;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-heading);
+}
+
+.ofcc--bg .ofcc__sub {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--fs-2xs);
+  color: rgb(255 255 255 / 72%);
+}
+
+.ofcc--bg .ofcc__pr {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  color: #ffd9b8;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 1024px) {
+  .ofc--slider {
+    --ofc-n: 2.4;
+  }
+
+  .ofc--grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .ofc--slider {
+    --ofc-n: 1.3;
+  }
+
+  .ofc--grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ofcc--link:hover img {
+    transform: none;
+  }
+}

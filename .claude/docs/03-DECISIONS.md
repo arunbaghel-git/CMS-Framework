@@ -8271,3 +8271,27 @@ Client: _"Package Type ke Add/Edit me color picker, Posts ki Category jaisa — 
 - Destination ki screen pe rang **nahi** — wahan koi badge nahi banta
 
 Koi migration nahi. `home-page.test.js` rang payload tak jaanchta hai.
+
+### 21. Section 9 — Offer cards, ek static section chaar reference sections ke liye (client, usi din)
+
+Reference: **Popular sightseeing** · **Trending activities** (`.tt`) · **Popular cruises & ferries** (`.cr`) · **Andaman's
+trusted travel company since 2009** (`.cat`). Pehle jaanch (code nahi): pehle teen **packages nahi** hain — CMS me
+unki koi list nahi; category strip Package Type se aadha judta hai. Teen raaste dikhaye (section me likho / master
+list / content type). Client: _"static block for all"_ — **section me hi cards**. Dhaancha pehle dikhaya, phir haan.
+
+- Section `offerCards`: `background · heading · description · headingAlign (left) · link · cardStyle
+  (imageTop|imageBackground) · shape (photo 3:2|wide 16:9|square|landscape 4:3) · layout (slider|grid) · columns
+  2–6 · items[] ≤24`
+- Card: `imageId · badge · badgeColor · title · subtitle · chips[] ≤3 · price · oldPrice · priceNote · rating
+  (0–5, khaali = null) · url`. **Jo khaana khaali, card pe nahi** — isi se ek card charon look deta hai
+- **Daam text hai** (`₹3,950`, `On request`) — discount apne aap nahi, ₹ khud likhna. Client ke saamne rakha gaya
+- **24 card ki chhat** — client ne poochha _"24 kyun"_; wajah batayi (admin ka lamba panel, page ka bojh, galti se
+  hazaaron card), reference me 6–8 hain; client ne 24 rakha
+- `priceNote` image-top card pe daam ke **baad** (`₹3,950 /cab`), background card pe **pehle** (`from ₹22,540`)
+- Slider CSS scroll hai (reference ki `.rail`, koi JS nahi): desktop pe `columns` poore, tablet pe 2.4, phone pe 1.3
+  (agla card jhaankta hai). Badge ka rang `lib/badge.js`
+- Admin: background card chunne pe badge/chips/old price/rating ke khaane chhup jaate hain (wo us look me hain hi nahi)
+- ⚠️ Static ki keemat: ek hi activity do section me ho to do baar likhni padegi — master list wala raasta (B) client ko
+  dikhaya gaya tha
+
+2 naye API test. Koi migration nahi.

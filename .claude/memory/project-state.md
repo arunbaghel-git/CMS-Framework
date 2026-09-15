@@ -60,6 +60,9 @@ flake nikla (akele pass). Lint · format · admin build pass.
 - Rang/font tokens pe (§18) — customizer ki taiyaari, A-30
 - **Section 8 — Package grid** (§19): saare published apne aap (16), saare type badge, pills; Tour page ka Package Type
   filter bug aur package badalne pe listing cache — dono band
+- Package Type pe badge ka rang (§20)
+- **Section 9 — Offer cards** (§21): sightseeing/activities/ferries/category strip — ek static section, 24 card,
+  image-top ya background, slider/grid
 - **Section 7 — Logo grid** (§17): image + optional heading, 6/4/3 column, optional closing line (mera chunav)
 - **Section 4 — Image cards** (§14): islands/beaches/places ek section, shape/columns/alignment, subtitle + tag
   optional (mera chunav, client dekhega). Client lunch ke baad data bharega (A-28 #10–#11)

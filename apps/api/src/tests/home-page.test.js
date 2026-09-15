@@ -705,3 +705,57 @@ describe('Package grid (D-96 §19)', () => {
     expect(res.body.data.entry.blocks[0].data.facets).toEqual([])
   })
 })
+
+describe('Offer cards (D-96 §21)', () => {
+  const block = (props = {}) => ({
+    type: 'offerCards',
+    props: {
+      heading: 'Popular sightseeing',
+      items: [
+        {
+          title: 'Baratang — limestone caves',
+          badge: 'PRIVATE CAB',
+          badgeColor: '#0F8A4D',
+          chips: ['Full day', '', 'Convoy 06:00'],
+          price: '₹3,950',
+          priceNote: '/cab',
+          rating: '4.7',
+          imageId: 'nahi-hai',
+        },
+        { title: '', rating: '' },
+      ],
+      ...props,
+    },
+  })
+
+  it('card ko id, rating number, rang lowercase, khaali chip aur khaali card gire, imageId bahar nahi', async () => {
+    const created = (await createHome({ content: { version: 1, blocks: [block()] } })).body.data
+      .entry
+    const stored = (await Entry.findById(created.id).lean()).content.blocks[0].props
+    expect(stored.items[0]).toMatchObject({ rating: 4.7, badgeColor: '#0f8a4d' })
+    expect(stored.items[0].id).toBeTruthy()
+    expect(stored.items[1].rating).toBeNull()
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.props.items).toHaveLength(1)
+    expect(section.props.items[0].chips).toEqual(['Full day', 'Convoy 06:00'])
+    expect(section.props.items[0].imageId).toBeUndefined()
+    expect(section.props.items[0].image).toBeNull()
+  })
+
+  it('25 card, 6 se zyada column, galat style 4xx', async () => {
+    const many = Array.from({ length: 25 }, (_, i) => ({ title: `Card ${i}` }))
+    for (const bad of [
+      block({ items: many }),
+      block({ columns: 7 }),
+      block({ cardStyle: 'round' }),
+    ]) {
+      const res = await createHome({ content: { version: 1, blocks: [bad] } })
+      expect(res.status).toBeGreaterThanOrEqual(400)
+      expect(res.status).toBeLessThan(500)
+    }
+  })
+})

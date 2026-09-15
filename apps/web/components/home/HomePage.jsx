@@ -4,6 +4,7 @@ import HomeFaqs from './HomeFaqs.jsx'
 import ImageCards from './ImageCards.jsx'
 import InfoCards from './InfoCards.jsx'
 import LogoGrid from './LogoGrid.jsx'
+import OfferCards from './OfferCards.jsx'
 import PackageGrid from './PackageGrid.jsx'
 import Testimonials from './Testimonials.jsx'
 import VideoReviews from './VideoReviews.jsx'
@@ -30,6 +31,7 @@ const SECTIONS = {
   testimonials: Testimonials,
   logoGrid: LogoGrid,
   packageGrid: PackageGrid,
+  offerCards: OfferCards,
 }
 
 export default function HomePage({ entry }) {

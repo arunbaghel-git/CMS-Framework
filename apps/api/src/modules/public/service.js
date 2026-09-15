@@ -2109,6 +2109,7 @@ async function toPublicPage(doc, siteId, locale) {
  */
 async function resolveHomeSection(block, siteId, ctx = {}) {
   if (block?.type === 'packageGrid') return resolvePackageGrid(block, siteId, ctx)
+  if (block?.type === 'offerCards') return resolveOfferCards(block, siteId)
   if (block?.type === 'infoCards') return resolveInfoCards(block, siteId)
   if (block?.type === 'videoReviews') return resolveVideoReviews(block, siteId)
   if (block?.type === 'imageCards') return resolveImageCards(block, siteId)
@@ -2137,6 +2138,25 @@ async function resolveHomeSection(block, siteId, ctx = {}) {
       stats: (props.stats ?? []).filter((s) => s?.value),
     },
     data: { image, mobileImage, form },
+  }
+}
+
+/**
+ * `Offer cards` — har card ki image resolve (D-96 §21). `imageId` bahar nahi; na title na image wala card gira.
+ * `medium` (800px) — card slider me ~280px chauda, retina pe 2x.
+ */
+async function resolveOfferCards(block, siteId) {
+  const items = await Promise.all(
+    (block.props?.items ?? []).map(async ({ imageId, ...card }) => ({
+      ...card,
+      chips: (card.chips ?? []).filter(Boolean),
+      image: await toDisplayImage(imageId, 'medium', siteId),
+    })),
+  )
+
+  return {
+    ...block,
+    props: { ...block.props, items: items.filter((card) => card.title || card.image) },
   }
 }
 
