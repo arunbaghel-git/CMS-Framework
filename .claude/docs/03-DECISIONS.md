@@ -8190,3 +8190,8 @@ pe 2 option: image + optional heading"_.
 - Admin: har logo ek patli row (⠿ · chhota image dabba · heading · ✕), `＋ Add logo`
 
 Koi migration nahi. 1 naya API test.
+
+**§14/§17 amendment (client, usi din):** home ke headings me reference ke `.5` wale naap poore — 15.5px → **16px**
+(Logo grid ki closing title, `--fs-2xl`), 14.5px → **14px** (Image cards ka title, `--fs-base`). Baaki home CSS
+me `--fs-xl`/`--fs-lg` kahin nahi. FAQ ka sawaal (`.faq summary`, 14.5px) package page ke saath saanjha hai —
+chhua nahi.
