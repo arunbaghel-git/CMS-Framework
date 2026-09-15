@@ -325,7 +325,10 @@ function normalizeContent(content) {
       const props = parseBlockProps(block.type, block.props)
       const withIds =
         /** `infoCards` — home ke cards drag se reorder hote hain (D-96 §11), unhe bhi stable id. */
-        block.type === 'cards' || block.type === 'faqs' || block.type === 'infoCards'
+        block.type === 'cards' ||
+        block.type === 'faqs' ||
+        block.type === 'infoCards' ||
+        block.type === 'imageCards'
           ? {
               ...props,
               items: (props.items ?? []).map((item) => ({ ...item, id: item.id || randomUUID() })),

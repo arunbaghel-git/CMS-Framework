@@ -483,3 +483,48 @@ describe('Video reviews (D-96 §13)', () => {
     expect(section.data.reviews[1].embedUrl).toContain('youtube-nocookie.com/embed/dQw4w9WgXcQ')
   })
 })
+
+describe('Image cards (D-96 §14)', () => {
+  const block = (props = {}) => ({
+    type: 'imageCards',
+    props: {
+      heading: 'Popular beaches',
+      shape: 'square',
+      columns: 4,
+      items: [
+        {
+          title: 'Radhanagar Beach',
+          subtitle: 'Havelock',
+          imageId: 'nahi-hai',
+          url: '/beaches/radhanagar',
+        },
+        { title: '', imageId: null },
+      ],
+      ...props,
+    },
+  })
+
+  it('card ko id, payload me imageId nahi, khaali card gira', async () => {
+    const created = (await createHome({ content: { version: 1, blocks: [block()] } })).body.data
+      .entry
+    expect(
+      (await Entry.findById(created.id).lean()).content.blocks[0].props.items[0].id,
+    ).toBeTruthy()
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.props.items).toHaveLength(1)
+    expect(section.props.items[0]).toMatchObject({ title: 'Radhanagar Beach', image: null })
+    expect(section.props.items[0].imageId).toBeUndefined()
+  })
+
+  it('anjaan shape aur 7 column 4xx', async () => {
+    for (const bad of [block({ shape: 'circle' }), block({ columns: 7 })]) {
+      const res = await createHome({ content: { version: 1, blocks: [bad] } })
+      expect(res.status).toBeGreaterThanOrEqual(400)
+      expect(res.status).toBeLessThan(500)
+    }
+  })
+})

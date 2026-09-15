@@ -52,6 +52,9 @@ flake nikla (akele pass). Lint · format · admin build pass.
   Reviews screen me Text/Video tabs, section me picker + drag, YouTube/Vimeo popup. Text reviews ka cache
   tag bhi ab jaata hai. A-29 (hotels/add-ons/transfers ka cache)
 - ⚠️ Deploy pe: `pnpm format` → `pnpm cms migrate` (025) → API restart
+- **Media upload bug** (Library/picker: "Upload file is required") — axios JSON header, `lib/api.js` interceptor
+- **Section 4 — Image cards** (§14): islands/beaches/places ek section, shape/columns/alignment, subtitle + tag
+  optional (mera chunav, client dekhega). Client lunch ke baad data bharega (A-28 #10–#11)
 
 ### Agla kadam
 

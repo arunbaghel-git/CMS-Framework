@@ -234,6 +234,8 @@ dikhta hai.
 | 7 | **Info cards** (§11): chaaron "Start from" look, link wala card hover + description ka link alag click, tablet 2 / phone 1 column, upload image icon ki jagah | Sirf tests + compile se verify — client ke home me section joda nahi gaya |
 | 8 | **FAQ** (§12): ek khule to baaki band, pehla khula, background rang, list 860px beech me; page source me ek `FAQPage` | Tests + compile se verify |
 | 9 | **Customer reviews** (§13): Reviews ▸ Video reviews tab (image upload, edit pe image hatana), section ka picker + drag, rail scroll, YouTube popup (Esc/parda), Instagram link naye tab me | Tests + compile se verify |
+| 10 | **Image cards** (§14): teeno "Start from" look, shape badalna, phone pe 1/2 column, text beech me, link wala card hover | Tests + compile se verify |
+| 11 | **Media Library / picker se upload** — interceptor fix ke baad asli file | Node me axios ka bartaav dohra kar pakka; browser se upload nahi kiya |
 
 ---
 

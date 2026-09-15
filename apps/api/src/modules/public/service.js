@@ -2094,6 +2094,7 @@ async function toPublicPage(doc, siteId, locale) {
 async function resolveHomeSection(block, siteId) {
   if (block?.type === 'infoCards') return resolveInfoCards(block, siteId)
   if (block?.type === 'videoReviews') return resolveVideoReviews(block, siteId)
+  if (block?.type === 'imageCards') return resolveImageCards(block, siteId)
   if (block?.type !== 'heroForm') return block
 
   const { imageId, mobileImageId, formId, ...props } = block.props ?? {}
@@ -2117,6 +2118,25 @@ async function resolveHomeSection(block, siteId) {
       stats: (props.stats ?? []).filter((s) => s?.value),
     },
     data: { image, mobileImage, form },
+  }
+}
+
+/**
+ * `Image cards` — har card ki image resolve (D-96 §14). `imageId` bahar nahi; na title na image wala
+ * card gira (admin ka "＋ Add card" dabake chhoda hua khaali dabba, D-30).
+ */
+async function resolveImageCards(block, siteId) {
+  const items = await Promise.all(
+    (block.props?.items ?? []).map(async ({ imageId, ...card }) => ({
+      ...card,
+      /** `medium` (800px) — card 2–6 column me hai; `srcset` saath jaata hai (D-84). */
+      image: await toDisplayImage(imageId, 'medium', siteId),
+    })),
+  )
+
+  return {
+    ...block,
+    props: { ...block.props, items: items.filter((card) => card.title || card.image) },
   }
 }
 

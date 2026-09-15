@@ -356,3 +356,10 @@
   border-color: #f2c4d6;
   color: #a1305d;
 }
+
+/* Home ke Image cards (D-96 §14) — card ki list `.info-card` hi use karti hai */
+.blk--image .blk-chip {
+  background: #eaf5f8;
+  border-color: #b7dce6;
+  color: #1d6a80;
+}

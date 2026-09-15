@@ -303,6 +303,7 @@ export function sanitizeInlineHtml(html) {
  * | `heroForm` | `props.title` (**inline**) · `props.description` · `props.formDescription` |
  * | `infoCards` | `props.description` · `props.items[].text` (**inline**) |
  * | `videoReviews` | `props.description` |
+ * | `imageCards` | `props.description` (cards plain text hain) |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
  * ki content gir jaayega — wo bilkul theek save hoga, **bina safai ke**, aur page pe
@@ -400,6 +401,8 @@ export function sanitizeContent(content) {
           }
 
         /** Home ka Customer reviews (D-96 §13) — sirf heading ki line HTML hai; reviews ids hain. */
+        /** Home ke Image cards (D-96 §14) — card ke khaane plain text; sirf heading ki line HTML. */
+        case 'imageCards':
         case 'videoReviews':
           return { ...block, props: { ...p, description: sanitizeBlockHtml(p.description) } }
 

@@ -191,6 +191,11 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          look {columns, border none|full|top|left, accentColor,
                          iconPosition above|inline, iconBox, iconBg, iconColor, textAlign}
                          · items[{icon (ICONS), imageId, label, title, text inline, url}]≤12
+                         imageCards (D-96 §14): heading/link · shape square|portrait|tall|
+                         landscape|wide · columns 2–6 · mobileColumns 1–2 · textAlign ·
+                         textPosition · items[{imageId, title, subtitle, tag, url}]≤24
+                         videoReviews (§13): heading/link · reviewIds[]≤20
+                         faqs pe home ke liye background + align
                  fields  { ...customFields },            contentType ke fields
                          package ka itinerary[] yahin hai — poora contract
                          packages/shared/schemas/itinerary.js me (D-51).

@@ -98,6 +98,7 @@ export const BLOG_PAGE_BLOCK_TYPES = Object.freeze(['richText', 'postList', 'faq
 export const HOME_PAGE_BLOCK_TYPES = Object.freeze([
   'heroForm',
   'infoCards',
+  'imageCards',
   'faqs',
   'videoReviews',
 ])
@@ -264,6 +265,72 @@ export const VIDEO_REVIEWS_MAX = 20
  *
  * Heading reference me **left** hai, daayein `All video reviews →` — isliye default `left`.
  */
+/** Image cards ki shape — card ki chaudai : oonchai (D-96 §14). */
+export const IMAGE_CARD_SHAPES = Object.freeze(['square', 'portrait', 'tall', 'landscape', 'wide'])
+
+/** Ek section me kitne image cards — Places to visit me das hain; 24 chaar line ki chhat hai. */
+export const IMAGE_CARDS_MAX = 24
+
+/**
+ * Image card — background image, title, aur do optional chhoti line (client, 15 Sep, D-96 §14).
+ *
+ * | Field | Reference me |
+ * | --- | --- |
+ * | `imageId` | `.isl img` · `.pt img` — poore card pe, upar gehra parda |
+ * | `title` | `Havelock` · `Radhanagar Beach` |
+ * | `subtitle` | `Swaraj Dweep` · `Havelock` (beach ke neeche `<small>`) — optional |
+ * | `tag` | `Radhanagar · Scuba` — islands ki chip (`.isl__b em`) — optional |
+ * | `url` | `a.isl` / `a.pt` — poora card link, optional |
+ *
+ * Saare plain text — koi HTML nahi, isliye card `<a>` ho sakta hai (andar link nahi ban sakta).
+ */
+export const imageCardSchema = z.object({
+  id: z.string().min(1).optional(),
+  imageId: z.string().trim().max(60).nullable().default(null),
+  title: z.string().trim().max(120).default(''),
+  subtitle: z.string().trim().max(120).default(''),
+  tag: z.string().trim().max(80).default(''),
+  url: z.string().trim().max(500).default(''),
+})
+
+/**
+ * `Image cards` — reference ke **Andaman's best islands · Popular beaches · Places to visit** ka **ek**
+ * section (client, 15 Sep, D-96 §14).
+ *
+ * Teenon me card ek hi cheez hai (image + parda + neeche text), farak shape, column aur chhoti lines ka.
+ * Wahi soch jo Info cards (§11) pe: chaar block type nahi, look ki settings, aur admin ka "Start from".
+ *
+ * | Look | Shape | Columns | Lines |
+ * | --- | --- | --- | --- |
+ * | Best islands | `wide` (`.isl` ~170px oonchi) | 4 | subtitle + tag |
+ * | Popular beaches | `square` (`.pt`) | 4, phone pe 2 | subtitle |
+ * | Places to visit | `square` | 5, phone pe 2 | sirf title |
+ *
+ * ⚠️ Islands ke `Top islands` / `Offbeat islands` (`.subh`) — do section se bante hain, doosra bina
+ * heading ke. Ek section ke andar group rakhna ek aur dhaancha hota jo abhi kisi ne maanga nahi.
+ */
+export const imageCardsPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+  /** Reference me teeno `left` + daayein `All beaches →` / `All places →` / `Explore on the map →`. */
+  headingAlign: z.enum(['center', 'left']).default('left'),
+  linkLabel: z.string().trim().max(80).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+
+  /** `square` 1:1 · `portrait` 3:4 · `tall` 9:14 · `landscape` 4:3 · `wide` 16:9 */
+  shape: z.enum(IMAGE_CARD_SHAPES).default('square'),
+  /** Desktop. Tablet pe 3 (ya kam), phone pe `mobileColumns`. */
+  columns: z.coerce.number().int().min(2).max(6).default(4),
+  /** Reference ka `.g--tiles` — beaches/places phone pe 2, islands 1. */
+  mobileColumns: z.coerce.number().int().min(1).max(2).default(2),
+  textAlign: z.enum(['left', 'center']).default('left'),
+  /** Text card ke neeche (reference) ya beech me. */
+  textPosition: z.enum(['bottom', 'middle']).default('bottom'),
+
+  items: z.array(imageCardSchema).max(IMAGE_CARDS_MAX).default([]),
+})
+
 export const videoReviewsPropsSchema = z.object({
   background: sectionBackgroundSchema,
   heading: z.string().trim().max(200).default(''),
@@ -716,6 +783,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   heroForm: heroFormPropsSchema,
   infoCards: infoCardsPropsSchema,
   videoReviews: videoReviewsPropsSchema,
+  imageCards: imageCardsPropsSchema,
 })
 
 /**

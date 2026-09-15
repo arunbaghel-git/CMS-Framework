@@ -7481,3 +7481,123 @@ a.mega__gl:hover {
     transform: none;
   }
 }
+
+/* ---- Image cards (D-96 §14) — reference ka `.isl` (best islands) aur `.pt` (beaches, places) ---- */
+
+.imc {
+  display: grid;
+  grid-template-columns: repeat(var(--imc-cols, 4), 1fr);
+  gap: 14px;
+}
+
+.imcc {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  aspect-ratio: var(--imc-ratio, 1 / 1);
+  border-radius: var(--r3);
+  overflow: hidden;
+  background: var(--blue-900);
+  color: #fff;
+}
+
+.imcc img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.78;
+  transition: transform 0.5s;
+}
+
+a.imcc:hover img {
+  transform: scale(1.07);
+}
+
+/* Parda — neeche gehra, upar saaf (reference `.pt::after` / `.isl::after`) */
+.imcc::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(7 30 52 / 88%), rgb(7 30 52 / 10%) 65%);
+}
+
+.imcc__b {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.imcc__b b {
+  color: #fff;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-heading);
+  line-height: 1.3;
+}
+
+.imcc__b span {
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semi);
+  color: rgb(255 255 255 / 72%);
+}
+
+/* Islands ki chip — `.isl__b em` */
+.imcc__b em {
+  font-style: normal;
+  margin-top: 7px;
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-heading);
+  background: rgb(255 255 255 / 18%);
+  border: 1px solid rgb(255 255 255 / 20%);
+  padding: 3px 8px;
+  border-radius: var(--rf);
+}
+
+.imcc--center .imcc__b {
+  align-items: center;
+  text-align: center;
+}
+
+/* Text beech me — parda poore card pe barabar, taaki beech ka text padha jaaye */
+.imcc--middle {
+  align-items: center;
+}
+
+.imcc--middle::after {
+  background: rgb(7 30 52 / 45%);
+}
+
+/* Tablet pe 3 — 2 column wala section 2 hi rahe (`--c2`). `repeat(min(…))` har browser me nahi chalta. */
+@media (max-width: 1024px) {
+  .imc {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .imc--c2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Phone — reference ka `.g--tiles` (2 column, 11px gap) ya 1 */
+@media (max-width: 760px) {
+  .imc {
+    grid-template-columns: repeat(var(--imc-mcols, 2), 1fr);
+    gap: 11px;
+  }
+
+  .imcc__b {
+    padding: 10px 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.imcc:hover img {
+    transform: none;
+  }
+}

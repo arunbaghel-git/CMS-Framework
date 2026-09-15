@@ -8096,3 +8096,30 @@ jaata). Popup `.vmod`: Esc, parde pe click, focus wapas tile pe, scroll lock.
 - ⚠️ Hotels · Add-ons · Transfers pe abhi bhi koi tag nahi — **A-29**
 
 5 naye API test + 2 shared.
+
+### 14. Section 4 — Image cards (client, usi din)
+
+Client: _"box with image — bg-image, title; card vertical ya horizontal (height/width), alignment, aur
+heading ke saath link button (All beaches, All places) jiska text aur link badle"_. Reference: **Andaman's best
+islands** (`.isl`) · **Popular beaches** · **Places to visit** (`.pt`). Client lunch pe tha aur kaha _"build
+karo, main data bhar ke dekhunga"_ — isliye sawaal nahi pooche, faisle neeche likhe hain.
+
+**Ek section `imageCards`** (Info cards wali soch, §11):
+
+- Props: `background · heading · description · headingAlign (default left) · link` + look `shape
+  (square|portrait|tall|landscape|wide) · columns 2–6 · mobileColumns 1–2 · textAlign · textPosition
+  (bottom|middle)` + `items[] ≤24 {imageId, title, subtitle, tag, url}`
+- **Mere chunav (client dekhega):** card me `subtitle` (beaches ka `Havelock`) aur `tag` (islands ki chip)
+  optional jode — reference me hain, client ne sirf "bg-image, title" kaha tha. Khaali chhodne pe nahi dikhte
+- "Start from": Best islands (wide, 4, phone 1) · Popular beaches (square, 4, phone 2) · Places to visit
+  (square, 5, phone 2). Naya section beaches look se khulta hai
+- Islands ke do group (`Top islands`/`Offbeat islands`) — **do section**, doosra bina heading. Admin hint me likha
+- Card plain text hai, isliye link wala card seedha `<a>`. Payload: `resolveImageCards()` (`medium` image,
+  `imageId` bahar nahi, na title na image wala card gira)
+- Web `ImageCards.jsx` (`.imc`/`.imcc`), parda aur naap reference ke; tablet pe 3 column (2 wala 2 hi).
+  Heading `SectionHead` (hamara font)
+
+**Usi din — Media upload ka bug:** Media Library aur picker me _"Upload file is required"_. Admin ke axios
+client ka default `Content-Type: application/json` dekh kar axios 1.x `FormData` ko **JSON bana deta tha**
+(`{"file":{}}`). Logo/footer/banner ki screens multipart header khud bhejti thin, isliye wo chalti rahin.
+Ilaaj `lib/api.js` ke interceptor me, ek jagah — `FormData` pe multipart. Node me dohra kar pakka kiya.

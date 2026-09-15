@@ -2,6 +2,8 @@ import {
   ENTRY_LIST_MAX_LIMIT,
   ICONS,
   ICON_LABELS,
+  IMAGE_CARDS_MAX,
+  IMAGE_CARD_SHAPES,
   INFO_CARDS_MAX,
   VIDEO_REVIEWS_MAX,
   PAGE_BLOCK_TYPES,
@@ -41,6 +43,7 @@ const BLOCK_LABEL = {
   faqs: 'FAQs',
   heroForm: 'Hero with form',
   infoCards: 'Info cards',
+  imageCards: 'Image cards',
   videoReviews: 'Customer reviews',
 }
 
@@ -54,6 +57,7 @@ const BLOCK_CLASS = {
   faqs: 'faq',
   heroForm: 'hero',
   infoCards: 'info',
+  imageCards: 'image',
   videoReviews: 'reviews',
 }
 
@@ -82,6 +86,17 @@ function emptyBlock(type) {
       ...INFO_CARDS_PRESETS.certified.values,
       heading: '',
       description: '',
+      items: [],
+    },
+    /** Naya section Popular beaches ke look se khulta hai. */
+    imageCards: {
+      ...IMAGE_CARDS_PRESETS.beaches.values,
+      background: '',
+      heading: '',
+      description: '',
+      headingAlign: 'left',
+      linkLabel: '',
+      linkUrl: '',
       items: [],
     },
     videoReviews: {
@@ -139,6 +154,8 @@ function summarize(block) {
       return p.heading || 'Package list'
     case 'faqs':
       return `${p.heading || 'FAQs'} — ${(p.items ?? []).length} question(s)`
+    case 'imageCards':
+      return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
     case 'videoReviews':
       return `${p.heading || 'Customer reviews'} — ${(p.reviewIds ?? []).length} video(s)`
     case 'infoCards':
@@ -1889,7 +1906,303 @@ function VideoReviewsBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * "Start from" — reference ke teen image wale section (client, 15 Sep, D-96 §14). Info cards jaisa hi:
+ * **store nahi hota**, sirf look bharta hai; heading, cards aur background client ke.
+ */
+const IMAGE_CARDS_PRESETS = {
+  islands: {
+    label: "Andaman's best islands — wide cards, 4 columns",
+    values: {
+      shape: 'wide',
+      columns: 4,
+      mobileColumns: 1,
+      textAlign: 'left',
+      textPosition: 'bottom',
+    },
+  },
+  beaches: {
+    label: 'Popular beaches — square cards, 4 columns',
+    values: {
+      shape: 'square',
+      columns: 4,
+      mobileColumns: 2,
+      textAlign: 'left',
+      textPosition: 'bottom',
+    },
+  },
+  places: {
+    label: 'Places to visit — square cards, 5 columns',
+    values: {
+      shape: 'square',
+      columns: 5,
+      mobileColumns: 2,
+      textAlign: 'left',
+      textPosition: 'bottom',
+    },
+  },
+}
+
+const IMAGE_CARD_SHAPE_LABEL = {
+  square: 'Square (1 : 1)',
+  portrait: 'Portrait — taller than wide (3 : 4)',
+  tall: 'Tall (9 : 14)',
+  landscape: 'Landscape — wider than tall (4 : 3)',
+  wide: 'Wide (16 : 9)',
+}
+
+const emptyImageCard = () => ({
+  id: newId(),
+  imageId: null,
+  title: '',
+  subtitle: '',
+  tag: '',
+  url: '',
+})
+
+/**
+ * `Image cards` — Andaman's best islands · Popular beaches · Places to visit (D-96 §14).
+ *
+ * Panel teen hisse: **Heading** (link ke saath — `All beaches →`), **Card look** (shape, columns,
+ * alignment), **Cards** (image · title · do optional line · link, ⠿ drag).
+ */
+function ImageCardsBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const items = props.items ?? []
+
+  const media = useMediaById(items.map((item) => item.imageId).filter(Boolean))
+
+  const setItems = (next) => set({ items: next })
+  const patchItem = (i, patch) =>
+    setItems(items.map((item, idx) => (idx === i ? { ...item, ...patch } : item)))
+
+  const moveItem = (from, to) => {
+    if (to < 0 || to >= items.length) return
+    const next = [...items]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    setItems(next)
+  }
+  const { handleProps, rowProps } = useListDrag(moveItem, !disabled)
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback="#ffffff"
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <label className="blk-sublabel">Heading</label>
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+      <HeadingPositionFields props={props} onChange={onChange} disabled={disabled} />
+      <div className="hint">
+        The link sits on the right of a <b>Left</b> heading — e.g. &ldquo;All beaches&rdquo; or
+        &ldquo;Explore on the map&rdquo;.
+      </div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Card look
+      </label>
+      <div className="row2">
+        <div className="field">
+          <label>Start from</label>
+          <select
+            className="sel"
+            value=""
+            onChange={(e) => {
+              const preset = IMAGE_CARDS_PRESETS[e.target.value]
+              if (preset) set(preset.values)
+            }}
+            disabled={disabled}
+          >
+            <option value="">— pick a ready look —</option>
+            {Object.entries(IMAGE_CARDS_PRESETS).map(([key, preset]) => (
+              <option key={key} value={key}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+          <div className="hint">Fills the look settings below. Your heading and cards stay.</div>
+        </div>
+        <div className="field">
+          <label>Card shape</label>
+          <select
+            className="sel"
+            value={props.shape ?? 'square'}
+            onChange={(e) => set({ shape: e.target.value })}
+            disabled={disabled}
+          >
+            {IMAGE_CARD_SHAPES.map((shape) => (
+              <option key={shape} value={shape}>
+                {IMAGE_CARD_SHAPE_LABEL[shape] ?? shape}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="row2">
+        <div className="field">
+          <label>Columns on desktop</label>
+          <select
+            className="sel"
+            value={props.columns ?? 4}
+            onChange={(e) => set({ columns: Number(e.target.value) })}
+            disabled={disabled}
+          >
+            {[2, 3, 4, 5, 6].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+          <div className="hint">Tablets show up to 3.</div>
+        </div>
+        <div className="field">
+          <label>Columns on phone</label>
+          <select
+            className="sel"
+            value={props.mobileColumns ?? 2}
+            onChange={(e) => set({ mobileColumns: Number(e.target.value) })}
+            disabled={disabled}
+          >
+            <option value={1}>1</option>
+            <option value={2}>2</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="row2">
+        <div className="field">
+          <label>Text alignment</label>
+          <select
+            className="sel"
+            value={props.textAlign ?? 'left'}
+            onChange={(e) => set({ textAlign: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="left">Left</option>
+            <option value="center">Centre</option>
+          </select>
+        </div>
+        <div className="field">
+          <label>Text position</label>
+          <select
+            className="sel"
+            value={props.textPosition ?? 'bottom'}
+            onChange={(e) => set({ textPosition: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="bottom">Bottom of the card</option>
+            <option value="middle">Middle of the card</option>
+          </select>
+        </div>
+      </div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Cards
+      </label>
+      {items.map((item, i) => (
+        <div className="info-card" key={item.id ?? i} {...rowProps(i)}>
+          <div className="info-card__head">
+            {!disabled && (
+              <span className="grip" {...handleProps(i)}>
+                ⠿
+              </span>
+            )}
+            <b>{item.title || `Card ${i + 1}`}</b>
+            {!disabled && (
+              <button
+                className="blk-x"
+                type="button"
+                title="Remove card"
+                onClick={() => {
+                  if (!window.confirm('Remove this card?')) return
+                  setItems(items.filter((_, idx) => idx !== i))
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="row2">
+            <MediaDrop
+              label="Image"
+              hint="Fills the whole card."
+              media={media[item.imageId]}
+              onSelect={(chosen) => patchItem(i, { imageId: chosen.id })}
+              onClear={() => patchItem(i, { imageId: null })}
+            />
+            <div>
+              <div className="field">
+                <label>Title</label>
+                <input
+                  className="inp"
+                  placeholder="Radhanagar Beach"
+                  value={item.title ?? ''}
+                  onChange={(e) => patchItem(i, { title: e.target.value })}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="field">
+                <label>Small line under the title</label>
+                <input
+                  className="inp"
+                  placeholder="Optional — e.g. Havelock"
+                  value={item.subtitle ?? ''}
+                  onChange={(e) => patchItem(i, { subtitle: e.target.value })}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="field">
+                <label>Tag</label>
+                <input
+                  className="inp"
+                  placeholder="Optional — e.g. Radhanagar · Scuba"
+                  value={item.tag ?? ''}
+                  onChange={(e) => patchItem(i, { tag: e.target.value })}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Link</label>
+                <input
+                  className="inp"
+                  placeholder="Optional — e.g. /andaman-beaches/radhanagar"
+                  value={item.url ?? ''}
+                  onChange={(e) => patchItem(i, { url: e.target.value })}
+                  disabled={disabled}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {!disabled && items.length < IMAGE_CARDS_MAX && (
+        <button
+          className="btn btn-sm"
+          type="button"
+          onClick={() => setItems([...items, emptyImageCard()])}
+        >
+          ＋ Add card
+        </button>
+      )}
+
+      <div className="hint">
+        With a <b>Link</b> the whole card is clickable. A card with no title and no image does not
+        appear. For two groups (like &ldquo;Top islands&rdquo; and &ldquo;Offbeat islands&rdquo;)
+        add a second Image cards section right below and leave its heading empty.
+      </div>
+    </>
+  )
+}
+
 const EDITORS = {
+  imageCards: ImageCardsBlock,
   videoReviews: VideoReviewsBlock,
   heroForm: HeroFormBlock,
   infoCards: InfoCardsBlock,
