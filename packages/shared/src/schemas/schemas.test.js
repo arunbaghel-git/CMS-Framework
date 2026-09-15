@@ -27,7 +27,13 @@ import {
   seoSchema,
   slugSchema,
 } from './index.js'
-import { ENTRY_STATUSES, ROLE_LABEL, ROLE_PERMISSIONS, ROLES } from '../constants/index.js'
+import {
+  ENTRY_STATUSES,
+  ROLE_LABEL,
+  ROLE_PERMISSIONS,
+  ROLES,
+  THEME_COLORS,
+} from '../constants/index.js'
 import { fieldTypesFor, isFieldTypeAllowed, isResponsive } from '../field-types.js'
 /** ⚠️ `toc.js` top-level index me hai, `schemas/index.js` me nahi — cycle se bachne ke liye. */
 import { withHeadingIds } from '../toc.js'
@@ -567,5 +573,24 @@ describe('videoEmbedUrl — video review ka popup (D-96 §13)', () => {
     ]) {
       expect(videoEmbedUrl(url)).toBeNull()
     }
+  })
+})
+
+describe('THEME_COLORS — admin ka Default rang site ke :root se milta hai (D-96 §18)', () => {
+  it('har rang globals.css ke token ke barabar', async () => {
+    const { readFileSync } = await import('node:fs')
+    const css = readFileSync(
+      new URL('../../../../apps/web/app/globals.css', import.meta.url),
+      'utf8',
+    )
+    const root = css.slice(css.indexOf(':root {'), css.indexOf('}', css.indexOf(':root {')))
+    const token = (name) =>
+      root.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`))?.[1]?.toLowerCase()
+
+    expect(THEME_COLORS.blue50).toBe(token('blue-50'))
+    expect(THEME_COLORS.blue100).toBe(token('blue-100'))
+    expect(THEME_COLORS.blue500).toBe(token('blue-500'))
+    expect(THEME_COLORS.blue600).toBe(token('blue-600'))
+    expect(THEME_COLORS.blue900).toBe(token('blue-900'))
   })
 })

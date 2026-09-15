@@ -209,6 +209,17 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
+### A-30 · Customizer (admin se rang/font) ke liye tokens ke kaam wale naam
+
+**Deadline:** customizer ka kaam shuru hone se pehle · **aaj kuch toota nahi**
+
+D-96 §18 me rang aur font sab `:root` tokens pe aa gaye. Baaki: (1) naam site ke hain (`--blue-900`, `--orange-500`) —
+client ko "Brand · Accent · Text · Surface" jaise 5-6 kaam ke naam dikhane honge jo inhi pe baithein; (2) `THEME_COLORS`
+(admin) abhi `:root` ki copy hai — customizer ke din source `settings` banega aur web layout `:root` likhega; (3) font
+family (`--font`) `next/font` se build pe aata hai — runtime pe badalna alag sawaal hai.
+
+---
+
 ### A-29 · Hotels · Add-ons · Transfers badalne pe package page ka cache saaf nahi hota
 
 **D-96 §13 ki jaanch me mila.** `master-lists` service kisi write pe `revalidateTags` nahi bulati thi.

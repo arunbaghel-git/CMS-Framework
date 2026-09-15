@@ -7,6 +7,7 @@ import {
   INFO_CARDS_MAX,
   LOGO_GRID_MAX,
   TESTIMONIALS_MAX,
+  THEME_COLORS,
   VIDEO_REVIEWS_MAX,
   PAGE_BLOCK_TYPES,
   POST_LIST_MAX_FEATURED,
@@ -1094,7 +1095,7 @@ function FaqsBlock({ props, onChange, disabled, home }) {
         <div className="row2">
           <SectionBackground
             value={props.background}
-            fallback="#ffffff"
+            fallback={THEME_COLORS.surface}
             onChange={(background) => onChange({ ...props, background })}
             disabled={disabled}
           />
@@ -1172,7 +1173,7 @@ function FaqsBlock({ props, onChange, disabled, home }) {
 /* ── home page ke sections (D-96) ──────────────────────────────────────────── */
 
 /** Hero ka apna rang — reference ka `.hero` (`--blue-900`). Khaali background pe yahi lagta hai. */
-const HERO_DEFAULT_BACKGROUND = '#0b2b4a'
+const HERO_DEFAULT_BACKGROUND = THEME_COLORS.blue900
 
 /**
  * Section ka background — **koi bhi rang, picker se** (client, 15 Sep, D-96).
@@ -1389,7 +1390,7 @@ function HeroFormBlock({ props, onChange, disabled }) {
 }
 
 /** Info cards ka default section rang — reference me charon `sec--white` hain. */
-const INFO_CARDS_DEFAULT_BACKGROUND = '#ffffff'
+const INFO_CARDS_DEFAULT_BACKGROUND = THEME_COLORS.surface
 
 const emptyCard = () => ({
   id: newId(),
@@ -1484,7 +1485,7 @@ function InfoCardsBlock({ props, onChange, disabled }) {
           <ColourField
             label="Top / left colour"
             value={props.accentColor}
-            fallback="#2a86d4"
+            fallback={THEME_COLORS.blue500}
             onChange={(accentColor) => set({ accentColor })}
             disabled={disabled}
           />
@@ -1532,7 +1533,7 @@ function InfoCardsBlock({ props, onChange, disabled }) {
           <ColourField
             label="Icon box colour"
             value={props.iconBg}
-            fallback="#f2f8fd"
+            fallback={THEME_COLORS.blue50}
             onChange={(iconBg) => set({ iconBg })}
             disabled={disabled}
           />
@@ -1540,7 +1541,7 @@ function InfoCardsBlock({ props, onChange, disabled }) {
         <ColourField
           label="Icon colour"
           value={props.iconColor}
-          fallback="#1668ae"
+          fallback={THEME_COLORS.blue600}
           onChange={(iconColor) => set({ iconColor })}
           disabled={disabled}
         />
@@ -1844,7 +1845,7 @@ function VideoReviewsBlock({ props, onChange, disabled }) {
     <>
       <SectionBackground
         value={props.background}
-        fallback="#ffffff"
+        fallback={THEME_COLORS.surface}
         onChange={(background) => set({ background })}
         disabled={disabled}
       />
@@ -1892,14 +1893,14 @@ function TestimonialsBlock({ props, onChange, disabled }) {
       <div className="row2">
         <SectionBackground
           value={props.background}
-          fallback="#f2f8fd"
+          fallback={THEME_COLORS.blue50}
           onChange={(background) => set({ background })}
           disabled={disabled}
         />
         <ColourField
           label="Quote icon colour"
           value={props.iconColor}
-          fallback="#e4f0fb"
+          fallback={THEME_COLORS.blue100}
           onChange={(iconColor) => set({ iconColor })}
           disabled={disabled}
         />
@@ -1981,7 +1982,7 @@ function ImageCardsBlock({ props, onChange, disabled }) {
     <>
       <SectionBackground
         value={props.background}
-        fallback="#ffffff"
+        fallback={THEME_COLORS.surface}
         onChange={(background) => set({ background })}
         disabled={disabled}
       />
@@ -2202,7 +2203,7 @@ function LogoGridBlock({ props, onChange, disabled }) {
     <>
       <SectionBackground
         value={props.background}
-        fallback="#f2f8fd"
+        fallback={THEME_COLORS.blue50}
         onChange={(background) => set({ background })}
         disabled={disabled}
       />

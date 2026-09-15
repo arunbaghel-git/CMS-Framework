@@ -8195,3 +8195,26 @@ Koi migration nahi. 1 naya API test.
 (Logo grid ki closing title, `--fs-2xl`), 14.5px → **14px** (Image cards ka title, `--fs-base`). Baaki home CSS
 me `--fs-xl`/`--fs-lg` kahin nahi. FAQ ka sawaal (`.faq summary`, 14.5px) package page ke saath saanjha hai —
 chhua nahi.
+
+### 18. Future customizer ke liye taiyaari — rang aur font tokens pe (client, usi din)
+
+Client: _"aage admin me customize option aa sakta hai jahan rang aur font handle honge — kya hum usi hisaab se
+kar rahe hain?"_ Naap ke jawab diya, phir client ne kaha _"abhi kar do"_. **Dikhne me kuch nahi badla** — har
+value wahi hai, sirf ghar badla.
+
+1. **Gehre parde token pe** — `--shade` (`#071e34`) aur `--scrim` (`#081422`) `:root` me; 7 jagah (hero, image
+   cards, video tiles/popup, package ka mobile sheet) `color-mix(in srgb, var(--shade) N%, transparent)`.
+   Safed (`#fff`, safed alpha) aur video box ka `#000` neutral hain — nahi chhue
+2. **Admin ke color picker ka "Default"** — `THEME_COLORS` (`packages/shared/src/constants/theme-colors.js`),
+   11 jagah se haath ka hex hata. ⚠️ Abhi ye `:root` ki **copy** hai; `schemas.test.js` ka test dono ko milaata
+   hai — ek badla aur doosra nahi to test girta hai
+3. **Poori site ke 26 literal font-size tokens pe** — 16 maujooda scale ke token pe (11px → `--fs-4xs` …), 10
+   naye kaam ke naam se usi value pe: `--fs-hero-title` · `--fs-hero-sub` · `--fs-stat` · `--fs-section` ·
+   `--fs-price-side` · `--fs-price-row` · `--fs-offer` · `--fs-quote` · `--fs-card-lg` · `--fs-card-md` ·
+   `--fs-glyph`. Ab `globals.css` me ek bhi font-size seedha px me nahi (sirf `inherit`)
+
+**Niyam aage ke liye:** naya CSS rang aur font sirf `:root` tokens se; admin me dikhne wala default rang
+`THEME_COLORS` se.
+
+⚠️ **Jo is kaam me nahi hai:** tokens ke naam abhi ek site ke hain (`--blue-900`, `--orange-500`), kaam ke nahi
+(`--brand`, `--accent`). Customizer banate waqt 5-6 kaam ke naam wale tokens upar se banenge — **A-30**.

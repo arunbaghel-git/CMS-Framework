@@ -5,6 +5,7 @@
 export * from './icons.js'
 export * from './package-sections.js'
 export * from './permissions.js'
+export * from './theme-colors.js'
 export * from './theme-locations.js'
 
 export const DEFAULT_SITE_ID = 'default'

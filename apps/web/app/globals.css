@@ -103,6 +103,16 @@
   --red-100: #fdeaec;
   --orange-600: #d95a12;
 
+  /*
+   * Gehre parde — image ke upar ka gradient aur popup ke peeche ka parda (D-96 §18, client 15 Sep).
+   *
+   * ⚠️ Pehle ye CSS me seedha navy rang (alpha ke saath) likhe the. Future ke customizer (admin se rang)
+   * me brand rang badalte waqt ye chhoot jaate — isliye token. Istemaal `color-mix()` se:
+   * `color-mix(in srgb, var(--shade) 80%, transparent)` wahi purana 80% alpha rang hai, dikhne me farak nahi.
+   */
+  --shade: #071e34;
+  --scrim: #081422;
+
   /* Radius aur shadow bhi reference se — pehle andaaze ke 6/8/10px the */
   --r1: 6px;
   --r2: 10px;
@@ -185,6 +195,29 @@
   --fs-price: clamp(28px, 3.4vw, 38px);
   --fs-intro: clamp(15px, 1.6vw, 17px);
   --fs-display: clamp(21px, 2.6vw, 30px);
+
+  /*
+   * ⚠️ **Ye das pehle CSS me seedha px/clamp me likhe the** (D-96 §18, client 15 Sep) — future ke customizer
+   * (admin se font) se chhoot jaate. Har ek **usi value** pe hai jo pehle thi; naam kaam ka hai, naap ka nahi,
+   * kyunki inme se kisi ka koi saathi scale me nahi tha.
+   */
+  /* Tour · Page · Blog · Home hero ka h1 aur uske neeche ki line */
+  --fs-hero-title: clamp(25px, 3.6vw, 40px);
+  --fs-hero-sub: clamp(13.5px, 1.3vw, 15.5px);
+  /* Stat rail ka number */
+  --fs-stat: clamp(20px, 2.4vw, 28px);
+  /* Package page ke section ki heading (`.sh h2`) */
+  --fs-section: clamp(19px, 2.2vw, 25px);
+  /* Daam — sidebar ke form ka header, similar row, CTA ka dabba */
+  --fs-price-side: 30px;
+  --fs-price-row: clamp(21px, 2.2vw, 26px);
+  --fs-offer: 34px;
+  /* Blog — pull quote aur featured card ke title */
+  --fs-quote: clamp(17px, 2vw, 21px);
+  --fs-card-lg: clamp(16px, 1.9vw, 25px);
+  --fs-card-md: clamp(15px, 1.5vw, 17.5px);
+  /* FAQ ka `+` / `−` */
+  --fs-glyph: 20px;
   /* Home Info cards ka label — design ka 10px (D-96 §11). Maujooda scale me nahi tha. */
   --fs-card-label: 10px;
   /* Home hero ke number aur form card ka heading — design ka 19px (D-96 §10). Heading/body font nahi. */
@@ -3279,7 +3312,7 @@ a.mega__gl:hover {
 
 .faq summary::after {
   content: '+';
-  font-size: 20px;
+  font-size: var(--fs-glyph);
   font-weight: var(--fw-normal);
   color: var(--blue-500);
   line-height: 1;
@@ -3412,7 +3445,7 @@ a.mega__gl:hover {
   position: fixed;
   inset: 0;
   z-index: 97;
-  background: rgb(8 20 34 / 55%);
+  background: color-mix(in srgb, var(--scrim) 55%, transparent);
 }
 
 /* Sheet ka close — sirf mobile pe dikhta hai (JSX hi use tab render karta hai). */
@@ -3497,7 +3530,7 @@ a.mega__gl:hover {
      */
     max-height: 88vh;
     border-radius: var(--r4) var(--r4) 0 0;
-    box-shadow: 0 -8px 30px rgb(8 20 34 / 28%);
+    box-shadow: 0 -8px 30px color-mix(in srgb, var(--scrim) 28%, transparent);
   }
 
   /*
@@ -3558,7 +3591,7 @@ a.mega__gl:hover {
 
 .bkg__t b {
   display: block;
-  font-size: 30px;
+  font-size: var(--fs-price-side);
   font-weight: var(--fw-black);
   color: #fff;
   letter-spacing: -0.04em;
@@ -3985,7 +4018,7 @@ a.mega__gl:hover {
 }
 
 .prow__p strong {
-  font-size: clamp(21px, 2.2vw, 26px);
+  font-size: var(--fs-price-row);
   font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.04em;
@@ -4797,7 +4830,7 @@ a.mega__gl:hover {
 
 .offer__box b {
   display: block;
-  font-size: 34px;
+  font-size: var(--fs-offer);
   font-weight: var(--fw-black);
   color: #fff;
   letter-spacing: -0.04em;
@@ -4943,7 +4976,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -4959,7 +4992,7 @@ a.mega__gl:hover {
 .vhero h1,
 .hf-hero h1 {
   color: #fff;
-  font-size: clamp(25px, 3.6vw, 40px);
+  font-size: var(--fs-hero-title);
   line-height: 1.25;
   font-weight: 900;
   letter-spacing: -0.04em;
@@ -4978,7 +5011,7 @@ a.mega__gl:hover {
 .vhero__sub,
 .hf-hero__sub {
   color: rgba(255, 255, 255, 0.8);
-  font-size: clamp(13.5px, 1.3vw, 15.5px);
+  font-size: var(--fs-hero-sub);
   line-height: 1.6;
   margin-top: 11px;
   max-width: 60ch;
@@ -5072,7 +5105,7 @@ a.mega__gl:hover {
 
 .vrail__c b {
   display: block;
-  font-size: clamp(20px, 2.4vw, 28px);
+  font-size: var(--fs-stat);
   font-weight: 900;
   color: var(--ink);
   letter-spacing: -0.04em;
@@ -5081,7 +5114,7 @@ a.mega__gl:hover {
 
 .vrail__c span {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -5096,7 +5129,7 @@ a.mega__gl:hover {
 
 .vrail__c--p i {
   font-style: normal;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--muted);
   margin-left: 5px;
@@ -5105,7 +5138,7 @@ a.mega__gl:hover {
 /* `suffix` — `/ person` jaisa chhota tukda, har card pe */
 .vrail__c b i {
   font-style: normal;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--muted);
   margin-left: 5px;
@@ -5200,7 +5233,7 @@ a.mega__gl:hover {
 }
 
 .sh h2 {
-  font-size: clamp(19px, 2.2vw, 25px);
+  font-size: var(--fs-section);
   font-weight: 800;
 }
 
@@ -5237,7 +5270,7 @@ a.mega__gl:hover {
 }
 
 .fbar__l {
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -5247,7 +5280,7 @@ a.mega__gl:hover {
 
 .fbar__c {
   margin-left: auto;
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   color: var(--muted);
 }
@@ -5257,7 +5290,7 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
   background: #fff;
-  font-size: 12px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   color: var(--body);
   cursor: pointer;
@@ -5305,7 +5338,7 @@ a.mega__gl:hover {
 }
 
 .dcard h3 {
-  font-size: 14.5px;
+  font-size: var(--fs-lg);
   margin: 0 0 5px;
 }
 
@@ -5333,7 +5366,7 @@ a.mega__gl:hover {
   font-style: normal;
   display: inline-block;
   margin-top: 9px;
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   font-weight: 800;
   color: var(--blue-700);
   background: var(--blue-50);
@@ -5484,7 +5517,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   font-weight: 700;
   color: rgba(255, 255, 255, 0.8);
 }
@@ -5524,12 +5557,12 @@ a.mega__gl:hover {
 
 .wdg--cta h3 {
   color: #fff;
-  font-size: 16px;
+  font-size: var(--fs-2xl);
   margin-bottom: 6px;
 }
 
 .wdg--cta p {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   line-height: 1.55;
   margin-bottom: 14px;
 }
@@ -5564,7 +5597,7 @@ a.mega__gl:hover {
 .wdg--cta small {
   display: block;
   text-align: center;
-  font-size: 11px;
+  font-size: var(--fs-4xs);
   color: rgba(255, 255, 255, 0.55);
   margin-top: 9px;
 }
@@ -5643,7 +5676,7 @@ a.mega__gl:hover {
   gap: 10px;
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--ink-2);
 }
@@ -5676,7 +5709,7 @@ a.mega__gl:hover {
  * derive hoti hai (strike aur asli daam se) — koi field nahi, taaki wo daam se kabhi alag na ho.
  */
 .prow__off {
-  font-size: 11.5px;
+  font-size: var(--fs-3xs);
   font-weight: 800;
   color: var(--green-600);
 }
@@ -6389,7 +6422,7 @@ a.mega__gl:hover {
   border-left: 3px solid var(--orange-500);
 }
 .pullq p {
-  font-size: clamp(17px, 2vw, 21px);
+  font-size: var(--fs-quote);
   line-height: 1.45;
   font-weight: 700;
   color: var(--ink);
@@ -6633,7 +6666,7 @@ a.mega__gl:hover {
 
 .fcard h3 {
   color: #fff;
-  font-size: clamp(16px, 1.9vw, 25px);
+  font-size: var(--fs-card-lg);
   line-height: 1.25;
   letter-spacing: -0.03em;
   margin-top: 9px;
@@ -6641,7 +6674,7 @@ a.mega__gl:hover {
 }
 
 .fcard--sm h3 {
-  font-size: clamp(15px, 1.5vw, 17.5px);
+  font-size: var(--fs-card-md);
 }
 
 /* Wahi tark jo `.bp__x` pe — card ka body text `--fs-body` pe hai. */
@@ -7407,7 +7440,11 @@ a.mega__gl:hover {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgb(7 30 52 / 80%) 5%, transparent 55%);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--shade) 80%, transparent) 5%,
+    transparent 55%
+  );
 }
 
 .vrl__p {
@@ -7452,7 +7489,7 @@ a.mega__gl:hover {
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgb(8 20 34 / 82%);
+  background: color-mix(in srgb, var(--scrim) 82%, transparent);
 }
 
 .vmod__box {
@@ -7534,7 +7571,11 @@ a.imcc:hover img {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgb(7 30 52 / 88%), rgb(7 30 52 / 10%) 65%);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--shade) 88%, transparent),
+    color-mix(in srgb, var(--shade) 10%, transparent) 65%
+  );
 }
 
 .imcc__b {
@@ -7585,7 +7626,7 @@ a.imcc:hover img {
 }
 
 .imcc--middle::after {
-  background: rgb(7 30 52 / 45%);
+  background: color-mix(in srgb, var(--shade) 45%, transparent);
 }
 
 /* Tablet pe 3 — 2 column wala section 2 hi rahe (`--c2`). `repeat(min(…))` har browser me nahi chalta. */
