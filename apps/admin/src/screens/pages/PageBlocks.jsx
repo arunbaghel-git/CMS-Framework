@@ -1027,12 +1027,27 @@ function FaqsBlock({ props, onChange, disabled, home }) {
        * pe FAQ page ke dabbe ke andar hai, rang ka koi matlab nahi; khaana dikhana jhootha control hota.
        */}
       {home && (
-        <SectionBackground
-          value={props.background}
-          fallback="#ffffff"
-          onChange={(background) => onChange({ ...props, background })}
-          disabled={disabled}
-        />
+        <div className="row2">
+          <SectionBackground
+            value={props.background}
+            fallback="#ffffff"
+            onChange={(background) => onChange({ ...props, background })}
+            disabled={disabled}
+          />
+          {/* Poora section — heading aur sawaal dono (client, 15 Sep). Sirf home pe. */}
+          <div className="field">
+            <label>Section alignment</label>
+            <select
+              className="sel"
+              value={props.align ?? 'center'}
+              onChange={(e) => onChange({ ...props, align: e.target.value })}
+              disabled={disabled}
+            >
+              <option value="center">Centre</option>
+              <option value="left">Left</option>
+            </select>
+          </div>
+        </div>
       )}
 
       {/* Wahi do field jo ab Cards aur Two column pe bhi hain — D-88 §9. */}

@@ -8048,3 +8048,7 @@ aur `FAQPage` structured data sab pehle se the. Sirf teen cheezein judi:
   `faqs` milaa kar ek `FAQPage`
 
 Font: sawaal `.faq summary` (14.5px, package page jaisa), jawab body font — dono maujooda. 3 naye API test.
+
+**§12 amendment (client, usi din):** FAQ pe **Section alignment** — `faqsPropsSchema.align` (`center|left`,
+default center). Admin me sirf home pe (background ke saath). Left pe heading baayein aur list kinare se
+(860px chaudai wahi, `.hq--left .faq { margin-inline: 0 }`).

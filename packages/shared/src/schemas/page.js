@@ -549,6 +549,8 @@ export const faqsPropsSchema = z.object({
    * admin ye khaana dikhata hi nahi aur theme padhti nahi; khaali default purane data pe koi asar nahi.
    */
   background: sectionBackgroundSchema,
+  /** Poora section — heading aur list — beech me ya baayein (client, 15 Sep, D-96 §12). Sirf home pe. */
+  align: z.enum(['center', 'left']).default('center'),
 
   heading: z.string().trim().max(200).default(''),
 

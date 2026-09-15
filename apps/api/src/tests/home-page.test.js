@@ -400,3 +400,22 @@ describe('FAQ section — wahi `faqs` block (D-96 §12)', () => {
     expect(section.props.items.map((f) => f.question)).toEqual(['Can we customise?', 'Best time?'])
   })
 })
+
+describe('FAQ alignment (D-96 §12 amendment)', () => {
+  it('align left store hota hai, anjaan value 4xx', async () => {
+    const ok = await createHome({
+      content: { version: 1, blocks: [{ type: 'faqs', props: { align: 'left', items: [] } }] },
+    })
+    expect(ok.status).toBe(201)
+    expect((await Entry.findById(ok.body.data.entry.id).lean()).content.blocks[0].props.align).toBe(
+      'left',
+    )
+
+    await Entry.deleteMany({})
+    const bad = await createHome({
+      content: { version: 1, blocks: [{ type: 'faqs', props: { align: 'right', items: [] } }] },
+    })
+    expect(bad.status).toBeGreaterThanOrEqual(400)
+    expect(bad.status).toBeLessThan(500)
+  })
+})

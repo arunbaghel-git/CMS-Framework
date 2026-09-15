@@ -7325,3 +7325,11 @@ a.mega__gl:hover {
   background: var(--hsec-bg);
   padding: clamp(28px, 3.4vw, 46px) 0;
 }
+
+/*
+ * FAQ — poora section baayein (client, 15 Sep, D-96 §12). Heading `.hsh--left` se; list apni 860px
+ * chaudai rakhti hai par beech me nahi, kinare se shuru.
+ */
+.hq--left .faq {
+  margin-inline: 0;
+}

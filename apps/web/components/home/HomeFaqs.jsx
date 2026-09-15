@@ -11,15 +11,19 @@ import SectionHead from './SectionHead.jsx'
  * Accordion ka look `.faq` hi hai (package page wala, reference se hi) — koi nayi CSS nahi.
  */
 export default function HomeFaqs({ props = {} }) {
-  const { background, heading, description } = props
+  const { background, heading, description, align = 'center' } = props
   const items = (props.items ?? []).filter((faq) => faq?.question)
 
   if (!items.length) return null
 
   return (
-    <section className="hsec" style={background ? { '--hsec-bg': background } : undefined}>
+    <section
+      className={`hsec${align === 'left' ? ' hq--left' : ''}`}
+      style={background ? { '--hsec-bg': background } : undefined}
+    >
       <div className="wrap">
-        <SectionHead heading={heading} description={description} />
+        {/* Left pe heading bhi baayein — bina "View all" link ke (FAQ me link nahi). */}
+        <SectionHead heading={heading} description={description} align={align} />
         <FaqAccordion items={items} />
       </div>
     </section>
