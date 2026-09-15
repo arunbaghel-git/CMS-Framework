@@ -36,6 +36,19 @@ api.interceptors.request.use((config) => {
     if (token) config.headers[CSRF_HEADER] = token
   }
 
+  /**
+   * ⚠️ **File upload — JSON header hatao** (client, 15 Sep: Media me _"Upload file is required"_).
+   *
+   * Upar default `Content-Type: application/json` hai, aur axios 1.x usi header ko dekh kar `FormData`
+   * ko **JSON bana deta hai** (`{"file":{}}`) — file server tak pahunchti hi nahi. Logo/footer/banner ki
+   * screens `multipart/form-data` khud bhejti thin isliye chalti rahin; Media Library aur picker ka
+   * `uploadMedia()` nahi bhejta tha. Ilaaj yahan, ek jagah: jo bhi screen `FormData` bheje, header sahi.
+   * Boundary browser khud jodta hai (adapter header ko khaali karke).
+   */
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    config.headers['Content-Type'] = 'multipart/form-data'
+  }
+
   return config
 })
 
