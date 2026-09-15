@@ -24,6 +24,15 @@ hai (A-17 me likha hai). Shuru karne se pehle:
    `Blocks.jsx` + `toPublicPage()`. Naya block chahiye to `schemas/page.js` + `sanitizeContent()` +
    admin `PageBlocks.jsx` + theme `Blocks.jsx` — **chaaron** (CLAUDE.md ki chetavni)
 
+### 15 Sep subah — Pages ke khule sawaal band
+
+- Client ne Pages ka sab kuch **live dekh liya**; FAQ editor ka `<p>` — _"sab thik hai"_; header flyout
+  1280px pe — theek. **A-25** aaj ki haalat pe dobara likha (sirf do chhoti baatein baaki)
+- **Post edit ki Featured image** — galat hint (_"Settings wali universal image aayegi"_, post pe fallback
+  hai hi nahi) hata; box me ab sirf "No file selected". `MediaDrop` hint na ho to ek hi line dikhata hai
+- Live check payload se: API naye code pe, `pageSettings` DB me save. ⚠️ Web (3000) band tha — browser
+  wala TOC/popup test pehle nahi chala — web chalu hone pe chala, dono pass (A-25)
+
 ### Is session (14 Sep) ka bacha hua
 
 - **`pnpm test` DB ke saath 1092/1092 pass** (Docker chalu tha). A-11 wala `media.test.js` kabhi-kabhi

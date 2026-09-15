@@ -175,7 +175,12 @@ const TYPE_CONFIG = {
     /** Excerpt aur Category sirf post pe — `tourPage` ko dono ki zaroorat hi nahi. */
     excerpt: true,
     categories: true,
-    featuredHint: 'Optional. Na daali to Settings wali universal image aayegi.',
+    /**
+     * ⚠️ **Koi hint nahi** (client, 15 Sep) — pehle yahan _"Na daali to Settings wali universal image
+     * aayegi"_ tha, jo post pe **jhooth** tha: `toPublicPost()` me koi fallback hai hi nahi. Box me ab
+     * sirf "No file selected".
+     */
+    featuredHint: undefined,
     blocks: POST_BLOCK_TYPES,
   },
 }

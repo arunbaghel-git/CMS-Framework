@@ -65,12 +65,18 @@ export default function MediaDrop({ label, hint, media, uploading, onUpload, onS
       >
         {preview ? (
           <img src={preview.url} alt="" className="media-drop-preview" />
-        ) : (
+        ) : uploading || hint ? (
           <span>
             {uploading ? 'Uploading...' : hint}
             <br />
             <span className="muted">{media?.filename ?? 'No file selected'}</span>
           </span>
+        ) : (
+          /*
+           * Hint na ho to **sirf ek line** — client, 15 Sep (post ki Featured image). Warna upar khaali
+           * line aur neeche halke rang me "No file selected" aata tha.
+           */
+          <span>{media?.filename ?? 'No file selected'}</span>
         )}
       </div>
       <div className="media-drop-actions">

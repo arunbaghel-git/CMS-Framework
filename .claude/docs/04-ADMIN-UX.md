@@ -708,7 +708,9 @@ dikhti hai, dabba nahi. Jaan-boojh kar — **A-23**.
   raasta jo `Tour settings` ne 8 Sep ko liya
 - **Post edit:** **Page Header panel nahi** — `<h1>` ab Title hai. **Categories = checkboxes** (kram
   list ka, tick karne ka nahi). **Excerpt** panel Content (aur uske FAQ block) ke **baad**, optional —
-  khaali pe card content ki pehli 24 shabd dikhata hai
+  khaali pe card content ki pehli 24 shabd dikhata hai. **Featured image** ke box me koi hint nahi, sirf
+  "No file selected" (client, 15 Sep — pehle wali "Settings wali universal image" jhooth thi, post pe
+  fallback hai hi nahi)
 - **Categories screen:** ginti ka column **`Posts`** (pehle `Packages` likha tha), naya **Badge
   colour** — colour picker + `Use automatic` (khaali = Automatic, reference ke chaar rang me se), aur
   list me naam ke aage rang ka chhota dot
