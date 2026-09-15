@@ -222,6 +222,8 @@
   --fs-card-label: 10px;
   /* Home hero ke number aur form card ka heading — design ka 19px (D-96 §10). Heading/body font nahi. */
   --fs-hero-num: 19px;
+  /* Home Award badges ka chhota label (`CHOICE`) — design ka 8px (D-96 §23). Scale me itna chhota koi nahi. */
+  --fs-badge-label: 8px;
 
   /* Headings — `.blk h1`–`h6` ke saath CTA/offer ka bada heading bhi. */
   --fs-h1: clamp(19px, 2.1vw, 24px);
@@ -8331,5 +8333,273 @@ a.imcc:hover img {
 @media (prefers-reduced-motion: reduce) {
   .ofcc--link:hover img {
     transform: none;
+  }
+}
+
+/* ---- Text with video (D-96 §22) — reference ka `.about` / `.about__pt` / `.vidbox` ---- */
+
+.txv {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: center;
+}
+
+/* Image baayein (client) — column ka naap bhi ulta, taaki text wala hi chauda rahe */
+.txv--left {
+  grid-template-columns: 0.95fr 1.05fr;
+}
+
+.txv--left .txv__m {
+  order: -1;
+}
+
+/* Na image na video — text poori chaudai */
+.txv--solo {
+  grid-template-columns: 1fr;
+}
+
+.txv__c h2 {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-heading);
+  margin-bottom: 12px;
+}
+
+/* Editor ki HTML — `<p>` ho ya na ho, naap div pe (A-19). Body font (client). */
+.txv__t {
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--body);
+}
+
+.txv__t p + p {
+  margin-top: 10px;
+}
+
+.txv__pts {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.txv__pt {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  padding: 13px 15px;
+}
+
+.txv__i {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--blue-500);
+}
+
+.txv__i--img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.txv__pt b {
+  display: block;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.txv__pt p {
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  color: var(--body);
+}
+
+.txv__btn {
+  margin-top: 18px;
+}
+
+/* ---- image / video box ---- */
+
+.txv__box {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  border: 0;
+  padding: 0;
+  border-radius: var(--r4);
+  overflow: hidden;
+  background: var(--blue-900);
+  box-shadow: var(--sh-3);
+  text-align: left;
+  font: inherit;
+  color: #fff;
+}
+
+button.txv__box,
+a.txv__box {
+  cursor: pointer;
+}
+
+.txv__box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.75;
+}
+
+/* Bina video ke saada image — reference ka dhundhlapan sirf ▶ ko ubhaarne ke liye tha */
+.txv__box--plain img {
+  opacity: 1;
+}
+
+/* Neeche ka parda — sirf caption ho ya video ho, taaki safed text padha jaaye */
+.txv__box--cap::after,
+.txv__box:not(.txv__box--plain)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--shade) 75%, transparent),
+    transparent 55%
+  );
+}
+
+.txv__p {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: auto;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgb(255 255 255 / 95%);
+  color: var(--blue-900);
+  box-shadow: var(--sh-3);
+  transition: transform 0.18s;
+}
+
+button.txv__box:hover .txv__p,
+a.txv__box:hover .txv__p {
+  transform: scale(1.06);
+}
+
+.txv__cap {
+  position: absolute;
+  bottom: 16px;
+  left: 18px;
+  right: 18px;
+  z-index: 2;
+}
+
+/* Reference ka 15px — Logo grid ki closing title jaisa 16px (D-96 §17 amendment) */
+.txv__cap b {
+  display: block;
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-heading);
+}
+
+.txv__cap span {
+  font-size: var(--fs-2xs);
+  color: rgb(255 255 255 / 72%);
+}
+
+@media (max-width: 1024px) {
+  .txv,
+  .txv--left {
+    grid-template-columns: 1fr;
+  }
+
+  /* Phone/tablet pe image hamesha text ke neeche — reference */
+  .txv--left .txv__m {
+    order: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.txv__box:hover .txv__p,
+  a.txv__box:hover .txv__p {
+    transform: none;
+  }
+}
+
+/* ---- Award badges (D-96 §23) — reference ka `.awrow` / `.aw` ---- */
+
+/*
+ * Ek rang, baaki usi se — khaali pe reference ka sunehra (#8a6212 / #b08a3a / #fffdf7 ke kareeb).
+ * ⚠️ `--awb-c` admin se **section** pe aata hai. Yahan `.awb` pe default set karna use dhak deta (bachcha
+ * variable jeet-ta hai) — isliye default `var(--awb-c, var(--gold))` ke fallback me hai.
+ */
+.awb {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 18px);
+}
+
+.awb--left {
+  justify-content: flex-start;
+}
+
+.awb__b {
+  flex-shrink: 0;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 2px solid var(--awb-c, var(--gold));
+  background: color-mix(in srgb, var(--awb-c, var(--gold)) 3%, #fff);
+  display: grid;
+  place-content: center;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.awb__b b {
+  display: block;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--awb-c, var(--gold)) 56%, #000);
+}
+
+.awb__b span {
+  display: block;
+  font-size: var(--fs-badge-label);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--awb-c, var(--gold)) 72%, #000);
+}
+
+/* Upload ki hui badge image — apna design laati hai, isliye border/rang nahi */
+.awb__b--img {
+  border: 0;
+  background: none;
+  place-content: stretch;
+}
+
+.awb__b--img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 760px) {
+  .awb__b {
+    width: 60px;
+    height: 60px;
   }
 }

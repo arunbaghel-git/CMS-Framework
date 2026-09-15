@@ -307,6 +307,8 @@ export function sanitizeInlineHtml(html) {
  * | `offerCards` | `props.description` (cards plain text) |
  * | `packageGrid` | `props.description` (cards server banata hai) |
  * | `logoGrid` | `props.description` (logo ke khaane plain text) |
+ * | `textVideo` | `props.text` · `props.items[].text` (**inline**) |
+ * | `awardBadges` | `props.description` (badge ke khaane plain text) |
  * | `testimonials` | `props.description` (review ka text plain hai, reviews collection me) |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
@@ -404,8 +406,22 @@ export function sanitizeContent(content) {
             },
           }
 
+        /** Home ka Text with video (D-96 §22) — baayein ka text block HTML, point ki line **inline**. */
+        case 'textVideo':
+          return {
+            ...block,
+            props: {
+              ...p,
+              text: sanitizeBlockHtml(p.text),
+              items: (p.items ?? []).map((item) =>
+                item ? { ...item, text: sanitizeInlineHtml(item.text) } : item,
+              ),
+            },
+          }
+
         /** Home ka Customer reviews (D-96 §13) — sirf heading ki line HTML hai; reviews ids hain. */
         /** Home ke Image cards (D-96 §14) — card ke khaane plain text; sirf heading ki line HTML. */
+        case 'awardBadges':
         case 'imageCards':
         case 'testimonials':
         case 'logoGrid':

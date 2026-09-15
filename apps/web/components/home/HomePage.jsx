@@ -1,4 +1,5 @@
 import TourSchema from '../tour/TourSchema.jsx'
+import AwardBadges from './AwardBadges.jsx'
 import HeroForm from './HeroForm.jsx'
 import HomeFaqs from './HomeFaqs.jsx'
 import ImageCards from './ImageCards.jsx'
@@ -7,6 +8,7 @@ import LogoGrid from './LogoGrid.jsx'
 import OfferCards from './OfferCards.jsx'
 import PackageGrid from './PackageGrid.jsx'
 import Testimonials from './Testimonials.jsx'
+import TextVideo from './TextVideo.jsx'
 import VideoReviews from './VideoReviews.jsx'
 
 /**
@@ -32,6 +34,8 @@ const SECTIONS = {
   logoGrid: LogoGrid,
   packageGrid: PackageGrid,
   offerCards: OfferCards,
+  textVideo: TextVideo,
+  awardBadges: AwardBadges,
 }
 
 export default function HomePage({ entry }) {

@@ -34,6 +34,7 @@ import {
   ROLES,
   THEME_COLORS,
 } from '../constants/index.js'
+import { awardBadgesPropsSchema, textVideoPropsSchema } from './page.js'
 import { fieldTypesFor, isFieldTypeAllowed, isResponsive } from '../field-types.js'
 /** ⚠️ `toc.js` top-level index me hai, `schemas/index.js` me nahi — cycle se bachne ke liye. */
 import { withHeadingIds } from '../toc.js'
@@ -592,5 +593,22 @@ describe('THEME_COLORS — admin ka Default rang site ke :root se milta hai (D-9
     expect(THEME_COLORS.blue500).toBe(token('blue-500'))
     expect(THEME_COLORS.blue600).toBe(token('blue-600'))
     expect(THEME_COLORS.blue900).toBe(token('blue-900'))
+    expect(THEME_COLORS.gold).toBe(token('gold'))
+  })
+})
+
+describe('Text with video + Award badges (D-96 §22–§23)', () => {
+  it('video link khaali ya https — kuch aur nahi', () => {
+    expect(textVideoPropsSchema.parse({}).videoUrl).toBe('')
+    expect(textVideoPropsSchema.parse({ videoUrl: 'https://vimeo.com/1' }).videoUrl).toBe(
+      'https://vimeo.com/1',
+    )
+    expect(() => textVideoPropsSchema.parse({ videoUrl: 'javascript:alert(1)' })).toThrow()
+    expect(textVideoPropsSchema.parse({}).imageSide).toBe('right')
+  })
+
+  it('badge ka rang sirf hex, khaali = theme ka sunehra', () => {
+    expect(awardBadgesPropsSchema.parse({}).badgeColor).toBe('')
+    expect(() => awardBadgesPropsSchema.parse({ badgeColor: 'red;x' })).toThrow()
   })
 })

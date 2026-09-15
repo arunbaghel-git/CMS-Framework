@@ -759,3 +759,121 @@ describe('Offer cards (D-96 §21)', () => {
     }
   })
 })
+
+describe('Text with video (D-96 §22)', () => {
+  const block = (props = {}) => ({
+    type: 'textVideo',
+    props: {
+      heading: 'About us',
+      text: '<p>We are a tour operator.</p><img src=x onerror=alert(1)>',
+      imageSide: 'left',
+      imageId: 'nahi-hai',
+      videoUrl: 'https://youtu.be/dQw4w9WgXcQ',
+      videoTitle: 'Our story — watch the video',
+      items: [
+        {
+          icon: 'star',
+          title: 'Quality',
+          text: 'Rated on <b>TripAdvisor</b><script>alert(1)</script><p>x</p>',
+          imageId: 'nahi-hai',
+        },
+        { icon: 'none', title: '', text: '' },
+      ],
+      ...props,
+    },
+  })
+
+  it('text saaf, point ki line inline, point ko id, khaali point gira, embed server se, imageId bahar nahi', async () => {
+    const created = (await createHome({ content: { version: 1, blocks: [block()] } })).body.data
+      .entry
+    const stored = (await Entry.findById(created.id).lean()).content.blocks[0].props
+    expect(stored.text).not.toMatch(/onerror/)
+    expect(stored.items[0].text).toContain('<b>TripAdvisor</b>')
+    expect(stored.items[0].text).not.toMatch(/<script|<p>/)
+    expect(stored.items[0].id).toBeTruthy()
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.props.imageSide).toBe('left')
+    expect(section.props.imageId).toBeUndefined()
+    expect(section.props.items).toHaveLength(1)
+    expect(section.props.items[0].imageId).toBeUndefined()
+    expect(section.data.image).toBeNull()
+    expect(section.data.embedUrl).toContain('youtube-nocookie.com/embed/dQw4w9WgXcQ')
+  })
+
+  it('khaali video link chalta hai — embed null (box sirf image)', async () => {
+    const created = (
+      await createHome({ content: { version: 1, blocks: [block({ videoUrl: '' })] } })
+    ).body.data.entry
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    expect(res.body.data.entry.blocks[0].data.embedUrl).toBeNull()
+  })
+
+  it('7 point, javascript: video link, galat side 4xx', async () => {
+    const many = Array.from({ length: 7 }, (_, i) => ({ title: `Point ${i}` }))
+    for (const bad of [
+      block({ items: many }),
+      block({ videoUrl: 'javascript:alert(1)' }),
+      block({ videoUrl: 'http://youtu.be/dQw4w9WgXcQ' }),
+      block({ imageSide: 'top' }),
+    ]) {
+      const res = await createHome({ content: { version: 1, blocks: [bad] } })
+      expect(res.status).toBeGreaterThanOrEqual(400)
+      expect(res.status).toBeLessThan(500)
+    }
+  })
+})
+
+describe('Award badges (D-96 §23)', () => {
+  it('badge ko id, rang lowercase, khaali badge gira, imageId bahar nahi', async () => {
+    const created = (
+      await createHome({
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'awardBadges',
+              props: {
+                heading: "TripAdvisor Travellers' Choice — 8 consecutive years",
+                description: '<p>Every year</p><script>alert(1)</script>',
+                badgeColor: '#F5A623',
+                items: [
+                  { title: '2018', label: 'Choice', imageId: 'nahi-hai' },
+                  { title: '', label: 'Choice', imageId: null },
+                ],
+              },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+    const stored = (await Entry.findById(created.id).lean()).content.blocks[0].props
+    expect(stored.badgeColor).toBe('#f5a623')
+    expect(stored.description).not.toMatch(/<script/)
+    expect(stored.items[0].id).toBeTruthy()
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.props.items).toEqual([
+      expect.objectContaining({ title: '2018', label: 'Choice', image: null }),
+    ])
+    expect(section.props.items[0].imageId).toBeUndefined()
+  })
+
+  it('25 badge aur galat rang 4xx', async () => {
+    const many = Array.from({ length: 25 }, (_, i) => ({ title: String(2000 + i) }))
+    for (const props of [{ items: many }, { badgeColor: 'gold; background:url(x)' }]) {
+      const res = await createHome({
+        content: { version: 1, blocks: [{ type: 'awardBadges', props }] },
+      })
+      expect(res.status).toBeGreaterThanOrEqual(400)
+      expect(res.status).toBeLessThan(500)
+    }
+  })
+})

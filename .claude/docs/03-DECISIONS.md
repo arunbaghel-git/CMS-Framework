@@ -8255,6 +8255,57 @@ rating sirf ek ki apni), phir client ke jawab:
 
 2 naye API test. Koi migration nahi.
 
+### 22. Section 10 — Text with video (client, usi din)
+
+Reference ka `20. ABOUT US + OUR STORY VIDEO`: baayein heading · paragraph · teen point (icon + title + line) ·
+button, daayein image box — ▶ aur caption, click pe video. Client: _"a two column layout to build"_. Pehle dhaancha
+dikhaya, teen sawaal pooche, phir code.
+
+| Sawaal | Client |
+| --- | --- |
+| Video link khaali ho to? | **box sirf image** — na ▶, na click |
+| Image baayein bhi? | haan — `imageSide: right | left` |
+| Points kitne? | **6** |
+
+- Section `textVideo` (label **Text with video** — "About us" ek site ka naam hai, §15): `background (default halka
+  neela) · heading · text (html) · items[] ≤6 {icon, imageId, title, text (inline)} · buttonLabel/buttonUrl ·
+  imageSide · imageId · videoUrl · videoTitle · videoText`
+- Points ka array **`items`** naam se — `normalizeContent()` home ke har repeater ko `items` pe hi id deta hai
+- `videoUrl` — khaali ya `https://` (`videoReviewSchema` wali hi rok; popup na bane to link `<a href>` me jaata hai)
+- Payload `resolveTextVideo()`: `data.image` (`large`) + `data.embedUrl` (`videoEmbedUrl()`), points ki image
+  `thumb`, khaali point gira, koi `imageId` bahar nahi
+- Box ke teen roop (`VideoBox.jsx`): embed → **button** + popup · doosra link (Instagram) → **link** naye tab me ·
+  khaali → saada image, opacity poori, parda sirf caption ho to
+- ⚠️ **Popup `VideoModal.jsx` me nikla** — pehle `VideoRail.jsx` ke andar tha; doosra section aate hi saanjha
+  (do copies ek din alag ho jaati hain). `onClose` ref me rakha — inline arrow ko effect ki dep banana har render
+  pe focus galat jagah bhejta
+- Tour ka `twoColumn` reuse **nahi** — wo do khaali HTML dabbe hain; points ki list aur video popup editor me client
+  khud nahi bana sakta
+- Naap: heading `--fs-h2`, paragraph aur point ki line **body font**, point title 14px, caption title 15px → **16px**
+  (§17 amendment wala niyam), 1024px se neeche ek column aur image hamesha text ke neeche (reference)
+
+### 23. Section 11 — Award badges (client, usi din)
+
+Reference ka `6. AWARD BADGES` / _TripAdvisor Travellers' Choice — 8 consecutive years_: heading + line beech me,
+neeche sunehre golon ki row (`2018` / `CHOICE`). Client: _"static section, tell me how to build"_.
+
+| Sawaal | Client |
+| --- | --- |
+| Badge ka rang | suggestion maana — **ek picker**, default sunehra |
+| Image ka option | **haan** — har badge pe |
+
+- Section `awardBadges` (label **Award badges**): `background (default halka neela) · heading · description ·
+  headingAlign (centre) · link · badgeColor · items[] ≤24 {imageId, title, label}`. **Static** — Offer cards jaisa
+- **Ek rang, baaki usse** — border, andar ka halka rang, saal ka gehra aur label ka beech ka `color-mix()` se.
+  Sunehre pe reference ke `#8a6212` / `#b08a3a` / `#fffdf7` ke kareeb. `THEME_COLORS.gold` juda (admin ka Default)
+- Image ho to gole me image (`contain`, border nahi), text uska `alt`; na image na saal to badge gira
+- ⚠️ **Render me bug pakda:** `.awb` pe `--awb-c: var(--gold)` default tha, jabki admin ka rang `section` pe aata hai —
+  bachche ka variable jeet-ta hai, yaani **chuna hua rang kabhi lagta hi nahi**. Tests pass the (wo DB/payload
+  dekhte hain). Ab default `var(--awb-c, var(--gold))` fallback me. Wahi D-86 wali shakl — "kuch na hona"
+- 8px label ke liye naya token `--fs-badge-label` (scale me itna chhota nahi tha)
+
+Dono ke 5 API test (asli DB) + 2 shared. Koi migration nahi. **1139 test** pass.
+
 ### 20. Package Type pe badge ka rang (client, usi din)
 
 Client: _"Package Type ke Add/Edit me color picker, Posts ki Category jaisa — badge ko apna rang mile"_.

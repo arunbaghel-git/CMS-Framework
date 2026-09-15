@@ -105,6 +105,8 @@ export const HOME_PAGE_BLOCK_TYPES = Object.freeze([
   'logoGrid',
   'packageGrid',
   'offerCards',
+  'textVideo',
+  'awardBadges',
 ])
 
 /**
@@ -406,6 +408,112 @@ export const offerCardsPropsSchema = z.object({
   /** Desktop pe ek baar me kitne card dikhein. */
   columns: z.coerce.number().int().min(2).max(6).default(4),
   items: z.array(offerCardSchema).max(OFFER_CARDS_MAX).default([]),
+})
+
+/** Text with video me kitne points — reference me teen; 6 client ne rakha (15 Sep, D-96 §22). */
+export const TEXT_VIDEO_POINTS_MAX = 6
+
+/**
+ * Video ka link — **khaali, ya `https://`** (D-96 §22).
+ *
+ * Khaali = box sirf image (client). `https` ki shart wahi jo `videoReviewSchema.videoUrl` pe hai: popup na
+ * bane (Instagram…) to link `<a href>` me jaata hai, aur `javascript:` wahan pahunchna hi nahi chahiye.
+ */
+const optionalVideoUrl = z
+  .string()
+  .trim()
+  .max(500)
+  .refine((v) => v === '' || /^https:\/\/\S+$/.test(v), 'The video link must start with https://')
+  .default('')
+
+/**
+ * Ek point — icon · title · chhoti line (reference ka `.about__pt`: `Quality` / `17 years` / `Experts`).
+ *
+ * Icon Info cards jaisa: list se, ya upload — **upload jeet-ti hai**. Line **inline** profile (bold, italic,
+ * link) — wahi tark jo `infoCardSchema.text` pe: ek-do line hai, `<p>`/list uska layout todte.
+ */
+export const textVideoPointSchema = z.object({
+  id: z.string().min(1).optional(),
+  icon: z.enum(/** @type {[string, ...string[]]} */ (ICONS)).default('none'),
+  imageId: z.string().trim().max(60).nullable().default(null),
+  title: z.string().trim().max(120).default(''),
+  text: inlineHtmlSchema.pipe(z.string().max(600)).default(''),
+})
+
+/**
+ * `Text with video` — reference ka `20. ABOUT US + OUR STORY VIDEO` (client, 15 Sep, D-96 §22).
+ *
+ * ```
+ * baayein                         daayein (imageSide se ulta bhi)
+ * heading                         image  ▶  (video ho to)
+ * text (editor)                   caption: title + chhoti line
+ * points[] ≤6 (drag)
+ * button (label + link)
+ * ```
+ *
+ * Naam `About us` nahi — CMS har client ka hai (D-96 §15). Client ke teen jawab:
+ *
+ * | Sawaal | Jawab |
+ * | --- | --- |
+ * | Video link khaali? | box **sirf image** — ▶ nahi, click nahi |
+ * | Image baayein bhi? | haan — `imageSide` |
+ * | Points kitne? | 6 |
+ *
+ * ⚠️ Tour ka `twoColumn` reuse **nahi** — wo do khaali HTML dabbe hain; points ki list aur video popup client
+ * editor me khud nahi bana sakta.
+ *
+ * Points ka array `items` naam se — `normalizeContent()` har home repeater ko `items` pe hi id deta hai.
+ */
+export const textVideoPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  heading: z.string().trim().max(200).default(''),
+  text: htmlSchema.pipe(z.string().max(3000)).default(''),
+  items: z.array(textVideoPointSchema).max(TEXT_VIDEO_POINTS_MAX).default([]),
+  /** Dono chahiye, warna button nahi (D-30). */
+  buttonLabel: z.string().trim().max(80).default(''),
+  buttonUrl: z.string().trim().max(500).default(''),
+  /** Image/video ka column — desktop pe. Phone pe hamesha text ke neeche (reference). */
+  imageSide: z.enum(['right', 'left']).default('right'),
+  imageId: z.string().trim().max(60).nullable().default(null),
+  videoUrl: optionalVideoUrl,
+  /** Box ke neeche ki caption — `Our story — watch the video` + `… · 4:12`. Dono optional. */
+  videoTitle: z.string().trim().max(120).default(''),
+  videoText: z.string().trim().max(200).default(''),
+})
+
+/** Award badges me kitne badge — reference me aath; 24 teen line ki chhat. */
+export const AWARD_BADGES_MAX = 24
+
+/**
+ * Ek badge — bada text (`2018`), chhota text (`Choice`), ya **image** (client, 15 Sep, D-96 §23).
+ *
+ * Image ho to gole me image (TripAdvisor ka asli badge), aur dono text uska `alt`. Image na ho to reference
+ * jaisa text wala gola. Dono na hon to badge gira (D-30).
+ */
+export const awardBadgeSchema = z.object({
+  id: z.string().min(1).optional(),
+  imageId: z.string().trim().max(60).nullable().default(null),
+  title: z.string().trim().max(20).default(''),
+  label: z.string().trim().max(20).default(''),
+})
+
+/**
+ * `Award badges` — reference ka `6. AWARD BADGES` / _TripAdvisor Travellers' Choice — 8 consecutive years_
+ * (client, 15 Sep, D-96 §23). **Static** — badges section me hi, master list nahi (Offer cards jaisa).
+ *
+ * `badgeColor` — ek rang, baaki theme usi se banati hai (patli border, halka andar ka rang, gehra saal,
+ * beech ka label). Khaali = reference ka sunehra (`--gold`). Client ne suggestion maana — doosre client ka
+ * award apne rang me.
+ */
+export const awardBadgesPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+  headingAlign: z.enum(['center', 'left']).default('center'),
+  linkLabel: z.string().trim().max(80).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+  badgeColor: sectionBackgroundSchema,
+  items: z.array(awardBadgeSchema).max(AWARD_BADGES_MAX).default([]),
 })
 
 /** Home ke Package grid me ek waqt me kitne card — reference me solah (client, 15 Sep, D-96 §19). */
@@ -965,6 +1073,8 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   logoGrid: logoGridPropsSchema,
   packageGrid: packageGridPropsSchema,
   offerCards: offerCardsPropsSchema,
+  textVideo: textVideoPropsSchema,
+  awardBadges: awardBadgesPropsSchema,
 })
 
 /**

@@ -767,6 +767,8 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
 - **Package grid** section: Background · Heading (position + link) · Show Package Type filter — cards apne aap (saare published, naye pehle, 16)
 - **Packages ▸ Package Type** me **Badge colour** (picker + Use automatic) — package card ke badge ka rang (D-96 §20)
 - **Offer cards** section: Background · Heading (position + link) · Card look (Card style · Image shape · Layout slider/grid · Cards visible) · Cards (⠿ — Image · Title · Small line · Badge + colour · Chip 1–3 · Price · Price note · Old price · Rating · Link), 24 tak
+- **Text with video** section: Background · Text (Heading · Text editor) · Points (⠿ — Icon / own image · Title · Description), 6 tak · Button label + link · Image or video (Side Right/Left · Image · Video link · Caption title + text)
+- **Award badges** section: Background · Heading (position + link) · Badge colour · Badges (⠿ row — image · big text · small text), 24 tak
 - **Reviews** screen me do tab — **Text reviews** · **Video reviews** (Image · Video link · Title · Package name)
 
 ### Dropdown ki chaudai — sab screens (`primitives.css`)

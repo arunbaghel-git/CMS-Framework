@@ -253,6 +253,9 @@ dikhta hai.
 | 13 | **Logo grid** (§17): chaude/lambe logo tile me fit, heading neeche, bina image ke text tile, 6/4/3 column, closing line; admin ki patli row me image dabba | Tests + compile se verify |
 | 14 | **Package grid** (§19): kai badge wrap, discount, pills se chhaantna, 16 ki chhat; **Tour page ka Package Type filter** (bug fix) | Tests + compile se verify |
 | 15 | **Offer cards** (§21): slider scroll + snap (desktop/tablet/phone), dono card style, 3:2/16:9, background card ka "from ₹" | Tests + compile se verify |
+| 16 | **Text with video** (§22): do column 1.05:0.95, Side Left, 1024px se neeche image text ke neeche; YouTube popup (Esc/parda/focus wapas), Instagram link naye tab, khaali link pe saada image (na ▶, na parda); caption | Tests + sample data ka server render (chaaron haalat) |
+| 17 | **Award badges** (§23): gola 74/60px, badge colour badalne pe border/saal/label ka rang, upload wali badge image gole me, row wrap | Tests + sample render. ⚠️ Rang ka bug render se pakda (neeche ka variable dhak raha tha) — theek |
+| 18 | **Customer reviews ka popup** abhi bhi chalta hai — popup `VideoModal.jsx` me nikla (§22) | Refactor, bartaav wahi; browser me nahi dekha |
 
 ---
 

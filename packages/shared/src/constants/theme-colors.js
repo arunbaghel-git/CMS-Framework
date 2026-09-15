@@ -24,4 +24,6 @@ export const THEME_COLORS = Object.freeze({
   blue600: '#1668ae',
   /** `--blue-900` — hero ka background */
   blue900: '#0b2b4a',
+  /** `--gold` — Award badges ka gola (D-96 §23) */
+  gold: '#f5a623',
 })

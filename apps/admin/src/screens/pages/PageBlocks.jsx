@@ -1,4 +1,5 @@
 import {
+  AWARD_BADGES_MAX,
   ENTRY_LIST_MAX_LIMIT,
   ICONS,
   ICON_LABELS,
@@ -10,6 +11,7 @@ import {
   OFFER_CARD_SHAPES,
   PACKAGE_GRID_MAX,
   TESTIMONIALS_MAX,
+  TEXT_VIDEO_POINTS_MAX,
   THEME_COLORS,
   VIDEO_REVIEWS_MAX,
   PAGE_BLOCK_TYPES,
@@ -55,6 +57,8 @@ const BLOCK_LABEL = {
   logoGrid: 'Logo grid',
   packageGrid: 'Package grid',
   offerCards: 'Offer cards',
+  textVideo: 'Text with video',
+  awardBadges: 'Award badges',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -73,6 +77,8 @@ const BLOCK_CLASS = {
   logoGrid: 'logos',
   packageGrid: 'list',
   offerCards: 'image',
+  textVideo: 'two',
+  awardBadges: 'logos',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -125,6 +131,29 @@ function emptyBlock(type) {
       shape: 'photo',
       layout: 'slider',
       columns: 4,
+      items: [],
+    },
+    textVideo: {
+      background: '',
+      heading: '',
+      text: '',
+      items: [],
+      buttonLabel: '',
+      buttonUrl: '',
+      imageSide: 'right',
+      imageId: null,
+      videoUrl: '',
+      videoTitle: '',
+      videoText: '',
+    },
+    awardBadges: {
+      background: '',
+      heading: '',
+      description: '',
+      headingAlign: 'center',
+      linkLabel: '',
+      linkUrl: '',
+      badgeColor: '',
       items: [],
     },
     packageGrid: {
@@ -216,6 +245,10 @@ function summarize(block) {
       return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
     case 'offerCards':
       return `${p.heading || 'Offer cards'} — ${(p.items ?? []).length} card(s)`
+    case 'textVideo':
+      return `${p.heading || 'Text with video'} — ${(p.items ?? []).length} point(s)${p.videoUrl ? ' · video' : ''}`
+    case 'awardBadges':
+      return `${p.heading || 'Award badges'} — ${(p.items ?? []).length} badge(s)`
     case 'packageGrid':
       return `${p.heading || 'Package grid'} — latest published packages`
     case 'logoGrid':
@@ -2689,7 +2722,366 @@ function OfferCardsBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * List ke kram ka saanjha hisaab — ek item patch, drag se move. Text with video aur Award badges dono pe.
+ * (Purane section editors me yahi code apna-apna hai; unhe chhua nahi gaya.)
+ */
+function useItemList(props, onChange, disabled) {
+  const items = props.items ?? []
+  const setItems = (next) => onChange({ ...props, items: next })
+  const patchItem = (i, patch) =>
+    setItems(items.map((item, idx) => (idx === i ? { ...item, ...patch } : item)))
+  const moveItem = (from, to) => {
+    if (to < 0 || to >= items.length) return
+    const next = [...items]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    setItems(next)
+  }
+  const { handleProps, rowProps } = useListDrag(moveItem, !disabled)
+
+  return { items, setItems, patchItem, handleProps, rowProps }
+}
+
+const emptyPoint = () => ({ id: newId(), icon: 'none', imageId: null, title: '', text: '' })
+
+/**
+ * `Text with video` — reference ka About us + Our story video (client, 15 Sep, D-96 §22).
+ *
+ * Panel: **Text** (heading · editor · points drag se · button) aur **Image or video** (kis taraf · image ·
+ * video link · caption). Video link khaali = box sirf image (client).
+ */
+function TextVideoBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const { items, setItems, patchItem, handleProps, rowProps } = useItemList(
+    props,
+    onChange,
+    disabled,
+  )
+
+  const media = useMediaById([props.imageId, ...items.map((item) => item.imageId)].filter(Boolean))
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback={THEME_COLORS.blue50}
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <label className="blk-sublabel">Text</label>
+      <div className="field">
+        <label>Heading</label>
+        <input
+          className="inp"
+          value={props.heading ?? ''}
+          onChange={(e) => set({ heading: e.target.value })}
+          disabled={disabled}
+        />
+      </div>
+      <div className="field">
+        <label>Text</label>
+        <HtmlEditor
+          value={props.text ?? ''}
+          onChange={(text) => set({ text })}
+          disabled={disabled}
+          height={170}
+        />
+      </div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Points
+      </label>
+      {items.map((item, i) => (
+        <div className="info-card" key={item.id ?? i} {...rowProps(i)}>
+          <div className="info-card__head">
+            {!disabled && (
+              <span className="grip" {...handleProps(i)}>
+                ⠿
+              </span>
+            )}
+            <b>{item.title || `Point ${i + 1}`}</b>
+            {!disabled && (
+              <button
+                className="blk-x"
+                type="button"
+                title="Remove point"
+                onClick={() => {
+                  if (!window.confirm('Remove this point?')) return
+                  setItems(items.filter((_, idx) => idx !== i))
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="row2">
+            <div className="field">
+              <label>Icon</label>
+              <select
+                className="sel"
+                value={item.icon ?? 'none'}
+                onChange={(e) => patchItem(i, { icon: e.target.value })}
+                disabled={disabled}
+              >
+                {ICONS.map((icon) => (
+                  <option key={icon} value={icon}>
+                    {ICON_LABELS[icon] ?? icon}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <MediaDrop
+              label="Or your own image"
+              hint="Optional — shown instead of the icon."
+              media={media[item.imageId]}
+              onSelect={(chosen) => patchItem(i, { imageId: chosen.id })}
+              onClear={() => patchItem(i, { imageId: null })}
+            />
+          </div>
+
+          <div className="field">
+            <label>Title</label>
+            <input
+              className="inp"
+              value={item.title ?? ''}
+              onChange={(e) => patchItem(i, { title: e.target.value })}
+              disabled={disabled}
+            />
+          </div>
+
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label>Description</label>
+            <HtmlEditor
+              value={item.text ?? ''}
+              onChange={(text) => patchItem(i, { text })}
+              disabled={disabled}
+              height={110}
+            />
+          </div>
+        </div>
+      ))}
+
+      {!disabled && items.length < TEXT_VIDEO_POINTS_MAX && (
+        <button
+          className="btn btn-sm"
+          type="button"
+          onClick={() => setItems([...items, emptyPoint()])}
+        >
+          ＋ Add point
+        </button>
+      )}
+      <div className="hint">
+        Up to {TEXT_VIDEO_POINTS_MAX} points. In the description only bold, italic and links are
+        kept. A point with nothing filled in does not appear.
+      </div>
+
+      <div className="row2" style={{ marginTop: 14 }}>
+        <div className="field">
+          <label>Button label</label>
+          <input
+            className="inp"
+            placeholder="Optional — e.g. Know more"
+            value={props.buttonLabel ?? ''}
+            onChange={(e) => set({ buttonLabel: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+        <div className="field">
+          <label>Button link</label>
+          <input
+            className="inp"
+            placeholder="/about-us"
+            value={props.buttonUrl ?? ''}
+            onChange={(e) => set({ buttonUrl: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+      <div className="hint">The button shows only when both are filled in.</div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Image or video
+      </label>
+      <div className="row2">
+        <div className="field">
+          <label>Side</label>
+          <select
+            className="sel"
+            value={props.imageSide ?? 'right'}
+            onChange={(e) => set({ imageSide: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="right">Right</option>
+            <option value="left">Left</option>
+          </select>
+          <div className="hint">On desktop. Tablets and phones show it under the text.</div>
+        </div>
+        <MediaDrop
+          label="Image"
+          media={media[props.imageId]}
+          onSelect={(chosen) => set({ imageId: chosen.id })}
+          onClear={() => set({ imageId: null })}
+        />
+      </div>
+
+      <div className="field">
+        <label>Video link</label>
+        <input
+          className="inp"
+          placeholder="Optional — e.g. https://youtu.be/…"
+          value={props.videoUrl ?? ''}
+          onChange={(e) => set({ videoUrl: e.target.value })}
+          disabled={disabled}
+        />
+        <div className="hint">
+          YouTube and Vimeo links play in a popup; other links open in a new tab. Leave it empty and
+          the box is just the image — no play button.
+        </div>
+      </div>
+
+      <div className="row2">
+        <div className="field">
+          <label>Caption title</label>
+          <input
+            className="inp"
+            placeholder="Optional — e.g. Our story — watch the video"
+            value={props.videoTitle ?? ''}
+            onChange={(e) => set({ videoTitle: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+        <div className="field">
+          <label>Caption text</label>
+          <input
+            className="inp"
+            placeholder="Optional — the small line under it"
+            value={props.videoText ?? ''}
+            onChange={(e) => set({ videoText: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+      <div className="hint">
+        The caption sits at the bottom of the image. Leave both empty and nothing shows there.
+      </div>
+    </>
+  )
+}
+
+/**
+ * `Award badges` — reference ka TripAdvisor Travellers&rsquo; Choice row (client, 15 Sep, D-96 §23).
+ *
+ * Har badge ek patli row (Logo grid jaisi): ⠿ · image · bada text · chhota text · ✕. Rang poore section ka ek.
+ */
+function AwardBadgesBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const { items, setItems, patchItem, handleProps, rowProps } = useItemList(
+    props,
+    onChange,
+    disabled,
+  )
+
+  const media = useMediaById(items.map((item) => item.imageId).filter(Boolean))
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback={THEME_COLORS.blue50}
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <label className="blk-sublabel">Heading</label>
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+      <HeadingPositionFields props={props} onChange={onChange} disabled={disabled} />
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Badges
+      </label>
+      <div className="row2">
+        <ColourField
+          label="Badge colour"
+          value={props.badgeColor}
+          fallback={THEME_COLORS.gold}
+          onChange={(badgeColor) => set({ badgeColor })}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="logo-edit">
+        {items.map((item, i) => (
+          <div className="logo-edit__row badge-edit__row" key={item.id ?? i} {...rowProps(i)}>
+            {!disabled && (
+              <span className="grip" {...handleProps(i)}>
+                ⠿
+              </span>
+            )}
+            <div className="logo-edit__img">
+              <MediaDrop
+                label=""
+                media={media[item.imageId]}
+                onSelect={(chosen) => patchItem(i, { imageId: chosen.id })}
+                onClear={() => patchItem(i, { imageId: null })}
+              />
+            </div>
+            <input
+              className="inp"
+              placeholder="2018"
+              value={item.title ?? ''}
+              onChange={(e) => patchItem(i, { title: e.target.value })}
+              disabled={disabled}
+              aria-label={`Badge ${i + 1} big text`}
+            />
+            <input
+              className="inp"
+              placeholder="Choice"
+              value={item.label ?? ''}
+              onChange={(e) => patchItem(i, { label: e.target.value })}
+              disabled={disabled}
+              aria-label={`Badge ${i + 1} small text`}
+            />
+            {!disabled && (
+              <button
+                className="blk-x"
+                type="button"
+                title="Remove badge"
+                onClick={() => {
+                  if (!window.confirm('Remove this badge?')) return
+                  setItems(items.filter((_, idx) => idx !== i))
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      {!disabled && items.length < AWARD_BADGES_MAX && (
+        <button
+          className="btn btn-sm"
+          type="button"
+          onClick={() => setItems([...items, { id: newId(), imageId: null, title: '', label: '' }])}
+        >
+          ＋ Add badge
+        </button>
+      )}
+      <div className="hint">
+        Each badge is a circle with big text (&ldquo;2018&rdquo;) and small text
+        (&ldquo;Choice&rdquo;) in the badge colour. Add an image — such as the award&rsquo;s own
+        badge — and it is shown instead of the circle, with the text read out for it. Up to{' '}
+        {AWARD_BADGES_MAX} badges.
+      </div>
+    </>
+  )
+}
+
 const EDITORS = {
+  textVideo: TextVideoBlock,
+  awardBadges: AwardBadgesBlock,
   offerCards: OfferCardsBlock,
   packageGrid: PackageGridBlock,
   logoGrid: LogoGridBlock,

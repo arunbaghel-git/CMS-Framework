@@ -199,6 +199,11 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          offerCards (§21): heading/link · cardStyle · shape · layout ·
                          columns · items[{imageId, badge, badgeColor, title, subtitle,
                          chips[]≤3, price(text), oldPrice, priceNote, rating, url}]≤24
+                         textVideo (§22): heading · text(html) · items[{icon, imageId,
+                         title, text(inline)}]≤6 · buttonLabel/Url · imageSide · imageId ·
+                         videoUrl(''|https) · videoTitle · videoText
+                         awardBadges (§23): heading/link · badgeColor ·
+                         items[{imageId, title, label}]≤24
                          packageGrid (§19): heading/link · showFilter — cards DB se
                          (saare published package, naye pehle), koi chunav store nahi
                          logoGrid (§17): heading/link · items[{imageId, title}]≤48 ·

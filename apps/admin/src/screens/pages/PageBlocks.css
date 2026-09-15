@@ -407,3 +407,18 @@
     grid-column: 2 / 3;
   }
 }
+
+/* Home ka Award badges (D-96 §23) — Logo grid ki row, par do text khaane: bada (2018) · chhota (Choice) */
+.badge-edit__row {
+  grid-template-columns: auto 180px 1fr 1fr auto;
+}
+
+@media (max-width: 700px) {
+  .badge-edit__row {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .badge-edit__row .inp {
+    grid-column: 2 / 3;
+  }
+}

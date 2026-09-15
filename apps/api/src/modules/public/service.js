@@ -2115,6 +2115,8 @@ async function resolveHomeSection(block, siteId, ctx = {}) {
   if (block?.type === 'imageCards') return resolveImageCards(block, siteId)
   if (block?.type === 'testimonials') return resolveTestimonials(block, siteId)
   if (block?.type === 'logoGrid') return resolveLogoGrid(block, siteId)
+  if (block?.type === 'textVideo') return resolveTextVideo(block, siteId)
+  if (block?.type === 'awardBadges') return resolveAwardBadges(block, siteId)
   if (block?.type !== 'heroForm') return block
 
   const { imageId, mobileImageId, formId, ...props } = block.props ?? {}
@@ -2190,6 +2192,56 @@ async function resolvePackageGrid(block, siteId, ctx) {
   ])
 
   return { ...block, data: { cards, facets, currency: ctx.currency ?? 'INR' } }
+}
+
+/**
+ * `Text with video` — box ki image, video ka embed, aur points ke icon image (D-96 §22).
+ *
+ * - `embedUrl` server pe (`videoEmbedUrl()`) — YouTube/Vimeo pe popup; baaki link pe `null` aur theme naye tab
+ *   me kholti hai (Customer reviews wala hi bartaav). **Khaali `videoUrl` = sirf image** (client)
+ * - `imageId` bahar nahi; khaali point (na title, na line, na icon, na image) gira (D-30)
+ */
+async function resolveTextVideo(block, siteId) {
+  const { imageId, ...props } = block.props ?? {}
+
+  const [image, items] = await Promise.all([
+    /** `large` — box desktop pe ~560px chauda, retina pe 2x; `srcset` saath (D-84). */
+    toDisplayImage(imageId, 'large', siteId),
+    Promise.all(
+      (props.items ?? []).map(async ({ imageId: pointImageId, ...point }) => ({
+        ...point,
+        /** `thumb` — icon 19px ka hai. */
+        image: await toDisplayImage(pointImageId, 'thumb', siteId),
+      })),
+    ),
+  ])
+
+  return {
+    ...block,
+    props: {
+      ...props,
+      items: items.filter((p) => p.title || p.text || p.image || (p.icon && p.icon !== 'none')),
+    },
+    data: { image, embedUrl: videoEmbedUrl(props.videoUrl) },
+  }
+}
+
+/**
+ * `Award badges` — badge ki image resolve (D-96 §23). `thumb` — gola 74px ka.
+ * `imageId` bahar nahi; na image na saal wala badge gira (D-30).
+ */
+async function resolveAwardBadges(block, siteId) {
+  const items = await Promise.all(
+    (block.props?.items ?? []).map(async ({ imageId, ...badge }) => ({
+      ...badge,
+      image: await toDisplayImage(imageId, 'thumb', siteId),
+    })),
+  )
+
+  return {
+    ...block,
+    props: { ...block.props, items: items.filter((badge) => badge.image || badge.title) },
+  }
 }
 
 /**
