@@ -7715,7 +7715,7 @@ a.imcc:hover img {
   display: grid;
   place-items: center;
   background: linear-gradient(135deg, var(--blue-500), var(--blue-900));
-  color: #fff;
+  color: var(--muted);
   font-size: var(--fs-base);
   font-weight: var(--fw-heading);
 }
