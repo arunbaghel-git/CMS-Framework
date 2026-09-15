@@ -428,12 +428,15 @@ export async function resolvePublicPath(
    * ⚠️ **`post` ki apni branch hai, `PAGE_TYPES` me nahi** (spec 008). Uske paas prev/next,
    * related aur TOC hain jo kisi page ke paas nahi — poora tark `toPublicPost()` ke sar pe.
    */
+  /** ⚠️ `homePage` ki bhi apni branch (D-96) — na breadcrumb, na byline, na sidebar. */
   const entryPayload =
     entry.type === 'post'
       ? await toPublicPost(entry, siteId, locale)
-      : PAGE_TYPES.has(entry.type)
-        ? await toPublicPage(entry, siteId, locale)
-        : await toPublicEntry(entry, siteId, locale)
+      : entry.type === 'homePage'
+        ? await toPublicHome(entry, siteId)
+        : PAGE_TYPES.has(entry.type)
+          ? await toPublicPage(entry, siteId, locale)
+          : await toPublicEntry(entry, siteId, locale)
 
   return { kind: 'entry', entry: entryPayload }
 }
@@ -2073,6 +2076,66 @@ async function toPublicPage(doc, siteId, locale) {
      * jo `sectionLabels` aur route strip pe hone se bachaya gaya tha (D-65, D-51).
      */
     blocks,
+  }
+}
+
+/**
+ * Home page ka ek section → theme ke liye tayyar shape (D-96).
+ *
+ * `props` waise ke waise jaate hain, aur jo **resolve** karna pade wo `data` me — wahi batwara jo
+ * `packageList`/`postList` pe hai (`resolvePageBlocks()`): props batate hain client ne kya chuna,
+ * data wo hai jo us chunav se nikla.
+ *
+ * ⚠️ **`imageId`/`formId` theme tak nahi jaate** — theme ke paas id ka koi kaam nahi (D-88 wala
+ * `sidebarId` tark). Chhoot jaane ka lakshan "kuch na hona" hota hai, isliye props se hataye gaye.
+ */
+async function resolveHomeSection(block, siteId) {
+  if (block?.type !== 'heroForm') return block
+
+  const { imageId, mobileImageId, formId, ...props } = block.props ?? {}
+
+  const [image, mobileImage, form] = await Promise.all([
+    /**
+     * `large` — hero poori chaudai ka hai. `srcset` saath aata hai (D-84), to phone apna chhota
+     * variant khud chunta hai; mobile image **alag crop** ke liye hai, size ke liye nahi.
+     */
+    toDisplayImage(imageId, 'large', siteId),
+    toDisplayImage(mobileImageId, 'large', siteId),
+    /** Draft, delete ho chuka, ya chuna hi nahi — `null`, aur card gayab (D-42 §2). */
+    getPublicFormById(formId, siteId),
+  ])
+
+  return {
+    ...block,
+    props: {
+      ...props,
+      /** Khaali `value` wale number page pe nahi aate — admin hamesha chaar row bhejta hai. */
+      stats: (props.stats ?? []).filter((s) => s?.value),
+    },
+    data: { image, mobileImage, form },
+  }
+}
+
+/**
+ * Home page ka public payload — `home-nav-v3.html` (D-96).
+ *
+ * ⚠️ `toPublicPage()` **reuse nahi** kiya: wahan ka aadha kaam (breadcrumb, byline ka author,
+ * banner ka fallback, TOC, sidebar widgets) home pe bemaani hai, aur har resolve pe chalta. Wahi
+ * galti jo Slice B me `toPublicEntry()` pe pakdi gayi thi.
+ */
+async function toPublicHome(doc, siteId) {
+  return {
+    id: String(doc._id),
+    type: doc.type,
+    title: doc.title,
+    slug: doc.slug,
+    path: doc.path,
+    excerpt: doc.excerpt ?? '',
+    seo: doc.seo ?? {},
+    updatedAt: doc.updatedAt ?? null,
+    blocks: await Promise.all(
+      (doc.content?.blocks ?? []).map((b) => resolveHomeSection(b, siteId)),
+    ),
   }
 }
 

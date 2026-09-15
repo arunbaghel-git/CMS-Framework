@@ -4,10 +4,12 @@ import {
   POST_LIST_MAX_FEATURED,
   POST_LIST_PER_PAGE_DEFAULT,
 } from '@cms/shared'
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 
+import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import { useListDrag } from '../../lib/drag-list.js'
-import { useEntryList } from '../../lib/use-entries.js'
+import { useEntryList, useMediaById } from '../../lib/use-entries.js'
+import { useForms } from '../forms/useForms.js'
 import HtmlEditor from '../packages/HtmlEditor.jsx'
 import { useTaxonomyList } from '../packages/usePackages.js'
 import './PageBlocks.css'
@@ -32,6 +34,7 @@ const BLOCK_LABEL = {
   packageList: 'Package list',
   postList: 'Post list',
   faqs: 'FAQs',
+  heroForm: 'Hero with form',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -42,6 +45,7 @@ const BLOCK_CLASS = {
   packageList: 'list',
   postList: 'list',
   faqs: 'faq',
+  heroForm: 'hero',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -64,6 +68,18 @@ function emptyBlock(type) {
     packageList: {},
     postList: { heading: '', subheading: '', linkLabel: '', linkUrl: '', featuredIds: [] },
     faqs: { heading: '', description: '', items: [] },
+    heroForm: {
+      background: '',
+      imageId: null,
+      mobileImageId: null,
+      title: '',
+      description: '',
+      stats: [],
+      ribbon: '',
+      formId: '',
+      formHeading: '',
+      formDescription: '',
+    },
   }[type]
 
   return { id: newId(), type, props: props ?? {} }
@@ -98,6 +114,12 @@ function summarize(block) {
       return p.heading || 'Package list'
     case 'faqs':
       return `${p.heading || 'FAQs'} — ${(p.items ?? []).length} question(s)`
+    case 'heroForm': {
+      const text = String(p.title ?? '')
+        .replace(/<[^>]*>/g, '')
+        .trim()
+      return text || 'No title yet'
+    }
     default:
       return block.type
   }
@@ -1041,7 +1063,222 @@ function FaqsBlock({ props, onChange, disabled }) {
   )
 }
 
+/* ── home page ke sections (D-96) ──────────────────────────────────────────── */
+
+/** Hero ka apna rang — reference ka `.hero` (`--blue-900`). Khaali background pe yahi lagta hai. */
+const HERO_DEFAULT_BACKGROUND = '#0b2b4a'
+
+/**
+ * Section ka background — **koi bhi rang, picker se** (client, 15 Sep, D-96).
+ *
+ * Har home section ke panel me sabse upar yahi. `<input type="color">` khaali value rakh hi nahi
+ * sakta, isliye "Use default" ka alag button — warna ek baar rang chunne ke baad section ke apne
+ * rang pe lautne ka raasta nahi bachta (wahi jo category ke badge rang pe hai, D-93).
+ */
+function SectionBackground({ value, fallback, onChange, disabled }) {
+  return (
+    <div className="field">
+      <label>Background colour</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <input
+          type="color"
+          value={value || fallback}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          aria-label="Background colour"
+        />
+        <span className="muted">{value || `Default (${fallback})`}</span>
+        {value && !disabled && (
+          <button className="btn btn-sm btn-plain" type="button" onClick={() => onChange('')}>
+            Use default
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * `Hero with form` — `home-nav-v3.html` ka `3. HERO` (client, 15 Sep).
+ *
+ * ⚠️ **Form yahin chunta hai, sidebar se nahi** — hero me ek hi card ki jagah hai. Dropdown me
+ * sirf `active` form (wahi rok jo sidebar ke widget pe hai): draft form payload me jaata hi nahi,
+ * to use chunne dena jhootha control hota.
+ *
+ * ⚠️ Button ka text **form ki setting** hai (`Enquiry Forms ▸ Button label`), yahan nahi — client:
+ * _"future me helpful ho"_. Isliye hint me uska raasta likha hai.
+ */
+function HeroFormBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+
+  const media = useMediaById([props.imageId, props.mobileImageId].filter(Boolean))
+
+  /** ⚠️ Memo zaroori — `useForms` ki dep query ki identity hai, naya object har render pe loop. */
+  const formQuery = useMemo(() => ({ status: 'active', limit: 200 }), [])
+  const { data: forms, loading: formsLoading } = useForms(formQuery)
+
+  const stats = props.stats ?? []
+  const setStat = (i, key, value) =>
+    set({
+      stats: Array.from({ length: 4 }, (_, idx) => {
+        const row = stats[idx] ?? { value: '', label: '' }
+        return idx === i ? { ...row, [key]: value } : row
+      }),
+    })
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback={HERO_DEFAULT_BACKGROUND}
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <div className="row2">
+        <MediaDrop
+          label="Desktop image"
+          hint="The photo behind the hero."
+          media={media[props.imageId]}
+          onSelect={(chosen) => set({ imageId: chosen.id })}
+          onClear={() => set({ imageId: null })}
+        />
+        <MediaDrop
+          label="Mobile image"
+          hint="Optional — leave it empty and the desktop image is used."
+          media={media[props.mobileImageId]}
+          onSelect={(chosen) => set({ mobileImageId: chosen.id })}
+          onClear={() => set({ mobileImageId: null })}
+        />
+      </div>
+
+      <div className="field">
+        <label>Title</label>
+        <HtmlEditor
+          value={props.title ?? ''}
+          onChange={(title) => set({ title })}
+          disabled={disabled}
+          height={150}
+        />
+        <div className="hint">
+          The page’s H1. <b>Italic</b> marks the part shown in the accent colour. Only bold, italic
+          and links are kept — headings, lists and images are dropped when you save.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Description</label>
+        <HtmlEditor
+          value={props.description ?? ''}
+          onChange={(description) => set({ description })}
+          disabled={disabled}
+          height={130}
+        />
+      </div>
+
+      <label className="blk-sublabel">Stats</label>
+      {Array.from({ length: 4 }, (_, i) => {
+        const row = stats[i] ?? {}
+        return (
+          <div className="row2" key={i}>
+            <div className="field">
+              <label>Value</label>
+              <input
+                className="inp"
+                placeholder={i === 0 ? '17 yrs' : ''}
+                value={row.value ?? ''}
+                onChange={(e) => setStat(i, 'value', e.target.value)}
+                disabled={disabled}
+              />
+            </div>
+            <div className="field">
+              <label>Label</label>
+              <input
+                className="inp"
+                placeholder={i === 0 ? 'Operating from Port Blair' : ''}
+                value={row.label ?? ''}
+                onChange={(e) => setStat(i, 'label', e.target.value)}
+                disabled={disabled}
+              />
+            </div>
+          </div>
+        )
+      })}
+      <div className="hint">A row with an empty value does not appear on the page.</div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Form card
+      </label>
+
+      <div className="row2">
+        <div className="field">
+          <label>Form</label>
+          <select
+            className="sel"
+            value={props.formId ?? ''}
+            onChange={(e) => set({ formId: e.target.value })}
+            disabled={disabled || formsLoading}
+          >
+            <option value="">{formsLoading ? 'Loading…' : '— choose a form —'}</option>
+            {forms.map((form) => (
+              <option key={form.id} value={form.id}>
+                {form.name}
+              </option>
+            ))}
+          </select>
+          {!formsLoading && forms.length === 0 && (
+            <div className="hint">
+              No active forms yet. Create one under <b>Enquiry Forms</b>, then set it to Active.
+            </div>
+          )}
+        </div>
+
+        <div className="field">
+          <label>Ribbon</label>
+          <input
+            className="inp"
+            placeholder="Free · No obligation"
+            value={props.ribbon ?? ''}
+            onChange={(e) => set({ ribbon: e.target.value })}
+            disabled={disabled}
+          />
+          <div className="hint">
+            The small green label on top of the card. Leave it empty to hide it.
+          </div>
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Heading</label>
+        <input
+          className="inp"
+          placeholder="Plan your Andaman trip"
+          value={props.formHeading ?? ''}
+          onChange={(e) => set({ formHeading: e.target.value })}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="field">
+        <label>Description</label>
+        <HtmlEditor
+          value={props.formDescription ?? ''}
+          onChange={(formDescription) => set({ formDescription })}
+          disabled={disabled}
+          height={110}
+        />
+      </div>
+
+      <div className="hint">
+        The fields, the button text and the note under the button come from the form itself —{' '}
+        <b>Enquiry Forms</b>. Without an active form the card does not appear.
+      </div>
+    </>
+  )
+}
+
 const EDITORS = {
+  heroForm: HeroFormBlock,
   richText: TextBlock,
   twoColumn: TwoColumnBlock,
   cards: CardsBlock,

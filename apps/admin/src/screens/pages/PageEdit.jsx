@@ -2,6 +2,7 @@ import {
   BLOG_PAGE_BLOCK_TYPES,
   CURRENT_CONTENT_VERSION,
   ENTRY_LIST_MAX_LIMIT,
+  HOME_PAGE_BLOCK_TYPES,
   POST_BLOCK_TYPES,
 } from '@cms/shared'
 import { useEffect, useState } from 'react'
@@ -183,11 +184,50 @@ const TYPE_CONFIG = {
     featuredHint: undefined,
     blocks: POST_BLOCK_TYPES,
   },
+
+  /**
+   * Home page — `home-nav-v3.html` (client, 15 Sep, D-96).
+   *
+   * **Ek hi hai**, list nahi — `Pages ▸ Home Page` seedha ye screen kholta hai (`HomePageEdit`).
+   * Page-level hero, sidebar, parent aur featured image sab band: hero khud ek **section** hai,
+   * aur har section apna background aur image le kar aata hai.
+   *
+   * | Flag | Kyun |
+   * | --- | --- |
+   * | `singleton` | "Back to list" nahi, Save ke baad isi screen pe (`onCreated`) |
+   * | `fixedPath: '/'` | permalink badalta hi nahi — slug ka Edit link nahi |
+   * | `trash: false` | server bhi 422 deta hai; button dikhana jhootha control hota |
+   * | `featuredImage: false` | image hero section me hai |
+   */
+  homePage: {
+    key: 'homePage',
+    label: 'Home Page',
+    basePath: '/pages/home',
+    singleton: true,
+    fixedPath: '/',
+    trash: false,
+    featuredImage: false,
+    header: false,
+    subheading: false,
+    eyebrow: false,
+    statRail: false,
+    sidebar: false,
+    parent: false,
+    byline: false,
+    blocks: HOME_PAGE_BLOCK_TYPES,
+  },
 }
 
-export default function PageEdit({ type = 'tourPage' }) {
+/**
+ * @param {object} props
+ * @param {string} [props.type]
+ * @param {string} [props.entryId]   URL ke bajaye bahar se — singleton screen (`HomePageEdit`)
+ * @param {() => void} [props.onCreated]  pehli Save ke baad; singleton pe navigate ki jagah
+ */
+export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
   const config = TYPE_CONFIG[type] ?? TYPE_CONFIG.tourPage
-  const { id } = useParams()
+  const params = useParams()
+  const id = entryId ?? params.id
   const navigate = useNavigate()
   const { can } = useAuth()
 
@@ -241,7 +281,8 @@ export default function PageEdit({ type = 'tourPage' }) {
     if (id && !entry) return
 
     setForm({
-      title: entry?.title ?? '',
+      /** Home ka title sirf admin aur SEO ka hai — pehli baar khaali box pe Save 400 na de. */
+      title: entry?.title ?? (config.singleton ? config.label.replace(/ Page$/, '') : ''),
       slug: entry?.slug ?? '',
       /** Content ab blocks ki **list** hai (D-87 §7) — ek hi richText nahi. */
       blocks: entry?.content?.blocks ?? [],
@@ -330,13 +371,14 @@ export default function PageEdit({ type = 'tourPage' }) {
     }
 
     try {
-      let entryId = id
+      /** `savedId` — prop wala `entryId` isi naam se upar hai, use chhaaya na kare. */
+      let savedId = id
 
-      if (!entryId) {
+      if (!savedId) {
         const res = await api.post('/entries', { type: config.key, ...payload })
-        entryId = res.data.data.entry.id
+        savedId = res.data.data.entry.id
       } else {
-        await api.patch(`/entries/${entryId}`, { ...payload, version: form.version })
+        await api.patch(`/entries/${savedId}`, { ...payload, version: form.version })
       }
 
       const currentStatus = entry?.status ?? 'draft'
@@ -345,17 +387,22 @@ export default function PageEdit({ type = 'tourPage' }) {
       const isLive = currentStatus === 'published' || currentStatus === 'private'
 
       if (wantsPublished && (!isLive || (currentStatus === 'private') !== wantsPrivate)) {
-        await api.post(`/entries/${entryId}/publish`, {
+        await api.post(`/entries/${savedId}/publish`, {
           visibility: wantsPrivate ? 'private' : 'public',
         })
       } else if (!wantsPublished && isLive) {
-        await api.post(`/entries/${entryId}/unpublish`)
+        await api.post(`/entries/${savedId}/unpublish`)
       }
 
       setNotice('Saved.')
 
       if (!id) {
-        navigate(`${config.basePath}/${entryId}`, { replace: true })
+        /** Singleton ka apna URL hai (`/pages/home`) — id wala URL banana dusra raasta khol deta. */
+        if (onCreated) {
+          onCreated(savedId)
+          return
+        }
+        navigate(`${config.basePath}/${savedId}`, { replace: true })
         return
       }
 
@@ -402,13 +449,22 @@ export default function PageEdit({ type = 'tourPage' }) {
   return (
     <>
       <div className="page-head">
-        <h1>
-          {id ? 'Edit' : 'Add New'} {config.label}
-        </h1>
-        <Link className="btn page-title-action" to={config.basePath}>
-          Back to list
-        </Link>
+        {/* Singleton ki koi list hai hi nahi — "Add New" aur "Back to list" dono jhooth hote. */}
+        <h1>{config.singleton ? config.label : `${id ? 'Edit' : 'Add New'} ${config.label}`}</h1>
+        {!config.singleton && (
+          <Link className="btn page-title-action" to={config.basePath}>
+            Back to list
+          </Link>
+        )}
       </div>
+
+      {config.singleton && !id && (
+        <div className="notice" role="status">
+          <span>
+            There is no home page yet. Add a section and press <b>Save</b> to create it.
+          </span>
+        </div>
+      )}
 
       {(error || loadError) && (
         <div className="notice err" role="alert">
@@ -433,8 +489,9 @@ export default function PageEdit({ type = 'tourPage' }) {
               disabled={readOnly}
             />
             <div className="permalink">
-              Permalink: <b>{permalink}</b>{' '}
-              {!readOnly && (
+              Permalink: <b>{config.fixedPath ?? permalink}</b>{' '}
+              {/* Tay path pe slug badalne se URL nahi badalta — Edit link sirf bhram deta. */}
+              {!readOnly && !config.fixedPath && (
                 <a
                   href="#slug"
                   onClick={(e) => {
@@ -677,10 +734,17 @@ export default function PageEdit({ type = 'tourPage' }) {
                 open={openBlocks}
                 onToggle={toggleBlock}
               />
-              <div className="hint">
-                Blocks appear on the page in this order. Write normally inside a Text block —
-                headings, paragraphs, bullets, tables, quotes, images. No classes or code.
-              </div>
+              {config.key === 'homePage' ? (
+                <div className="hint">
+                  Sections appear on the home page in this order — drag the <b>⠿</b> handle to move
+                  one. Each section has its own background colour.
+                </div>
+              ) : (
+                <div className="hint">
+                  Blocks appear on the page in this order. Write normally inside a Text block —
+                  headings, paragraphs, bullets, tables, quotes, images. No classes or code.
+                </div>
+              )}
             </div>
           </Panel>
 
@@ -727,7 +791,7 @@ export default function PageEdit({ type = 'tourPage' }) {
             title="Publish"
             footer={
               <div className="panel-foot">
-                {id && !readOnly ? (
+                {id && !readOnly && config.trash !== false ? (
                   <button className="btn btn-sm btn-danger" type="button" onClick={trash}>
                     Trash
                   </button>
@@ -773,182 +837,199 @@ export default function PageEdit({ type = 'tourPage' }) {
                 </select>
               </div>
 
-              <div className="hint">
-                The byline on the page (<i>{config.bylineHint ?? 'author · Updated · min read'}</i>)
-                is built from these <b>automatically</b> — there is no field for it.
-              </div>
+              {config.byline !== false && (
+                <div className="hint">
+                  The byline on the page (
+                  <i>{config.bylineHint ?? 'author · Updated · min read'}</i>) is built from these{' '}
+                  <b>automatically</b> — there is no field for it.
+                </div>
+              )}
+              {config.trash === false && (
+                <div className="hint">
+                  To take the home page offline, set it to <b>Draft</b>. It cannot be moved to the
+                  Trash — the site would have no home page.
+                </div>
+              )}
             </div>
           </Panel>
 
-          <Panel title="Page settings">
-            <div className="panel-body">
-              {/* ---- CATEGORY ---- sirf post pe (spec 008) ---- */}
-              {config.categories && (
-                /*
-                 * ⚠️ **Kai categories — checkboxes** (client, 11 Sep, D-93: _"category will be
-                 * checkbox not dropdown so user can choose multiple"_). 10 Sep se yahan ek
-                 * dropdown tha. Nateeje client ne jaan kar chune: card aur hero pe **saare**
-                 * badge, aur pills/Topics me post har chuni hui category me ginta hai.
-                 *
-                 * Kram **list ka** hai, tick karne ka nahi — warna do post pe wahi categories
-                 * alag kram me badge dikhatin.
-                 *
-                 * ⚠️ **Tags yahan nahi hain** — client ne 9 Sep ko mana kiya, aur `post` ke
-                 * `taxonomyTypes` se bhi wo hat chuka hai.
-                 */
-                <div className="field">
-                  <label>Categories</label>
-                  {categories.map((c) => (
-                    <label
-                      key={c.id}
-                      className="inline-lbl"
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={form.categoryIds.includes(c.id)}
-                        disabled={readOnly}
-                        onChange={(e) => {
-                          const next = new Set(form.categoryIds)
-                          if (e.target.checked) next.add(c.id)
-                          else next.delete(c.id)
-                          set({
-                            categoryIds: categories.map((x) => x.id).filter((x) => next.has(x)),
-                          })
-                        }}
-                      />
-                      {c.name}
-                    </label>
-                  ))}
-                  {categories.length === 0 && (
-                    <div className="hint">
-                      No categories yet — add one under <b>Posts ▸ Categories</b>.
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/*
-               * Sidebar — **sirf layout aur visibility** (client, 8 Sep).
-               *
-               * ⚠️ Usme kaunsa form dikhega wo yahan tay nahi hota; wo `Appearance ▸ Sidebar`
-               * ka kaam hai (Slice E). Client ne wo lakeer khud khinchi, aur wo theek jagah
-               * hai: layout page ka apna faisla hai, content site ka.
-               *
-               * ⚠️ **Post pe ye dono field nahi hain** (spec 008) — uski sidebar
-               * `Settings ▸ Blog settings` me ek baar chunti hai, har post pe nahi.
-               */}
-              {config.sidebar && (
-                <>
-                  <div className="field">
-                    <label>Sidebar</label>
-                    <select
-                      className="sel"
-                      value={form.fields.sidebar ?? 'none'}
-                      onChange={(e) => setField('sidebar', e.target.value)}
-                      disabled={readOnly}
-                    >
-                      <option value="none">No sidebar</option>
-                      <option value="left">Left — content on the right</option>
-                      <option value="right">Right — content on the left</option>
-                    </select>
-                    <div className="hint">
-                      What goes inside it — the form, the widgets — comes from{' '}
-                      <b>Appearance ▸ Sidebar</b>.
-                    </div>
-                  </div>
-
-                  {/*
-                   * "Which sidebar" — **left/right chunne ke baad hi** (client, D-88 #6).
+          {/* Home page pe is panel me kuch bachta hi nahi — khaali panel nahi dikhana (D-30). */}
+          {(config.categories ||
+            config.sidebar ||
+            config.parent ||
+            config.featuredImage !== false) && (
+            <Panel title="Page settings">
+              <div className="panel-body">
+                {/* ---- CATEGORY ---- sirf post pe (spec 008) ---- */}
+                {config.categories && (
+                  /*
+                   * ⚠️ **Kai categories — checkboxes** (client, 11 Sep, D-93: _"category will be
+                   * checkbox not dropdown so user can choose multiple"_). 10 Sep se yahan ek
+                   * dropdown tha. Nateeje client ne jaan kar chune: card aur hero pe **saare**
+                   * badge, aur pills/Topics me post har chuni hui category me ginta hai.
                    *
-                   * ⚠️ `none` par ye dropdown chhup jaata hai par uski **value mitti nahi** — client
-                   * left/right toggle karke wapas aayega aur uska chunav bacha rehna chahiye. Wahi
-                   * soch jo D-87 §3 ki rating pe hai: override karta hai, mitata nahi.
-                   */}
-                  {(form.fields.sidebar ?? 'none') !== 'none' && (
+                   * Kram **list ka** hai, tick karne ka nahi — warna do post pe wahi categories
+                   * alag kram me badge dikhatin.
+                   *
+                   * ⚠️ **Tags yahan nahi hain** — client ne 9 Sep ko mana kiya, aur `post` ke
+                   * `taxonomyTypes` se bhi wo hat chuka hai.
+                   */
+                  <div className="field">
+                    <label>Categories</label>
+                    {categories.map((c) => (
+                      <label
+                        key={c.id}
+                        className="inline-lbl"
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={form.categoryIds.includes(c.id)}
+                          disabled={readOnly}
+                          onChange={(e) => {
+                            const next = new Set(form.categoryIds)
+                            if (e.target.checked) next.add(c.id)
+                            else next.delete(c.id)
+                            set({
+                              categoryIds: categories.map((x) => x.id).filter((x) => next.has(x)),
+                            })
+                          }}
+                        />
+                        {c.name}
+                      </label>
+                    ))}
+                    {categories.length === 0 && (
+                      <div className="hint">
+                        No categories yet — add one under <b>Posts ▸ Categories</b>.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/*
+                 * Sidebar — **sirf layout aur visibility** (client, 8 Sep).
+                 *
+                 * ⚠️ Usme kaunsa form dikhega wo yahan tay nahi hota; wo `Appearance ▸ Sidebar`
+                 * ka kaam hai (Slice E). Client ne wo lakeer khud khinchi, aur wo theek jagah
+                 * hai: layout page ka apna faisla hai, content site ka.
+                 *
+                 * ⚠️ **Post pe ye dono field nahi hain** (spec 008) — uski sidebar
+                 * `Settings ▸ Blog settings` me ek baar chunti hai, har post pe nahi.
+                 */}
+                {config.sidebar && (
+                  <>
                     <div className="field">
-                      <label>Which sidebar</label>
+                      <label>Sidebar</label>
                       <select
                         className="sel"
-                        value={form.fields.sidebarId ?? ''}
-                        onChange={(e) => setField('sidebarId', e.target.value)}
-                        disabled={readOnly || sidebarsLoading}
+                        value={form.fields.sidebar ?? 'none'}
+                        onChange={(e) => setField('sidebar', e.target.value)}
+                        disabled={readOnly}
                       >
-                        <option value="">
-                          {sidebarsLoading ? 'Loading…' : '— choose a sidebar —'}
-                        </option>
-                        {sidebars.map((sidebar) => (
-                          <option key={sidebar.id} value={sidebar.id}>
-                            {sidebar.name}
+                        <option value="none">No sidebar</option>
+                        <option value="left">Left — content on the right</option>
+                        <option value="right">Right — content on the left</option>
+                      </select>
+                      <div className="hint">
+                        What goes inside it — the form, the widgets — comes from{' '}
+                        <b>Appearance ▸ Sidebar</b>.
+                      </div>
+                    </div>
+
+                    {/*
+                     * "Which sidebar" — **left/right chunne ke baad hi** (client, D-88 #6).
+                     *
+                     * ⚠️ `none` par ye dropdown chhup jaata hai par uski **value mitti nahi** — client
+                     * left/right toggle karke wapas aayega aur uska chunav bacha rehna chahiye. Wahi
+                     * soch jo D-87 §3 ki rating pe hai: override karta hai, mitata nahi.
+                     */}
+                    {(form.fields.sidebar ?? 'none') !== 'none' && (
+                      <div className="field">
+                        <label>Which sidebar</label>
+                        <select
+                          className="sel"
+                          value={form.fields.sidebarId ?? ''}
+                          onChange={(e) => setField('sidebarId', e.target.value)}
+                          disabled={readOnly || sidebarsLoading}
+                        >
+                          <option value="">
+                            {sidebarsLoading ? 'Loading…' : '— choose a sidebar —'}
+                          </option>
+                          {sidebars.map((sidebar) => (
+                            <option key={sidebar.id} value={sidebar.id}>
+                              {sidebar.name}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/*
+                         * Khaali list ka matlab "abhi banayi hi nahi" hai — aur wo saaf likha hona
+                         * chahiye. 8 Sep ko package picker pe ulta hua tha: request 400 de rahi thi
+                         * aur screen pe sirf khaali list dikhti thi, yaani **failure khaali state ki
+                         * shakl me** aa raha tha (D-86).
+                         */}
+                        {!sidebarsLoading && sidebars.length === 0 && (
+                          <div className="hint">
+                            No sidebars yet — create one under <b>Appearance ▸ Sidebar</b>.
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/*
+                     * ⚠️ `Show "On this page"` ka checkbox **yahan se hat gaya** (client, 14 Sep shaam) —
+                     * ab **Pages ▸ Pages settings** me sab pages ke liye ek hai.
+                     */}
+                  </>
+                )}
+
+                {/*
+                 * ⚠️ **Parent sirf wahan jahan wo sach me chunna padta hai.** Blog page khud
+                 * parent hai aur post ka parent URL pattern se aata hai — dono jagah ye dropdown
+                 * ek aisa control hota jise koi kabhi chhoota hi nahi.
+                 */}
+                {config.parent && (
+                  <div className="field">
+                    <label>Parent</label>
+                    <select
+                      className="sel"
+                      value={form.parentId}
+                      onChange={(e) => set({ parentId: e.target.value })}
+                      disabled={readOnly}
+                    >
+                      <option value="">(no parent)</option>
+                      {parentOptions
+                        .filter((p) => p.id !== id)
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.title}
                           </option>
                         ))}
-                      </select>
-
-                      {/*
-                       * Khaali list ka matlab "abhi banayi hi nahi" hai — aur wo saaf likha hona
-                       * chahiye. 8 Sep ko package picker pe ulta hua tha: request 400 de rahi thi
-                       * aur screen pe sirf khaali list dikhti thi, yaani **failure khaali state ki
-                       * shakl me** aa raha tha (D-86).
-                       */}
-                      {!sidebarsLoading && sidebars.length === 0 && (
-                        <div className="hint">
-                          No sidebars yet — create one under <b>Appearance ▸ Sidebar</b>.
-                        </div>
-                      )}
+                    </select>
+                    <div className="hint">
+                      The breadcrumb is built from this.
+                      {config.key === 'tourPage' && ' Tour page ka URL isse nahi badalta.'}
+                      {config.nested && ' The page address goes under the parent’s address too.'}
                     </div>
-                  )}
-
-                  {/*
-                   * ⚠️ `Show "On this page"` ka checkbox **yahan se hat gaya** (client, 14 Sep shaam) —
-                   * ab **Pages ▸ Pages settings** me sab pages ke liye ek hai.
-                   */}
-                </>
-              )}
-
-              {/*
-               * ⚠️ **Parent sirf wahan jahan wo sach me chunna padta hai.** Blog page khud
-               * parent hai aur post ka parent URL pattern se aata hai — dono jagah ye dropdown
-               * ek aisa control hota jise koi kabhi chhoota hi nahi.
-               */}
-              {config.parent && (
-                <div className="field">
-                  <label>Parent</label>
-                  <select
-                    className="sel"
-                    value={form.parentId}
-                    onChange={(e) => set({ parentId: e.target.value })}
-                    disabled={readOnly}
-                  >
-                    <option value="">(no parent)</option>
-                    {parentOptions
-                      .filter((p) => p.id !== id)
-                      .map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.title}
-                        </option>
-                      ))}
-                  </select>
-                  <div className="hint">
-                    The breadcrumb is built from this.
-                    {config.key === 'tourPage' && ' Tour page ka URL isse nahi badalta.'}
-                    {config.nested && ' The page address goes under the parent’s address too.'}
                   </div>
-                </div>
-              )}
+                )}
 
-              {/*
-               * ⚠️ `onSelect` ko **poora media document** milta hai, uski id nahi — wahi shape
-               * jo `PackageEdit` pe hai. Library se chunna hi pehla raasta hai (D-78).
-               */}
-              <MediaDrop
-                label="Featured image"
-                hint={config.featuredHint}
-                media={media[form.featuredImageId]}
-                onSelect={(chosen) => set({ featuredImageId: chosen.id })}
-                onClear={() => set({ featuredImageId: null })}
-              />
-            </div>
-          </Panel>
+                {/*
+                 * ⚠️ `onSelect` ko **poora media document** milta hai, uski id nahi — wahi shape
+                 * jo `PackageEdit` pe hai. Library se chunna hi pehla raasta hai (D-78).
+                 */}
+                {config.featuredImage !== false && (
+                  <MediaDrop
+                    label="Featured image"
+                    hint={config.featuredHint}
+                    media={media[form.featuredImageId]}
+                    onSelect={(chosen) => set({ featuredImageId: chosen.id })}
+                    onClear={() => set({ featuredImageId: null })}
+                  />
+                )}
+              </div>
+            </Panel>
+          )}
 
           <Panel title="SEO" defaultOpen={false}>
             <div className="panel-body">
@@ -971,10 +1052,12 @@ export default function PageEdit({ type = 'tourPage' }) {
                   disabled={readOnly}
                 />
               </div>
-              <div className="hint">
-                The FAQ and breadcrumb schema is emitted automatically — from the FAQs block and
-                from the page&rsquo;s parent.
-              </div>
+              {config.key !== 'homePage' && (
+                <div className="hint">
+                  The FAQ and breadcrumb schema is emitted automatically — from the FAQs block and
+                  from the page&rsquo;s parent.
+                </div>
+              )}
             </div>
           </Panel>
         </aside>

@@ -114,6 +114,8 @@
   --sh-1: 0 1px 2px rgb(17 29 43 / 5%);
   --sh-2: 0 1px 3px rgb(17 29 43 / 8%), 0 4px 12px -4px rgb(17 29 43 / 10%);
   --sh-3: 0 8px 28px -8px rgb(17 29 43 / 22%);
+  /* Home hero ka form card — reference ka `--sh-4` (D-96). */
+  --sh-4: 0 20px 50px -16px rgb(11 43 74 / 30%);
 
   --wrap: 1280px;
   /**
@@ -183,6 +185,15 @@
   --fs-price: clamp(28px, 3.4vw, 38px);
   --fs-intro: clamp(15px, 1.6vw, 17px);
   --fs-display: clamp(21px, 2.6vw, 30px);
+
+  /*
+   * Home hero (`home-nav-v3.html`, D-96). ⚠️ Maujooda scale me inka koi saathi nahi tha: `--fs-title`
+   * (26–42) Tour ke hero ka hai aur is design ka h1 usse chhota hai (24–38); sub line 13.5–15.5 ka
+   * clamp hai, aur number/card heading 19px. Teenon naye isliye, andaze se kisi paas wale pe nahi.
+   */
+  --fs-hero: clamp(24px, 3.4vw, 38px);
+  --fs-hero-sub: clamp(13.5px, 1.3vw, 15.5px);
+  --fs-hero-num: 19px;
 
   /* Headings — `.blk h1`–`h6` ke saath CTA/offer ka bada heading bhi. */
   --fs-h1: clamp(19px, 2.1vw, 24px);
@@ -6848,4 +6859,219 @@ a.mega__gl:hover {
 .art--page > .blk:first-child > h2:first-child {
   padding-top: 0;
   border-top: 0;
+}
+
+/* ---------- home page (`home-nav-v3.html`, D-96) ----------
+   Har section apne **block ke prefix** pe hai (`hf-` = Hero with form), reference ke naam pe
+   nahi — `.hero`/`.quote`/`.sec` jaise naam hamari site pe pehle se ya kal takraate (blog ka
+   article `.art` hai). Naap reference ke, font-size tokens se (D-73). */
+
+/*
+ * Background — admin ka rang `--hf-bg` me aata hai, khaali pe reference ka gehra neela.
+ *
+ * ⚠️ Parda (gradient) **usi rang se** banta hai (`color-mix`). Reference me wo `rgba(11,43,74,…)`
+ * tha, yaani `--blue-900` hi — seedha copy karne pe client ka chuna hua rang parde ke neeche dab
+ * jaata aur hero hamesha neela dikhta. Default rang pe ye bilkul reference jaisa hai.
+ */
+.hf-hero {
+  --hf-bg: var(--blue-900);
+  position: relative;
+  overflow: hidden;
+  background: var(--hf-bg);
+}
+
+.hf-hero__bg {
+  position: absolute;
+  inset: 0;
+}
+
+.hf-hero__bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.42;
+}
+
+.hf-hero__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--hf-bg) 82%, transparent),
+    color-mix(in srgb, var(--hf-bg) 55%, transparent) 50%,
+    color-mix(in srgb, var(--hf-bg) 90%, transparent)
+  );
+}
+
+.hf-hero__in {
+  position: relative;
+  z-index: 2;
+  padding-block: clamp(26px, 3.4vw, 44px) clamp(20px, 2.6vw, 32px);
+}
+
+.hf-hero__grid {
+  display: grid;
+  grid-template-columns: 1.08fr 0.78fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+}
+
+.hf-hero__copy {
+  min-width: 0;
+}
+
+.hf-hero h1 {
+  color: #fff;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  max-width: 19ch;
+}
+
+/*
+ * Accent — editor ka **Italic** (Tour page jaisa, client 15 Sep). Reference me `<span>` hai; admin
+ * me span banane ka koi button nahi, isliye `<em>` ka tircha-pan hata kar rang diya.
+ */
+.hf-hero h1 em {
+  font-style: normal;
+  color: #7cc7ff;
+}
+
+.hf-hero__sub {
+  color: rgb(255 255 255 / 80%);
+  font-size: var(--fs-hero-sub);
+  margin-top: 10px;
+  max-width: 58ch;
+}
+
+/* ⚠️ Editor `<p>` me lapet-ta hai — class ke bina bhi saada dikhe (A-19 wala sawaal). */
+.hf-hero__sub p + p {
+  margin-top: 8px;
+}
+
+.hf-hero__sub a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.hf-hero__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(16px, 3vw, 34px);
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
+.hf-stat b {
+  display: block;
+  font-size: var(--fs-hero-num);
+  font-weight: var(--fw-black);
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.hf-stat span {
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semi);
+  color: rgb(255 255 255 / 72%);
+}
+
+/* ---- form ka card — reference ka `.quote` ---- */
+
+.hf-card {
+  position: relative;
+  background: #fff;
+  border-radius: var(--r4);
+  box-shadow: var(--sh-4);
+  padding: clamp(18px, 2vw, 24px);
+}
+
+.hf-card__ribbon {
+  position: absolute;
+  top: -11px;
+  left: clamp(18px, 2vw, 24px);
+  background: var(--green-600);
+  color: #fff;
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: var(--rf);
+}
+
+.hf-card__head {
+  margin-bottom: 16px;
+}
+
+.hf-card__head h3 {
+  font-size: var(--fs-hero-num);
+  font-weight: var(--fw-black);
+  color: var(--ink);
+  letter-spacing: -0.025em;
+}
+
+.hf-card__head p {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/*
+ * Form ka andar wala hissa `EnquiryForm` ka hi hai (`.bkg__b` · `.bkg__two` · `.fld`) — sidebar
+ * wala. Yahan sirf reference ke `.quote` wale naap: card ka apna padding hai, beech ke gap 11px.
+ */
+.hf-card .bkg__b {
+  padding: 0;
+}
+
+.hf-card .bkg__b .fld,
+.hf-card .bkg__two {
+  margin-bottom: 11px;
+}
+
+.hf-card .bkg__two {
+  gap: 11px;
+}
+
+.hf-card .bkg__two .fld {
+  margin-bottom: 0;
+}
+
+.hf-card .fld label {
+  margin-bottom: 5px;
+}
+
+.hf-card .bkg__b .btn {
+  margin-top: 5px;
+}
+
+/* Button ke neeche ki line — taale ke saath (client, 15 Sep). */
+.hf-card .bkg__b .hf-card__note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 11px;
+  font-size: var(--fs-3xs);
+  color: var(--muted);
+}
+
+.hf-card__note svg {
+  flex-shrink: 0;
+}
+
+/*
+ * 1040px — reference ka hi breakpoint: form text ke **neeche** aa jaata hai, popup nahi (client,
+ * 15 Sep). Card ka `.wdg` class na hona isi liye zaroori tha — `.wdg--cta` ke mobile rules use
+ * `display: none` karke sheet bana dete.
+ */
+@media (max-width: 1040px) {
+  .hf-hero__grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
 }

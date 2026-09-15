@@ -58,6 +58,22 @@ const Arrow = () => (
   </svg>
 )
 
+/** Home hero ke note ka taala — reference ka `.quote__note svg` (client: _"icon add kr dena"_). */
+const Lock = () => (
+  <svg
+    width="12"
+    height="12"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    aria-hidden="true"
+  >
+    <rect x="3" y="11" width="18" height="11" rx="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+)
+
 /**
  * Ek field → uska input.
  *
@@ -184,6 +200,11 @@ function toRows(fields) {
  *   `book` — package page ka sidebar widget: neela price header, aur mobile pe sheet ban jaata hai
  *   `cta`  — tour page ka `.wdg--cta` (reference `tour-v3.html:1890`): heading + line + form,
  *            **koi price header nahi** (wahan koi ek package hai hi nahi)
+ *   `hero` — home ka `.quote` card (`home-nav-v3.html`, D-96): hari patti (`ribbon`) + heading +
+ *            line + form. **Sheet nahi banta** — client: mobile pe form text ke neeche seedha
+ *            dikhe, reference jaisa. Isliye `.wdg` class bhi nahi (uske mobile rules sheet banate)
+ *
+ * @param {string} [ribbon] sirf `hero` — card ke upar ki hari patti, khaali pe nahi banti
  *
  * ⚠️ Do alag form component **nahi** banaye gaye, aur wo soch kar hai: submit, validation,
  * honeypot, thank-you aur reset — sab ek hi jagah rehna chahiye. Do copies ka nateeja is repo me
@@ -196,6 +217,7 @@ export default function EnquiryForm({
   variant = 'book',
   heading = '',
   description = '',
+  ribbon = '',
 }) {
   const [values, setValues] = useState({})
   const [hp, setHp] = useState('')
@@ -231,7 +253,14 @@ export default function EnquiryForm({
    * fixed sheet bana deti hai. Popup ke liye ek doosra form banane ka matlab hota do alag
    * state: user desktop pe kuch bharta, screen chhoti karta, aur bhara hua gayab.
    */
-  const dock = useEnquiryDock()
+  const isHero = variant === 'hero'
+
+  /**
+   * ⚠️ Hero pe dock **kabhi nahi** — koi provider upar lag bhi jaaye to bhi. Home ka form popup
+   * nahi hai (client, 15 Sep), aur `is-open` wala scrim bina close button ke page ko dhak deta.
+   */
+  const pageDock = useEnquiryDock()
+  const dock = isHero ? null : pageDock
 
   /**
    * ⚠️ **`variant` ab sirf DIKHNE ka farak hai — dock dono pe chalta hai** (9 Sep me badla).
@@ -376,13 +405,26 @@ export default function EnquiryForm({
       {dock?.open && <div className="mosheet-scrim" onClick={dock.close} aria-hidden="true" />}
 
       <div
-        className={`wdg ${isCta ? 'wdg--cta' : 'wdg--book'}${dock?.open ? ' is-open' : ''}`}
+        className={
+          isHero
+            ? 'hf-card'
+            : `wdg ${isCta ? 'wdg--cta' : 'wdg--book'}${dock?.open ? ' is-open' : ''}`
+        }
         id="enquiry"
       >
+        {/* Hari patti — admin ka field (client, 15 Sep). Khaali pe patti hi nahi (D-30). */}
+        {isHero && ribbon ? <span className="hf-card__ribbon">{ribbon}</span> : null}
+
         {/*
          * `.wdg--cta` ka heading aur uske neeche ki line — dono admin se aati hain (D-88 §10).
          * Theme me likhne ka matlab hota Q-9 wala hi kaanta dobara.
          */}
+        {isHero && (heading || description) ? (
+          <div className="hf-card__head">
+            {heading ? <h3>{heading}</h3> : null}
+            {description ? <div dangerouslySetInnerHTML={{ __html: description }} /> : null}
+          </div>
+        ) : null}
         {isCta && heading ? <h3>{heading}</h3> : null}
         {isCta && description ? <div dangerouslySetInnerHTML={{ __html: description }} /> : null}
 
@@ -416,7 +458,7 @@ export default function EnquiryForm({
          * ⚠️ `cta` pe ye hai hi nahi: tour page pe koi ek package nahi hota, to dikhane ko koi
          * daam bhi nahi. Reference ka `.wdg--cta` bhi bina header ke hai.
          */}
-        {!isCta && <PriceHeader />}
+        {variant === 'book' && <PriceHeader />}
 
         <div className="bkg__b">
           {/*
@@ -512,7 +554,8 @@ export default function EnquiryForm({
                 'Sending…'
               ) : (
                 <>
-                  Get this itinerary
+                  {/* Form ki setting (D-96) — khaali pe purana text, taaki chalte form na badlein. */}
+                  {form.submitLabel?.trim() || 'Get this itinerary'}
                   <Arrow />
                 </>
               )}
@@ -524,7 +567,15 @@ export default function EnquiryForm({
              * Ye thank-you message se alag hai: wo submit ke **baad** aata hai, ye **pehle** —
              * jab user abhi soch raha hai ki bharun ya na bharun.
              */}
-            {form.footnote && <small>{form.footnote}</small>}
+            {form.footnote &&
+              (isHero ? (
+                <small className="hf-card__note">
+                  <Lock />
+                  {form.footnote}
+                </small>
+              ) : (
+                <small>{form.footnote}</small>
+              ))}
           </form>
         </div>
       </div>

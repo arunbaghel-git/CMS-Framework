@@ -17,6 +17,7 @@ import {
   packageAddOnsSchema,
   packageHotelsSchema,
   durationQuery,
+  hasFixedPath,
   parseBlockProps,
   pricingSchema,
   ratingSchema,
@@ -625,6 +626,29 @@ async function resolveSlugAndPath({
 
   const parentPath = await parentPathOf(parentId, contentType, siteId, locale)
 
+  /**
+   * ⚠️ **Tay path wala type (`homePage` → `/`) — ek hi entry** (D-96).
+   *
+   * Yahan `-2`, `-3` wala loop bemaani hai: slug badalne se path nahi badalta, to har koshish usi
+   * `/` pe takraati aur 50 baar ke baad "Could not find a free URL" aata — jo is haalat ki galat
+   * wajah batata. Duplicate, doosra tab, ya purana home **trash** me pada ho — teeno pe yahi saaf
+   * message. (Trash wali entry path pakde rehti hai; neeche ka tark dekho.)
+   */
+  if (hasFixedPath(contentType)) {
+    const path = resolvePath({ slug: base, parentPath }, contentType)
+    const clash = await Entry.findOne({
+      ...scope(siteId, locale),
+      ...(excludeId ? { _id: { $ne: excludeId } } : {}),
+      path,
+    })
+      .select('_id')
+      .lean()
+
+    if (clash) throw conflict(`There is already a ${contentType.label} — edit that one instead.`)
+
+    return { slug: base, path }
+  }
+
   for (let n = 1; n <= MAX_SLUG_ATTEMPTS; n++) {
     const candidate = suffixSlug(base, n)
 
@@ -975,6 +999,31 @@ export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFA
 
   /** `tags` isliye lautte hain ki test dekh sake **kaunse** tags gaye — wahi hissa jo chup tha. */
   return { changed: true, pattern, moved: moved.length, reparented: reparented.length, tags }
+}
+
+/**
+ * Jin pages ke sections me ye form laga hai, unke `path:` tag — `forms` service ke liye (D-96).
+ *
+ * ⚠️ `type:package` akela kuch saaf nahi karta jo home pe hai: web ka resolve fetch sirf `path:`
+ * se tag hota hai. Wahi niyam jo `blogListingTags()` pe likha hai — tag wahan se lo jahan fetch
+ * sach me hota hai. `/` hardcode nahi kiya: kal yahi section kisi aur type pe aaya to wo apne aap
+ * aa jaayega.
+ *
+ * ⚠️ Sidebar ke `enquiryForm` widget ka form yahan **nahi** aata — wo `sidebars` collection me
+ * hai, entry me nahi. Us raaste ka cache bug alag khula hai (09-OPEN-ITEMS).
+ */
+export async function pathTagsForForm(formId, siteId = DEFAULT_SITE_ID) {
+  if (!formId) return []
+
+  const pages = await Entry.find({
+    siteId,
+    deletedAt: null,
+    'content.blocks.props.formId': String(formId),
+  })
+    .select('path')
+    .lean()
+
+  return pages.map((p) => (p.path ? `path:${p.path}` : null)).filter(Boolean)
 }
 
 /** Entry + uske cascade hue descendants, sab ek hi call me. */
@@ -1570,6 +1619,15 @@ export async function trashEntry(id, actor, siteId = DEFAULT_SITE_ID, locale = D
   if (!current) throw notFound('Item not found')
 
   assertCan(actor, current, PERMISSION.ENTRY_DELETE, PERMISSION.ENTRY_DELETE_OWN)
+
+  /**
+   * ⚠️ **Site ka root trash nahi hota** (D-96). Home page trash me gaya to `/` poori site ke liye
+   * 404 — aur wo sabse zyada dekha jaane wala URL hai. Utaarna ho to Draft karo; wo ek soch-samajh
+   * kar liya gaya kadam hai, ek galat click nahi. Bulk trash bhi isi raaste se guzarta hai.
+   */
+  if (current.path === '/') {
+    throw unprocessable('The home page cannot be moved to the Trash. Set it to Draft instead.')
+  }
 
   /**
    * Bachche wale item ko trash me daalna mana hai.

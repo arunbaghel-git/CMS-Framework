@@ -107,6 +107,13 @@
   color: #3d7a42;
 }
 
+/* Home ka hero (D-96) — design v3 me home sections hain hi nahi, rang Tour ke chips ke kul se. */
+.blk--hero .blk-chip {
+  background: #fdf1e8;
+  border-color: #f3cfb3;
+  color: #a4501a;
+}
+
 .blk-add {
   display: flex;
   align-items: center;

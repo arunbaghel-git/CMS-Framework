@@ -8,7 +8,50 @@
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare — **Home page build** (client, 14 Sep raat)
+## ⏭️ Nayi session yahan se shuru kare — **Home page: Section 1 ban gaya, agla section client batayega** (15 Sep)
+
+Poora hisaab **D-96**. Reference `.claude/docs/reference/home-nav-v3.html` (repo me pehle se tha).
+
+**Client ka tareeka:** poora page ek saath nahi — **section by section**, jaise detail aaye. Reference
+ke number kram nahi hain; kram admin me drag se. Har section pe **background colour picker**.
+⚠️ Jo section maanga nahi gaya use pehle se mat banao. Eyebrow chip **abhi tay nahi**.
+
+### Kya bana
+
+| Kahan  | Kya                                                                                                                                                                                                                                          |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| shared | `homePage` type (`urlPattern: '/'`), `hasFixedPath()`, `HOME_PAGE_BLOCK_TYPES`, `heroFormPropsSchema`, `sectionBackgroundSchema` (hex), `forms.submitLabel`                                                                                  |
+| api    | tay path pe 409 (ek hi home), home trash nahi (422), `sanitizeContent` me `heroForm`, `toPublicHome()` + `resolveHomeSection()`, `pathTagsForForm()` (form badle → uske pages ka cache)                                                      |
+| admin  | **Pages ▸ Home Page** (`/pages/home`, `HomePageEdit` → `PageEdit type="homePage"`), `Hero with form` editor (bg picker · 2 image · title · description · 4 stats · form · ribbon · heading · description), Enquiry Forms me **Button label** |
+| web    | `components/home/HomePage.jsx` + `HeroForm.jsx`, `EnquiryForm variant="hero"` (`.hf-card`, popup nahi, taale wala note), `Img` ka `mobile` prop (`<picture>`), `.hf-*` CSS                                                                   |
+
+**Tests:** naya `home-page.test.js` (13, asli DB) + shared (5). `entries.test.js` me built-in types ki
+ginti 5 → 6. Poori suite: 1106 pass + 4 fail wale run ke baad teen asli fix hue, `users.test` A-11
+flake nikla (akele pass). Lint · format · admin build pass.
+
+### Live (15 Sep, asli DB)
+
+- `pnpm seed` chala — `homePage` type **ban chuka** hai. API `--watch` pe naye code pe
+- Ek temp home banaya → API payload me ids nahi, stats filter, form resolve · web `/` pe saari `.hf-*`
+  classes, `--hf-bg`, `<em>` wala h1, taale ka note → **hataya**, `path:/` revalidate. `/` wapas 404
+- ✅ **Client usi waqt admin me tha** — "Home Page" naam ka form bana kar **Button label `Send me a quote →`**
+  save kiya (DB me dikha). Yaani naya field live chal raha hai
+- ⚠️ Browser me aankh se **nahi** dekha (desktop/mobile layout, 1040px, rang ka parda) — **A-28**
+
+### Agla kadam
+
+1. Client home page khud banaye (Pages ▸ Home Page) aur dekhe — A-28 ki list
+2. Agla section client batayega. Naya section = **chaar jagah server** (`HOME_PAGE_BLOCK_TYPES` + props
+   schema, `sanitizeContent()`, `resolveHomeSection()`) + admin editor (`PageBlocks` me `EDITORS` +
+   `emptyBlock` + label/class + **`SectionBackground`**) + theme (`HomePage.jsx` ka `SECTIONS` + file + `.xx-*` CSS)
+3. Reference ki class names seedha mat lo — `.art`/`.faq`/`.sec`/`.b` hamari site pe takraate hain
+4. Naye open items: **A-26** (sidebar ka cache ek ghanta — purana bug), **A-27** (`style.background` future XSS)
+
+⚠️ Push nahi hua — client ki ijaazat se hi.
+
+---
+
+## (purana) Nayi session yahan se shuru kare — **Home page build** (client, 14 Sep raat)
 
 Client agli session me **home page** banana chahta hai. Abhi `/` **404** deta hai — koi home entry nahi
 hai (A-17 me likha hai). Shuru karne se pehle:

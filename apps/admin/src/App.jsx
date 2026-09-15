@@ -28,6 +28,7 @@ import PackageDefaults from './screens/packages/PackageDefaults.jsx'
 import PackageEdit from './screens/packages/PackageEdit.jsx'
 import TaxonomyScreen from './screens/packages/TaxonomyScreen.jsx'
 import PackagesList from './screens/packages/PackagesList.jsx'
+import HomePageEdit from './screens/pages/HomePageEdit.jsx'
 import PageEdit from './screens/pages/PageEdit.jsx'
 import BlogPageList from './screens/pages/BlogPageList.jsx'
 import PageList from './screens/pages/PageList.jsx'
@@ -145,6 +146,8 @@ const APP_ROUTES = [
   { path: '/pages/new', element: <PageEdit type="page" /> },
   /** `/pages/:id` se **pehle** — `/tour/settings` wala hi kram (D-95 §12). */
   { path: '/pages/settings', element: <PageSettings /> },
+  /** Wahi kram — `:id` se pehle, warna `home` ek id ban kar 404 deta (D-96). */
+  { path: '/pages/home', element: <HomePageEdit /> },
   { path: '/pages/:id', element: <PageEdit type="page" /> },
 
   { path: '/tour', element: <TourList /> },

@@ -209,6 +209,52 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
+### A-28 · Home page ka hero (D-96) — render hote hue dekhna baaki
+
+**Kuch toota hua nahi hai** — 13 naye API test (asli DB), shared tests, lint, format, admin build pass.
+
+| # | Kya dekhna hai | Kyun |
+| --- | --- | --- |
+| 1 | `pnpm seed` → API restart → **Pages ▸ Home Page** me hero bana kar publish, `/` khule | `homePage` type seed se banta hai; bina seed ke Save 404/422 |
+| 2 | Desktop: copy baayein, card daayein; **1040px** se neeche card text ke neeche (popup nahi) | Client ka niyam #10. Card pe `.wdg` class nahi, isliye sheet ke rules nahi lagte — sirf code se verify |
+| 3 | Background ka rang badlo → parda (gradient) bhi usi rang ka | `color-mix()` — reference ka parda navy tha |
+| 4 | Mobile image 760px se neeche | `<picture><source>` |
+| 5 | Form ka **Button label** aur taale wala note | `EnquiryForm variant="hero"` |
+| 6 | Client ke form me `source: packages` wala dropdown ho to hero pe **nahi dikhega** | Uske vikalp package page deta hai (D-96 §7) |
+
+---
+
+### A-27 · Block envelope ka `style.background` / `style.color` — bina rok ke string
+
+**Deadline:** Phase 5 ka `styleToCss()` banne se **pehle**
+**Aaj koi khatra nahi** — koi code `block.style` padhta hi nahi (D-96 ki jaanch me dikha)
+
+`blockStyleSchema` (`packages/shared/src/schemas/block.js`) me `background` aur `color` saade
+`z.string()` hain. Jis din `styleToCss()` inhe `<style>` tag me likhega, value me `</style>` ek XSS
+hai. D-96 ne home ka background isi wajah se `props` me hex regex ke saath rakha. Ilaaj: wahi
+`#rrggbb` / token regex envelope pe bhi.
+
+---
+
+### A-26 · Sidebar ka badlaav tour/page/blog pe ek ghante tak nahi dikhta
+
+**Deadline:** koi sakht nahi — par client isse "save nahi hua" samjhega
+**D-96 ki jaanch me mila**, us kaam ka hissa nahi
+
+`sidebars` service update/delete pe `type:page` + `type:tourPage` bhejti hai (`sidebars/service.js`) —
+web ki **koi fetch** ye tag nahi lagati (`lib/cms.js` sirf `path:`, `settings`, `menu:*`,
+`type:package`). Nateeja: Appearance ▸ Sidebar me badlaav (ya sidebar ke form ka badlaav) page pe
+`CACHE_SECONDS` (1 ghanta) baad aata hai. Create pe to invalidate hi nahi hota. `blogPage` aur post ki
+sidebar (`blogSettings.postSidebarId`) bhi isi me.
+
+Wahi D-83 / `blogListingTags()` wali shakl. Ilaaj bhi wahi: jin entries ka `fields.sidebarId` ye hai
+(aur blog settings me chuni ho to saare post + listing) unke `path:` tag. D-96 ne **form** ke liye ye
+`pathTagsForForm()` se kiya — par sirf sections ke form ke liye; sidebar widget ka form usme nahi aata.
+
+⚠️ Sirf production build pe dikhta hai — dev me har request fresh hai (A-21 wala jhootha pass).
+
+---
+
 ### A-25 · Saada page (D-95) — ✅ live dekh liya (15 Sep); sirf banner fallback live baaki
 
 **Kuch toota hua nahi hai** — 1092 test (DB ke saath), lint, format, admin build pass. 14 Sep shaam ke

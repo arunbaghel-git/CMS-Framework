@@ -1,6 +1,7 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation'
 
 import PostPage from '../../components/blog/PostPage.jsx'
+import HomePage from '../../components/home/HomePage.jsx'
 import PackagePage from '../../components/package/PackagePage.jsx'
 import TextPage from '../../components/page/TextPage.jsx'
 import TourPage from '../../components/tour/TourPage.jsx'
@@ -77,6 +78,14 @@ export default async function CatchAllPage({ params }) {
 
   const { entry } = result
 
+  /**
+   * Home page — `/` (client, 15 Sep, D-96). Settings ki zaroorat nahi: header/footer layout se aate
+   * hain, aur har section apna maal payload me le kar aata hai.
+   */
+  if (entry.type === 'homePage') {
+    return <HomePage entry={entry} />
+  }
+
   if (entry.type === 'package') {
     /**
      * Teen alag fetch, teen alag cache tag — `path:` (entry), `type:package` (defaults)
@@ -149,7 +158,7 @@ export default async function CatchAllPage({ params }) {
   }
 
   /**
-   * **Aaj is fallback pe koi type aata hi nahi** — chaaron (`package` · `post` · `page` ·
+   * **Aaj is fallback pe koi type aata hi nahi** — chhe (`homePage` · `package` · `post` · `page` ·
    * `tourPage` · `blogPage`) ke apne branch upar hain.
    *
    * ⚠️ Isse hatana **galat** hoga: `contentTypes` ek collection hai aur client apna type bana

@@ -740,6 +740,20 @@ aur Posts jaisa **All dates** dropdown (client, 14 Sep — design me nahi hai; C
 - Featured image ki hint: khaali = Pages settings ki banner image
 - Permalink parent ke path ke neeche dikhta hai
 
+### Pages ▸ Home Page (D-96, 15 Sep)
+
+Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne pe hai. `/pages/home`
+**seedha edit screen** kholta hai (home ek hi hai): na list, na "Add New", na "Back to list".
+
+- Title + permalink **`/`** (slug ka Edit link nahi). Content panel me **sections** — `＋ Add block…`
+  se jodo, ⠿ se drag. Publish panel me Trash button **nahi** (hint: Draft karo). Page settings panel
+  nahi (featured image, parent, sidebar — kuch nahi). SEO panel wahi
+- Home na bana ho to upar notice — pehli **Save** banati hai
+- **Hero with form** section: Background colour (picker + "Use default") · Desktop image · Mobile
+  image · Title (Italic = accent) · Description · 4 Stats (Value/Label) · Form (sirf Active) · Ribbon ·
+  Heading · Description
+- **Enquiry Forms ▸ Basics** me naya **Button label** (placeholder `Get this itinerary`)
+
 ### Dropdown ki chaudai — sab screens (`primitives.css`)
 
 Row me **akela** dropdown (jiska `.field` seedha ek-column panel body ya uske `<form>` me ho) 750px se

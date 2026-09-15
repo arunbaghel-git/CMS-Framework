@@ -202,6 +202,15 @@ export const formSchema = z.object({
    */
   footnote: z.string().trim().max(300).default(''),
 
+  /**
+   * Submit button ka text — `Send me a quote` (client, 15 Sep, D-96).
+   *
+   * Form ki setting hai, section ki nahi — client ka tark: _"future me helpful ho"_, yaani jahan
+   * bhi ye form lage wahi text. Khaali ho to theme ka purana `Get this itinerary` — jo form aaj
+   * package/tour/blog pages pe chal rahe hain unka button waisa ka waisa rehta hai.
+   */
+  submitLabel: z.string().trim().max(60).default(''),
+
   placement: z.enum(FORM_PLACEMENTS).default('none'),
 
   status: z.enum(FORM_STATUSES).default('draft'),
@@ -343,6 +352,7 @@ export function emptyForm() {
     afterSubmit: { mode: 'message', value: 'Thank you — we will get back to you shortly.' },
     /** Reference ki apni line — client kaat sakta hai, par ek chalti hui shuruaat milti hai. */
     footnote: 'No advance to see the plan. Answered by a planner, usually within 4 working hours.',
+    submitLabel: '',
     placement: 'none',
     status: 'draft',
     fields: DEFAULT_FORM_FIELDS.map((field) => ({

@@ -93,6 +93,26 @@ export function resolvePath(entry, contentType) {
 }
 
 /**
+ * Pattern me `{slug}` hai hi nahi — yaani type ka URL **ek hi, tay** hai (D-96).
+ *
+ * Aaj sirf `homePage` (`/`) aisa hai. Uska slug phir bhi banta hai (`{siteId, type, slug}`
+ * unique hai aur admin list use dikhati hai), par path pe uska koi asar nahi — `resolvePath()`
+ * upar wale `replace` se hi `/` lautata hai.
+ *
+ * ⚠️ Iska matlab ye bhi hai ki aise type ki **ek hi entry** ho sakti hai: `{siteId, locale, path}`
+ * unique hai. Wo rok DB me hai, aur service ise pehle se pakad kar saaf message deti hai.
+ *
+ * @param {{ urlPattern?: string, hierarchical?: boolean }} contentType
+ */
+export function hasFixedPath(contentType) {
+  return Boolean(
+    contentType?.urlPattern &&
+      !contentType.hierarchical &&
+      !contentType.urlPattern.includes('{slug}'),
+  )
+}
+
+/**
  * Path ko canonical banata hai — double slash hatao, trailing slash hatao.
  *
  * Trailing slash yahin ek hi jagah tay hoti hai. Do variants store ho jaayein to

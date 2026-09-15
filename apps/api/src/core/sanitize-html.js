@@ -300,6 +300,7 @@ export function sanitizeInlineHtml(html) {
  * | `twoColumn` | `props.left` · `props.right` — dono khaane |
  * | `cards` | `props.items[].text` — **inline** profile |
  * | `faqs` | `props.description` · `props.items[].answer` |
+ * | `heroForm` | `props.title` (**inline**) · `props.description` · `props.formDescription` |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
  * ki content gir jaayega — wo bilkul theek save hoga, **bina safai ke**, aur page pe
@@ -359,6 +360,24 @@ export function sanitizeContent(content) {
               items: (p.items ?? []).map((faq) =>
                 faq ? { ...faq, answer: sanitizeBlockHtml(faq.answer) } : faq,
               ),
+            },
+          }
+
+        /**
+         * Home ka hero (D-96). `title` `<h1>` ke andar chhapta hai — **inline** profile, wahi jo
+         * `fields.heading` pe hai (D-90). Form card ki line sidebar widget jaisi block HTML.
+         *
+         * `background` yahan nahi — wo HTML nahi hai, aur uski rok Zod ka hex regex hai
+         * (`sectionBackgroundSchema`), jo `normalizeContent()` isse pehle chala chuka hota hai.
+         */
+        case 'heroForm':
+          return {
+            ...block,
+            props: {
+              ...p,
+              title: sanitizeInlineHtml(p.title),
+              description: sanitizeBlockHtml(p.description),
+              formDescription: sanitizeBlockHtml(p.formDescription),
             },
           }
 

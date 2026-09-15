@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-95                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-96                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -668,7 +668,18 @@ naya page `Pages Sidebar` right pe, `prepare` hook re-import pe admin ke chunav 
 page ka FAQ saada h2/h3 (data FAQs block me hi), TOC pe current section highlight, form ke focus ka
 glow har jagah se hata, Past imports me pagination, aur header ka band flyout `display: none` (touch
 device pe page zoom-out ho raha tha). **1092 test pass (DB ke saath).**
-⏭️ **Agla kaam: home page** — `project-state.md` ka pehla section padho.
+**15 Sep — Home page shuru (D-96), Section 1 ban gaya, koi migration nahi.** Client **section by
+section** bata raha hai (`home-nav-v3.html`); kram admin me drag se, har section pe **background colour
+picker**. `homePage` naya type, **`urlPattern: '/'`** — `settings.homepageEntryId` nahi (ek hi baat ke do
+source hote). Ek hi home (409), trash nahi (422). **Pages ▸ Home Page** seedha edit screen. Pehla section
+**Hero with form** (`heroForm`): desktop/mobile image, title (Italic = accent), description, 4 stats, aur
+form **seedha chuna** (sidebar nahi) + ribbon. Form me naya **Button label** (`forms.submitLabel`). Form
+badle to jin pages ke section me wo hai unka `path:` saaf (`pathTagsForForm()`).
+⚠️ CSS prefix block ka (`.hf-*`) — reference ke `.art`/`.faq`/`.sec` hamari site pe takraate hain.
+⚠️ Naya section = server pe chaar jagah + admin editor + theme — D-96 §6 aur `project-state.md`.
+⚠️ Aankh se dekhna baaki — **A-28**. Purana bug mila: sidebar ka badlaav ek ghanta late — **A-26**.
+**1110 test** (13 naye home ke).
+⏭️ **Agla kaam: client ka agla home section** — `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

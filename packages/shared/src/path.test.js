@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizePath, rebasePath, resolvePath, slugify, suffixSlug } from './path.js'
+import {
+  hasFixedPath,
+  normalizePath,
+  rebasePath,
+  resolvePath,
+  slugify,
+  suffixSlug,
+} from './path.js'
 
 /**
  * Slug aur path ke pure functions — D-09.
@@ -123,5 +130,22 @@ describe('rebasePath', () => {
 
   it('bilkul alag branch ko haath nahi lagata', () => {
     expect(rebasePath('/blog/hello', '/about', '/company')).toBe('/blog/hello')
+  })
+})
+
+describe('hasFixedPath — home page (D-96)', () => {
+  const home = { urlPattern: '/', hierarchical: false }
+
+  it('`{slug}` ke bina pattern tay path hai, aur resolvePath `/` lautata hai', () => {
+    expect(hasFixedPath(home)).toBe(true)
+    expect(resolvePath({ slug: 'home' }, home)).toBe('/')
+    expect(resolvePath({ slug: 'welcome' }, home)).toBe('/')
+  })
+
+  it('slug wala pattern aur nested type tay nahi hain', () => {
+    expect(hasFixedPath({ urlPattern: '/{slug}', hierarchical: false })).toBe(false)
+    // Nested type ka path parent se banta hai, pattern se nahi
+    expect(hasFixedPath({ urlPattern: '/', hierarchical: true })).toBe(false)
+    expect(hasFixedPath(null)).toBe(false)
   })
 })

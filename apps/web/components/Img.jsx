@@ -40,13 +40,23 @@
  * @param {string} [props.alt] payload ke `alt` ke upar — jab image ka apna alt khaali ho
  * @param {boolean} [props.priority] LCP wali image: turant, aur sabse pehle
  * @param {boolean} [props.eager] dikhti hui image: turant, par normal priority pe
+ * @param {{ url: string, srcset?: string | null, width?: number | null, height?: number | null } | null} [props.mobile]
+ *   phone ke liye **alag crop** — `<picture>` ka `<source>` (D-96). Na ho to saada `<img>`.
  */
-export default function Img({ image, sizes, alt, priority = false, eager = false, ...rest }) {
+export default function Img({
+  image,
+  sizes,
+  alt,
+  priority = false,
+  eager = false,
+  mobile = null,
+  ...rest
+}) {
   if (!image?.url) return null
 
   const loadsNow = priority || eager
 
-  return (
+  const img = (
     <img
       src={image.url}
       srcSet={image.srcset || undefined}
@@ -59,5 +69,32 @@ export default function Img({ image, sizes, alt, priority = false, eager = false
       decoding={loadsNow ? undefined : 'async'}
       {...rest}
     />
+  )
+
+  if (!mobile?.url) return img
+
+  /**
+   * Phone pe alag image — `<picture>`, CSS `background-image` **nahi** (D-96).
+   *
+   * Background image browser ka preload scanner dekh hi nahi paata; hero ki LCP image uske peeche
+   * chhupana D-85 me jeeta hua LCP wapas gawana hota. `<source>` HTML me hai, isliye scanner use
+   * turant pakadta hai — aur `fetchpriority` `<img>` pe hi rehta hai, jo dono pe lagta hai.
+   *
+   * ⚠️ `760px` — site ka mobile breakpoint (`--pad`, `.mobar`, footer). Alag number rakhne se ek
+   * chauda phone aisa banta jahan layout mobile ho par image desktop wali.
+   *
+   * `width`/`height` source pe bhi, taaki mobile crop ka apna aspect ratio ho (CLS).
+   */
+  return (
+    <picture>
+      <source
+        media="(max-width: 760px)"
+        srcSet={mobile.srcset || mobile.url}
+        sizes={mobile.srcset ? sizes : undefined}
+        width={mobile.width ?? undefined}
+        height={mobile.height ?? undefined}
+      />
+      {img}
+    </picture>
   )
 }

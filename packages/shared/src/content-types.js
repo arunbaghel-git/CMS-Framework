@@ -416,6 +416,15 @@ const PAGE_FIELDS = [
  */
 const POST_FIELDS = []
 
+/**
+ * `homePage` ka field set — **khaali** (client, 15 Sep, D-96).
+ *
+ * Home ka sab kuch **sections** me hai (`content.blocks[]`), aur har section apna background aur
+ * apna maal le kar aata hai. Page-level hero, sub heading ya sidebar yahan nahi hain — hero khud
+ * ek section hai (`heroForm`), jise client baaki sections ki tarah upar-neeche kar sakta hai.
+ */
+const HOME_PAGE_FIELDS = []
+
 /** @type {ReadonlyArray<import('./types.js').ContentTypeSeed>} */
 export const BUILT_IN_CONTENT_TYPES = Object.freeze([
   {
@@ -627,6 +636,42 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
      *   `readingMinutes()` se
      */
     fields: POST_FIELDS,
+  },
+
+  {
+    /**
+     * Home page — `home-nav-v3.html` (client, 15 Sep, D-96).
+     *
+     * ## `urlPattern: '/'` — `settings.homepageEntryId` nahi
+     *
+     * D-40 me `frontPageType` + `homepageEntryId` rakhe gaye the ("koi bhi page front page ban
+     * sake"). Client ne ulta maanga: **ek hi** home page, apni screen ke saath (`Pages ▸ Home
+     * Page`). Pointer rakhne ka matlab hota ek hi baat ke do source — entry ka path ek kahe aur
+     * settings doosra. Path `/` hone se routing, `path:/` cache tag aur "ek hi home" teeno bina
+     * kisi special case ke mil jaate hain (`hasFixedPath()`).
+     *
+     * ⚠️ `urlPattern` sirf create pe set hota hai (`ensureBuiltInContentTypes()`). Ise badalna
+     * har us instance pe haath se karna padega jahan type ban chuka hai.
+     *
+     * ⚠️ `hierarchical: false` zaroori hai — `hasFixedPath()` usi pe tika hai. Nested type ka path
+     * parent se banta hai, pattern se nahi.
+     */
+    key: 'homePage',
+    label: 'Home Page',
+    labelPlural: 'Home Page',
+    icon: 'page',
+
+    hasBuilder: true,
+    hierarchical: false,
+    urlPattern: '/',
+    archiveBase: null,
+    hasArchive: false,
+
+    supports: [S.TITLE, S.EDITOR, S.SEO, S.REVISIONS],
+
+    taxonomyTypes: [],
+
+    fields: HOME_PAGE_FIELDS,
   },
 ])
 

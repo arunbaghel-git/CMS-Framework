@@ -60,6 +60,10 @@ export const contentTypeKeySchema = z
  * `{slug}` **zaroori** hai. Uske bina ek type ke saare entries ek hi path pe resolve
  * karenge, aur `{siteId, locale, path}` unique index doosri entry pe hi fail ho jaayega —
  * admin ko "duplicate key" dikhega aur wajah kahin nahi likhi hogi.
+ *
+ * ⚠️ Built-in `homePage` (`/`) is niyam ka **apwaad** hai (D-96) — wo seed se aata hai, is schema
+ * se nahi guzarta, aur uski "ek hi entry" wali rok service me hai (`hasFixedPath()`). Custom type
+ * pe ye rok waisi ki waisi hai.
  */
 export const urlPatternSchema = z
   .string()

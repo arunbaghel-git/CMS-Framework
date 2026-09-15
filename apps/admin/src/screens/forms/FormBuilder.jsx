@@ -211,6 +211,7 @@ export default function FormBuilder() {
       emailTo: form.emailTo,
       afterSubmit: form.afterSubmit,
       footnote: form.footnote,
+      submitLabel: form.submitLabel ?? '',
       placement: form.placement,
       status: form.status,
       fields: form.fields,
@@ -320,6 +321,22 @@ export default function FormBuilder() {
                   placeholder={form.afterSubmit?.mode === 'redirect' ? '/thank-you' : ''}
                   disabled={readOnly}
                 />
+              </div>
+
+              {/* Button ka text — form ki setting, jahan bhi form lage wahi (client, 15 Sep, D-96). */}
+              <div className="field">
+                <label>Button label</label>
+                <input
+                  className="inp"
+                  value={form.submitLabel ?? ''}
+                  onChange={(e) => set({ submitLabel: e.target.value })}
+                  placeholder="Get this itinerary"
+                  disabled={readOnly}
+                />
+                <div className="hint">
+                  The text on the submit button, wherever this form appears. Leave it empty and it
+                  reads &ldquo;Get this itinerary&rdquo;.
+                </div>
               </div>
 
               <div className="field" style={{ marginBottom: 0 }}>

@@ -7822,3 +7822,120 @@ nahi — `.art` ke `h2/h3/p` aur `.art--page h2` ki line. Tour aur Blog pe accor
   `rootMargin`), breadcrumb ke `›` ki jagah (`.vcrumb > span { display: contents }`), figure ke upar
   14px, hero byline me dot alag element (page + post), aur header ka band flyout `display: none`
   (touch device pe page 1385px ka ban kar zoom-out ho raha tha).
+
+---
+
+## D-96
+
+**Home page — ek hi entry, `/` pe, sections ki list (client, 15 Sep)**
+
+**Status:** ✅ Section 1 (Hero with form) ban gaya. Baaki sections client ek-ek karke batayega.
+**Reference:** `.claude/docs/reference/home-nav-v3.html` (repo me 24 Aug se; header/footer isi se bane the)
+
+### Client ke faisle
+
+| # | Faisla |
+| --- | --- |
+| 1 | `Pages ▸ Home Page` — **seedha edit screen**, list nahi. Home ek hi hai |
+| 2 | Page **sections** ka hai; reference ke number (`3. HERO`…) kram nahi hain — kram **drag** se |
+| 3 | Har section pe **background colour — koi bhi rang, picker se** |
+| 4 | Header + footer **jo bane hain wahi** |
+| 5 | Hero: desktop + mobile image; baayein title + description + 4 stats; daayein **form, id se chuna** |
+| 6 | Title ka neela hissa **Italic** se (Tour page jaisa) |
+| 7 | Form card ki hari patti **admin field** (`ribbon`) |
+| 8 | Button ka text **form ki setting** — `Enquiry Forms ▸ Button label` (_"future me helpful ho"_) |
+| 9 | Button ke neeche ki line = form ka maujooda **Note under the button**, bas **taale ka icon** |
+| 10 | Mobile pe form text ke **neeche seedha** (reference jaisa), popup nahi |
+| — | Eyebrow chip (`★ 4.8 on Google…`) — **abhi tay nahi**, isliye nahi bana |
+
+### 1. `homePage` type, `urlPattern: '/'` — `settings.homepageEntryId` nahi
+
+D-40 me `frontPageType` + `homepageEntryId` rakhe gaye the ("koi bhi page front page ban sake"), aur
+02-ARCHITECTURE §4 / 08-RISKS usi raaste ki baat karte the. Client ne ulta maanga — **ek dedicated
+home**. Pointer rakhne ka matlab hota ek hi baat ke do source (entry ka path ek kahe, settings doosra) —
+D-43 §4 aur D-44 §5 wali galti. `cms-architect` ne yahi palat sujhaya.
+
+Path `/` hone se teen cheezein **bina special case** ke milti hain: `resolvePublicPath('/')` seedha
+chalta hai, `tagsFor()` `path:/` pehle se bhejta hai, aur `{siteId, locale, path}` unique index **DB
+me** "ek hi home" pakka karta hai.
+
+- `resolvePath()` ko kuch nahi badalna pada — pattern me `{slug}` na ho to `replace` wahi `/` lautata
+  hai. Naya helper **`hasFixedPath(contentType)`** (`path.js`) service ke liye
+- `resolveSlugAndPath()` tay path pe `-2`/`-3` ka loop nahi chalata — ek baar dekhta hai, takraav pe
+  **409 "There is already a Home Page"**. Bina iske 50 koshish ke baad "free URL nahi mila" aata
+- **Home trash nahi hota** (`trashEntry()` — `path === '/'` pe 422). Utaarna ho to Draft. Bulk bhi
+  isi raaste se
+- Slug phir bhi banta hai (`home`) — `{siteId, type, slug}` unique hai. Title badalne pe path `/` hi
+  rehta hai, `recordAutoRedirect()` `from === to` pe kuch nahi karta
+- ⚠️ `urlPatternSchema` ka `{slug}` wala niyam **custom types pe waisa ka waisa** — built-in seed us
+  schema se guzarta hi nahi
+- ⚠️ **Screen kholne se entry nahi banti** (R13). Khaali editor, pehli Save POST
+- `frontPageType`/`homepageEntryId` **model me pade rahenge, koi nahi padhta** (D-40 §4: singleton
+  field saste hain)
+
+### 2. Sections = `content.blocks[]`, background `props` me
+
+Wahi FROZEN `{id, type, props}` envelope (D-87 §7). `HOME_PAGE_BLOCK_TYPES = ['heroForm']`.
+
+- **Background `props.background` me, envelope ke `style` me nahi.** `style` responsive spacing ke liye
+  hai (§6) aur use padhne wala `styleToCss()` abhi bana hi nahi (`packages/blocks` khaali hai). Hero ki
+  image bhi props me hai — rang aur image saath
+- **D-08/D-20 ("sirf token rang") ka apwaad** — client ne picker maanga (R15), aur D-93 me
+  `taxonomies.color` free hex pehle se hai. Rok **shape** pe: `sectionBackgroundSchema` =
+  `^#[0-9a-fA-F]{6}$` ya khaali, lowercase me store. Theme me inline `--hf-bg` variable — `;`/`url()`
+  wali string Zod pe hi girti hai (test hai)
+- Type ka naam **`heroForm`** — "home" nahi (R4: naam permanent hai, aur kal ye section kisi aur page pe
+  bhi lag sakta hai)
+
+### 3. Form seedha section me — sidebar nahi
+
+Client ne poochha tha sidebar setting chahiye ya nahi. **Nahi:** sidebar widget ki **list** hai, hero me
+ek card ki jagah hai, aur named sidebar beech me rakhne se home ka form badalne ke liye Appearance ▸
+Sidebar jaana padta. Props ki shape wahi jo `enquiryForm` widget ki hai (`formId` + heading +
+description), aur form usi `getPublicFormById()` se resolve hota hai.
+
+- Payload: `toPublicHome()` (alag, `toPublicPage()` nahi — breadcrumb/byline/TOC/sidebar ka kaam home
+  pe bekaar chalta). `resolveHomeSection()` `data: { image, mobileImage, form }` deta hai aur props se
+  **`imageId`/`mobileImageId`/`formId` hata deta hai** (D-88 wala `sidebarId` tark). Khaali `value`
+  wale stats gir jaate hain
+- Draft/delete form → `null`, card gayab (D-42 §2)
+- Web: `EnquiryForm` ka teesra `variant="hero"` — class `.hf-card`, **`.wdg` nahi** (uske mobile rules
+  form ko `display: none` karke sheet banate). Dock hero pe kabhi nahi
+
+### 4. `forms.submitLabel` — naya field
+
+Zod + **model** + `toPublicForm()` + FormBuilder + `emptyForm()`. Khaali pe theme ka purana `Get this
+itinerary` — package/tour/blog ke chalte form ka button nahi badla. Test **DB** padhta hai (D-86 wala
+jaal — model me na ho to Mongoose chup-chaap gira deta).
+
+### 5. Cache — form badle to uske pages
+
+`forms` service pehle sirf `type:package` bhejti thi, jo home pe kuch saaf nahi karta. Naya
+**`pathTagsForForm(formId)`** (entries service) — jin entries ke `content.blocks.props.formId` me ye form
+hai unke `path:` tag. `/` hardcode nahi. Update aur delete dono pe.
+
+⚠️ **Wahi bug sidebar pe zinda hai, aur wo is kaam ka hissa nahi** — `sidebars` service
+`type:page`/`type:tourPage` bhejti hai jinhe web ki koi fetch nahi lagati. Sidebar ya uske form ka
+badlaav tour/page/blog pe **ek ghante** (`CACHE_SECONDS`) baad dikhta hai. **A-26**.
+
+### 6. Theme
+
+- `components/home/HomePage.jsx` (sections ka naksha) + `HeroForm.jsx`, catch-all me `homePage` branch
+- CSS prefix **block ka** (`.hf-*`), reference ka nahi — `.art`/`.faq`/`.sec` aaj hi takraate hain
+- Parda (gradient) `color-mix()` se **usi background rang** se — reference ka `rgba(11,43,74,…)` copy
+  karne pe client ka rang parde ke neeche dab jaata. Default rang pe bilkul reference jaisa
+- Mobile image: `Img` ka naya `mobile` prop → `<picture><source media="(max-width: 760px)">`. CSS
+  background nahi (preload scanner use nahi dekhta, D-85 ka LCP jaata). 760 = site ka mobile breakpoint
+- Naye tokens: `--fs-hero` · `--fs-hero-sub` · `--fs-hero-num` · `--sh-4` (maujooda scale me saathi nahi
+  tha — D-73)
+
+### 7. Jo jaan-boojh kar nahi bana
+
+- **Eyebrow chip** — client ne tay nahi kiya
+- **Mobile bar** (`.mobar` — Call · WhatsApp · Get free quote) aur **floating buttons** — reference me
+  hain, abhi maange nahi gaye
+- **JSON-LD** home pe — koi section abhi use nahi maangta
+- ⚠️ Form me `source: packages` wala dropdown hero pe **nahi dikhega** — use vikalp package page deta
+  hai. Client ke form me aisa field ho to use apne vikalp wala select banana hoga
+
+**Koi migration nahi.** Deploy pe **`pnpm seed`** (`homePage` type banta hai) + API restart.

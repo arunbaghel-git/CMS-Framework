@@ -144,13 +144,14 @@ describe('built-in content types', () => {
     // `tourPage` D-87 me juda (7 Sep) — package listing page. `page` se alag type isliye
     // hai ki menu, list aur URL teenon alag maange gaye the; field set dono ka ek hi hai.
     // `blogPage` spec 008 me juda (9 Sep) — blog ka listing page, wahi teen wajah
-    expect(keys).toEqual(['blogPage', 'package', 'page', 'post', 'tourPage'])
+    // `homePage` D-96 me juda (15 Sep) — `/` pe, ek hi entry
+    expect(keys).toEqual(['blogPage', 'homePage', 'package', 'page', 'post', 'tourPage'])
   })
 
   it('dobara chalne pe duplicate nahi banta — seed idempotent hai', async () => {
     const result = await ensureBuiltInContentTypes()
 
-    expect(await ContentType.countDocuments({})).toBe(5)
+    expect(await ContentType.countDocuments({})).toBe(6)
     expect(result.every((r) => r.action === 'up-to-date')).toBe(true)
   })
 
@@ -2293,6 +2294,7 @@ describe('Tour Page ka type (D-87)', () => {
       post: true,
       tourPage: true,
       blogPage: true,
+      homePage: true,
     })
   })
 })

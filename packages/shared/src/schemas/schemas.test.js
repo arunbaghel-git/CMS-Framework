@@ -12,6 +12,7 @@ import {
   entryUpdateSchema,
   extractBlockText,
   findDuplicateBlockIds,
+  heroFormPropsSchema,
   BLOG_PAGE_BLOCK_TYPES,
   PAGE_BLOCK_PROP_SCHEMAS,
   PAGE_BLOCK_TYPES,
@@ -511,5 +512,30 @@ describe('withHeadingIds — On this post (spec 008)', () => {
 
     expect(toc).toEqual([])
     expect(html).toBe('<h3>Chhota</h3>')
+  })
+})
+
+describe('heroFormPropsSchema — home ka hero (D-96)', () => {
+  it('khaali props pe saare default', () => {
+    expect(heroFormPropsSchema.parse({})).toMatchObject({
+      background: '',
+      imageId: null,
+      mobileImageId: null,
+      stats: [],
+      ribbon: '',
+      formId: '',
+    })
+  })
+
+  it('background sirf `#rrggbb`, lowercase me', () => {
+    expect(heroFormPropsSchema.parse({ background: '#0B2B4A' }).background).toBe('#0b2b4a')
+    for (const bad of ['red', '#fff', '#0b2b4a; color: red', 'url(x)']) {
+      expect(() => heroFormPropsSchema.parse({ background: bad })).toThrow()
+    }
+  })
+
+  it('chaar se zyada stats nahi', () => {
+    const stat = { value: '1', label: 'x' }
+    expect(() => heroFormPropsSchema.parse({ stats: Array(5).fill(stat) })).toThrow()
   })
 })

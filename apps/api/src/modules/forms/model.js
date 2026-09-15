@@ -31,6 +31,12 @@ const formSchema = new mongoose.Schema(
     /** Button ke neeche ki chhoti line — thank-you se alag: ye submit se **pehle** dikhti hai. */
     footnote: { type: String, default: '' },
 
+    /**
+     * Submit button ka text (D-96). ⚠️ Model me na ho to Mongoose `strict` ise **chup-chaap**
+     * gira deta — Zod pass, API 200, admin "Saved.", DB me kuch nahi (D-86 wala jaal).
+     */
+    submitLabel: { type: String, default: '' },
+
     placement: { type: String, default: 'none' },
 
     status: { type: String, default: 'draft' },

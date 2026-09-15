@@ -139,8 +139,13 @@ contentTypes   * siteId, key(package|page|post|service…), label, labelPlural, 
                  tha. Client ka custom type bhi nested ho sakta hai.
                  locale yahan NAHI hai — type site ka structure hai, uska
                  content nahi. Translate label hoti hai, key nahi (D-46)
-                 package | page | post | tourPage CODE-OWNED hain, seed sync
+                 package | page | post | tourPage | blogPage | homePage
+                 CODE-OWNED hain, seed sync
                  karta hai (D-46, wahi model jo built-in roles pe hai — D-36)
+                 homePage (D-96, 15 Sep): urlPattern '/' — {slug} ke bina,
+                 yaani TAY PATH (hasFixedPath). Ek hi entry; unique path index
+                 DB me rokta hai, service 409 deti hai. Trash nahi hota (422).
+                 settings.homepageEntryId ab koi nahi padhta
                  tourPage D-87 me juda — package LISTING page (tour-v3.html).
                  page se alag type isliye ki menu, list aur URL teenon alag
                  maange gaye the (client #1); FIELD SET DONO KA EK HI HAI
@@ -176,6 +181,12 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          type ke props CHHOOT jaate hain, girte nahi (Phase 5 hatch)
                          chaaron ki HTML sanitizeContent() me saaf hoti hai —
                          naya block type jodo to wahan bhi jodo (R20)
+                         homePage: SECTIONS ki list (D-96) — aaj sirf heroForm:
+                         { background (#rrggbb | ''), imageId, mobileImageId,
+                         title (inline HTML), description, stats[{value,label}]≤4,
+                         ribbon, formId, formHeading, formDescription }.
+                         background PROPS me hai, envelope ke style me nahi.
+                         Payload me ids nahi jaatin — data{image,mobileImage,form}
                  fields  { ...customFields },            contentType ke fields
                          package ka itinerary[] yahin hai — poora contract
                          packages/shared/schemas/itinerary.js me (D-51).
@@ -327,6 +338,8 @@ forms          * siteId, name, emailTo, afterSubmit{mode,value}, placement,
                  placement ke aaj do hi vikalp hain (packages | none); design ke
                  baaki teen (Contact page · Popup · Sticky bar) ko page builder
                  chahiye (Phase 5)
+                 footnote · submitLabel (D-96, 15 Sep — button ka text, khaali
+                 pe theme ka "Get this itinerary")
 enquiries      * siteId, formId, formName, sourcePath, values{}, status,
                  notes[], deletedAt, searchText                    ← D-75, 3 Sep
                  ⚠️ sourceUrl STORE nahi hota — controller use sourcePath +
@@ -491,13 +504,13 @@ configurable hone ka matlab hi khatam kar deta hai.
 | Slug change     | **automatic** 301, aur **descendants ka path cascade update** + har ek pe redirect |
 | Canonical       | trailing-slash policy fix, lowercase enforce, baaki variants 301                   |
 | Redirect safety | chain flatten + loop detection                                                     |
-| Homepage        | `settings.homepageEntryId` — `/` isi se resolve                                    |
+| Homepage        | `homePage` type, `urlPattern: '/'` — ek hi entry, path hi `/` hai (**D-96**)             |
 | Posts page      | `settings.postsPageEntryId` — archive kis URL pe hai                               |
 
 **Archive routes (usi catch-all ke andar):**
 
 ```
-/                        homepage (settings se)
+/                        homepage (`homePage` entry, D-96)
 /{postsPageSlug}         post archive
 /{postsPageSlug}/page/2  pagination
 /category/{slug}         taxonomy archive    (base editable)

@@ -88,6 +88,89 @@ export const POST_BLOCK_TYPES = Object.freeze(['richText', 'faqs'])
  */
 export const BLOG_PAGE_BLOCK_TYPES = Object.freeze(['richText', 'postList', 'faqs'])
 
+/**
+ * `homePage` ke sections — **client ek-ek karke bata raha hai** (15 Sep, D-96).
+ *
+ * Poora page ek saath nahi banega; jo section maanga gaya wahi yahan hai. Reference ke comment
+ * wale number (`3. HERO`, `5. COUNTERS`…) kram nahi hain — kram client drag se lagata hai.
+ */
+export const HOME_PAGE_BLOCK_TYPES = Object.freeze(['heroForm'])
+
+/**
+ * Section ka background — **koi bhi rang, picker se** (client, 15 Sep, D-96).
+ *
+ * ⚠️ D-08/D-20 ka niyam "sirf theme ke rang" tha. Client ne saaf picker maanga (R15), aur D-93
+ * (`taxonomies.color`) me free hex pehle se chal raha hai. Rok sirf **shape** pe hai: `#rrggbb`,
+ * aur kuch nahi. Gradient, `url()` ya `;` wali string yahan se guzar hi nahi sakti — ye value
+ * theme me inline `style` me jaati hai.
+ *
+ * Khaali = section ka apna default rang (hero ka gehra neela).
+ */
+export const sectionBackgroundSchema = z
+  .string()
+  .trim()
+  .regex(/^(#[0-9a-fA-F]{6})?$/, 'Background must be a colour like #0b2b4a')
+  .transform((v) => v.toLowerCase())
+  .default('')
+
+/**
+ * Hero ka ek number — reference ka `.hero__stats .stat` (`17 yrs` / `Operating from Port Blair`).
+ *
+ * ⚠️ `statSchema` reuse **nahi** kiya: uske `suffix` aur `highlight` Tour ke `.vrail` ki cheezein
+ * hain, aur is design me dono hain hi nahi. Admin me do khaali khaane padey rehna wahi sawaal
+ * paida karta jiska koi jawab nahi (D-30).
+ */
+export const heroStatSchema = z.object({
+  id: z.string().min(1).optional(),
+  value: z.string().trim().max(40).default(''),
+  label: z.string().trim().max(120).default(''),
+})
+
+/**
+ * `Hero with form` — reference ka `3. HERO` (`.hero`): background image, baayein title +
+ * description + chaar number, daayein enquiry form ka card (client, 15 Sep).
+ *
+ * ## Form **seedha chuna jaata hai**, sidebar se nahi
+ *
+ * Sidebar ek widget **list** hai; hero me sirf ek form card ki jagah hai. Named sidebar beech me
+ * rakhne ka matlab hota ki home ka form badalne ke liye client Appearance ▸ Sidebar jaaye. Shape
+ * wahi hai jo `enquiryForm` widget ka hai (`formId` + heading + description), taaki server pe
+ * form ek hi raaste se resolve ho (`getPublicFormById()`).
+ */
+export const heroFormPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+
+  /**
+   * Do image — desktop aur mobile. Mobile khaali ho to desktop wali (theme ka `<picture>`).
+   *
+   * Media ki `id`, URL nahi (D-41) — resolve server pe hota hai, aur media na mile to `null`
+   * (D-42 §2): tab sirf background ka rang dikhta hai.
+   */
+  imageId: z.string().trim().max(60).nullable().default(null),
+  mobileImageId: z.string().trim().max(60).nullable().default(null),
+
+  /**
+   * Page ka `<h1>`. **Italic** wala hissa accent rang me — Tour page jaisa (client, 15 Sep;
+   * reference me `<span>` hai). Inline profile, taaki block tags `<h1>` me ghus hi na sakein
+   * (wahi tark jo `pageHeadingSchema` pe hai).
+   */
+  title: inlineHtmlSchema.pipe(z.string().max(300)).default(''),
+  description: htmlSchema.pipe(z.string().max(2000)).default(''),
+
+  /** Reference me chaar hain. Khaali `value` wale page pe nahi aate. */
+  stats: z.array(heroStatSchema).max(4).default([]),
+
+  /**
+   * Card ke upar ki hari patti — `Free · No obligation` (client: _"admin field chahiye"_).
+   * Khaali ho to patti nahi banti.
+   */
+  ribbon: z.string().trim().max(60).default(''),
+
+  formId: z.string().trim().max(60).default(''),
+  formHeading: z.string().trim().max(200).default(''),
+  formDescription: htmlSchema.pipe(z.string().max(1000)).default(''),
+})
+
 /** `richText` — "Text" block. Poora content ek HTML string me, jaisa D-80 se hai. */
 export const richTextPropsSchema = z.object({
   html: htmlSchema,
@@ -518,6 +601,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   packageList: packageListPropsSchema,
   faqs: faqsPropsSchema,
   postList: postListPropsSchema,
+  heroForm: heroFormPropsSchema,
 })
 
 /**

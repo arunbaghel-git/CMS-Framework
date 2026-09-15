@@ -5,6 +5,11 @@ import { DEFAULT_SITE_ID, ENQUIRY_STATUSES, deriveEnquiryColumns, emptyForm } fr
 import { notFound, unprocessable } from '../../core/errors.js'
 import { logger } from '../../core/logger.js'
 import { revalidateTags } from '../../core/revalidate.js'
+/**
+ * ⚠️ Circular nahi hai — `entries/service.js` forms ko import nahi karti. Sirf ek query chahiye:
+ * kaunse pages ke sections is form ko use karte hain (D-96).
+ */
+import { pathTagsForForm } from '../entries/service.js'
 import { Enquiry, Form } from './model.js'
 
 /**
@@ -117,8 +122,11 @@ export async function updateForm(id, input, siteId = DEFAULT_SITE_ID) {
    *
    * `type:package` hi sahi tag hai, `entry:{id}` nahi — badla hua data kisi **ek** entry ka
    * nahi hai (D-43 §4 ka sabak).
+   *
+   * ⚠️ **Aur jin pages ke section me ye form chuna gaya hai unke `path:` tag** (D-96) — home ka
+   * hero. Bina iske button label ya fields badalne ke baad home ek ghante tak purana form dikhata.
    */
-  await revalidateTags(['type:package'])
+  await revalidateTags(['type:package', ...(await pathTagsForForm(id, siteId))])
 
   return toApi(updated)
 }
@@ -141,7 +149,8 @@ export async function deleteForm(id, siteId = DEFAULT_SITE_ID) {
   }
 
   await Form.deleteOne({ _id: id })
-  await revalidateTags(['type:package'])
+  /** Delete ke baad section ka form `null` hai aur card gayab hona chahiye — wahi pages saaf. */
+  await revalidateTags(['type:package', ...(await pathTagsForForm(id, siteId))])
 
   return { id: String(id) }
 }
@@ -205,6 +214,8 @@ function toPublicForm(doc) {
     afterSubmit: doc.afterSubmit ?? { mode: 'message', value: '' },
     /** Button ke neeche ki chhoti line — reference ka `<small>`. */
     footnote: doc.footnote ?? '',
+    /** Khaali pe theme apna default likhti hai — wo fallback theme ka hai, payload ka nahi. */
+    submitLabel: doc.submitLabel ?? '',
 
     /**
      * Sidebar ke "Talk to a planner" card ka email — **form ka `emailTo`** (client, 2 Sep).
