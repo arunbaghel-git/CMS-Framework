@@ -3,11 +3,13 @@ import {
   createHotelSchema,
   createReviewSchema,
   createTransferSchema,
+  createVideoReviewSchema,
   masterListQuerySchema,
   updateAddOnSchema,
   updateHotelSchema,
   updateReviewSchema,
   updateTransferSchema,
+  updateVideoReviewSchema,
 } from '@cms/shared'
 
 /**
@@ -27,4 +29,5 @@ export const SCHEMAS = Object.freeze({
   addOn: { create: createAddOnSchema, update: updateAddOnSchema },
   transfer: { create: createTransferSchema, update: updateTransferSchema },
   review: { create: createReviewSchema, update: updateReviewSchema },
+  videoReview: { create: createVideoReviewSchema, update: updateVideoReviewSchema },
 })

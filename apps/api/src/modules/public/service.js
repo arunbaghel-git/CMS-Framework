@@ -18,6 +18,7 @@ import {
   resolveSectionLabels,
   routeStrip,
   slugify,
+  videoEmbedUrl,
   withHeadingIds,
 } from '@cms/shared'
 
@@ -25,6 +26,7 @@ import { env } from '../../core/env.js'
 import { Entry } from '../entries/model.js'
 import { getPublicFormById, getPublicPackageForm } from '../forms/service.js'
 import { AddOn, Hotel, Review, Transfer } from '../master-lists/model.js'
+import { findItemsByIds } from '../master-lists/service.js'
 import { Media } from '../media/model.js'
 import { toPublicMedia } from '../media/service.js'
 import { getPublicMenuById } from '../menus/service.js'
@@ -2091,6 +2093,7 @@ async function toPublicPage(doc, siteId, locale) {
  */
 async function resolveHomeSection(block, siteId) {
   if (block?.type === 'infoCards') return resolveInfoCards(block, siteId)
+  if (block?.type === 'videoReviews') return resolveVideoReviews(block, siteId)
   if (block?.type !== 'heroForm') return block
 
   const { imageId, mobileImageId, formId, ...props } = block.props ?? {}
@@ -2115,6 +2118,38 @@ async function resolveHomeSection(block, siteId) {
     },
     data: { image, mobileImage, form },
   }
+}
+
+/**
+ * `Customer reviews` — chune hue video reviews, **section ke kram me** (D-96 §13).
+ *
+ * ⚠️ Kram `reviewIds` ka hai, Mongo ka nahi — `$in` apne kram me lautata hai. Delete ho chuka review
+ * chup-chaap gir jaata hai (D-42 §2). `reviewIds` payload me nahi jaata; theme ko resolve hua maal.
+ *
+ * `embedUrl` server pe (`videoEmbedUrl()`) — YouTube/Vimeo pe popup, baaki pe `null` aur theme link
+ * naye tab me kholti hai.
+ */
+async function resolveVideoReviews(block, siteId) {
+  const { reviewIds = [], ...props } = block.props ?? {}
+
+  const found = await findItemsByIds('videoReview', reviewIds, siteId)
+
+  const reviews = await Promise.all(
+    reviewIds
+      .map((id) => found.get(String(id)))
+      .filter(Boolean)
+      .map(async (review) => ({
+        id: review.id,
+        name: review.name,
+        packageName: review.packageName ?? '',
+        videoUrl: review.videoUrl,
+        embedUrl: videoEmbedUrl(review.videoUrl),
+        /** `medium` — tile ~190–280px chaudi hai, retina pe 2x (D-84). */
+        image: await toDisplayImage(review.imageId, 'medium', siteId),
+      })),
+  )
+
+  return { ...block, props, data: { reviews } }
 }
 
 /**

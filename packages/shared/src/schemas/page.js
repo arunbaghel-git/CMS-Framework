@@ -95,7 +95,12 @@ export const BLOG_PAGE_BLOCK_TYPES = Object.freeze(['richText', 'postList', 'faq
  * Poora page ek saath nahi banega; jo section maanga gaya wahi yahan hai. Reference ke comment
  * wale number (`3. HERO`, `5. COUNTERS`…) kram nahi hain — kram client drag se lagata hai.
  */
-export const HOME_PAGE_BLOCK_TYPES = Object.freeze(['heroForm', 'infoCards', 'faqs'])
+export const HOME_PAGE_BLOCK_TYPES = Object.freeze([
+  'heroForm',
+  'infoCards',
+  'faqs',
+  'videoReviews',
+])
 
 /**
  * Section ka background — **koi bhi rang, picker se** (client, 15 Sep, D-96).
@@ -245,6 +250,28 @@ export const infoCardsPropsSchema = z.object({
   textAlign: z.enum(['left', 'center']).default('left'),
 
   items: z.array(infoCardSchema).max(INFO_CARDS_MAX).default([]),
+})
+
+/** Customer reviews section me kitne video — reference ki rail me chhe hain; rail scroll hoti hai. */
+export const VIDEO_REVIEWS_MAX = 20
+
+/**
+ * `Customer reviews` — reference ka `11. VIDEO CUSTOMER REVIEWS` (client, 15 Sep, D-96 §13).
+ *
+ * Video reviews **Reviews ▸ Video reviews** me bante hain; section unme se **chunta** hai aur kram
+ * isi array ka hai (client: _"section me chunein, kram drag se"_) — `packageIds[]` wala hi model.
+ * Id, naam nahi; jo review delete ho gaya wo payload me chup-chaap gir jaata hai (D-42 §2).
+ *
+ * Heading reference me **left** hai, daayein `All video reviews →` — isliye default `left`.
+ */
+export const videoReviewsPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+  headingAlign: z.enum(['center', 'left']).default('left'),
+  linkLabel: z.string().trim().max(80).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+  reviewIds: z.array(z.string().trim().min(1).max(60)).max(VIDEO_REVIEWS_MAX).default([]),
 })
 
 /** `richText` — "Text" block. Poora content ek HTML string me, jaisa D-80 se hai. */
@@ -688,6 +715,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   postList: postListPropsSchema,
   heroForm: heroFormPropsSchema,
   infoCards: infoCardsPropsSchema,
+  videoReviews: videoReviewsPropsSchema,
 })
 
 /**

@@ -6,6 +6,7 @@ import {
   addOnController,
   hotelController,
   reviewController,
+  videoReviewController,
   transferController,
 } from './controller.js'
 
@@ -58,6 +59,14 @@ export const transferRoutes = listRouter(transferController, {
 })
 
 export const reviewRoutes = listRouter(reviewController, {
+  read: PERMISSION.REVIEW_READ,
+  create: PERMISSION.REVIEW_CREATE,
+  update: PERMISSION.REVIEW_UPDATE,
+  remove: PERMISSION.REVIEW_DELETE,
+})
+
+/** Video reviews — wahi `review.*` permission (D-96 §13): client ke liye dono ek hi "Reviews" hain. */
+export const videoReviewRoutes = listRouter(videoReviewController, {
   read: PERMISSION.REVIEW_READ,
   create: PERMISSION.REVIEW_CREATE,
   update: PERMISSION.REVIEW_UPDATE,

@@ -209,6 +209,106 @@ export const createReviewSchema = reviewSchema
 
 export const updateReviewSchema = createReviewSchema.partial()
 
+// ── video reviews ────────────────────────────────────────────────────────────
+
+/**
+ * Video review — `home-nav-v3.html` ka `11. VIDEO CUSTOMER REVIEWS` (client, 15 Sep, D-96 §13).
+ *
+ * ## ⚠️ Alag collection, `reviews` me `kind` nahi
+ *
+ * Text reviews package page pe **saare** jaate hain (`getPublicPackageDefaults()` — koi filter nahi,
+ * D-70). Ek hi collection me `kind: 'video'` rakhne ka matlab hota ki us query ko (aur har aane wali
+ * query ko) filter yaad rakhna pade — ek jagah bhoolte hi video wale khaali text card package page pe
+ * chhap jaate. Alag collection me wo galti ban hi nahi sakti. Admin me dono **ek hi screen** ke do tab.
+ *
+ * Permission wahi `review.*` — client ke liye ye ek hi cheez hai ("Reviews"), aur nayi permission ka
+ * matlab hota roles ki migration.
+ *
+ * | Field | Card pe |
+ * | --- | --- |
+ * | `imageId` | 9:14 thumbnail (`.vr img`) |
+ * | `videoUrl` | tile pe click → popup me video (YouTube/Vimeo), baaki link naye tab me |
+ * | `name` | `Sneha & family` — UI me **Title**. Naam `name` isliye ki list ka search aur delete ka confirm isi pe chalte hain |
+ * | `packageName` | `6N Blissful Andaman` — **haath se** (client), package se juda nahi |
+ */
+export const videoReviewSchema = z.object({
+  siteId: z.string().default(DEFAULT_SITE_ID),
+
+  imageId: z.string().trim().max(60).nullable().default(null),
+
+  /** Sirf `https` — `javascript:` jaisa link card ke `<a href>` me pahunch hi na sake. */
+  videoUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .url('Paste the full video link, e.g. https://youtu.be/…')
+    .refine((v) => v.startsWith('https://'), 'The video link must start with https://'),
+
+  name: z.string().trim().min(1, 'Give the review a title').max(120),
+  packageName: z.string().trim().max(120).default(''),
+
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
+})
+
+export const createVideoReviewSchema = videoReviewSchema
+  .omit({ createdAt: true, updatedAt: true })
+  .partial({ siteId: true })
+
+export const updateVideoReviewSchema = createVideoReviewSchema.partial()
+
+/**
+ * Video link → popup me chalne laayak embed URL — **ya `null`** (D-96 §13).
+ *
+ * YouTube (`watch?v=` · `youtu.be/` · `shorts/` · `embed/`) aur Vimeo (`vimeo.com/123`). Baaki kuch bhi
+ * (Instagram reel, Facebook, Drive) iframe me chalta hi nahi ya embed code maangta hai — un pe `null`,
+ * aur theme link **naye tab** me kholti hai. Galat andaza lagane se behtar hai khaali popup na dikhe.
+ *
+ * `youtube-nocookie.com` — visitor ke browser me YouTube ki tracking cookie tab tak nahi jab tak wo play
+ * na kare. Shared me isliye ki server payload banata hai aur test ise seedha pakad sake.
+ *
+ * @param {string} url
+ * @returns {string|null}
+ */
+export function videoEmbedUrl(url) {
+  let parsed
+  try {
+    parsed = new URL(String(url ?? ''))
+  } catch {
+    return null
+  }
+
+  if (parsed.protocol !== 'https:') return null
+
+  const host = parsed.hostname.replace(/^www\.|^m\./, '')
+  const ID = /^[\w-]{6,20}$/
+
+  let youtubeId = null
+  if (host === 'youtu.be') youtubeId = parsed.pathname.slice(1).split('/')[0]
+  if (host === 'youtube.com' || host === 'youtube-nocookie.com') {
+    const [first, second] = parsed.pathname.split('/').filter(Boolean)
+    youtubeId =
+      first === 'watch'
+        ? parsed.searchParams.get('v')
+        : ['shorts', 'embed', 'live'].includes(first)
+          ? second
+          : null
+  }
+  if (youtubeId && ID.test(youtubeId)) {
+    return `https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&rel=0`
+  }
+
+  if (host === 'vimeo.com' || host === 'player.vimeo.com') {
+    const vimeoId = parsed.pathname
+      .split('/')
+      .filter(Boolean)
+      .find((part) => /^\d{5,12}$/.test(part))
+    if (vimeoId) return `https://player.vimeo.com/video/${vimeoId}?autoplay=1`
+  }
+
+  return null
+}
+
 /**
  * `★★★★☆` — review card ka rating.
  *

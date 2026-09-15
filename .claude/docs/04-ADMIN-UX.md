@@ -759,6 +759,9 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
   Icon ya apni image · Label · Title · Description · Link)
 - **All Pages** ke upar Home Page ki row (Edit · View)
 - **Enquiry Forms** ki fields table me ⠿ — drag se kram
+- **Customer reviews** section: Background · Heading (position + link) · picker — All video reviews ＋ / In this
+  section (⠿ drag, ✕)
+- **Reviews** screen me do tab — **Text reviews** · **Video reviews** (Image · Video link · Title · Package name)
 
 ### Dropdown ki chaudai — sab screens (`primitives.css`)
 

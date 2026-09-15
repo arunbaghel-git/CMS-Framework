@@ -32,6 +32,7 @@ import {
   hotelRoutes,
   reviewRoutes,
   transferRoutes,
+  videoReviewRoutes,
 } from './modules/master-lists/routes.js'
 import { packageDefaultsRoutes } from './modules/package-defaults/routes.js'
 import { redirectRoutes } from './modules/redirects/routes.js'
@@ -224,6 +225,8 @@ export function createApp() {
   app.use('/api/add-ons', addOnRoutes)
   app.use('/api/transfers', transferRoutes)
   app.use('/api/reviews', reviewRoutes)
+  /** Video reviews — Reviews screen ka doosra tab (D-96 §13). */
+  app.use('/api/video-reviews', videoReviewRoutes)
   app.use('/api/package-defaults', packageDefaultsRoutes)
 
   // Enquiry forms — client, 1 Sep. Submissions ka public raasta `/api/public/enquiries` hai

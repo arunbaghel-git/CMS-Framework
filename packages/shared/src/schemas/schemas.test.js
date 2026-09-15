@@ -13,6 +13,7 @@ import {
   extractBlockText,
   findDuplicateBlockIds,
   heroFormPropsSchema,
+  videoEmbedUrl,
   BLOG_PAGE_BLOCK_TYPES,
   PAGE_BLOCK_PROP_SCHEMAS,
   PAGE_BLOCK_TYPES,
@@ -537,5 +538,34 @@ describe('heroFormPropsSchema — home ka hero (D-96)', () => {
   it('chaar se zyada stats nahi', () => {
     const stat = { value: '1', label: 'x' }
     expect(() => heroFormPropsSchema.parse({ stats: Array(5).fill(stat) })).toThrow()
+  })
+})
+
+describe('videoEmbedUrl — video review ka popup (D-96 §13)', () => {
+  it('YouTube ke saare roop aur Vimeo', () => {
+    const yt = 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0'
+    for (const url of [
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10',
+      'https://youtu.be/dQw4w9WgXcQ',
+      'https://youtube.com/shorts/dQw4w9WgXcQ',
+      'https://m.youtube.com/watch?v=dQw4w9WgXcQ',
+    ]) {
+      expect(videoEmbedUrl(url)).toBe(yt)
+    }
+    expect(videoEmbedUrl('https://vimeo.com/76979871')).toBe(
+      'https://player.vimeo.com/video/76979871?autoplay=1',
+    )
+  })
+
+  it('baaki sab null — naye tab me khulega', () => {
+    for (const url of [
+      'https://www.instagram.com/reel/abc/',
+      'http://youtu.be/dQw4w9WgXcQ',
+      'javascript:alert(1)',
+      'not a url',
+      '',
+    ]) {
+      expect(videoEmbedUrl(url)).toBeNull()
+    }
   })
 })

@@ -3,6 +3,7 @@ import {
   ICONS,
   ICON_LABELS,
   INFO_CARDS_MAX,
+  VIDEO_REVIEWS_MAX,
   PAGE_BLOCK_TYPES,
   POST_LIST_MAX_FEATURED,
   POST_LIST_PER_PAGE_DEFAULT,
@@ -11,6 +12,7 @@ import { useEffect, useId, useMemo, useState } from 'react'
 
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import { useListDrag } from '../../lib/drag-list.js'
+import { api, errorMessage } from '../../lib/api.js'
 import { useEntryList, useMediaById } from '../../lib/use-entries.js'
 import { useForms } from '../forms/useForms.js'
 import HtmlEditor from '../packages/HtmlEditor.jsx'
@@ -39,6 +41,7 @@ const BLOCK_LABEL = {
   faqs: 'FAQs',
   heroForm: 'Hero with form',
   infoCards: 'Info cards',
+  videoReviews: 'Customer reviews',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -51,6 +54,7 @@ const BLOCK_CLASS = {
   faqs: 'faq',
   heroForm: 'hero',
   infoCards: 'info',
+  videoReviews: 'reviews',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -79,6 +83,15 @@ function emptyBlock(type) {
       heading: '',
       description: '',
       items: [],
+    },
+    videoReviews: {
+      background: '',
+      heading: '',
+      description: '',
+      headingAlign: 'left',
+      linkLabel: '',
+      linkUrl: '',
+      reviewIds: [],
     },
     heroForm: {
       background: '',
@@ -126,6 +139,8 @@ function summarize(block) {
       return p.heading || 'Package list'
     case 'faqs':
       return `${p.heading || 'FAQs'} — ${(p.items ?? []).length} question(s)`
+    case 'videoReviews':
+      return `${p.heading || 'Customer reviews'} — ${(p.reviewIds ?? []).length} video(s)`
     case 'infoCards':
       return `${p.heading || 'Info cards'} — ${(p.items ?? []).length} card(s)`
     case 'heroForm': {
@@ -1441,44 +1456,7 @@ function InfoCardsBlock({ props, onChange, disabled }) {
 
       <label className="blk-sublabel">Heading</label>
       <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
-      <div className="row2">
-        <div className="field">
-          <label>Heading position</label>
-          <select
-            className="sel"
-            value={props.headingAlign ?? 'center'}
-            onChange={(e) => set({ headingAlign: e.target.value })}
-            disabled={disabled}
-          >
-            <option value="center">Centre</option>
-            <option value="left">Left — with a link on the right</option>
-          </select>
-        </div>
-      </div>
-      {props.headingAlign === 'left' && (
-        <div className="row2">
-          <div className="field">
-            <label>Link label</label>
-            <input
-              className="inp"
-              placeholder="View all"
-              value={props.linkLabel ?? ''}
-              onChange={(e) => set({ linkLabel: e.target.value })}
-              disabled={disabled}
-            />
-          </div>
-          <div className="field">
-            <label>Link URL</label>
-            <input
-              className="inp"
-              placeholder="/blog"
-              value={props.linkUrl ?? ''}
-              onChange={(e) => set({ linkUrl: e.target.value })}
-              disabled={disabled}
-            />
-          </div>
-        </div>
-      )}
+      <HeadingPositionFields props={props} onChange={onChange} disabled={disabled} />
       <div className="hint">
         Leave the heading empty and the section starts straight with the cards.
       </div>
@@ -1722,7 +1700,197 @@ function InfoCardsBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * Heading ki jagah — Centre, ya Left + daayein link (`View all →`). Info cards aur Customer reviews dono
+ * pe (D-96 §11, §13). `SectionHeadingFields` ke saath hi aata hai.
+ */
+function HeadingPositionFields({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+
+  return (
+    <>
+      <div className="row2">
+        <div className="field">
+          <label>Heading position</label>
+          <select
+            className="sel"
+            value={props.headingAlign ?? 'center'}
+            onChange={(e) => set({ headingAlign: e.target.value })}
+            disabled={disabled}
+          >
+            <option value="center">Centre</option>
+            <option value="left">Left — with a link on the right</option>
+          </select>
+        </div>
+      </div>
+      {props.headingAlign === 'left' && (
+        <div className="row2">
+          <div className="field">
+            <label>Link label</label>
+            <input
+              className="inp"
+              placeholder="View all"
+              value={props.linkLabel ?? ''}
+              onChange={(e) => set({ linkLabel: e.target.value })}
+              disabled={disabled}
+            />
+          </div>
+          <div className="field">
+            <label>Link URL</label>
+            <input
+              className="inp"
+              placeholder="/reviews"
+              value={props.linkUrl ?? ''}
+              onChange={(e) => set({ linkUrl: e.target.value })}
+              disabled={disabled}
+            />
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+/**
+ * `Customer reviews` — video reviews ki rail (client, 15 Sep, D-96 §13).
+ *
+ * Reviews **Reviews ▸ Video reviews** me bante hain; yahan sirf **chune** jaate hain — baayein saare,
+ * daayein is section ke, drag se kram (client: section me chunein, kram drag se). Wahi do-column
+ * picker jo Package list pe hai (`.picker`).
+ */
+function VideoReviewsBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const chosen = props.reviewIds ?? []
+
+  const [all, setAll] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    api
+      .get('/video-reviews', { params: { limit: 200 } })
+      .then((res) => !cancelled && setAll(res.data.data.items))
+      .catch((err) => !cancelled && setError(errorMessage(err)))
+      .finally(() => !cancelled && setLoading(false))
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const byId = new Map(all.map((review) => [review.id, review]))
+
+  const add = (id) => {
+    if (chosen.length < VIDEO_REVIEWS_MAX) set({ reviewIds: [...chosen, id] })
+  }
+  const remove = (id) => set({ reviewIds: chosen.filter((x) => x !== id) })
+  const move = (from, to) => {
+    if (to < 0 || to >= chosen.length) return
+    const next = [...chosen]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    set({ reviewIds: next })
+  }
+  const { handleProps, rowProps } = useListDrag(move, !disabled)
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback="#ffffff"
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <label className="blk-sublabel">Heading</label>
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+      <HeadingPositionFields props={props} onChange={onChange} disabled={disabled} />
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Video reviews
+      </label>
+      <div className="picker">
+        <div className="picker__col">
+          <div className="picker__head">
+            All video reviews <span className="muted">{all.length}</span>
+          </div>
+          <ul className="picker__list">
+            {all.map((review) => (
+              <li key={review.id}>
+                <span className="picker__name">{review.name}</span>
+                <span className="picker__meta">{review.packageName}</span>
+                {chosen.includes(review.id) ? (
+                  <span className="picker__added" title="Already added">
+                    ✓
+                  </span>
+                ) : (
+                  <button
+                    className="btn btn-sm"
+                    type="button"
+                    onClick={() => add(review.id)}
+                    disabled={disabled || chosen.length >= VIDEO_REVIEWS_MAX}
+                  >
+                    ＋
+                  </button>
+                )}
+              </li>
+            ))}
+            {error && <li className="picker__empty picker__error">{error}</li>}
+            {!error && !loading && all.length === 0 && (
+              <li className="picker__empty">
+                No video reviews yet — add them under <b>Reviews ▸ Video reviews</b>.
+              </li>
+            )}
+          </ul>
+        </div>
+
+        <div className="picker__col">
+          <div className="picker__head">
+            In this section <span className="muted">{chosen.length}</span>
+          </div>
+          <ul className="picker__list">
+            {chosen.map((id, i) => {
+              const review = byId.get(id)
+              return (
+                <li key={id} {...rowProps(i)}>
+                  {!disabled && (
+                    <span className="grip" {...handleProps(i)}>
+                      ⠿
+                    </span>
+                  )}
+                  <span className="picker__name">
+                    {review?.name ?? <em className="muted">(deleted)</em>}
+                  </span>
+                  <span className="picker__meta">{review?.packageName ?? ''}</span>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    type="button"
+                    onClick={() => remove(id)}
+                    disabled={disabled}
+                  >
+                    ✕
+                  </button>
+                </li>
+              )
+            })}
+            {chosen.length === 0 && (
+              <li className="picker__empty">
+                None yet — use ＋ on the left. Leave this empty and the section does not appear.
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+      <div className="hint">
+        Cards appear in this order — drag <b>⠿</b> to move one. YouTube and Vimeo videos play in a
+        popup; other links open in a new tab.
+      </div>
+    </>
+  )
+}
+
 const EDITORS = {
+  videoReviews: VideoReviewsBlock,
   heroForm: HeroFormBlock,
   infoCards: InfoCardsBlock,
   richText: TextBlock,

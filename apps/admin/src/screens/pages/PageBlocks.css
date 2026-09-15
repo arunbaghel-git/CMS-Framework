@@ -107,7 +107,7 @@
   color: #3d7a42;
 }
 
-/* Home ka hero (D-96) — design v3 me home sections hain hi nahi, rang Tour ke chips ke kul se. */
+/* Home ke Info cards (D-96 §11) */
 .blk--info .blk-chip {
   background: #eef7f2;
   border-color: #bfdfcc;
@@ -147,6 +147,7 @@
   box-shadow: inset 0 2px 0 var(--primary);
 }
 
+/* Home ka hero (D-96) — design v3 me home sections hain hi nahi, rang Tour ke chips ke kul se. */
 .blk--hero .blk-chip {
   background: #fdf1e8;
   border-color: #f3cfb3;
@@ -347,4 +348,11 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #7b8798;
+}
+
+/* Home ka Customer reviews (D-96 §13) */
+.blk--reviews .blk-chip {
+  background: #fdeef4;
+  border-color: #f2c4d6;
+  color: #a1305d;
 }

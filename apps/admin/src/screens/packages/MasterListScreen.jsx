@@ -2,10 +2,12 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL, formatReviewMonth, starString } from '@cms/shared'
 
+import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
 import { openPicker } from '../../lib/date-input.js'
+import { useMediaById } from '../../lib/use-entries.js'
 import { useTaxonomyList } from './usePackages.js'
 import './Packages.css'
 
@@ -138,6 +140,38 @@ export const MASTER_LISTS = {
     ],
     columns: ['rating', 'month', 'name', 'text'],
   },
+
+  /**
+   * Video reviews — Reviews screen ka doosra tab (client, 15 Sep, D-96 §13).
+   *
+   * Home ke `Customer reviews` section me inme se **chune** jaate hain. Permission wahi `review`.
+   * `name` field UI me **Title** hai — search aur delete ka confirm isi pe chalte hain.
+   */
+  videoReviews: {
+    endpoint: '/video-reviews',
+    title: 'Reviews',
+    singular: 'Video review',
+    permission: 'review',
+    fields: [
+      {
+        key: 'imageId',
+        label: 'Image',
+        type: 'media',
+        hint: 'The tall thumbnail on the card — a portrait photo works best.',
+      },
+      {
+        key: 'videoUrl',
+        label: 'Video link',
+        type: 'url',
+        required: true,
+        hint: 'YouTube or Vimeo links play in a popup on the site. Any other link opens in a new tab.',
+      },
+      { key: 'name', label: 'Title', type: 'text', required: true, hint: 'e.g. Sneha & family' },
+      { key: 'packageName', label: 'Package name', type: 'text', hint: 'e.g. 6N Blissful Andaman' },
+    ],
+    /** Title pehle — row ke Edit/Delete pehle column pe lagte hain, image pe nahi. */
+    columns: ['name', 'imageId', 'packageName', 'videoUrl'],
+  },
 }
 
 const COLUMN_LABEL = {
@@ -152,9 +186,17 @@ const COLUMN_LABEL = {
   rating: 'Stars',
   month: 'Month',
   text: 'Review',
+  imageId: 'Image',
+  packageName: 'Package',
+  videoUrl: 'Video link',
 }
 
-export default function MasterListScreen({ list }) {
+/**
+ * @param {object} props
+ * @param {string} props.list
+ * @param {import('react').ReactNode} [props.tabs]  heading ke neeche — Reviews ke do tab (D-96 §13)
+ */
+export default function MasterListScreen({ list, tabs }) {
   const config = MASTER_LISTS[list]
   const { can } = useAuth()
   const destinations = useTaxonomyList('destination')
@@ -187,6 +229,13 @@ export default function MasterListScreen({ list }) {
 
   const canWrite = can(`${config.permission}.create`) || can(`${config.permission}.update`)
 
+  /** Image wale khaane — form ka preview aur list ka thumbnail, dono ek hi call se. */
+  const mediaKeys = config.fields.filter((f) => f.type === 'media').map((f) => f.key)
+  const media = useMediaById([
+    ...mediaKeys.map((key) => form[key]),
+    ...items.flatMap((item) => mediaKeys.map((key) => item[key])),
+  ])
+
   function resetForm() {
     setEditingId(null)
     setForm({})
@@ -211,7 +260,12 @@ export default function MasterListScreen({ list }) {
      * baat sirf itni hai ki field bhara hi nahi gaya.
      */
     const payload = Object.fromEntries(
-      Object.entries(form).filter(([, value]) => value !== '' && value != null),
+      Object.entries(form).filter(
+        ([key, value]) =>
+          (value !== '' && value != null) ||
+          /** Image hatayi to `null` jaana chahiye — warna edit pe purani image chup-chaap bachi rehti. */
+          (editingId && mediaKeys.includes(key)),
+      ),
     )
 
     try {
@@ -260,6 +314,10 @@ export default function MasterListScreen({ list }) {
     /** Number saath me — text me aadha taara nahi banta, `4.5` akele taaron se `4` lagta (D-93). */
     if (key === 'rating') return `${starString(item[key])} ${item[key]}`
     if (key === 'month') return formatReviewMonth(item[key]) || '—'
+    if (key === 'imageId') {
+      const variant = media[item[key]]?.variants?.find((v) => v.key === 'thumb')
+      return variant ? <img className="thumb" src={variant.url} alt="" loading="lazy" /> : '—'
+    }
 
     return item[key] || '—'
   }
@@ -347,6 +405,30 @@ export default function MasterListScreen({ list }) {
       )
     }
 
+    if (field.type === 'media') {
+      return (
+        <MediaDrop
+          label=""
+          media={media[value]}
+          onSelect={(chosen) => onChange(chosen.id)}
+          onClear={() => onChange(null)}
+        />
+      )
+    }
+
+    if (field.type === 'url') {
+      return (
+        <input
+          className="inp"
+          type="url"
+          placeholder="https://youtu.be/…"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={field.required}
+        />
+      )
+    }
+
     if (field.type === 'textarea') {
       return (
         <textarea
@@ -373,6 +455,8 @@ export default function MasterListScreen({ list }) {
       <div className="page-head">
         <h1>{config.title}</h1>
       </div>
+
+      {tabs}
 
       {error && (
         <div className="notice err" role="alert">

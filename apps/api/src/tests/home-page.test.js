@@ -11,7 +11,8 @@ import { RefreshToken } from '../modules/auth/model.js'
 import { ContentType } from '../modules/content-types/model.js'
 import { ensureBuiltInContentTypes } from '../modules/content-types/service.js'
 import { Entry, Revision } from '../modules/entries/model.js'
-import { pathTagsForForm } from '../modules/entries/service.js'
+import { pathTagsForForm, pathTagsForVideoReview } from '../modules/entries/service.js'
+import { Review, VideoReview } from '../modules/master-lists/model.js'
 import { Enquiry, Form } from '../modules/forms/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
@@ -120,6 +121,8 @@ beforeEach(async () => {
     ContentType.deleteMany({}),
     Form.deleteMany({}),
     Enquiry.deleteMany({}),
+    Review.deleteMany({}),
+    VideoReview.deleteMany({}),
   ])
   invalidateRoleCache()
   await ensureDefaultRoles()
@@ -417,5 +420,66 @@ describe('FAQ alignment (D-96 §12 amendment)', () => {
     })
     expect(bad.status).toBeGreaterThanOrEqual(400)
     expect(bad.status).toBeLessThan(500)
+  })
+})
+
+describe('Video reviews (D-96 §13)', () => {
+  const addVideo = (body) =>
+    authed('post', '/api/video-reviews', adminJar).send({
+      videoUrl: 'https://youtu.be/dQw4w9WgXcQ',
+      name: 'Sneha & family',
+      packageName: '6N Blissful Andaman',
+      ...body,
+    })
+
+  it('video review banta hai — DB me saare field, text reviews me nahi', async () => {
+    const res = await addVideo({ imageId: null })
+
+    expect(res.status).toBe(201)
+    const doc = await VideoReview.findById(res.body.data.item.id).lean()
+    expect(doc).toMatchObject({ name: 'Sneha & family', packageName: '6N Blissful Andaman' })
+    // Alag collection — package page ki text reviews me video wale kabhi nahi ghusein
+    expect(await Review.countDocuments({})).toBe(0)
+  })
+
+  it('https ke bina link aur bina title 400', async () => {
+    expect((await addVideo({ videoUrl: 'javascript:alert(1)' })).status).toBe(400)
+    expect((await addVideo({ videoUrl: 'http://youtu.be/x' })).status).toBe(400)
+    expect((await addVideo({ name: '' })).status).toBe(400)
+  })
+
+  it('section — chune hue reviews section ke kram me, delete wala gira, ids bahar nahi', async () => {
+    const a = (await addVideo({ name: 'A' })).body.data.item
+    const b = (await addVideo({ name: 'B', videoUrl: 'https://www.instagram.com/reel/abc123/' }))
+      .body.data.item
+    const gone = (await addVideo({ name: 'Gone' })).body.data.item
+
+    const created = (
+      await createHome({
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'videoReviews',
+              props: { heading: 'Customer reviews', reviewIds: [b.id, gone.id, a.id] },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+
+    expect(await pathTagsForVideoReview(a.id)).toEqual(['path:/'])
+
+    await authed('delete', `/api/video-reviews/${gone.id}`, adminJar)
+
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.props.reviewIds).toBeUndefined()
+    expect(section.data.reviews.map((r) => r.name)).toEqual(['B', 'A'])
+    // Instagram iframe me nahi chalta — embed null, theme naye tab me kholti hai
+    expect(section.data.reviews[0].embedUrl).toBeNull()
+    expect(section.data.reviews[1].embedUrl).toContain('youtube-nocookie.com/embed/dQw4w9WgXcQ')
   })
 })

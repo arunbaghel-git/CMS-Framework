@@ -403,6 +403,9 @@ export const ROUTE_GUARDS = Object.freeze({
   '/pages/home': PERMISSION.ENTRY_READ,
   '/pages/:id': PERMISSION.ENTRY_READ,
 
+  /** Reviews — text aur video dono tab (D-96 §13). ⚠️ Ye guard 1 Sep se chhoota hua tha. */
+  '/reviews': PERMISSION.REVIEW_READ,
+
   '/tour': PERMISSION.ENTRY_READ,
   '/tour/new': PERMISSION.ENTRY_CREATE,
   '/tour/:id': PERMISSION.ENTRY_READ,

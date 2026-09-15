@@ -209,6 +209,16 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
+### A-29 · Hotels · Add-ons · Transfers badalne pe package page ka cache saaf nahi hota
+
+**D-96 §13 ki jaanch me mila.** `master-lists` service kisi write pe `revalidateTags` nahi bulati thi.
+Reviews aur video reviews ke liye `LISTS.*.tags` juda; baaki teen lists pe abhi bhi koi tag nahi — hotel ka
+naam/room/note badlo to package page ek ghanta (`CACHE_SECONDS`) purana dikhata hai. Ilaaj ek line har list
+pe: `tags: async () => ['type:package']` (package payload `type:package` pe tag hai). Production build pe hi
+dikhta hai.
+
+---
+
 ### A-28 · Home page ka hero (D-96) — render hote hue dekhna baaki
 
 **Kuch toota hua nahi hai** — 13 naye API test (asli DB), shared tests, lint, format, admin build pass.
@@ -223,6 +233,7 @@ code ki nahi.
 | 6 | Client ke form me `source: packages` wala dropdown ho to hero pe **nahi dikhega** | Uske vikalp package page deta hai (D-96 §7) |
 | 7 | **Info cards** (§11): chaaron "Start from" look, link wala card hover + description ka link alag click, tablet 2 / phone 1 column, upload image icon ki jagah | Sirf tests + compile se verify — client ke home me section joda nahi gaya |
 | 8 | **FAQ** (§12): ek khule to baaki band, pehla khula, background rang, list 860px beech me; page source me ek `FAQPage` | Tests + compile se verify |
+| 9 | **Customer reviews** (§13): Reviews ▸ Video reviews tab (image upload, edit pe image hatana), section ka picker + drag, rail scroll, YouTube popup (Esc/parda), Instagram link naye tab me | Tests + compile se verify |
 
 ---
 

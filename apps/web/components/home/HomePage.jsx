@@ -2,6 +2,7 @@ import TourSchema from '../tour/TourSchema.jsx'
 import HeroForm from './HeroForm.jsx'
 import HomeFaqs from './HomeFaqs.jsx'
 import InfoCards from './InfoCards.jsx'
+import VideoReviews from './VideoReviews.jsx'
 
 /**
  * Home page — `home-nav-v3.html` (client, 15 Sep, D-96).
@@ -20,6 +21,7 @@ const SECTIONS = {
   heroForm: HeroForm,
   infoCards: InfoCards,
   faqs: HomeFaqs,
+  videoReviews: VideoReviews,
 }
 
 export default function HomePage({ entry }) {

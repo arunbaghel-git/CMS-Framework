@@ -1014,17 +1014,33 @@ export async function syncPostUrlPattern(siteId = DEFAULT_SITE_ID, locale = DEFA
  * hai, entry me nahi. Us raaste ka cache bug alag khula hai (09-OPEN-ITEMS).
  */
 export async function pathTagsForForm(formId, siteId = DEFAULT_SITE_ID) {
-  if (!formId) return []
+  return pathTagsForBlockRef('formId', formId, siteId)
+}
+
+/**
+ * Jin pages ke sections me ye video review chuna gaya hai — `master-lists` service ke liye (D-96 §13).
+ * Wahi niyam jo form pe hai; `reviewIds` array hai, aur Mongo array pe equality "contains" hi padhta hai.
+ */
+export async function pathTagsForVideoReview(reviewId, siteId = DEFAULT_SITE_ID) {
+  return pathTagsForBlockRef('reviewIds', reviewId, siteId)
+}
+
+/**
+ * Kisi section ke `props` me ek id — un pages ke `path:` tag. Sirf do tay field naam isse bulate hain
+ * (upar), koi user input nahi — field naam query key me jaata hai, isliye ye export nahi.
+ */
+async function pathTagsForBlockRef(field, id, siteId) {
+  if (!id) return []
 
   const pages = await Entry.find({
     siteId,
     deletedAt: null,
-    'content.blocks.props.formId': String(formId),
+    [`content.blocks.props.${field}`]: String(id),
   })
     .select('path')
     .lean()
 
-  return pages.map((p) => (p.path ? `path:${p.path}` : null)).filter(Boolean)
+  return [...new Set(pages.map((p) => (p.path ? `path:${p.path}` : null)).filter(Boolean))]
 }
 
 /** Entry + uske cascade hue descendants, sab ek hi call me. */

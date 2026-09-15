@@ -30,6 +30,7 @@ import TaxonomyScreen from './screens/packages/TaxonomyScreen.jsx'
 import PackagesList from './screens/packages/PackagesList.jsx'
 import HomePageEdit from './screens/pages/HomePageEdit.jsx'
 import PageEdit from './screens/pages/PageEdit.jsx'
+import ReviewsScreen from './screens/packages/ReviewsScreen.jsx'
 import BlogPageList from './screens/pages/BlogPageList.jsx'
 import PageList from './screens/pages/PageList.jsx'
 import PostList from './screens/pages/PostList.jsx'
@@ -231,7 +232,7 @@ const APP_ROUTES = [
    * Iska ek chhupa hua faayda bhi hai: `/packages/*` wala "abhi nahi bana" splat neeche
    * hai, aur us raaste se nikal jaane ka matlab hai ki koi galti se wo splat pakde hi na.
    */
-  { path: '/reviews', element: <MasterListScreen list="reviews" /> },
+  { path: '/reviews', element: <ReviewsScreen /> },
 
   /**
    * ⚠️ `/enquiries/forms/new` `/enquiries/forms/:id` se **pehle** hai — wahi wajah jo

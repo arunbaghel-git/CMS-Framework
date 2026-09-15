@@ -47,6 +47,11 @@ flake nikla (akele pass). Lint · format · admin build pass.
 - Info cards: description body font, title 16px (§11 amendment)
 - **Section 3 — FAQ** (§12): wahi `faqs` block, home pe background + ek-hi-khula accordion, `SectionHead.jsx`
   saanjha, `TourSchema` se FAQPage. 19 home test (A-28 #8)
+- FAQ Section alignment (centre/left)
+- **Section 5 — Customer reviews** (§13): nayi `videoReviews` collection (migration 025, local pe chali),
+  Reviews screen me Text/Video tabs, section me picker + drag, YouTube/Vimeo popup. Text reviews ka cache
+  tag bhi ab jaata hai. A-29 (hotels/add-ons/transfers ka cache)
+- ⚠️ Deploy pe: `pnpm format` → `pnpm cms migrate` (025) → API restart
 
 ### Agla kadam
 

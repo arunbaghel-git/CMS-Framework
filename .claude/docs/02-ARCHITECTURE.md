@@ -344,6 +344,10 @@ forms          * siteId, name, emailTo, afterSubmit{mode,value}, placement,
                  chahiye (Phase 5)
                  footnote · submitLabel (D-96, 15 Sep — button ka text, khaali
                  pe theme ka "Get this itinerary")
+videoReviews   * siteId, imageId, videoUrl(https), name, packageName    ← D-96 §13, migration 025
+                 reviews se ALAG collection (text reviews package page pe bina
+                 filter jaati hain). Permission wahi review.*. Home ke
+                 videoReviews section me reviewIds[] se chune jaate hain
 enquiries      * siteId, formId, formName, sourcePath, values{}, status,
                  notes[], deletedAt, searchText                    ← D-75, 3 Sep
                  ⚠️ sourceUrl STORE nahi hota — controller use sourcePath +

@@ -7333,3 +7333,151 @@ a.mega__gl:hover {
 .hq--left .faq {
   margin-inline: 0;
 }
+
+/* ---- Customer reviews (D-96 §13) — reference ka `.rail--6 .vr` ---- */
+
+/* Scroll rail — koi carousel library nahi (reference: "carousel substitute, no JS lib") */
+.vrl {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min(190px, 52vw);
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+}
+
+.vrl::-webkit-scrollbar {
+  height: 6px;
+}
+
+.vrl::-webkit-scrollbar-track {
+  background: var(--line-2);
+  border-radius: 99px;
+}
+
+.vrl::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: 99px;
+}
+
+/* Tile — button ya link, dono ek jaise dikhte hain */
+.vrl__t {
+  position: relative;
+  display: block;
+  aspect-ratio: 9 / 14;
+  border: 0;
+  padding: 0;
+  border-radius: var(--r3);
+  overflow: hidden;
+  background: var(--blue-900);
+  scroll-snap-align: start;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.vrl__t img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s;
+}
+
+.vrl__t:hover img {
+  transform: scale(1.06);
+}
+
+.vrl__t::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(7 30 52 / 80%) 5%, transparent 55%);
+}
+
+.vrl__p {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 94%);
+  display: grid;
+  place-items: center;
+  color: var(--blue-900);
+  z-index: 2;
+}
+
+.vrl__n {
+  position: absolute;
+  bottom: 10px;
+  left: 11px;
+  right: 11px;
+  z-index: 2;
+  color: #fff;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-heading);
+  line-height: 1.35;
+}
+
+.vrl__n span {
+  display: block;
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-semi);
+  color: rgb(255 255 255 / 70%);
+}
+
+/* ---- popup player ---- */
+
+.vmod {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(8 20 34 / 82%);
+}
+
+.vmod__box {
+  position: relative;
+  width: min(960px, 100%);
+  aspect-ratio: 16 / 9;
+  max-height: calc(100vh - 80px);
+  background: #000;
+  border-radius: var(--r2);
+}
+
+.vmod__box iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: inherit;
+}
+
+.vmod__x {
+  position: absolute;
+  top: -44px;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #fff;
+  background: rgb(255 255 255 / 16%);
+}
+
+.vmod__x:hover {
+  background: rgb(255 255 255 / 28%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vrl__t:hover img {
+    transform: none;
+  }
+}

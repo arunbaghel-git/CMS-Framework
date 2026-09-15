@@ -109,7 +109,26 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true, collection: 'reviews', minimize: false },
 )
 
+/**
+ * Video reviews — home ka `Customer reviews` (client, 15 Sep, D-96 §13).
+ *
+ * ⚠️ `reviews` se **alag collection** — poora tark `videoReviewSchema` (shared) ke upar. Index migration
+ * 025 me. Model me koi field chhoot gaya to Mongoose `strict` use chup-chaap gira deta (D-86).
+ */
+const videoReviewSchema = new mongoose.Schema(
+  {
+    siteId: { type: String, required: true, default: DEFAULT_SITE_ID },
+    imageId: { type: String, default: null },
+    videoUrl: { type: String, required: true },
+    /** UI me "Title" — `name` isliye ki list ka search aur delete confirm isi field pe hain. */
+    name: { type: String, required: true },
+    packageName: { type: String, default: '' },
+  },
+  { timestamps: true, collection: 'videoReviews', minimize: false },
+)
+
 export const Hotel = mongoose.model('Hotel', hotelSchema)
 export const AddOn = mongoose.model('AddOn', addOnSchema)
 export const Transfer = mongoose.model('Transfer', transferSchema)
 export const Review = mongoose.model('Review', reviewSchema)
+export const VideoReview = mongoose.model('VideoReview', videoReviewSchema)

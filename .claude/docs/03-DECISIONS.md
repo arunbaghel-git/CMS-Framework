@@ -8052,3 +8052,47 @@ Font: sawaal `.faq summary` (14.5px, package page jaisa), jawab body font — do
 **§12 amendment (client, usi din):** FAQ pe **Section alignment** — `faqsPropsSchema.align` (`center|left`,
 default center). Admin me sirf home pe (background ke saath). Left pe heading baayein aur list kinare se
 (860px chaudai wahi, `.hq--left .faq { margin-inline: 0 }`).
+
+### 13. Section 5 — Customer reviews (video) + Reviews ke do tab (client, usi din)
+
+Client: _"Reviews admin me tab — text (pehle se) aur video, parallel"_; section 5 = reference ka
+`11. VIDEO CUSTOMER REVIEWS` — **image, video link, title, package name**.
+
+Client ke teen jawab (pooche gaye): click pe **popup me video** · package name **haath se** · section me
+**chunein, kram drag se**.
+
+**Data — nayi collection `videoReviews`, `reviews` me `kind` nahi.** Text reviews package page pe
+**bina filter** jaati hain (`getPublicPackageDefaults()`, D-70). Ek collection me `kind` rakhne ka matlab
+hota har query ko filter yaad rakhna — ek bhoolte hi khaali video card package page pe. Alag collection me
+wo galti ban hi nahi sakti.
+
+- Master-lists module ki paanchvi list (`LISTS.videoReview`): `imageId · videoUrl (https) · name
+  (UI me "Title") · packageName`. `name` isliye ki generic screen ka search aur delete-confirm usi pe
+- **Permission wahi `review.*`** — client ke liye ek hi "Reviews"; nayi permission = roles migration
+- **Migration 025** — sirf index `{siteId, createdAt:-1}`. Local pe chal chuki
+- `/api/video-reviews` (list/get/create/update/delete, permanent delete — master list)
+- **`videoEmbedUrl()`** (shared) — YouTube (`watch`/`youtu.be`/`shorts`/`embed`) → `youtube-nocookie`,
+  Vimeo → player. Baaki (Instagram…) `null` → theme link naye tab me. Server payload me banata hai
+
+**Admin:** `/reviews` ab `ReviewsScreen` — `.tabs` (**Text reviews · Video reviews**, `?tab=video`), dono
+`MasterListScreen`. Us screen me do naye field type: `media` (MediaDrop; edit pe hatane se `null` jaata
+hai) aur `url`; list me image ka thumbnail. ⚠️ **`/reviews` ka route guard 1 Sep se chhoota hua tha** — juda.
+
+**Section `videoReviews`:** `background · heading · description · headingAlign (default left) · link ·
+reviewIds[] ≤20`. Admin: wahi do-column `.picker` jo Package list pe hai (baayein saare, daayein chune, ⠿
+drag). Heading position + link ab `HeadingPositionFields` me — Info cards aur yahan saanjha.
+Payload: `resolveVideoReviews()` — `reviewIds` ke kram me, delete wala gira, `reviewIds` bahar nahi,
+`data.reviews[{id,name,packageName,videoUrl,embedUrl,image}]`.
+
+**Web:** `VideoReviews.jsx` + `VideoRail.jsx` (`'use client'`) — reference ki 9:14 tiles (`.vrl`), play
+button, naam + package. **Iframe sirf popup khulne pe** (chhe YouTube iframe pehle se = ~3 MB JS, D-85
+jaata). Popup `.vmod`: Esc, parde pe click, focus wapas tile pe, scroll lock.
+
+**Cache — do purane gap band:**
+- **Text reviews ka koi tag jaata hi nahi tha** — `master-lists` service `revalidateTags` bulati hi nahi
+  thi; review badalne ke baad package page ek ghanta purana. Ab `LISTS.review.tags = ['type:package']`
+- Video review badle/hate → `pathTagsForVideoReview()` (jin pages ke section me chuna hai unke `path:`).
+  `pathTagsForForm` ab saanjhe `pathTagsForBlockRef(field, id)` pe
+- ⚠️ Hotels · Add-ons · Transfers pe abhi bhi koi tag nahi — **A-29**
+
+5 naye API test + 2 shared.

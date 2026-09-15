@@ -1,6 +1,12 @@
 import { DEFAULT_SITE_ID, TAXONOMY_TYPE } from '@cms/shared'
 
 import { notFound, unprocessable } from '../../core/errors.js'
+import { revalidateTags } from '../../core/revalidate.js'
+/**
+ * ⚠️ **Circular** — `entries/service.js` yahan se `findItemsByIds` leti hai. Wahi tark jo neeche
+ * taxonomies pe hai: dono taraf sirf `export async function`, load ke waqt koi call nahi.
+ */
+import { pathTagsForVideoReview } from '../entries/service.js'
 /**
  * ⚠️ **Ye import circular hai** — `taxonomies/service.js` yahan se
  * `countHotelsForDestination` leti hai (destination delete rokne ke liye).
@@ -14,7 +20,7 @@ import { notFound, unprocessable } from '../../core/errors.js'
  * Dono taraf ek-ek sawaal, dono apne ghar me.
  */
 import { taxonomyExists } from '../taxonomies/service.js'
-import { AddOn, Hotel, Review, Transfer } from './model.js'
+import { AddOn, Hotel, Review, Transfer, VideoReview } from './model.js'
 
 /**
  * Master lists ka business logic — R1.
@@ -106,7 +112,30 @@ const LISTS = {
     sort: { month: -1, createdAt: -1 },
     filters: [],
     beforeWrite: null,
+    /**
+     * ⚠️ **Pehle koi tag jaata hi nahi tha** (D-96 §13 ki jaanch me mila) — review badalne ke baad
+     * package page `CACHE_SECONDS` (1 ghanta) tak purani reviews dikhata. Reviews `package-defaults`
+     * payload me jaati hain, jo `type:package` pe tag hai.
+     */
+    tags: async () => ['type:package'],
   },
+  videoReview: {
+    Model: VideoReview,
+    label: 'Video review',
+    /** Nayi pehle — home pe kram section ka apna hai (drag), ye sirf admin list ka. */
+    sort: { createdAt: -1 },
+    filters: [],
+    beforeWrite: null,
+    /** Jin pages ke `Customer reviews` section me ye chuna gaya hai (D-96 §13). */
+    tags: async (id, siteId) => pathTagsForVideoReview(id, siteId),
+  },
+}
+
+/** List ka cache tag bhejo — jis list ka `tags` nahi, uska kuch nahi (hotels/add-ons/transfers: A-29). */
+async function revalidateList(list, id, siteId) {
+  if (!list.tags) return
+  const tags = await list.tags(String(id), siteId)
+  if (tags.length) await revalidateTags(tags)
 }
 
 function listOf(key) {
@@ -198,17 +227,20 @@ export async function findItemsByIds(key, ids, siteId = DEFAULT_SITE_ID) {
 // ── writes ───────────────────────────────────────────────────────────────────
 
 export async function createItem(key, input, siteId = DEFAULT_SITE_ID) {
-  const { Model, beforeWrite } = listOf(key)
+  const list = listOf(key)
+  const { Model, beforeWrite } = list
 
   if (beforeWrite) await beforeWrite(input, siteId)
 
   const doc = await Model.create({ ...input, ...scope(siteId) })
+  await revalidateList(list, doc._id, siteId)
 
   return toApi(doc)
 }
 
 export async function updateItem(key, id, input, siteId = DEFAULT_SITE_ID) {
-  const { Model, label, beforeWrite } = listOf(key)
+  const list = listOf(key)
+  const { Model, label, beforeWrite } = list
 
   const current = await Model.findOne({ _id: id, ...scope(siteId) }).lean()
   if (!current) throw notFound(`${label} not found`)
@@ -216,6 +248,7 @@ export async function updateItem(key, id, input, siteId = DEFAULT_SITE_ID) {
   if (beforeWrite) await beforeWrite(input, siteId)
 
   const updated = await Model.findOneAndUpdate({ _id: id }, { $set: input }, { new: true })
+  await revalidateList(list, id, siteId)
 
   return toApi(updated)
 }
@@ -231,12 +264,15 @@ export async function updateItem(key, id, input, siteId = DEFAULT_SITE_ID) {
  * destination pe hotels ka guard neeche juda hua hai.
  */
 export async function deleteItem(key, id, siteId = DEFAULT_SITE_ID) {
-  const { Model, label } = listOf(key)
+  const list = listOf(key)
+  const { Model, label } = list
 
   const current = await Model.findOne({ _id: id, ...scope(siteId) }).lean()
   if (!current) throw notFound(`${label} not found`)
 
+  /** Tags delete se **pehle** nahi chahiye — page ab bhi id rakhta hai, query waisi hi chalegi. */
   await Model.deleteOne({ _id: id })
+  await revalidateList(list, id, siteId)
 
   return { id: String(id) }
 }
