@@ -1,17 +1,30 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 14 Sep 2026 (raat) — **276 commit** (handoff ke waqt), push **nahi** hua — client
-> ki ijaazat chahiye. **1092 test pass (DB ke saath)**, lint + format clean.
+> **Last updated:** 15 Sep 2026 (shaam) — **~302 commit**, **push ho gaya** (client ki ijaazat se, 15 Sep).
+> **1139 test pass (DB ke saath)**, lint + format clean, admin build pass.
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare — **Home page: Section 1–9 ban gaye, agla section client batayega** (15 Sep)
+## ⏭️ Nayi session yahan se shuru kare — **Home page: Section 1–11 ban gaye, agla section client batayega** (15 Sep)
 
-> Session "home page build part 1" yahan khatam hui. Last commit `c222f16` (Offer cards), push **nahi**.
-> Section list neeche "Usi din baad me" me, har ek ka faisla D-96 §1–§21 me.
+> 15 Sep shaam ka handoff. Aakhri kaam **Section 10 — Text with video** aur **Section 11 — Award badges**
+> (`e34fe14`, D-96 §22–§23), phir client ka CSS hand-edit (`.awb__b { gap: inherit }`) alag commit me.
+> **Sab push ho chuka** (`origin/main`). Section list neeche "Usi din baad me" me, har faisla D-96 §1–§23 me.
+>
+> **Agli session ka pehla kaam:**
+>
+> 1. Client se poochho — agla home section kaunsa (reference `home-nav-v3.html` ka number/naam)
+> 2. Code se pehle **dhaancha dikhao + sawaal poochho** (niyam #5), haan ke baad banao
+> 3. Home khatam hone ke **baad** (client ne kaha: _"pahle home page build ho jaye fir karte hai"_): A-29 + A-26
+>    (cache bug, dono ek ilaaj), A-27, A-18, aur docs ki safai (09-OPEN-ITEMS ke purane header/"Ab ka order",
+>    A-9/A-21/A-22 ko resolved me le jaana)
+>
+> ⚠️ Client ka asli home DB me hai (17+ section) — **test ke liye use mat chhedo**. Render sample data se
+> scratchpad me dekho (esbuild + `renderToStaticMarkup`, `NODE_PATH=apps/web/node_modules`, `--format=cjs`).
+> ⚠️ Browser me aankh se dekhna baaki — A-28 (#16–#18 naye). ⚠️ CI abhi bhi red aayegi — A-12 (env ki wajah).
 
 ### Is session ke niyam (client ke) — har naye section pe lagu
 

@@ -86,7 +86,9 @@ karwaya; **13 farak** nikle aur sab theek ho gaye. Paanch naye contract (`heroBu
 list se `content-visibility` hat gaya (D-89 §4). Purane number (mobile 91 / desktop 98) sirf
 package page ke the.
 
-**Last updated:** 10 Sep 2026 (Blog D-91 · **Bulk Upload for blog D-92**)
+**Last updated:** 15 Sep 2026 (Home page D-96 §1–§23 — 11 section; A-26 se A-30 naye)
+
+⚠️ Neeche ki kuch purani lines (A-9/A-21/A-22 "Ab bhi baaki" me, "Ab ka order", A-17 ka "`/` 404") safai maangti hain — home page ke baad.
 
 ⚠️ **Push:** `origin/main` `a0f337c` pe hai. Ginti yahan jaan-boojh kar nahi likhi — wo har
 commit pe purani ho jaati hai aur do baar galat mili. Sach `git log --oneline origin/main..HEAD`
