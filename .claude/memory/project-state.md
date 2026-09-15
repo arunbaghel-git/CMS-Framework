@@ -8,7 +8,33 @@
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare — **Home page: Section 1 ban gaya, agla section client batayega** (15 Sep)
+## ⏭️ Nayi session yahan se shuru kare — **Home page: Section 1–9 ban gaye, agla section client batayega** (15 Sep)
+
+> Session "home page build part 1" yahan khatam hui. Last commit `c222f16` (Offer cards), push **nahi**.
+> Section list neeche "Usi din baad me" me, har ek ka faisla D-96 §1–§21 me.
+
+### Is session ke niyam (client ke) — har naye section pe lagu
+
+1. **Font:** sirf **body font aur heading font** hamare tay kiye hue; baaki sab (size, weight, spacing,
+   text-transform, rang) **reference design jaisa**. Section heading = `var(--fs-h2)` (`.hsh h2`), description
+   = body font. Reference ke `.5px` round karo — 15.5 → 16, 14.5 → 14. Design me uppercase nahi to hum bhi nahi
+2. **Multi-site CMS:** core me Andaman-specific label/preset/default **nahi** ("Start from" presets isi wajah se hate, §15)
+3. **Customizer ki taiyaari:** naya rang/font seedha CSS me nahi — `:root` tokens (`--fs-*`, `--fw-*`, rang) pe (§18, A-30)
+4. **Reference se markup/setting padh kar banao**, andaaza nahi. Detail na ho to poochho; jo section maanga nahi, mat banao
+5. **Pehle dhaancha batao, phir code** — client "do not write code" bole to sirf jaanch + options
+6. Har section pe: **background colour** (`SectionBackground`), heading/description/align (`SectionHeadingFields`),
+   list ho to **drag se kram** (`useListDrag`), optional heading-link (`linkLabel`/`linkUrl`)
+7. CSS prefix block ka apna (`.hf-`, `.ic`, `.imc`, `.vrl`, `.tmg`, `.lgg`, `.ipk`, `.ofc`) — reference ki class seedhi mat lo
+8. Admin UI text English; client se baat Hinglish, headings file ke exact English shabd
+9. Commit se pehle `git status` — client ke hand-edit (CSS tune) alag commit me, palatna nahi. **Push kabhi bina ijaazat nahi**
+10. Migration ho to `pnpm format` pehle, `pnpm cms migrate` baad (D-82)
+
+### Kaam ka tareeka (tooling)
+
+- Windows git-bash me heredoc/`node -e` ki quoting tootti hai → badi edits ke liye scratchpad me `.cjs` script
+  likh kar chalao; replacement already ho to skip (idempotent)
+- Har section ke baad: `pnpm lint`, `home-page.test.js` + shared tests, web `/` aur admin 200, docs (D-96 §N,
+  02-ARCHITECTURE, 04-ADMIN-UX, 09-OPEN-ITEMS A-28 row, ye file), `pnpm format:check`, local commit
 
 Poora hisaab **D-96**. Reference `.claude/docs/reference/home-nav-v3.html` (repo me pehle se tha).
 

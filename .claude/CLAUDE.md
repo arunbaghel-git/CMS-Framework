@@ -679,6 +679,8 @@ badle to jin pages ke section me wo hai unka `path:` saaf (`pathTagsForForm()`).
 ⚠️ Naya section = server pe chaar jagah + admin editor + theme — D-96 §6 aur `project-state.md`.
 ⚠️ Aankh se dekhna baaki — **A-28**. Purana bug mila: sidebar ka badlaav ek ghanta late — **A-26**.
 **1110 test** (13 naye home ke).
+Usi din **Section 2–9** bhi (info cards · FAQ · video reviews · image cards · testimonials · logo grid · package
+grid · offer cards — D-96 §11–§21). Client ke niyam (font, multi-site, tokens) `project-state.md` me.
 ⏭️ **Agla kaam: client ka agla home section** — `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
