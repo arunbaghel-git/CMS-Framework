@@ -185,6 +185,8 @@
   --fs-price: clamp(28px, 3.4vw, 38px);
   --fs-intro: clamp(15px, 1.6vw, 17px);
   --fs-display: clamp(21px, 2.6vw, 30px);
+  /* Home hero ke number aur form card ka heading — design ka 19px (D-96 §10). Heading/body font nahi. */
+  --fs-hero-num: 19px;
 
   /* Headings — `.blk h1`–`h6` ke saath CTA/offer ka bada heading bhi. */
   --fs-h1: clamp(19px, 2.1vw, 24px);
@@ -4956,7 +4958,7 @@ a.mega__gl:hover {
 .hf-hero h1 {
   color: #fff;
   font-size: clamp(25px, 3.6vw, 40px);
-  line-height: 1.1;
+  line-height: 1.25;
   font-weight: 900;
   letter-spacing: -0.04em;
   margin: 11px 0 0;
@@ -5066,9 +5068,7 @@ a.mega__gl:hover {
   border-left: 0;
 }
 
-/* Home hero ke number bhi yahi naap — rang neeche `.hf-stat` me (D-96). */
-.vrail__c b,
-.hf-stat b {
+.vrail__c b {
   display: block;
   font-size: clamp(20px, 2.4vw, 28px);
   font-weight: 900;
@@ -5077,8 +5077,7 @@ a.mega__gl:hover {
   line-height: 1.05;
 }
 
-.vrail__c span,
-.hf-stat span {
+.vrail__c span {
   display: block;
   font-size: 11px;
   font-weight: 800;
@@ -5521,16 +5520,13 @@ a.mega__gl:hover {
   color: rgba(255, 255, 255, 0.78);
 }
 
-/* Home ke form card ka heading/line bhi Tour ke card jaisa (D-96) — rang/margin `.hf-card__head` me. */
-.wdg--cta h3,
-.hf-card__head h3 {
+.wdg--cta h3 {
   color: #fff;
   font-size: 16px;
   margin-bottom: 6px;
 }
 
-.wdg--cta p,
-.hf-card__head p {
+.wdg--cta p {
   font-size: 12.5px;
   line-height: 1.55;
   margin-bottom: 14px;
@@ -5563,8 +5559,7 @@ a.mega__gl:hover {
   color: rgba(255, 255, 255, 0.62);
 }
 /* Footnote — button ke neeche ki chhoti line (form ka `footnote`) */
-.wdg--cta small,
-.hf-card .bkg__b .hf-card__note {
+.wdg--cta small {
   display: block;
   text-align: center;
   font-size: 11px;
@@ -6926,12 +6921,19 @@ a.mega__gl:hover {
 }
 
 /*
- * ⚠️ **Font ka naap yahan nahi** — `.vhero h1` ke saath ek hi rule me hai (client, 15 Sep: _"font jo
- * decide kiya hai use rakho, sabka same rahe"_). Reference ke 24–38px nahi liye. Yahan sirf wo jo
- * home pe alag hai: upar eyebrow nahi, to Tour wala 11px ka margin nahi.
+ * ⚠️ **Sirf heading aur body ka font hamara hai, baaki sab design ka** (client, 15 Sep: _"only body font
+ * and heading font will be our decided"_). h1 ka size/weight `.vhero h1` ke saath grouped hai; yahan
+ * design ki chaudai (`19ch`) aur margin — upar eyebrow nahi, to Tour wala 11px bhi nahi.
  */
 .hf-hero h1 {
   margin-top: 0;
+  max-width: 19ch;
+}
+
+/* Sub line ka font `.vhero__sub` wala (body), jagah design ki. */
+.hf-hero__sub {
+  margin-top: 10px;
+  max-width: 58ch;
 }
 
 /* Accent (Italic) aur sub line ke `<p>` — dono `.vhero` ke rules ke saath grouped hain. */
@@ -6950,12 +6952,21 @@ a.mega__gl:hover {
   border-top: 1px solid rgb(255 255 255 / 18%);
 }
 
-/* Naap `.vrail__c b/span` wala; yahan sirf gehre background ka rang. */
+/*
+ * Design ka `.hero__stats .stat` — **stat rail ka nahi**. Pehle ye `.vrail__c` ke saath grouped the aur
+ * label uppercase + 11px 800 ho gaya tha, jo design me hai hi nahi (client ne pakda).
+ */
 .hf-stat b {
+  display: block;
+  font-size: var(--fs-hero-num);
+  font-weight: var(--fw-black);
   color: #fff;
+  letter-spacing: -0.02em;
 }
 
 .hf-stat span {
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semi);
   color: rgb(255 255 255 / 72%);
 }
 
@@ -6987,15 +6998,28 @@ a.mega__gl:hover {
   margin-bottom: 16px;
 }
 
-/* Naap `.wdg--cta h3/p` wala; card safed hai, to rang aur margin yahan. */
+/* Design ka `.quote__head` — sidebar ke card (`.wdg--cta`) ka naap nahi. */
 .hf-card__head h3 {
+  font-size: var(--fs-hero-num);
+  font-weight: var(--fw-black);
   color: var(--ink);
-  margin-bottom: 0;
+  letter-spacing: -0.025em;
 }
 
-.hf-card__head p {
+/*
+ * ⚠️ Naap **div pe**, sirf `p` pe nahi — description editor se aati hai aur uska text hamesha `<p>` me
+ * lipta ho, zaroori nahi. Bina `<p>` ke wo card ka 16px le leta tha (client: _"form description font
+ * size is big"_). Wahi A-19 wala sawaal: class/tag na ho to kya hoga?
+ */
+.hf-card__head > div {
+  font-size: var(--fs-xs);
+  line-height: 1.5;
   color: var(--muted);
-  margin: 4px 0 0;
+  margin-top: 4px;
+}
+
+.hf-card__head p + p {
+  margin-top: 6px;
 }
 
 /*
@@ -7034,6 +7058,7 @@ a.mega__gl:hover {
   justify-content: center;
   gap: 6px;
   margin-top: 11px;
+  font-size: var(--fs-3xs);
   color: var(--muted);
 }
 

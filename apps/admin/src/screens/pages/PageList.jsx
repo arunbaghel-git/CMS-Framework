@@ -18,6 +18,10 @@ export default function PageList() {
       searchLabel="Search pages…"
       thirdColumn="author"
       dateFilter
+      /* Home page sabse upar — client, 15 Sep (D-96 §10). */
+      pinnedType="homePage"
+      pinnedLabel="Home Page"
+      pinnedPath="/pages/home"
     />
   )
 }

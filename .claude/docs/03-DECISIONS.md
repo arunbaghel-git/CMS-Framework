@@ -7964,3 +7964,25 @@ baithe hain. ⚠️ Kram page pe asar karta hai — do **lagataar** `half` hi ek
   hai. Client ke form me aisa field ho to use apne vikalp wala select banana hoga
 
 **Koi migration nahi.** Deploy pe **`pnpm seed`** (`homePage` type banta hai) + API restart.
+
+### 10. Design se milaan — sirf heading aur body ka font hamara (client, usi din, data bhar kar)
+
+§8 zyada door chala gaya tha: stats aur form card bhi dusre pages ke rules se jud gaye the. Client ka
+niyam saaf hua — _"make design match, only body font and heading font will be our decided"_.
+
+| Cheez | Ab |
+| --- | --- |
+| h1 ka size/weight · sub line ka font | hamara (`.vhero h1` / `.vhero__sub` ke saath grouped) |
+| h1 ki chaudai | design ka **`19ch`** (Tour ka 20ch nahi); sub line `58ch`, margin 10px |
+| Stats | design ka `.hero__stats` — number 19px 900, label 11.5px 600, **uppercase nahi** (pehle `.vrail__c` se aa gaya tha) |
+| Card heading · description · note | design ka `.quote__head` — 19px · 12.5px · 11.5px (pehle `.wdg--cta` ke 16/12.5/11) |
+
+⚠️ **Description bada kyun tha:** client ki `formDescription` bina `<p>` ke save hui hai (asli payload me
+dekha), aur naap sirf `.hf-card__head p` pe tha — to text card ka 16px le raha tha. Ab naap description ke
+`div` pe hai. Wahi A-19 wala sawaal, chauthi jagah.
+
+`--fs-hero-num: 19px` token wapas aaya (sirf card heading aur stat number).
+
+**All Pages me Home Page** — list ke upar ek row (`EntriesList` ka `pinnedType`), sirf All tab ke pehle page
+pe aur bina search/date filter ke. Edit → `/pages/home`, View → site ka `/`. Na checkbox, na Trash.
+`homePage` ko `page` nahi banaya — list query use laati nahi, aur type badalna `/` aur "ek hi home" dono todta.

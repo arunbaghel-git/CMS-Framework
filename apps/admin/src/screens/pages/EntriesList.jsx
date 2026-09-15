@@ -108,6 +108,56 @@ const monthLabel = (value) => {
   })
 }
 
+/**
+ * List ke upar ek **alag type ki ek entry** — aaj sirf All Pages pe home page (D-96).
+ *
+ * ⚠️ Home `homePage` type hai, `page` nahi — list query use laati hi nahi, aur use `page` banana
+ * uska `/` wala path aur "ek hi home" wali rok dono tod deta. Isliye apni query ke saath alag row.
+ * Alag component isliye ki hook sirf tab chale jab row chahiye (Posts/Tour pe koi call nahi).
+ *
+ * Na checkbox, na Trash — home trash hota hi nahi (server 422). Edit apni screen pe (`to`).
+ */
+function PinnedRow({ type, label, to, canEdit, thirdColumn, thirdCell }) {
+  const { data } = useEntryList(type, { limit: 1 })
+  const entry = data[0]
+
+  if (!entry) return null
+
+  return (
+    <tr>
+      {canEdit && <td />}
+      <td>
+        <span className="thumb" />
+      </td>
+      <td>
+        <Link className="row-title" to={to}>
+          {entry.title || label}
+        </Link>
+        <span className="muted"> — {label}</span>
+        <div className="row-actions">
+          <span>
+            <Link to={to}>Edit</Link>
+          </span>
+          {entry.url && (
+            <span>
+              <a href={entry.url} target="_blank" rel="noreferrer">
+                View
+              </a>
+            </span>
+          )}
+        </div>
+      </td>
+      {thirdColumn && <td className="muted">{thirdCell(entry)}</td>}
+      <td>
+        <span className={`badge ${STATUS_BADGE[entry.status] ?? 'b-draft'}`}>
+          {STATUS_LABEL[entry.status] ?? entry.status}
+        </span>
+      </td>
+      <td className="muted nowrap">{shortDate(entry.updatedAt)}</td>
+    </tr>
+  )
+}
+
 export default function EntriesList({
   type,
   title,
@@ -117,6 +167,9 @@ export default function EntriesList({
   thirdColumn,
   postFilters = false,
   dateFilter = false,
+  pinnedType,
+  pinnedLabel,
+  pinnedPath,
 }) {
   const { can } = useAuth()
   const [params, setParams] = useSearchParams()
@@ -500,6 +553,22 @@ export default function EntriesList({
           </tr>
         </thead>
         <tbody>
+          {/*
+           * Home page ki row — sirf All tab ke pehle page pe, bina search/date filter ke (client,
+           * 15 Sep: _"all pages me show ho taaki admin se directly view kar sake"_). Filter lagne
+           * pe wo list ka jawab nahi hai, to wahan uska dikhna jhooth hota.
+           */}
+          {pinnedType && tab === 'all' && page === 1 && !appliedSearch && !appliedMonth && (
+            <PinnedRow
+              type={pinnedType}
+              label={pinnedLabel}
+              to={pinnedPath}
+              canEdit={canEdit}
+              thirdColumn={thirdColumn}
+              thirdCell={thirdCell}
+            />
+          )}
+
           {loading && (
             <tr>
               <td colSpan={columnCount}>Loading…</td>
