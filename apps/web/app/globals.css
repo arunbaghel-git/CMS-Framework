@@ -185,8 +185,7 @@
   --fs-price: clamp(28px, 3.4vw, 38px);
   --fs-intro: clamp(15px, 1.6vw, 17px);
   --fs-display: clamp(21px, 2.6vw, 30px);
-  /* Home Info cards — design ke card title aur label (D-96 §11). Maujooda scale me 15px/10px nahi the. */
-  --fs-card-title: 15px;
+  /* Home Info cards ka label — design ka 10px (D-96 §11). Maujooda scale me nahi tha. */
   --fs-card-label: 10px;
   /* Home hero ke number aur form card ka heading — design ka 19px (D-96 §10). Heading/body font nahi. */
   --fs-hero-num: 19px;
@@ -7243,15 +7242,17 @@ a.mega__gl:hover {
 }
 
 .icc h3 {
-  font-size: var(--fs-card-title);
+  /* 16px — client, 15 Sep (design ka 15px nahi). */
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-heading);
   color: var(--ink);
   line-height: 1.35;
 }
 
+/* Description — **body font** (client, 15 Sep), design ka 12.5px nahi. Wahi jo `.blk p` ka hai. */
 .icc p {
-  font-size: var(--fs-xs);
-  line-height: 1.5;
+  font-size: var(--fs-body);
+  line-height: 1.6;
   color: var(--body);
 }
 

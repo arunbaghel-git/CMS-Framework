@@ -8023,3 +8023,6 @@ se** · link **optional, poora card** · description **chhota editor** (bold/ita
   label 10px — naye tokens `--fs-card-title`/`--fs-card-label`, text 12.5px)
 
 ⚠️ Render aankh se nahi dekha (client ke home me section nahi joda) — **A-28** me jodna.
+
+**§11 amendment (client, usi din):** card ki description ab **body font** (`--fs-body`, 14px, `.blk p` jaisa)
+aur title **16px** (`--fs-2xl`) — design ke 12.5px/15px nahi. `--fs-card-title` token hata.
