@@ -2095,6 +2095,7 @@ async function resolveHomeSection(block, siteId) {
   if (block?.type === 'infoCards') return resolveInfoCards(block, siteId)
   if (block?.type === 'videoReviews') return resolveVideoReviews(block, siteId)
   if (block?.type === 'imageCards') return resolveImageCards(block, siteId)
+  if (block?.type === 'testimonials') return resolveTestimonials(block, siteId)
   if (block?.type !== 'heroForm') return block
 
   const { imageId, mobileImageId, formId, ...props } = block.props ?? {}
@@ -2119,6 +2120,29 @@ async function resolveHomeSection(block, siteId) {
     },
     data: { image, mobileImage, form },
   }
+}
+
+/**
+ * `Testimonials` — chune hue text reviews, **section ke kram me** (D-96 §16).
+ *
+ * Sirf wo khaane jo card pe chhapte hain — `rating`/`month` jaan-boojh kar nahi (reference me nahi,
+ * client). Delete hua review gira; `testimonialIds` payload me nahi.
+ */
+async function resolveTestimonials(block, siteId) {
+  const { testimonialIds = [], ...props } = block.props ?? {}
+  const found = await findItemsByIds('review', testimonialIds, siteId)
+
+  const reviews = testimonialIds
+    .map((id) => found.get(String(id)))
+    .filter(Boolean)
+    .map((review) => ({
+      id: review.id,
+      text: review.text,
+      name: review.name,
+      lastLine: review.lastLine ?? '',
+    }))
+
+  return { ...block, props, data: { reviews } }
 }
 
 /**

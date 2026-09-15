@@ -8140,3 +8140,31 @@ jhootha — hota.
 ⚠️ **Sabak (core vs theme):** admin ke **labels/defaults** me client-specific shabd core me nahi aane chahiye —
 wahi tark jo Q-9 me `TAB_NOTE` (`Sea-facing`, `Beachfront`) pe likha hai. Aisa kuch chahiye ho to wo client ke
 theme/instance ka hissa hai.
+
+### 16. Section 6 — Testimonials, text reviews se (client, usi din)
+
+Reference ka `22. TESTIMONIALS` (`.tm`): heading centre, 4 card — upar-baayein quote icon, text, neeche
+avatar initials + naam + chhoti line. Pehle client ne sirf **jaanch** maangi (content upload chal raha tha,
+code nahi); jaanch me nikla ki `reviews` me sab khaane pehle se hain (`text · name · lastLine`), koi field ya
+migration nahi chahiye. Phir client ke paanch jawab:
+
+| Sawaal | Jawab |
+| --- | --- |
+| Kaunse reviews | section me **chuno, drag se kram** (`testimonialIds`) |
+| Icon | quote **fixed**, rang section se (`iconColor`) |
+| Avatar | naam se **initials** (theme me, koi field nahi) |
+| Taare / mahina | **nahi** — reference me nahi |
+| Columns | **fixed** — 4 → tablet 2 → phone 1 |
+
+- Section `testimonials`: `background · heading · description · headingAlign (centre) · link · iconColor ·
+  testimonialIds[] ≤20`. Payload `resolveTestimonials()` — sirf `{id, text, name, lastLine}`; rating/month
+  jaan-boojh kar nahi; delete wala gira
+- ⚠️ **`testimonialIds`, `reviewIds` nahi** — `reviewIds` video ka hai aur `pathTagsForBlockRef` field naam se
+  query karta hai. Test pakka karta hai ki text review ki id video wale tag me nahi aati
+- Cache: `LISTS.review.tags` ab `type:package` + `pathTagsForTestimonial()`
+- **Admin `ListPicker`** — do-column picker ek component me nikla (pehle `VideoReviewsBlock` ke andar);
+  Customer reviews aur Testimonials dono isi pe
+- Web `Testimonials.jsx` — `<figure>` · `<blockquote>` · `<figcaption>`; review ka text body font. Section ka
+  default rang reference ka halka neela (`.hsec--tint`)
+
+**Koi migration nahi.** Deploy pe sirf API restart.

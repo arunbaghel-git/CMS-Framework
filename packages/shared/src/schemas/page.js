@@ -101,6 +101,7 @@ export const HOME_PAGE_BLOCK_TYPES = Object.freeze([
   'imageCards',
   'faqs',
   'videoReviews',
+  'testimonials',
 ])
 
 /**
@@ -328,6 +329,35 @@ export const imageCardsPropsSchema = z.object({
   textPosition: z.enum(['bottom', 'middle']).default('bottom'),
 
   items: z.array(imageCardSchema).max(IMAGE_CARDS_MAX).default([]),
+})
+
+/** Testimonials section me kitne review — reference me chaar; 20 paanch line ki chhat. */
+export const TESTIMONIALS_MAX = 20
+
+/**
+ * `Testimonials` — reference ka `22. TESTIMONIALS` (client, 15 Sep, D-96 §16).
+ *
+ * **Maujooda text reviews se** — `reviews` collection me koi field nahi juda. Card pe `text` · `name` ·
+ * `lastLine`, avatar ke initials naam se (theme). Taare aur mahina **nahi** — reference me nahi (client).
+ *
+ * Client ke faisle: reviews **section me chune, kram drag se** (`testimonialIds`, Customer reviews jaisa) ·
+ * quote icon **fixed**, sirf rang section se (`iconColor`) · avatar **initials** · columns **fixed** (4 →
+ * tablet 2 → phone 1).
+ *
+ * ⚠️ Naam `testimonialIds`, `reviewIds` nahi — `reviewIds` video reviews ka hai, aur cache ki query
+ * (`pathTagsForBlockRef`) field naam se chalti hai. Ek naam do collection ki ids pe = D-86 wala jaal.
+ */
+export const testimonialsPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+  /** Reference me heading beech me (`.sh--center`). */
+  headingAlign: z.enum(['center', 'left']).default('center'),
+  linkLabel: z.string().trim().max(80).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+  /** Quote icon ka rang — khaali pe reference ka halka neela (`--blue-100`). */
+  iconColor: sectionBackgroundSchema,
+  testimonialIds: z.array(z.string().trim().min(1).max(60)).max(TESTIMONIALS_MAX).default([]),
 })
 
 export const videoReviewsPropsSchema = z.object({
@@ -783,6 +813,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   infoCards: infoCardsPropsSchema,
   videoReviews: videoReviewsPropsSchema,
   imageCards: imageCardsPropsSchema,
+  testimonials: testimonialsPropsSchema,
 })
 
 /**

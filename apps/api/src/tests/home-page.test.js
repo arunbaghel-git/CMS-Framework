@@ -11,7 +11,11 @@ import { RefreshToken } from '../modules/auth/model.js'
 import { ContentType } from '../modules/content-types/model.js'
 import { ensureBuiltInContentTypes } from '../modules/content-types/service.js'
 import { Entry, Revision } from '../modules/entries/model.js'
-import { pathTagsForForm, pathTagsForVideoReview } from '../modules/entries/service.js'
+import {
+  pathTagsForForm,
+  pathTagsForTestimonial,
+  pathTagsForVideoReview,
+} from '../modules/entries/service.js'
 import { Review, VideoReview } from '../modules/master-lists/model.js'
 import { Enquiry, Form } from '../modules/forms/model.js'
 import { Role } from '../modules/roles/model.js'
@@ -526,5 +530,64 @@ describe('Image cards (D-96 §14)', () => {
       expect(res.status).toBeGreaterThanOrEqual(400)
       expect(res.status).toBeLessThan(500)
     }
+  })
+})
+
+describe('Testimonials — text reviews se (D-96 §16)', () => {
+  const addReview = (body) =>
+    authed('post', '/api/reviews', adminJar).send({
+      rating: 5,
+      month: '2026-03',
+      text: 'Everything ran on schedule.',
+      name: 'Smita Menon',
+      lastLine: 'Sports journalist · 6N Island Hopping',
+      ...body,
+    })
+
+  it('chune hue reviews section ke kram me, taare/mahina nahi, delete wala gira, ids bahar nahi', async () => {
+    const a = (await addReview({ name: 'A' })).body.data.item
+    const b = (await addReview({ name: 'B' })).body.data.item
+    const gone = (await addReview({ name: 'Gone' })).body.data.item
+
+    const created = (
+      await createHome({
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'testimonials',
+              props: { heading: 'Testimonials', testimonialIds: [b.id, gone.id, a.id] },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+
+    expect(await pathTagsForTestimonial(a.id)).toEqual(['path:/'])
+    // Video reviews ka naam alag hai — text review ki id wahan kabhi match nahi karti
+    expect(await pathTagsForVideoReview(a.id)).toEqual([])
+
+    await authed('delete', `/api/reviews/${gone.id}`, adminJar)
+
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.props.testimonialIds).toBeUndefined()
+    expect(section.data.reviews.map((r) => r.name)).toEqual(['B', 'A'])
+    expect(section.data.reviews[0]).toEqual({
+      id: b.id,
+      text: 'Everything ran on schedule.',
+      name: 'B',
+      lastLine: 'Sports journalist · 6N Island Hopping',
+    })
+  })
+
+  it('icon ka rang sirf hex', async () => {
+    const res = await createHome({
+      content: { version: 1, blocks: [{ type: 'testimonials', props: { iconColor: 'blue' } }] },
+    })
+    expect(res.status).toBeGreaterThanOrEqual(400)
+    expect(res.status).toBeLessThan(500)
   })
 })

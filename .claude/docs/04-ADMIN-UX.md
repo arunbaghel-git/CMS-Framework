@@ -762,6 +762,7 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
 - **Customer reviews** section: Background · Heading (position + link) · picker — All video reviews ＋ / In this
   section (⠿ drag, ✕)
 - **Image cards** section: Background · Heading (position + link) · Card look (Card shape · Columns on desktop/phone · Text alignment · Text position) · Cards (⠿ drag — Image · Title · Small line · Tag · Link)
+- **Testimonials** section: Background · Quote icon colour · Heading (position + link) · picker — All text reviews ＋ / In this section (⠿ drag, ✕)
 - **Reviews** screen me do tab — **Text reviews** · **Video reviews** (Image · Video link · Title · Package name)
 
 ### Dropdown ki chaudai — sab screens (`primitives.css`)

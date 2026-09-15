@@ -236,6 +236,7 @@ dikhta hai.
 | 9 | **Customer reviews** (§13): Reviews ▸ Video reviews tab (image upload, edit pe image hatana), section ka picker + drag, rail scroll, YouTube popup (Esc/parda), Instagram link naye tab me | Tests + compile se verify |
 | 10 | **Image cards** (§14): teeno "Start from" look, shape badalna, phone pe 1/2 column, text beech me, link wala card hover | Tests + compile se verify |
 | 11 | **Media Library / picker se upload** — interceptor fix ke baad asli file | Node me axios ka bartaav dohra kar pakka; browser se upload nahi kiya |
+| 12 | **Testimonials** (§16): picker + drag, quote icon ka rang, initials (`Priya & Rahul` → PR), 4/2/1 column | Tests + compile se verify |
 
 ---
 

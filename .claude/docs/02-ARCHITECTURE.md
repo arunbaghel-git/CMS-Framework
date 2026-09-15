@@ -195,6 +195,8 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          landscape|wide · columns 2–6 · mobileColumns 1–2 · textAlign ·
                          textPosition · items[{imageId, title, subtitle, tag, url}]≤24
                          videoReviews (§13): heading/link · reviewIds[]≤20
+                         testimonials (§16): heading/link · iconColor · testimonialIds[]≤20
+                         (reviews collection ki ids — naam reviewIds se ALAG, cache query ke liye)
                          faqs pe home ke liye background + align
                  fields  { ...customFields },            contentType ke fields
                          package ka itinerary[] yahin hai — poora contract

@@ -54,6 +54,8 @@ flake nikla (akele pass). Lint · format · admin build pass.
 - ⚠️ Deploy pe: `pnpm format` → `pnpm cms migrate` (025) → API restart
 - **Media upload bug** (Library/picker: "Upload file is required") — axios JSON header, `lib/api.js` interceptor
 - **"Start from" presets hate** (§15) — naam Andaman ke the, CMS har client ka
+- **Section 6 — Testimonials** (§16): text reviews se, picker (`ListPicker` saanjha), quote icon ka rang, initials,
+  4 column fixed. Koi migration nahi
 - **Section 4 — Image cards** (§14): islands/beaches/places ek section, shape/columns/alignment, subtitle + tag
   optional (mera chunav, client dekhega). Client lunch ke baad data bharega (A-28 #10–#11)
 

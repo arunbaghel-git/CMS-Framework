@@ -6,7 +6,7 @@ import { revalidateTags } from '../../core/revalidate.js'
  * ⚠️ **Circular** — `entries/service.js` yahan se `findItemsByIds` leti hai. Wahi tark jo neeche
  * taxonomies pe hai: dono taraf sirf `export async function`, load ke waqt koi call nahi.
  */
-import { pathTagsForVideoReview } from '../entries/service.js'
+import { pathTagsForTestimonial, pathTagsForVideoReview } from '../entries/service.js'
 /**
  * ⚠️ **Ye import circular hai** — `taxonomies/service.js` yahan se
  * `countHotelsForDestination` leti hai (destination delete rokne ke liye).
@@ -117,7 +117,8 @@ const LISTS = {
      * package page `CACHE_SECONDS` (1 ghanta) tak purani reviews dikhata. Reviews `package-defaults`
      * payload me jaati hain, jo `type:package` pe tag hai.
      */
-    tags: async () => ['type:package'],
+    /** Home ke Testimonials section me chuna ho to us page ka `path:` bhi (D-96 §16). */
+    tags: async (id, siteId) => ['type:package', ...(await pathTagsForTestimonial(id, siteId))],
   },
   videoReview: {
     Model: VideoReview,

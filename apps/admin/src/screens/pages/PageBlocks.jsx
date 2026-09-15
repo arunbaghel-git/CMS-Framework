@@ -5,6 +5,7 @@ import {
   IMAGE_CARDS_MAX,
   IMAGE_CARD_SHAPES,
   INFO_CARDS_MAX,
+  TESTIMONIALS_MAX,
   VIDEO_REVIEWS_MAX,
   PAGE_BLOCK_TYPES,
   POST_LIST_MAX_FEATURED,
@@ -45,6 +46,7 @@ const BLOCK_LABEL = {
   infoCards: 'Info cards',
   imageCards: 'Image cards',
   videoReviews: 'Customer reviews',
+  testimonials: 'Testimonials',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -59,6 +61,7 @@ const BLOCK_CLASS = {
   infoCards: 'info',
   imageCards: 'image',
   videoReviews: 'reviews',
+  testimonials: 'reviews',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -99,6 +102,16 @@ function emptyBlock(type) {
       linkLabel: '',
       linkUrl: '',
       items: [],
+    },
+    testimonials: {
+      background: '',
+      heading: '',
+      description: '',
+      headingAlign: 'center',
+      linkLabel: '',
+      linkUrl: '',
+      iconColor: '',
+      testimonialIds: [],
     },
     videoReviews: {
       background: '',
@@ -157,6 +170,8 @@ function summarize(block) {
       return `${p.heading || 'FAQs'} — ${(p.items ?? []).length} question(s)`
     case 'imageCards':
       return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
+    case 'testimonials':
+      return `${p.heading || 'Testimonials'} — ${(p.testimonialIds ?? []).length} review(s)`
     case 'videoReviews':
       return `${p.heading || 'Customer reviews'} — ${(p.reviewIds ?? []).length} video(s)`
     case 'infoCards':
@@ -1683,16 +1698,21 @@ function HeadingPositionFields({ props, onChange, disabled }) {
 }
 
 /**
- * `Customer reviews` — video reviews ki rail (client, 15 Sep, D-96 §13).
+ * Do-column picker — **master list ki ids chunna, kram drag se** (D-96 §13, §16).
  *
- * Reviews **Reviews ▸ Video reviews** me bante hain; yahan sirf **chune** jaate hain — baayein saare,
- * daayein is section ke, drag se kram (client: section me chunein, kram drag se). Wahi do-column
- * picker jo Package list pe hai (`.picker`).
+ * Customer reviews (video) aur Testimonials (text) dono yahi use karte hain — pehle ye `VideoReviewsBlock`
+ * ke andar tha; doosra section aate hi alag nikla (do copies ek din alag ho jaati hain). Package list ka
+ * picker (`.picker`) apne filter/search ke saath alag hai.
+ *
+ * @param {object} props
+ * @param {string} props.endpoint      `/video-reviews` · `/reviews`
+ * @param {string[]} props.ids         chune hue, kram me
+ * @param {(ids: string[]) => void} props.onChange
+ * @param {number} props.max
+ * @param {(item: any) => string} props.meta   naam ke bagal ki chhoti line
+ * @param {import('react').ReactNode} props.emptyAll   list khaali ho to kya likhein
  */
-function VideoReviewsBlock({ props, onChange, disabled }) {
-  const set = (patch) => onChange({ ...props, ...patch })
-  const chosen = props.reviewIds ?? []
-
+function ListPicker({ endpoint, ids, onChange, max, meta, allLabel, emptyAll, disabled }) {
   const [all, setAll] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -1700,29 +1720,109 @@ function VideoReviewsBlock({ props, onChange, disabled }) {
   useEffect(() => {
     let cancelled = false
     api
-      .get('/video-reviews', { params: { limit: 200 } })
+      .get(endpoint, { params: { limit: 200 } })
       .then((res) => !cancelled && setAll(res.data.data.items))
       .catch((err) => !cancelled && setError(errorMessage(err)))
       .finally(() => !cancelled && setLoading(false))
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [endpoint])
 
-  const byId = new Map(all.map((review) => [review.id, review]))
+  const byId = new Map(all.map((item) => [item.id, item]))
 
   const add = (id) => {
-    if (chosen.length < VIDEO_REVIEWS_MAX) set({ reviewIds: [...chosen, id] })
+    if (ids.length < max) onChange([...ids, id])
   }
-  const remove = (id) => set({ reviewIds: chosen.filter((x) => x !== id) })
+  const remove = (id) => onChange(ids.filter((x) => x !== id))
   const move = (from, to) => {
-    if (to < 0 || to >= chosen.length) return
-    const next = [...chosen]
+    if (to < 0 || to >= ids.length) return
+    const next = [...ids]
     const [row] = next.splice(from, 1)
     next.splice(to, 0, row)
-    set({ reviewIds: next })
+    onChange(next)
   }
   const { handleProps, rowProps } = useListDrag(move, !disabled)
+
+  return (
+    <div className="picker">
+      <div className="picker__col">
+        <div className="picker__head">
+          {allLabel} <span className="muted">{all.length}</span>
+        </div>
+        <ul className="picker__list">
+          {all.map((item) => (
+            <li key={item.id}>
+              <span className="picker__name">{item.name}</span>
+              <span className="picker__meta">{meta(item)}</span>
+              {ids.includes(item.id) ? (
+                <span className="picker__added" title="Already added">
+                  ✓
+                </span>
+              ) : (
+                <button
+                  className="btn btn-sm"
+                  type="button"
+                  onClick={() => add(item.id)}
+                  disabled={disabled || ids.length >= max}
+                >
+                  ＋
+                </button>
+              )}
+            </li>
+          ))}
+          {error && <li className="picker__empty picker__error">{error}</li>}
+          {!error && !loading && all.length === 0 && <li className="picker__empty">{emptyAll}</li>}
+        </ul>
+      </div>
+
+      <div className="picker__col">
+        <div className="picker__head">
+          In this section <span className="muted">{ids.length}</span>
+        </div>
+        <ul className="picker__list">
+          {ids.map((id, i) => {
+            const item = byId.get(id)
+            return (
+              <li key={id} {...rowProps(i)}>
+                {!disabled && (
+                  <span className="grip" {...handleProps(i)}>
+                    ⠿
+                  </span>
+                )}
+                <span className="picker__name">
+                  {item?.name ?? <em className="muted">{loading ? '…' : '(deleted)'}</em>}
+                </span>
+                <span className="picker__meta">{item ? meta(item) : ''}</span>
+                <button
+                  className="btn btn-sm btn-danger"
+                  type="button"
+                  onClick={() => remove(id)}
+                  disabled={disabled}
+                >
+                  ✕
+                </button>
+              </li>
+            )
+          })}
+          {ids.length === 0 && (
+            <li className="picker__empty">
+              None yet — use ＋ on the left. Leave this empty and the section does not appear.
+            </li>
+          )}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * `Customer reviews` — video reviews ki rail (client, 15 Sep, D-96 §13).
+ *
+ * Reviews **Reviews ▸ Video reviews** me bante hain; yahan sirf **chune** jaate hain (`ListPicker`).
+ */
+function VideoReviewsBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
 
   return (
     <>
@@ -1740,81 +1840,80 @@ function VideoReviewsBlock({ props, onChange, disabled }) {
       <label className="blk-sublabel" style={{ marginTop: 14 }}>
         Video reviews
       </label>
-      <div className="picker">
-        <div className="picker__col">
-          <div className="picker__head">
-            All video reviews <span className="muted">{all.length}</span>
-          </div>
-          <ul className="picker__list">
-            {all.map((review) => (
-              <li key={review.id}>
-                <span className="picker__name">{review.name}</span>
-                <span className="picker__meta">{review.packageName}</span>
-                {chosen.includes(review.id) ? (
-                  <span className="picker__added" title="Already added">
-                    ✓
-                  </span>
-                ) : (
-                  <button
-                    className="btn btn-sm"
-                    type="button"
-                    onClick={() => add(review.id)}
-                    disabled={disabled || chosen.length >= VIDEO_REVIEWS_MAX}
-                  >
-                    ＋
-                  </button>
-                )}
-              </li>
-            ))}
-            {error && <li className="picker__empty picker__error">{error}</li>}
-            {!error && !loading && all.length === 0 && (
-              <li className="picker__empty">
-                No video reviews yet — add them under <b>Reviews ▸ Video reviews</b>.
-              </li>
-            )}
-          </ul>
-        </div>
-
-        <div className="picker__col">
-          <div className="picker__head">
-            In this section <span className="muted">{chosen.length}</span>
-          </div>
-          <ul className="picker__list">
-            {chosen.map((id, i) => {
-              const review = byId.get(id)
-              return (
-                <li key={id} {...rowProps(i)}>
-                  {!disabled && (
-                    <span className="grip" {...handleProps(i)}>
-                      ⠿
-                    </span>
-                  )}
-                  <span className="picker__name">
-                    {review?.name ?? <em className="muted">(deleted)</em>}
-                  </span>
-                  <span className="picker__meta">{review?.packageName ?? ''}</span>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    type="button"
-                    onClick={() => remove(id)}
-                    disabled={disabled}
-                  >
-                    ✕
-                  </button>
-                </li>
-              )
-            })}
-            {chosen.length === 0 && (
-              <li className="picker__empty">
-                None yet — use ＋ on the left. Leave this empty and the section does not appear.
-              </li>
-            )}
-          </ul>
-        </div>
-      </div>
+      <ListPicker
+        endpoint="/video-reviews"
+        ids={props.reviewIds ?? []}
+        onChange={(reviewIds) => set({ reviewIds })}
+        max={VIDEO_REVIEWS_MAX}
+        meta={(item) => item.packageName ?? ''}
+        allLabel="All video reviews"
+        emptyAll={
+          <>
+            No video reviews yet — add them under <b>Reviews ▸ Video reviews</b>.
+          </>
+        }
+        disabled={disabled}
+      />
       <div className="hint">
         Cards appear in this order — drag <b>⠿</b> to move one. YouTube and Vimeo videos play in a
         popup; other links open in a new tab.
+      </div>
+    </>
+  )
+}
+
+/**
+ * `Testimonials` — text reviews ke cards (client, 15 Sep, D-96 §16).
+ *
+ * Reviews **Reviews ▸ Text reviews** me bante hain. Card pe text · naam · last line; taare aur mahina
+ * nahi (reference). Quote icon fixed — sirf uska rang yahan.
+ */
+function TestimonialsBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+
+  return (
+    <>
+      <div className="row2">
+        <SectionBackground
+          value={props.background}
+          fallback="#f2f8fd"
+          onChange={(background) => set({ background })}
+          disabled={disabled}
+        />
+        <ColourField
+          label="Quote icon colour"
+          value={props.iconColor}
+          fallback="#e4f0fb"
+          onChange={(iconColor) => set({ iconColor })}
+          disabled={disabled}
+        />
+      </div>
+
+      <label className="blk-sublabel">Heading</label>
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+      <HeadingPositionFields props={props} onChange={onChange} disabled={disabled} />
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Reviews
+      </label>
+      <ListPicker
+        endpoint="/reviews"
+        ids={props.testimonialIds ?? []}
+        onChange={(testimonialIds) => set({ testimonialIds })}
+        max={TESTIMONIALS_MAX}
+        meta={(item) => item.lastLine ?? ''}
+        allLabel="All text reviews"
+        emptyAll={
+          <>
+            No text reviews yet — add them under <b>Reviews ▸ Text reviews</b>.
+          </>
+        }
+        disabled={disabled}
+      />
+      <div className="hint">
+        Cards appear in this order — drag <b>⠿</b> to move one. Each card shows the review, the
+        guest name and the last line; the initials in the circle come from the name. Stars and month
+        are not shown here.
       </div>
     </>
   )
@@ -2059,6 +2158,7 @@ function ImageCardsBlock({ props, onChange, disabled }) {
 }
 
 const EDITORS = {
+  testimonials: TestimonialsBlock,
   imageCards: ImageCardsBlock,
   videoReviews: VideoReviewsBlock,
   heroForm: HeroFormBlock,

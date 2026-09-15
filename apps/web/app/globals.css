@@ -7601,3 +7601,90 @@ a.imcc:hover img {
     transform: none;
   }
 }
+
+/* ---- Testimonials (D-96 §16) — reference ka `.tm` ---- */
+
+/* Reference ka `sec--blue` — admin ka rang na ho to yahi (`.hsec` ka default safed hai) */
+.hsec--tint {
+  --hsec-bg: var(--blue-50);
+}
+
+.tmg {
+  --tm-icon: var(--blue-100);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.tmc {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  padding: 20px;
+}
+
+.tmc__q {
+  color: var(--tm-icon);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+/* Review ka text — body font (client ka niyam: body font hamara) */
+.tmc blockquote {
+  margin: 0;
+  flex: 1;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.tmc figcaption {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-2);
+}
+
+.tmc__av {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--blue-500), var(--blue-900));
+  color: #fff;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-heading);
+}
+
+.tmc figcaption b {
+  display: block;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+}
+
+.tmc figcaption b + span {
+  display: block;
+  font-size: var(--fs-3xs);
+  color: var(--muted);
+}
+
+@media (max-width: 1024px) {
+  .tmg {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .tmg {
+    grid-template-columns: 1fr;
+  }
+}

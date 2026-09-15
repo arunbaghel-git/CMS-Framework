@@ -1028,6 +1028,11 @@ export async function pathTagsForVideoReview(reviewId, siteId = DEFAULT_SITE_ID)
   return pathTagsForBlockRef('reviewIds', reviewId, siteId)
 }
 
+/** Jin pages ke Testimonials section me ye text review chuna gaya hai (D-96 §16). */
+export async function pathTagsForTestimonial(reviewId, siteId = DEFAULT_SITE_ID) {
+  return pathTagsForBlockRef('testimonialIds', reviewId, siteId)
+}
+
 /**
  * Kisi section ke `props` me ek id — un pages ke `path:` tag. Sirf do tay field naam isse bulate hain
  * (upar), koi user input nahi — field naam query key me jaata hai, isliye ye export nahi.
