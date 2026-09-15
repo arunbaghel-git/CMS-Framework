@@ -5199,9 +5199,9 @@ a.mega__gl:hover {
   flex-wrap: wrap;
 }
 
-/* `.ic__sh h2` — home ke Info cards ka heading bhi yahi (client: heading font hamara, D-96 §11). */
+/* `.hsh h2` — home ke sections (Info cards, FAQ) ka heading bhi yahi (client: heading font hamara, D-96 §11). */
 .sh h2,
-.ic__sh h2 {
+.hsh h2 {
   font-size: clamp(19px, 2.2vw, 25px);
   font-weight: 800;
 }
@@ -5212,7 +5212,7 @@ a.mega__gl:hover {
  * hai, isliye naap chhua nahi gaya — sirf hardcoded px ki jagah token aaya (D-73).
  */
 .sh p,
-.ic__sd {
+.hsh__d {
   font-size: var(--fs-md);
   color: var(--muted);
   margin-top: 4px;
@@ -7095,7 +7095,7 @@ a.mega__gl:hover {
   padding: clamp(28px, 3.4vw, 46px) 0;
 }
 
-.ic__sh {
+.hsh {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -7105,7 +7105,7 @@ a.mega__gl:hover {
 }
 
 /* Popular articles — heading left, daayein `View all →` (reference ka `.sh`). */
-.ic__sh--left {
+.hsh--left {
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-end;
@@ -7114,12 +7114,12 @@ a.mega__gl:hover {
   text-align: left;
 }
 
-/* Line editor se aati hai — `<p>` ho ya na ho, naap `.ic__sd` pe (A-19). */
-.ic__sd p + p {
+/* Line editor se aati hai — `<p>` ho ya na ho, naap `.hsh__d` pe (A-19). */
+.hsh__d p + p {
   margin-top: 6px;
 }
 
-.ic__all {
+.hsh__all {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -7131,11 +7131,11 @@ a.mega__gl:hover {
   white-space: nowrap;
 }
 
-.ic__all svg {
+.hsh__all svg {
   transition: transform 0.18s;
 }
 
-.ic__all:hover svg {
+.hsh__all:hover svg {
   transform: translateX(3px);
 }
 
@@ -7317,4 +7317,11 @@ a.mega__gl:hover {
   .icc--link:hover {
     transform: none;
   }
+}
+
+/* ---- Home ka saada section (D-96 §12) — FAQ. Background admin se, padding reference ka `.sec`. ---- */
+.hsec {
+  --hsec-bg: #fff;
+  background: var(--hsec-bg);
+  padding: clamp(28px, 3.4vw, 46px) 0;
 }

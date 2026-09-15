@@ -733,6 +733,8 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
                 disabled={readOnly}
                 open={openBlocks}
                 onToggle={toggleBlock}
+                /* Home ke sections pe background colour — shared blocks (FAQs) bhi ise dekhte hain. */
+                home={config.key === 'homePage'}
               />
               {config.key === 'homePage' ? (
                 <div className="hint">

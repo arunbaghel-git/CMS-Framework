@@ -44,6 +44,9 @@ flake nikla (akele pass). Lint · format · admin build pass.
 - All Pages ke upar Home Page ki row; Enquiry Forms me fields drag se (§9)
 - **Section 2 — Info cards** (§11): Achievements/Certified by/Why us/Popular articles ek section, "Start from"
   presets, icon list + upload, label, optional link, chhota editor. 16 home test. Render aankh se nahi dekha (A-28 #7)
+- Info cards: description body font, title 16px (§11 amendment)
+- **Section 3 — FAQ** (§12): wahi `faqs` block, home pe background + ek-hi-khula accordion, `SectionHead.jsx`
+  saanjha, `TourSchema` se FAQPage. 19 home test (A-28 #8)
 
 ### Agla kadam
 

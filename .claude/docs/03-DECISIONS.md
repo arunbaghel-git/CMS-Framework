@@ -8026,3 +8026,25 @@ se** · link **optional, poora card** · description **chhota editor** (bold/ita
 
 **§11 amendment (client, usi din):** card ki description ab **body font** (`--fs-body`, 14px, `.blk p` jaisa)
 aur title **16px** (`--fs-2xl`) — design ke 12.5px/15px nahi. `--fs-card-title` token hata.
+
+### 12. Section 3 — FAQ (client, usi din)
+
+Reference ka `23. FAQ`: heading + line center, list 860px beech me, `<details>` accordion, pehla khula, aur
+script — **ek waqt me ek hi khula**.
+
+**Naya block type nahi — wahi `faqs`.** Schema, `sanitizeContent()`, admin ka `FaqsBlock` editor, card ki ids
+aur `FAQPage` structured data sab pehle se the. Sirf teen cheezein judi:
+
+- `faqsPropsSchema.background` (hex rok) — **admin me sirf home pe dikhta hai** (`PageBlocks` ka naya `home`
+  prop, `PageEdit` `homePage` pe bhejta hai). Tour/Page/Post pe khaana nahi, theme padhti nahi; khaali
+  default purane data pe asar nahi
+- `HOME_PAGE_BLOCK_TYPES` me `faqs`
+- Theme: `HomeFaqs.jsx` (`.hsec` — background + reference ka padding) + `FaqAccordion.jsx` (`'use client'`,
+  `onToggle` pe baaki band). Look `.faq` hi — package page wala, reference se hi; koi nayi accordion CSS nahi.
+  JS na chale to `<details>` phir bhi khulta-band hota hai
+- **Section heading ek component me nikla** — `SectionHead.jsx` (`.hsh`, pehle `InfoCards` ka `.ic__sh`).
+  Do section ek hi dhaancha maang rahe the
+- Structured data: `HomePage` `TourSchema` render karta hai — home pe breadcrumb nahi banti (ek kadam), saare
+  `faqs` milaa kar ek `FAQPage`
+
+Font: sawaal `.faq summary` (14.5px, package page jaisa), jawab body font — dono maujooda. 3 naye API test.

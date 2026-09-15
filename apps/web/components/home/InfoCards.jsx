@@ -1,12 +1,13 @@
 import Icon from '../Icon.jsx'
 import Img from '../Img.jsx'
+import SectionHead from './SectionHead.jsx'
 
 /**
  * `Info cards` — `home-nav-v3.html` ke Achievements · Certified by · Why us · Popular articles (D-96 §11).
  *
  * ```
  * .ic                 background (admin) + look ke rang CSS variables me
- *   .ic__sh           heading + line; `--left` pe daayein "View all →"
+ *   .hsh              heading + line (`SectionHead`, FAQ ke saath saanjha)
  *   .ic__grid         2–4 column
  *     .icc            card — border/icon/align ke modifier
  * ```
@@ -52,7 +53,6 @@ export default function InfoCards({ props = {} }) {
     ...(iconColor ? { '--ic-icon': iconColor } : {}),
   }
 
-  const isLeft = headingAlign === 'left'
   const cardClass = [
     'icc',
     `icc--b-${border}`,
@@ -66,33 +66,13 @@ export default function InfoCards({ props = {} }) {
   return (
     <section className="ic" style={style}>
       <div className="wrap">
-        {heading || description ? (
-          <div className={`ic__sh${isLeft ? ' ic__sh--left' : ''}`}>
-            <div>
-              {heading ? <h2>{heading}</h2> : null}
-              {description ? (
-                <div className="ic__sd" dangerouslySetInnerHTML={{ __html: description }} />
-              ) : null}
-            </div>
-            {/* `.viewall` — dono chahiye (D-30), aur sirf left heading pe (center me jagah nahi). */}
-            {isLeft && linkLabel && linkUrl ? (
-              <a className="ic__all" href={linkUrl}>
-                {linkLabel}
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            ) : null}
-          </div>
-        ) : null}
+        <SectionHead
+          heading={heading}
+          description={description}
+          align={headingAlign}
+          linkLabel={linkLabel}
+          linkUrl={linkUrl}
+        />
 
         <div className="ic__grid">
           {items.map((card, i) => {

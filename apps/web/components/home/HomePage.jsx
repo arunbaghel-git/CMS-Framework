@@ -1,4 +1,6 @@
+import TourSchema from '../tour/TourSchema.jsx'
 import HeroForm from './HeroForm.jsx'
+import HomeFaqs from './HomeFaqs.jsx'
 import InfoCards from './InfoCards.jsx'
 
 /**
@@ -17,11 +19,17 @@ import InfoCards from './InfoCards.jsx'
 const SECTIONS = {
   heroForm: HeroForm,
   infoCards: InfoCards,
+  faqs: HomeFaqs,
 }
 
 export default function HomePage({ entry }) {
   return (
     <main className="home">
+      {/*
+       * Structured data — `TourSchema` hi (D-96 §12): home pe breadcrumb nahi banti (ek hi kadam), aur
+       * saare `faqs` sections milaa kar **ek** `FAQPage` — wahi niyam jo Tour/Blog pe hai.
+       */}
+      <TourSchema entry={entry} />
       {(entry.blocks ?? []).map((block, i) => {
         const Section = SECTIONS[block.type]
         return Section ? (

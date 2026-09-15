@@ -1013,7 +1013,7 @@ function PostListBlock({ props, onChange, disabled }) {
   )
 }
 
-function FaqsBlock({ props, onChange, disabled }) {
+function FaqsBlock({ props, onChange, disabled, home }) {
   const items = props.items ?? []
   const setItems = (next) => onChange({ ...props, items: next })
 
@@ -1022,6 +1022,19 @@ function FaqsBlock({ props, onChange, disabled }) {
 
   return (
     <>
+      {/*
+       * Background sirf **home** pe (D-96 §12) — wahan har section ka apna rang hai. Tour/Page/Post
+       * pe FAQ page ke dabbe ke andar hai, rang ka koi matlab nahi; khaana dikhana jhootha control hota.
+       */}
+      {home && (
+        <SectionBackground
+          value={props.background}
+          fallback="#ffffff"
+          onChange={(background) => onChange({ ...props, background })}
+          disabled={disabled}
+        />
+      )}
+
       {/* Wahi do field jo ab Cards aur Two column pe bhi hain — D-88 §9. */}
       <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
 
@@ -1715,6 +1728,7 @@ const EDITORS = {
  * @param {boolean} props.disabled
  * @param {string[]} props.open       khule hue block ids
  * @param {(id: string) => void} props.onToggle
+ * @param {boolean} [props.home]    Home Page ke sections — shared blocks pe background colour dikhe (D-96 §12)
  */
 export default function PageBlocks({
   blocks,
@@ -1723,6 +1737,7 @@ export default function PageBlocks({
   disabled,
   open,
   onToggle,
+  home = false,
 }) {
   const patchBlock = (i, nextProps) =>
     onChange(blocks.map((b, idx) => (idx === i ? { ...b, props: nextProps } : b)))
@@ -1825,6 +1840,7 @@ export default function PageBlocks({
                     props={block.props ?? {}}
                     onChange={(next) => patchBlock(i, next)}
                     disabled={disabled}
+                    home={home}
                   />
                 ) : (
                   /*

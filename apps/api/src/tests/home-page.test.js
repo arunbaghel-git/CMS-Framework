@@ -353,3 +353,50 @@ describe('Info cards section (D-96 §11)', () => {
     expect(section.props.items[0].imageId).toBeUndefined()
   })
 })
+
+describe('FAQ section — wahi `faqs` block (D-96 §12)', () => {
+  const faqBlock = (props = {}) => ({
+    type: 'faqs',
+    props: {
+      background: '#F2F8FD',
+      heading: 'FAQ',
+      items: [
+        { question: 'Can we customise?', answer: '<p>Yes</p><script>alert(1)</script>' },
+        { question: 'Best time?', answer: '<p>October to May</p>' },
+      ],
+      ...props,
+    },
+  })
+
+  it('home pe background ke saath store — jawab saaf, har sawaal ko id', async () => {
+    const res = await createHome({ content: { version: 1, blocks: [faqBlock()] } })
+
+    expect(res.status).toBe(201)
+    const { props } = (await Entry.findById(res.body.data.entry.id).lean()).content.blocks[0]
+
+    expect(props.background).toBe('#f2f8fd')
+    expect(props.items[0].id).toBeTruthy()
+    expect(props.items[0].answer).not.toMatch(/<script/)
+  })
+
+  it('galat background 4xx', async () => {
+    const res = await createHome({
+      content: { version: 1, blocks: [faqBlock({ background: 'red' })] },
+    })
+
+    expect(res.status).toBeGreaterThanOrEqual(400)
+    expect(res.status).toBeLessThan(500)
+  })
+
+  it('payload me sawaal kram se aate hain', async () => {
+    const created = (await createHome({ content: { version: 1, blocks: [faqBlock()] } })).body.data
+      .entry
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.type).toBe('faqs')
+    expect(section.props.items.map((f) => f.question)).toEqual(['Can we customise?', 'Best time?'])
+  })
+})

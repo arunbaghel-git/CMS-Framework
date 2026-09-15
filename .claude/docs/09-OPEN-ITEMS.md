@@ -222,6 +222,7 @@ code ki nahi.
 | 5 | Form ka **Button label** aur taale wala note | `EnquiryForm variant="hero"` |
 | 6 | Client ke form me `source: packages` wala dropdown ho to hero pe **nahi dikhega** | Uske vikalp package page deta hai (D-96 §7) |
 | 7 | **Info cards** (§11): chaaron "Start from" look, link wala card hover + description ka link alag click, tablet 2 / phone 1 column, upload image icon ki jagah | Sirf tests + compile se verify — client ke home me section joda nahi gaya |
+| 8 | **FAQ** (§12): ek khule to baaki band, pehla khula, background rang, list 860px beech me; page source me ek `FAQPage` | Tests + compile se verify |
 
 ---
 

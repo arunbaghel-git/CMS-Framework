@@ -95,7 +95,7 @@ export const BLOG_PAGE_BLOCK_TYPES = Object.freeze(['richText', 'postList', 'faq
  * Poora page ek saath nahi banega; jo section maanga gaya wahi yahan hai. Reference ke comment
  * wale number (`3. HERO`, `5. COUNTERS`…) kram nahi hain — kram client drag se lagata hai.
  */
-export const HOME_PAGE_BLOCK_TYPES = Object.freeze(['heroForm', 'infoCards'])
+export const HOME_PAGE_BLOCK_TYPES = Object.freeze(['heroForm', 'infoCards', 'faqs'])
 
 /**
  * Section ka background — **koi bhi rang, picker se** (client, 15 Sep, D-96).
@@ -543,6 +543,13 @@ export const packageListPropsSchema = z.object({
  * ⚠️ Schema banana **Slice D** ka kaam hai (theme). Tab tak ye block sirf content rakhta hai.
  */
 export const faqsPropsSchema = z.object({
+  /**
+   * Section ka background — **sirf home pe** kaam aata hai (D-96 §12, client 15 Sep). Home ka FAQ naya
+   * block type nahi, yahi `faqs` hai (schema, safai, editor, FAQPage sab muft). Tour/Page/Post pe
+   * admin ye khaana dikhata hi nahi aur theme padhti nahi; khaali default purane data pe koi asar nahi.
+   */
+  background: sectionBackgroundSchema,
+
   heading: z.string().trim().max(200).default(''),
 
   /**
