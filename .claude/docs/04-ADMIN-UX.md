@@ -754,14 +754,14 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
   Heading · Description
 - **Enquiry Forms ▸ Basics** me naya **Button label** (placeholder `Get this itinerary`)
 - **Info cards** section: Background · Heading (Heading · Description · Centre/Left, Left pe Link label/URL) ·
-  Card look (**Start from** — Achievements / Certified by / Why us / Popular articles · Columns · Card border ·
+  Card look (Columns · Card border ·
   Top/left colour · Icon position · Text alignment · Coloured box + Icon box colour · Icon colour) · Cards (⠿ drag,
   Icon ya apni image · Label · Title · Description · Link)
 - **All Pages** ke upar Home Page ki row (Edit · View)
 - **Enquiry Forms** ki fields table me ⠿ — drag se kram
 - **Customer reviews** section: Background · Heading (position + link) · picker — All video reviews ＋ / In this
   section (⠿ drag, ✕)
-- **Image cards** section: Background · Heading (position + link) · Card look (Start from · Card shape · Columns on desktop/phone · Text alignment · Text position) · Cards (⠿ drag — Image · Title · Small line · Tag · Link)
+- **Image cards** section: Background · Heading (position + link) · Card look (Card shape · Columns on desktop/phone · Text alignment · Text position) · Cards (⠿ drag — Image · Title · Small line · Tag · Link)
 - **Reviews** screen me do tab — **Text reviews** · **Video reviews** (Image · Video link · Title · Package name)
 
 ### Dropdown ki chaudai — sab screens (`primitives.css`)

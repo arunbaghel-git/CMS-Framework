@@ -216,8 +216,7 @@ export const INFO_CARD_BORDERS = Object.freeze(['none', 'full', 'top', 'left'])
  *
  * `7. ACHIEVEMENTS` · `21. CERTIFIED BY` · `25. WHY US` · `19. POPULAR ARTICLES` — charon ka grid aur card ka
  * dhaancha ek hai (icon → label → title → text), farak sirf **look** ka. Isliye chaar block type nahi,
- * look ki settings. Admin ka "Start from" dropdown charon look ek click me bharta hai — wo **store nahi
- * hota**, sirf neeche ki values bharta hai.
+ * look ki settings. (Admin ka "Start from" 15 Sep ko hata — preset ke naam ek site ke the, §15.)
  *
  * ⚠️ Tour ka `cards` block reuse **nahi** kiya — uska look `tour-v3.html` ka hai aur usme label/link
  * nahi. Use badalna Tour page ka design badalta.
@@ -298,7 +297,7 @@ export const imageCardSchema = z.object({
  * section (client, 15 Sep, D-96 §14).
  *
  * Teenon me card ek hi cheez hai (image + parda + neeche text), farak shape, column aur chhoti lines ka.
- * Wahi soch jo Info cards (§11) pe: chaar block type nahi, look ki settings, aur admin ka "Start from".
+ * Wahi soch jo Info cards (§11) pe: kai block type nahi, look ki settings.
  *
  * | Look | Shape | Columns | Lines |
  * | --- | --- | --- | --- |

@@ -8123,3 +8123,20 @@ karo, main data bhar ke dekhunga"_ — isliye sawaal nahi pooche, faisle neeche 
 client ka default `Content-Type: application/json` dekh kar axios 1.x `FormData` ko **JSON bana deta tha**
 (`{"file":{}}`). Logo/footer/banner ki screens multipart header khud bhejti thin, isliye wo chalti rahin.
 Ilaaj `lib/api.js` ke interceptor me, ek jagah — `FormData` pe multipart. Node me dohra kar pakka kiya.
+
+### 15. "Start from" presets hata diye (client, usi din)
+
+Client: _"ye CMS kai websites ke liye hai; Start from ko Andaman se chipka dena achha chunav nahi — hata do"_.
+Info cards (§11) ke chaar aur Image cards (§14) ke teen preset ke **naam hi ek site ke the** (Achievements,
+Certified by, Andaman's best islands, Popular beaches…). Agle client ke admin me wo dropdown bemaani — aur
+jhootha — hota.
+
+- Dono editors se dropdown aur `INFO_CARDS_PRESETS` / `IMAGE_CARDS_PRESETS` hate. Store kabhi hote hi nahi the,
+  isliye koi data ya migration nahi
+- Naya section ab **schema ke saade default** se khulta hai — Info cards: border chaaron taraf, icon upar,
+  dabba ke saath, text left, heading centre; Image cards: square, 4 column, phone pe 2, text neeche-left
+- Look ki saari settings waisi hi hain — reference ka koi bhi look haath se ban jaata hai
+
+⚠️ **Sabak (core vs theme):** admin ke **labels/defaults** me client-specific shabd core me nahi aane chahiye —
+wahi tark jo Q-9 me `TAB_NOTE` (`Sea-facing`, `Beachfront`) pe likha hai. Aisa kuch chahiye ho to wo client ke
+theme/instance ka hissa hai.

@@ -81,16 +81,17 @@ function emptyBlock(type) {
     packageList: {},
     postList: { heading: '', subheading: '', linkLabel: '', linkUrl: '', featuredIds: [] },
     faqs: { heading: '', description: '', items: [] },
-    /** Naya section "Certified by" ke look se khulta hai — khaali settings se kuch samajh nahi aata. */
+    /**
+     * Look ke baaki khaane schema ke saade default pe (border chaaron taraf, icon upar, box ke saath).
+     * ⚠️ "Start from" presets 15 Sep ko hate — unke naam Andaman site ke the, CMS har client ka hai (D-96 §15).
+     */
     infoCards: {
-      ...INFO_CARDS_PRESETS.certified.values,
       heading: '',
       description: '',
       items: [],
     },
-    /** Naya section Popular beaches ke look se khulta hai. */
+    /** Look schema ke default pe — square, 4 column, phone pe 2 (D-96 §15: presets hate). */
     imageCards: {
-      ...IMAGE_CARDS_PRESETS.beaches.values,
       background: '',
       heading: '',
       description: '',
@@ -1356,71 +1357,6 @@ function HeroFormBlock({ props, onChange, disabled }) {
   )
 }
 
-/**
- * "Start from" — reference ke chaar look, ek click me (client, 15 Sep, D-96 §11).
- *
- * ⚠️ **Store nahi hota** — sirf look ki values bharta hai. Heading, cards aur background client ke hi
- * rehte hain; preset badalne se unka likha kuch nahi mitta. Rang reference ki CSS se.
- */
-const INFO_CARDS_PRESETS = {
-  achievements: {
-    label: 'Achievements — coloured top border',
-    values: {
-      columns: 4,
-      border: 'top',
-      accentColor: '#f5a623',
-      iconPosition: 'above',
-      iconBox: true,
-      iconBg: '#fdf5e3',
-      iconColor: '#b8860b',
-      textAlign: 'left',
-      headingAlign: 'center',
-    },
-  },
-  certified: {
-    label: 'Certified by — centred, green icon',
-    values: {
-      columns: 4,
-      border: 'full',
-      accentColor: '',
-      iconPosition: 'above',
-      iconBox: true,
-      iconBg: '#e3f6ec',
-      iconColor: '#0f8a4d',
-      textAlign: 'center',
-      headingAlign: 'center',
-    },
-  },
-  whyUs: {
-    label: 'Why us — coloured left border, icon beside title',
-    values: {
-      columns: 4,
-      border: 'left',
-      accentColor: '#2a86d4',
-      iconPosition: 'inline',
-      iconBox: false,
-      iconBg: '',
-      iconColor: '#2a86d4',
-      textAlign: 'left',
-      headingAlign: 'center',
-    },
-  },
-  articles: {
-    label: 'Popular articles — heading left, link cards',
-    values: {
-      columns: 4,
-      border: 'full',
-      accentColor: '',
-      iconPosition: 'above',
-      iconBox: true,
-      iconBg: '#f2f8fd',
-      iconColor: '#1668ae',
-      textAlign: 'left',
-      headingAlign: 'left',
-    },
-  },
-}
-
 /** Info cards ka default section rang — reference me charon `sec--white` hain. */
 const INFO_CARDS_DEFAULT_BACKGROUND = '#ffffff'
 
@@ -1482,28 +1418,6 @@ function InfoCardsBlock({ props, onChange, disabled }) {
         Card look
       </label>
       <div className="row2">
-        <div className="field">
-          <label>Start from</label>
-          <select
-            className="sel"
-            value=""
-            onChange={(e) => {
-              const preset = INFO_CARDS_PRESETS[e.target.value]
-              if (preset) set(preset.values)
-            }}
-            disabled={disabled}
-          >
-            <option value="">— pick a ready look —</option>
-            {Object.entries(INFO_CARDS_PRESETS).map(([key, preset]) => (
-              <option key={key} value={key}>
-                {preset.label}
-              </option>
-            ))}
-          </select>
-          <div className="hint">
-            Fills the look settings below. Your heading and cards stay as they are.
-          </div>
-        </div>
         <div className="field">
           <label>Columns</label>
           <select
@@ -1906,43 +1820,6 @@ function VideoReviewsBlock({ props, onChange, disabled }) {
   )
 }
 
-/**
- * "Start from" — reference ke teen image wale section (client, 15 Sep, D-96 §14). Info cards jaisa hi:
- * **store nahi hota**, sirf look bharta hai; heading, cards aur background client ke.
- */
-const IMAGE_CARDS_PRESETS = {
-  islands: {
-    label: "Andaman's best islands — wide cards, 4 columns",
-    values: {
-      shape: 'wide',
-      columns: 4,
-      mobileColumns: 1,
-      textAlign: 'left',
-      textPosition: 'bottom',
-    },
-  },
-  beaches: {
-    label: 'Popular beaches — square cards, 4 columns',
-    values: {
-      shape: 'square',
-      columns: 4,
-      mobileColumns: 2,
-      textAlign: 'left',
-      textPosition: 'bottom',
-    },
-  },
-  places: {
-    label: 'Places to visit — square cards, 5 columns',
-    values: {
-      shape: 'square',
-      columns: 5,
-      mobileColumns: 2,
-      textAlign: 'left',
-      textPosition: 'bottom',
-    },
-  },
-}
-
 const IMAGE_CARD_SHAPE_LABEL = {
   square: 'Square (1 : 1)',
   portrait: 'Portrait — taller than wide (3 : 4)',
@@ -2006,26 +1883,6 @@ function ImageCardsBlock({ props, onChange, disabled }) {
         Card look
       </label>
       <div className="row2">
-        <div className="field">
-          <label>Start from</label>
-          <select
-            className="sel"
-            value=""
-            onChange={(e) => {
-              const preset = IMAGE_CARDS_PRESETS[e.target.value]
-              if (preset) set(preset.values)
-            }}
-            disabled={disabled}
-          >
-            <option value="">— pick a ready look —</option>
-            {Object.entries(IMAGE_CARDS_PRESETS).map(([key, preset]) => (
-              <option key={key} value={key}>
-                {preset.label}
-              </option>
-            ))}
-          </select>
-          <div className="hint">Fills the look settings below. Your heading and cards stay.</div>
-        </div>
         <div className="field">
           <label>Card shape</label>
           <select
