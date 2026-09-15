@@ -8565,6 +8565,7 @@ a.txv__box:hover .txv__p {
   place-content: center;
   text-align: center;
   line-height: 1.1;
+  gap: inherit;
 }
 
 .awb__b b {
