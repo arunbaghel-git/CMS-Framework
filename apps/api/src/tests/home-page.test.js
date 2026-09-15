@@ -641,6 +641,7 @@ describe('Package grid (D-96 §19)', () => {
         type: 'packageType',
         name: 'Honeymoon',
         slug: 'honeymoon',
+        color: '#0f8a4d',
       },
       { siteId: 'default', locale: 'en', type: 'packageType', name: 'Family', slug: 'family' },
     ])
@@ -681,7 +682,12 @@ describe('Package grid (D-96 §19)', () => {
     const { data } = res.body.data.entry.blocks[0]
 
     expect(data.cards.map((c) => c.title)).toEqual(['New', 'Old'])
-    expect(data.cards[1].tags).toEqual(['Honeymoon', 'Family'])
+    // Package Type ka apna rang badge pe (D-96 §20); na chuna ho to khaali
+    expect(data.cards[1].tags).toEqual([
+      { name: 'Honeymoon', color: '#0f8a4d' },
+      { name: 'Family', color: '' },
+    ])
+    expect(data.cards[1].tagColor).toBe('#0f8a4d')
     expect(data.cards[1].packageTypeIds).toEqual([String(honeymoon._id), String(family._id)])
     expect(data.facets.map((f) => f.label).sort()).toEqual(['Family', 'Honeymoon'])
     expect(data.currency).toBeTruthy()

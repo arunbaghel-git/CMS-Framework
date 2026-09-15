@@ -765,6 +765,7 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
 - **Testimonials** section: Background · Quote icon colour · Heading (position + link) · picker — All text reviews ＋ / In this section (⠿ drag, ✕)
 - **Logo grid** section: Background · Heading (position + link) · Logos (⠿ · Image · Heading optional · ✕, ＋ Add logo) · Closing line (Title · Text)
 - **Package grid** section: Background · Heading (position + link) · Show Package Type filter — cards apne aap (saare published, naye pehle, 16)
+- **Packages ▸ Package Type** me **Badge colour** (picker + Use automatic) — package card ke badge ka rang (D-96 §20)
 - **Reviews** screen me do tab — **Text reviews** · **Video reviews** (Image · Video link · Title · Package name)
 
 ### Dropdown ki chaudai — sab screens (`primitives.css`)

@@ -8254,3 +8254,20 @@ rating sirf ek ki apni), phir client ke jawab:
    bhi sirf `type:package` jaata hai — A-29 me joda
 
 2 naye API test. Koi migration nahi.
+
+### 20. Package Type pe badge ka rang (client, usi din)
+
+Client: _"Package Type ke Add/Edit me color picker, Posts ki Category jaisa — badge ko apna rang mile"_.
+
+- **Server pe kuch naya nahi laga** — `taxonomies.color` (D-93) har type pe store hota tha (Zod, model aur
+  `updateTaxonomy()` ki whitelist teeno type-agnostic), aur `resolveTaxonomies()` use pehle se bhejta tha.
+  Sirf admin me control nahi tha
+- Admin: `Packages ▸ Package Type` pe `hasColor` + apni hint (`colorHint` prop) — "Automatic" ka matlab yahan
+  theme ka **narangi** (category ki tarah chaar rang ka rotation nahi)
+- Card payload: `tags[]` ab `{ name, color }` (§19 me string the), aur `tagColor` (pehle type ka) Tour/Similar
+  card ke liye
+- Web: **`lib/badge.js`** — `badgeStyle(color)` + `inkOn()` (halke rang pe gehra text). Pehle `PostCard.jsx` ke
+  andar tha; ab blog category, home Package grid aur Tour/Similar ka `.prow__tag` teeno isi se
+- Destination ki screen pe rang **nahi** — wahan koi badge nahi banta
+
+Koi migration nahi. `home-page.test.js` rang payload tak jaanchta hai.

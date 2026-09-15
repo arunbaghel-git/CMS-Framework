@@ -59,7 +59,10 @@ export const taxonomySchema = z.object({
    *
    * Khaali ka matlab hai **"theme apna rang chune"** — reference ke chaar variant me se, category
    * ki id se (`categoryClass()`), jo 10 Sep se hota aaya hai. Isliye purani categories bina kuch
-   * kiye waisi hi dikhti hain. Sirf `category` ki screen pe iska control hai.
+   * kiye waisi hi dikhti hain.
+   *
+   * **Package Type pe bhi** (client, 15 Sep, D-96 §20) — package card ke badge ka rang. Wahan khaali ka matlab
+   * theme ka default narangi (koi rotation nahi). Destination ki screen pe control nahi hai.
    */
   color: z
     .string()

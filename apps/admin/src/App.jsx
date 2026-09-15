@@ -219,6 +219,8 @@ const APP_ROUTES = [
         type="packageType"
         title="Package Type"
         subtitle="Flat list — Honeymoon, Adventure, Family. Shown as the 'Theme' column in the packages list."
+        hasColor
+        colorHint="The colour of this package type’s badge on package cards. Leave it on Automatic and the site uses its default orange."
       />
     ),
   },

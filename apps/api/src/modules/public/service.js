@@ -477,8 +477,8 @@ async function resolveTaxonomies(ids, siteId, locale) {
       .map((id) => byId.get(id))
       .filter(Boolean)
       /**
-       * `color` sirf tab jab bhara ho (category ka badge, D-93). Khaali pe key hi nahi jaati —
-       * theme tab apna rang chunti hai, aur destination/package type pe ye kabhi hota hi nahi.
+       * `color` sirf tab jab bhara ho — category (D-93) aur package type (D-96 §20) ka badge. Khaali pe key
+       * hi nahi jaati; theme tab apna rang chunti hai.
        */
       .map((d) => ({
         id: String(d._id),
@@ -783,10 +783,14 @@ async function toPackageCards(docs, siteId, locale, defaultRating) {
 
         /** Image ke upar ka badge — pehla Package Type (`HONEYMOON`, `2 DIVES`). */
         tag: typeById.get((d.taxonomies?.packageTypes ?? [])[0])?.name ?? '',
+        /** Pehle type ka rang — Tour/Similar card ka badge (D-96 §20). Khaali = theme ka narangi. */
+        tagColor: typeById.get((d.taxonomies?.packageTypes ?? [])[0])?.color ?? '',
         /** **Saare** Package Type ke naam — home ke card pe har type ka badge (client, 15 Sep, D-96 §19). */
         tags: (d.taxonomies?.packageTypes ?? [])
-          .map((id) => typeById.get(id)?.name)
-          .filter(Boolean),
+          .map((id) => typeById.get(id))
+          .filter(Boolean)
+          /** Rang Package Type ka apna (client, 15 Sep, D-96 §20) — khaali pe theme ka narangi. */
+          .map((type) => ({ name: type.name, color: type.color ?? '' })),
         /**
          * Pills se chhaantne ke liye ids (D-96 §19). ⚠️ Inke bina Tour page ka Package list `Package Type` /
          * `Destination` filter pe **sirf duration se** chhaant-ta tha — pill dabate hi list khaali. Facet ki

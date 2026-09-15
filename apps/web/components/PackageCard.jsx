@@ -1,5 +1,6 @@
 import { formatPrice } from '@cms/shared'
 
+import { badgeStyle } from '../lib/badge.js'
 import Img from './Img.jsx'
 
 /**
@@ -114,11 +115,14 @@ export default function PackageCard({ item, rating, currency = 'INR' }) {
         {/*
          * Badge — `.prow__tag`. Package Type taxonomy se (client, 2 Sep).
          *
-         * ⚠️ Reference me do rang hain (narangi aur hara, `.prow__tag--g`). Kaunsa badge kaunsa
-         * rang le — uska koi niyam design me likha nahi hai, aur andaaze se niyam gadhna client
-         * ka faisla apne haath lena hota. Isliye sab narangi.
+         * Rang **Package Type ka apna** (client, 15 Sep, D-96 §20: Packages ▸ Package Type me picker).
+         * Na chuna ho to class ka narangi — pehle sab narangi hi the.
          */}
-        {item.tag && <span className="prow__tag">{item.tag}</span>}
+        {item.tag && (
+          <span className="prow__tag" style={badgeStyle(item.tagColor)}>
+            {item.tag}
+          </span>
+        )}
       </div>
 
       <div className="prow__b">

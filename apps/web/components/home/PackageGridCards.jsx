@@ -3,6 +3,7 @@
 import { PACKAGE_GRID_MAX, formatPrice } from '@cms/shared'
 import { useState } from 'react'
 
+import { badgeStyle } from '../../lib/badge.js'
 import Img from '../Img.jsx'
 
 /**
@@ -85,8 +86,9 @@ export default function PackageGridCards({ cards, facets, currency = 'INR' }) {
                 {(card.tags ?? []).length > 0 && (
                   <span className="ipkc__tags">
                     {card.tags.map((tag) => (
-                      <span className="ipkc__tag" key={tag}>
-                        {tag}
+                      /* Rang Package Type ka apna (D-96 §20); khaali pe CSS ka narangi. */
+                      <span className="ipkc__tag" key={tag.name} style={badgeStyle(tag.color)}>
+                        {tag.name}
                       </span>
                     ))}
                   </span>

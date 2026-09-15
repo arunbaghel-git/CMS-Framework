@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 
+import { badgeStyle } from '../../lib/badge.js'
 import Img from '../Img.jsx'
 
 /**
@@ -47,24 +48,12 @@ export function categoryClass(id) {
 }
 
 /**
- * `#rrggbb` pe padhne laayak text — halke rang pe gehra, gehre pe safed.
- *
- * Client koi bhi rang chun sakta hai (D-93), aur peele badge pe safed text padha hi nahi jaata.
- * Ye andaaz (0.299/0.587/0.114) aankh ki roshni ka seedha hisaab hai — koi library nahi.
- */
-function inkOn(hex) {
-  const n = parseInt(hex.slice(1), 16)
-  const light = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255
-
-  return light > 0.62 ? 'var(--ink)' : '#fff'
-}
-
-/**
  * Badge ka inline rang — sirf tab jab category ka apna rang chuna gaya ho (client, 11 Sep, D-93).
- * Khaali pe `undefined`, yaani class wala rang (`categoryClass()`) hi chalta hai.
+ * Khaali pe `undefined`, yaani class wala rang (`categoryClass()`) hi chalta hai. Hisaab (padhne laayak
+ * text) `lib/badge.js` me — Package Type ka badge bhi wahi use karta hai (D-96 §20).
  */
 export function categoryStyle(category) {
-  return category?.color ? { background: category.color, color: inkOn(category.color) } : undefined
+  return badgeStyle(category?.color)
 }
 
 /**

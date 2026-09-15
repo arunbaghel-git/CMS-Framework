@@ -27,7 +27,8 @@ import './Packages.css'
  */
 /**
  * @param {object} props
- * @param {boolean} [props.hasColor]    Badge ka rang — sirf Categories pe (client, 11 Sep, D-93)
+ * @param {boolean} [props.hasColor]    Badge ka rang — Categories (D-93) aur Package Type (client, 15 Sep, D-96 §20)
+ * @param {string} [props.colorHint]    Rang ke khaane ki hint — har type pe badge alag jagah dikhta hai
  * @param {string} [props.countLabel]   Ginti wale column ka naam — Categories pe `Posts`, baaki
  *   pe `Packages`. Pehle har jagah `Packages` likha tha, Categories pe bhi (client ne pakda).
  */
@@ -38,6 +39,7 @@ export default function TaxonomyScreen({
   hierarchical,
   hasBanner,
   hasColor = false,
+  colorHint,
   countLabel = 'Packages',
 }) {
   const { can } = useAuth()
@@ -320,8 +322,8 @@ export default function TaxonomyScreen({
                     )}
                   </div>
                   <div className="hint">
-                    The colour of this category’s badge on post cards and at the top of each post.
-                    Leave it on Automatic and the site picks one.
+                    {colorHint ??
+                      'The colour of this category’s badge on post cards and at the top of each post. Leave it on Automatic and the site picks one.'}
                   </div>
                 </div>
               )}
