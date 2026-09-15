@@ -7703,3 +7703,93 @@ a.imcc:hover img {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Logo grid (D-96 §17) — reference ka `.clogos` / `.clogo` / `.ctrust` ---- */
+
+.lgg {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.lgg__t {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  text-align: center;
+  transition: border-color 0.16s;
+}
+
+.lgg__t:hover {
+  border-color: var(--blue-500);
+}
+
+/* Logo apne naap me — tile ki oonchai 56px (reference), image usme fit */
+.lgg__t img {
+  max-width: 100%;
+  max-height: 40px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Image ke neeche heading — chhoti line */
+.lgg__t span {
+  font-size: var(--fs-5xs);
+  font-weight: var(--fw-bold);
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+/* Bina image ke — sirf naam, reference ka `.clogo` */
+.lgg__t--text span {
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.02em;
+  color: var(--faint);
+}
+
+.lgg__t--text:hover span {
+  color: var(--ink-2);
+}
+
+/* `.ctrust` — EXPERIENCE. EXCELLENCE. TRUST. */
+.lgg__c {
+  text-align: center;
+  margin-top: 18px;
+}
+
+.lgg__c b {
+  display: block;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-black);
+  color: var(--ink);
+  letter-spacing: 0.06em;
+}
+
+.lgg__c span {
+  font-size: var(--fs-body);
+  color: var(--muted);
+}
+
+@media (max-width: 1180px) {
+  .lgg {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .lgg {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

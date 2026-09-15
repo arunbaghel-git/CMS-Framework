@@ -102,6 +102,7 @@ export const HOME_PAGE_BLOCK_TYPES = Object.freeze([
   'faqs',
   'videoReviews',
   'testimonials',
+  'logoGrid',
 ])
 
 /**
@@ -329,6 +330,41 @@ export const imageCardsPropsSchema = z.object({
   textPosition: z.enum(['bottom', 'middle']).default('bottom'),
 
   items: z.array(imageCardSchema).max(IMAGE_CARDS_MAX).default([]),
+})
+
+/** Logo grid me kitne logo — reference me athaarah; 48 aath line (6 column). */
+export const LOGO_GRID_MAX = 48
+
+/**
+ * Ek logo — **image + optional heading** (client, 15 Sep, D-96 §17).
+ *
+ * Image na ho to tile me heading hi text ban kar dikhti hai — reference (`.clogo`) me aaj yahi hai
+ * (`ICICI Bank`). Image ho aur heading bhi, to heading image ke neeche chhoti line. Heading image ka `alt`
+ * bhi hai.
+ */
+export const logoItemSchema = z.object({
+  id: z.string().min(1).optional(),
+  imageId: z.string().trim().max(60).nullable().default(null),
+  title: z.string().trim().max(80).default(''),
+})
+
+/**
+ * `Logo grid` — reference ka `8. CLIENT LOGOS` / _Trusted by leading organisations_ (client, 15 Sep, D-96 §17).
+ *
+ * Heading centre, 6 column tiles (tablet 4, phone 3 — reference ke breakpoints, fixed), aur neeche ek
+ * closing line (`.ctrust` — `EXPERIENCE. EXCELLENCE. TRUST.` + chhoti line). Closing dono khaane optional;
+ * khaali pe nahi banti (D-30). Reference me hai, isliye diya — client ne alag se nahi maanga tha.
+ */
+export const logoGridPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+  headingAlign: z.enum(['center', 'left']).default('center'),
+  linkLabel: z.string().trim().max(80).default(''),
+  linkUrl: z.string().trim().max(500).default(''),
+  items: z.array(logoItemSchema).max(LOGO_GRID_MAX).default([]),
+  closingTitle: z.string().trim().max(120).default(''),
+  closingText: z.string().trim().max(300).default(''),
 })
 
 /** Testimonials section me kitne review — reference me chaar; 20 paanch line ki chhat. */
@@ -814,6 +850,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   videoReviews: videoReviewsPropsSchema,
   imageCards: imageCardsPropsSchema,
   testimonials: testimonialsPropsSchema,
+  logoGrid: logoGridPropsSchema,
 })
 
 /**

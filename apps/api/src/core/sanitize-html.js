@@ -304,6 +304,7 @@ export function sanitizeInlineHtml(html) {
  * | `infoCards` | `props.description` · `props.items[].text` (**inline**) |
  * | `videoReviews` | `props.description` |
  * | `imageCards` | `props.description` (cards plain text hain) |
+ * | `logoGrid` | `props.description` (logo ke khaane plain text) |
  * | `testimonials` | `props.description` (review ka text plain hai, reviews collection me) |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
@@ -405,6 +406,7 @@ export function sanitizeContent(content) {
         /** Home ke Image cards (D-96 §14) — card ke khaane plain text; sirf heading ki line HTML. */
         case 'imageCards':
         case 'testimonials':
+        case 'logoGrid':
         case 'videoReviews':
           return { ...block, props: { ...p, description: sanitizeBlockHtml(p.description) } }
 

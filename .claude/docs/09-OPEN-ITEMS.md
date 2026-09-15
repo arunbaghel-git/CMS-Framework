@@ -237,6 +237,7 @@ dikhta hai.
 | 10 | **Image cards** (§14): teeno "Start from" look, shape badalna, phone pe 1/2 column, text beech me, link wala card hover | Tests + compile se verify |
 | 11 | **Media Library / picker se upload** — interceptor fix ke baad asli file | Node me axios ka bartaav dohra kar pakka; browser se upload nahi kiya |
 | 12 | **Testimonials** (§16): picker + drag, quote icon ka rang, initials (`Priya & Rahul` → PR), 4/2/1 column | Tests + compile se verify |
+| 13 | **Logo grid** (§17): chaude/lambe logo tile me fit, heading neeche, bina image ke text tile, 6/4/3 column, closing line; admin ki patli row me image dabba | Tests + compile se verify |
 
 ---
 

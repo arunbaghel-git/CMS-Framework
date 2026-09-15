@@ -8173,3 +8173,20 @@ migration nahi chahiye. Phir client ke paanch jawab:
 font** (`--fs-body`) — baaki pages (`.blk h2`) jaisa. Pehle `.hsh` ko `.sh h2`/`.sh p` (package page ka
 19–25px / 13.5px) ke saath group kiya tha — galat saathi. `.sh` package page ka hai, chhua nahi. Testimonials
 ke card me naam bhi body font.
+
+### 17. Section 7 — Logo grid (client, usi din)
+
+Reference ka `8. CLIENT LOGOS` / _Trusted by leading organisations_. Client: _"isme images add hongi — har logo
+pe 2 option: image + optional heading"_.
+
+- Section `logoGrid`: `background (default halka neela) · heading · description · headingAlign (centre) · link ·
+  items[] ≤48 {imageId, title} · closingTitle · closingText`
+- Tile: image ho to logo (max 40px oonchai, `contain`) aur heading uske neeche chhoti line + `alt`. **Image na ho**
+  to heading hi tile ka text — reference aaj yahi hai (`ICICI Bank`). Dono na hon to logo gira
+- Columns **fixed** — reference ke breakpoints: 6 → 1180px pe 4 → 760px pe 3
+- **Closing line** (`.ctrust` — `EXPERIENCE. EXCELLENCE. TRUST.` + chhoti line) — reference ke isi section me hai,
+  isliye optional khaane diye (**mera chunav**, client ne alag se nahi maanga). Khaali pe nahi banti
+- Payload `resolveLogoGrid()` — `thumb` image, `imageId` bahar nahi
+- Admin: har logo ek patli row (⠿ · chhota image dabba · heading · ✕), `＋ Add logo`
+
+Koi migration nahi. 1 naya API test.

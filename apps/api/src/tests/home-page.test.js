@@ -591,3 +591,41 @@ describe('Testimonials — text reviews se (D-96 §16)', () => {
     expect(res.status).toBeLessThan(500)
   })
 })
+
+describe('Logo grid (D-96 §17)', () => {
+  it('logo ko id, imageId bahar nahi, khaali logo gira, closing line jaati hai', async () => {
+    const created = (
+      await createHome({
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'logoGrid',
+              props: {
+                heading: 'Trusted by leading organisations',
+                closingTitle: 'EXPERIENCE. EXCELLENCE. TRUST.',
+                items: [
+                  { title: 'ICICI Bank', imageId: 'nahi-hai' },
+                  { title: '', imageId: null },
+                ],
+              },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+    expect(
+      (await Entry.findById(created.id).lean()).content.blocks[0].props.items[0].id,
+    ).toBeTruthy()
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    const [section] = res.body.data.entry.blocks
+
+    expect(section.props.items).toEqual([
+      expect.objectContaining({ title: 'ICICI Bank', image: null }),
+    ])
+    expect(section.props.items[0].imageId).toBeUndefined()
+    expect(section.props.closingTitle).toBe('EXPERIENCE. EXCELLENCE. TRUST.')
+  })
+})

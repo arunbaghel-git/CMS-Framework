@@ -3,6 +3,7 @@ import HeroForm from './HeroForm.jsx'
 import HomeFaqs from './HomeFaqs.jsx'
 import ImageCards from './ImageCards.jsx'
 import InfoCards from './InfoCards.jsx'
+import LogoGrid from './LogoGrid.jsx'
 import Testimonials from './Testimonials.jsx'
 import VideoReviews from './VideoReviews.jsx'
 
@@ -26,6 +27,7 @@ const SECTIONS = {
   faqs: HomeFaqs,
   videoReviews: VideoReviews,
   testimonials: Testimonials,
+  logoGrid: LogoGrid,
 }
 
 export default function HomePage({ entry }) {

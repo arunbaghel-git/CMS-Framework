@@ -328,7 +328,8 @@ function normalizeContent(content) {
         block.type === 'cards' ||
         block.type === 'faqs' ||
         block.type === 'infoCards' ||
-        block.type === 'imageCards'
+        block.type === 'imageCards' ||
+        block.type === 'logoGrid'
           ? {
               ...props,
               items: (props.items ?? []).map((item) => ({ ...item, id: item.id || randomUUID() })),

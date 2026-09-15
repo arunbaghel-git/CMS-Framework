@@ -2096,6 +2096,7 @@ async function resolveHomeSection(block, siteId) {
   if (block?.type === 'videoReviews') return resolveVideoReviews(block, siteId)
   if (block?.type === 'imageCards') return resolveImageCards(block, siteId)
   if (block?.type === 'testimonials') return resolveTestimonials(block, siteId)
+  if (block?.type === 'logoGrid') return resolveLogoGrid(block, siteId)
   if (block?.type !== 'heroForm') return block
 
   const { imageId, mobileImageId, formId, ...props } = block.props ?? {}
@@ -2119,6 +2120,24 @@ async function resolveHomeSection(block, siteId) {
       stats: (props.stats ?? []).filter((s) => s?.value),
     },
     data: { image, mobileImage, form },
+  }
+}
+
+/**
+ * `Logo grid` — har logo ki image resolve (D-96 §17). `thumb` (300px) — tile 56px oonchi hai.
+ * `imageId` bahar nahi; na image na heading wala logo gira (D-30).
+ */
+async function resolveLogoGrid(block, siteId) {
+  const items = await Promise.all(
+    (block.props?.items ?? []).map(async ({ imageId, ...logo }) => ({
+      ...logo,
+      image: await toDisplayImage(imageId, 'thumb', siteId),
+    })),
+  )
+
+  return {
+    ...block,
+    props: { ...block.props, items: items.filter((logo) => logo.image || logo.title) },
   }
 }
 

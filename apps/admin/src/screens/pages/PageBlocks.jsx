@@ -5,6 +5,7 @@ import {
   IMAGE_CARDS_MAX,
   IMAGE_CARD_SHAPES,
   INFO_CARDS_MAX,
+  LOGO_GRID_MAX,
   TESTIMONIALS_MAX,
   VIDEO_REVIEWS_MAX,
   PAGE_BLOCK_TYPES,
@@ -47,6 +48,7 @@ const BLOCK_LABEL = {
   imageCards: 'Image cards',
   videoReviews: 'Customer reviews',
   testimonials: 'Testimonials',
+  logoGrid: 'Logo grid',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -62,6 +64,7 @@ const BLOCK_CLASS = {
   imageCards: 'image',
   videoReviews: 'reviews',
   testimonials: 'reviews',
+  logoGrid: 'logos',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -102,6 +105,17 @@ function emptyBlock(type) {
       linkLabel: '',
       linkUrl: '',
       items: [],
+    },
+    logoGrid: {
+      background: '',
+      heading: '',
+      description: '',
+      headingAlign: 'center',
+      linkLabel: '',
+      linkUrl: '',
+      items: [],
+      closingTitle: '',
+      closingText: '',
     },
     testimonials: {
       background: '',
@@ -170,6 +184,8 @@ function summarize(block) {
       return `${p.heading || 'FAQs'} — ${(p.items ?? []).length} question(s)`
     case 'imageCards':
       return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
+    case 'logoGrid':
+      return `${p.heading || 'Logo grid'} — ${(p.items ?? []).length} logo(s)`
     case 'testimonials':
       return `${p.heading || 'Testimonials'} — ${(p.testimonialIds ?? []).length} review(s)`
     case 'videoReviews':
@@ -2157,7 +2173,134 @@ function ImageCardsBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * `Logo grid` — _Trusted by leading organisations_ (client, 15 Sep, D-96 §17).
+ *
+ * Har logo **image + optional heading**. Image na ho to tile me heading text ban kar dikhti hai
+ * (reference aaj yahi hai). Neeche ki closing line optional.
+ */
+function LogoGridBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const items = props.items ?? []
+
+  const media = useMediaById(items.map((item) => item.imageId).filter(Boolean))
+
+  const setItems = (next) => set({ items: next })
+  const patchItem = (i, patch) =>
+    setItems(items.map((item, idx) => (idx === i ? { ...item, ...patch } : item)))
+
+  const moveItem = (from, to) => {
+    if (to < 0 || to >= items.length) return
+    const next = [...items]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    setItems(next)
+  }
+  const { handleProps, rowProps } = useListDrag(moveItem, !disabled)
+
+  return (
+    <>
+      <SectionBackground
+        value={props.background}
+        fallback="#f2f8fd"
+        onChange={(background) => set({ background })}
+        disabled={disabled}
+      />
+
+      <label className="blk-sublabel">Heading</label>
+      <SectionHeadingFields props={props} onChange={onChange} disabled={disabled} />
+      <HeadingPositionFields props={props} onChange={onChange} disabled={disabled} />
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Logos
+      </label>
+      <div className="logo-edit">
+        {items.map((item, i) => (
+          <div className="logo-edit__row" key={item.id ?? i} {...rowProps(i)}>
+            {!disabled && (
+              <span className="grip" {...handleProps(i)}>
+                ⠿
+              </span>
+            )}
+            <div className="logo-edit__img">
+              <MediaDrop
+                label=""
+                media={media[item.imageId]}
+                onSelect={(chosen) => patchItem(i, { imageId: chosen.id })}
+                onClear={() => patchItem(i, { imageId: null })}
+              />
+            </div>
+            <input
+              className="inp"
+              placeholder="Heading — optional"
+              value={item.title ?? ''}
+              onChange={(e) => patchItem(i, { title: e.target.value })}
+              disabled={disabled}
+              aria-label={`Logo ${i + 1} heading`}
+            />
+            {!disabled && (
+              <button
+                className="blk-x"
+                type="button"
+                title="Remove logo"
+                onClick={() => {
+                  if (!window.confirm('Remove this logo?')) return
+                  setItems(items.filter((_, idx) => idx !== i))
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      {!disabled && items.length < LOGO_GRID_MAX && (
+        <button
+          className="btn btn-sm"
+          type="button"
+          onClick={() => setItems([...items, { id: newId(), imageId: null, title: '' }])}
+        >
+          ＋ Add logo
+        </button>
+      )}
+      <div className="hint">
+        The heading shows under the logo, and is read out for the image. Leave the image empty and
+        the heading is shown in the tile as text. Six tiles in a row on desktop, four on tablets,
+        three on phones.
+      </div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Closing line
+      </label>
+      <div className="row2">
+        <div className="field">
+          <label>Title</label>
+          <input
+            className="inp"
+            placeholder="Optional — e.g. EXPERIENCE. EXCELLENCE. TRUST."
+            value={props.closingTitle ?? ''}
+            onChange={(e) => set({ closingTitle: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+        <div className="field">
+          <label>Text</label>
+          <input
+            className="inp"
+            placeholder="Optional — the small line under it"
+            value={props.closingText ?? ''}
+            onChange={(e) => set({ closingText: e.target.value })}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+      <div className="hint">Leave both empty and nothing shows under the logos.</div>
+    </>
+  )
+}
+
 const EDITORS = {
+  logoGrid: LogoGridBlock,
   testimonials: TestimonialsBlock,
   imageCards: ImageCardsBlock,
   videoReviews: VideoReviewsBlock,
