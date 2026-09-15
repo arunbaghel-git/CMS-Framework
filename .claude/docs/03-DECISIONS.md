@@ -8168,3 +8168,8 @@ migration nahi chahiye. Phir client ke paanch jawab:
   default rang reference ka halka neela (`.hsec--tint`)
 
 **Koi migration nahi.** Deploy pe sirf API restart.
+
+**§11/§16 amendment (client, usi din):** home ke section ki heading `var(--fs-h2)` aur neeche ki line **body
+font** (`--fs-body`) — baaki pages (`.blk h2`) jaisa. Pehle `.hsh` ko `.sh h2`/`.sh p` (package page ka
+19–25px / 13.5px) ke saath group kiya tha — galat saathi. `.sh` package page ka hai, chhua nahi. Testimonials
+ke card me naam bhi body font.

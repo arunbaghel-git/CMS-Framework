@@ -5199,9 +5199,7 @@ a.mega__gl:hover {
   flex-wrap: wrap;
 }
 
-/* `.hsh h2` — home ke sections (Info cards, FAQ) ka heading bhi yahi (client: heading font hamara, D-96 §11). */
-.sh h2,
-.hsh h2 {
+.sh h2 {
   font-size: clamp(19px, 2.2vw, 25px);
   font-weight: 800;
 }
@@ -5211,8 +5209,7 @@ a.mega__gl:hover {
  * `.blk__intro` ke saath milta hai (dono 13.5px). Do me se do ka milna hi is role ka standard
  * hai, isliye naap chhua nahi gaya — sirf hardcoded px ki jagah token aaya (D-73).
  */
-.sh p,
-.hsh__d {
+.sh p {
   font-size: var(--fs-md);
   color: var(--muted);
   margin-top: 4px;
@@ -7114,7 +7111,24 @@ a.mega__gl:hover {
   text-align: left;
 }
 
+/*
+ * Home ke section ka heading — **baaki pages jaisa** `.blk h2` ka `--fs-h2`, aur neeche ki line **body font**
+ * (client, 15 Sep). ⚠️ Pehle ye `.sh h2`/`.sh p` (package page ka 19–25px / 13.5px) ke saath grouped the — galat
+ * saathi chuna tha; `.sh` package page ka apna hai aur use chhua nahi gaya.
+ */
+.hsh h2 {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-heading);
+}
+
 /* Line editor se aati hai — `<p>` ho ya na ho, naap `.hsh__d` pe (A-19). */
+.hsh__d {
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
 .hsh__d p + p {
   margin-top: 6px;
 }
