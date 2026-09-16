@@ -4994,9 +4994,32 @@ a.mega__gl:hover {
  * Home ke hero me eyebrow **sabse upar** hai; tour/blog me wo breadcrumb ke neeche baithta hai, isliye
  * wahan uska `padding-top` hai. Yahan uski jagah title se doori chahiye (client, 16 Sep).
  */
+/*
+ * ⚠️ **Home ka eyebrow reference me ek chip hai, tour/blog wali saadi line nahi** (client, 16 Sep:
+ * _"design home reference se match nahi kar raha"_).
+ *
+ * `home-nav-v3.html` ka `.hero__eyebrow`: halka background + patli border + gol kone, **na uppercase,
+ * na letter-spacing**, weight 700, aur star ka rang text jaisa hi (reference ka `<svg fill="currentColor">`
+ * span ke andar hai, isliye wo sunehra nahi hota).
+ *
+ * Class `.vhero__eye` hi rakhi (client ne wahi naam maanga tha) — badlaav sirf home ke hero ke andar,
+ * taaki tour aur blog ke hero jaise the waise rahein.
+ */
 .hf-hero__copy .vhero__eye {
-  padding-top: 0;
-  margin-bottom: 12px;
+  padding: 5px 11px;
+  margin-bottom: 14px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: var(--rf);
+  background: rgb(255 255 255 / 10%);
+  font-weight: var(--fw-bold);
+  letter-spacing: normal;
+  text-transform: none;
+  color: #bfe0ff;
+}
+
+/* Reference me star span ka rang leta hai — sunehra sirf tour/blog ke hero me hai */
+.hf-hero__copy .vhero__eye svg {
+  color: inherit;
 }
 
 /* `.hf-hero h1` — home ka hero bhi yahi font (client, 15 Sep: "sabka same rahe", D-96). */

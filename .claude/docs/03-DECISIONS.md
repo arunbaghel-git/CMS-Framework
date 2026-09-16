@@ -8415,3 +8415,11 @@ list / content type). Client: _"static block for all"_ — **section me hi cards
   dikhaya gaya tha
 
 2 naye API test. Koi migration nahi.
+
+**§24 amendment (client, usi din):** home ka eyebrow reference me **chip** hai — `.hero__eyebrow`: halka
+background (`rgb(255 255 255 / 10%)`), patli border, gol kone, weight 700, **na uppercase na
+letter-spacing**, aur star ka rang text jaisa (sunehra nahi). Pehle wahi `.vhero__eye` laga diya tha jo
+tour/blog pe hai, aur client ne turant pakda — _"design home reference se match nahi kar raha"_. Class wahi
+rahi (client ne naam se maanga tha); badlaav sirf `.hf-hero__copy` ke andar, taaki tour aur blog ke hero
+jaise the waise rahein. ⚠️ **Sabak wahi purana** — naam maangne ka matlab look maangna nahi hota; reference
+ka wo section khol kar dekh lena tha.
