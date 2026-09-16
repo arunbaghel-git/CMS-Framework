@@ -8557,3 +8557,34 @@ Yahi D-91 wali `.wdg__b ul` ki shakl hai: niyam sahi likha hua tha, par doosra n
 
 ⚠️ Ab **JS na chale tab bhi** ek hi card dikhta hai (pehla). Pehle wo soorat "sab kuch dikh gaya" wali thi —
 aur wahi client ko dikha, kyunki pehle paint pe `sw-ready` lagi hi nahi hoti.
+
+### 30. `Enquiry form` ab page ke content me bhi — contact page ki neev (client, 16 Sep)
+
+Contact page ka reference (`contact-us.html`) dekh kar saaf hua ki uska sabse bada hissa (_"Send us your
+dates"_) **main column ka form** hai — aur form ab tak sirf teen jagah lag sakta tha: package/tour ka sidebar
+widget, aur home ka hero. Yaani wo page banaya hi nahi ja sakta tha.
+
+**Baaki poora page pehle se bana hua hai** — banner (`.vhero`), main + sidebar (`.pgl`), closing CTA, mobile
+patti: sab `page` type me (D-95). Isliye contact page ek **normal Page entry** hogi, naya content type nahi.
+
+- Block `enquiryForm`: `formId` · `heading` · `description` — wahi shape jo sidebar widget aur hero ki hai,
+  taaki form server pe **ek hi raaste** se resolve ho (`getPublicFormById()`)
+- `page` ka dropdown ab `Text · FAQs · Custom editor · Enquiry form`
+- Theme: `EnquiryForm` ka naya `variant="page"` — **koi card nahi**, kyunki wo khud `.blk` ke andar hai.
+  Dock/sheet bhi nahi (wahi wajah jo `hero` pe hai: form pehle se khula baitha hai)
+- `Blocks` ab `path` leta hai — uske bina enquiry ki detail screen pe "kis page se aayi" khaali rehta (D-90)
+
+**Client ke chaar faisle** (poochhe gaye, 16 Sep):
+
+| Sawaal | Jawab |
+| --- | --- |
+| Form block kahan | **sirf Pages** — _"home par already hai aur tour page par need nahi"_ |
+| Steps / offices / office hours | **Custom editor** se |
+| `Info cards` / `Two column` bhi kholein? | **nahi** — _"un me to design alag hai"_ (unka look home/tour ka hai) |
+| Google map | **iframe chalega** (sanitizer me `iframe` sirf `https` pe pehle se allowed) |
+
+⚠️ **Fields, button ka text aur neeche ki line block me nahi hain** — wo form ki apni settings hain. Har
+field pe `full`/`half` width pehle se maujood hai, isliye reference ka do-column layout bina kisi naye kaam
+ke ban jaata hai. Ek hi cheez ke do malik banana wahi jaal hota jo D-86 me slug pe laga tha.
+
+2 naye API test. Koi migration nahi.

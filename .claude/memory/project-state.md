@@ -124,6 +124,10 @@ flake nikla (akele pass). Lint · format · admin build pass.
 
 ### Agli session — Contact page (client, 16 Sep)
 
+**16 Sep ko neev pad chuki hai (D-96 §30):** `Enquiry form` ab page ke content ka block hai, aur
+`page` ke dropdown me `Custom editor` bhi hai. Baaki hisse (steps · offices + map · office hours) Custom
+editor se banenge — client ka faisla.
+
 Client ne `contact-us.html` di: _"this is contact page, save it in new session we will work on it"_.
 Reference ab repo me hai — `.claude/docs/reference/contact-us.html`. Uske apne section: **Banner ·
 Main + Sidebar · Closing CTA** (header, footer aur floating elements wahi purane hain).

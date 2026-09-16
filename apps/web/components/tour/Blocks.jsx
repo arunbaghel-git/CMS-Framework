@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 
 import CustomHtml from '../CustomHtml.jsx'
+import EnquiryForm from '../package/EnquiryForm.jsx'
 import { BlogFilterProvider } from '../blog/BlogFilter.jsx'
 import PostList from '../blog/PostList.jsx'
 import PostListLead from '../blog/PostListLead.jsx'
@@ -236,6 +237,27 @@ function FaqsBlock({ props, plainFaqs }) {
   )
 }
 
+/**
+ * `Enquiry form` block — saade page ke content me ek asli form (D-96 §30, contact page).
+ *
+ * ⚠️ **`sourcePath` yahan se jaata hai**, aur wo zaroori hai: uske bina enquiry ki detail screen pe
+ * "kis page se aayi" khaali rehta (D-90 wala `sourceUrl`). `Blocks` ko path `TextPage` deti hai.
+ *
+ * Form na mile (draft, delete, ya chuna hi nahi) to **poora section gayab** — khaali heading chhodne se
+ * page pe ek adhoora dabba dikhta (D-30).
+ */
+function EnquiryFormBlock({ props, data, path }) {
+  const form = data?.form
+  if (!form) return null
+
+  return (
+    <section className="blk" id="enquiry">
+      <BlockHead heading={props.heading} description={props.description} />
+      <EnquiryForm form={form} variant="page" sourcePath={path} />
+    </section>
+  )
+}
+
 /** Tour page pe custom block column ke andar baithta hai, isliye `block` variant. */
 const CustomHtmlBlock = ({ props }) => <CustomHtml props={props} variant="block" />
 
@@ -253,6 +275,7 @@ const BLOCKS = {
   faqs: FaqsBlock,
   /** Client ka apna HTML — home wala hi component, yahan `.blk` ke roop me (D-96 §25). */
   customHtml: CustomHtmlBlock,
+  enquiryForm: EnquiryFormBlock,
 }
 
 /**
@@ -292,12 +315,16 @@ export function BlocksScope({ blocks = [], children }) {
  * @param {object} props
  * @param {boolean} [props.plainFaqs]  FAQs accordion ki jagah saade `h3` + jawab — sirf `page` (D-95)
  */
+/**
+ * @param {string} [props.path]  page ka apna path — `enquiryForm` block use enquiry ke saath bhejta hai
+ */
 export default function Blocks({
   blocks = [],
   slot = 'main',
   article = false,
   lead = true,
   plainFaqs = false,
+  path = '',
 }) {
   return blocks.map((block, i) => {
     const Block = slot === 'lead' ? LEADS[block.type] : BLOCKS[block.type]
@@ -322,6 +349,7 @@ export default function Blocks({
         article={article}
         lead={lead}
         plainFaqs={plainFaqs}
+        path={path}
       />
     )
   })

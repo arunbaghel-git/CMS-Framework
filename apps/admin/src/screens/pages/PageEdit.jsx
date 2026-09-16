@@ -91,7 +91,13 @@ const TYPE_CONFIG = {
     /** Featured image na ho to Pages ▸ Pages settings ki image (14 Sep shaam — subah fallback nahi tha). */
     featuredHint:
       'Optional. The banner behind the page heading — leave it empty and the image from Pages settings is used.',
-    blocks: POST_BLOCK_TYPES,
+    /**
+     * Text + FAQs ke saath **Custom editor** aur **Enquiry form** (client, 16 Sep — contact page).
+     *
+     * ⚠️ `Info cards`/`Two column` jaan-boojh kar nahi — client: _"un me to design alag hai"_. Unka look
+     * home/tour ke reference ka hai; contact ke hisse Custom editor se banenge.
+     */
+    blocks: [...POST_BLOCK_TYPES, 'customHtml', 'enquiryForm'],
   },
 
   tourPage: {

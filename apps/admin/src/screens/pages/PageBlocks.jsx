@@ -61,6 +61,7 @@ const BLOCK_LABEL = {
   textVideo: 'Text with video',
   awardBadges: 'Award badges',
   customHtml: 'Custom editor',
+  enquiryForm: 'Enquiry form',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -82,6 +83,7 @@ const BLOCK_CLASS = {
   textVideo: 'two',
   awardBadges: 'logos',
   customHtml: 'text',
+  enquiryForm: 'hero',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -150,6 +152,7 @@ function emptyBlock(type) {
       videoText: '',
     },
     customHtml: { background: '', className: '', html: '' },
+    enquiryForm: { formId: '', heading: '', description: '' },
     awardBadges: {
       background: '',
       heading: '',
@@ -250,6 +253,8 @@ function summarize(block) {
       return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
     case 'offerCards':
       return `${p.heading || 'Package cards'} — ${(p.items ?? []).length} card(s)`
+    case 'enquiryForm':
+      return p.heading || (p.formId ? 'Enquiry form' : 'No form chosen yet')
     case 'customHtml': {
       const text = String(p.html ?? '')
         .replace(/<[^>]*>/g, ' ')
@@ -2804,6 +2809,77 @@ function CustomHtmlBlock({ props, onChange, disabled, home }) {
 }
 
 /**
+ * `Enquiry form` — page ke content me ek asli form (client, 16 Sep, D-96 §30).
+ *
+ * Panel me sirf teen cheezein hain, aur wo jaan-boojh kar: **fields, button ka text aur neeche ki chhoti
+ * line form ki apni settings hain** (Enquiry Forms). Unhe yahan dobara dena matlab ek hi cheez ke do
+ * malik banana — wahi jaal jo D-86 me slug pe laga tha.
+ *
+ * ⚠️ Dropdown me sirf `active` form — wahi rok jo sidebar widget aur home ke hero pe hai: draft form
+ * payload me jaata hi nahi, to use chunne dena ek jhootha control hota.
+ */
+function EnquiryFormBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+
+  /** ⚠️ Memo zaroori — `useForms` ki dep query ki identity hai, naya object har render pe loop (8 Sep). */
+  const formQuery = useMemo(() => ({ status: 'active', limit: 200 }), [])
+  const { data: forms, loading } = useForms(formQuery)
+
+  return (
+    <>
+      <div className="field">
+        <label>Form</label>
+        <select
+          className="sel"
+          value={props.formId ?? ''}
+          onChange={(e) => set({ formId: e.target.value })}
+          disabled={disabled || loading}
+        >
+          <option value="">{loading ? 'Loading…' : '— choose a form —'}</option>
+          {forms.map((form) => (
+            <option key={form.id} value={form.id}>
+              {form.name}
+            </option>
+          ))}
+        </select>
+        {!loading && forms.length === 0 && (
+          <div className="hint">
+            No active forms yet. Create one under <b>Enquiry Forms</b>, then set it to Active.
+          </div>
+        )}
+      </div>
+
+      <div className="field">
+        <label>Heading</label>
+        <input
+          className="inp"
+          placeholder="Send us your dates"
+          value={props.heading ?? ''}
+          onChange={(e) => set({ heading: e.target.value })}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="field">
+        <label>Description</label>
+        <HtmlEditor
+          value={props.description ?? ''}
+          onChange={(description) => set({ description })}
+          disabled={disabled}
+          height={120}
+        />
+      </div>
+
+      <div className="hint">
+        The fields, the button text and the small line under it come from the form itself —{' '}
+        <b>Enquiry Forms</b>. Each field there can be full or half width, so two fields sit side by
+        side. Without a form the section does not appear on the page.
+      </div>
+    </>
+  )
+}
+
+/**
  * List ke kram ka saanjha hisaab — ek item patch, drag se move. Text with video aur Award badges dono pe.
  * (Purane section editors me yahi code apna-apna hai; unhe chhua nahi gaya.)
  */
@@ -3161,6 +3237,7 @@ function AwardBadgesBlock({ props, onChange, disabled }) {
 }
 
 const EDITORS = {
+  enquiryForm: EnquiryFormBlock,
   customHtml: CustomHtmlBlock,
   textVideo: TextVideoBlock,
   awardBadges: AwardBadgesBlock,

@@ -176,7 +176,13 @@ export default function TextPage({ entry, settings }) {
                  */}
                 <article className="art art--page">
                   {/* `plainFaqs` — FAQ reference jaisa saada h2/h3/paragraph, accordion nahi (client, 14 Sep) */}
-                  <Blocks blocks={entry.blocks ?? []} article lead={false} plainFaqs />
+                  <Blocks
+                    blocks={entry.blocks ?? []}
+                    article
+                    lead={false}
+                    plainFaqs
+                    path={entry.path}
+                  />
                 </article>
               </div>
 

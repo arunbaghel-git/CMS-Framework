@@ -1440,6 +1440,19 @@ async function resolvePageBlocks(blocks, siteId, locale, defaults) {
        * nahi hota — block render hota hai, bas uske andar kuch hota nahi. Yahi wo "bana hua
        * par juda nahi" shakl hai jo D-89 me 13 me se zyada tar farak ki thi.
        */
+      /**
+       * `Enquiry form` block (D-96 §30) — form **server pe** resolve hota hai, wahi tark jo sidebar widget
+       * aur home ke hero pe hai: `formId` theme tak jaata hi nahi, resolve hua maal jaata hai (D-88).
+       *
+       * Draft form, delete ho chuka form, ya chuna hi na ho — teenon pe `null`, aur theme wahan kuch nahi
+       * banati (D-42 §2).
+       */
+      if (block?.type === 'enquiryForm') {
+        const { formId, ...props } = block.props ?? {}
+
+        return { ...block, props, data: { form: await getPublicFormById(formId, siteId) } }
+      }
+
       if (block?.type === 'postList') {
         return { ...block, data: await resolvePostListBlock(block.props, siteId, locale) }
       }

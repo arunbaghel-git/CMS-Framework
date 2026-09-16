@@ -559,6 +559,29 @@ export const awardBadgesPropsSchema = z.object({
   items: z.array(awardBadgeSchema).max(AWARD_BADGES_MAX).default([]),
 })
 
+/**
+ * `Enquiry form` — page ke **content** me ek asli form (client, 16 Sep — contact page).
+ *
+ * Ab tak form teen jagah lag sakta tha: package/tour ka sidebar widget, aur home ka hero (D-96). Contact
+ * page pe wo main column ka sabse bada hissa hai (_"Send us your dates"_), aur uske liye koi block tha hi
+ * nahi — yaani wo page banaya hi nahi ja sakta tha.
+ *
+ * Shape wahi hai jo sidebar widget aur hero ki hai (`formId` + heading + description), taaki server pe form
+ * **ek hi raaste se** resolve ho (`getPublicFormById()`).
+ *
+ * ⚠️ **Sirf `page` pe** (client: _"only on pages, home par already hai aur tour page par need nahi"_).
+ * Ye UI ki rok hai — server pe per-type allowlist hai hi nahi (`PAGE_BLOCK_TYPES` ka comment dekho).
+ *
+ * ⚠️ Fields, button ka text aur neeche ki chhoti line **form ki apni settings** hain (Enquiry Forms), yahan
+ * nahi. Har field pe `full`/`half` width pehle se hai, isliye reference wala do-column layout bina kisi naye
+ * kaam ke ban jaata hai.
+ */
+export const enquiryFormBlockPropsSchema = z.object({
+  formId: z.string().trim().max(60).default(''),
+  heading: z.string().trim().max(200).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+})
+
 /** Home ke Package grid me ek waqt me kitne card — reference me solah (client, 15 Sep, D-96 §19). */
 export const PACKAGE_GRID_MAX = 16
 
@@ -1119,6 +1142,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   textVideo: textVideoPropsSchema,
   awardBadges: awardBadgesPropsSchema,
   customHtml: customHtmlPropsSchema,
+  enquiryForm: enquiryFormBlockPropsSchema,
 })
 
 /**

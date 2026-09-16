@@ -9067,3 +9067,22 @@ a.txv__box:hover .txv__p {
   background: var(--blue-600);
   color: #fff;
 }
+
+/* ---- Page ke content me enquiry form (D-96 §30) — contact page ka "Send us your dates" ---- */
+
+/*
+ * Yahan card ka koi chrome nahi: form khud ek `.blk` ke andar baithta hai, aur do dabbe ek doosre ke andar
+ * design me hai hi nahi. Fields ka layout (`.fld`, `.bkg__two`) sidebar wale form se saanjha hai — wahi
+ * `full`/`half` jo Enquiry Forms me har field pe chunte hain.
+ */
+.bkg--page .bkg__b {
+  padding: 0;
+}
+
+/* Reference me button poori chaudai ka hai (`.b.full`) — wahi `.bkg__b .btn` se pehle se milta hai */
+.bkg--page small {
+  display: block;
+  margin-top: 10px;
+  font-size: var(--fs-2xs);
+  color: var(--muted);
+}

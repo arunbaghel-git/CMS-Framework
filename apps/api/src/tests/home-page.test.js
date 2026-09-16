@@ -1003,3 +1003,61 @@ describe('Mobile patti ka Get quote link (client, 16 Sep)', () => {
     expect(pub.body.data.settings.quoteUrl).toBe('/contact-us')
   })
 })
+
+describe('Page ke content me Enquiry form block (client, 16 Sep, D-96 §30)', () => {
+  it('form server pe resolve hota hai, formId bahar nahi jaata, description saaf hoti hai', async () => {
+    const form = await makeForm({ name: 'Contact enquiry' })
+
+    const created = (
+      await authed('post', '/api/entries', adminJar).send({
+        type: 'page',
+        title: 'Contact us',
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'enquiryForm',
+              props: {
+                formId: form.id,
+                heading: 'Send us your dates',
+                description: '<p>No advance</p><script>alert(1)</script>',
+              },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+
+    const stored = (await Entry.findById(created.id).lean()).content.blocks[0].props
+    expect(stored.description).not.toMatch(/<script/)
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: created.path })
+    const [block] = res.body.data.entry.blocks
+
+    /** `formId` theme tak kabhi nahi — resolve hua maal jaata hai (D-88 wala tark). */
+    expect(block.props.formId).toBeUndefined()
+    expect(block.props.heading).toBe('Send us your dates')
+    expect(block.data.form).toMatchObject({ id: form.id, name: 'Contact enquiry' })
+  })
+
+  it('draft ya delete ho chuke form pe `null` — theme wahan kuch nahi banati', async () => {
+    const draft = await makeForm({ name: 'Draft form', status: 'draft' })
+
+    const created = (
+      await authed('post', '/api/entries', adminJar).send({
+        type: 'page',
+        title: 'Contact draft',
+        content: {
+          version: 1,
+          blocks: [{ type: 'enquiryForm', props: { formId: draft.id, heading: 'Write in' } }],
+        },
+      })
+    ).body.data.entry
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: created.path })
+
+    expect(res.body.data.entry.blocks[0].data.form).toBeNull()
+  })
+})

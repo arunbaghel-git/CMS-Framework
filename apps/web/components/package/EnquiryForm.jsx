@@ -204,6 +204,9 @@ function toRows(fields) {
  *            line + form. **Sheet nahi banta** — client: mobile pe form text ke neeche seedha
  *            dikhe, reference jaisa. Isliye `.wdg` class bhi nahi (uske mobile rules sheet banate)
  *
+ *   `page` — saade page ke content ka block (D-96 §30, contact page): **koi card nahi**, kyunki wo
+ *            khud ek `.blk` ke andar baithta hai. Na price header, na sheet, na dock
+ *
  * @param {string} [ribbon] sirf `hero` — card ke upar ki hari patti, khaali pe nahi banti
  *
  * ⚠️ Do alag form component **nahi** banaye gaye, aur wo soch kar hai: submit, validation,
@@ -256,11 +259,17 @@ export default function EnquiryForm({
   const isHero = variant === 'hero'
 
   /**
+   * ⚠️ `page` pe bhi dock **kabhi nahi** — form page ke beech me khula baitha hai, use sheet banane ka
+   * matlab hota ki mobile pe wahi form do jagah ho (wahi wajah jo `hero` pe likhi hai).
+   */
+  const isPage = variant === 'page'
+
+  /**
    * ⚠️ Hero pe dock **kabhi nahi** — koi provider upar lag bhi jaaye to bhi. Home ka form popup
    * nahi hai (client, 15 Sep), aur `is-open` wala scrim bina close button ke page ko dhak deta.
    */
   const pageDock = useEnquiryDock()
-  const dock = isHero ? null : pageDock
+  const dock = isHero || isPage ? null : pageDock
 
   /**
    * ⚠️ **`variant` ab sirf DIKHNE ka farak hai — dock dono pe chalta hai** (9 Sep me badla).
@@ -408,7 +417,9 @@ export default function EnquiryForm({
         className={
           isHero
             ? 'hf-card'
-            : `wdg ${isCta ? 'wdg--cta' : 'wdg--book'}${dock?.open ? ' is-open' : ''}`
+            : isPage
+              ? 'bkg--page'
+              : `wdg ${isCta ? 'wdg--cta' : 'wdg--book'}${dock?.open ? ' is-open' : ''}`
         }
         id="enquiry"
       >

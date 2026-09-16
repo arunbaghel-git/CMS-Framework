@@ -343,6 +343,7 @@ export function sanitizeInlineHtml(html) {
  * | `logoGrid` | `props.description` (logo ke khaane plain text) |
  * | `textVideo` | `props.text` · `props.items[].text` (**inline**) |
  * | `awardBadges` | `props.description` (badge ke khaane plain text) |
+ * | `enquiryForm` | `props.description` (fields form ke apne hain) |
  * | `customHtml` | `props.html` — client ka apna markup (`<style>`/`<script>` yahin girte hain) |
  * | `testimonials` | `props.description` (review ka text plain hai, reviews collection me) |
  *
@@ -464,6 +465,8 @@ export function sanitizeContent(content) {
 
         /** Home ka Customer reviews (D-96 §13) — sirf heading ki line HTML hai; reviews ids hain. */
         /** Home ke Image cards (D-96 §14) — card ke khaane plain text; sirf heading ki line HTML. */
+        /** Page ka `Enquiry form` block (D-96 §30) — sirf heading ke neeche ki line HTML hai. */
+        case 'enquiryForm':
         case 'awardBadges':
         case 'imageCards':
         case 'testimonials':
