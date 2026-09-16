@@ -120,6 +120,16 @@ flake nikla (akele pass). Lint · format · admin build pass.
 - **Section 4 — Image cards** (§14): islands/beaches/places ek section, shape/columns/alignment, subtitle + tag
   optional (mera chunav, client dekhega). Client lunch ke baad data bharega (A-28 #10–#11)
 
+### Agli session — Contact page (client, 16 Sep)
+
+Client ne `contact-us.html` di: _"this is contact page, save it in new session we will work on it"_.
+Reference ab repo me hai — `.claude/docs/reference/contact-us.html`. Uske apne section: **Banner ·
+Main + Sidebar · Closing CTA** (header, footer aur floating elements wahi purane hain).
+
+⚠️ Kaam shuru karne se pehle client se poochho ki ye `page` type pe banega (saada page + sidebar, D-95)
+ya uska apna kuch chahiye. Aur **reference khol kar** dekho — CSS padh kar markup maan lena is repo ki
+teen baar pakdi hui galti hai (D-89, D-91, aur 16 Sep ko About us ka radius).
+
 ### Agla kadam
 
 1. Client home page khud banaye (Pages ▸ Home Page) aur dekhe — A-28 ki list
