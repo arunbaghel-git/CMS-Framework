@@ -678,10 +678,20 @@ badle to jin pages ke section me wo hai unka `path:` saaf (`pathTagsForForm()`).
 ⚠️ CSS prefix block ka (`.hf-*`) — reference ke `.art`/`.faq`/`.sec` hamari site pe takraate hain.
 ⚠️ Naya section = server pe chaar jagah + admin editor + theme — D-96 §6 aur `project-state.md`.
 ⚠️ Aankh se dekhna baaki — **A-28**. Purana bug mila: sidebar ka badlaav ek ghanta late — **A-26**.
-**1110 test** (13 naye home ke) — ab **1139** (15 Sep shaam, Section 10–11 ke baad).
+**1110 test** (13 naye home ke) — 15 Sep shaam **1139**, 16 Sep ko aur bhi (neeche).
 Usi din **Section 2–11** bhi (info cards · FAQ · video reviews · image cards · testimonials · logo grid · package
 grid · offer cards · text with video · award badges — D-96 §11–§23). Client ke niyam (font, multi-site, tokens) `project-state.md` me.
-⏭️ **Agla kaam: client ka agla home section** — `project-state.md` ka pehla section padho.
+**16 Sep — home band, contact page live, aur code se site ka naam nikalna shuru (D-96 §24–§33).** Naya
+`Custom editor` block + **Settings ▸ Custom CSS** (§25), Tour pe `Read more:` nishaan (§26), home ka island
+map (§27) aur uske tabs (`sw-tab`/`sw-panel`, §29), home ki mobile patti (§28), **contact page** — `Enquiry
+form` block + snippets + sidebar ke widget (§30), **Page settings ▸ Template** (`Default` / `Section layout`
+— naya content type **nahi**, client ne dropdown maanga tha; §31), site ka apna **404** (§32), aur breadcrumb
+ka `Andaman Tour Packages` ab `packageDefaults.archiveCrumb` se (§33).
+⚠️ **Code me bacha hua site-specific text — A-31**: `Pricing.jsx` ka `CATEGORY_COPY` (chaar hotel category ke
+naam aur unke paragraph) har package page pe chhapta hai, chahe content kisi bhi site ka ho.
+⚠️ Sanitizer me teen cheezein allow hui, teenon ek hi wajah se (bina unke content **chup-chaap** girta tha):
+SVG ka `<text>`/`<tspan>`, `<address>`, aur `aria-label`.
+⏭️ **Agla kaam: client ke do khule faisle — contact ke trust chips aur eyebrow.** `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

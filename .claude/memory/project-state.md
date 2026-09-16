@@ -1,14 +1,78 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 15 Sep 2026 (shaam) — **~302 commit**, **push ho gaya** (client ki ijaazat se, 15 Sep).
-> **1139 test pass (DB ke saath)**, lint + format clean, admin build pass.
+> **Last updated:** 16 Sep 2026 (raat) — **~321 commit**, **19 push hone baaki** (client ki ijaazat se hi).
+> Aaj ke kaam ke **576 test pass** (home-page · master-lists · entries · web · shared), lint + format clean,
+> admin build pass.
+> ⚠️ **Poori suite aaj nahi chal payi** — C: drive pe sirf ~0.7 GB bachi hai aur vitest temp files pe
+> `ENOSPC` de deti hai (7 file load hi nahi hui, ek bhi test fail nahi hua). Jagah banne pe pehle
+> `pnpm test` chalao — 16 Sep dopahar ko wo **1151/1151** pass thi.
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare — **Home page: Section 1–11 ban gaye, agla section client batayega** (15 Sep)
+## ⏭️ Nayi session yahan se shuru kare — **Home band, Contact page live, do faisle khule** (16 Sep)
+
+> 16 Sep ka handoff. Aakhri commit `1c2887a`. **19 commit push nahi hue** — push sirf client ke kehne pe
+> (`git log --oneline origin/main..HEAD` sach batata hai). Poore faisle **D-96 §24–§33** me.
+
+### Client ke do khule faisle (pehla kaam — inhi se shuru karo)
+
+1. **Contact ke hero ke trust chips** — reference me `<h1>` ke neeche teen chip hain (_Govt. of India
+   enlisted · Mon – Sat, 10:00 – 19:00 IST · Reply within 4 working hours_). Client ko do raaste diye hain:
+   - **(a)** `settings.trustBadges` (Tour settings wale) hi yahan bhi dikha dein — koi naya field nahi, par
+     wahi chips **Tour page pe bhi** hain, to text badla to dono jagah badlega
+   - **(b)** Section layout page ko **apne chips** (icon + text, teen tak) — mera suggestion, kyunki
+     _"Reply within 4 working hours"_ contact ki apni baat hai
+2. **Contact ka eyebrow** — reference me `<h1>` ke upar ek line hai (_Answered by planners in Port Blair_).
+   `page` se wo 14 Sep ko hata diya gaya tha (D-95). Section layout pe wapas laayein ya nahi?
+
+### 16 Sep ko kya bana (sab live chal raha hai)
+
+| Kya                                                                                                                        | D-96 |
+| -------------------------------------------------------------------------------------------------------------------------- | ---- |
+| Hero ka eyebrow (chip), About us ka box (na radius na shadow, image poori), islands ka tag chhoti line ke saath            | §24  |
+| **Custom editor** block + **Settings ▸ Custom CSS** (har page ke `<head>` me)                                              | §25  |
+| Tour page pe **`Read more:`** — nishaan se collapse, `<details>`, koi JS nahi                                              | §26  |
+| Home ka **island map** — SVG ke `<text>`/`<tspan>` sanitizer me allow, CSS theme me                                        | §27  |
+| Home pe **mobile ki patti** — CTA popup nahi, `settings.quoteUrl` ka link                                                  | §28  |
+| Custom editor ke HTML me **tabs** (`sw-tab`/`sw-panel`/`i-<key>`) — island map isi se chalta hai                           | §29  |
+| **Contact page** — `Enquiry form` block, snippets (methods · steps · offices+map · hours · sidebar ke do widget), unki CSS | §30  |
+| **Page settings ▸ Template** — `Default` / `Section layout` (naya type **nahi**, client ne dropdown maanga tha)            | §31  |
+| Site ka apna **404** — buttons settings se, koi hardcoded raasta nahi                                                      | §32  |
+| Breadcrumb ka `Andaman Tour Packages` **settings me** (`packageDefaults.archiveCrumb`)                                     | §33  |
+
+### Jo abhi bacha hai
+
+- **A-31** — `Pricing.jsx` ka `CATEGORY_COPY`: chaar tab ke naam aur unke paragraph (Havelock · Neil ·
+  Port Blair · Marine Hill · Sitapur) **har package page pe** chhapte hain. Ye code me bacha hua aakhri
+  bada site-specific text hai. Saath me admin ke placeholder (chhota kaam)
+- **A-29 / A-26** — cache: hotel/add-on/transfer/`packageDefaults` aur sidebar badalne pe page ek ghanta
+  purana. Dono ka ilaaj ek hi hai (`path:` tags)
+- **A-28** — home aur contact **aankh se** dekhna baaki (client ne kuch hisse dekhe hain, poora nahi)
+- **A-17** — speed ki naap home/contact pe kabhi hui hi nahi
+- `.float` aur `.sidetab` (desktop ke kone wale WhatsApp/Call button aur side tabs) kisi page pe nahi hain —
+  client ne abhi maange nahi
+
+### Client ko karna hai (content)
+
+- Contact ke offices ka asli pata/phone, office hours, map ka address (abhi reference wale hain)
+- `Registered & enlisted` ke link aur social ke link (abhi `#`)
+- Island map ke pills ke link, aur panel ki images Media Library se
+- Chaahein to `Packages ▸ Section Headings` me naya **Breadcrumb label + link** bhar dein
+
+### ⚠️ Dhyan rahe
+
+- **Client ke CSS hand-edit `globals.css` me hain** (`.chb--box` ka background, `.contact-methods`) —
+  palatna nahi (memory ka niyam)
+- **`next build` sirf dev band karke** — dono ek hi `.next` use karte hain (D-89)
+- Bash me backtick wala text `node -e` me kat jaata hai — bade text hamesha file se daalo
+- Deploy pe: **`pnpm seed` ki zaroorat nahi** (koi naya content type nahi bana), migration bhi koi nahi
+
+---
+
+## (purana) ⏭️ Nayi session yahan se shuru kare — **Home page: Section 1–11 ban gaye, agla section client batayega** (15 Sep)
 
 > 15 Sep shaam ka handoff. Aakhri kaam **Section 10 — Text with video** aur **Section 11 — Award badges**
 > (`e34fe14`, D-96 §22–§23), phir client ka CSS hand-edit (`.awb__b { gap: inherit }`) alag commit me.
