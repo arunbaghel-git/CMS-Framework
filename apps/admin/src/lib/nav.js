@@ -77,6 +77,12 @@ export const NAV = [
        * `/pages/:id`: jo padh sakta hai wo dekh sakta hai, Save pe server apni permission dekhta hai.
        */
       { label: 'Home Page', to: '/pages/home', permission: PERMISSION.ENTRY_READ },
+      /**
+       * Section Layout — apni list aur Add New (client, 16 Sep, D-96 §31). Alag type isliye ki contact
+       * jaise page ka frame alag hai; `page` ki screens dobara nahi likhi gayin (`TYPE_CONFIG` se chalti hain).
+       */
+      { label: 'Section Layout', to: '/section-pages', permission: PERMISSION.ENTRY_READ },
+      { label: 'Add Section Page', to: '/section-pages/new', permission: PERMISSION.ENTRY_CREATE },
       /** Banner ka fallback + `On this page` — sab pages ke liye (client, 14 Sep, D-95 §12). */
       { label: 'Pages settings', to: '/pages/settings', permission: PERMISSION.SETTINGS_READ },
     ],
@@ -406,6 +412,8 @@ export const ROUTE_GUARDS = Object.freeze({
   '/pages': PERMISSION.ENTRY_READ,
   '/pages/new': PERMISSION.ENTRY_CREATE,
   '/pages/settings': PERMISSION.SETTINGS_READ,
+  '/section-pages': PERMISSION.ENTRY_READ,
+  '/section-pages/new': PERMISSION.ENTRY_CREATE,
   '/pages/home': PERMISSION.ENTRY_READ,
   '/pages/:id': PERMISSION.ENTRY_READ,
 

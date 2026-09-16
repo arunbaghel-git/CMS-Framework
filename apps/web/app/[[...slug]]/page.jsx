@@ -148,6 +148,17 @@ export default async function CatchAllPage({ params }) {
     return <TextPage entry={entry} settings={settings} />
   }
 
+  /**
+   * `Section Layout` — wahi payload aur wahi component, bas frame alag (client, 16 Sep, D-96 §31):
+   * har block apna card aur FAQ accordion. Alag component banane ka matlab hota hero, breadcrumb,
+   * sidebar aur byline ka doosra copy — aur wahi galti is repo me kai baar mahengi padi hai.
+   */
+  if (entry.type === 'sectionPage') {
+    const settings = await getSettings()
+
+    return <TextPage entry={entry} settings={settings} sections />
+  }
+
   if (entry.type === 'tourPage' || entry.type === 'blogPage') {
     /**
      * Dono ka payload ek hi hai (`toPublicPage()`) — alag type sirf isliye hai ki menu, list aur

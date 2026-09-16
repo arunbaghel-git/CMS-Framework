@@ -4,6 +4,7 @@ import {
   ENTRY_LIST_MAX_LIMIT,
   HOME_PAGE_BLOCK_TYPES,
   POST_BLOCK_TYPES,
+  SECTION_PAGE_BLOCK_TYPES,
 } from '@cms/shared'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -73,6 +74,33 @@ const TYPE_CONFIG = {
    * | ~~`toc: true`~~ | `On this page` ka checkbox **Pages ▸ Pages settings** me gaya (14 Sep shaam) |
    * | `blocks` | Text + FAQs — Post wale hi (`POST_BLOCK_TYPES`) |
    */
+  /**
+   * `Section Layout` — contact jaise page, jinme har section apna card hota hai (client, 16 Sep, D-96 §31).
+   *
+   * `page` ki hi screens, bas do cheezein kam: **Stat rail** aur **Hero button** (client ne dono mana kiye,
+   * aur unke field set me wo hain bhi nahi). Blocks me do zyada: Custom editor aur Enquiry form.
+   *
+   * ⚠️ `page` ka koi khaana yahan se **badla nahi** — client: _"jo page template pehle se bani hui hai usko
+   * change nahi karenge"_. Ye uska bhai hai, uska naya roop nahi.
+   */
+  sectionPage: {
+    key: 'sectionPage',
+    label: 'Section Layout',
+    basePath: '/section-pages',
+    header: false,
+    subheading: true,
+    eyebrow: false,
+    statRail: false,
+    heroButtons: false,
+    sidebar: true,
+    parent: true,
+    nested: true,
+    bylineHint: 'Updated · min read',
+    featuredHint:
+      'Optional. The banner behind the page heading — leave it empty and the image from Pages settings is used.',
+    blocks: SECTION_PAGE_BLOCK_TYPES,
+  },
+
   page: {
     key: 'page',
     label: 'Page',

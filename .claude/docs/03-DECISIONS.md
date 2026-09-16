@@ -8611,3 +8611,40 @@ jaata, aur wo "CSS kaam nahi kar rahi" jaisa dikhta.
 Classes (client block ke panel me likhta hai): `contact-methods` · `contact-steps` · `contact-offices` ·
 `contact-hours`, aur sidebar ke Custom HTML widget me `contact-quick`.
 Map Google ka embed hai (`iframe`, `loading="lazy"`) — sanitizer me `iframe` sirf `https` pe pehle se allowed.
+
+### 31. `Section Layout` — contact jaise page ka apna template (client, 16 Sep)
+
+Contact page banate waqt asli dikkat frame ki nikli: `page` ka poora content **ek safed card** me baithta
+hai (`.art--page`, D-95 — `page-template-text.html` ka design), jabki `contact-us.html` me **har section apna
+card** hai. Client ne raasta khud chuna:
+
+> _"jo page template pehle se bani hui hai usko change nahi karenge, pages ke sidebar me ek Section Layout
+> naam ki template aur add kar denge"_
+
+**Teen raaste rakhe gaye the** — (A) page pe layout ka chunav, (B) naya type, (C) sab kuch Custom editor me.
+Client ne **B** chuna, aur uski do keematein batakar hi: `type` badalna allowed nahi (bana hua page doosre
+template me nahi ja sakta — client: _"me dobara page bana dunga"_), aur aage har page wali cheez do jagah
+sochni padegi.
+
+| | `page` | `sectionPage` |
+| --- | --- | --- |
+| Frame | poora content ek card me | **har block apna card**, `.secpg` wrapper |
+| Blocks | Text · FAQs (saada) · Custom editor | Text · FAQs (**accordion**) · Custom editor · **Enquiry form** |
+| Hero | Stat rail · Hero button · WhatsApp | **teenon nahi** |
+| Pages settings | banner fallback + On this page | **sirf banner fallback** (client: _"on this page list nahi"_) |
+| Bulk Upload | chalta hai | **chhoota hi nahi** — re-import se blocks udne ka khatra yahan hai hi nahi |
+| URL | `/{slug}`, nested | wahi |
+
+- **Screens dobara nahi likhi** — `PageList` aur `PageEdit` dono `type` se chalte hain (`TYPE_CONFIG` me ek
+  row). Wahi saancha jo 8 Sep ko bach gaya tha
+- Theme me bhi **ek hi component** — `TextPage` ka naya `sections` prop: wrapper badalta hai, baaki (hero,
+  breadcrumb, sidebar, byline) waisa ka waisa. Alag component banane ka matlab hota us sab ka doosra copy
+- `.secpg` ki CSS me **sirf gap** hai — card ka look `.blk` ka apna hai; gap isliye ki Tour page pe blocks
+  seedha `.pgl__main` (grid) ke bachche hote hain aur yahan beech me ek wrapper hai
+
+⚠️ **URL dono ka `/{slug}` hai aur takrav nahi hota** — uniqueness `entries.path` pe hai, type pe nahi.
+Yahi `tourPage` pe pehle se chal raha hai.
+
+⚠️ **Deploy pe `pnpm seed` chahiye** (naya content type wahin banta hai) aur API restart. Koi migration nahi.
+
+2 naye API test (payload + field set, aur `page` chhua nahi gaya — wo test hi is faisle ka pehra hai).

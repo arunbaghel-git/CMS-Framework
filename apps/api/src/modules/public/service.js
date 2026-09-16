@@ -459,7 +459,7 @@ export async function resolvePublicPath(
  * `packageList` ki jagah `postList` hota hai. `post` yahan **nahi** hai: uska payload dono se
  * alag hai (`toPublicPost()`).
  */
-const PAGE_TYPES = new Set(['page', 'tourPage', 'blogPage'])
+const PAGE_TYPES = new Set(['page', 'sectionPage', 'tourPage', 'blogPage'])
 
 /**
  * Mongo id ka shape sahi hai? `$in` me bekaar string CastError phenkti hai, aur wo public
@@ -1976,10 +1976,22 @@ async function toPublicPage(doc, siteId, locale) {
    */
   const isTextPage = doc.type === 'page'
 
+  /**
+   * `sectionPage` — **Section Layout** (client, 16 Sep, D-96 §31). `page` ka bhai: banner ka fallback
+   * wahi (**Pages settings**, client: _"banner fallback chahiye"_), par `On this page` **nahi**
+   * (_"on this page list nahi"_), aur hero ka button/stat rail uske field set me hai hi nahi.
+   */
+  const isSectionPage = doc.type === 'sectionPage'
+
+  /** Dono Pages ke parivaar ke hain — banner ka fallback ek hi jagah se (Pages settings). */
+  const usesPageSettings = isTextPage || isSectionPage
+
   const banner =
     (await toDisplayImage(doc.featuredImageId, 'large', siteId)) ??
     (await toDisplayImage(
-      isTextPage ? settings.pageSettings?.bannerMediaId : settings.tourSettings?.bannerMediaId,
+      usesPageSettings
+        ? settings.pageSettings?.bannerMediaId
+        : settings.tourSettings?.bannerMediaId,
       'large',
       siteId,
     ))

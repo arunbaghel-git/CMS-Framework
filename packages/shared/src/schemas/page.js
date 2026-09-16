@@ -68,6 +68,22 @@ export const PAGE_BLOCK_TYPES = Object.freeze([
 ])
 
 /**
+ * `sectionPage` ka dropdown — **Section Layout** (client, 16 Sep, D-96 §31).
+ *
+ * `POST_BLOCK_TYPES` (Text + FAQs) ke upar do: **Custom editor** (contact ke steps · offices · office
+ * hours usi se bante hain) aur **Enquiry form** (_"Send us your dates"_).
+ *
+ * ⚠️ `Info cards`/`Two column` yahan jaan-boojh kar nahi — client: _"un me to design alag hai"_. Unka look
+ * home/tour ke reference ka hai, aur contact ke hisson se milta nahi.
+ */
+export const SECTION_PAGE_BLOCK_TYPES = Object.freeze([
+  'richText',
+  'faqs',
+  'customHtml',
+  'enquiryForm',
+])
+
+/**
  * Kis content type pe dropdown me kaunse blocks — **spec 008** (Blog).
  *
  * ⚠️ **Ye sirf UI ki rok hai, server ki nahi.** Server pe per-type block allowlist hai hi

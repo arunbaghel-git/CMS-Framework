@@ -1093,3 +1093,58 @@ describe('Contact page ke custom editor blocks (D-96 §30)', () => {
     expect(html).not.toContain('<span>Head office</span>')
   })
 })
+
+describe('Section Layout — contact jaise page ka template (client, 16 Sep, D-96 §31)', () => {
+  it('apna type hai, URL Pages jaisa, aur banner Pages settings se girta hai', async () => {
+    await authed('patch', '/api/settings', adminJar).send({
+      pageSettings: { bannerMediaId: null, showToc: true },
+    })
+
+    const created = (
+      await authed('post', '/api/entries', adminJar).send({
+        type: 'sectionPage',
+        title: 'Contact us',
+        content: {
+          version: 1,
+          blocks: [
+            { type: 'richText', props: { html: '<h2>Our offices</h2><p>Port Blair</p>' } },
+            {
+              type: 'customHtml',
+              props: { className: 'contact-hours', html: '<div class="hours"></div>' },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+
+    /** Pages jaisa `/{slug}` — alag type sirf admin ki list aur frame ke liye hai. */
+    expect(created.path).toBe('/contact-us')
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: '/contact-us' })
+    const { entry } = res.body.data
+
+    expect(entry.type).toBe('sectionPage')
+    expect(entry.blocks.map((b) => b.type)).toEqual(['richText', 'customHtml'])
+
+    /**
+     * ⚠️ **`On this page` yahan kabhi nahi** (client: _"on this page list nahi"_) — `<h2>` hone ke
+     * baad bhi `toc` khaali jaata hai, taaki theme ko koi niyam yaad na rakhna pade.
+     */
+    expect(entry.toc ?? []).toEqual([])
+  })
+
+  it('iske field set me stat rail aur hero button hain hi nahi', async () => {
+    const { BUILT_IN_CONTENT_TYPES } = await import('@cms/shared')
+    const keys = BUILT_IN_CONTENT_TYPES.find((t) => t.key === 'sectionPage').fields.map(
+      (f) => f.key,
+    )
+
+    expect(keys).toEqual(['subheading', 'sidebar', 'sidebarId'])
+
+    /** `page` chhua nahi gaya — client: "jo page template pehle se bani hui hai usko change nahi karenge". */
+    const pageKeys = BUILT_IN_CONTENT_TYPES.find((t) => t.key === 'page').fields.map((f) => f.key)
+    expect(pageKeys).toContain('statRail')
+    expect(pageKeys).toContain('heroButton')
+  })
+})

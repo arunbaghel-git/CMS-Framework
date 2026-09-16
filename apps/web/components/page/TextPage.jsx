@@ -62,7 +62,13 @@ import TourSchema from '../tour/TourSchema.jsx'
 const monthYear = (value) =>
   value ? new Date(value).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : ''
 
-export default function TextPage({ entry, settings }) {
+/**
+ * @param {boolean} [sections]
+ *   `Section Layout` (D-96 §31) — har block apna card (`.blk`), ek bade card ke bajaye; FAQ accordion; na
+ *   stat rail, na hero button, na WhatsApp. Client: _"page template pehle se bani hui hai usko change nahi
+ *   karenge"_ — isliye ye ek **prop** hai, purane page ka badlaav nahi.
+ */
+export default function TextPage({ entry, settings, sections = false }) {
   const {
     fields = {},
     byline = {},
@@ -156,11 +162,18 @@ export default function TextPage({ entry, settings }) {
              * WhatsApp **hamesha** (client, 14 Sep shaam) — number Settings ▸ General se; number na
              * ho to button nahi.
              */}
-            <HeroButtons button={fields.heroButton} whatsapp={settings?.whatsapp} />
+            {/*
+             * ⚠️ Section Layout pe hero ke buttons **bilkul nahi** — na page ka apna, na WhatsApp wala
+             * (client, 16 Sep). Uske field set me `heroButton` hai hi nahi, aur WhatsApp yahan apne aap
+             * uthta tha (D-95 §12) — wahi cheez client ne mana ki.
+             */}
+            {sections ? null : (
+              <HeroButtons button={fields.heroButton} whatsapp={settings?.whatsapp} />
+            )}
           </div>
         </section>
 
-        <StatRail stats={fields.statRail} />
+        {sections ? null : <StatRail stats={fields.statRail} />}
 
         <section className="sec sec--blue">
           <div className="wrap">
@@ -174,13 +187,13 @@ export default function TextPage({ entry, settings }) {
                  * hover client ne blog ke liye maanga tha (9 Sep); reference page ke `.blk` pe koi
                  * hover nahi hai.
                  */}
-                <article className="art art--page">
+                <article className={sections ? 'secpg' : 'art art--page'}>
                   {/* `plainFaqs` — FAQ reference jaisa saada h2/h3/paragraph, accordion nahi (client, 14 Sep) */}
                   <Blocks
                     blocks={entry.blocks ?? []}
-                    article
+                    article={!sections}
                     lead={false}
-                    plainFaqs
+                    plainFaqs={!sections}
                     path={entry.path}
                   />
                 </article>

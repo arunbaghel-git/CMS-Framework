@@ -357,6 +357,38 @@ const BLOG_PAGE_FIELDS = [
  * **hamesha** aata hai (number Settings ▸ General se), aur `On this page` **Pages ▸ Pages settings**
  * me sab pages ke liye ek hai. Purane page ke `fields` me dono pade reh sakte hain — koi padhta nahi.
  */
+/**
+ * `sectionPage` ka field set — **`PAGE_FIELDS` ka chhota roop** (client, 16 Sep, D-96 §31).
+ *
+ * Client ne do cheezein saaf mana ki: **Stat rail** aur **Hero button**. Wo dono `page-template-text.html`
+ * ke hero ki cheezein hain; contact reference (`contact-us.html`) ke banner me sirf breadcrumb, eyebrow ki
+ * line, `<h1>` aur uske neeche ka paragraph hai.
+ *
+ * ⚠️ **`PAGE_FIELDS` reuse nahi kiya, aur wo jaan-boojh kar hai** — wahi tark jo `BLOG_PAGE_FIELDS` aur
+ * `TOUR_PAGE_FIELDS` ke upar likha hai: do khaali khaane admin me padey rehna hi wo sawaal paida karta hai
+ * jiska koi jawab nahi hota (D-30).
+ */
+const SECTION_PAGE_FIELDS = [
+  {
+    key: 'subheading',
+    type: 'richText',
+    label: 'Sub heading',
+    help: 'The paragraph under the title',
+  },
+  {
+    key: 'sidebar',
+    type: 'select',
+    label: 'Sidebar',
+    help: 'Whether this page has a sidebar, and on which side',
+  },
+  {
+    key: 'sidebarId',
+    type: 'select',
+    label: 'Which sidebar',
+    help: 'One of the sidebars made under Appearance ▸ Sidebar',
+  },
+]
+
 const PAGE_FIELDS = [
   {
     key: 'subheading',
@@ -452,6 +484,48 @@ export const BUILT_IN_CONTENT_TYPES = Object.freeze([
     taxonomyTypes: ['destination', 'packageType'],
 
     fields: PACKAGE_FIELDS,
+  },
+
+  /**
+   * `sectionPage` — **Section Layout** (client, 16 Sep, D-96 §31).
+   *
+   * Contact jaise page: har section apna card. `page` ka content **ek hi safed card** me baithta hai
+   * (`.art--page`, D-95 — `page-template-text.html` ka design), aur client ne wo design badalne se mana
+   * kiya: _"jo page template pehle se bani hui hai usko change nahi karenge"_. Isliye ye uska bhai hai,
+   * uska badla hua roop nahi.
+   *
+   * | | `page` | `sectionPage` |
+   * | --- | --- | --- |
+   * | Frame | poora content ek card me | har block apna card |
+   * | Blocks | Text · FAQs (saada) · Custom editor | Text · FAQs (**accordion**) · Custom editor · **Enquiry form** |
+   * | Hero | Stat rail + Hero button + WhatsApp | teenon **nahi** |
+   * | Bulk Upload | chalta hai | chhoota hi nahi |
+   *
+   * ⚠️ **Alag type isliye ki admin me uski apni list aur Add New chahiye** (client ka apna dhaancha) —
+   * wahi wajah jo `tourPage` ki thi (D-87). URL dono ka `/{slug}` hai; takrav nahi hota kyunki uniqueness
+   * `entries.path` pe hai, type pe nahi.
+   *
+   * ⚠️ **Ek bana hua page doosre type me nahi ja sakta** (`type` badalna allowed nahi) — client ko batakar
+   * hi ye raasta chuna gaya: _"me dobara page bana dunga koi bat nahi"_.
+   */
+  {
+    key: 'sectionPage',
+    label: 'Section Layout',
+    labelPlural: 'Section Layout',
+    icon: 'page',
+
+    hasBuilder: true,
+
+    /** Pages jaisa hi — `/contact-us/offices` jaisa nesting kal chahiye to wo pehle se chalega (D-09). */
+    hierarchical: true,
+    urlPattern: '/{slug}',
+    archiveBase: null,
+    hasArchive: false,
+
+    supports: [S.TITLE, S.EDITOR, S.FEATURED_IMAGE, S.SEO, S.REVISIONS, S.ORDER],
+    taxonomyTypes: [],
+
+    fields: SECTION_PAGE_FIELDS,
   },
 
   {

@@ -9449,3 +9449,20 @@ a.txv__box:hover .txv__p {
     aspect-ratio: 4 / 3;
   }
 }
+
+/* ---- Section Layout ka frame (D-96 §31) ---- */
+
+/*
+ * `page` ka content ek safed card me hai (`.art--page`, D-95); yahan har block **apna** card hai —
+ * bilkul `contact-us.html` jaisa, aur wahi look Tour page pe pehle se chal raha hai.
+ *
+ * ⚠️ Yahan sirf ek kaam hai: blocks ke beech ki doori. Tour page pe wo muft milti hai kyunki blocks
+ * seedha `.pgl__main` (grid + gap) ke bachche hote hain; yahan beech me ek wrapper hai, isliye wahi gap
+ * usko dobara dena padta hai — reference ka apna naap (`.pgl__main`).
+ *
+ * Card ka look `.blk` ka apna hai, isliye yahan koi background/border nahi likha.
+ */
+.secpg {
+  display: grid;
+  gap: clamp(22px, 2.8vw, 38px);
+}

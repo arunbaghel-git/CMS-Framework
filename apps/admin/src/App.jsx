@@ -148,6 +148,11 @@ const APP_ROUTES = [
   { path: '/pages/new', element: <PageEdit type="page" /> },
   /** `/pages/:id` se **pehle** — `/tour/settings` wala hi kram (D-95 §12). */
   { path: '/pages/settings', element: <PageSettings /> },
+
+  /** Section Layout — `page` ki hi screens, type se (client, 16 Sep, D-96 §31). */
+  { path: '/section-pages', element: <PageList type="sectionPage" /> },
+  { path: '/section-pages/new', element: <PageEdit type="sectionPage" /> },
+  { path: '/section-pages/:id', element: <PageEdit type="sectionPage" /> },
   /** Wahi kram — `:id` se pehle, warna `home` ek id ban kar 404 deta (D-96). */
   { path: '/pages/home', element: <HomePageEdit /> },
   { path: '/pages/:id', element: <PageEdit type="page" /> },
