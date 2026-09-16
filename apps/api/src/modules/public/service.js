@@ -217,6 +217,8 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
 
     phone: settings.phone,
     whatsapp: settings.whatsapp,
+    /** Mobile patti ka CTA — theme use link ki tarah kholti hai, popup nahi (client, 16 Sep). */
+    quoteUrl: settings.quoteUrl ?? '',
     address: settings.address,
     social: settings.social,
 

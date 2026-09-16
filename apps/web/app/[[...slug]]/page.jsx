@@ -79,11 +79,16 @@ export default async function CatchAllPage({ params }) {
   const { entry } = result
 
   /**
-   * Home page — `/` (client, 15 Sep, D-96). Settings ki zaroorat nahi: header/footer layout se aate
-   * hain, aur har section apna maal payload me le kar aata hai.
+   * Home page — `/` (client, 15 Sep, D-96).
+   *
+   * ⚠️ `settings` 16 Sep se chahiye: mobile ki neeche wali patti (`MobileBar`) usme se phone, WhatsApp
+   * aur `quoteUrl` uthati hai. Baaki har section apna maal payload me le kar aata hai, aur header/footer
+   * layout se — wo purana comment ("settings ki zaroorat nahi") ab is ek cheez ke liye galat tha.
    */
   if (entry.type === 'homePage') {
-    return <HomePage entry={entry} />
+    const settings = await getSettings()
+
+    return <HomePage entry={entry} settings={settings} />
   }
 
   if (entry.type === 'package') {

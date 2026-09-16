@@ -989,3 +989,17 @@ describe('Custom editor me SVG ka map (client, 16 Sep, D-96 §27)', () => {
     expect(html).not.toMatch(/<script|alert\(|data-i|tabindex/)
   })
 })
+
+describe('Mobile patti ka Get quote link (client, 16 Sep)', () => {
+  it('quoteUrl DB me jaata hai aur public settings me aata hai', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({ quoteUrl: '/contact-us' })
+    expect(res.status).toBe(200)
+
+    /** Response nahi, DB — model me field na ho to Mongoose chup-chaap gira deta hai (D-86). */
+    const { Settings } = await import('../modules/settings/model.js')
+    expect((await Settings.findOne({ siteId: 'default' }).lean()).quoteUrl).toBe('/contact-us')
+
+    const pub = await request(app).get('/api/public/settings')
+    expect(pub.body.data.settings.quoteUrl).toBe('/contact-us')
+  })
+})

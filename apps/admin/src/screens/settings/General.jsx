@@ -95,6 +95,7 @@ export default function General() {
       currency: settings.currency,
       phone: settings.phone,
       whatsapp: settings.whatsapp,
+      quoteUrl: settings.quoteUrl ?? '',
       address: settings.address,
       social: settings.social,
     }
@@ -359,6 +360,21 @@ export default function General() {
                   value={settings.whatsapp}
                   onChange={set('whatsapp')}
                 />
+              </div>
+
+              <div className="field">
+                <label htmlFor="s-quote-url">Get quote link</label>
+                <input
+                  id="s-quote-url"
+                  className="inp"
+                  placeholder="/contact-us"
+                  value={settings.quoteUrl ?? ''}
+                  onChange={set('quoteUrl')}
+                />
+                <div className="hint">
+                  Where the <b>Get free quote</b> button on the mobile bar goes, on pages without a
+                  form of their own. Leave it empty and that button is not shown.
+                </div>
               </div>
 
               <div className="field">

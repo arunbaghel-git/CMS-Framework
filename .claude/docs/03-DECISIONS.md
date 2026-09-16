@@ -8488,3 +8488,22 @@ reference me island pe click karne wala kaam poora ek `<script>` se chalta hai.
 
 ⚠️ Asli interactivity (click se panel badle) chahiye ho to wo custom editor se ban hi nahi sakti — uske liye
 apna section banega, jisme islands ki list admin me hogi.
+
+### 28. Home pe mobile ki patti — CTA popup nahi, link (client, 16 Sep)
+
+Client: _"mobile par form abhi jaisa hai same rahega, mobar bhi bana do; Get free quote ko contact page se
+link kar denge, popup nahi chahiye"_.
+
+- `settings.quoteUrl` (+ `Settings ▸ General ▸ Get quote link`) — khaali to wo button aata hi nahi (D-30)
+- `MobileBar` me naya `quoteUrl` — **doosra component nahi banaya**; wahi jodi jo `EnquiryForm` ke
+  `variant` pe hai (D-87 §11). `hasForm` ho to purana popup wala button, warna link
+- `HomePage` ab `settings` leta hai (catch-all se), aur patti `<main>` ke **bahar** hai
+
+⚠️ **Popup home pe jaan-boojh kar nahi** — home ka form hero me pehle se khula baitha hai; ek hi page pe do
+form ek doosre ko kaat-te.
+
+⚠️ **Ek purani chhoot yahin pakdi:** 760px se neeche `body { padding-bottom: 70px }` **har page** pe lagta
+hai (wo patti ke liye hai). Yaani home pe wo jagah mahino se khaali chhod di ja rahi thi aur patti thi hi
+nahi — patti chhoot gayi thi, hatayi nahi gayi thi.
+
+1 naya API test (DB + public payload). Koi migration nahi.

@@ -621,6 +621,17 @@ export const settingsSchema = z.object({
    * Iska UI Phase 4 (SEO screen) me aayega; field aaj se maujood hai taaki public site
    * bante hi wo isse padh sake.
    */
+  /**
+   * Mobile ki neeche wali patti ka **Get free quote** kahan le jaaye (client, 16 Sep).
+   *
+   * Package aur blog pe wo button isi page pe form ki sheet kholta hai (`EnquiryDock`). Home pe client ne
+   * saaf mana kiya — _"get free quote ko contact page se link kar denge, popup nahi chahiye"_ — kyunki home
+   * ka form hero me pehle se khula baitha hai; ek hi page pe do form ek doosre ko kaat-te.
+   *
+   * Khaali = patti me wo button hi nahi aata (D-30); Call aur WhatsApp phir bhi rahenge.
+   */
+  quoteUrl: z.string().trim().max(500).default(''),
+
   searchEngineVisible: z.boolean().default(false),
 
   /**

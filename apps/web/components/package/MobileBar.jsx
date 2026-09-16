@@ -19,6 +19,14 @@ import { useEnquiryDock } from './EnquiryDock.jsx'
  * Reference me bhi teen hi hain. Iska matlab hai ki mobile pe email ka option kahin nahi
  * bachta (Planner chhupa hua hai) — wo maloom hai aur chuna hua hai.
  *
+ * ## Home pe wahi patti, par **link** ke saath (client, 16 Sep)
+ *
+ * Home ka form hero me pehle se khula baitha hai, isliye client ne wahan popup mana kiya —
+ * _"get free quote ko contact page se link kar denge, popup nahi chahiye"_. Us soorat me `quoteUrl`
+ * aati hai (`Settings ▸ General ▸ Get quote link`) aur CTA ek saada link ban jaata hai.
+ *
+ * ⚠️ Doosra component nahi banaya — wahi galti hoti jo `EnquiryForm` pe bachayi gayi thi (variant, D-87 §11).
+ *
  * ## Yahan `<a>` aur `<button>` dono hain
  *
  * Call aur WhatsApp **jagah badalte hain** (`tel:`, `wa.me`) — wo link hain. "Get free quote"
@@ -48,7 +56,7 @@ const WhatsApp = () => (
 /** `+91 98100 66496` → `+919810066496`. `tel:` aur `wa.me` dono ko spaces pasand nahi. */
 const digits = (value) => String(value ?? '').replace(/[^\d+]/g, '')
 
-export default function MobileBar({ settings, hasForm }) {
+export default function MobileBar({ settings, hasForm, quoteUrl }) {
   const dock = useEnquiryDock()
 
   const phone = settings?.phone?.trim()
@@ -58,7 +66,10 @@ export default function MobileBar({ settings, hasForm }) {
    * Teenon me se kuch bhi na ho to patti banti hi nahi — ek khaali patti screen ka 70px kha
    * leti aur dikhti kuch nahi (D-30).
    */
-  if (!phone && !whatsapp && !hasForm) return null
+  /** Link wala CTA — page pe form na ho tab. Dono ek saath nahi chahiye. */
+  const quoteHref = !hasForm ? (quoteUrl ?? settings?.quoteUrl ?? '').trim() : ''
+
+  if (!phone && !whatsapp && !hasForm && !quoteHref) return null
 
   return (
     <nav className="mobar" aria-label="Quick contact">
@@ -85,6 +96,12 @@ export default function MobileBar({ settings, hasForm }) {
         <button className="mobar__cta" type="button" onClick={() => dock?.show()}>
           Get free quote
         </button>
+      )}
+
+      {quoteHref && (
+        <a className="mobar__cta" href={quoteHref}>
+          Get free quote
+        </a>
       )}
     </nav>
   )

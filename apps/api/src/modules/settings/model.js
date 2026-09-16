@@ -153,6 +153,9 @@ const settingsSchema = new mongoose.Schema(
     postsPageEntryId: { type: String, default: null },
     postsPerPage: { type: Number, default: 10 },
 
+    /** Mobile patti ka Get free quote link — khaali to wo button nahi aata (client, 16 Sep). */
+    quoteUrl: { type: String, default: '' },
+
     /** Staging pe safe default — spec 004 §3. Launch pe manually on hota hai. */
     searchEngineVisible: { type: Boolean, default: false },
 
