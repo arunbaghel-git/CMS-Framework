@@ -113,6 +113,13 @@ export async function updatePackageDefaults(input, siteId = DEFAULT_SITE_ID) {
   if (clean.bookingSteps !== undefined) $set.bookingSteps = withIds(clean.bookingSteps)
   if (clean.sectionLabels !== undefined) $set.sectionLabels = clean.sectionLabels
   /** `4.9 average from 412 trips` — hero aur reviews section dono isse chhapte hain. */
+  /**
+   * Breadcrumb ka beech wala kadam (client, 16 Sep) — pehle ye theme me hardcoded tha.
+   *
+   * ⚠️ Yahan likhna **zaroori** hai: upar wali chetavni isi whitelist ki hai. Chhoot jaata to admin
+   * "Saved." dikhata aur DB me kuch na jaata — paanchvi baar wahi jaal.
+   */
+  if (clean.archiveCrumb !== undefined) $set.archiveCrumb = clean.archiveCrumb
   if (input.rating !== undefined) $set.rating = input.rating
 
   /**

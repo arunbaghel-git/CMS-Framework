@@ -211,6 +211,22 @@ code ki nahi.
 
 ## 🔴 Ab bhi baaki
 
+### A-31 · Code me bacha hua site ka naam — hotel categories ka text (D-96 §33)
+
+**Deadline:** doosre client ka instance khadaa karne se **pehle** · **aaj kuch toota nahi**
+
+ ka  — chaar tab ke naam (···) aur unke
+teen-teen line ke description (Havelock · Neil · Port Blair · Marine Hill · Sitapur). Ye **har package page**
+pe chhapte hain, chahe content kisi bhi site ka ho. Yahi Q-9 wala  kaanta hai — par wahan sirf tab
+ke naam likhe the.
+
+Ilaaj:  me chaar category ka  (breadcrumb ka wahi saancha, §33), aur
+khaali pe theme ka aaj wala text **na** aaye — kyunki wahi Andaman ka hai.
+
+Chhota hissa: **admin ke placeholder** (, , , …). Save nahi hote, par doosre client ke admin me galat udaharan dikhenge.
+
+---
+
 ### A-30 · Customizer (admin se rang/font) ke liye tokens ke kaam wale naam
 
 **Deadline:** customizer ka kaam shuru hone se pehle · **aaj kuch toota nahi**

@@ -221,6 +221,25 @@ export const packageDefaultsSchema = z.object({
    * `value` dashmalav me hai (`4.9`) aur review card ka apna `rating` poora taara (1-5) —
    * do alag cheezein hain, isliye do alag jagah.
    */
+  /**
+   * Package page ke breadcrumb ka beech wala kadam — `Home › <ye> › Package` (client, 16 Sep).
+   *
+   * ⚠️ **Pehle ye theme me ek constant tha** (`ARCHIVE_CRUMB = { label: 'Andaman Tour Packages', href:
+   * '/andaman-tour-packages/' }`), yaani **code me ek site ka naam**. 26 Aug ko wo jaan-boojh kar hardcode
+   * hua tha (archive page tab bana hi nahi tha), par client ne 16 Sep ko theek sawaal poochha: _"kya koi
+   * Andaman-specific data hai jo doosri site ka content daalne par bhi Andaman ka naam dega, even in
+   * code?"_ — aur ye unme se ek tha.
+   *
+   * Dono khaali = breadcrumb me wo kadam hi nahi (`Home › Package`). Yaani naye instance pe kuch galat
+   * nahi chhapta — wahi D-30 wala niyam: jo cheez nahi hai, uski jagah khaali rahe, jhoothi nahi.
+   */
+  archiveCrumb: z
+    .object({
+      label: z.string().trim().max(120).default(''),
+      url: z.string().trim().max(500).default(''),
+    })
+    .default({}),
+
   rating: ratingSchema,
 
   /**

@@ -2583,6 +2583,17 @@ export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
     bookingSteps: doc.bookingSteps ?? [],
 
     /**
+     * Breadcrumb ka beech wala kadam — dono khaane bhare hon tabhi (client, 16 Sep).
+     *
+     * ⚠️ Aadha bhara hua (sirf label, ya sirf URL) yahin gir jaata hai, taaki theme ko ye shart yaad na
+     * rakhni pade — wahi niyam jo hero button aur CTA ke buttons pe hai (D-30).
+     */
+    archiveCrumb:
+      doc.archiveCrumb?.label?.trim() && doc.archiveCrumb?.url?.trim()
+        ? { label: doc.archiveCrumb.label, url: doc.archiveCrumb.url }
+        : null,
+
+    /**
      * ⚠️ Ye payload me **chhoot gaya tha** (31 Aug ko pakda).
      *
      * `PackagePage.jsx` do jagah `defaults.cancellationText` padhta hai — "Good to know"

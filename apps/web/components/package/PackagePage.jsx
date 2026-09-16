@@ -81,18 +81,15 @@ const MEAL_LABEL = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 /**
  * Breadcrumb ka beech wala crumb — package archive.
  *
- * ⚠️ **Ye Andaman-specific hai, aur jaan-boojh kar** (client, 1 Sep). Pehle ye crumb tha hi
- * nahi, kyunki archive page Phase 3 me banega aur "ek crumb jo 404 pe le jaaye, wo na hone
- * se bura hai". Client ne teen raaston me se hardcode chuna.
+ * ⚠️ **Ye pehle yahan hardcoded tha** (`Andaman Tour Packages` / `/andaman-tour-packages/`, client
+ * 1 Sep — tab archive page bana hi nahi tha). 16 Sep ko client ne poochha ki code me koi site-specific
+ * cheez to nahi bachi, aur ye unme se nikla. Ab wo `packageDefaults.archiveCrumb` se aata hai
+ * (**Packages ▸ Section Headings** me do khaane).
  *
- * Do baatein jo isse judi hain:
- *
- * - Naam aur URL dono **is client ke** hain. Doosre instance pe ye galat hoga — wahi haalat
- *   `TAB_NOTE` ki hai (Q-9, `09-OPEN-ITEMS.md`). Isiliye ye yahan ek constant hai, JSX me
- *   bikhra hua nahi: badalna ek line ka kaam rahe.
- * - Jis din archive page bane, iska `href` waise hi rahega — sirf 404 dena band kar dega.
+ * Dono khaane bhare hon tabhi crumb banta hai — server hi aadha bhara hua gira deta hai (D-30), isliye
+ * yahan sirf `null` ki jaanch hai. Khaali pe breadcrumb `Home › Package` reh jaata hai, jo naye instance
+ * pe bilkul theek hai: ek crumb jo 404 pe le jaaye, usse na hona behtar hai.
  */
-const ARCHIVE_CRUMB = { label: 'Andaman Tour Packages', href: '/andaman-tour-packages/' }
 
 /**
  * What's included ke tick aur cross — reference ke inline SVG.
@@ -263,6 +260,8 @@ export default function PackagePage({ entry, defaults, settings }) {
   const included = defaults?.whatsIncluded?.included ?? []
   const excluded = defaults?.whatsIncluded?.excluded ?? []
   const steps = defaults?.bookingSteps ?? []
+  /** Breadcrumb ka beech wala kadam — server aadha bhara hua pehle hi gira chuka hai (D-30). */
+  const crumb = defaults?.archiveCrumb ?? null
   /**
    * Hero ke paanch tiles — **har request pe naye** (D-85).
    *
@@ -372,7 +371,8 @@ export default function PackagePage({ entry, defaults, settings }) {
             settings={settings}
             breadcrumbs={[
               { name: 'Home', path: '/' },
-              { name: ARCHIVE_CRUMB.label, path: ARCHIVE_CRUMB.href },
+              /* Crumb na ho to schema me bhi wo kadam nahi — warna structured data page se alag ho jaata. */
+              ...(crumb ? [{ name: crumb.label, path: crumb.url }] : []),
               { name: entry.title, path: entry.path },
             ]}
           />
@@ -381,8 +381,12 @@ export default function PackagePage({ entry, defaults, settings }) {
           <nav className="wrap vcrumb" aria-label="Breadcrumb">
             <a href="/">Home</a>
             <i>›</i>
-            <a href={ARCHIVE_CRUMB.href}>{ARCHIVE_CRUMB.label}</a>
-            <i>›</i>
+            {crumb ? (
+              <>
+                <a href={crumb.url}>{crumb.label}</a>
+                <i>›</i>
+              </>
+            ) : null}
             <b>{entry.title}</b>
           </nav>
 

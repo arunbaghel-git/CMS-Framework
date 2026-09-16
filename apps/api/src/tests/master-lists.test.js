@@ -512,6 +512,41 @@ describe('packageDefaults', () => {
     expect(await PackageDefaults.countDocuments({})).toBe(1)
   })
 
+  /**
+   * Breadcrumb ka beech wala kadam — pehle ye **theme me hardcoded** tha (`Andaman Tour Packages`),
+   * yaani code me ek site ka naam. Client ne 16 Sep ko khud pakda.
+   *
+   * ⚠️ Test **DB padhta hai, response nahi** — `updatePackageDefaults()` ki whitelist wala jaal chaar
+   * baar lag chuka hai: Zod pass, API 200, admin "Saved.", aur DB me purani value.
+   */
+  it('archiveCrumb DB tak jaata hai, aur aadha bhara hua public payload me nahi aata', async () => {
+    const res = await authed('patch', '/api/package-defaults', adminJar).send({
+      archiveCrumb: { label: 'Tour Packages', url: '/tour-packages' },
+    })
+
+    expect(res.status).toBe(200)
+    expect((await PackageDefaults.findOne({}).lean()).archiveCrumb).toMatchObject({
+      label: 'Tour Packages',
+      url: '/tour-packages',
+    })
+
+    const pub = await request(app).get('/api/public/package-defaults')
+    if (pub.status === 200) {
+      expect(pub.body.data.packageDefaults.archiveCrumb).toEqual({
+        label: 'Tour Packages',
+        url: '/tour-packages',
+      })
+    }
+
+    /** Sirf label (ya sirf URL) — crumb banta hi nahi, taaki theme ko ye shart yaad na rakhni pade. */
+    await authed('patch', '/api/package-defaults', adminJar).send({
+      archiveCrumb: { label: 'Tour Packages', url: '' },
+    })
+
+    const { getPublicPackageDefaults } = await import('../modules/public/service.js')
+    expect((await getPublicPackageDefaults()).archiveCrumb).toBeNull()
+  })
+
   it('dobara read pe doosra document nahi banta', async () => {
     await authed('get', '/api/package-defaults', adminJar)
     await authed('get', '/api/package-defaults', adminJar)

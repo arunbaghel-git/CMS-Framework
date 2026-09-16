@@ -80,6 +80,12 @@ const packageDefaultsSchema = new mongoose.Schema(
      * purane documents ko koi migration nahi chahiye — unpe aaj bhi wahi chhapega jo kal
      * chhapta tha.
      */
+    /** Breadcrumb ka beech wala kadam (client, 16 Sep) — pehle theme me hardcoded tha. */
+    archiveCrumb: {
+      label: { type: String, default: '' },
+      url: { type: String, default: '' },
+    },
+
     sectionLabels: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 
     /** Structured data on/off — ab site-level (D-82). Default on. */

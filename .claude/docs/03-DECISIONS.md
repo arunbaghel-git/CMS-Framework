@@ -8725,3 +8725,35 @@ hota ek aisa page jo kal customizer (A-30) ke saath badle hi na.
 
 ⚠️ Dev me iska HTML stream hota hai, isliye `curl` ko sirf shell dikhta hai — markup RSC payload me hai.
 Aankh se dekhna baaki (A-28 ki list me).
+
+### 33. Code me bacha hua site ka naam — breadcrumb (client, 16 Sep)
+
+Client ka sawaal seedha tha: _"kya koi Andaman-specific data hai jo doosri site ka content daalne par bhi
+Andaman ka naam dega, **even in code**?"_ Poore `apps/` pe grep kiya (comments aur test chhod kar), aur jo
+mila wo yahan likha hai. **Do jagah asli thi:**
+
+| # | Kahan | Kya chhapta tha |
+| --- | --- | --- |
+| 1 | `PackagePage.jsx` ka `ARCHIVE_CRUMB` | har package page ke breadcrumb me `Andaman Tour Packages` aur link `/andaman-tour-packages/` |
+| 2 | `Pricing.jsx` ka `CATEGORY_COPY` | chaar tab ke naam (`Base`·`Sea-facing`·`Beachfront`·`Villas`) **aur** unke teen-teen line ke description, jinme Havelock · Neil · Port Blair · Marine Hill · Sitapur likhe hain |
+
+**Is section me #1 theek hua** (client: _"#1 karo"_):
+
+- `packageDefaults.archiveCrumb` (`label` + `url`), admin me **Packages ▸ Section Headings** ke neeche do khaane
+- Payload: **dono bhare hon tabhi** crumb jaata hai, warna `null` — aadhi shart theme me nahi likhni padti (D-30)
+- Theme: khaali pe breadcrumb `Home › Package` reh jaata hai. Naye instance pe yahi sahi hai — _"ek crumb jo
+  404 pe le jaaye, usse na hona behtar"_ (1 Sep ka wahi tark, ab data se)
+- ⚠️ `updatePackageDefaults()` ki **whitelist me bhi jodna pada** — wo jaal chaar baar lag chuka hai, isliye
+  test **DB padhta hai, response nahi**
+
+⚠️ **#2 abhi bacha hua hai** aur wo bada hai: wo sirf naam nahi, poore vaakya hain jo har package page pe
+chhapte hain. Ye wahi `TAB_NOTE` wala kaanta hai jo **Q-9** me "sabse tez" likha gaya tha — par wahan sirf
+tab ke naam likhe the, jabki asal me description bhi wahin hain.
+
+**Chhota hissa — admin ke placeholder** (`Plan your Andaman trip`, `Operating from Port Blair`,
+`Radhanagar Beach`, `e.g. 6N Blissful Andaman`, `Andaman Tourism team`, `tel:+919810066496`…). Ye **save
+nahi hote** aur page pe kabhi nahi jaate, par doosre client ke admin me udaharan galat site ke dikhenge.
+
+✅ **Jo saaf nikla:** seed (naya instance `My Site` naam se banta hai), `package-sections.js` ke saare default
+heading (generic: `About this itinerary`, `Hotels on this package`), 404, header, footer, mobile patti, aur
+home ke saare section.
