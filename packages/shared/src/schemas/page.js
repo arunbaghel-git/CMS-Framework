@@ -127,6 +127,14 @@ export const sectionBackgroundSchema = z
   .default('')
 
 /**
+ * Page ka apna prose — title ke upar ki chhoti line, aur uske neeche ka sub heading.
+ *
+ * `eyebrow` **per-page** hai (faisla #13), par breadcrumb ka label **nahi** — wo parent se
+ * auto banta hai (faisla #12). Do alag cheezein hain jo dikhne me ek jaisi lagti hain.
+ */
+export const eyebrowSchema = z.string().trim().max(120).default('')
+
+/**
  * Hero ka ek number — reference ka `.hero__stats .stat` (`17 yrs` / `Operating from Port Blair`).
  *
  * ⚠️ `statSchema` reuse **nahi** kiya: uske `suffix` aur `highlight` Tour ke `.vrail` ki cheezein
@@ -152,6 +160,15 @@ export const heroStatSchema = z.object({
  */
 export const heroFormPropsSchema = z.object({
   background: sectionBackgroundSchema,
+
+  /**
+   * Title ke upar ki chhoti line — `4.8 on Google · Govt. enlisted since 2009` (client, 16 Sep).
+   *
+   * ⚠️ Reference ke home hero me ye ek **chip** hai (`.hero__eyebrow` — gol pill, border ke saath), par
+   * client ne **tour/blog wala `.vhero__eye`** maanga: saadi uppercase line, sunehra star. Wahi field
+   * (`eyebrowSchema`) jo `tourPage` pe hai — plain text, koi HTML nahi.
+   */
+  eyebrow: eyebrowSchema,
 
   /**
    * Do image — desktop aur mobile. Mobile khaali ho to desktop wali (theme ka `<picture>`).
@@ -1113,14 +1130,6 @@ export const statSchema = z.object({
 
 /** Reference me chaar hain, aur `.vrail__in` ka grid chaar se zyada pe toot-ta hai. */
 export const statRailSchema = z.array(statSchema).max(4).default([])
-
-/**
- * Page ka apna prose — title ke upar ki chhoti line, aur uske neeche ka sub heading.
- *
- * `eyebrow` **per-page** hai (faisla #13), par breadcrumb ka label **nahi** — wo parent se
- * auto banta hai (faisla #12). Do alag cheezein hain jo dikhne me ek jaisi lagti hain.
- */
-export const eyebrowSchema = z.string().trim().max(120).default('')
 
 /** Sub heading ek asli editor hai, plain text nahi (faisla #3) — isliye HTML. */
 export const subheadingSchema = htmlSchema.pipe(z.string().max(2000)).default('')

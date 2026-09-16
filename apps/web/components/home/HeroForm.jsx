@@ -1,3 +1,4 @@
+import Icon from '../Icon.jsx'
 import Img from '../Img.jsx'
 import EnquiryForm from '../package/EnquiryForm.jsx'
 
@@ -33,7 +34,8 @@ import EnquiryForm from '../package/EnquiryForm.jsx'
  * form wapas aane pe layout na kude.
  */
 export default function HeroForm({ props = {}, data = {} }) {
-  const { background, title, description, stats = [], ribbon, formHeading, formDescription } = props
+  const { background, eyebrow, title, description, stats = [] } = props
+  const { ribbon, formHeading, formDescription } = props
   const { image, mobileImage, form } = data
 
   return (
@@ -48,6 +50,17 @@ export default function HeroForm({ props = {}, data = {} }) {
       <div className="wrap hf-hero__in">
         <div className="hf-hero__grid">
           <div className="hf-hero__copy">
+            {/*
+             * Title ke upar ki line (client, 16 Sep). Class **tour/blog wali** `.vhero__eye` hai —
+             * client ne wahi look maanga, reference ke chip (`.hero__eyebrow`) ki jagah.
+             */}
+            {eyebrow ? (
+              <span className="vhero__eye">
+                <Icon name="star" size={12} filled />
+                {eyebrow}
+              </span>
+            ) : null}
+
             {/* Admin ki inline HTML, write pe saaf (R20). Italic = accent rang. */}
             {title ? <h1 dangerouslySetInnerHTML={{ __html: title }} /> : null}
             {description ? (

@@ -30,13 +30,6 @@ import TourSchema from './TourSchema.jsx'
  * `type === 'page'` ki shartein bhar dena wahi bikhraav hota jise D-09 ne mana kiya tha.
  */
 
-/** Hero ka eyebrow star — reference ka `.vhero__eye` ka icon. */
-const Star = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2 9.2 8.6 2 9.2l5.5 4.7L5.8 21 12 17.3 18.2 21l-1.7-7.1L22 9.2l-7.2-.6z" />
-  </svg>
-)
-
 export default function TourPage({ entry, settings }) {
   const { fields = {}, banner, breadcrumbs = [], sidebar, sidebarWidgets = [] } = entry
 
@@ -128,7 +121,8 @@ export default function TourPage({ entry, settings }) {
 
             {fields.eyebrow && (
               <span className="vhero__eye">
-                <Star />
+                {/* Reference ka bhara hua star (`.vhero__eye svg`) — home ka hero bhi yahi hai. */}
+                <Icon name="star" size={12} filled />
                 {fields.eyebrow}
               </span>
             )}

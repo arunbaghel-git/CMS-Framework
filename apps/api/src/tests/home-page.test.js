@@ -214,6 +214,25 @@ describe('hero section — write pe', () => {
     expect(doc.content.blocks[0].props.background).toBe('#0b2b4a')
   })
 
+  it('eyebrow plain text hai — HTML gir jaati hai, payload me jaata hai (16 Sep)', async () => {
+    const created = (
+      await createHome({
+        content: {
+          version: 1,
+          blocks: [heroBlock({ eyebrow: '4.8 on Google <b>·</b> since 2009' })],
+        },
+      })
+    ).body.data.entry
+
+    // Plain string schema — tag text ki tarah bachte hain, render pe kabhi HTML nahi bante
+    const doc = await Entry.findById(created.id).lean()
+    expect(doc.content.blocks[0].props.eyebrow).toBe('4.8 on Google <b>·</b> since 2009')
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: '/' })
+    expect(res.body.data.entry.blocks[0].props.eyebrow).toBe('4.8 on Google <b>·</b> since 2009')
+  })
+
   it('background me CSS ghusaana mana hai', async () => {
     // Ye value theme me inline `style` me jaati hai — `;` ya `url()` yahan se guzar hi na sake
     const res = await createHome({

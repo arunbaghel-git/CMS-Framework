@@ -8306,6 +8306,43 @@ neeche sunehre golon ki row (`2018` / `CHOICE`). Client: _"static section, tell 
 
 Dono ke 5 API test (asli DB) + 2 shared. Koi migration nahi. **1139 test** pass.
 
+### 24. Client ke teen fix — hero ka eyebrow, About us ka box, islands ka tag (client, 16 Sep)
+
+Client ne reference **browser me chala kar** screenshot bheji (R15: jo dikh raha hai wahi design hai). Koi
+migration nahi.
+
+**1. Home hero pe eyebrow** — `heroFormPropsSchema.eyebrow` (wahi `eyebrowSchema` jo `tourPage` pe hai;
+plain text, koi HTML nahi). Admin me `Hero with form` ka naya khaana.
+
+⚠️ Reference ke home hero me ye ek **chip** hai (`.hero__eyebrow` — gol pill, border, halka background), par
+client ne **`.vhero__eye`** maanga — tour/blog wali saadi uppercase line + sunehra star. Wahi class reuse hui;
+sirf jagah ki doori home ke liye alag (`.hf-hero__copy .vhero__eye`), kyunki tour me wo breadcrumb ke neeche
+baithta hai aur home me sabse upar.
+
+⚠️ **Star ab `Icon` se** — `TourPage.jsx` me uska apna `<Star/>` tha; doosri jagah aate hi wo do copies ban
+jaata. `Icon` ko naya `filled` prop mila (`fill: currentColor`, `stroke: none`), aur dono jagah wahi hai.
+`eyebrowSchema` ki jagah bhi badli — wo `heroFormPropsSchema` ke **baad** define hoti thi, yaani seedha use
+karne pe TDZ error milta.
+
+**2. About us ka box — na radius, na shadow, aur image kati hui nahi.**
+
+Ye sabse seekhne layak hai: reference ki CSS me `.vidbox` pe `border-radius: var(--r4)`, `overflow: hidden`
+aur `aspect-ratio: 16/11` **likhe hue hain** — par uska markup ek **inline `<a>`** hai. Inline box pe
+`overflow` lagta hi nahi, radius dikhta nahi, aur `aspect-ratio` bhi nahi chalti. Isliye asli page pe kone
+seedhe hain aur image apni ratio me chhapti hai. **Likhi hui CSS aur chalti hui CSS alag thi, aur maine likhi
+hui padh kar bana diya tha.** Ab hamara box bhi wahi karta hai (image na ho to `.txv__box--noimg` se 16/11,
+warna box gir jaata).
+
+⚠️ Ye D-89/D-91 wali galti ka **ulta roop** hai: wahan reference ki CSS dekh kar markup maan liya gaya tha,
+yahan CSS dekh kar uska **asar** maan liya gaya. Dono ka ilaaj ek hai — reference ko **chala kar** dekho.
+
+**3. Islands ke card ka tag chhoti line ke saath** — `.imcc__b` ab flex column nahi, saada block (reference ka
+`.isl__b`): title apni line pe, aur uske neeche subtitle + chip **ek hi line me**. Chip `inline-block` hai
+(`margin-left: 7px`). Flex column har bachche ko apni line deta tha.
+
+1 naya API test (eyebrow plain text hai aur payload me jaata hai). ⚠️ Poori suite is machine pe **disk full**
+(`ENOSPC`) ki wajah se nahi chal payi — aaj ke hisse ke 309 test pass (home + shared + web).
+
 ### 20. Package Type pe badge ka rang (client, usi din)
 
 Client: _"Package Type ke Add/Edit me color picker, Posts ki Category jaisa — badge ko apna rang mile"_.

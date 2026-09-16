@@ -4990,6 +4990,15 @@ a.mega__gl:hover {
   color: var(--gold);
 }
 
+/*
+ * Home ke hero me eyebrow **sabse upar** hai; tour/blog me wo breadcrumb ke neeche baithta hai, isliye
+ * wahan uska `padding-top` hai. Yahan uski jagah title se doori chahiye (client, 16 Sep).
+ */
+.hf-hero__copy .vhero__eye {
+  padding-top: 0;
+  margin-bottom: 12px;
+}
+
 /* `.hf-hero h1` — home ka hero bhi yahi font (client, 15 Sep: "sabka same rahe", D-96). */
 .vhero h1,
 .hf-hero h1 {
@@ -7580,19 +7589,22 @@ a.imcc:hover img {
   );
 }
 
+/*
+ * ⚠️ Yahan flex column **nahi** — reference (`.isl__b`) ek saada block hai: title apni line pe, aur uske
+ * neeche chhoti line + tag **ek hi line me** behte hain (client, 16 Sep: _"tag should align with small
+ * text"_). Flex column har bachche ko apni line de deta tha, isliye chip alag line pe chala jaata tha.
+ */
 .imcc__b {
+  display: block;
   position: relative;
   z-index: 2;
   width: 100%;
   padding: 13px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
 }
 
 /* Card title — reference ka 14.5px, hamara 14px (client, 15 Sep: .5 wale naap poore karo). */
 .imcc__b b {
+  display: block;
   color: #fff;
   font-size: var(--fs-base);
   font-weight: var(--fw-heading);
@@ -7605,10 +7617,12 @@ a.imcc:hover img {
   color: rgb(255 255 255 / 72%);
 }
 
-/* Islands ki chip — `.isl__b em` */
+/* Islands ki chip — `.isl__b em`. `inline-block` taaki wo chhoti line ke saath hi rahe. */
 .imcc__b em {
+  display: inline-block;
   font-style: normal;
   margin-top: 7px;
+  margin-left: 7px;
   font-size: var(--fs-5xs);
   font-weight: var(--fw-heading);
   background: rgb(255 255 255 / 18%);
@@ -7618,7 +7632,6 @@ a.imcc:hover img {
 }
 
 .imcc--center .imcc__b {
-  align-items: center;
   text-align: center;
 }
 
@@ -7963,7 +7976,7 @@ a.imcc:hover img {
 
 .ipkc__route {
   display: flex;
-  align-items: center;
+  align-items: self-start;
   gap: 4px;
   font-size: var(--fs-3xs);
   font-weight: var(--fw-semi);
@@ -7973,6 +7986,7 @@ a.imcc:hover img {
 
 .ipkc__route svg {
   flex-shrink: 0;
+  margin-top: 4px;
   color: var(--blue-500);
 }
 
@@ -8426,20 +8440,30 @@ a.imcc:hover img {
 
 /* ---- image / video box ---- */
 
+/*
+ * ⚠️ **Na radius, na shadow, aur image apni ratio me** — client ne 16 Sep ko reference **chala kar**
+ * dikhaya (R15: jo dikh raha hai wahi design hai).
+ *
+ * Reference ki CSS me `.vidbox` pe `border-radius: var(--r4)` aur `overflow: hidden` likha hai, par uska
+ * markup ek **inline `<a>`** hai — inline box pe `overflow` lagta hi nahi aur radius kabhi dikhta nahi.
+ * Isi wajah se uski `aspect-ratio` bhi nahi chalti: image apni asli naap me chhapti hai. Yaani likhi hui
+ * CSS aur chalti hui CSS alag hain, aur client ne chalti hui wali chuni.
+ */
 .txv__box {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 11;
   border: 0;
   padding: 0;
-  border-radius: var(--r4);
-  overflow: hidden;
   background: var(--blue-900);
-  box-shadow: var(--sh-3);
   text-align: left;
   font: inherit;
   color: #fff;
+}
+
+/* Sirf video link, koi image nahi — tab box ki apni oonchai (reference me ye soorat hai hi nahi) */
+.txv__box--noimg {
+  aspect-ratio: 16 / 11;
 }
 
 button.txv__box,
@@ -8448,9 +8472,9 @@ a.txv__box {
 }
 
 .txv__box img {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   opacity: 0.75;
 }
 

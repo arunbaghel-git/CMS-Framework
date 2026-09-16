@@ -199,6 +199,7 @@ function emptyBlock(type) {
       background: '',
       imageId: null,
       mobileImageId: null,
+      eyebrow: '',
       title: '',
       description: '',
       stats: [],
@@ -1328,6 +1329,20 @@ function HeroFormBlock({ props, onChange, disabled }) {
           onSelect={(chosen) => set({ mobileImageId: chosen.id })}
           onClear={() => set({ mobileImageId: null })}
         />
+      </div>
+
+      <div className="field">
+        <label>Eyebrow</label>
+        <input
+          className="inp"
+          placeholder="Optional — e.g. 4.8 on Google · Govt. enlisted since 2009"
+          value={props.eyebrow ?? ''}
+          onChange={(e) => set({ eyebrow: e.target.value })}
+          disabled={disabled}
+        />
+        <div className="hint">
+          The small line above the title, with a star. Leave it empty to hide it.
+        </div>
       </div>
 
       <div className="field">

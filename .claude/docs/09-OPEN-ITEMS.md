@@ -258,6 +258,9 @@ dikhta hai.
 | 16 | **Text with video** (§22): do column 1.05:0.95, Side Left, 1024px se neeche image text ke neeche; YouTube popup (Esc/parda/focus wapas), Instagram link naye tab, khaali link pe saada image (na ▶, na parda); caption | Tests + sample data ka server render (chaaron haalat) |
 | 17 | **Award badges** (§23): gola 74/60px, badge colour badalne pe border/saal/label ka rang, upload wali badge image gole me, row wrap | Tests + sample render. ⚠️ Rang ka bug render se pakda (neeche ka variable dhak raha tha) — theek |
 | 18 | **Customer reviews ka popup** abhi bhi chalta hai — popup `VideoModal.jsx` me nikla (§22) | Refactor, bartaav wahi; browser me nahi dekha |
+| 19 | **Hero ka Eyebrow** (§24): admin me text bharo → title ke upar star wali line | Dev server pe CSS verify; text client bharega |
+| 20 | **About us ka box** (§24): kone seedhe, koi shadow nahi, image poori (kati hui nahi) | CSS bundle se verify, aankh se nahi |
+| 21 | **Islands ka tag** (§24): chip chhoti line ke saath usi line me, wrap hone pe theek dikhe | CSS bundle se verify, aankh se nahi |
 
 ---
 

@@ -153,8 +153,9 @@ const PATHS = {
  * @param {string} [props.className]
  * @param {number} [props.size]
  * @param {number} [props.strokeWidth] Footer ke icons reference me patle hain (2), buttons pe 2.2
+ * @param {boolean} [props.filled] Bhara hua icon — hero ke eyebrow ka star (`.vhero__eye svg`)
  */
-export default function Icon({ name, className, size = 16, strokeWidth = 2.2 }) {
+export default function Icon({ name, className, size = 16, strokeWidth = 2.2, filled = false }) {
   const path = PATHS[name]
   // `none`, khaali, ya koi anjaan value — teenon pe kuch render nahi hota
   if (!path) return null
@@ -165,9 +166,9 @@ export default function Icon({ name, className, size = 16, strokeWidth = 2.2 }) 
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
+      fill={filled ? 'currentColor' : 'none'}
+      stroke={filled ? 'none' : 'currentColor'}
+      strokeWidth={filled ? undefined : strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

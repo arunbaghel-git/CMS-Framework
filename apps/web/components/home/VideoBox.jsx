@@ -21,7 +21,15 @@ export default function VideoBox({ image, videoUrl, embedUrl, title, text }) {
   const openerRef = useRef(null)
 
   const hasCaption = Boolean(title || text)
-  const cls = `txv__box${videoUrl ? '' : ' txv__box--plain'}${hasCaption ? ' txv__box--cap' : ''}`
+  const cls = [
+    'txv__box',
+    videoUrl ? '' : 'txv__box--plain',
+    hasCaption ? 'txv__box--cap' : '',
+    /** Image na ho to box ki apni oonchai chahiye — warna sirf video link pe wo gir jaata hai. */
+    image ? '' : 'txv__box--noimg',
+  ]
+    .filter(Boolean)
+    .join(' ')
   const label = title || 'Video'
 
   const inner = (
