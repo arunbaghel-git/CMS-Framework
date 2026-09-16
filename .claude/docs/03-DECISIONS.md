@@ -8705,3 +8705,23 @@ aur `.contact-methods` ka `background/border/padding`) — memory ka niyam: clie
 wo attribute gir raha tha, aur us link ka screen reader ke liye **koi naam bachta hi nahi**. Ye galti
 aankhon se dikhti hi nahi. Attribute nirjeev hai (sirf naam batata hai), isliye allow karne se koi naya
 raasta nahi khulta. 1 naya test: `aria-label` bache, `onclick` phir bhi gire.
+
+### 32. Site ka apna 404 (client, 16 Sep)
+
+Client: _"abhi theek hai, par accha nahi lag raha"_. Wajah ye thi ki **hamara 404 tha hi nahi** — Next ka
+apna default aata tha (system font me `404 | This page could not be found.`), aur uske upar-neeche hamara
+header aur footer. Yaani visitor ko site ke beech me ek anjaan page milta tha.
+
+`apps/web/app/not-found.jsx` — bada halka `404`, ek heading, do line, aur teen tak button.
+
+⚠️ **Har link settings se, ek bhi hardcoded nahi** — `/` (wo har site pe hota hai), `settings.quoteUrl`
+(Get quote link) aur `settings.whatsapp`. Jo na ho uska button banta hi nahi (D-30). `/packages` ya
+`/contact` jaisa raasta likhna R3 ka ulta hota: routing ka ekmatra source `entries.path` hai, aur har
+client ke page alag hote hain.
+
+⚠️ **Koi naya rang ya naap nahi** — design ki koi reference file 404 ke liye hai hi nahi, isliye page poori
+tarah site ke apne tokens pe khada hai (wahi halka neela section, wahi buttons). Naya kuch gadhne ka matlab
+hota ek aisa page jo kal customizer (A-30) ke saath badle hi na.
+
+⚠️ Dev me iska HTML stream hota hai, isliye `curl` ko sirf shell dikhta hai — markup RSC payload me hai.
+Aankh se dekhna baaki (A-28 ki list me).

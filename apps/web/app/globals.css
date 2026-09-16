@@ -9565,3 +9565,68 @@ a.txv__box:hover .txv__p {
   background: var(--blue-50);
   color: var(--blue-600);
 }
+
+/* ---- 404 (client, 16 Sep) — site ka apna, Next ke default ki jagah ---- */
+
+/*
+ * Design ka koi reference nahi hai (client ke paas 404 ki file nahi thi), isliye ye poori tarah site ke
+ * apne tokens pe khada hai: wahi halka neela section jo har page ke content ke peeche hai, wahi card, wahi
+ * buttons. Naya rang ya naya naap ek bhi nahi.
+ */
+.nf {
+  background: var(--blue-50);
+  padding-block: clamp(48px, 7vw, 96px);
+}
+
+.nf__in {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 640px;
+  text-align: center;
+}
+
+/*
+ * Bada `404` — page ka sabse pehla ishara. Rang halka isliye ki wo heading se dhyaan na chheene:
+ * visitor ko ye jaanna hai ki **ab kya karein**, ye nahi ki error ka number kya tha.
+ */
+.nf__code {
+  font-size: clamp(56px, 12vw, 104px);
+  font-weight: var(--fw-black);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: color-mix(in srgb, var(--blue-600) 22%, transparent);
+}
+
+.nf h1 {
+  margin-top: 6px;
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-heading);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.nf p {
+  margin-top: 10px;
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: var(--body);
+}
+
+.nf__btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+/* Site ka naam — halka, sabse neeche; page khaali na lage aur visitor ko pata rahe ki wo kahan hai */
+.nf__site {
+  margin-top: 26px;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}

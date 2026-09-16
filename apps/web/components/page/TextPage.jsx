@@ -159,7 +159,12 @@ export default function TextPage({ entry, settings }) {
              * (client, 14 Sep). Pehle `' · '` se jodi hui ek hi line thi, to dot ke dono taraf sirf ek
              * space aata tha; ab `.ahead__m` ka flex `gap` barabar jagah deta hai.
              */}
-            {bylineParts.length > 0 && (
+            {/*
+             * ⚠️ **Section layout pe byline nahi** (client, 16 Sep: _"contact page pe Updated · min read
+             * nahi chahiye, wo pages ke liye hai"_). Bilkul theek — `contact-us.html` ke hero me wo hai hi
+             * nahi; wo `page-template-text.html` (article jaisa page) ki cheez hai.
+             */}
+            {!sections && bylineParts.length > 0 && (
               <div className="ahead__m">
                 {bylineParts.map((part, i) => (
                   <Fragment key={part}>
