@@ -111,6 +111,8 @@ flake nikla (akele pass). Lint · format · admin build pass.
   About us ka box **bina radius/shadow** aur image **bina crop** (reference ki likhi CSS uske inline `<a>` pe
   chalti hi nahi — usse **chala kar** dekhna zaroori tha), aur islands ka tag chhoti line ke **saath ek line me**.
   ⚠️ Is machine pe **C: bhar gayi thi** — poori suite `ENOSPC` pe girti hai; aaj ke hisse ke 309 test pass
+- **16 Sep — Tour ka `Read more:`** (§26): content me nishaan likho, uske aage ka sab collapse —
+  `<details>`, koi JS/field/checkbox nahi. Sirf Tour/Package ke Text block pe
 - **16 Sep — Custom editor + Custom CSS** (§25): naya `customHtml` block (**home aur Tour dono pe**), aur
   `Settings ▸ Custom CSS` (`settings.customCss`) jo **har page** ke `<head>` me jaati hai (client ka faisla).
   Block me `<style>` likha hi nahi ja sakta — sanitizer use girata hai, isliye CSS ka ghar settings hai

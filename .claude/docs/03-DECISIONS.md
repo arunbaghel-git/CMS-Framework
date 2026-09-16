@@ -8427,3 +8427,33 @@ ka wo section khol kar dekh lena tha.
 **§21 amendment (client, 16 Sep):** is section ka admin me naam **Package cards** hai, "Offer cards" nahi.
 ⚠️ Badla sirf **label** (`BLOCK_LABEL` aur band panel ki summary) — block ka `type` `offerCards` hi rahega,
 kyunki wo DB me stored data hai (R6). Purani docs me purana naam mile to wo us waqt ka sach hai.
+
+### 26. Tour page pe `Read more:` — nishaan se collapse (client, 16 Sep)
+
+Client: pehle section (`Andaman tour packages for 2026`) lamba ho jaata hai, to uska aage ka hissa chhupe
+aur **Read more / Read less** se khule.
+
+**Pehla khayal shabd ginne ka tha, aur wo client ne khud chhod diya.** Maine do cheezein rakhi thin —
+ginti se kaatne pe HTML ke tag beech me toot-te hain, aur client ko dikhta hi nahi ki page pe kahan se
+kategga. Uske baad client ka apna sujhav aaya, aur wo is repo ka **pehle se chalta hua** pattern nikla:
+
+> _"user put a read more text in editor … jahan read more add kiya wahan se collapse automatically"_
+
+Yaani wahi ghar jahan `Note:` · `Warning:` · `Quote:` · `Caption:` rehte hain (D-92 §10): **nishaan content
+me, dhaancha theme me**. Isliye is kaam me **na koi naya field bana, na checkbox, na settings** — sirf
+`readMoreSplit()` (`apps/web/lib/article-html.js`, 4 naye test).
+
+| Editor me | Page pe |
+| --- | --- |
+| `Read more:` | uske aage ka sab `<details>` me, link ka text **Read more** |
+| `Read more: Poori jaankari` | wahi, par link **Poori jaankari** |
+
+- **`<details>`, koi JS nahi** — wahi faisla jo FAQ pe hai (D-59). SSR pe theek, hydration ka sawaal hi nahi
+- Label band pe client ka, khule pe hamesha **Read less** (`.rdm__m` / `.rdm__l`, CSS se badalta hai)
+- Pehla nishaan hi chalta hai; baad wale hat jaate hain (warna wo page pe literally chhap jaate), aur
+  nishaan ke aage kuch na ho to wo bhi bas hat jaata hai (D-30)
+- ⚠️ **Sirf `wrapTables` wale raaste pe** — Tour aur Package page ke Text block. Blog/Page ka article
+  `articleHtml()` se jaata hai aur wahan ye nishaan abhi kuch nahi karta (client: _"only in tour page"_).
+  Chahiye ho to ek line ka kaam hai
+- ⚠️ Admin ke editor me client ko wahi `Read more:` wali line dikhegi, dabba nahi — wahi **A-23**, aur wahi
+  jaan-boojh kar: content saaf rehta hai aur nishaan hata dene se page apne aap purana ho jaata hai

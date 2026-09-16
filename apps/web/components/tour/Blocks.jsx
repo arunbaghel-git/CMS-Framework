@@ -4,7 +4,7 @@ import CustomHtml from '../CustomHtml.jsx'
 import { BlogFilterProvider } from '../blog/BlogFilter.jsx'
 import PostList from '../blog/PostList.jsx'
 import PostListLead from '../blog/PostListLead.jsx'
-import { articleHtml, wrapTables } from '../../lib/article-html.js'
+import { articleHtml, readMoreSplit, wrapTables } from '../../lib/article-html.js'
 import PackageList from './PackageList.jsx'
 
 /**
@@ -63,7 +63,12 @@ function RichTextBlock({ props, article, lead }) {
    * ⚠️ `lead` — `page` pe `false` (D-95): callout · caption · table sab, par bada pehla
    * paragraph nahi. Post pe default `true`.
    */
-  const html = article ? articleHtml(props.html, { lead }) : wrapTables(props.html)
+  /**
+   * ⚠️ `readMoreSplit` **sirf is raaste pe** — yaani Tour aur Package page ke Text blocks (client,
+   * 16 Sep: _"it will only be applied in tour page"_). Blog/Page ka article `articleHtml()` se jaata
+   * hai aur wahan ye nishaan abhi kuch nahi karta; chahiye ho to ek line ka kaam hai.
+   */
+  const html = article ? articleHtml(props.html, { lead }) : readMoreSplit(wrapTables(props.html))
 
   return <div className="blk" dangerouslySetInnerHTML={{ __html: html }} />
 }

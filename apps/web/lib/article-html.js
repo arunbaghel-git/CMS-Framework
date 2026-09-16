@@ -292,6 +292,66 @@ export function leadParagraph(html) {
 }
 
 /**
+ * `Read more:` — us jagah se aage ka content collapse (client, 16 Sep).
+ *
+ * Client ka apna sujhav, aur wo is repo ka pehle se chalta hua pattern hai: nishaan content me likha
+ * jaata hai aur theme use dhaancha bana deti hai — wahi ghar jahan `Note:` · `Warning:` · `Caption:`
+ * rehte hain (D-92 §10). Isliye na koi naya field bana, na koi checkbox:
+ *
+ * > _"user put a read more text in editor … jahan read more add kiya wahan se collapse automatically"_
+ *
+ * | Editor me | Page pe |
+ * | --- | --- |
+ * | `Read more:` | uske aage ka sab chhup jaata hai, aur ek **Read more** link aata hai |
+ * | `Read more: Poori jaankari` | wahi, par link ka text **Poori jaankari** |
+ *
+ * ⚠️ **`<details>`, koi JS nahi** — wahi faisla jo FAQ accordion pe hai (D-59). Khulna-band hona browser
+ * karta hai, isliye SSR pe bhi theek hai aur hydration ka koi sawaal nahi.
+ *
+ * ⚠️ **Shabd gin kar nahi kaata jaata** (client ka pehla khayal yahi tha). Ginti se kaatne pe tag beech
+ * me toot-te hain (`<p>` aadha), aur client ko dikhta hi nahi ki page pe kahan se kategga. Nishaan se
+ * wo khud tay karta hai — aur wahi is repo ka chalta hua tareeka hai.
+ *
+ * ⚠️ Pehla nishaan hi chalta hai; baad wale chup-chaap hat jaate hain, warna wo page pe literally
+ * "Read more:" chhap jaate. Nishaan ke aage kuch na ho to wo bhi bas hat jaata hai (D-30).
+ */
+export const READ_MORE_RE = /^\s*(?:<(?:strong|b)>\s*)?read\s*more\s*:/i
+
+export function readMoreSplit(html) {
+  const source = String(html ?? '')
+  const paraRe = /<p\b[^>]*>([\s\S]*?)<\/p>/gi
+  const textOf = (inner) => inner.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ')
+
+  let match
+  let found = null
+
+  while ((match = paraRe.exec(source))) {
+    const text = textOf(match[1])
+    if (!READ_MORE_RE.test(text)) continue
+
+    found = {
+      start: match.index,
+      end: match.index + match[0].length,
+      /** Nishaan ke aage jo likha ho wahi link ka text — warna saada "Read more". */
+      label: text.replace(READ_MORE_RE, '').replace(/\s+/g, ' ').trim() || 'Read more',
+    }
+    break
+  }
+
+  if (!found) return source
+
+  const before = source.slice(0, found.start)
+  const after = source
+    .slice(found.end)
+    .replace(paraRe, (tag, inner) => (READ_MORE_RE.test(textOf(inner)) ? '' : tag))
+
+  /** Nishaan ke baad kuch bhi nahi — collapse bemaani hai, bas nishaan hata do. */
+  if (!after.replace(/<[^>]*>/g, '').trim()) return before
+
+  return `${before}<details class="rdm"><summary><span class="rdm__m">${found.label}</span><span class="rdm__l">Read less</span></summary><div class="rdm__c">${after}</div></details>`
+}
+
+/**
  * Blog article ki poori HTML — **ek hi jagah, ek hi kram**.
  *
  * ⚠️ **Kram hi is function ki wajah hai.** Caption ka `.lead` ban jaana ek **kram ka bug** tha:

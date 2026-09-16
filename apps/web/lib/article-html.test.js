@@ -5,6 +5,7 @@ import {
   leadParagraph,
   markedBlocks,
   normalizeTable,
+  readMoreSplit,
   wrapFigures,
   wrapTables,
 } from './article-html.js'
@@ -350,5 +351,36 @@ describe('articleHtml({ lead: false }) — page pe (D-95)', () => {
     expect(out).toContain('<div class="tblw"><table class="tbl">')
     expect(out).toContain('<figcaption>Jetty</figcaption>')
     expect(out).toMatch(/<div class="callout">/)
+  })
+})
+
+describe('readMoreSplit — `Read more:` se collapse (client, 16 Sep)', () => {
+  it('nishaan ke aage ka content `<details>` me jaata hai', () => {
+    const out = readMoreSplit('<p>Dikhega</p><p>Read more:</p><p>Chhupa</p>')
+
+    expect(out).toContain('<p>Dikhega</p><details class="rdm">')
+    expect(out).toContain('<span class="rdm__m">Read more</span>')
+    expect(out).toContain('<div class="rdm__c"><p>Chhupa</p></div>')
+    // Nishaan wala paragraph khud page pe kabhi nahi chhapta
+    expect(out).not.toMatch(/Read more:/)
+  })
+
+  it('nishaan ke aage likha text hi link ka naam banta hai, aur bold nishaan bhi chalta hai', () => {
+    const out = readMoreSplit('<p>A</p><p><strong>Read more: Poori jaankari</strong></p><p>B</p>')
+
+    expect(out).toContain('<span class="rdm__m">Poori jaankari</span>')
+  })
+
+  it('doosra nishaan chup-chaap hat jaata hai — ek page pe ek hi collapse', () => {
+    const out = readMoreSplit('<p>A</p><p>Read more:</p><p>B</p><p>Read more:</p><p>C</p>')
+
+    expect(out.match(/<details/g)).toHaveLength(1)
+    expect(out).toContain('<p>B</p><p>C</p>')
+  })
+
+  it('nishaan na ho to HTML waisi ki waisi; aage kuch na ho to sirf nishaan hat-ta hai', () => {
+    expect(readMoreSplit('<p>A</p><p>B</p>')).toBe('<p>A</p><p>B</p>')
+    expect(readMoreSplit('<p>A</p><p>Read more:</p>')).toBe('<p>A</p>')
+    expect(readMoreSplit('')).toBe('')
   })
 })

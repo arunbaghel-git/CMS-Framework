@@ -8668,3 +8668,59 @@ a.txv__box:hover .txv__p {
   max-width: 100%;
   height: auto;
 }
+
+/* ---- `Read more:` se collapse (client, 16 Sep) — content ka nishaan, koi JS nahi ---- */
+
+.rdm {
+  margin-top: 10px;
+}
+
+/* `<summary>` ka apna teer hata kar link jaisa — FAQ ke `.faq summary` se alag, wo ek row hai */
+.rdm > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--blue-600);
+}
+
+.rdm > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rdm > summary::after {
+  content: '▾';
+  font-size: var(--fs-2xs);
+  transition: transform 0.18s;
+}
+
+.rdm[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+.rdm > summary:hover {
+  color: var(--blue-700);
+}
+
+/* Band pe "Read more" (ya client ka apna text), khule pe "Read less" */
+.rdm__l,
+.rdm[open] .rdm__m {
+  display: none;
+}
+
+.rdm[open] .rdm__l {
+  display: inline;
+}
+
+.rdm__c {
+  margin-top: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rdm > summary::after {
+    transition: none;
+  }
+}
