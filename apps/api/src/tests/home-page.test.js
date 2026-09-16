@@ -1093,58 +1093,73 @@ describe('Contact page ke custom editor blocks (D-96 §30)', () => {
     expect(html).not.toContain('<span>Head office</span>')
   })
 })
+describe('Page ka Template — Default / Section layout (client, 16 Sep, D-96 §31)', () => {
+  const makePage = (fields = {}, extra = {}) =>
+    authed('post', '/api/entries', adminJar).send({
+      type: 'page',
+      title: 'Contact us',
+      fields,
+      content: {
+        version: 1,
+        blocks: [
+          {
+            type: 'richText',
+            props: { html: '<h2>One</h2><p>a</p><h2>Two</h2><p>b</p><h2>Three</h2><p>c</p>' },
+          },
+        ],
+      },
+      ...extra,
+    })
 
-describe('Section Layout — contact jaise page ka template (client, 16 Sep, D-96 §31)', () => {
-  it('apna type hai, URL Pages jaisa, aur banner Pages settings se girta hai', async () => {
+  const publishAndResolve = async (created) => {
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: created.path })
+
+    return res.body.data.entry
+  }
+
+  it('`sections` pe On this page aur hero button payload se hi gir jaate hain', async () => {
     await authed('patch', '/api/settings', adminJar).send({
       pageSettings: { bannerMediaId: null, showToc: true },
     })
 
     const created = (
-      await authed('post', '/api/entries', adminJar).send({
-        type: 'sectionPage',
-        title: 'Contact us',
-        content: {
-          version: 1,
-          blocks: [
-            { type: 'richText', props: { html: '<h2>Our offices</h2><p>Port Blair</p>' } },
-            {
-              type: 'customHtml',
-              props: { className: 'contact-hours', html: '<div class="hours"></div>' },
-            },
-          ],
-        },
+      await makePage({
+        template: 'sections',
+        heroButton: { label: 'Plan a trip', url: '/packages' },
       })
     ).body.data.entry
 
-    /** Pages jaisa `/{slug}` — alag type sirf admin ki list aur frame ke liye hai. */
-    expect(created.path).toBe('/contact-us')
+    const entry = await publishAndResolve(created)
 
-    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
-    const res = await request(app).get('/api/public/resolve').query({ path: '/contact-us' })
-    const { entry } = res.body.data
-
-    expect(entry.type).toBe('sectionPage')
-    expect(entry.blocks.map((b) => b.type)).toEqual(['richText', 'customHtml'])
-
-    /**
-     * ⚠️ **`On this page` yahan kabhi nahi** (client: _"on this page list nahi"_) — `<h2>` hone ke
-     * baad bhi `toc` khaali jaata hai, taaki theme ko koi niyam yaad na rakhna pade.
-     */
-    expect(entry.toc ?? []).toEqual([])
+    expect(entry.fields.template).toBe('sections')
+    /** Client: _"on this page list nahi"_ — teen `<h2>` hone par bhi. */
+    expect(entry.toc).toEqual([])
+    expect(entry.fields.heroButton).toBeNull()
   })
 
-  it('iske field set me stat rail aur hero button hain hi nahi', async () => {
-    const { BUILT_IN_CONTENT_TYPES } = await import('@cms/shared')
-    const keys = BUILT_IN_CONTENT_TYPES.find((t) => t.key === 'sectionPage').fields.map(
-      (f) => f.key,
-    )
+  it('`default` waisa ka waisa hai — TOC aur hero button dono aate hain', async () => {
+    const created = (await makePage({ heroButton: { label: 'Plan a trip', url: '/packages' } }))
+      .body.data.entry
 
-    expect(keys).toEqual(['subheading', 'sidebar', 'sidebarId'])
+    const entry = await publishAndResolve(created)
 
-    /** `page` chhua nahi gaya — client: "jo page template pehle se bani hui hai usko change nahi karenge". */
-    const pageKeys = BUILT_IN_CONTENT_TYPES.find((t) => t.key === 'page').fields.map((f) => f.key)
-    expect(pageKeys).toContain('statRail')
-    expect(pageKeys).toContain('heroButton')
+    /** Khaali template = `default` — purane page bina kuch kiye wahi rehte hain (koi migration nahi). */
+    expect(entry.fields.template).toBe('default')
+    expect(entry.toc.length).toBe(3)
+    expect(entry.fields.heroButton).toEqual({ label: 'Plan a trip', url: '/packages' })
+  })
+
+  it('anjaan template 4xx — ye ek value poora frame badalti hai', async () => {
+    const res = await makePage({ template: 'fancy' })
+
+    expect(res.status).toBeGreaterThanOrEqual(400)
+    expect(res.status).toBeLessThan(500)
+  })
+
+  it('naya content type nahi bana — client ne dropdown maanga tha, submenu nahi', async () => {
+    const { BUILT_IN_CONTENT_TYPE_KEYS } = await import('@cms/shared')
+
+    expect(BUILT_IN_CONTENT_TYPE_KEYS).not.toContain('sectionPage')
   })
 })

@@ -459,7 +459,7 @@ export async function resolvePublicPath(
  * `packageList` ki jagah `postList` hota hai. `post` yahan **nahi** hai: uska payload dono se
  * alag hai (`toPublicPost()`).
  */
-const PAGE_TYPES = new Set(['page', 'sectionPage', 'tourPage', 'blogPage'])
+const PAGE_TYPES = new Set(['page', 'tourPage', 'blogPage'])
 
 /**
  * Mongo id ka shape sahi hai? `$in` me bekaar string CastError phenkti hai, aur wo public
@@ -1977,21 +1977,20 @@ async function toPublicPage(doc, siteId, locale) {
   const isTextPage = doc.type === 'page'
 
   /**
-   * `sectionPage` — **Section Layout** (client, 16 Sep, D-96 §31). `page` ka bhai: banner ka fallback
-   * wahi (**Pages settings**, client: _"banner fallback chahiye"_), par `On this page` **nahi**
-   * (_"on this page list nahi"_), aur hero ka button/stat rail uske field set me hai hi nahi.
+   * Page ka template — `Page settings ▸ Template` (client, 16 Sep, D-96 §31).
+   *
+   * `sections` pe page ka frame badalta hai (har block apna card, FAQ accordion), aur uske saath **do
+   * cheezein payload se hi gir jaati hain**: `On this page` (client: _"on this page list nahi"_) aur hero
+   * ka button. Theme me shart likhne ka matlab hota do jagah ek hi niyam — wahi galti jo D-95 me pakdi
+   * gayi thi.
    */
-  const isSectionPage = doc.type === 'sectionPage'
+  const isSections = isTextPage && doc.fields?.template === 'sections'
 
-  /** Dono Pages ke parivaar ke hain — banner ka fallback ek hi jagah se (Pages settings). */
-  const usesPageSettings = isTextPage || isSectionPage
-
+  /** Banner ka fallback dono template pe wahi — Pages settings (client: _"banner fallback chahiye"_). */
   const banner =
     (await toDisplayImage(doc.featuredImageId, 'large', siteId)) ??
     (await toDisplayImage(
-      usesPageSettings
-        ? settings.pageSettings?.bannerMediaId
-        : settings.tourSettings?.bannerMediaId,
+      isTextPage ? settings.pageSettings?.bannerMediaId : settings.tourSettings?.bannerMediaId,
       'large',
       siteId,
     ))
@@ -2008,7 +2007,8 @@ async function toPublicPage(doc, siteId, locale) {
    * ⚠️ Checkbox **global** hai (`pageSettings.showToc`, client 14 Sep shaam) — subah wo har page pe
    * tha. Purane page ka `fields.showToc` DB me pada ho sakta hai; use ab koi nahi padhta.
    */
-  const { blocks, toc } = isTextPage ? withToc(resolved) : { blocks: resolved, toc: [] }
+  const { blocks, toc } =
+    isTextPage && !isSections ? withToc(resolved) : { blocks: resolved, toc: [] }
   const showToc =
     isTextPage && settings.pageSettings?.showToc !== false && toc.length >= TOC_MIN_HEADINGS
 
@@ -2065,6 +2065,13 @@ async function toPublicPage(doc, siteId, locale) {
        * kyunki wahan default **server ka** hai; yahan default `title` hai, jo payload me pehle se
        * hai).
        */
+      /**
+       * Page ka frame — theme isi se tay karti hai ki content ek card me jaaye ya har block apna card le
+       * (D-96 §31). `sections` pe hero ke buttons aur `On this page` payload me pehle hi `null`/khaali kar
+       * diye gaye hain, isliye theme ko wo shartein dobara nahi likhni padtin.
+       */
+      template: isTextPage ? (fields.template ?? 'default') : 'default',
+
       heading: fields.heading ?? '',
       eyebrow: fields.eyebrow ?? '',
       subheading: fields.subheading ?? '',
@@ -2076,7 +2083,7 @@ async function toPublicPage(doc, siteId, locale) {
        * theme button render nahi karti. Wahi rok jo `tourSettings.heroButton` pe hai.
        */
       heroButton:
-        isTextPage && fields.heroButton?.label && fields.heroButton?.url
+        isTextPage && !isSections && fields.heroButton?.label && fields.heroButton?.url
           ? { label: fields.heroButton.label, url: fields.heroButton.url }
           : null,
 

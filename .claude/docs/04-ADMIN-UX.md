@@ -769,8 +769,8 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
 - **Package cards** section (UI ka naam — `type` `offerCards` hi hai, R6): Background · Heading (position + link) · Card look (Card style · Image shape · Layout slider/grid · Cards visible) · Cards (⠿ — Image · Title · Small line · Badge + colour · Chip 1–3 · Price · Price note · Old price · Rating · Link), 24 tak
 - **Text with video** section: Background · Text (Heading · Text editor) · Points (⠿ — Icon / own image · Title · Description), 6 tak · Button label + link · Image or video (Side Right/Left · Image · Video link · Caption title + text)
 - **Award badges** section: Background · Heading (position + link) · Badge colour · Badges (⠿ row — image · big text · small text), 24 tak
-- **Pages ▸ Section Layout** (naya type `sectionPage`, D-96 §31): wahi list + edit screens, par Stat rail/Hero button ke bina; blocks Text · FAQs (accordion) · Custom editor · Enquiry form
-- **Enquiry form** block (**sirf Pages**): Form (sirf active) · Heading · Description — fields aur button form ki apni settings hain
+- **Page settings ▸ Template** (D-96 §31): `Default` (poora content ek card me) ya `Section layout` (har block apna card, FAQ accordion, na Stat rail na Hero button; blocks me **Enquiry form** bhi)
+- **Enquiry form** block (**sirf Pages, Section layout template pe**): Form (sirf active) · Heading · Description — fields aur button form ki apni settings hain
 - **Custom editor** section (home **aur** Tour page): Background (sirf home) · CSS class · Content (wahi HTML editor). CSS iske andar nahi — **Settings ▸ Custom CSS**
 - **Settings ▸ Custom CSS**: ek monospace box, poori site pe lagti hai (client, 16 Sep)
 - **Reviews** screen me do tab — **Text reviews** · **Video reviews** (Image · Video link · Title · Package name)

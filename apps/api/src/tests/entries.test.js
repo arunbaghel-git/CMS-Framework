@@ -2259,6 +2259,8 @@ describe('Tour Page ka type (D-87)', () => {
     const tour = await ContentType.findOne({ key: 'tourPage' }).lean()
 
     expect(page.fields.map((f) => f.key)).toEqual([
+      // Page ka frame — Default ya Section layout (client, 16 Sep, D-96 §31)
+      'template',
       'subheading',
       'statRail',
       'heroButton',

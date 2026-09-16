@@ -31,6 +31,7 @@ import {
   resolvePath,
   slugify,
   suffixSlug,
+  pageTemplateSchema,
 } from '@cms/shared'
 
 import { conflict, forbidden, notFound, unprocessable } from '../../core/errors.js'
@@ -250,6 +251,15 @@ function normalizeFields(fields, contentType) {
    * dono milkar poora pehra bana dete hain.
    */
   if (has('heading')) out.heading = pageHeadingSchema.parse(fields.heading)
+
+  /**
+   * Page ka template — `default` ya `sections` (client, 16 Sep, D-96 §31).
+   *
+   * ⚠️ Parse zaroori hai: is ek value se page ka **poora frame** badalta hai (ek card ya alag-alag card,
+   * FAQ accordion, hero ke buttons). Koi anjaan value aa jaaye to theme chup-chaap default pe girti — aur
+   * client ko lagta ki dropdown kaam hi nahi kar raha.
+   */
+  if (has('template')) out.template = pageTemplateSchema.parse(fields.template)
 
   if (has('sidebar')) out.sidebar = sidebarPositionSchema.parse(fields.sidebar)
 

@@ -68,13 +68,29 @@ export const PAGE_BLOCK_TYPES = Object.freeze([
 ])
 
 /**
- * `sectionPage` ka dropdown — **Section Layout** (client, 16 Sep, D-96 §31).
+ * Page ka frame — `Page settings ▸ Template` (client, 16 Sep, D-96 §31).
  *
- * `POST_BLOCK_TYPES` (Text + FAQs) ke upar do: **Custom editor** (contact ke steps · offices · office
- * hours usi se bante hain) aur **Enquiry form** (_"Send us your dates"_).
+ * | | `default` | `sections` |
+ * | --- | --- | --- |
+ * | Content | poora ek safed card me (`page-template-text.html`) | har block apna card (`contact-us.html`) |
+ * | FAQs | saada h2/h3 | **accordion** |
+ * | Blocks | Text · FAQs · Custom editor | + **Enquiry form** |
+ * | Hero | Stat rail + Hero button + WhatsApp | teenon nahi |
+ * | On this page | ho sakta hai | nahi |
  *
- * ⚠️ `Info cards`/`Two column` yahan jaan-boojh kar nahi — client: _"un me to design alag hai"_. Unka look
- * home/tour ke reference ka hai, aur contact ke hisson se milta nahi.
+ * ⚠️ Khaali value `default` maani jaati hai — purane page (aur Bulk Upload se aaye page) bina kuch kiye
+ * wahi rehte hain, aur koi migration nahi lagti.
+ */
+export const PAGE_TEMPLATES = Object.freeze(['default', 'sections'])
+
+export const pageTemplateSchema = z
+  .enum(/** @type {[string, ...string[]]} */ (PAGE_TEMPLATES))
+  .default('default')
+
+/**
+ * `sections` template ka dropdown (D-96 §31) — `POST_BLOCK_TYPES` ke upar Custom editor aur Enquiry form.
+ *
+ * ⚠️ `Info cards`/`Two column` yahan jaan-boojh kar nahi — client: _"un me to design alag hai"_.
  */
 export const SECTION_PAGE_BLOCK_TYPES = Object.freeze([
   'richText',
@@ -82,6 +98,9 @@ export const SECTION_PAGE_BLOCK_TYPES = Object.freeze([
   'customHtml',
   'enquiryForm',
 ])
+
+/** `default` template ka dropdown — Enquiry form yahan **nahi** (client, 16 Sep). */
+export const PAGE_DEFAULT_BLOCK_TYPES = Object.freeze(['richText', 'faqs', 'customHtml'])
 
 /**
  * Kis content type pe dropdown me kaunse blocks — **spec 008** (Blog).

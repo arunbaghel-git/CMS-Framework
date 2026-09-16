@@ -63,12 +63,22 @@ const monthYear = (value) =>
   value ? new Date(value).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : ''
 
 /**
- * @param {boolean} [sections]
- *   `Section Layout` (D-96 §31) — har block apna card (`.blk`), ek bade card ke bajaye; FAQ accordion; na
- *   stat rail, na hero button, na WhatsApp. Client: _"page template pehle se bani hui hai usko change nahi
- *   karenge"_ — isliye ye ek **prop** hai, purane page ka badlaav nahi.
+ * ⚠️ **Do template, ek component** (D-96 §31) — `fields.template`:
+ *
+ * | | `default` | `sections` |
+ * | --- | --- | --- |
+ * | Content | poora ek safed card me (`.art--page`) | har block apna card (`.secpg` sirf gap deta hai) |
+ * | FAQs | saada h2/h3 (D-95) | **accordion** |
+ * | Hero | Stat rail + Hero button + WhatsApp | teenon nahi |
+ *
+ * Client ne saaf kaha tha ki **purana page template chhedna nahi hai** — isliye `default` bilkul waisa hai
+ * jaisa 14 Sep ko tha, aur naya bartaav is ek value pe khada hai. Alag component banane ka matlab hota
+ * hero, breadcrumb, sidebar aur byline ka doosra copy, aur wahi galti is repo me kai baar mahengi padi hai.
+ *
+ * ⚠️ `On this page` aur hero button **payload me hi** gir jaate hain (`toPublicPage()`), isliye yahan unki
+ * shart dobara nahi likhi — ek hi niyam do jagah likhna wahi jaal hai jo D-95 me pakda gaya tha.
  */
-export default function TextPage({ entry, settings, sections = false }) {
+export default function TextPage({ entry, settings }) {
   const {
     fields = {},
     byline = {},
@@ -85,6 +95,9 @@ export default function TextPage({ entry, settings, sections = false }) {
    * gayab ho jaata.
    */
   const hasSidebar = sidebar !== 'none' && (sidebarWidgets.length > 0 || toc.length > 0)
+
+  /** Page ka frame — khaali ya anjaan value `default` hi maani jaati hai (server bhi wahi bhejta hai). */
+  const sections = fields.template === 'sections'
 
   /**
    * `Updated Aug 2026 · 6 min read` — jo tukda na ho wo apne `·` ke saath gir jaata hai (D-30).

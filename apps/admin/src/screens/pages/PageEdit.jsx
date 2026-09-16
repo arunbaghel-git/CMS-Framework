@@ -3,6 +3,7 @@ import {
   CURRENT_CONTENT_VERSION,
   ENTRY_LIST_MAX_LIMIT,
   HOME_PAGE_BLOCK_TYPES,
+  PAGE_DEFAULT_BLOCK_TYPES,
   POST_BLOCK_TYPES,
   SECTION_PAGE_BLOCK_TYPES,
 } from '@cms/shared'
@@ -74,33 +75,6 @@ const TYPE_CONFIG = {
    * | ~~`toc: true`~~ | `On this page` ka checkbox **Pages ▸ Pages settings** me gaya (14 Sep shaam) |
    * | `blocks` | Text + FAQs — Post wale hi (`POST_BLOCK_TYPES`) |
    */
-  /**
-   * `Section Layout` — contact jaise page, jinme har section apna card hota hai (client, 16 Sep, D-96 §31).
-   *
-   * `page` ki hi screens, bas do cheezein kam: **Stat rail** aur **Hero button** (client ne dono mana kiye,
-   * aur unke field set me wo hain bhi nahi). Blocks me do zyada: Custom editor aur Enquiry form.
-   *
-   * ⚠️ `page` ka koi khaana yahan se **badla nahi** — client: _"jo page template pehle se bani hui hai usko
-   * change nahi karenge"_. Ye uska bhai hai, uska naya roop nahi.
-   */
-  sectionPage: {
-    key: 'sectionPage',
-    label: 'Section Layout',
-    basePath: '/section-pages',
-    header: false,
-    subheading: true,
-    eyebrow: false,
-    statRail: false,
-    heroButtons: false,
-    sidebar: true,
-    parent: true,
-    nested: true,
-    bylineHint: 'Updated · min read',
-    featuredHint:
-      'Optional. The banner behind the page heading — leave it empty and the image from Pages settings is used.',
-    blocks: SECTION_PAGE_BLOCK_TYPES,
-  },
-
   page: {
     key: 'page',
     label: 'Page',
@@ -125,7 +99,10 @@ const TYPE_CONFIG = {
      * ⚠️ `Info cards`/`Two column` jaan-boojh kar nahi — client: _"un me to design alag hai"_. Unka look
      * home/tour ke reference ka hai; contact ke hisse Custom editor se banenge.
      */
-    blocks: [...POST_BLOCK_TYPES, 'customHtml', 'enquiryForm'],
+    /** Template ka dropdown sirf yahan — Tour/Blog ke apne frame hain (D-96 §31). */
+    template: true,
+    /** ⚠️ Blocks ab template se aate hain (`blocksFor()`), isliye yahan likhna band. */
+    blocks: PAGE_DEFAULT_BLOCK_TYPES,
   },
 
   tourPage: {
@@ -337,6 +314,15 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
 
   if (loading || !form) return <p className="subtitle">Loading…</p>
 
+  /**
+   * Page ka chuna hua template — `default` ya `sections` (D-96 §31).
+   *
+   * ⚠️ **Ek jagah se teen cheezein chalti hain** (`Add block` ki list, hero ke do panel, aur page ka frame),
+   * isliye ye yahan ek baar nikal kar neeche use hota hai. Teen jagah `fields.template === 'sections'`
+   * likhna wahi shakl hai jo is repo me kai baar toota hai — ek badla, doosra nahi.
+   */
+  const isSections = Boolean(config.template) && (form.fields?.template ?? 'default') === 'sections'
+
   const readOnly = !(can('entry.update') || can('entry.update.own'))
 
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
@@ -378,9 +364,10 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
      * `entries.fields` Mixed hai, yaani undeclared field bhi chup-chaap store ho jaata —
      * ek saade page ke `fields` me `statRail: []` padi rehti, jiska koi matlab nahi.
      */
-    const fields = config.statRail
-      ? { ...form.fields, statRail: stats.filter((s) => s?.value?.trim()) }
-      : form.fields
+    const fields =
+      config.statRail && !isSections
+        ? { ...form.fields, statRail: stats.filter((s) => s?.value?.trim()) }
+        : form.fields
 
     const payload = {
       title: form.title,
@@ -549,7 +536,7 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
           </div>
 
           {/* ---- PAGE HEADER ---- */}
-          {(config.header || config.subheading || config.heroButtons) && (
+          {(config.header || config.subheading || (config.heroButtons && !isSections)) && (
             <Panel title="Page header">
               <div className="panel-body">
                 {/* Eyebrow `tour-v3.html` ke hero se aata hai — saade page pe wo nahi hai. */}
@@ -630,7 +617,7 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
                  * ⚠️ WhatsApp ka **number yahan nahi** — Settings ▸ General ka hi, aur button
                  * **hamesha** dikhta hai (client, 14 Sep shaam — checkbox hata).
                  */}
-                {config.heroButtons && (
+                {config.heroButtons && !isSections && (
                   <>
                     <div className="row2">
                       <div className="field">
@@ -670,7 +657,7 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
           )}
 
           {/* ---- STAT RAIL ---- reference ka `.vrail` — Tour aur Page (D-95) ---- */}
-          {config.statRail && (
+          {config.statRail && !isSections && (
             /*
              * ⚠️ **Design me ye band khulta hai** (`#s-page-edit` me `▸` aur
              * `panel-body style="display:none"`). Chaar row hamesha dikhti hain aur wo poori
@@ -762,7 +749,7 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
             <div className="panel-body">
               <PageBlocks
                 blocks={form.blocks}
-                types={config.blocks}
+                types={isSections ? SECTION_PAGE_BLOCK_TYPES : config.blocks}
                 onChange={(blocks) => set({ blocks })}
                 disabled={readOnly}
                 open={openBlocks}
@@ -893,6 +880,7 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
           {(config.categories ||
             config.sidebar ||
             config.parent ||
+            config.template ||
             config.featuredImage !== false) && (
             <Panel title="Page settings">
               <div className="panel-body">
@@ -1024,6 +1012,38 @@ export default function PageEdit({ type = 'tourPage', entryId, onCreated }) {
                  * parent hai aur post ka parent URL pattern se aata hai — dono jagah ye dropdown
                  * ek aisa control hota jise koi kabhi chhoota hi nahi.
                  */}
+                {/*
+                 * `Template` — page ka frame (client, 16 Sep, D-96 §31).
+                 *
+                 * ⚠️ **Ye dropdown teen cheezein ek saath badalta hai** — content ka frame (ek card ya har
+                 * block apna), `Add block` ki list (Enquiry form sirf Section layout pe), aur hero ke do
+                 * panel (Stat rail · Hero button `sections` pe dikhte hi nahi). Isliye badalte hi screen
+                 * bhi badal jaati hai, taaki admin ko wahi dikhe jo page pe sach me jaayega.
+                 *
+                 * ⚠️ Sirf `page` pe — Tour/Blog ke apne frame hain (`config.template`).
+                 */}
+                {config.template && (
+                  <div className="field">
+                    <label>Template</label>
+                    <select
+                      className="sel"
+                      value={form.fields.template ?? 'default'}
+                      disabled={readOnly}
+                      onChange={(e) =>
+                        set({ fields: { ...form.fields, template: e.target.value } })
+                      }
+                    >
+                      <option value="default">Default</option>
+                      <option value="sections">Section layout</option>
+                    </select>
+                    <div className="hint">
+                      <b>Default</b> keeps the whole page in one card. <b>Section layout</b> gives
+                      each block its own card, turns FAQs into an accordion, and adds the{' '}
+                      <b>Enquiry form</b> block — for pages like Contact us.
+                    </div>
+                  </div>
+                )}
+
                 {config.parent && (
                   <div className="field">
                     <label>Parent</label>

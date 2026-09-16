@@ -8648,3 +8648,31 @@ Yahi `tourPage` pe pehle se chal raha hai.
 ⚠️ **Deploy pe `pnpm seed` chahiye** (naya content type wahin banta hai) aur API restart. Koi migration nahi.
 
 2 naye API test (payload + field set, aur `page` chhua nahi gaya — wo test hi is faisle ka pehra hai).
+
+**§31 ka sudhaar (client, usi din) — naya type nahi, `Template` ka dropdown.** Pehla roop galat tha: maine
+_"pages ke sidebar me template add kar denge"_ ko **admin ke left menu** ka sidebar samajh kar `sectionPage`
+naam ka poora content type bana diya (apni list, apna Add New). Client ne turant pakda — _"did I ask you to
+add submenu under the pages? I asked in Add New Page sidebar choose template dropdown"_ — yaani **edit
+screen ke sidebar** (`Page settings` panel) me ek dropdown.
+
+Ab wahi hai, aur wo har tarah se behtar bhi nikla:
+
+| | Type wala roop (hataya) | `fields.template` (ab) |
+| --- | --- | --- |
+| Admin | do list, do Add New | **ek hi list** |
+| Baad me badalna | ho hi nahi sakta (`type` immutable) | **dropdown se, kabhi bhi** |
+| Purane page | — | apne aap `default`, koi migration nahi |
+| Bulk Upload | alag type chhoota hi nahi | `fields` re-import pe **bach jaate hain** (`prepare`) |
+
+- `PAGE_FIELDS` me naya `template` (`default` | `sections`), parse `normalizeFields()` me — anjaan value 4xx
+- `PAGE_DEFAULT_BLOCK_TYPES` (Text · FAQs · Custom editor) aur `SECTION_PAGE_BLOCK_TYPES` (+ **Enquiry form**)
+- Admin: `Page settings ▸ Template`; dropdown badalte hi `Add block` ki list aur hero ke do panel (Stat rail ·
+  Hero button) bhi badal jaate hain
+- Payload: `sections` pe `toc` khaali aur `heroButton` `null` — **server pe**, taaki theme me wahi shart
+  dobara na likhni pade (D-95 wala sabak)
+- Theme: `TextPage` me ek hi jagah — `fields.template === 'sections'`
+
+⚠️ **`Enquiry form` ab `default` template pe nahi hai** — client ne yahi poochha tha (_"why there is still
+enquiry form in page template"_). Wo 16 Sep subah juda tha, jab plan tha ki contact ek normal Page banegi.
+
+4 API test — unme se ek ye pehra bhi hai ki **`sectionPage` naam ka koi type bana hi na rahe**.

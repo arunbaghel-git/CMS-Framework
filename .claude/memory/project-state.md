@@ -124,8 +124,10 @@ flake nikla (akele pass). Lint · format · admin build pass.
 
 ### Agli session — Contact page (client, 16 Sep)
 
-**16 Sep — `Section Layout` bhi ban gaya (D-96 §31):** naya type `sectionPage` (Pages ka submenu), jisme har
-block apna card hai aur FAQ accordion. Contact page ab wahan banegi. ⚠️ Deploy pe **`pnpm seed`**.
+**16 Sep — page pe `Template` ka dropdown (D-96 §31):** `Page settings ▸ Template` — `Default` (aaj jaisa) ya
+`Section layout` (har block apna card, FAQ accordion, Enquiry form block). Contact page isi pe banegi.
+⚠️ Pehle ye ek naya content type banaya gaya tha; client ne mana kiya (unhone dropdown maanga tha) — wo hata diya.
+Koi migration nahi, aur `pnpm seed` ki bhi zaroorat nahi.
 
 **16 Sep ko neev pad chuki hai (D-96 §30):** `Enquiry form` ab page ke content ka block hai, aur
 `page` ke dropdown me `Custom editor` bhi hai. Baaki hisse (steps · offices + map · office hours) Custom
