@@ -123,6 +123,9 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  enquiry form (Q-2) banne pe sirf wahi ek value bharni hai
                  frontPageType, homepageEntryId, postsPageEntryId, postsPerPage,
                  searchEngineVisible
+                 customCss (D-96 §25) — client ki apni CSS, HAR page ke <head> me
+                 (Custom editor block ke liye; block me <style> likha hi nahi ja sakta)
+                 ⚠️ `</style` Zod me hi reject — wahi value <style> ke andar jaati hai
                  PLANNED: defaultSeo, titleTemplates, privacyPolicyEntryId,
                           scripts{head,bodyOpen,bodyClose} — apne screen ke saath (D-40)
                  NOTE: `siteUrl` yahan **nahi** hai — wo env se aata hai (D-40)
@@ -204,6 +207,8 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          videoUrl(''|https) · videoTitle · videoText
                          awardBadges (§23): heading/link · badgeColor ·
                          items[{imageId, title, label}]≤24
+                         customHtml (§25): background · className · html
+                         (client ka apna markup; home pe section, tour pe .blk)
                          packageGrid (§19): heading/link · showFilter — cards DB se
                          (saare published package, naye pehle), koi chunav store nahi
                          logoGrid (§17): heading/link · items[{imageId, title}]≤48 ·

@@ -205,6 +205,12 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
     siteName: settings.siteName,
     tagline: settings.tagline,
 
+    /**
+     * Site ki apni CSS (client, 16 Sep) — theme ise `<head>` ke ek `<style>` me daalti hai.
+     * `</style` schema me hi rok diya jaata hai (settings ka `customCss`).
+     */
+    customCss: settings.customCss ?? '',
+
     /** Resolved image ya `null` — theme ko kabhi media id resolve nahi karni padti. */
     logo,
     favicon,

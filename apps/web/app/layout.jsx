@@ -58,9 +58,31 @@ export async function generateMetadata() {
   }
 }
 
-export default function RootLayout({ children }) {
+/**
+ * Client ki apni CSS — **Settings ▸ Custom CSS** (client, 16 Sep: _"poori site par"_).
+ *
+ * `Custom editor` block me `<style>` likha hi nahi ja sakta (sanitizer use gira deta hai, R20), isliye
+ * CSS ka ghar settings hai aur wo yahan ek `<style>` me aati hai.
+ *
+ * ⚠️ **`</style` do jagah ruka hua hai** — Zod me (write pe) aur yahan (render pe). Ek hi jagah rokna
+ * kaafi hota, par purana data ya seedha DB edit us ek rok ke peeche se aa sakta hai, aur yahan se bacha
+ * hua `</style` poore page ka HTML tod deta (A-27 wali baat). CSS me JS chalti nahi, isliye is rok ke
+ * baad yahan XSS ka raasta nahi bachta.
+ */
+function CustomCss({ css }) {
+  if (!css) return null
+
+  return <style dangerouslySetInnerHTML={{ __html: String(css).replace(/<\/style/gi, '') }} />
+}
+
+export default async function RootLayout({ children }) {
+  const settings = await getSettings()
+
   return (
     <html lang="en" className={inter.variable}>
+      <head>
+        <CustomCss css={settings?.customCss} />
+      </head>
       <body>
         <SiteHeader />
         {children}

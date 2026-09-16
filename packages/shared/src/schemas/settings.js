@@ -622,6 +622,24 @@ export const settingsSchema = z.object({
    * bante hi wo isse padh sake.
    */
   searchEngineVisible: z.boolean().default(false),
+
+  /**
+   * Site ki apni CSS — **Settings ▸ Custom CSS** (client, 16 Sep).
+   *
+   * `Custom editor` block me client apna HTML likhta hai, par uski CSS wahan likhi hi nahi ja sakti:
+   * sanitizer `<style>` ka poora content gira deta hai (R20). Isliye CSS yahan rehti hai aur theme use
+   * har page ke `<head>` me ek `<style>` me daalti hai (client ka faisla: _"poori site par"_).
+   *
+   * ⚠️ **`</style` yahin rok diya jaata hai.** Wo do akshar CSS ke liye bemaani hain, par `<style>` ke
+   * andar likhe jaane par wo tag **jaldi band** kar dete hain — uske aage ka sab HTML ban jaata hai.
+   * Ye A-27 wali hi baat hai: value jahan render hoti hai, uska vyakaran wahin rokna padta hai.
+   * CSS me JavaScript nahi chalti, isliye is ek rok ke baad yahan XSS ka raasta nahi bachta.
+   */
+  customCss: z
+    .string()
+    .max(50000)
+    .refine((v) => !/<\/style/i.test(v), 'CSS cannot contain "</style"')
+    .default(''),
 })
 
 /**

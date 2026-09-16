@@ -896,3 +896,60 @@ describe('Award badges (D-96 §23)', () => {
     }
   })
 })
+
+describe('Custom editor block + Settings ka Custom CSS (D-96 §25)', () => {
+  it('block ki HTML saaf hoti hai, <style> poora girta hai, class ki shape sakht hai', async () => {
+    const created = (
+      await createHome({
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'customHtml',
+              props: {
+                className: 'home-offer-strip',
+                html: '<div class="box">Hi<style>.x{color:red}</style><script>alert(1)</script></div>',
+              },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+
+    const props = (await Entry.findById(created.id).lean()).content.blocks[0].props
+    expect(props.html).toContain('<div class="box">')
+    // `<style>` ka **poora content** girta hai — isiliye CSS ka ghar Settings hai
+    expect(props.html).not.toMatch(/<style|color:red|<script|alert/)
+    expect(props.className).toBe('home-offer-strip')
+
+    const bad = await createHome({
+      content: {
+        version: 1,
+        blocks: [{ type: 'customHtml', props: { className: 'a" onmouseover="x' } }],
+      },
+    })
+    expect(bad.status).toBeGreaterThanOrEqual(400)
+    expect(bad.status).toBeLessThan(500)
+  })
+
+  it('customCss DB me jaati hai aur public payload me aati hai; `</style` ruk jaata hai', async () => {
+    const ok = await authed('patch', '/api/settings', adminJar).send({
+      customCss: '.home-offer-strip { background: #f2f8fd; }',
+    })
+    expect(ok.status).toBe(200)
+
+    // Response nahi, DB padho — model me field na ho to Mongoose use chup-chaap gira deta hai (D-86)
+    const { Settings } = await import('../modules/settings/model.js')
+    const saved = await Settings.findOne({ siteId: 'default' }).lean()
+    expect(saved.customCss).toBe('.home-offer-strip { background: #f2f8fd; }')
+
+    const res = await request(app).get('/api/public/settings')
+    expect(res.body.data.settings.customCss).toBe('.home-offer-strip { background: #f2f8fd; }')
+
+    const bad = await authed('patch', '/api/settings', adminJar).send({
+      customCss: 'a{}</style><script>alert(1)</script>',
+    })
+    expect(bad.status).toBeGreaterThanOrEqual(400)
+    expect(bad.status).toBeLessThan(500)
+  })
+})

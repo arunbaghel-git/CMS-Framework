@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 
+import CustomHtml from '../CustomHtml.jsx'
 import { BlogFilterProvider } from '../blog/BlogFilter.jsx'
 import PostList from '../blog/PostList.jsx'
 import PostListLead from '../blog/PostListLead.jsx'
@@ -230,6 +231,9 @@ function FaqsBlock({ props, plainFaqs }) {
   )
 }
 
+/** Tour page pe custom block column ke andar baithta hai, isliye `block` variant. */
+const CustomHtmlBlock = ({ props }) => <CustomHtml props={props} variant="block" />
+
 const BLOCKS = {
   richText: RichTextBlock,
   twoColumn: TwoColumnBlock,
@@ -242,6 +246,8 @@ const BLOCKS = {
    */
   postList: PostList,
   faqs: FaqsBlock,
+  /** Client ka apna HTML — home wala hi component, yahan `.blk` ke roop me (D-96 §25). */
+  customHtml: CustomHtmlBlock,
 }
 
 /**

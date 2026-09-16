@@ -155,6 +155,9 @@ const settingsSchema = new mongoose.Schema(
 
     /** Staging pe safe default — spec 004 §3. Launch pe manually on hota hai. */
     searchEngineVisible: { type: Boolean, default: false },
+
+    /** Site ki apni CSS — Settings ▸ Custom CSS (client, 16 Sep). Har page ke <head> me jaati hai. */
+    customCss: { type: String, default: '' },
   },
   {
     timestamps: true,

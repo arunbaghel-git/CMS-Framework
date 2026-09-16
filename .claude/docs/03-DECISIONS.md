@@ -8343,6 +8343,38 @@ yahan CSS dekh kar uska **asar** maan liya gaya. Dono ka ilaaj ek hai — refere
 1 naya API test (eyebrow plain text hai aur payload me jaata hai). ⚠️ Poori suite is machine pe **disk full**
 (`ENOSPC`) ki wajah se nahi chal payi — aaj ke hisse ke 309 test pass (home + shared + web).
 
+### 25. `Custom editor` block + `Settings ▸ Custom CSS` (client, 16 Sep)
+
+Client: _"custom editor option in home content blocks"_ aur _"custom css submenu in settings … so user can
+enter css for home custom blocks"_. Teen sawaal pooche gaye, teenon ka jawab client ka:
+
+| Sawaal | Client |
+| --- | --- |
+| CSS kahan lage | **poori site par** |
+| Block kahan mile | **home aur Tour dono pe** |
+| Block ki apni class | **haan** (mera suggestion) |
+
+**Kyun do alag cheezein banani padi** — kyunki ek ke bina doosri bemaani hai: sanitizer `<style>` **aur**
+`<script>` ka poora content girata hai (R20, D-80 ke saath hi tay hua tha). Yaani client apne HTML ke saath
+uski CSS likh hi nahi sakta. Do raaste the — sanitizer me `<style>` kholna (poore site ki CSS ek block ke
+andar, aur `</style` se HTML todne ka raasta), ya CSS ko apni jagah dena. Doosra chuna gaya.
+
+- Block `customHtml` (UI: **Custom editor**): `background` (sirf home ke panel me) · `className` · `html`
+- `className` ki shape Zod me sakht hai (`[A-Za-z0-9 _-]`) — wo seedha `class="…"` me jaati hai
+- Theme me **ek hi component** (`components/CustomHtml.jsx`), do roop: home pe `.hsec` (poori chaudai,
+  andar `.wrap`), Tour pe `.blk` (column ke andar). Do copies wahi galti hoti jo D-65/D-51/D-58 pe bachayi gayi
+- `wrapTables()` yahan bhi chalta hai — A-19 wali baat: look client ki likhi class pe na tike
+- `settings.customCss` → `getPublicSettings()` → `layout.jsx` ka ek `<style>`, har page pe
+
+⚠️ **`</style` do jagah ruka hai** — Zod me (write) aur render me. CSS me JavaScript chalti nahi, isliye
+asli khatra sirf yahi hai ki wo do akshar `<style>` tag **jaldi band** kar dein aur uske aage ka sab HTML ban
+jaaye. Ye A-27 wali hi baat hai: value jahan render hoti hai, uska vyakaran wahin rokna padta hai.
+
+⚠️ **Mongoose ka purana jaal** — `settings` model me field jodna zaroori tha; sirf Zod me jodne se API 200
+deti, admin "Saved." dikhata aur DB me kuch na jaata (D-86). Test isiliye **response nahi, DB** padhta hai.
+
+2 naye API test. Koi migration nahi (naya field default `''`, koi index nahi).
+
 ### 20. Package Type pe badge ka rang (client, usi din)
 
 Client: _"Package Type ke Add/Edit me color picker, Posts ki Category jaisa — badge ko apna rang mile"_.

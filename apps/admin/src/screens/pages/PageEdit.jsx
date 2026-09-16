@@ -109,7 +109,7 @@ const TYPE_CONFIG = {
     /** `Parent` ka dropdown — breadcrumb isi se banta hai (D-87 §12). */
     parent: true,
     featuredHint: 'Optional. Na daali to Settings wali universal image aayegi.',
-    blocks: ['richText', 'twoColumn', 'cards', 'packageList', 'faqs'],
+    blocks: ['richText', 'twoColumn', 'cards', 'packageList', 'faqs', 'customHtml'],
   },
 
   /**

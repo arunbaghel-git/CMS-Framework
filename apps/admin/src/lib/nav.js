@@ -327,6 +327,12 @@ export const NAV = [
       { label: 'CTA Section', to: '/settings/cta', permission: PERMISSION.SETTINGS_READ },
       /* `Tour settings` yahan se **Tour ke submenu** me chala gaya (client, 8 Sep) — upar dekho. */
       /* `Blog settings` yahan se **Posts ke submenu** me chala gaya (client, 11 Sep, D-93) — upar dekho. */
+      /**
+       * Site ki apni CSS (client, 16 Sep) — `Custom editor` block ke liye, par lagti **har page** pe.
+       * CSS block me likhi hi nahi ja sakti (sanitizer `<style>` gira deta hai, R20), isliye uska ghar
+       * yahan hai.
+       */
+      { label: 'Custom CSS', to: '/settings/custom-css', permission: PERMISSION.SETTINGS_READ },
       { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
       { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
       {
@@ -449,6 +455,7 @@ export const ROUTE_GUARDS = Object.freeze({
    */
   '/settings': PERMISSION.SETTINGS_READ,
   '/settings/cta': PERMISSION.SETTINGS_READ,
+  '/settings/custom-css': PERMISSION.SETTINGS_READ,
   /**
    * ⚠️ Menu me ye ab **Tour** ke neeche hai (client, 8 Sep), par guard `settings.read` hi rahi —
    * storage `settings.tourSettings` me hai. Jagah badalne se permission nahi badalti.

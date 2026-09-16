@@ -107,6 +107,7 @@ export const HOME_PAGE_BLOCK_TYPES = Object.freeze([
   'offerCards',
   'textVideo',
   'awardBadges',
+  'customHtml',
 ])
 
 /**
@@ -425,6 +426,31 @@ export const offerCardsPropsSchema = z.object({
   /** Desktop pe ek baar me kitne card dikhein. */
   columns: z.coerce.number().int().min(2).max(6).default(4),
   items: z.array(offerCardSchema).max(OFFER_CARDS_MAX).default([]),
+})
+
+/**
+ * `Custom editor` — client apna HTML khud likhta hai (client, 16 Sep).
+ *
+ * Ye us jagah ke liye hai jahan koi bana-banaya section fit nahi baithta. Editor wahi hai jo baaki jagah
+ * (TinyMCE — Visual + Text tab), aur `class`/`id`/inline `style` bachte hain (D-80).
+ *
+ * ⚠️ **CSS yahan nahi likhi ja sakti** — sanitizer `<style>` aur `<script>` ka poora content gira deta
+ * hai (R20), aur wo jaan-boojh kar hai. Isliye CSS ka apna ghar hai: **Settings ▸ Custom CSS**
+ * (`settings.customCss`), jo har page ke `<head>` me jaati hai.
+ *
+ * `className` sirf isliye hai ki CSS likhna aasan ho (`.my-strip .box { … }`) — bina uske client ko har
+ * baar HTML ke andar class daalni padti. Shape sakht hai: sirf akshar, ank, space, `-` aur `_`, taaki
+ * wo value `class="…"` se bahar nikal hi na sake.
+ */
+export const customHtmlPropsSchema = z.object({
+  background: sectionBackgroundSchema,
+  className: z
+    .string()
+    .trim()
+    .max(60)
+    .regex(/^[A-Za-z0-9 _-]*$/, 'Use only letters, numbers, spaces, - and _')
+    .default(''),
+  html: htmlSchema.pipe(z.string().max(20000)).default(''),
 })
 
 /** Text with video me kitne points — reference me teen; 6 client ne rakha (15 Sep, D-96 §22). */
@@ -1092,6 +1118,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   offerCards: offerCardsPropsSchema,
   textVideo: textVideoPropsSchema,
   awardBadges: awardBadgesPropsSchema,
+  customHtml: customHtmlPropsSchema,
 })
 
 /**

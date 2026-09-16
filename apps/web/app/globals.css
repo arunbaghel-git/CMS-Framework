@@ -8628,3 +8628,20 @@ a.txv__box:hover .txv__p {
     height: 60px;
   }
 }
+
+/* ---- Custom editor block (D-96 §25) — client ka apna HTML ---- */
+
+/*
+ * Yahan jaan-boojh kar lagbhag kuch nahi hai: ye block client ka apna canvas hai, aur uski CSS
+ * **Settings ▸ Custom CSS** se aati hai. Home pe background `.hsec` sambhalti hai; Tour page pe block
+ * column ke andar baithta hai, isliye uska apna rang chahiye.
+ */
+.chb--box {
+  background: var(--chb-bg, transparent);
+}
+
+/* Client ki image kabhi column se bahar na nikle — wahi A-19 wali soch (look class ke bharose na ho) */
+.chb img {
+  max-width: 100%;
+  height: auto;
+}

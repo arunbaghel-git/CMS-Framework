@@ -1,3 +1,4 @@
+import CustomHtml from '../CustomHtml.jsx'
 import TourSchema from '../tour/TourSchema.jsx'
 import AwardBadges from './AwardBadges.jsx'
 import HeroForm from './HeroForm.jsx'
@@ -36,6 +37,7 @@ const SECTIONS = {
   offerCards: OfferCards,
   textVideo: TextVideo,
   awardBadges: AwardBadges,
+  customHtml: CustomHtml,
 }
 
 export default function HomePage({ entry }) {

@@ -59,6 +59,7 @@ const BLOCK_LABEL = {
   offerCards: 'Offer cards',
   textVideo: 'Text with video',
   awardBadges: 'Award badges',
+  customHtml: 'Custom editor',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -79,6 +80,7 @@ const BLOCK_CLASS = {
   offerCards: 'image',
   textVideo: 'two',
   awardBadges: 'logos',
+  customHtml: 'text',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -146,6 +148,7 @@ function emptyBlock(type) {
       videoTitle: '',
       videoText: '',
     },
+    customHtml: { background: '', className: '', html: '' },
     awardBadges: {
       background: '',
       heading: '',
@@ -246,6 +249,13 @@ function summarize(block) {
       return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
     case 'offerCards':
       return `${p.heading || 'Offer cards'} — ${(p.items ?? []).length} card(s)`
+    case 'customHtml': {
+      const text = String(p.html ?? '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/s+/g, ' ')
+        .trim()
+      return text ? text.slice(0, 70) + (text.length > 70 ? '…' : '') : 'Empty'
+    }
     case 'textVideo':
       return `${p.heading || 'Text with video'} — ${(p.items ?? []).length} point(s)${p.videoUrl ? ' · video' : ''}`
     case 'awardBadges':
@@ -2738,6 +2748,61 @@ function OfferCardsBlock({ props, onChange, disabled }) {
 }
 
 /**
+ * `Custom editor` — client apna HTML khud likhta hai (client, 16 Sep, D-96 §25).
+ *
+ * ⚠️ **CSS yahan nahi** — editor me `<style>` likhne pe wo save hi nahi hota (sanitizer, R20). Uska ghar
+ * **Settings ▸ Custom CSS** hai, aur hint me wahi raasta likha hai; bina uske client baar-baar `<style>`
+ * likh kar sochta ki content gayab ho raha hai (wahi "kuch na hona" wala lakshan, D-86).
+ */
+function CustomHtmlBlock({ props, onChange, disabled, home }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+
+  return (
+    <>
+      {/* Background sirf home ke sections pe — Tour page pe block column ke andar baithta hai */}
+      {home && (
+        <SectionBackground
+          value={props.background}
+          fallback={THEME_COLORS.surface}
+          onChange={(background) => set({ background })}
+          disabled={disabled}
+        />
+      )}
+
+      <div className="field">
+        <label>CSS class</label>
+        <input
+          className="inp"
+          placeholder="Optional — e.g. home-offer-strip"
+          value={props.className ?? ''}
+          onChange={(e) => set({ className: e.target.value })}
+          disabled={disabled}
+        />
+        <div className="hint">
+          Goes on the block itself, so your CSS can target it —{' '}
+          <code>.home-offer-strip &#123; … &#125;</code>. Letters, numbers, spaces, - and _ only.
+        </div>
+      </div>
+
+      <div className="field">
+        <label>Content</label>
+        <HtmlEditor
+          value={props.html ?? ''}
+          onChange={(html) => set({ html })}
+          disabled={disabled}
+          height={360}
+        />
+        <div className="hint">
+          Write your own HTML here — use the <b>Text</b> tab in the editor. Styles go in{' '}
+          <b>Settings ▸ Custom CSS</b>: a <code>&lt;style&gt;</code> tag written here is removed
+          when you save.
+        </div>
+      </div>
+    </>
+  )
+}
+
+/**
  * List ke kram ka saanjha hisaab — ek item patch, drag se move. Text with video aur Award badges dono pe.
  * (Purane section editors me yahi code apna-apna hai; unhe chhua nahi gaya.)
  */
@@ -3095,6 +3160,7 @@ function AwardBadgesBlock({ props, onChange, disabled }) {
 }
 
 const EDITORS = {
+  customHtml: CustomHtmlBlock,
   textVideo: TextVideoBlock,
   awardBadges: AwardBadgesBlock,
   offerCards: OfferCardsBlock,

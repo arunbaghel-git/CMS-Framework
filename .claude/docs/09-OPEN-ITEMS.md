@@ -261,6 +261,8 @@ dikhta hai.
 | 19 | **Hero ka Eyebrow** (§24): admin me text bharo → title ke upar star wali line | Dev server pe CSS verify; text client bharega |
 | 20 | **About us ka box** (§24): kone seedhe, koi shadow nahi, image poori (kati hui nahi) | CSS bundle se verify, aankh se nahi |
 | 21 | **Islands ka tag** (§24): chip chhoti line ke saath usi line me, wrap hone pe theek dikhe | CSS bundle se verify, aankh se nahi |
+| 22 | **Custom editor** (§25): home aur Tour dono pe block, apni class, background; `<style>` likhne pe wo save pe gir jaata hai (hint padhne laayak hai ya nahi) | Tests + render se verify |
+| 23 | **Settings ▸ Custom CSS** (§25): save karte hi site pe lagti hai (production build pe cache ka pehra), galat CSS poori site pe dikhegi | Tests se verify; live CSS client bharega |
 
 ---
 

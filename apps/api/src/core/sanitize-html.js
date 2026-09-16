@@ -309,6 +309,7 @@ export function sanitizeInlineHtml(html) {
  * | `logoGrid` | `props.description` (logo ke khaane plain text) |
  * | `textVideo` | `props.text` · `props.items[].text` (**inline**) |
  * | `awardBadges` | `props.description` (badge ke khaane plain text) |
+ * | `customHtml` | `props.html` — client ka apna markup (`<style>`/`<script>` yahin girte hain) |
  * | `testimonials` | `props.description` (review ka text plain hai, reviews collection me) |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
@@ -331,6 +332,14 @@ export function sanitizeContent(content) {
       const p = block.props
 
       switch (block.type) {
+        /**
+         * `Custom editor` (D-96 §25) — `richText` jaisa hi, par apne background aur class ke saath.
+         *
+         * ⚠️ Client yahan `<style>` likhega to wo **poora gir jaata hai** — isiliye CSS ka apna ghar hai
+         * (`settings.customCss`). Ye rok jaan-boojh kar hai: page ke beech me `<style>` chhodna matlab
+         * ek block ki CSS poore site ko badal de.
+         */
+        case 'customHtml':
         case 'richText':
           return { ...block, props: { ...p, html: sanitizeBlockHtml(p.html) } }
 
