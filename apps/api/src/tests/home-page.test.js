@@ -1163,3 +1163,22 @@ describe('Page ka Template — Default / Section layout (client, 16 Sep, D-96 §
     expect(BUILT_IN_CONTENT_TYPE_KEYS).not.toContain('sectionPage')
   })
 })
+
+describe('Sidebar ke icon-only link ka `aria-label` (client, 16 Sep — contact sidebar)', () => {
+  it('`aria-label` bachta hai; `onclick` ab bhi girta hai', async () => {
+    const { sanitizeSidebarWidgets } = await import('../core/sanitize-html.js')
+
+    const [widget] = sanitizeSidebarWidgets([
+      {
+        type: 'html',
+        props: {
+          html: '<div class="socials"><a href="https://x.com/andaman" aria-label="X" onclick="alert(1)"><svg viewBox="0 0 24 24"></svg></a></div>',
+        },
+      },
+    ])
+
+    /** Bina iske sirf icon wala link screen reader ke liye khaali hota hai — aur wo galti chup hai. */
+    expect(widget.props.html).toContain('aria-label="X"')
+    expect(widget.props.html).not.toMatch(/onclick|alert/)
+  })
+})

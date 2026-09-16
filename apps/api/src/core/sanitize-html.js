@@ -23,8 +23,14 @@ import sanitizeHtmlLib from 'sanitize-html'
  *    aata hai. Attacker admin ka JS chhod kar seedha API ko call kar sakta hai.
  */
 
-/** `class`/`id`/`style` har jagah — client ka faisla (3 Sep): purana content jaisa ka waisa. */
-const COMMON_ATTRS = ['class', 'id', 'style', 'title', 'dir', 'lang']
+/**
+ * `class`/`id`/`style` har jagah — client ka faisla (3 Sep): purana content jaisa ka waisa.
+ *
+ * ⚠️ **`aria-label` 16 Sep me juda** (contact page ke sidebar ke social icons). Uske bina sirf icon wala
+ * link screen reader ke liye **khaali** hota hai — aur wo galti chup hoti hai: dikhne me sab theek lagta
+ * hai. Ye attribute nirjeev hai (sirf naam batata hai), isliye allow karne se koi raasta nahi khulta.
+ */
+const COMMON_ATTRS = ['class', 'id', 'style', 'title', 'dir', 'lang', 'aria-label']
 
 /**
  * **Block profile** — Overview, section descriptions, itinerary din, FAQ answer, booking
@@ -251,8 +257,8 @@ const INLINE = {
     'br',
   ],
   allowedAttributes: {
-    '*': ['class', 'style', 'title', 'lang'],
-    a: ['class', 'style', 'title', 'href', 'target', 'rel'],
+    '*': ['class', 'style', 'title', 'lang', 'aria-label'],
+    a: ['class', 'style', 'title', 'href', 'target', 'rel', 'aria-label'],
   },
   allowedSchemes: ['http', 'https', 'mailto', 'tel'],
   allowedSchemesAppliedToAttributes: ['href'],

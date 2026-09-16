@@ -8692,3 +8692,16 @@ nahi.
 
 ⚠️ **Client ke do CSS edit `globals.css` me hain aur wo waise hi rakhe gaye hain** (`.chb--box` ka background,
 aur `.contact-methods` ka `background/border/padding`) — memory ka niyam: client ke hand-tune palatne nahi.
+
+**§30 — contact ka sidebar (client, 16 Sep):** `At a glance` aur `Registered & enlisted` — dono
+**Custom HTML** widget, snippets `docs/snippets/contact-glance-sidebar.html` aur
+`contact-registered-sidebar.html`.
+
+- `At a glance` (`.qfacts`) aur social ke gol button (`.socials`) ki CSS theme me, `.wdg__b` ke **andar**
+- `Registered & enlisted` ki list ke liye **kuch likhna hi nahi pada** — `.wdgl` (aur uska class-mukt saathi
+  `.wdg__b ul`) D-89 §6 se maujood hai. A-19 wali soch ka seedha faayda: look class ke bharose nahi tha
+
+⚠️ **`aria-label` sanitizer me allowed kiya** — icon-only link (`<a aria-label="Instagram"><svg/></a>`) se
+wo attribute gir raha tha, aur us link ka screen reader ke liye **koi naam bachta hi nahi**. Ye galti
+aankhon se dikhti hi nahi. Attribute nirjeev hai (sirf naam batata hai), isliye allow karne se koi naya
+raasta nahi khulta. 1 naya test: `aria-label` bache, `onclick` phir bhi gire.

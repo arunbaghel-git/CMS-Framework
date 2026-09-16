@@ -9499,3 +9499,69 @@ a.txv__box:hover .txv__p {
   content-visibility: visible;
   contain: none;
 }
+
+/* ---- Contact ka sidebar: `At a glance` aur `Registered & enlisted` (D-96 §30) ---- */
+
+/*
+ * Dono `Custom HTML` widget hain, isliye CSS `.wdg__b` (widget ke body) ke **andar** hai — wahi jagah jahan
+ * client ka markup baithta hai.
+ *
+ * ⚠️ `Registered & enlisted` ki list ke liye **kuch likhna nahi pada** — `.wdgl` (aur uska class-mukt
+ * saathi `.wdg__b ul`) pehle se hai, D-89 §6 se. Wahi A-19 wali soch: look client ki likhi class pe nahi
+ * tikta, isliye wo list bina class ke bhi theek dikhti hai.
+ */
+
+/* `At a glance` — baayein label, daayein value (reference ka `.qfacts`) */
+.wdg__b .qfacts {
+  display: grid;
+}
+
+.wdg__b .qfacts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px dashed var(--line-2);
+  font-size: var(--fs-sm);
+}
+
+/* Aakhri row pe lakeer nahi — warna wo widget ke apne border ke saath do lakeer bana deti hai */
+.wdg__b .qfacts div:last-child {
+  border-bottom: 0;
+}
+
+.wdg__b .qfacts span {
+  font-weight: var(--fw-semi);
+  color: var(--muted);
+}
+
+.wdg__b .qfacts b {
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+  text-align: right;
+}
+
+/* Social ke gol button — reference ka `.socials` (footer ka `.soc` isse alag hai: wo gehre rang pe hai) */
+.wdg__b .socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.wdg__b .socials a {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--body);
+}
+
+.wdg__b .socials a:hover {
+  border-color: var(--blue-500);
+  background: var(--blue-50);
+  color: var(--blue-600);
+}
