@@ -213,17 +213,24 @@ code ki nahi.
 
 ### A-31 · Code me bacha hua site ka naam — hotel categories ka text (D-96 §33)
 
-**Deadline:** doosre client ka instance khadaa karne se **pehle** · **aaj kuch toota nahi**
+**Deadline:** doosre client ka instance khada karne se **pehle** · **aaj kuch toota nahi**
 
- ka  — chaar tab ke naam (···) aur unke
-teen-teen line ke description (Havelock · Neil · Port Blair · Marine Hill · Sitapur). Ye **har package page**
-pe chhapte hain, chahe content kisi bhi site ka ho. Yahi Q-9 wala  kaanta hai — par wahan sirf tab
-ke naam likhe the.
+`Pricing.jsx` ka `CATEGORY_COPY` — chaar tab ke naam (`Base` · `Sea-facing` · `Beachfront` · `Villas`) aur
+unke teen-teen line ke description, jinme **Havelock · Neil · Port Blair · Marine Hill · Sitapur** likhe
+hain. Ye **har package page** pe chhapte hain, chahe content kisi bhi site ka ho.
 
-Ilaaj:  me chaar category ka  (breadcrumb ka wahi saancha, §33), aur
-khaali pe theme ka aaj wala text **na** aaye — kyunki wahi Andaman ka hai.
+Yahi Q-9 wala `TAB_NOTE` kaanta hai — par wahan sirf tab ke naam likhe the, jabki asal me poore vaakya bhi
+wahin hain.
 
-Chhota hissa: **admin ke placeholder** (, , , …). Save nahi hote, par doosre client ke admin me galat udaharan dikhenge.
+**Ilaaj:** `packageDefaults` me chaar category ka `{ label, text }` — wahi saancha jo breadcrumb pe laga
+(§33). ⚠️ Khaali pe theme ka aaj wala text **fallback na bane**, kyunki wahi Andaman ka hai; khaali matlab
+"kuch mat dikhao" (D-30).
+
+**Chhota hissa — admin ke placeholder:** `Plan your Andaman trip` · `Operating from Port Blair` ·
+`Radhanagar Beach` · `e.g. Havelock` · `Port Blair → Havelock · 90 min` · `e.g. Sea-facing on Havelock` ·
+`e.g. 6N Blissful Andaman` · `Andaman Tourism team` · `Planners in Port Blair` · `tel:+919810066496`.
+Ye **save nahi hote** aur page pe kabhi nahi jaate, par doosre client ke admin me udaharan galat site ke
+dikhenge.
 
 ---
 
