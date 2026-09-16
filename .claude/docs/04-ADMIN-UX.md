@@ -766,7 +766,7 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
 - **Logo grid** section: Background · Heading (position + link) · Logos (⠿ · Image · Heading optional · ✕, ＋ Add logo) · Closing line (Title · Text)
 - **Package grid** section: Background · Heading (position + link) · Show Package Type filter — cards apne aap (saare published, naye pehle, 16)
 - **Packages ▸ Package Type** me **Badge colour** (picker + Use automatic) — package card ke badge ka rang (D-96 §20)
-- **Offer cards** section: Background · Heading (position + link) · Card look (Card style · Image shape · Layout slider/grid · Cards visible) · Cards (⠿ — Image · Title · Small line · Badge + colour · Chip 1–3 · Price · Price note · Old price · Rating · Link), 24 tak
+- **Package cards** section (UI ka naam — `type` `offerCards` hi hai, R6): Background · Heading (position + link) · Card look (Card style · Image shape · Layout slider/grid · Cards visible) · Cards (⠿ — Image · Title · Small line · Badge + colour · Chip 1–3 · Price · Price note · Old price · Rating · Link), 24 tak
 - **Text with video** section: Background · Text (Heading · Text editor) · Points (⠿ — Icon / own image · Title · Description), 6 tak · Button label + link · Image or video (Side Right/Left · Image · Video link · Caption title + text)
 - **Award badges** section: Background · Heading (position + link) · Badge colour · Badges (⠿ row — image · big text · small text), 24 tak
 - **Custom editor** section (home **aur** Tour page): Background (sirf home) · CSS class · Content (wahi HTML editor). CSS iske andar nahi — **Settings ▸ Custom CSS**

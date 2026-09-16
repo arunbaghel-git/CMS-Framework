@@ -8423,3 +8423,7 @@ tour/blog pe hai, aur client ne turant pakda — _"design home reference se matc
 rahi (client ne naam se maanga tha); badlaav sirf `.hf-hero__copy` ke andar, taaki tour aur blog ke hero
 jaise the waise rahein. ⚠️ **Sabak wahi purana** — naam maangne ka matlab look maangna nahi hota; reference
 ka wo section khol kar dekh lena tha.
+
+**§21 amendment (client, 16 Sep):** is section ka admin me naam **Package cards** hai, "Offer cards" nahi.
+⚠️ Badla sirf **label** (`BLOCK_LABEL` aur band panel ki summary) — block ka `type` `offerCards` hi rahega,
+kyunki wo DB me stored data hai (R6). Purani docs me purana naam mile to wo us waqt ka sach hai.

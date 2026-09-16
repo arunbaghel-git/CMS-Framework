@@ -56,7 +56,8 @@ const BLOCK_LABEL = {
   testimonials: 'Testimonials',
   logoGrid: 'Logo grid',
   packageGrid: 'Package grid',
-  offerCards: 'Offer cards',
+  /** ⚠️ Sirf label badla — `type` DB me stored data hai (R6). Client, 16 Sep: "Package cards". */
+  offerCards: 'Package cards',
   textVideo: 'Text with video',
   awardBadges: 'Award badges',
   customHtml: 'Custom editor',
@@ -248,7 +249,7 @@ function summarize(block) {
     case 'imageCards':
       return `${p.heading || 'Image cards'} — ${(p.items ?? []).length} card(s)`
     case 'offerCards':
-      return `${p.heading || 'Offer cards'} — ${(p.items ?? []).length} card(s)`
+      return `${p.heading || 'Package cards'} — ${(p.items ?? []).length} card(s)`
     case 'customHtml': {
       const text = String(p.html ?? '')
         .replace(/<[^>]*>/g, ' ')
