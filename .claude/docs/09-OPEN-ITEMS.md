@@ -86,7 +86,11 @@ karwaya; **13 farak** nikle aur sab theek ho gaye. Paanch naye contract (`heroBu
 list se `content-visibility` hat gaya (D-89 §4). Purane number (mobile 91 / desktop 98) sirf
 package page ke the.
 
-**Last updated:** 15 Sep 2026 (Home page D-96 §1–§23 — 11 section; A-26 se A-30 naye)
+**Last updated:** 16 Sep 2026 (Contact page D-96 §24–§33; **A-31** naya — code me bacha hua site ka naam)
+
+⚠️ **`pnpm test` is machine pe abhi fail hoti hai — code ki wajah se nahi.** C: drive pe ~0.7 GB bachi hai
+aur vitest apni temp files pe `ENOSPC`/`ENOENT` de deti hai (file **load** hi nahi hoti, "no tests"
+dikhata hai). Jagah banne pe hi poori suite chalegi; 16 Sep dopahar ko wo **1151/1151** pass thi.
 
 ⚠️ Neeche ki kuch purani lines (A-9/A-21/A-22 "Ab bhi baaki" me, "Ab ka order", A-17 ka "`/` 404") safai maangti hain — home page ke baad.
 
