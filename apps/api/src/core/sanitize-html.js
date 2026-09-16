@@ -80,6 +80,12 @@ const BLOCK = {
     'header',
     'footer',
     'aside',
+    /**
+     * `address` — daftar ka pata (client, 16 Sep, contact page). Ye 16 Sep tak yahan nahi tha, aur uska
+     * lakshan wahi chup wala hota: tag gir jaata, pata **text ban kar** bach jaata, aur uski CSS (line
+     * height, italic hataana) lagti hi nahi. Tag apne aap me nirjeev hai.
+     */
+    'address',
 
     /**
      * `details`/`summary` — accordion **bina JS ke** (D-87, D-59 ka hi tark).

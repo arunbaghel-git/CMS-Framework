@@ -8588,3 +8588,26 @@ field pe `full`/`half` width pehle se maujood hai, isliye reference ka do-column
 ke ban jaata hai. Ek hi cheez ke do malik banana wahi jaal hota jo D-86 me slug pe laga tha.
 
 2 naye API test. Koi migration nahi.
+
+**§30 amendment — contact page ke baaki hisse (client, usi din):** steps · offices + map · office hours ·
+sidebar ka Quick contact — chaaron **Custom editor** se (client ka faisla), CSS **theme me** (wahi batwara
+jo island map pe tay hua, §27). Paste karne wale HTML `docs/snippets/contact-*.html` me hain, aur unka text
+reference ka apna hai.
+
+⚠️ **Do cheezein sanitizer pe chalate waqt hi pakdi gayin, dono chup thin:**
+
+| Kya | Lakshan |
+| --- | --- |
+| `<address>` allowlist me tha hi nahi | pata **text ban kar** bach jaata, uski CSS lagti hi nahi |
+| bina class ke `<span>` | `unwrapBareSpans` (D-89) use khol deta hai — text bachta hai, styling nahi |
+
+Pehla theek kiya (`address` ab allowed — tag nirjeev hai), doosre ke liye **snippets me har span pe class**
+hai. Naam se farak nahi padta; CSS `span` pe hai, class sirf use zinda rakhne ke liye chahiye.
+
+⚠️ **Yahi wajah hai ki snippet "likh kar de dena" kaafi nahi tha** — teenon file sanitizer se chala kar
+milaayi gayi (`sanitizeContent()` → diff). Bina us jaanch ke client ke page pe aadha design chup-chaap gir
+jaata, aur wo "CSS kaam nahi kar rahi" jaisa dikhta.
+
+Classes (client block ke panel me likhta hai): `contact-methods` · `contact-steps` · `contact-offices` ·
+`contact-hours`, aur sidebar ke Custom HTML widget me `contact-quick`.
+Map Google ka embed hai (`iframe`, `loading="lazy"`) — sanitizer me `iframe` sirf `https` pe pehle se allowed.

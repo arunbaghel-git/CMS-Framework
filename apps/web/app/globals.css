@@ -9086,3 +9086,366 @@ a.txv__box:hover .txv__p {
   font-size: var(--fs-2xs);
   color: var(--muted);
 }
+
+/* ---- Contact page ke custom editor blocks (D-96 §30) — `contact-us.html` ---- */
+
+/*
+ * Ye hisse Custom editor se bante hain (client ka faisla: steps · offices · office hours · quick contact
+ * sab HTML se), isliye unki CSS **theme me** hai — wahi batwara jo island map pe tay hua tha (§27).
+ *
+ * Har hissa apni class ke **andar** hai, taaki `.steps`/`.hours`/`.offc` jaise aam naam poore site pe na
+ * phailein. Client ko ye class block ke panel me likhni hoti hai.
+ *
+ * ⚠️ **`<span>` ko class chahiye** — bina class ka `<span>` sanitizer khol deta hai (D-89 ka
+ * `unwrapBareSpans`): text bachta hai, uski styling nahi. Snippets me isiliye har span pe class hai;
+ * naam se farak nahi padta, CSS `span` pe hai.
+ */
+
+/* ---- Call · WhatsApp · Email · Visit (`.cmeth`) ---- */
+
+.contact-methods .cmeth {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(10px, 1.4vw, 14px);
+}
+
+.contact-methods .cmeth a {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: clamp(14px, 1.8vw, 18px);
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  background: var(--surface);
+  transition:
+    border-color 0.16s,
+    box-shadow 0.16s,
+    transform 0.16s;
+}
+
+.contact-methods .cmeth a:hover {
+  border-color: var(--blue-500);
+  box-shadow: var(--sh-2);
+  transform: translateY(-2px);
+}
+
+.contact-methods .cmeth i {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--blue-50);
+  color: var(--blue-600);
+}
+
+/* WhatsApp hara, "Visit us" narangi — reference ke apne rang */
+.contact-methods .cmeth i.wa {
+  background: #e7faee;
+  color: #25a55a;
+}
+
+.contact-methods .cmeth i.or {
+  background: var(--orange-100);
+  color: var(--orange-600);
+}
+
+.contact-methods .cmeth span {
+  font-size: 10.5px;
+  font-weight: var(--fw-black);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.contact-methods .cmeth b {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-heading);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.contact-methods .cmeth em {
+  font-style: normal;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  color: var(--body);
+}
+
+/* ---- "What happens after you send it" (`.steps` + `.promise`) ---- */
+
+.contact-steps .steps {
+  display: grid;
+  gap: 11px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: s;
+}
+
+.contact-steps .steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--surface);
+}
+
+/* Ginti CSS se — client HTML me 1,2,3 na likhe, aur kram badalne pe wo apne aap theek rahe */
+.contact-steps .steps li::before {
+  counter-increment: s;
+  content: counter(s);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--blue-600);
+  color: #fff;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-black);
+}
+
+.contact-steps .steps b {
+  display: block;
+  margin-bottom: 2px;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+}
+
+.contact-steps .steps p {
+  font-size: var(--fs-sm);
+}
+
+.contact-steps .promise {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.contact-steps .promise div {
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+  background: var(--surface);
+}
+
+.contact-steps .promise b {
+  display: block;
+  font-size: 18px;
+  font-weight: var(--fw-black);
+  letter-spacing: -0.03em;
+  color: var(--blue-700);
+}
+
+.contact-steps .promise span {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  line-height: 1.5;
+  color: var(--body);
+}
+
+/* ---- Our offices (`.offices`, `.offc`, `.mapbox`) ---- */
+
+.contact-offices .offices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(12px, 1.6vw, 16px);
+  margin-top: 16px;
+}
+
+.contact-offices .offc {
+  padding: clamp(15px, 1.8vw, 20px);
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  background: var(--surface);
+  box-shadow: var(--sh-1);
+}
+
+.contact-offices .offc__t {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+
+.contact-offices .offc__t span {
+  padding: 4px 10px;
+  border-radius: var(--rf);
+  background: var(--blue-600);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: var(--fw-black);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Branch office ka gehra badge — reference ka `.br` */
+.contact-offices .offc__t span.br {
+  background: var(--ink);
+}
+
+.contact-offices .offc h3 {
+  font-size: var(--fs-2xl);
+  letter-spacing: -0.02em;
+}
+
+.contact-offices .offc address {
+  font-style: normal;
+  font-size: var(--fs-base);
+  line-height: 1.65;
+  color: var(--body);
+}
+
+.contact-offices .offc__r {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-2);
+}
+
+.contact-offices .offc__r div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--fs-md);
+  color: var(--body);
+}
+
+.contact-offices .offc__r svg {
+  flex-shrink: 0;
+  color: var(--blue-500);
+}
+
+.contact-offices .offc__r b {
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+}
+
+.contact-offices .offc .btn {
+  margin-top: 13px;
+}
+
+/* Map — iframe poora dabba bhar leta hai; `loading="lazy"` client ke HTML me hai */
+.contact-offices .mapbox {
+  position: relative;
+  aspect-ratio: 21 / 9;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r3);
+  background: var(--blue-50);
+}
+
+.contact-offices .mapbox iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ---- Office hours (`.hours`) ---- */
+
+.contact-hours .hours {
+  display: grid;
+  margin-top: 14px;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+
+.contact-hours .hours div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-2);
+  font-size: var(--fs-base);
+}
+
+.contact-hours .hours div:last-child {
+  border-bottom: 0;
+}
+
+.contact-hours .hours span {
+  font-weight: var(--fw-semi);
+  color: var(--body);
+}
+
+.contact-hours .hours b {
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+}
+
+/* Band din laal — reference ka `.off` */
+.contact-hours .hours div.off b {
+  color: var(--red-500);
+}
+
+/* ---- Sidebar ka Quick contact (`.wdgc`) — Custom HTML widget me ---- */
+
+.contact-quick .wdgc {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-2);
+  font-size: var(--fs-sm);
+}
+
+.contact-quick .wdgc:last-child {
+  border-bottom: 0;
+}
+
+.contact-quick .wdgc__i {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--blue-50);
+  color: var(--blue-600);
+}
+
+.contact-quick .wdgc b {
+  display: block;
+  font-size: 10px;
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.contact-quick .wdgc a {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-heading);
+  color: var(--ink);
+}
+
+.contact-quick .wdgc a:hover {
+  color: var(--blue-600);
+}
+
+/* Reference ka apna breakpoint — dono grid 760px pe ek column */
+@media (max-width: 760px) {
+  .contact-methods .cmeth,
+  .contact-offices .offices,
+  .contact-steps .promise {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-offices .mapbox {
+    aspect-ratio: 4 / 3;
+  }
+}

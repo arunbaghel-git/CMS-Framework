@@ -1061,3 +1061,35 @@ describe('Page ke content me Enquiry form block (client, 16 Sep, D-96 §30)', ()
     expect(res.body.data.entry.blocks[0].data.form).toBeNull()
   })
 })
+
+describe('Contact page ke custom editor blocks (D-96 §30)', () => {
+  it('`<address>` bachta hai aur bina class ke `<span>` khul jaata hai', async () => {
+    const created = (
+      await authed('post', '/api/entries', adminJar).send({
+        type: 'page',
+        title: 'Contact blocks',
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'customHtml',
+              props: {
+                className: 'contact-offices',
+                html: '<address>AIR Road,<br>Port Blair</address><span>Head office</span><span class="offc__b">Head office</span>',
+              },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+
+    const { html } = (await Entry.findById(created.id).lean()).content.blocks[0].props
+
+    /** Pata ek tag rehna chahiye — warna uski line-height/italic wali CSS lagti hi nahi. */
+    expect(html).toContain('<address>AIR Road,<br />Port Blair</address>')
+
+    /** ⚠️ Bina class ka span khul jaata hai (D-89) — isiliye snippets me har span pe class hai. */
+    expect(html).toContain('<span class="offc__b">Head office</span>')
+    expect(html).not.toContain('<span>Head office</span>')
+  })
+})
