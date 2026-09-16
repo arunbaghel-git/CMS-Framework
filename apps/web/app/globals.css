@@ -8660,7 +8660,7 @@ a.txv__box:hover .txv__p {
  * column ke andar baithta hai, isliye uska apna rang chahiye.
  */
 .chb--box {
-  background: var(--chb-bg, transparent);
+  background: var(--surface);
 }
 
 /* Client ki image kabhi column se bahar na nikle — wahi A-19 wali soch (look class ke bharose na ho) */
@@ -9102,7 +9102,11 @@ a.txv__box:hover .txv__p {
  */
 
 /* ---- Call · WhatsApp · Email · Visit (`.cmeth`) ---- */
-
+.contact-methods {
+  background: none;
+  border: none;
+  padding: 0px;
+}
 .contact-methods .cmeth {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -9176,53 +9180,15 @@ a.txv__box:hover .txv__p {
 
 /* ---- "What happens after you send it" (`.steps` + `.promise`) ---- */
 
-.contact-steps .steps {
-  display: grid;
-  gap: 11px;
-  margin: 14px 0 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: s;
-}
-
-.contact-steps .steps li {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 13px 15px;
-  border: 1px solid var(--line);
-  border-radius: var(--r2);
-  background: var(--surface);
-}
-
-/* Ginti CSS se — client HTML me 1,2,3 na likhe, aur kram badalne pe wo apne aap theek rahe */
-.contact-steps .steps li::before {
-  counter-increment: s;
-  content: counter(s);
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: var(--blue-600);
-  color: #fff;
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-black);
-}
-
-.contact-steps .steps b {
-  display: block;
-  margin-bottom: 2px;
-  font-size: var(--fs-base);
-  font-weight: var(--fw-heading);
-  color: var(--ink);
-}
-
-.contact-steps .steps p {
-  font-size: var(--fs-sm);
-}
-
+/*
+ * ⚠️ **Yahan `.steps` ki apni copy thi, hata di** — client: _"iska design tour page ke Booking &
+ * cancellation jaisa hi to hai"_. Bilkul sahi: wo `.steps` `globals.css` me pehle se hai (package page ka
+ * booking wala section, D-59), aur snippet ka markup bhi wahi `<ol class="steps">` hai.
+ *
+ * Do copies rakhne ka nateeja is repo me pehle ho chuka hai (D-65/D-51/D-58): ek din ek badalti hai aur
+ * doosri wahin reh jaati hai. Ab dono ek hi jagah se aate hain — sirf `.promise` (teen ginti wale dabbe)
+ * contact ka apna hai.
+ */
 .contact-steps .promise {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -9465,4 +9431,71 @@ a.txv__box:hover .txv__p {
 .secpg {
   display: grid;
   gap: clamp(22px, 2.8vw, 38px);
+}
+
+/* ---- `Enquiry form` block ka look — reference ka `.cform` (D-96 §30, client 16 Sep) ---- */
+
+/*
+ * Button **poori chaudai ka nahi** (client: _"button width kam karo, full aa raha hai"_). Sidebar ke form
+ * me wo full hota hai aur wo theek hai — wahan column hi 322px ka hai. Page ke beech me wahi button poore
+ * card jitna chauda ho jaata hai, aur reference me wo baayein kinare pe apni naap ka hai
+ * (`.cform .b { justify-self: start; padding-inline: 26px }`).
+ */
+.bkg--page .bkg__b .btn {
+  width: auto;
+  min-width: 200px;
+  padding-inline: 26px;
+}
+
+/*
+ * Button ke neeche ki line — reference ka `.formnote`: hara tick + chhoti muted line.
+ *
+ * ⚠️ Icon theme ka hai, form ki setting ka nahi — client ke likhe text ke aage theme kuch **jodti nahi**
+ * (2 Sep ka faisla), ye sirf uski sajawat hai.
+ */
+.bkg--page .bkg__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi);
+  color: var(--muted);
+}
+
+.bkg--page .bkg__note svg {
+  flex-shrink: 0;
+  color: var(--green-600);
+}
+
+/*
+ * ⚠️ **Fields ka apna card** — reference ka `.cform` (client, 16 Sep: _"form par border nahi aa raha hai,
+ * design me alag hai"_).
+ *
+ * `contact-us.html` me do card hain, ek ke andar ek: bahar `.blk` (heading + line), aur uske andar `.cform`
+ * (sirf fields + button) — halki shadow ke saath, taaki safed pe safed alag dikhe. Neeche ki `.formnote`
+ * **bahar** rehti hai, isliye wo `<form>` ke bahar render hoti hai.
+ *
+ * Sidebar aur hero ke form pe ye nahi lagta — wahan card pehle se `.wdg`/`.hf-card` hai.
+ */
+.bkg--page form {
+  padding: clamp(18px, 2.4vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: var(--r4);
+  background: var(--surface);
+  box-shadow: var(--sh-2);
+}
+
+/*
+ * ⚠️ **`.blk` ka paint containment yahan band** — `content-visibility: auto` ke saath `contain` aata hai
+ * (D-85), aur wo dabbe ke kinare pe **kaat** deta hai: client ne yahi pakda ki
+ * `.contact-methods` ke card ka border aadha dikh raha hai (unhone block ki padding 0 ki hai, to card
+ * bilkul kinare pe hain — aur hover pe wo 2px upar bhi uthta hai).
+ *
+ * Ye us chhoti si list ka hi agla mamla hai jo D-91 me mila tha: `content-visibility` sirf speed ka
+ * badlaav nahi hai, uske layout wale side-effect bhi hote hain.
+ */
+.contact-methods {
+  content-visibility: visible;
+  contain: none;
 }

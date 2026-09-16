@@ -59,6 +59,21 @@ const Arrow = () => (
 )
 
 /** Home hero ke note ka taala — reference ka `.quote__note svg` (client: _"icon add kr dena"_). */
+/** `.formnote` ka hara tick — contact page ke form ke neeche (D-96 §30). */
+const Tick = () => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3"
+    aria-hidden="true"
+  >
+    <path d="m5 13 4 4L19 7" />
+  </svg>
+)
+
 const Lock = () => (
   <svg
     width="12"
@@ -584,10 +599,22 @@ export default function EnquiryForm({
                   <Lock />
                   {form.footnote}
                 </small>
-              ) : (
+              ) : isPage ? null : (
                 <small>{form.footnote}</small>
               ))}
           </form>
+
+          {/*
+           * ⚠️ **Page pe ye line `<form>` ke BAHAR hai** — reference me `.formnote` `.cform` (fields wala
+           * card) ke neeche baithti hai, uske andar nahi (`contact-us.html`). Sidebar aur hero pe wo card
+           * ke andar hi rehti hai, isliye yahan sirf `isPage`.
+           */}
+          {isPage && form.footnote ? (
+            <small className="bkg__note">
+              <Tick />
+              {form.footnote}
+            </small>
+          ) : null}
         </div>
       </div>
     </>

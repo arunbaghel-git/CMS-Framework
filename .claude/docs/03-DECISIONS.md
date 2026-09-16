@@ -8676,3 +8676,19 @@ Ab wahi hai, aur wo har tarah se behtar bhi nikla:
 enquiry form in page template"_). Wo 16 Sep subah juda tha, jab plan tha ki contact ek normal Page banegi.
 
 4 API test — unme se ek ye pehra bhi hai ki **`sectionPage` naam ka koi type bana hi na rahe**.
+
+**§30 ka doosra daur — client ne page chala kar chaar cheezein batayi (16 Sep):**
+
+| Kya | Asli wajah |
+| --- | --- |
+| `contact-steps` aur `contact-hours` me background nahi | `.chb--box` ka `background: var(--chb-bg, transparent)` `.blk` ke safed card ko **dhak** raha tha. **Client ne khud theek kiya** (`var(--surface)`) |
+| `contact-methods` ke card ka border aadha | `.blk` ka `content-visibility: auto` (D-85) paint **contain** karta hai, aur client ne us block ki padding 0 ki thi — card bilkul kinare pe the (hover pe 2px upar bhi uthte hain). Ab us block pe containment band |
+| `contact-steps` ka design Tour ke Booking & cancellation jaisa | **Bilkul wahi tha** — `.steps` `globals.css` me pehle se hai (D-59), aur maine uski **doosri copy likh di thi**. Copy hata di; ab dono ek hi jagah se |
+| Form poori chaudai ke button ke saath, aur uska card hi nahi | Reference me do card hain — bahar `.blk` (heading + line) aur andar `.cform` (sirf fields + button, halki shadow), aur `.formnote` **andar wale ke bahar**. Ab wahi: `<form>` khud card hai, footnote uske bahar, button apni naap ka |
+
+⚠️ **Do galtiyaan meri ek hi kism ki thin** — jo cheez repo me pehle se thi (`.steps`, aur `.blk` ka card),
+maine uske upar apni parat likh di. Isi wajah se `.contact-steps` ka `.steps` hata dena "kaam" tha, jodna
+nahi.
+
+⚠️ **Client ke do CSS edit `globals.css` me hain aur wo waise hi rakhe gaye hain** (`.chb--box` ka background,
+aur `.contact-methods` ka `background/border/padding`) — memory ka niyam: client ke hand-tune palatne nahi.
