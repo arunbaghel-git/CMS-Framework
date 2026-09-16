@@ -112,6 +112,16 @@ const BLOCK = {
     'polygon',
     'use',
     'defs',
+    /**
+     * `text`/`tspan` — SVG ke andar ke naam (client, 16 Sep: home ka island map).
+     *
+     * ⚠️ Ye 16 Sep tak yahan nahi the, aur wo chup-chaap kaat-ta tha: client custom editor me reference ka
+     * map paste karta to shapes bach jaate aur **har island ka naam gayab** ho jaata — wahi "kuch na hona"
+     * wala lakshan jo D-86 me likha gaya hai. Dono tag apne aap me nirjeev hain (sirf text dikhate hain),
+     * isliye inhe allow karne se koi naya raasta nahi khulta.
+     */
+    'text',
+    'tspan',
     'iframe',
   ],
 
@@ -143,13 +153,37 @@ const BLOCK = {
       'focusable',
       'role',
     ],
-    path: ['d', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'class'],
-    circle: ['cx', 'cy', 'r', 'fill', 'stroke', 'stroke-width', 'class'],
+    path: [
+      'd',
+      'fill',
+      'stroke',
+      'stroke-width',
+      'stroke-linecap',
+      'stroke-linejoin',
+      'opacity',
+      'class',
+    ],
+    circle: ['cx', 'cy', 'r', 'fill', 'stroke', 'stroke-width', 'opacity', 'class'],
     rect: ['x', 'y', 'width', 'height', 'rx', 'ry', 'fill', 'stroke', 'class'],
     line: ['x1', 'y1', 'x2', 'y2', 'stroke', 'stroke-width', 'class'],
     polyline: ['points', 'fill', 'stroke', 'stroke-width', 'class'],
     polygon: ['points', 'fill', 'stroke', 'stroke-width', 'class'],
-    g: ['fill', 'stroke', 'transform', 'class'],
+    /** `opacity`/`stroke-width` — map ki halki contour lines inhi se banti hain (16 Sep). */
+    g: ['fill', 'stroke', 'stroke-width', 'opacity', 'transform', 'class'],
+    /** Naam ki jagah aur look — `style` COMMON_ATTRS se aata hai (inline font-size/fill reference me hai). */
+    text: [
+      ...COMMON_ATTRS,
+      'x',
+      'y',
+      'dx',
+      'dy',
+      'fill',
+      'font-size',
+      'font-weight',
+      'text-anchor',
+      'transform',
+    ],
+    tspan: [...COMMON_ATTRS, 'x', 'y', 'dx', 'dy', 'fill', 'font-size', 'font-weight'],
     iframe: [...COMMON_ATTRS, 'src', 'width', 'height', 'allow', 'allowfullscreen', 'loading'],
     td: [...COMMON_ATTRS, 'colspan', 'rowspan'],
     th: [...COMMON_ATTRS, 'colspan', 'rowspan', 'scope'],

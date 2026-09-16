@@ -8724,3 +8724,273 @@ a.txv__box:hover .txv__p {
     transition: none;
   }
 }
+
+/* ---- Island map (D-96 §27) — reference ka `INTERACTIVE ISLAND MAP`, hamare paas **static** ---- */
+
+/*
+ * ⚠️ **Ye CSS theme me hai, Settings ▸ Custom CSS me nahi** — client ka faisla (16 Sep):
+ * _"its a static section … you can write css in backend here, not in custom css because it's not gonna
+ * change"_. Custom CSS us content ke liye hai jo badalta rehta hai; ye dhaancha tay hai.
+ *
+ * Sab kuch `.home-island-map` ke **andar** hai (wahi class client ne block pe di hai), taaki in aam naamon
+ * (`.hot`, `.pin`, `.icount`) ka asar poore site pe na phaile — wahi tark jo har home section ke apne
+ * prefix pe hai (D-96 §6).
+ *
+ * ⚠️ Reference me island pe **click** karne se panel badalta hai, aur wo poora ek `<script>` se chalta hai.
+ * Custom editor me script chalti hi nahi (R20), isliye yahan panel ek hi island dikhata hai aur pins sirf
+ * hover pe ubharte hain. Asli interactivity chahiye ho to wo ek asli section banega (D-96 §6 wala raasta).
+ */
+.home-island-map .imap {
+  display: grid;
+  grid-template-columns: 0.78fr 1.22fr;
+  gap: clamp(18px, 2.6vw, 34px);
+  align-items: stretch;
+}
+
+/* Map ka card — SVG andar poori jagah leta hai, isliye panel jitni oonchai ho jaati hai */
+.home-island-map .imap__c {
+  --imap-pad: clamp(12px, 1.6vw, 18px);
+  position: relative;
+  min-height: 440px;
+  background: #e8f4fb;
+  border: 1px solid #cfe6f4;
+  border-radius: var(--r4);
+}
+
+.home-island-map .imap svg {
+  position: absolute;
+  top: var(--imap-pad);
+  left: var(--imap-pad);
+  display: block;
+  width: calc(100% - var(--imap-pad) * 2);
+  height: calc(100% - var(--imap-pad) * 2);
+}
+
+.home-island-map .landmass {
+  fill: #d8ead3;
+  stroke: #a9cfa0;
+  stroke-width: 1.4;
+}
+
+.home-island-map .hot circle.pin {
+  fill: var(--orange-500);
+  stroke: #fff;
+  stroke-width: 2.5;
+  transition: 0.18s;
+}
+
+.home-island-map .hot circle.halo {
+  fill: var(--orange-500);
+  opacity: 0.22;
+  transition: 0.2s;
+}
+
+.home-island-map .hot:hover circle.pin {
+  fill: var(--blue-600);
+}
+
+.home-island-map .hot:hover circle.halo {
+  opacity: 0.34;
+}
+
+.home-island-map .hot text {
+  font-size: 9.5px;
+  font-weight: var(--fw-heading);
+  fill: var(--ink-2);
+  pointer-events: none;
+}
+
+.home-island-map .imap__legend {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 2;
+  font-size: 10.5px;
+  font-weight: var(--fw-bold);
+  color: var(--faint);
+}
+
+/* ---- daayein ka panel ---- */
+
+.home-island-map .ipanel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r4);
+}
+
+.home-island-map .ipanel__m {
+  position: relative;
+  aspect-ratio: 16 / 8;
+  overflow: hidden;
+  background: var(--blue-900);
+}
+
+.home-island-map .ipanel__m img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.82;
+}
+
+.home-island-map .ipanel__m::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--shade) 86%, transparent),
+    transparent 60%
+  );
+}
+
+.home-island-map .ipanel__t {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  left: 16px;
+  z-index: 2;
+  color: #fff;
+}
+
+.home-island-map .ipanel__t h3 {
+  font-size: var(--fs-hero-num);
+  font-weight: var(--fw-black);
+  color: #fff;
+}
+
+.home-island-map .ipanel__t span {
+  font-size: var(--fs-2xs);
+  color: rgb(255 255 255 / 72%);
+}
+
+.home-island-map .ipanel__b {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 18px;
+}
+
+.home-island-map .ipanel__b > p {
+  font-size: var(--fs-md);
+  line-height: 1.6;
+}
+
+/* "Don't miss" ke chips */
+.home-island-map .ihl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-island-map .ihl__h {
+  font-size: 10px;
+  font-weight: var(--fw-heading);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.home-island-map .ihl ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-island-map .ihl li {
+  padding: 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--rf);
+  background: #f4f8fb;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  color: var(--ink-2);
+}
+
+/* chaar ginti — Places · Packages · Activities · Ferries */
+.home-island-map .icount {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.home-island-map .icount div {
+  padding: 10px 8px;
+  border: 1px solid var(--blue-100);
+  border-radius: var(--r2);
+  background: var(--blue-50);
+  text-align: center;
+}
+
+.home-island-map .icount b {
+  display: block;
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--blue-700);
+}
+
+.home-island-map .icount span {
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.home-island-map .ipanel__f {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: auto;
+  padding-top: 2px;
+}
+
+/* ---- neeche ki island pills ---- */
+
+.home-island-map .ipills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.home-island-map .ipill {
+  padding: 6px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--rf);
+  background: var(--surface);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  color: var(--body);
+}
+
+.home-island-map .ipill:hover {
+  border-color: var(--blue-500);
+  color: var(--blue-600);
+}
+
+/* Reference ka apna breakpoint — `.about`, `.callme`, `.imap` sab 1024px pe ek column ho jaate hain */
+@media (max-width: 1024px) {
+  .home-island-map .imap {
+    grid-template-columns: 1fr;
+  }
+
+  .home-island-map .imap__c {
+    min-height: 380px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-island-map .hot circle.pin,
+  .home-island-map .hot circle.halo {
+    transition: none;
+  }
+}

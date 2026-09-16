@@ -8457,3 +8457,34 @@ me, dhaancha theme me**. Isliye is kaam me **na koi naya field bana, na checkbox
   Chahiye ho to ek line ka kaam hai
 - ⚠️ Admin ke editor me client ko wahi `Read more:` wali line dikhegi, dabba nahi — wahi **A-23**, aur wahi
   jaan-boojh kar: content saaf rehta hai aur nishaan hata dene se page apne aap purana ho jaata hai
+
+### 27. Home ka island map — static, custom editor se (client, 16 Sep)
+
+Reference ka `INTERACTIVE ISLAND MAP`. Client ka faisla saaf tha:
+
+> _"since it's a static section we can use it as it is and paste in custom editor as html — you can write
+> css in backend here, not in custom css because it's not gonna change"_
+
+Yaani **content custom editor me, CSS theme me**. Ye batwara theek hai aur ab is project ka niyam bhi:
+Custom CSS wo hai jo client badalta rahega; ye dhaancha tay hai, isliye wo `globals.css` me hai —
+poora `.home-island-map` ke **andar** (wahi class client ne block pe di), taaki `.hot`/`.pin`/`.icount`
+jaise aam naam poore site pe na phailein.
+
+⚠️ **Do sanitizer badlaav karne pade, aur dono bina inke chup-chaap kaat-te the:**
+
+| Kya girta tha | Nateeja |
+| --- | --- |
+| SVG ka `<text>` / `<tspan>` | map pe **har island ka naam gayab** — sirf rangeen gol bachte |
+| `<g>` pe `stroke-width` · `opacity` | samundar ki halki contour lines gehri aur mota ho jaati |
+
+Dono tag/attribute **nirjeev** hain (sirf text aur look), isliye allow karne se koi naya raasta nahi khula.
+`<script>`, `data-*`, `tabindex` ab bhi girte hain — aur wahi wajah hai ki ye section **static** hai:
+reference me island pe click karne wala kaam poora ek `<script>` se chalta hai.
+
+- Paste karne wala HTML repo me hai — [`docs/snippets/home-island-map.html`](../snippets/home-island-map.html)
+- Panel ek hi island dikhata hai (reference ka default, Havelock); pins hover pe ubharte hain
+- Pills `<button>` nahi, `<a>` hain — `button` sanitizer me hai hi nahi (aur bina JS wo karta bhi kya)
+- 1 naya API test. Koi migration nahi
+
+⚠️ Asli interactivity (click se panel badle) chahiye ho to wo custom editor se ban hi nahi sakti — uske liye
+apna section banega, jisme islands ki list admin me hogi.

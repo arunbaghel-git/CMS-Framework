@@ -953,3 +953,39 @@ describe('Custom editor block + Settings ka Custom CSS (D-96 §25)', () => {
     expect(bad.status).toBeLessThan(500)
   })
 })
+
+describe('Custom editor me SVG ka map (client, 16 Sep, D-96 §27)', () => {
+  it('island ke naam (`<text>`) aur contour ke attributes bachte hain; script/data-* ab bhi nahi', async () => {
+    const svg =
+      '<svg viewBox="0 18 400 576"><g stroke="#cfe6f4" stroke-width="1" opacity=".8">' +
+      '<path d="M40 90c60-30 130 10 175-20"></path></g>' +
+      '<g class="hot"><circle class="pin" cx="272" cy="380" r="6"></circle>' +
+      '<text x="286" y="378">Havelock</text>' +
+      '<text x="286" y="389" style="font-size:8px;fill:#8898a8">Swaraj Dweep</text></g></svg>'
+
+    const created = (
+      await createHome({
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'customHtml',
+              props: { className: 'home-island-map', html: svg + '<script>alert(1)</script>' },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+
+    const { html } = (await Entry.findById(created.id).lean()).content.blocks[0].props
+
+    /** Naam ke bina map pe har island ek khaali gol ban jaata — wahi "kuch na hona" (D-86). */
+    expect(html).toContain('<text x="286" y="378">Havelock</text>')
+    expect(html).toContain('style="font-size:8px;fill:#8898a8"')
+    expect(html).toContain('stroke-width="1"')
+    expect(html).toContain('opacity=".8"')
+
+    /** Jo pehle se band tha wo band hi hai. */
+    expect(html).not.toMatch(/<script|alert\(|data-i|tabindex/)
+  })
+})
