@@ -8507,3 +8507,38 @@ hai (wo patti ke liye hai). Yaani home pe wo jagah mahino se khaali chhod di ja 
 nahi — patti chhoot gayi thi, hatayi nahi gayi thi.
 
 1 naya API test (DB + public payload). Koi migration nahi.
+
+### 29. Custom editor ke HTML me tabs — island map sach me chalta hai (client, 16 Sep)
+
+Client ne §27 wala static version dekh kar saaf kiya ki pills page pe nahi jaatin: _"only cards switch
+honge aur map ke hot points update honge … dusre page par jane ke liye to View packages button hai"_.
+Aur uska sawaal bhi bilkul theek tha:
+
+> _"demo me to only HTML, CSS aur JS hai, to usme kaise perfectly work kar raha hai? same logic ke saath
+> class bhi add hai block me, use hi implement kar do — simple"_
+
+**Naya block nahi banaya** (client: _"new block nahi banana hai"_). Jo batwara CSS pe tay hua tha, wahi JS
+pe laga diya: **content custom editor me, behaviour theme me.**
+
+| Class | Kaam |
+| --- | --- |
+| `sw-tab i-<key>` | dabane wali cheez — pill ya map ka pin |
+| `sw-panel i-<key>` | uska card — ek waqt me ek |
+| `is-on` | JS lagata hai, CSS use padhti hai |
+
+- `apps/web/lib/html-switch.js` — `switchKey()` (pure, 3 test)
+- `apps/web/components/home/HtmlSwitcher.jsx` — ek listener root pe (delegation), `role`/`tabindex` JS lagata
+  hai (wo sanitizer se guzarte hi nahi), aur Enter/Space bhi chalte hain
+- `CustomHtml` use **sirf tab** render karta hai jab HTML me `sw-tab` ho — warna har saada block bekaar me
+  client component ban jaata
+- Snippet ab poora hai: 10 island ke card reference ke apne data se (`.claude/docs/snippets/home-island-map.html`)
+
+⚠️ **Key `class` se aati hai, `data-i` se nahi** — reference `data-i="havelock"` padhta hai par sanitizer
+`data-*` girata hai (D-80 ka allowlist). Yahi ek badlaav reference se liya gaya.
+
+⚠️ **Mount se pehle pehla card dikhta hai** (`.sw-panel:first-of-type`), aur mount hote hi `sw-ready` lag kar
+wo kaam JS le leta hai. Bina iske pehla paint khaali jaata — aur SSR ka HTML bhi khaali, jo crawler ke liye
+"yahan kuch hai hi nahi" jaisa hota.
+
+⚠️ **Is file me kisi island ka naam nahi hai** — `home-island-map` bhi nahi. Behaviour dhaanche pe chalta hai,
+naam pe nahi, isliye kal koi bhi tabs wala dabba custom editor me banaya ja sakta hai (multi-site niyam).

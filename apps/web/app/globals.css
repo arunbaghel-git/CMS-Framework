@@ -8994,3 +8994,56 @@ a.txv__box:hover .txv__p {
     transition: none;
   }
 }
+
+/* ---- Custom editor ke tabs (D-96 §29) — `sw-tab` / `sw-panel`, behaviour `HtmlSwitcher` me ---- */
+
+/*
+ * Ye teen rule **kisi ek section ke nahi** hain — jo bhi custom block in classes se likha jaayega, wo tabs
+ * ki tarah chalega. Island ka naam yahan kahin nahi hai (multi-site niyam, D-96 §15).
+ */
+.sw-tab {
+  cursor: pointer;
+}
+
+.sw-panel {
+  display: none;
+}
+
+/*
+ * ⚠️ **Mount se pehle pehla panel dikhta hai.** JS mount hote hi `sw-ready` lagti hai aur uske baad sirf
+ * `is-on` wala panel dikhta hai. Bina iske pehla paint khaali jaata — aur SSR wala HTML bhi khaali dikhta,
+ * jo Google ke liye "yahan kuch hai hi nahi" jaisa hota.
+ */
+.sw-panel:first-of-type,
+.sw-panel.is-on {
+  display: block;
+}
+
+.sw-ready .sw-panel:first-of-type:not(.is-on) {
+  display: none;
+}
+
+/* ---- island map: active pin aur active pill ---- */
+
+.home-island-map .ipanel.sw-panel:first-of-type,
+.home-island-map .ipanel.sw-panel.is-on {
+  display: flex;
+}
+
+.home-island-map .hot.is-on circle.pin {
+  fill: var(--blue-600);
+}
+
+.home-island-map .hot.is-on circle.halo {
+  opacity: 0.34;
+}
+
+.home-island-map .hot.is-on text {
+  fill: var(--blue-700);
+}
+
+.home-island-map .ipill.is-on {
+  border-color: var(--blue-600);
+  background: var(--blue-600);
+  color: #fff;
+}
