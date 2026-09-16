@@ -8542,3 +8542,18 @@ wo kaam JS le leta hai. Bina iske pehla paint khaali jaata — aur SSR ka HTML b
 
 ⚠️ **Is file me kisi island ka naam nahi hai** — `home-island-map` bhi nahi. Behaviour dhaanche pe chalta hai,
 naam pe nahi, isliye kal koi bhi tabs wala dabba custom editor me banaya ja sakta hai (multi-site niyam).
+
+**§29 amendment (client, usi din):** paste karte hi **saare das card ek saath dikhe**. Do galtiyaan thin,
+dono CSS ki:
+
+1. **`:first-of-type` wahan chalta hi nahi tha** — wo "apne **tag** ka pehla bhai" poochhta hai, class ka
+   nahi, aur `.imap` ke andar pehla `div` map ka dabba (`.imap__c`) hai. Yaani ek bhi panel us niyam me
+   aata hi nahi tha. Ab `.sw-panel ~ .sw-panel` hai — seedha wahi sawaal: _"jiske pehle koi aur panel ho"_
+2. **`.home-island-map .ipanel` (do class) `.sw-panel` (ek class) se bhaari tha**, isliye `display: none`
+   haar jaata tha. Ab chhupane wale niyam bhi usi scope me hain (`.home-island-map … .ipanel.sw-panel`)
+
+⚠️ **Dono ka lakshan ek hi tha, aur wo JS ki galti jaisa dikhta tha** — jabki JS bilkul theek chal raha tha.
+Yahi D-91 wali `.wdg__b ul` ki shakl hai: niyam sahi likha hua tha, par doosra niyam usse bada tha.
+
+⚠️ Ab **JS na chale tab bhi** ek hi card dikhta hai (pehla). Pehle wo soorat "sab kuch dikh gaya" wali thi —
+aur wahi client ko dikha, kyunki pehle paint pe `sw-ready` lagi hi nahi hoti.

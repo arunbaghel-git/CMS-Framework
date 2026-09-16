@@ -9010,23 +9010,43 @@ a.txv__box:hover .txv__p {
 }
 
 /*
- * ⚠️ **Mount se pehle pehla panel dikhta hai.** JS mount hote hi `sw-ready` lagti hai aur uske baad sirf
- * `is-on` wala panel dikhta hai. Bina iske pehla paint khaali jaata — aur SSR wala HTML bhi khaali dikhta,
- * jo Google ke liye "yahan kuch hai hi nahi" jaisa hota.
+ * ⚠️ **Mount se pehle sirf pehla panel dikhta hai**, uske baad sirf `is-on` wala. Bina iske pehla paint
+ * khaali jaata — aur SSR wala HTML bhi khaali, jo crawler ke liye "yahan kuch hai hi nahi" jaisa hota.
+ *
+ * ⚠️ **`:first-of-type` yahan chalta hi nahi tha, aur wahi pehla bug tha** (client ne turant pakda: _"sare
+ * cards aa rahe hain"_). Wo "apne **tag** ka pehla bhai" poochhta hai, class ka nahi — aur `.imap` ke andar
+ * pehla `div` to map ka dabba (`.imap__c`) hai, koi panel nahi. Isliye ek bhi panel us niyam me nahi aata
+ * tha. `.sw-panel ~ .sw-panel` seedha wahi poochhta hai jo chahiye: _"jiske pehle koi aur panel ho"_.
  */
-.sw-panel:first-of-type,
-.sw-panel.is-on {
-  display: block;
+.sw-panel ~ .sw-panel {
+  display: none;
 }
 
-.sw-ready .sw-panel:first-of-type:not(.is-on) {
+.sw-ready .sw-panel {
   display: none;
+}
+
+.sw-ready .sw-panel.is-on {
+  display: block;
 }
 
 /* ---- island map: active pin aur active pill ---- */
 
-.home-island-map .ipanel.sw-panel:first-of-type,
-.home-island-map .ipanel.sw-panel.is-on {
+/*
+ * ⚠️ **Yahan class do baar likhi hai, aur wo jaan-boojh kar hai.** `.home-island-map .ipanel` (do class) upar
+ * `display: flex` deta hai, aur wo `.sw-panel` (ek class) se **bhaari** hai — yaani chhupane wala niyam haar
+ * jaata aur saare das card ek saath dikhte the. Ye specificity ka wahi jaal hai jo D-91 me `.wdg__b ul` pe
+ * laga tha: niyam sahi likha tha, par doosra niyam usse bada tha.
+ */
+.home-island-map .ipanel.sw-panel ~ .ipanel.sw-panel {
+  display: none;
+}
+
+.home-island-map .sw-ready .ipanel.sw-panel {
+  display: none;
+}
+
+.home-island-map .sw-ready .ipanel.sw-panel.is-on {
   display: flex;
 }
 
