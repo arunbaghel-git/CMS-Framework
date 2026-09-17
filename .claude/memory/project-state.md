@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 17 Sep 2026 — docs ki safai. **323 commit**, `origin/main` = HEAD (`2b7813e`) —
+> **Last updated:** 17 Sep 2026 — 301 Redirects + package breadcrumb (D-97). Subah docs ki safai. **323 commit**, `origin/main` = HEAD (`2b7813e`) —
 > push hone ko kuch baaki nahi tha.
 > **Poori suite 17 Sep ko chali: 42 files, 1160/1160 pass.** ⚠️ C: drive pe sirf ~0.9 GB bachi hai — 16 Sep
 > ko isi wajah se vitest `ENOSPC` de rahi thi. Suite "no tests"/load error de to pehle disk dekho.
@@ -10,7 +10,40 @@
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare — **Home band, Contact page live, do faisle khule** (16 Sep)
+## ⏭️ Nayi session yahan se shuru kare — **301 Redirects + package breadcrumb** (17 Sep)
+
+> 17 Sep. Poora hisaab **D-97**. Koi migration nahi, `pnpm seed` nahi. Push nahi hua.
+
+### Kya bana
+
+| Kya                                                                                                                                                        | Kahan                                                                     |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Settings ▸ 301 Redirects** — haath se `from → to` (site ka path ya `https://` link), 301/302, Manual/Automatic filter, search, Edit/Delete               | `screens/settings/Redirects.jsx`, `modules/redirects` (POST + PATCH naye) |
+| Resolve ka kram palta — **dikhne wala page pehle**, redirect sirf 404 ke raaste pe                                                                         | `public/service.js` `resolvePublicPath()`                                 |
+| Rok: page wale path pe redirect nahi · ek from pe ek · loop · chain flatten · auto kabhi manual ko nahi badalta                                            | `redirects/service.js`                                                    |
+| **Package breadcrumb** — `Packages ▸ Itinerary Settings ▸ Breadcrumb` me Tour page ka dropdown (`breadcrumbPageId`); `Section Headings` se label/link hata | `package-defaults`, `ItinerarySettings.jsx`                               |
+| Web: package-defaults fetch `type:tourPage` pe bhi tag                                                                                                     | `apps/web/lib/cms.js`                                                     |
+
+**Tests:** poori suite 1174/1176 — do fail media.test.js ki cleanup me Windows ka ENOTEMPTY (rmdir), is kaam se bahar; wo file akele 20/20 pass · naya `redirects.test.js` (16) · lint · format · admin build pass.
+
+### Client ko karna hai (asli DB me abhi kuch nahi — maine nahi chheda)
+
+1. **Settings ▸ 301 Redirects** → From `/packages` → To `/andaman-tour-packages` → Permanent. Tab `/packages/` 404 nahi dega
+2. **Packages ▸ Itinerary Settings ▸ Breadcrumb** → `Andaman Tour Packages` chuno → Save. Abhi live breadcrumb
+   `Home › Package` hai (16 Sep wala `archiveCrumb` kabhi bhara hi nahi gaya tha)
+3. Browser me dono aankh se dekhna — admin screen aur `/packages/` ka 301 (**render nahi dekha gaya**)
+
+### Baaki khule
+
+- **Naya admin design reference** — `.claude/docs/reference/travel-cms-admin_v2.html` (client, 17 Sep: fonts + colours
+  ke naye sections). **Client ke saath baad me discuss hona hai — abhi kuch nahi bana, file padhi bhi nahi gayi.**
+  A-30 (customizer tokens) isi se judega
+- Contact ke trust chips + eyebrow (16 Sep ke do faisle) — abhi bhi khule
+- A-31 · A-29/A-26 · A-28 — neeche wale section me jaise the
+
+---
+
+## (purana) ⏭️ Nayi session yahan se shuru kare — **Home band, Contact page live, do faisle khule** (16 Sep)
 
 > 16 Sep ka handoff. Aakhri commit `1c2887a`. **17 Sep ko sab push mila** (`origin/main` = HEAD) — push sirf
 > client ke kehne pe (`git log --oneline origin/main..HEAD` sach batata hai). Poore faisle **D-96 §24–§33** me.

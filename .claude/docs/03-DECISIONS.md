@@ -8739,7 +8739,8 @@ mila wo yahan likha hai. **Do jagah asli thi:**
 
 **Is section me #1 theek hua** (client: _"#1 karo"_):
 
-- `packageDefaults.archiveCrumb` (`label` + `url`), admin me **Packages ▸ Section Headings** ke neeche do khaane
+- ~~`packageDefaults.archiveCrumb` (`label` + `url`), admin me **Packages ▸ Section Headings** ke neeche do khaane~~
+  — **Superseded by D-97 §6 (17 Sep):** ab `breadcrumbPageId`, Tour page ka dropdown, **Itinerary Settings** me
 - Payload: **dono bhare hon tabhi** crumb jaata hai, warna `null` — aadhi shart theme me nahi likhni padti (D-30)
 - Theme: khaali pe breadcrumb `Home › Package` reh jaata hai. Naye instance pe yahi sahi hai — _"ek crumb jo
   404 pe le jaaye, usse na hona behtar"_ (1 Sep ka wahi tark, ab data se)
@@ -8757,3 +8758,93 @@ nahi hote** aur page pe kabhi nahi jaate, par doosre client ke admin me udaharan
 ✅ **Jo saaf nikla:** seed (naya instance `My Site` naam se banta hai), `package-sections.js` ke saare default
 heading (generic: `About this itinerary`, `Hotels on this package`), 404, header, footer, mobile patti, aur
 home ke saare section.
+
+## D-97
+
+**301 Redirects aur package ka breadcrumb — dono admin se (client, 17 Sep)**
+
+**Status:** ✅ Dono ban gaye. Koi migration nahi.
+**Shuruaat:** client ne `/packages/` khola to 404 aaya (package ka URL `/packages/{slug}` hai, par
+`/packages` pe koi page nahi). Saath me poochha ki `Section Headings` ke **har tab** me Breadcrumb label/link
+kyun hai.
+
+### Client ke faisle
+
+| # | Faisla |
+| --- | --- |
+| 1 | Package ka URL **wahi rahega** — `/packages/andaman-honeymoon-bliss`. Nested (`/andaman-tour-packages/…`, reference jaisa) **nahi** |
+| 2 | `/packages/` jaise URL ke liye WordPress ke Redirection plugin jaisa screen — **Settings ▸ 301 Redirects** (naam client ka) |
+| 3 | Breadcrumb ka beech wala kadam **Packages ▸ Itinerary Settings** me |
+| 4 | Wahan **dropdown**, aur usme **sirf Tour pages** (client: _"dropdown agar best hai to ise karo"_) |
+| — | `To` me bahar ka link — client ne samjhne ke liye poochha, faisla nahi diya; suggestion (dono, sirf `https://`) pe bana |
+
+### 1. Kya pehle se tha
+
+`redirects` collection (D-49): `from` · `to` · `statusCode` · `hits` · `isAuto`, public resolve me redirect ki
+jaanch, web pe `permanentRedirect()`/`redirect()`, permissions `redirect.*`, aur API me list + delete. Kami
+sirf **create/update** aur **screen** ki thi.
+
+### 2. `from` aur `to` ke niyam
+
+- **`from`** — hamesha isi site ka path. `pathSchema` (lowercase slug) **nahi** lagta: redirect ka sabse bada
+  kaam purane site ke URL hain (`/Old_Tour.html`). Store se pehle trailing slash hata aur **lowercase** —
+  `findRedirect()` lookup se pehle bhi yahi karta hai, taaki `/Packages/` bhi match ho. `?`/`#`/space mana,
+  aur **`/` mana** (home redirect = poori site ka pehla page gayab)
+- **`to`** — site ka path **ya** `https://` link. `javascript:`/`data:`/`http:`/`//host` sab 400. Path pe
+  query/hash allowed (`/contact?from=brochure`)
+
+### 3. Resolve ka kram palta — **page pehle, redirect baad me**
+
+D-49 se resolve redirect ko page se **pehle** dekhta tha. Sirf auto-redirect hote hue ye theek tha (unka `from`
+kabhi live page nahi hota — loop guard mita deta hai). Haath ke redirect ke saath nahi: `/offers` redirect
+banao, phir `/offers` naam ka page — page **kabhi dikhta hi nahi**, koi error nahi. Ab redirect sirf tab dekha
+jaata hai jab us path pe dikhne wala page **nahi** hai. Draft page redirect ko nahi rokta.
+
+Saath me create/update pe rok (D-86 wala sabak — "kuch na hona" sabse mehnga):
+
+| Rok | Message |
+| --- | --- |
+| `from` pe koi page hai (draft bhi) | `"Offers" lives at /offers. Change that page's URL first…` |
+| `from` pe pehle se redirect | `/a already redirects to /b. Edit that one instead.` |
+| `from` = `to` | `From and To are the same page.` |
+| `/a → /b` hai aur `/b → /a` banao | `…would loop forever.` |
+
+Chain dono taraf flatten hoti hai — `to` khud redirect ho to seedha uske aakhri `to` pe, aur jo redirects
+`from` pe aa rahe the wo naye `to` pe.
+
+### 4. Auto aur manual
+
+- Auto-redirect (slug badalne pe) **admin ke banaye ko kabhi overwrite nahi karta** — `recordAutoRedirect()`
+  pehle manual dhoondhta hai
+- Auto wale bhi list me dikhte hain (`Automatic` badge). **Edit karte hi wo manual** (`isAuto: false`)
+- List ka `isAuto` filter `z.coerce.boolean()` pe tha — `"false"` bhi `true` banta. Ab `enum`. Wahi bug jo
+  20 Aug ko `COOKIE_SECURE` pe mila tha
+
+### 5. Jo jaan-boojh kar nahi bana, aur cache
+
+- **Regex/wildcard** — non-technical client ke haath me ek galat pattern poori site redirect kar deta hai
+- **`hits` ki ginti** — resolve ISR ke peeche hai (ginti jhoothi) aur GET me likhna R13 todta. Field waisa hi
+- **Cache:** create/update/delete pe `path:<from>` saaf hota hai (update pe purana `from` bhi, aur chain me
+  badle hue redirects ke `from` bhi). ⚠️ Browser ka `/Packages` (bada akshar) apne `path:/Packages` tag pe
+  cache hota hai, wo ek ghante me hi badlega — lowercase URL turant
+
+### 6. Breadcrumb — label + link ki jagah Tour page
+
+D-96 §33 ne `packageDefaults.archiveCrumb { label, url }` banaya tha, `Section Headings` ke neeche. Wo panel
+tabs ke **bahar** tha, isliye har tab pe dikhta tha — jaise har section ka apna breadcrumb ho. Aur haath ka link
+Tour page se juda nahi tha.
+
+- Ab **`packageDefaults.breadcrumbPageId`** — `Packages ▸ Itinerary Settings ▸ Breadcrumb ▸ Packages listing
+  page`, dropdown me sirf Tour pages (draft bhi, `(draft — not shown)` ke saath)
+- Payload ki shakl **wahi** `archiveCrumb: { label, url }` — label Tour page ka **Title** (D-90 ke baad Title
+  hi breadcrumb ka naam hai), url uska **path**. Theme ko kuch nahi badalna pada
+- Page draft/trash/delete = `null` → `Home › Package` (D-30)
+- Write pe jaanch: id sach me Tour page ho, warna 422 (bekaar id chup-chaap save hoti to breadcrumb gayab)
+- ⚠️ Whitelist (`updatePackageDefaults()`) me joda, aur test **DB padhta hai**
+- **Cache:** web ka `/public/package-defaults` fetch ab `type:package` **aur `type:tourPage`** pe tag hai —
+  Tour page ka title/slug badle to breadcrumb turant badle
+- `archiveCrumb` 17 Sep ko asli DB me **khaali** tha, isliye migration nahi. Field model/schema se hata
+
+### Tests
+
+`redirects.test.js` naya (16, asli DB) · `master-lists.test.js` ka archiveCrumb test ab breadcrumbPageId pe.

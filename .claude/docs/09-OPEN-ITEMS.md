@@ -1,6 +1,6 @@
 # 09 — Open Items
 
-**Last updated:** 17 Sep 2026 — docs ki safai (header naya, band items "resolved" me gaye)
+**Last updated:** 17 Sep 2026 — 301 Redirects + package breadcrumb (D-97); subah docs ki safai
 
 **Status:** Phase 0 · Slice 0 · Phase 1 (Packages) · Phase 2 (Media) poore. Uske upar client ke kehne pe
 page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87–D-90) · Sidebar (D-88) ·
@@ -14,6 +14,10 @@ wo code ka bug nahi hai.
 **Push:** 17 Sep ko `origin/main` = HEAD (`2b7813e`) — kuch push hona baaki nahi tha. Ginti yahan jaan-boojh
 kar nahi likhi (har commit pe purani hoti hai); sach `git log --oneline origin/main..HEAD` se lo. Push sirf
 ijaazat pe, aur pehle A-12 padho (CI environment ki wajah se red aati hai).
+
+**17 Sep (D-97):** `Settings ▸ 301 Redirects` aur package breadcrumb ka Tour page dropdown ban gaye. ⚠️ Asli DB me
+`/packages` ka redirect aur breadcrumb ka page **client ko admin se bharna hai** — render aankh se nahi dekha.
+Naya design reference `reference/travel-cms-admin_v2.html` (fonts + colours) — client ke saath baad me baat (A-30 se judega).
 
 **Client ke khule faisle (sabse pehle):** contact ke hero ke trust chips (Tour ke `trustBadges` ya page ke apne)
 aur contact ka eyebrow — dono `project-state.md` ke pehle section me.

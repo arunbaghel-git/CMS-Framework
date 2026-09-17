@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**1160 tests passing**, 17 Sep). Public package page ke **saare** section live hain.
+hain** (**1176 tests**, 17 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-96                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-97                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -691,7 +691,14 @@ ka `Andaman Tour Packages` ab `packageDefaults.archiveCrumb` se (§33).
 naam aur unke paragraph) har package page pe chhapta hai, chahe content kisi bhi site ka ho.
 ⚠️ Sanitizer me teen cheezein allow hui, teenon ek hi wajah se (bina unke content **chup-chaap** girta tha):
 SVG ka `<text>`/`<tspan>`, `<address>`, aur `aria-label`.
-⏭️ **Agla kaam: client ke do khule faisle — contact ke trust chips aur eyebrow.** `project-state.md` ka pehla section padho.
+**17 Sep — 301 Redirects + package breadcrumb (D-97), koi migration nahi.** `/packages/` pe 404 se shuru hua.
+**Settings ▸ 301 Redirects** — haath se `from → to` (site ka path ya `https://`), 301/302. ⚠️ **Resolve ka kram palta:
+dikhne wala page pehle, redirect sirf uske na hone pe** — warna redirect ke baad bana page kabhi dikhta hi nahi. Page wale
+path pe redirect ban hi nahi sakta (422), aur auto-redirect admin ke banaye ko kabhi nahi badalta. Package URL
+`/packages/{slug}` hi rahega (client). Breadcrumb ab `Packages ▸ Itinerary Settings` me **Tour page ka dropdown**
+(`breadcrumbPageId`) — naam/link us page ke Title/path se, server pe; `Section Headings` se label/link hate.
+Naya admin design reference `reference/travel-cms-admin_v2.html` (fonts + colours) — **client ke saath baad me**.
+⏭️ **Agla kaam: client batayega.** Khule: contact ke trust chips + eyebrow, aur naye design pe baat. `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

@@ -347,6 +347,8 @@ packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  itineraryImages[], bookingSteps[{title,text}], cancellationText,
                  rating{value,count},                            ← D-70
                  sectionLabels{<section>:{heading,description}}  ← D-65 (Q-9)
+                 breadcrumbPageId  ← D-97 §6 — Tour page ki id; payload me
+                 archiveCrumb{label: title, url: path}, draft/trash pe null
                  sectionLabels ki keys PACKAGE_SECTIONS se aati hain aur schema
                  pe .strict() hai — anjaan key chup-chaap gir jaati (D-43 §3)
                  khaali {} = theme ke apne headings, isliye migration nahi lagi
@@ -355,6 +357,10 @@ packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  singleton — wahi pattern jo settings ka hai. Package ke domain ki
                  globals; settings me jaan-boojh kar NAHI (D-46, §1.8)
 redirects      * siteId, locale, from, to, statusCode(301|302), hits, isAuto
+                 isAuto false = Settings ▸ 301 Redirects se (D-97); auto use kabhi
+                 overwrite nahi karta. from lowercase + bina trailing slash; to =
+                 site ka path ya https:// link. hits abhi koi nahi ginta
+                 resolve: dikhne wala page PEHLE, redirect sirf uske na hone pe (D-97 §3)
                  locale day 1 se — uniqueness {siteId, locale, from} hai (D-48 §3)
                  auto-redirect entries service banati hai (slug/parent badalne pe,
                  D-49). Manager UI Phase 4 me. Migration 011
@@ -984,8 +990,10 @@ CRUD   /api/hotels | /api/add-ons | /api/transfers           ✅ Slice 2
                                          aur alag permissions (D-48)
 GET/PATCH /api/package-defaults          ek document, isliye koi :id nahi  ✅ Slice 2
 
-GET    /api/redirects?q=&isAuto=                             ✅ Slice 3 (auto ka hissa)
-DELETE /api/redirects/:id                create/update Phase 4 ke manager ke saath
+GET    /api/redirects?q=&isAuto=true|false                   ✅ q = from ya to
+POST   /api/redirects                    ✅ D-97 — {from, to, statusCode}
+PATCH  /api/redirects/:id                ✅ D-97 — edit pe isAuto false
+DELETE /api/redirects/:id                ✅
 
 POST   /api/admin/media (multipart)   GET /api/admin/media
 POST   /api/admin/media/:id/trash | restore

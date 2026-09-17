@@ -788,3 +788,24 @@ Har button pe **Position**: `Left — before the menu` / `Right — end of heade
 purane button wahin). Left button site pe nav ke theek pehle aata hai; tablet/mobile pe dono group
 ek saath daayein. **"Icon only on mobile"** ab sach me sirf phone (750px se neeche) pe label chhupata
 hai — pehle 1040px pe tha.
+
+## 17 Sep — 301 Redirects aur breadcrumb (D-97)
+
+### Settings ▸ 301 Redirects
+
+Tab `Custom CSS` ke baad. Layout Hotels/Add Ons wala — left form, right list (design me is screen ka
+reference nahi hai). Permission `redirect.*` (admin, editor).
+
+- **Form:** From (`/packages` — trailing slash/bada akshar farak nahi) · To (site ka path ya `https://`
+  link) · Type — Permanent (301) / Temporary (302) · Add redirect / Update + Cancel
+- **List:** All · Manual · Automatic · Search URL… (From ya To) · pagination (20) · columns From · To · Type
+  (`Permanent`/`Temporary` + `Manual`/`Automatic` badge) · row actions Edit · Delete (confirm)
+- Auto wala edit karo to wo Manual ban jaata hai
+
+### Packages ▸ Itinerary Settings ▸ Breadcrumb
+
+Sabse upar naya panel — **Packages listing page** dropdown (None + saare Tour pages; draft pe
+`(draft — not shown)`). Package page pe `Home › <us page ka Title> › Package`.
+
+⚠️ **Packages ▸ Section Headings** se Breadcrumb label/link ke dono khaane **hat gaye** — wo tabs ke bahar the
+aur har tab pe dikhte the.
