@@ -211,7 +211,7 @@ export default function HtmlEditor({ value, onChange, disabled = false, height =
       <div className="he-bar">
         <div className="he-bar-l">
           {/* Section ka naam — Section Headings me saaton editor isse hi pehchane jaate hain */}
-          {label && <span className="he-label">{label}</span>}
+          {/* {label && <span className="he-label">{label}</span>} */}
           <button
             type="button"
             className="btn he-media"
