@@ -1,14 +1,18 @@
-import { DEFAULT_LOCALE, DEFAULT_SITE_ID } from '@cms/shared'
+import { DEFAULT_LOCALE, DEFAULT_SITE_ID, isExternalRedirect, normalizePath } from '@cms/shared'
 
-import { notFound } from '../../core/errors.js'
+import { notFound, unprocessable } from '../../core/errors.js'
 import { logger } from '../../core/logger.js'
+import { revalidateTags } from '../../core/revalidate.js'
+import { Entry } from '../entries/model.js'
 import { Redirect } from './model.js'
 
 /**
  * Redirects ka business logic — R1.
  *
- * Slice 3 me sirf **auto** wala hissa hai: entry ka path badle to purana URL zinda rahe.
- * Haath se redirect banana aur unka manager Phase 4 me hai.
+ * Do raaste se redirect bante hain:
+ *
+ * - **auto** (D-49) — entry ka path badle to purana URL zinda rahe
+ * - **haath se** (D-97, 17 Sep) — `Settings ▸ 301 Redirects`, jaise `/packages` → listing page
  */
 
 const scope = (siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) => ({ siteId, locale })
@@ -53,6 +57,14 @@ export async function recordAutoRedirect(
   if (!from || !to || from === to) return null
 
   try {
+    /**
+     * Admin ka banaya redirect **jeet-ta hai** (D-97 §4). Us `from` pe unhone soch kar kuch
+     * rakha hai; slug badalne wala system use chup-chaap palat de to client ko wajah kabhi pata
+     * nahi chalegi.
+     */
+    const manual = await Redirect.findOne({ ...scope(siteId, locale), from, isAuto: false }).lean()
+    if (manual) return toApi(manual)
+
     // 1. Chain flatten — jo bhi purane path pe aa raha tha, ab seedha naye pe jaaye
     await Redirect.updateMany({ ...scope(siteId, locale), to: from }, { $set: { to } })
 
@@ -84,7 +96,13 @@ export async function recordAutoRedirect(
 export async function findRedirect(from, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
   if (!from) return null
 
-  return toApi(await Redirect.findOne({ ...scope(siteId, locale), from }).lean())
+  /**
+   * Wahi normalize jo `redirectFromSchema` store karte waqt karta hai — `/Packages/` aaye to bhi
+   * `/packages` wala redirect mile (D-97 §2).
+   */
+  const key = normalizePath(from).toLowerCase()
+
+  return toApi(await Redirect.findOne({ ...scope(siteId, locale), from: key }).lean())
 }
 
 /** Admin ki list — server-side pagination day 1 se (R14). */
@@ -92,7 +110,10 @@ export async function listRedirects(query, siteId = DEFAULT_SITE_ID, locale = DE
   const { page, limit, q, isAuto } = query
 
   const filter = scope(siteId, locale)
-  if (q) filter.from = new RegExp(escapeRegex(q), 'i')
+  if (q) {
+    const pattern = new RegExp(escapeRegex(q), 'i')
+    filter.$or = [{ from: pattern }, { to: pattern }]
+  }
   if (isAuto !== undefined) filter.isAuto = isAuto
 
   const [docs, total] = await Promise.all([
@@ -108,6 +129,120 @@ export async function listRedirects(query, siteId = DEFAULT_SITE_ID, locale = DE
 }
 
 /**
+ * Admin ke redirect ke niyam — create aur update dono pe (D-97 §3).
+ *
+ * 1. **Us path pe koi page na ho.** Resolve page ko redirect se pehle dekhta hai, to aisa redirect
+ *    kabhi chalta hi nahi — aur admin ko lagta ki ban gaya. Chup-chaap "kuch na hona" is repo ki
+ *    sabse mehngi galti hai (D-86), isliye yahin rok
+ * 2. **`from` ek hi baar** — doosra redirect usi URL pe ho to wahi edit karo
+ * 3. **Khud pe nahi, aur ghoom kar wapas nahi** — `/a → /b` pehle se ho to `/b → /a` loop hai
+ * 4. **Chain nahi bachti** — `to` khud kisi redirect ka `from` ho to seedha uske aakhri `to` pe
+ *
+ * @returns {Promise<string>} aakhri `to` (chain flatten ke baad)
+ */
+async function checkManualRedirect({ from, to, excludeId }, siteId, locale) {
+  const inScope = scope(siteId, locale)
+  const notSelf = excludeId ? { _id: { $ne: excludeId } } : {}
+
+  const page = await Entry.findOne({ ...inScope, path: from, deletedAt: null })
+    .select('title')
+    .lean()
+  if (page) {
+    throw unprocessable(
+      `"${page.title}" lives at ${from}. Change that page's URL first, or pick another From.`,
+    )
+  }
+
+  const taken = await Redirect.findOne({ ...inScope, from, ...notSelf }).lean()
+  if (taken) throw unprocessable(`${from} already redirects to ${taken.to}. Edit that one instead.`)
+
+  if (isExternalRedirect(to)) return to
+
+  const target = normalizePath(to.split(/[?#]/)[0])
+  if (target.toLowerCase() === from) throw unprocessable('From and To are the same page.')
+
+  const next = await Redirect.findOne({ ...inScope, from: target.toLowerCase(), ...notSelf }).lean()
+  if (!next) return to
+  if (
+    !isExternalRedirect(next.to) &&
+    normalizePath(next.to.split(/[?#]/)[0]).toLowerCase() === from
+  ) {
+    throw unprocessable(`${target} already redirects back to ${from} — that would loop forever.`)
+  }
+
+  return next.to
+}
+
+/**
+ * Jo URL is redirect ke peeche the — unka ISR cache saaf ho.
+ *
+ * Bina iske `/packages` ka purana 404 ek ghanta (`CACHE_SECONDS`) chalta rehta, aur client kehta
+ * "save kiya par kaam nahi kar raha" — A-26 wali shakl.
+ */
+const invalidatePaths = (paths) => revalidateTags(paths.filter(Boolean).map((p) => `path:${p}`))
+
+/** `Settings ▸ 301 Redirects` ▸ Add (D-97). */
+export async function createRedirect(input, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const to = await checkManualRedirect(input, siteId, locale)
+
+  const doc = await Redirect.create({
+    ...scope(siteId, locale),
+    from: input.from,
+    to,
+    statusCode: input.statusCode ?? 301,
+    isAuto: false,
+    hits: 0,
+  })
+
+  const chained = await flattenChainsInto(input.from, to, siteId, locale)
+  await invalidatePaths([input.from, ...chained])
+
+  return toApi(doc)
+}
+
+/**
+ * Edit — auto wala redirect bhi edit ho sakta hai, aur edit hote hi wo **manual** ban jaata hai
+ * (D-97 §4). Admin ne haath lagaya, ab system use nahi badlega.
+ */
+export async function updateRedirect(id, input, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const current = await Redirect.findOne({ _id: id, ...scope(siteId, locale) }).lean()
+  if (!current) throw notFound('Redirect not found')
+
+  const from = input.from ?? current.from
+  const to = await checkManualRedirect(
+    { from, to: input.to ?? current.to, excludeId: current._id },
+    siteId,
+    locale,
+  )
+
+  const doc = await Redirect.findOneAndUpdate(
+    { _id: current._id },
+    { $set: { from, to, statusCode: input.statusCode ?? current.statusCode, isAuto: false } },
+    { new: true },
+  ).lean()
+
+  const chained = await flattenChainsInto(from, to, siteId, locale)
+  await invalidatePaths([current.from, from, ...chained])
+
+  return toApi(doc)
+}
+
+/**
+ * Jo redirects `from` pe aa rahe the, wo ab seedha `to` pe jaayein — auto wala niyam #1, admin
+ * ke redirect pe bhi. Badle hue redirects ke `from` lautata hai, taaki unka cache bhi saaf ho.
+ */
+async function flattenChainsInto(from, to, siteId, locale) {
+  const inScope = scope(siteId, locale)
+  const chained = await Redirect.find({ ...inScope, to: from })
+    .select('from')
+    .lean()
+  if (chained.length === 0) return []
+
+  await Redirect.updateMany({ ...inScope, to: from }, { $set: { to } })
+  return chained.map((r) => r.from)
+}
+
+/**
  * Delete — permanent.
  *
  * Ye Slice 3 me isliye hai (create ke bina) ki auto-redirects apne aap bante hain, aur ek
@@ -119,6 +254,7 @@ export async function deleteRedirect(id, siteId = DEFAULT_SITE_ID, locale = DEFA
   if (!current) throw notFound('Redirect not found')
 
   await Redirect.deleteOne({ _id: id })
+  await invalidatePaths([current.from])
 
   return { id: String(id) }
 }

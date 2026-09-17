@@ -38,6 +38,7 @@ import TourList from './screens/pages/TourList.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import CustomCss from './screens/settings/CustomCss.jsx'
 import General from './screens/settings/General.jsx'
+import Redirects from './screens/settings/Redirects.jsx'
 import BlogSettings from './screens/settings/BlogSettings.jsx'
 import PageSettings from './screens/settings/PageSettings.jsx'
 import TourSettings from './screens/settings/TourSettings.jsx'
@@ -276,6 +277,7 @@ const APP_ROUTES = [
   { path: '/settings', element: <General /> },
   { path: '/settings/cta', element: <CtaSection /> },
   { path: '/settings/custom-css', element: <CustomCss /> },
+  { path: '/settings/redirects', element: <Redirects /> },
   /**
    * Blog settings — author · TOC · post ki sidebar (spec 008). 11 Sep ko menu me Posts ke neeche
    * gaya, to URL bhi `/posts/settings` (D-93) — `Tour settings` ka `/tour/settings` jaisa.

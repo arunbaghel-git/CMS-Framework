@@ -333,6 +333,12 @@ export const NAV = [
        * yahan hai.
        */
       { label: 'Custom CSS', to: '/settings/custom-css', permission: PERMISSION.SETTINGS_READ },
+      /**
+       * Haath se redirect — client, 17 Sep (D-97). `/packages/` pe 404 aaya tha; naam client ka
+       * chuna hua. Permission `redirect.read` — spec 001 me wo `settings.read` wale hi do role
+       * (admin, editor) ke paas hai, to tab bar kisi ko toota link nahi dikhata.
+       */
+      { label: '301 Redirects', to: '/settings/redirects', permission: PERMISSION.REDIRECT_READ },
       { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
       { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
       {
@@ -456,6 +462,7 @@ export const ROUTE_GUARDS = Object.freeze({
   '/settings': PERMISSION.SETTINGS_READ,
   '/settings/cta': PERMISSION.SETTINGS_READ,
   '/settings/custom-css': PERMISSION.SETTINGS_READ,
+  '/settings/redirects': PERMISSION.REDIRECT_READ,
   /**
    * ⚠️ Menu me ye ab **Tour** ke neeche hai (client, 8 Sep), par guard `settings.read` hi rahi —
    * storage `settings.tourSettings` me hai. Jagah badalne se permission nahi badalti.

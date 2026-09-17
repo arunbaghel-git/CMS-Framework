@@ -7,15 +7,26 @@ import * as controller from './controller.js'
 /**
  * `/api/redirects` — admin side, authed.
  *
- * **Sirf read aur delete.** Slice 3 me redirects apne aap bante hain (slug badalne pe);
- * `redirect.create` aur `redirect.update` ke routes Phase 4 ke manager ke saath aayenge.
- *
- * Delete abhi isliye hai ki ek galat bane hue auto-redirect ko hatane ka koi raasta na
- * hona matlab admin ko us URL pe hamesha ke liye phansa dena.
+ * D-49 me sirf read + delete the (redirect apne aap bante the). 17 Sep se create + update bhi —
+ * `Settings ▸ 301 Redirects` (D-97). Permissions pehle se `redirect.*` me thin.
  */
 export const redirectRoutes = Router()
 
 redirectRoutes.get('/', requireAuth, requirePermission(PERMISSION.REDIRECT_READ), controller.list)
+
+redirectRoutes.post(
+  '/',
+  requireAuth,
+  requirePermission(PERMISSION.REDIRECT_CREATE),
+  controller.create,
+)
+
+redirectRoutes.patch(
+  '/:id',
+  requireAuth,
+  requirePermission(PERMISSION.REDIRECT_UPDATE),
+  controller.update,
+)
 
 redirectRoutes.delete(
   '/:id',

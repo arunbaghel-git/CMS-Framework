@@ -39,3 +39,27 @@ form fieldset {
   overflow-wrap: normal;
   overflow-x: auto;
 }
+
+/*
+ * 301 Redirects (D-97) — Hotels/Add Ons wala layout: patla form, chaudi list.
+ * `.edit-grid.tax-grid` Packages.css me hai; yahan apni copy, taaki Settings us file pe nirbhar na rahe.
+ * Dono class ek saath — `.edit-grid` ki barabar specificity pe jeet load order se hoti (Packages.css ka note).
+ */
+.edit-grid.redirect-grid {
+  grid-template-columns: 320px minmax(0, 1fr);
+  align-items: start;
+  .panel-body .btn-plain {
+    margin-left: 8px;
+  }
+}
+
+@media (max-width: 900px) {
+  .edit-grid.redirect-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Bahar ka lamba https link table ko page se bahar na dhakel de */
+.redirect-to {
+  word-break: break-all;
+}
