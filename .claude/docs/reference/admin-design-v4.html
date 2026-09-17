@@ -355,6 +355,18 @@ table.scale tr.group td{background:#f6f7f7;font-size:11px;font-weight:600;text-t
 .lprev .lp-card b{display:block;margin-bottom:4px;font-size:13px}
 .lprev .lp-btn{display:inline-flex;align-items:center;justify-content:center;padding:0 16px;background:#ea6a1a;color:#fff;font-weight:600;font-size:12px}
 .lprev .lp-width{font-size:10.5px;color:var(--text-muted);text-align:center;margin-top:6px}
+.hfprev{border:1px solid var(--border-soft);border-radius:var(--radius);overflow:hidden;background:#eef1f4;margin-top:14px;transition:max-width .2s ease;margin-left:auto;margin-right:auto}
+.hfprev .hf-head{display:flex;align-items:center;gap:14px;padding:0 14px;background:#fff;border-bottom:1px solid #e2e8ef}
+.hfprev .hf-logo{display:grid;place-items:center;background:repeating-linear-gradient(45deg,#dfe6ee,#dfe6ee 6px,#eef2f6 6px,#eef2f6 12px);border:1px dashed #9aa5b1;color:#50575e;font-size:10px;font-weight:600;flex:0 0 auto;overflow:hidden;white-space:nowrap}
+.hfprev .hf-nav{display:flex;gap:12px;font-size:12px;color:#50575e;margin-left:auto}
+.hfprev .hf-burger{margin-left:auto;font-size:18px;color:#50575e;display:none}
+.hfprev.is-mobile .hf-nav{display:none}
+.hfprev.is-mobile .hf-burger{display:block}
+.hfprev .hf-body{height:46px}
+.hfprev .hf-foot{background:#0f2742;padding:14px}
+.hfprev .hf-card{display:inline-flex;border-radius:10px;padding:8px 12px}
+.hfprev .hf-card.is-bare{padding:0;background:transparent !important}
+.hfprev .hf-size{font-size:10.5px;color:var(--text-muted);text-align:center;padding:6px 0;background:#fff;border-top:1px solid #e2e8ef}
 @media(max-width:1100px){.theme-grid{grid-template-columns:1fr !important}}
 </style>
 </head>
@@ -1887,9 +1899,33 @@ Anything not listed under inclusions</textarea></div>
           </div>
         </div>
 
+        <!-- Header (17 Sep): logo ki sirf HEIGHT — width apne aap (dono dene se logo khinchta ya katta).
+             Max width sirf bahut chaude logo ki rok. Logo height header height − 16 se zyada nahi. -->
         <div class="panel"><div class="panel-head"><h2>Header</h2></div>
           <div class="panel-body">
+            <div class="row2">
+              <div class="field"><label>Header height — desktop (px)</label><input class="inp" type="number" min="48" max="140" data-lay="headerH" data-dev="desktop"></div>
+              <div class="field"><label>Header height — mobile (px)</label><input class="inp" type="number" min="48" max="120" data-lay="headerHMobile" data-dev="mobile"></div>
+              <div class="field"><label>Logo height — desktop (px)</label><input class="inp" type="number" min="16" max="124" data-lay="logoH" data-dev="desktop"><div class="hint" data-limit="logoH"></div></div>
+              <div class="field"><label>Logo height — mobile (px)</label><input class="inp" type="number" min="16" max="104" data-lay="logoHMobile" data-dev="mobile"><div class="hint" data-limit="logoHMobile"></div></div>
+            </div>
+            <div class="field"><label>Logo max width (px)</label><input class="inp" type="number" min="60" max="480" data-lay="logoMaxW" style="max-width:160px">
+              <div class="hint">Only matters for very wide logos — the width otherwise follows the height.</div></div>
             <label class="inline-lbl"><input type="checkbox" data-lay="sticky"> Keep the header on screen while scrolling</label>
+          </div>
+        </div>
+
+        <!-- Footer (17 Sep): footer ka apna logo (mobile menu me bhi wahi). Aaj wo ek safed card pe
+             baithta hai — gehre footer pe ulta (safed) logo ho to card band kar sakte hain. -->
+        <div class="panel"><div class="panel-head"><h2>Footer</h2></div>
+          <div class="panel-body">
+            <div class="row2">
+              <div class="field"><label>Footer logo height — desktop (px)</label><input class="inp" type="number" min="16" max="120" data-lay="footLogoH" data-dev="desktop"></div>
+              <div class="field"><label>Footer logo height — mobile (px)</label><input class="inp" type="number" min="16" max="100" data-lay="footLogoHMobile" data-dev="mobile"></div>
+            </div>
+            <div class="field"><label>Footer logo max width (px)</label><input class="inp" type="number" min="60" max="480" data-lay="footLogoMaxW" style="max-width:160px"></div>
+            <label class="inline-lbl"><input type="checkbox" data-lay="footLogoCard"> Show a white box behind the footer logo</label>
+            <div class="hint">Turn this off if your footer logo is already made for a dark background.</div>
           </div>
         </div>
       </div>
@@ -1905,6 +1941,17 @@ Anything not listed under inclusions</textarea></div>
               </div>
             </div>
             <div class="lp-width" id="lpWidth"></div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
+            <b style="font-size:13px">Header &amp; footer <span class="muted" style="font-weight:400">— real size</span></b>
+            <div class="device-toggle" id="hfDevice"><a class="on" data-hf="desktop">Desktop</a><a data-hf="mobile">Mobile</a></div>
+          </div>
+          <div class="hfprev" id="hfPreview">
+            <div class="hf-head" data-hf-part="head"><span class="hf-logo" data-hf-part="logo">LOGO</span><span class="hf-nav"><span>Tours</span><span>Blog</span><span>Contact</span></span><span class="hf-burger">☰</span></div>
+            <div class="hf-body"></div>
+            <div class="hf-foot"><span class="hf-card" data-hf-part="card"><span class="hf-logo" data-hf-part="footLogo">FOOTER LOGO</span></span></div>
+            <div class="hf-size" id="hfSize"></div>
           </div>
         </div>
         <div class="panel-foot"><a class="btn btn-sm btn-plain" id="layoutReset">Reset to Defaults</a><span class="muted" id="layoutStatus" style="margin-left:auto"></span><button class="btn btn-primary" id="layoutSave">Save Changes</button></div>
@@ -2611,7 +2658,12 @@ document.querySelectorAll('table.list thead input[type=checkbox]').forEach(funct
 
 /* ---------- settings: layout (v4) ---------- */
 (function(){
-  var DEFAULTS = {wrap:1280, pad:24, padMobile:16, corners:'soft', shadow:'soft', btnHeight:44, btnShape:'corners', sticky:true};
+  var DEFAULTS = {wrap:1280, pad:24, padMobile:16, corners:'soft', shadow:'soft', btnHeight:44, btnShape:'corners', sticky:true,
+    headerH:64, headerHMobile:64, logoH:42, logoHMobile:34, logoMaxW:220,
+    footLogoH:42, footLogoHMobile:34, footLogoMaxW:220, footLogoCard:true};
+  var hfDevice = 'desktop';
+  /* Logo header se bada nahi — upar-neeche 8px ki jagah */
+  var logoLimit = function(h){ return Math.max(16, h - 16); };
   var RADIUS = {sharp:0, soft:8, round:16};
   var SHADOW = {none:'none', soft:'0 1px 3px rgba(17,29,43,.08), 0 4px 12px -4px rgba(17,29,43,.1)', strong:'0 10px 28px -8px rgba(17,29,43,.28)'};
   var state = JSON.parse(JSON.stringify(DEFAULTS));
@@ -2646,7 +2698,41 @@ document.querySelectorAll('table.list thead input[type=checkbox]').forEach(funct
     b.style.height = Math.round(state.btnHeight * .8) + 'px';
     b.style.borderRadius = state.btnShape === 'pill' ? '999px' : RADIUS[state.corners] + 'px';
     document.getElementById('lpWidth').textContent = 'Content ' + state.wrap + 'px wide · side space ' + state.pad + 'px (mobile ' + state.padMobile + 'px)';
+
+    /* Header & footer — asli naap */
+    var mob = hfDevice === 'mobile';
+    var hf = document.getElementById('hfPreview');
+    hf.classList.toggle('is-mobile', mob);
+    hf.style.maxWidth = mob ? '375px' : '';
+    var headH = mob ? state.headerHMobile : state.headerH;
+    var logoH = Math.min(mob ? state.logoHMobile : state.logoH, logoLimit(headH));
+    var footH = mob ? state.footLogoHMobile : state.footLogoH;
+    hf.querySelector('[data-hf-part="head"]').style.minHeight = headH + 'px';
+    var logo = hf.querySelector('[data-hf-part="logo"]');
+    logo.style.height = logoH + 'px';
+    logo.style.width = Math.min(Math.round(logoH * 3.6), state.logoMaxW) + 'px';
+    var foot = hf.querySelector('[data-hf-part="footLogo"]');
+    foot.style.height = footH + 'px';
+    foot.style.width = Math.min(Math.round(footH * 3.6), state.footLogoMaxW) + 'px';
+    var card = hf.querySelector('[data-hf-part="card"]');
+    card.classList.toggle('is-bare', !state.footLogoCard);
+    card.style.background = '#fff';
+    document.getElementById('hfSize').textContent = (mob ? 'Mobile' : 'Desktop') + ' · header ' + headH + 'px · logo ' + logoH + 'px · footer logo ' + footH + 'px';
+
+    ['logoH','logoHMobile'].forEach(function(k){
+      var max = logoLimit(k === 'logoH' ? state.headerH : state.headerHMobile);
+      var el = root.querySelector('[data-limit="'+k+'"]');
+      el.textContent = state[k] > max ? 'Too tall for the header — it will show at ' + max + 'px.' : 'Up to ' + max + 'px fits this header.';
+      el.style.color = state[k] > max ? 'var(--danger)' : '';
+    });
   }
+  document.getElementById('hfDevice').addEventListener('click', function(e){
+    var a = e.target.closest('[data-hf]');
+    if(!a) return;
+    hfDevice = a.dataset.hf;
+    this.querySelectorAll('a').forEach(function(x){ x.classList.toggle('on', x === a); });
+    render();
+  });
 
   function dirty(){ document.getElementById('layoutStatus').textContent = 'Unsaved changes'; }
 
@@ -2666,6 +2752,10 @@ document.querySelectorAll('table.list thead input[type=checkbox]').forEach(funct
       state[t.closest('[data-choice]').dataset.choice] = t.value;
       fill(); dirty();
     }
+  });
+  root.addEventListener('focusin', function(e){
+    var d = e.target.dataset && e.target.dataset.dev;
+    if(d && d !== hfDevice){ document.querySelector('#hfDevice [data-hf="'+d+'"]').click(); }
   });
   document.getElementById('layoutReset').addEventListener('click', function(){ state = JSON.parse(JSON.stringify(DEFAULTS)); fill(); dirty(); });
   document.getElementById('layoutSave').addEventListener('click', function(){ document.getElementById('layoutStatus').textContent = 'Saved'; });
