@@ -8810,6 +8810,7 @@ Saath me create/update pe rok (D-86 wala sabak — "kuch na hona" sabse mehnga):
 | `from` = `to` | `From and To are the same page.` |
 | `/a → /b` hai aur `/b → /a` banao | `…would loop forever.` |
 | `to` (ya chain ka aakhri `to`) Trash/draft page pe | `"X" at /x is in the Trash — visitors would see a 404…` (client, 17 Sep: _"rokna hai"_) |
+| `to` (ya chain ka aakhri `to`) pe **kuch hai hi nahi** | `Nothing lives at /x — visitors would see a 404…` (client, 17 Sep — `/blogss` → package ka `/packages/` ke bina likha URL save ho gaya tha) |
 
 Chain dono taraf flatten hoti hai — `to` khud redirect ho to seedha uske aakhri `to` pe, aur jo redirects
 `from` pe aa rahe the wo naye `to` pe. `to` pe live page ho to us path ka purana redirect follow **nahi** hota

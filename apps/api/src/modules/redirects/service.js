@@ -145,6 +145,11 @@ export async function listRedirects(query, siteId = DEFAULT_SITE_ID, locale = DE
  * 4. **Chain nahi bachti** — `to` khud kisi redirect ka `from` ho to seedha uske aakhri `to` pe
  * 5. **`to` Trash ya draft page pe nahi** (client, 17 Sep: _"rokna hai"_) — visitor redirect ho kar 404 pe
  *    girta, aur redirect list me theek dikhta. Wahi "kuch na hona"
+ * 6. **`to` pe kuch ho hi nahi, tab bhi nahi** (client, 17 Sep) — `/blogss` → `/andaman-tour-from-dehli-package-5`
+ *    save ho gaya tha, kyunki package ka asli URL `/packages/…` tha aur us galat path pe **koi** page nahi
+ *    tha (na trash, na draft), to #5 ki rok lagi hi nahi. Ab site ke path wala `to` ya to dikhne wale page
+ *    pe pahunche, ya kisi aur redirect se hote hue page pe. Bahar ke `https://` link pe ye jaanch nahi —
+ *    public site ka har page `entries.path` se hi milta hai (R10), to koi sahi path galti se nahi rukta
  *
  * @returns {Promise<string>} aakhri `to` (chain flatten ke baad)
  */
@@ -176,7 +181,7 @@ async function checkManualRedirect({ from, to, excludeId }, siteId, locale) {
   if (await landsOnPage(target, inScope)) return to
 
   const next = await Redirect.findOne({ ...inScope, from: target, ...notSelf }).lean()
-  if (!next) return to
+  if (!next) throw nothingAt(target)
   if (isExternalRedirect(next.to)) return next.to
 
   const nextTarget = normalizePath(next.to.split(/[?#]/)[0]).toLowerCase()
@@ -184,12 +189,16 @@ async function checkManualRedirect({ from, to, excludeId }, siteId, locale) {
     throw unprocessable(`${target} already redirects back to ${from} — that would loop forever.`)
   }
 
-  await landsOnPage(nextTarget, inScope)
+  if (!(await landsOnPage(nextTarget, inScope))) throw nothingAt(nextTarget)
   return next.to
 }
 
+const nothingAt = (path) =>
+  unprocessable(`Nothing lives at ${path} — visitors would see a 404. Choose another To.`)
+
 /**
- * `to` ke path pe page — dikhne wala ho to `true`, koi na ho to `false` (tab chain dekhi jaati hai).
+ * `to` ke path pe page — dikhne wala ho to `true`, koi na ho to `false` (tab chain dekhi jaati hai, aur
+ * wahan bhi kuch na mile to niyam #6 ka 422).
  * Trash ya draft/scheduled ho to **422** (niyam #5): wahan visitor ko 404 milta.
  */
 async function landsOnPage(path, inScope) {

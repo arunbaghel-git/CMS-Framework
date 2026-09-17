@@ -19,11 +19,15 @@ import { createUser } from '../modules/users/service.js'
 /**
  * `Settings ▸ 301 Redirects` — haath se banaye redirect (D-97, 17 Sep).
  *
- * Sabse zaroori teen, aur teeno "kuch na hona" wali galti se bachate hain (D-86):
+ * Sabse zaroori chaar, aur chaaron "kuch na hona" wali galti se bachate hain (D-86):
  *
  *   1. **Page wale path pe redirect nahi banta** — warna wo kabhi chalta hi nahi
  *   2. **Page baad me bane to page jeet-ta hai** — resolve ka kram (D-97 §3)
- *   3. **Auto-redirect admin wale ko overwrite nahi karta**
+ *   3. **To hamesha kisi dikhne wale page pe pahunche** — trash, draft ya khaali path pe 422
+ *   4. **Auto-redirect admin wale ko overwrite nahi karta**
+ *
+ * ⚠️ Niyam #3 ki wajah se har test apne `To` ka page khud banata hai (`live()`) — bina page ke
+ * redirect ban hi nahi sakta.
  *
  * Chalane se pehle: `pnpm db:up`
  */
@@ -63,18 +67,25 @@ let authorJar
 const create = (body, jar = adminJar) => authed('post', '/api/redirects', jar).send(body)
 const resolve = (path) => request(app).get('/api/public/resolve').query({ path })
 
-async function makePage(path, status = 'published') {
+async function makePage(path, status = 'published', title = 'Offers') {
   return Entry.create({
     siteId: 'default',
     locale: 'en',
     type: 'page',
-    title: 'Offers',
-    slug: path.split('/').pop(),
+    title,
+    slug: path.split('/').filter(Boolean).join('-'),
     path,
     status,
     publishedAt: status === 'published' ? new Date() : null,
   })
 }
+
+/** Published pages — redirect ka `To` inhi pe pahunchna chahiye. */
+const live = (...paths) => Promise.all(paths.map((p) => makePage(p, 'published', `Page ${p}`)))
+
+/** Seedha DB me redirect (jaise purana auto wala) — service ki rok ke bina. */
+const seedRedirect = (from, to) =>
+  Redirect.create({ siteId: 'default', locale: 'en', from, to, isAuto: true })
 
 beforeAll(async () => {
   await connectTestDb()
@@ -110,6 +121,7 @@ beforeEach(async () => {
 
 describe('create', () => {
   it('/packages/ → listing page — normalize hota hai aur resolve 301 deta hai', async () => {
+    await live('/andaman-tour-packages')
     const res = await create({ from: '/Packages/', to: '/andaman-tour-packages/' })
 
     expect(res.status).toBe(201)
@@ -132,6 +144,7 @@ describe('create', () => {
   })
 
   it('purane site ka URL (.html, underscore) bhi from ban sakta hai', async () => {
+    await live('/packages/x')
     const res = await create({ from: '/Old_Tour.html', to: '/packages/x' })
     expect(res.status).toBe(201)
     expect(res.body.data.redirect.from).toBe('/old_tour.html')
@@ -163,6 +176,7 @@ describe('create', () => {
 
   it('jis path pe page hai (draft bhi) wahan redirect nahi banta — naam ke saath message', async () => {
     await makePage('/offers', 'draft')
+    await live('/packages')
 
     const res = await create({ from: '/offers', to: '/packages' })
     expect(res.status).toBe(422)
@@ -184,20 +198,31 @@ describe('create', () => {
     expect(d.body.error.message).toContain('is not published')
 
     // chain ke aakhir me trash page — wahan bhi rok
-    await Redirect.create({
-      siteId: 'default',
-      locale: 'en',
-      from: '/b',
-      to: '/old-offers',
-      isAuto: true,
-    })
+    await seedRedirect('/b', '/old-offers')
     expect((await create({ from: '/a', to: '/b' })).status).toBe(422)
 
     expect(await Redirect.countDocuments({ isAuto: false })).toBe(0)
   })
 
+  it('To pe kuch hai hi nahi — 422 (client, 17 Sep: /blogss → package ka galat URL)', async () => {
+    // Asli case: package ka URL `/packages/…` hai, client ne `/packages` ke bina likha tha
+    await live('/packages/andaman-tour-from-delhi')
+
+    const res = await create({ from: '/blogss', to: '/andaman-tour-from-delhi' })
+    expect(res.status).toBe(422)
+    expect(res.body.error.message).toContain('Nothing lives at /andaman-tour-from-delhi')
+
+    // chain ka aakhri To bhi khaali ho to wahi
+    await seedRedirect('/b', '/nowhere')
+    const chained = await create({ from: '/a', to: '/b' })
+    expect(chained.status).toBe(422)
+    expect(chained.body.error.message).toContain('Nothing lives at /nowhere')
+
+    expect(await Redirect.countDocuments({ isAuto: false })).toBe(0)
+  })
+
   it('To pe live page ho to us path ka purana redirect follow nahi hota', async () => {
-    await Redirect.create({ siteId: 'default', locale: 'en', from: '/offers', to: '/elsewhere' })
+    await seedRedirect('/offers', '/elsewhere')
     await makePage('/offers')
 
     const res = await create({ from: '/deals', to: '/offers' })
@@ -206,14 +231,15 @@ describe('create', () => {
   })
 
   it('ek from pe do redirect nahi', async () => {
+    await live('/b', '/c')
     await create({ from: '/a', to: '/b' })
     const res = await create({ from: '/a', to: '/c' })
     expect(res.status).toBe(422)
     expect(res.body.error.message).toContain('/a already redirects to /b')
   })
 
-  it('loop mana — /a → /b ho to /b → /a nahi', async () => {
-    await create({ from: '/a', to: '/b' })
+  it('loop mana — /a → /b pehle se ho to /b → /a nahi', async () => {
+    await seedRedirect('/a', '/b')
     const res = await create({ from: '/b', to: '/a' })
     expect(res.status).toBe(422)
     expect(res.body.error.message).toContain('loop')
@@ -221,12 +247,14 @@ describe('create', () => {
 
   it('chain nahi bachti — dono taraf se', async () => {
     // to khud redirect ho: /b → /c pehle se, phir /a → /b  ⇒  /a seedha /c
+    await live('/c')
     await create({ from: '/b', to: '/c' })
     const a = await create({ from: '/a', to: '/b' })
     expect(a.body.data.redirect.to).toBe('/c')
 
-    // naya redirect kisi ke to pe baitha: /x → /y, phir /y → /z  ⇒  /x bhi /z
-    await create({ from: '/x', to: '/y' })
+    // naya redirect kisi ke to pe baitha: /x → /y pehle se, phir /y → /z  ⇒  /x bhi /z
+    await live('/z')
+    await seedRedirect('/x', '/y')
     await create({ from: '/y', to: '/z' })
     expect((await Redirect.findOne({ from: '/x' }).lean()).to).toBe('/z')
   })
@@ -238,6 +266,7 @@ describe('create', () => {
 
 describe('resolve ka kram (D-97 §3)', () => {
   it('redirect ke baad usi path pe page publish ho to page dikhta hai', async () => {
+    await live('/packages')
     await create({ from: '/offers', to: '/packages' })
     await makePage('/offers')
 
@@ -245,6 +274,7 @@ describe('resolve ka kram (D-97 §3)', () => {
   })
 
   it('draft page redirect ko nahi rokta — 404 ki jagah redirect', async () => {
+    await live('/packages')
     await create({ from: '/offers', to: '/packages' })
     await makePage('/offers', 'draft')
 
@@ -254,6 +284,7 @@ describe('resolve ka kram (D-97 §3)', () => {
 
 describe('update · delete · list', () => {
   it('auto redirect edit karo to wo manual ban jaata hai', async () => {
+    await live('/packages/newer')
     await recordAutoRedirect('/packages/old', '/packages/new')
     const auto = await Redirect.findOne({ from: '/packages/old' }).lean()
 
@@ -270,6 +301,7 @@ describe('update · delete · list', () => {
   })
 
   it('edit apne hi from pe "already redirects" nahi kehta', async () => {
+    await live('/b', '/c')
     const { body } = await create({ from: '/a', to: '/b' })
     const res = await authed('patch', `/api/redirects/${body.data.redirect.id}`, adminJar).send({
       from: '/a',
@@ -279,6 +311,7 @@ describe('update · delete · list', () => {
   })
 
   it('auto-redirect admin ke banaye redirect ko overwrite nahi karta', async () => {
+    await live('/andaman-tour-packages')
     await create({ from: '/packages/old', to: '/andaman-tour-packages' })
     await recordAutoRedirect('/packages/old', '/packages/new')
 
@@ -287,6 +320,7 @@ describe('update · delete · list', () => {
   })
 
   it('delete ke baad resolve 404', async () => {
+    await live('/b')
     const { body } = await create({ from: '/a', to: '/b' })
     await authed('delete', `/api/redirects/${body.data.redirect.id}`, adminJar).expect(200)
     expect((await resolve('/a')).status).toBe(404)
