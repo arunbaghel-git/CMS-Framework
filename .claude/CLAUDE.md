@@ -703,7 +703,10 @@ Layout**: 6 rang + Advanced (Auto), 9 step ki size table, Google font server pe 
 kone · shadow · button · header/logo · footer logo. Pehle `globals.css` ki 273 seedhi values token pe aayin (look nahi badla,
 har line verify). ⚠️ **Jo nahi badla wo site pe bheja hi nahi jaata** — defaults = `globals.css` ke aaj ke value, tests dono ko
 milate hain. ⚠️ Weight/line/spacing sirf `h1`–`h6` + `body` pe.
-⏭️ **Agla kaam: client teeno screen chala kar dekhe.** ⚠️ C: drive bhar gayi thi (Mongo + dev API ruke). `project-state.md` padho.
+Client ne teeno chala kar theek paaye. **Raat — Fonts pe discussion (A-32), koi code nahi badla:** ek tag alag jagah alag size
+ka (D-73 ki virasat), isliye HTML same rakh kar har level ka ek matlab + admin me **"Text Elements"** (har text cheez → level)
+ka prastav. ⚠️ **Client ki ijaazat ke bina code mat chhoona.**
+⏭️ **Agla kaam: client ka jawab, phir element list ki table.** `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

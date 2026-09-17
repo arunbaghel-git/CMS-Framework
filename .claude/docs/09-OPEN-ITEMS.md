@@ -395,6 +395,18 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ---
 
+### A-32 · Fonts ka dhaancha — "Text Elements" (17 Sep raat, discussion chal rahi hai)
+
+**Deadline:** client ke jawab pe · **koi code nahi badla** (client ne mana kiya hai)
+
+D-98 ka Fonts tab chalta hai, par client ne pakda: ek hi tag alag jagah alag size ka hai (`<h3>` 15 rule · 8 size), isliye
+"H3" step `<h3>` ko control nahi karta. Tay: HTML nahi badlega (SEO) · level naam H1–H6/Body/Small/Extra small, band list ·
+har level ka ek matlab (H2 = section heading) · client ko ~95% control admin se · sab Fonts screen pe.
+**Khula:** mera prastav — Fonts pe "Text Elements" panel (har text cheez → level dropdown, ~60–80 element, blocks khud
+register karein). Jawab ke baad pehle element list ki table, phir code. Poora hisaab `project-state.md` ke pehle section me.
+
+---
+
 ### A-31 · Code me bacha hua site ka naam — hotel categories ka text (D-96 §33)
 
 **Deadline:** doosre client ka instance khada karne se **pehle** · **aaj kuch toota nahi**

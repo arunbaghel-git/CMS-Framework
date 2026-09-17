@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 17 Sep 2026 — 301 Redirects + package breadcrumb (D-97). Subah docs ki safai. **323 commit**, `origin/main` = HEAD (`2b7813e`) —
+> **Last updated:** 17 Sep 2026 raat — Fonts ka dhaancha discussion (koi code nahi). Din me D-97, D-98. Subah docs ki safai. **323 commit**, `origin/main` = HEAD (`2b7813e`) —
 > push hone ko kuch baaki nahi tha.
 > **Poori suite 17 Sep ko chali: 42 files, 1160/1160 pass.** ⚠️ C: drive pe sirf ~0.9 GB bachi hai — 16 Sep
 > ko isi wajah se vitest `ENOSPC` de rahi thi. Suite "no tests"/load error de to pehle disk dekho.
@@ -10,7 +10,60 @@
 
 ---
 
-## ⏭️ Nayi session yahan se shuru kare — **301 Redirects + package breadcrumb** (17 Sep)
+## ⏭️ Nayi session yahan se shuru kare — **Fonts ka dhaancha: Text Elements pe faisla** (17 Sep raat)
+
+> Colours · Layout · Fonts (D-98) **client ne chala kar theek paaye** — Layout pe koi issue nahi. **Fonts pe baat chal
+> rahi hai, koi code nahi badla** (client: _"dont change any code untill i said"_). Kal yahin se.
+
+### Client ne kya pakda
+
+Ek hi tag alag jagah alag size ka hai — reference design se. `<h3>` 13 jagah, CSS me **15 rule, 8 alag size** (13px se
+25px); footer column heading `<h2>` **11.5px** hai. Isliye Fonts ka "H3" step `<h3>` tag ko control nahi karta — wo tokens
+ko karta hai. Size ke ~250 istemaal me se **sirf ~40 heading tags** pe hain; baaki menu, daam, badge, meta, buttons.
+Ye `--fs-*` ki bheed **D-73 (1 Sep)** se hai — tab lakshya "design ek pixel na badle, code me ek jagah" tha, admin nahi.
+
+### Jo tay hua (client ki haan ke saath)
+
+1. **HTML structure nahi badlega** — SEO. Tag dhaancha batata hai, size CSS deti hai
+2. **Admin me level ke naam H1–H6 · Body · Small · Extra small hi rahenge** (client). List **band** — naya section naya level nahi banata
+3. **Har level ka ek matlab** — jaise **H2 = sirf section heading**. Card ka `<h3>` agar H4 size chahe to uska CSS rule
+   `:root` ka H4 token lega. Har level ke teen token: size · weight · line-height (`--text-h4`, `-w`, `-lh` — naam abhi pakka nahi)
+4. **Client ko ~95% control admin se chahiye** — _"me bar bar code change nahi krne aaunga agar different site ka design aaya"_.
+   Sirf "level ka size" kaafi nahi; **"kaunsi cheez kis level ki" bhi admin se**
+5. **Sab Settings ▸ Fonts screen pe hi** (client: _"only wahan se handle nahi ho sakta"_ — haan) — nayi screen nahi
+
+### Mera prastav jispe client ka jawab baaki hai
+
+**Fonts screen pe teesra panel "Text Elements"** — site ki har text cheez (header menu links, hero title, section heading,
+package card title/price, badge, footer…) ek **element**, area ke group me, har ek ke aage **level ka dropdown**.
+Aaj ke 265 font-size rule milkar ~60–80 element. Default = aaj ki mapping (look waisa hi).
+
+- Naya block banega to developer **ek entry** register karega — admin me apne aap dikhega (screen ka code nahi)
+- Test: CSS me koi `font-size` element/level ke bina nahi; decorative (404 number, SVG map text, award badge 8px) ki **fixed** list
+- Home sections / Custom editor pe baad me section-wise "Heading size" dropdown
+- Naya **layout** (jo block hai hi nahi) — code ek baar lagega, koi CMS bina page builder ke ye nahi karta; isliye blocks generic
+
+**Client se poochha gaya aakhri sawaal:** _"Ye tareeka nayi sites ke liye sahi baithta hai?"_ — **jawab nahi aaya.**
+
+### Kal ka kram
+
+1. Client se upar wale prastav pe haan/na
+2. Haan → **element list ki table** banao (group · element ka naam · selector(s) · default level · aaj ka size → naya size).
+   **Code nahi** — sirf table
+3. Pichhli mapping table ke khule sawaal (level pe bada farak): offer box daam 34, award badge 8px, map SVG text 9.5,
+   404 number, content `h1` (24 → H1 bada?), content `h3` 15.5 → H3
+4. Uske baad hi code: `:root` ke 9 level (+w/lh), 265 rules → element vars, `theme-fonts.js` ki steps/mapping nayi,
+   admin ka Text Elements panel, test. ⚠️ Testing me kisi ne `themeFonts.scale` save kiya ho to purani keys map karni hongi
+
+### ⚠️ Dhyan
+
+- **Code mat chhoona jab tak client na kahe** (usne saaf kaha)
+- `HtmlEditor.css`/`.jsx` me client ke apne badlaav uncommitted hain — commit me mat daalo; `.jsx` me unused `label` ki lint error
+- C: drive 17 Sep ko **31 MB** tak gayi thi — Mongo (Docker) aur dev API ruk gaye the. Kaam se pehle `df -h /c`
+
+---
+
+## (purana) ⏭️ Nayi session yahan se shuru kare — **301 Redirects + package breadcrumb** (17 Sep)
 
 > 17 Sep. Poora hisaab **D-97**. Koi migration nahi, `pnpm seed` nahi. Push nahi hua.
 
