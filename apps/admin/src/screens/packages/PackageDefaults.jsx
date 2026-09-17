@@ -67,8 +67,6 @@ export default function PackageDefaults({ section }) {
   const [booking, setBooking] = useState({ bookingSteps: [], cancellationText: '' })
   /** `4.9` / `412 trips` — Traveller reviews tab me (client, 1 Sep). */
   const [rating, setRating] = useState({ value: 0, count: 0 })
-  /** Breadcrumb ka beech wala kadam — pehle theme me hardcoded tha (client, 16 Sep). */
-  const [crumb, setCrumb] = useState({ label: '', url: '' })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -102,7 +100,6 @@ export default function PackageDefaults({ section }) {
           cancellationText: data.cancellationText ?? '',
         })
         setRating({ value: data.rating?.value ?? 0, count: data.rating?.count ?? 0 })
-        setCrumb({ label: data.archiveCrumb?.label ?? '', url: data.archiveCrumb?.url ?? '' })
       })
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setLoading(false))
@@ -341,47 +338,6 @@ export default function PackageDefaults({ section }) {
               </div>
             ))}
           </div>
-          {/*
-           * Breadcrumb ka beech wala kadam — `Home › <ye> › Package` (client, 16 Sep).
-           *
-           * ⚠️ **Pehle ye theme me hardcoded tha** (`Andaman Tour Packages`), yaani code me ek site ka
-           * naam. Client ne khud pakda: _"kya koi Andaman-specific data hai jo doosri site ka content
-           * daalne par bhi Andaman ka naam dega, even in code?"_
-           *
-           * Yahan isliye ki ye har package page ka hissa hai — wahi parivaar jiske section ke heading
-           * upar wale tabs me hain. Dono khaane khaali chhodo to breadcrumb `Home › Package` reh jaata
-           * hai (D-30) — naye instance pe yahi sahi bhi hai.
-           */}
-          <div className="panel-body row2" style={{ borderTop: '1px solid var(--border-soft)' }}>
-            <div className="field">
-              <label htmlFor="crumb-label">Breadcrumb label</label>
-              <input
-                id="crumb-label"
-                className="inp"
-                placeholder="e.g. Tour Packages"
-                value={crumb.label}
-                disabled={!canWrite}
-                onChange={(e) => setCrumb({ ...crumb, label: e.target.value })}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="crumb-url">Breadcrumb link</label>
-              <input
-                id="crumb-url"
-                className="inp"
-                placeholder="/tour-packages"
-                value={crumb.url}
-                disabled={!canWrite}
-                onChange={(e) => setCrumb({ ...crumb, url: e.target.value })}
-              />
-            </div>
-            <div className="hint" style={{ gridColumn: '1 / -1' }}>
-              The middle step on every package page&rsquo;s breadcrumb —{' '}
-              <b>Home › this › Package</b>. Point it at your packages listing page. Leave both empty
-              and the step is left out.
-            </div>
-          </div>
-
           {canWrite && (
             <div className="panel-foot">
               <button
@@ -393,9 +349,7 @@ export default function PackageDefaults({ section }) {
                  * bhi tab khula ho. Sirf khule tab ka data bhejna ek chup bug banata: client
                  * teen tab me kaam karta, Save dabata, aur do ka kaam gayab ho jaata.
                  */
-                onClick={() =>
-                  save({ sectionLabels: labels, ...booking, rating, archiveCrumb: crumb })
-                }
+                onClick={() => save({ sectionLabels: labels, ...booking, rating })}
               >
                 {saving ? 'Saving…' : 'Save'}
               </button>

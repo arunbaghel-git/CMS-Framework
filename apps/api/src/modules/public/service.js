@@ -22,6 +22,7 @@ import {
   videoEmbedUrl,
   withHeadingIds,
 } from '@cms/shared'
+import mongoose from 'mongoose'
 
 import { env } from '../../core/env.js'
 import { Entry } from '../entries/model.js'
@@ -392,13 +393,19 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
  *
  * | `kind` | Kab | Web kya kare |
  * | --- | --- | --- |
- * | `redirect` | slug badal chuka hai (D-49) | `301` |
+ * | `redirect` | slug badal chuka hai (D-49), ya admin ne redirect banaya (D-97) | `301`/`302` |
  * | `entry` | page maujood aur publicly visible hai | render |
  * | `null` | kuch nahi | `404` |
  *
- * **Redirect entry se PEHLE dekha jaata hai.** Ulta karne ka matlab hota ki purana path
- * pehle 404 khaaye aur redirect kabhi chale hi na — aur wo tabhi pata chalta jab kisi ka
- * share kiya hua link toota mile.
+ * **Redirect tab dekha jaata hai jab us path pe koi dikhne wala page NAHI hai** (D-97 §3, 17 Sep).
+ *
+ * 26 Aug se 17 Sep tak redirect page se **pehle** dekha jaata tha. Tab tak sirf auto-redirect the,
+ * aur unka `from` kabhi live page nahi hota (loop guard use mita deta hai), to kram se farak nahi
+ * padta tha. Haath ke redirect ke baad padta hai: `/offers` → kahin aur banaya, phir kisi ne
+ * `/offers` naam ka page bana diya — wo page **kabhi dikhta hi nahi**, aur koi error bhi nahi.
+ * Ab live page jeet-ta hai; redirect sirf wahan chalta hai jahan warna 404 hota. Wo purani chinta
+ * (_"purana path 404 khaaye aur redirect kabhi chale hi na"_) bhi nahi lagti — 404 ke raaste pe hi
+ * redirect dekha jaata hai.
  */
 export async function resolvePublicPath(
   rawPath,
@@ -406,11 +413,6 @@ export async function resolvePublicPath(
   locale = DEFAULT_LOCALE,
 ) {
   const path = normalizePath(rawPath)
-
-  const redirect = await findRedirect(path, siteId, locale)
-  if (redirect) {
-    return { kind: 'redirect', to: redirect.to, statusCode: redirect.statusCode }
-  }
 
   const entry = await Entry.findOne({ siteId, locale, path }).lean()
 
@@ -421,7 +423,10 @@ export async function resolvePublicPath(
    * `private` yahan **nahi** dikhta: wo published hai par sirf logged-in user ke liye
    * (02-ARCHITECTURE §5), aur ye endpoint bina auth ke hai.
    */
-  if (!isPubliclyVisible(entry)) return null
+  if (!isPubliclyVisible(entry)) {
+    const redirect = await findRedirect(path, siteId, locale)
+    return redirect ? { kind: 'redirect', to: redirect.to, statusCode: redirect.statusCode } : null
+  }
 
   /**
    * Type ke hisaab se do alag projection — D-87.
@@ -2567,6 +2572,26 @@ async function toPublicEntry(doc, siteId, locale) {
  * (`type:package`, kisi ek entry ka nahi). Ise entry ke payload me ghusa dene ka matlab
  * hota ki ek package ka `entry:{id}` tag saaf karne pe ye stale hi rehta.
  */
+/**
+ * Package breadcrumb ka Tour page → `{ label, url }` (D-97 §6).
+ *
+ * Label page ka **Title** hai, `fields.heading` nahi — D-90 ke baad Title hi slug · breadcrumb ·
+ * admin list ka naam hai. Page draft, trash ya delete ho gaya to `null` — breadcrumb `Home › Package`
+ * pe girta hai (D-30), toota link nahi banta.
+ *
+ * ⚠️ Cache: ye payload `type:package` **aur** `type:tourPage` pe tag hai (`apps/web/lib/cms.js`) —
+ * Tour page ka title/slug badle ya wo trash ho, to breadcrumb bhi turant badle.
+ */
+async function resolveBreadcrumbPage(id, siteId) {
+  if (!id || !mongoose.isValidObjectId(id)) return null
+
+  const page = await Entry.findOne({ _id: id, siteId, type: 'tourPage' })
+    .select('title path status publishAt deletedAt')
+    .lean()
+
+  return isPubliclyVisible(page) ? { label: page.title, url: page.path } : null
+}
+
 export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
   const doc = await ensurePackageDefaults(siteId)
 
@@ -2583,15 +2608,10 @@ export async function getPublicPackageDefaults(siteId = DEFAULT_SITE_ID) {
     bookingSteps: doc.bookingSteps ?? [],
 
     /**
-     * Breadcrumb ka beech wala kadam — dono khaane bhare hon tabhi (client, 16 Sep).
-     *
-     * ⚠️ Aadha bhara hua (sirf label, ya sirf URL) yahin gir jaata hai, taaki theme ko ye shart yaad na
-     * rakhni pade — wahi niyam jo hero button aur CTA ke buttons pe hai (D-30).
+     * Breadcrumb ka beech wala kadam — chune hue Tour page se (D-97 §6). Payload ki shakl wahi
+     * `{ label, url }` jo 16 Sep se thi, isliye theme ko kuch nahi badalna pada.
      */
-    archiveCrumb:
-      doc.archiveCrumb?.label?.trim() && doc.archiveCrumb?.url?.trim()
-        ? { label: doc.archiveCrumb.label, url: doc.archiveCrumb.url }
-        : null,
+    archiveCrumb: await resolveBreadcrumbPage(doc.breadcrumbPageId, siteId),
 
     /**
      * ⚠️ Ye payload me **chhoot gaya tha** (31 Aug ko pakda).

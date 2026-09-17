@@ -519,32 +519,71 @@ describe('packageDefaults', () => {
    * ⚠️ Test **DB padhta hai, response nahi** — `updatePackageDefaults()` ki whitelist wala jaal chaar
    * baar lag chuka hai: Zod pass, API 200, admin "Saved.", aur DB me purani value.
    */
-  it('archiveCrumb DB tak jaata hai, aur aadha bhara hua public payload me nahi aata', async () => {
-    const res = await authed('patch', '/api/package-defaults', adminJar).send({
-      archiveCrumb: { label: 'Tour Packages', url: '/tour-packages' },
+  it('breadcrumbPageId DB tak jaata hai, aur payload me chune hue Tour page ka title + path (D-97 §6)', async () => {
+    const { Entry } = await import('../modules/entries/model.js')
+    const { getPublicPackageDefaults } = await import('../modules/public/service.js')
+
+    const tour = await Entry.create({
+      siteId: 'default',
+      locale: 'en',
+      type: 'tourPage',
+      title: 'Andaman Tour Packages',
+      slug: 'andaman-tour-packages',
+      path: '/andaman-tour-packages',
+      status: 'published',
+      publishedAt: new Date(),
+    })
+    const post = await Entry.create({
+      siteId: 'default',
+      locale: 'en',
+      type: 'post',
+      title: 'Not a tour page',
+      slug: 'not-a-tour-page',
+      path: '/blog/not-a-tour-page',
+      status: 'published',
     })
 
-    expect(res.status).toBe(200)
-    expect((await PackageDefaults.findOne({}).lean()).archiveCrumb).toMatchObject({
-      label: 'Tour Packages',
-      url: '/tour-packages',
-    })
+    try {
+      const res = await authed('patch', '/api/package-defaults', adminJar).send({
+        breadcrumbPageId: String(tour._id),
+      })
+      expect(res.status).toBe(200)
+      expect((await PackageDefaults.findOne({}).lean()).breadcrumbPageId).toBe(String(tour._id))
 
-    const pub = await request(app).get('/api/public/package-defaults')
-    if (pub.status === 200) {
-      expect(pub.body.data.packageDefaults.archiveCrumb).toEqual({
+      expect((await getPublicPackageDefaults()).archiveCrumb).toEqual({
+        label: 'Andaman Tour Packages',
+        url: '/andaman-tour-packages',
+      })
+
+      /** Tour page ka naam/slug badla — breadcrumb apne aap naya (haath ka link yahi nahi kar paata tha). */
+      await Entry.updateOne({ _id: tour._id }, { title: 'Tour Packages', path: '/tour-packages' })
+      expect((await getPublicPackageDefaults()).archiveCrumb).toEqual({
         label: 'Tour Packages',
         url: '/tour-packages',
       })
+
+      /** Draft ya trash — kadam gayab, toota link nahi (D-30). */
+      await Entry.updateOne({ _id: tour._id }, { status: 'draft' })
+      expect((await getPublicPackageDefaults()).archiveCrumb).toBeNull()
+      await Entry.updateOne({ _id: tour._id }, { status: 'published', deletedAt: new Date() })
+      expect((await getPublicPackageDefaults()).archiveCrumb).toBeNull()
+
+      /** Tour page ke alawa kuch, ya bekaar id — 422, chup-chaap save nahi. */
+      for (const bad of [String(post._id), 'not-an-id', String(tour._id)]) {
+        const r = await authed('patch', '/api/package-defaults', adminJar).send({
+          breadcrumbPageId: bad,
+        })
+        expect(r.status).toBe(422)
+      }
+
+      /** None — khaali string save hoti hai aur kadam nahi banta. */
+      await authed('patch', '/api/package-defaults', adminJar)
+        .send({ breadcrumbPageId: '' })
+        .expect(200)
+      expect((await getPublicPackageDefaults()).archiveCrumb).toBeNull()
+    } finally {
+      await Entry.deleteMany({ _id: { $in: [tour._id, post._id] } })
     }
-
-    /** Sirf label (ya sirf URL) — crumb banta hi nahi, taaki theme ko ye shart yaad na rakhni pade. */
-    await authed('patch', '/api/package-defaults', adminJar).send({
-      archiveCrumb: { label: 'Tour Packages', url: '' },
-    })
-
-    const { getPublicPackageDefaults } = await import('../modules/public/service.js')
-    expect((await getPublicPackageDefaults()).archiveCrumb).toBeNull()
   })
 
   it('dobara read pe doosra document nahi banta', async () => {

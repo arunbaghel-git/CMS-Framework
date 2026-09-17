@@ -102,7 +102,11 @@ export async function resolvePath(path) {
 
 /** Packages ke globals — har package page pe wahi (spec 007 §1.8). */
 export async function getPackageDefaults() {
-  const data = await getJson('/public/package-defaults', ['type:package'])
+  /**
+   * `type:tourPage` bhi (D-97 §6) — breadcrumb ka beech wala kadam chune hue Tour page ka title/path
+   * hai. Uske badalne pe ye payload saaf na ho to breadcrumb ek ghanta purana naam dikhata.
+   */
+  const data = await getJson('/public/package-defaults', ['type:package', 'type:tourPage'])
 
   return data?.packageDefaults ?? null
 }

@@ -2,9 +2,12 @@ import { randomUUID } from 'node:crypto'
 
 import { DEFAULT_SITE_ID, emptyPackageDefaults, resolveSectionLabels } from '@cms/shared'
 
+import mongoose from 'mongoose'
+
 import { unprocessable } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
 import { sanitizePackageDefaults } from '../../core/sanitize-html.js'
+import { Entry } from '../entries/model.js'
 import { mediaExists } from '../media/service.js'
 import { PackageDefaults } from './model.js'
 
@@ -114,12 +117,24 @@ export async function updatePackageDefaults(input, siteId = DEFAULT_SITE_ID) {
   if (clean.sectionLabels !== undefined) $set.sectionLabels = clean.sectionLabels
   /** `4.9 average from 412 trips` — hero aur reviews section dono isse chhapte hain. */
   /**
-   * Breadcrumb ka beech wala kadam (client, 16 Sep) — pehle ye theme me hardcoded tha.
+   * Breadcrumb ka Tour page (D-97 §6) — pehle `archiveCrumb` (16 Sep), usse pehle theme me hardcoded.
    *
    * ⚠️ Yahan likhna **zaroori** hai: upar wali chetavni isi whitelist ki hai. Chhoot jaata to admin
    * "Saved." dikhata aur DB me kuch na jaata — paanchvi baar wahi jaal.
+   *
+   * Write pe jaanch ki wo sach me Tour page hai — bekaar id chup-chaap save hoti to breadcrumb
+   * **gayab** hota aur admin ko dropdown me kuch chuna hua bhi na dikhta.
    */
-  if (clean.archiveCrumb !== undefined) $set.archiveCrumb = clean.archiveCrumb
+  if (clean.breadcrumbPageId !== undefined) {
+    const id = clean.breadcrumbPageId
+    if (id) {
+      const page = mongoose.isValidObjectId(id)
+        ? await Entry.exists({ _id: id, siteId, type: 'tourPage', deletedAt: null })
+        : null
+      if (!page) throw unprocessable('Choose a Tour page for the breadcrumb.')
+    }
+    $set.breadcrumbPageId = id
+  }
   if (input.rating !== undefined) $set.rating = input.rating
 
   /**

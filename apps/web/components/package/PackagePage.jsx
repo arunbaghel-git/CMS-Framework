@@ -83,10 +83,11 @@ const MEAL_LABEL = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
  *
  * ⚠️ **Ye pehle yahan hardcoded tha** (`Andaman Tour Packages` / `/andaman-tour-packages/`, client
  * 1 Sep — tab archive page bana hi nahi tha). 16 Sep ko client ne poochha ki code me koi site-specific
- * cheez to nahi bachi, aur ye unme se nikla. Ab wo `packageDefaults.archiveCrumb` se aata hai
- * (**Packages ▸ Section Headings** me do khaane).
+ * cheez to nahi bachi, aur ye unme se nikla. Payload me `packageDefaults.archiveCrumb` aata hai.
+ * 17 Sep se wo **Packages ▸ Itinerary Settings** me chune hue Tour page ka title + path hai (D-97 §6);
+ * 16 Sep ko Section Headings me haath ke do khaane the.
  *
- * Dono khaane bhare hon tabhi crumb banta hai — server hi aadha bhara hua gira deta hai (D-30), isliye
+ * Page draft/trash ho ya kuch chuna na ho to server `null` bhejta hai (D-30), isliye
  * yahan sirf `null` ki jaanch hai. Khaali pe breadcrumb `Home › Package` reh jaata hai, jo naye instance
  * pe bilkul theek hai: ek crumb jo 404 pe le jaaye, usse na hona behtar hai.
  */

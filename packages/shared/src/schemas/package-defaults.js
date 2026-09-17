@@ -230,15 +230,23 @@ export const packageDefaultsSchema = z.object({
    * Andaman-specific data hai jo doosri site ka content daalne par bhi Andaman ka naam dega, even in
    * code?"_ — aur ye unme se ek tha.
    *
-   * Dono khaali = breadcrumb me wo kadam hi nahi (`Home › Package`). Yaani naye instance pe kuch galat
-   * nahi chhapta — wahi D-30 wala niyam: jo cheez nahi hai, uski jagah khaali rahe, jhoothi nahi.
+   * ## 17 Sep — label + link ki jagah **Tour page chuna jaata hai** (D-97 §6)
+   *
+   * 16 Sep ko yahan `archiveCrumb: { label, url }` tha — haath se likha naam aur link, aur wo
+   * `Section Headings` ke har tab ke neeche dikhta tha (jaise har section ka apna ho). Client ne
+   * poochha to asli baat nikli: package ka parent **Tour page** hai (`itinerary-v3.html` ka
+   * breadcrumb `Home › Andaman Tour Packages › Package`). Haath ka link us page se juda nahi tha —
+   * Tour page ka title ya slug badlo, breadcrumb purana hi rehta.
+   *
+   * Ab sirf page ki id. Naam us page ka **Title** aur link uska **path**, dono server pe
+   * (`getPublicPackageDefaults()`). Screen: `Packages ▸ Itinerary Settings`.
+   *
+   * Khaali, ya chuna hua page draft/trash/delete = breadcrumb me wo kadam hi nahi (`Home › Package`)
+   * — D-30: jo cheez nahi hai uski jagah khaali rahe, tooti hui nahi.
+   *
+   * ⚠️ `archiveCrumb` DB me 17 Sep ko **khaali** tha, isliye koi migration nahi.
    */
-  archiveCrumb: z
-    .object({
-      label: z.string().trim().max(120).default(''),
-      url: z.string().trim().max(500).default(''),
-    })
-    .default({}),
+  breadcrumbPageId: z.string().trim().max(60).default(''),
 
   rating: ratingSchema,
 

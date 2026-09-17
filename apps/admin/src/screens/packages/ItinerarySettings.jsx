@@ -1,7 +1,9 @@
+import { ENTRY_LIST_MAX_LIMIT } from '@cms/shared'
 import { useEffect, useState } from 'react'
 
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
+import { useEntryList } from '../../lib/use-entries.js'
 
 /**
  * Itinerary Settings — package pages ke wo do faisle jo har page pe ek jaise hain (D-82).
@@ -25,6 +27,12 @@ import { useAuth } from '../../lib/auth.jsx'
  * ⚠️ Structured data ka toggle per-package tha aur uska nateeja data me dikha: **paanchon
  * package pe wo `false` mila** — yaani ek bana-banaya feature kabhi chala hi nahi. Wo
  * per-package faisla hai bhi nahi: site ya to structured data bhejti hai ya nahi.
+ *
+ * ## Breadcrumb (D-97 §6, 17 Sep)
+ *
+ * Package page ka `Home › <Tour page> › Package` — beech wala kadam yahan **chuna** jaata hai. 16 Sep
+ * se 17 Sep tak wo `Section Headings` ke neeche label + link ke do khaane the, aur har tab pe dikhne
+ * ki wajah se har section ka lagta tha. Naam aur link ab chune hue page se aate hain, server pe.
  */
 export default function ItinerarySettings() {
   const { can } = useAuth()
@@ -33,6 +41,10 @@ export default function ItinerarySettings() {
   const [seoSchema, setSeoSchema] = useState(true)
   const [total, setTotal] = useState(12)
   const [perPage, setPerPage] = useState(3)
+  const [breadcrumbPageId, setBreadcrumbPageId] = useState('')
+
+  /** Sirf Tour pages — client (17 Sep). Draft bhi dikhte hain, par unka breadcrumb site pe nahi banta. */
+  const tourPages = useEntryList('tourPage', { limit: ENTRY_LIST_MAX_LIMIT })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
@@ -47,6 +59,7 @@ export default function ItinerarySettings() {
         setSeoSchema(data.seoSchema !== false)
         setTotal(data.similar?.total ?? 12)
         setPerPage(data.similar?.perPage ?? 3)
+        setBreadcrumbPageId(data.breadcrumbPageId ?? '')
       })
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setLoading(false))
@@ -59,7 +72,11 @@ export default function ItinerarySettings() {
     setNotice(null)
 
     try {
-      await api.patch('/package-defaults', { seoSchema, similar: { total, perPage } })
+      await api.patch('/package-defaults', {
+        seoSchema,
+        similar: { total, perPage },
+        breadcrumbPageId,
+      })
       setNotice('Saved.')
     } catch (err) {
       setError(errorMessage(err))
@@ -89,6 +106,37 @@ export default function ItinerarySettings() {
       )}
 
       <form onSubmit={save}>
+        <div className="panel">
+          <div className="panel-head">
+            <h2>Breadcrumb</h2>
+          </div>
+          <div className="panel-body">
+            <div className="field">
+              <label htmlFor="breadcrumbPage">Packages listing page</label>
+              <select
+                id="breadcrumbPage"
+                className="sel"
+                value={breadcrumbPageId}
+                disabled={readOnly || tourPages.loading}
+                onChange={(e) => setBreadcrumbPageId(e.target.value)}
+              >
+                <option value="">None</option>
+                {tourPages.data.map((page) => (
+                  <option key={page.id} value={page.id}>
+                    {page.title}
+                    {page.status === 'published' ? '' : ` (${page.status} — not shown)`}
+                  </option>
+                ))}
+              </select>
+              <p className="hint">
+                The middle step on every package page&rsquo;s breadcrumb —{' '}
+                <b>Home › this page › Package</b>. Its name and link come from the Tour page, so
+                renaming the page updates the breadcrumb too. Choose None to leave the step out.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="panel">
           <div className="panel-head">
             <h2>Search engines</h2>
