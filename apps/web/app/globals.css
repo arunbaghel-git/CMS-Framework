@@ -113,6 +113,51 @@
   --shade: #071e34;
   --scrim: #081422;
 
+  /*
+   * 17 Sep — CSS me seedhe likhe saare rang yahan aaye (Settings ▸ Colours ki taiyaari). Value wahi
+   * jo line pe likhi thi, isliye look nahi badla. rgba() ab `color-mix(… N%, transparent)` hai.
+   */
+  /* Text/icon on dark or coloured backgrounds — hero, footer, filled buttons */
+  --on-dark: #fff;
+  --black: #000;
+  /* Light brand tints used ON dark sections */
+  --on-dark-link: #7cc7ff;
+  --on-dark-eyebrow: #8fd0ff;
+  --on-dark-eyebrow-2: #bfe0ff;
+  --on-dark-accent: #ffc79b;
+  --on-dark-price: #ffd9b8;
+  --on-dark-gold: #ffd98a;
+  --offer-grad-end: #1b7fb8;
+  --navy-overlay: #092037;
+  /* Accent (orange) shades */
+  --orange-700: #b8480a;
+  --orange-400: #ff9d4d;
+  --accent-glow: #ffa04d;
+  --orange-50: #fff8ef;
+  --orange-150: #ffe3c4;
+  /* Status + neutral tints */
+  --red-50: #fdf6f6;
+  --red-150: #f6dcdf;
+  --tint: #f4f7fb;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-500: #64748b;
+  --slate-900: #0f172a;
+  --widget-icon-bg: #eef4ff;
+  --widget-icon: #2563eb;
+  /* WhatsApp brand — site ka nahi, WhatsApp ka rang */
+  --wa: #25d366;
+  --wa-hover: #1fbb59;
+  --wa-shadow: #16a34a;
+  --wa-soft: #e7faee;
+  --wa-ink: #25a55a;
+  /* Home island map (D-96 §27) */
+  --map-sea: #e8f4fb;
+  --map-sea-line: #cfe6f4;
+  --map-land: #d8ead3;
+  --map-land-line: #a9cfa0;
+  --map-chip: #f4f8fb;
+
   /* Radius aur shadow bhi reference se — pehle andaaze ke 6/8/10px the */
   --r1: 6px;
   --r2: 10px;
@@ -140,6 +185,15 @@
    * jagah badalne se panel aur page ke kinare alag ho jaate hain.
    */
   --pad: 26px;
+
+  /* Layout — Settings ▸ Layout inhi ko likhega */
+  --header-h: 64px;
+  --sticky-top: calc(var(--header-h) + 14px);
+  --logo-h: 42px;
+  --logo-h-m: 34px;
+  --foot-logo-h: 42px;
+  --foot-logo-h-m: 34px;
+  --btn-h: 44px;
 
   /* Mega ke layout widths — spec 006 §2.1. Inhi se allowed column counts nikalte hain. */
   --mega-sm: 420px;
@@ -189,6 +243,9 @@
   --fs-xl: 15.5px;
   --fs-2xl: 16px;
   --fs-3xl: 17px;
+  --fs-7xs: 9.5px;
+  --fs-6xs: 10px;
+  --fs-4xl: 18px;
 
   /* Page ka bada text — teenon screen ke saath badhte hain (`clamp`). */
   --fs-title: clamp(26px, 3.6vw, 42px);
@@ -245,6 +302,7 @@
   --fw-bold: 700;
   --fw-heading: 800;
   --fw-black: 900;
+  --fw-xbold: 800;
 }
 
 * {
@@ -266,7 +324,7 @@
  */
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 90px;
+  scroll-padding-top: calc(var(--header-h) + 26px);
 }
 
 /*
@@ -459,7 +517,7 @@ a {
    * Ab height ek likha hua number hai aur padding sirf daayein-baayein ki jagah deti hai.
    * 44px wahi hai jo reference ka `.b` (11px padding + 14px/1.55 text) banata tha.
    */
-  min-height: 44px;
+  min-height: var(--btn-h);
   /* i did it 20px needed */
   padding: 0 20px;
   border: 0;
@@ -489,7 +547,7 @@ a {
 /* Neela bhara — reference ka .b-b. Neeche 2px ka thos shadow, halka uthaav deta hai. */
 .btn--primary {
   background: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
   border-color: transparent;
   box-shadow: 0 2px 0 var(--blue-700);
 }
@@ -502,7 +560,7 @@ a {
 /* Orange bhara — reference ka .b-o. Sabse zyada dhyaan kheenchne wale CTA ke liye. */
 .btn--accent {
   background: var(--orange-500);
-  color: #fff;
+  color: var(--on-dark);
   border-color: transparent;
   box-shadow: 0 2px 0 var(--orange-600);
 }
@@ -510,7 +568,7 @@ a {
 .btn--accent:hover {
   background: var(--orange-600);
   border-color: transparent;
-  box-shadow: 0 2px 0 #b8480a;
+  box-shadow: 0 2px 0 var(--orange-700);
 }
 
 /* ============================================================
@@ -550,14 +608,14 @@ a {
   display: flex;
   align-items: center;
   gap: 16px;
-  min-height: 64px;
+  min-height: var(--header-h);
 }
 
 .brand__img {
   display: block;
   /* Fixed height, max-height nahi — reference bhi 42px pe pin karta hai, taaki alag-alag
      aspect ratio wale logo header ki height na badlein */
-  height: 42px;
+  height: var(--logo-h);
   width: auto;
   flex-shrink: 0;
 }
@@ -860,7 +918,7 @@ a.mega__gl:hover {
 .mscrim {
   position: fixed;
   inset: 0;
-  background: rgb(15 23 42 / 45%);
+  background: color-mix(in srgb, var(--slate-900) 45%, transparent);
   z-index: 100;
 }
 
@@ -1047,7 +1105,7 @@ a.mega__gl:hover {
      `padding-bottom` khud laata hai, par wo optional field hai */
   padding-bottom: 20px;
   background: var(--blue-900);
-  color: rgb(255 255 255 / 62%);
+  color: color-mix(in srgb, var(--on-dark) 62%, transparent);
   font-size: var(--fs-sm);
 }
 
@@ -1080,7 +1138,7 @@ a.mega__gl:hover {
   font-weight: var(--fw-black);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .ft__col ul {
@@ -1103,7 +1161,7 @@ a.mega__gl:hover {
    `a{color:inherit}` se wo `.ft` ka rang aur 400 weight lete hain. 500 dene se wo
    headings ke barabar bhaari lagne lagte hain. */
 .ft__col a:hover {
-  color: #7cc7ff;
+  color: var(--on-dark-link);
 }
 
 /* Logo reference me ek **safed card** pe baithta hai, kyunki zyadatar logo gehre
@@ -1111,15 +1169,15 @@ a.mega__gl:hover {
    bhi ye card nuksaan nahi karta. */
 .ft__brand {
   display: inline-flex;
-  background: #fff;
-  border-radius: 12px;
+  background: var(--surface);
+  border-radius: calc(var(--r2) + 2px);
   padding: 8px 12px;
   margin-bottom: 16px;
 }
 
 .ft__brand img {
   display: block;
-  height: 42px;
+  height: var(--foot-logo-h);
   width: auto;
 }
 
@@ -1130,7 +1188,7 @@ a.mega__gl:hover {
   gap: 10px;
   align-items: flex-start;
   padding: 10px 0;
-  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  border-bottom: 1px solid color-mix(in srgb, var(--on-dark) 10%, transparent);
 }
 
 .ft__sup:last-child {
@@ -1138,7 +1196,7 @@ a.mega__gl:hover {
 }
 
 .ft__sup svg {
-  color: #7cc7ff;
+  color: var(--on-dark-link);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -1149,7 +1207,7 @@ a.mega__gl:hover {
   font-weight: var(--fw-heading);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 45%);
+  color: color-mix(in srgb, var(--on-dark) 45%, transparent);
   margin-bottom: 3px;
   line-height: 1.55;
 }
@@ -1165,7 +1223,7 @@ a.mega__gl:hover {
 .ft__sup-value {
   display: block;
   white-space: pre-line;
-  color: #fff;
+  color: var(--on-dark);
   font-weight: var(--fw-semi);
   font-size: var(--fs-sm);
   line-height: 1.5;
@@ -1208,7 +1266,7 @@ a.mega__gl:hover {
   gap: 16px;
   flex-wrap: wrap;
   padding-block: 16px;
-  border-top: 1px solid rgb(255 255 255 / 11%);
+  border-top: 1px solid color-mix(in srgb, var(--on-dark) 11%, transparent);
   font-size: var(--fs-xs);
 }
 
@@ -1221,7 +1279,7 @@ a.mega__gl:hover {
   max-width: 52ch;
   font-size: var(--fs-3xs);
   line-height: 1.6;
-  color: rgb(255 255 255 / 45%);
+  color: color-mix(in srgb, var(--on-dark) 45%, transparent);
 }
 
 /* Fine print bar ke neeche, poori chaudai me — aur bar se bhi halka */
@@ -1229,7 +1287,7 @@ a.mega__gl:hover {
   margin: 0;
   font-size: var(--fs-3xs);
   line-height: 1.6;
-  color: rgb(255 255 255 / 38%);
+  color: color-mix(in srgb, var(--on-dark) 38%, transparent);
 }
 
 .soc {
@@ -1244,16 +1302,16 @@ a.mega__gl:hover {
   width: 33px;
   height: 33px;
   border-radius: 50%;
-  background: rgb(255 255 255 / 9%);
+  background: color-mix(in srgb, var(--on-dark) 9%, transparent);
   display: grid;
   place-items: center;
-  color: #fff;
+  color: var(--on-dark);
   transition: 0.16s;
 }
 
 .soc a:hover {
   background: var(--orange-500);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 /* Brand marks **filled** hote hain (UI icons stroke-based) — `currentColor` se wo
@@ -1282,7 +1340,7 @@ a.mega__gl:hover {
   /* Ek column me ab har heading ek accordion ki row hai — beech me lakeer chahiye,
      warna teen collapsed headings ek doosre se chipki hui dikhti hain */
   .ft__col[data-collapsible] {
-    border-top: 1px solid rgb(255 255 255 / 10%);
+    border-top: 1px solid color-mix(in srgb, var(--on-dark) 10%, transparent);
     padding-top: 4px;
   }
 
@@ -1335,7 +1393,7 @@ a.mega__gl:hover {
 
 @media (max-width: 600px) {
   .ft__brand img {
-    height: 34px;
+    height: var(--foot-logo-h-m);
   }
 }
 
@@ -1471,7 +1529,7 @@ a.mega__gl:hover {
    logo + do button + burger ek line me aate hain. */
 @media (max-width: 750px) {
   .brand__img {
-    height: 34px;
+    height: var(--logo-h-m);
   }
 
   /*
@@ -1507,7 +1565,7 @@ a.mega__gl:hover {
 
 .mdrawer__logo {
   display: block;
-  height: 34px;
+  height: var(--foot-logo-h-m);
   width: auto;
 }
 
@@ -1630,12 +1688,12 @@ a.mega__gl:hover {
 }
 
 .pkg__bestfor span {
-  color: var(--muted, #64748b);
+  color: var(--muted);
 }
 
 .pkg__bestfor b {
-  background: #f1f5f9;
-  border-radius: 999px;
+  background: var(--slate-100);
+  border-radius: var(--rf);
   padding: 4px 11px;
   font-weight: var(--fw-semi);
 }
@@ -1670,7 +1728,7 @@ a.mega__gl:hover {
 .gal button {
   position: relative;
   overflow: hidden;
-  background: #e2e8f0;
+  background: var(--slate-200);
   display: block;
   padding: 0;
   border: 0;
@@ -1709,8 +1767,8 @@ a.mega__gl:hover {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(11, 43, 74, 0.55);
-  color: #fff;
+  background: color-mix(in srgb, var(--blue-900) 55%, transparent);
+  color: var(--on-dark);
   font-size: var(--fs-sm);
   font-weight: var(--fw-heading);
   letter-spacing: 0.04em;
@@ -1748,7 +1806,7 @@ a.mega__gl:hover {
 .gal--few button:nth-child(3),
 .gal--few button:last-child {
   grid-row: auto;
-  border-radius: 10px;
+  border-radius: var(--r2);
 }
 
 /*
@@ -2151,7 +2209,7 @@ a.mega__gl:hover {
   padding: 7px 13px;
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   font-size: var(--fs-xs);
   font-weight: var(--fw-bold);
   color: var(--body);
@@ -2235,7 +2293,7 @@ a.mega__gl:hover {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface);
   border: 3px solid var(--blue-600);
 }
 
@@ -2248,7 +2306,7 @@ a.mega__gl:hover {
   padding: 5px 11px;
   border-radius: var(--rf);
   background: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-black);
   letter-spacing: 0.04em;
@@ -2471,8 +2529,8 @@ a.mega__gl:hover {
 }
 
 .inx__c.no {
-  background: #fdf6f6;
-  border-color: #f6dcdf;
+  background: var(--red-50);
+  border-color: var(--red-150);
 }
 
 .inx__c h3 {
@@ -2536,7 +2594,7 @@ a.mega__gl:hover {
   height: 26px;
   border-radius: 50%;
   background: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-sm);
   font-weight: var(--fw-black);
   display: grid;
@@ -2592,7 +2650,7 @@ a.mega__gl:hover {
  * card aur page ek hi rang ke ho jaate hain aur poora page flat lagta hai.
  */
 .pkg {
-  background: #f4f7fb;
+  background: var(--tint);
 }
 
 /* Breadcrumb. Reference me ye dark hero pe safed hai; yahan page tinted hai, isliye ink. */
@@ -2703,7 +2761,7 @@ a.mega__gl:hover {
  */
 .pgl__side {
   position: sticky;
-  top: 78px;
+  top: var(--sticky-top);
   display: grid;
   gap: 14px;
   align-content: start;
@@ -2717,7 +2775,7 @@ a.mega__gl:hover {
 
 /* Sidebar widget — reference ka `.wdg`. */
 .wdg {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   box-shadow: var(--sh-1);
@@ -2745,7 +2803,7 @@ a.mega__gl:hover {
   text-transform: uppercase;
   color: var(--ink);
   padding: 12px 15px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--slate-200);
 }
 
 /* Heading ka icon neela — reference: `.wdg__h svg{color:var(--blue-500)}`. */
@@ -2783,23 +2841,23 @@ a.mega__gl:hover {
 }
 
 .wdgc + .wdgc {
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--slate-100);
 }
 
 .wdgc__i {
   width: 30px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: calc(var(--r2) - 2px);
   display: grid;
   place-items: center;
-  background: #eef4ff;
-  color: #2563eb;
+  background: var(--widget-icon-bg);
+  color: var(--widget-icon);
   flex: none;
 }
 
 .wdgc__i--wa {
-  background: #e7faee;
-  color: #25a55a;
+  background: var(--wa-soft);
+  color: var(--wa-ink);
 }
 
 .wdgc span:last-child {
@@ -2812,7 +2870,7 @@ a.mega__gl:hover {
   font-size: var(--fs-4xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--slate-500);
   font-weight: var(--fw-bold);
 }
 
@@ -3032,7 +3090,7 @@ a.mega__gl:hover {
   display: grid;
   place-items: center;
   background: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
   opacity: 0;
   transform: scale(0.55);
   transition:
@@ -3083,7 +3141,7 @@ a.mega__gl:hover {
 .htab button[aria-selected='true'] {
   background: var(--blue-600);
   border-color: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .htab button span {
@@ -3094,7 +3152,7 @@ a.mega__gl:hover {
 }
 
 .htab button[aria-selected='true'] span {
-  color: #ffd98a;
+  color: var(--on-dark-gold);
 }
 
 .hpan > p {
@@ -3400,7 +3458,7 @@ a.mega__gl:hover {
   display: none;
   background: var(--surface);
   border-top: 1px solid var(--line);
-  box-shadow: 0 -4px 18px rgb(17 29 43 / 10%);
+  box-shadow: 0 -4px 18px color-mix(in srgb, var(--ink) 10%, transparent);
   grid-template-columns: 1fr 1fr 1.4fr;
   gap: 7px;
   /*
@@ -3429,13 +3487,13 @@ a.mega__gl:hover {
 
 /* WhatsApp ka apna hara — brand ka rang hai, theme ka nahi, isliye seedha likha hai. */
 .mobar__wa {
-  background: #25d366;
-  color: #fff;
+  background: var(--wa);
+  color: var(--on-dark);
 }
 
 .mobar__cta {
   background: var(--orange-500);
-  color: #fff;
+  color: var(--on-dark);
   /* Icon nahi hai, sirf text — isliye ek row me aur thoda bada. */
   flex-direction: row;
   gap: 6px;
@@ -3461,14 +3519,14 @@ a.mega__gl:hover {
   display: grid;
   place-items: center;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--rf);
   cursor: pointer;
-  background: rgb(255 255 255 / 16%);
-  color: #fff;
+  background: color-mix(in srgb, var(--on-dark) 16%, transparent);
+  color: var(--on-dark);
 }
 
 .wdg__x:hover {
-  background: rgb(255 255 255 / 28%);
+  background: color-mix(in srgb, var(--on-dark) 28%, transparent);
 }
 
 @media (max-width: 760px) {
@@ -3582,12 +3640,12 @@ a.mega__gl:hover {
 .bkg__t {
   background: linear-gradient(150deg, var(--blue-900), var(--blue-700));
   padding: 16px 18px;
-  color: rgba(255, 255, 255, 0.75);
+  color: color-mix(in srgb, var(--on-dark) 75%, transparent);
 }
 
 .bkg__t del {
   font-size: var(--fs-sm);
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--on-dark) 50%, transparent);
   font-weight: var(--fw-semi);
 }
 
@@ -3595,7 +3653,7 @@ a.mega__gl:hover {
   display: block;
   font-size: var(--fs-price-side);
   font-weight: var(--fw-black);
-  color: #fff;
+  color: var(--on-dark);
   letter-spacing: -0.04em;
   line-height: 1.05;
   margin: 2px 0;
@@ -3615,10 +3673,10 @@ a.mega__gl:hover {
   font-weight: var(--fw-heading);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #fff;
-  background: rgba(244, 112, 28, 0.24);
-  border: 1px solid rgba(255, 160, 77, 0.42);
-  color: #ffc79b;
+  color: var(--on-dark);
+  background: color-mix(in srgb, var(--orange-500) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-glow) 42%, transparent);
+  color: var(--on-dark-accent);
   padding: 4px 10px;
   border-radius: var(--rf);
 }
@@ -3885,7 +3943,7 @@ a.mega__gl:hover {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   background: var(--orange-500);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .prow__b {
@@ -4006,7 +4064,7 @@ a.mega__gl:hover {
 
 .prow__rt b {
   background: var(--green-600);
-  color: #fff;
+  color: var(--on-dark);
   padding: 2px 7px;
   border-radius: var(--r1);
   font-size: var(--fs-3xs);
@@ -4047,7 +4105,7 @@ a.mega__gl:hover {
 .prow:hover .prow__go {
   background: var(--blue-600);
   border-color: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 /*
@@ -4087,7 +4145,7 @@ a.mega__gl:hover {
 .simpg button.on {
   background: var(--blue-600);
   border-color: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 /* Beech ka column tang ho gaya — daam card ke neeche ek patti ban jaata hai. */
@@ -4392,7 +4450,7 @@ a.mega__gl:hover {
 
 .pmeta__rt b {
   background: var(--green-600);
-  color: #fff;
+  color: var(--on-dark);
   padding: 3px 8px;
   border-radius: var(--r1);
   font-size: var(--fs-2xs);
@@ -4456,7 +4514,7 @@ a.mega__gl:hover {
   z-index: 100;
   display: grid;
   place-items: center;
-  background: rgba(8, 20, 34, 0.92);
+  background: color-mix(in srgb, var(--scrim) 92%, transparent);
   padding: 52px clamp(16px, 6vw, 72px) 60px;
   /* Backdrop khud focus le sakta hai (Esc/arrows ke liye) — par ring nahi dikhni chahiye */
   outline: none;
@@ -4531,12 +4589,12 @@ a.mega__gl:hover {
   position: absolute;
   z-index: 2;
   border: 0;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: color-mix(in srgb, var(--on-dark) 14%, transparent);
+  color: var(--on-dark);
   cursor: pointer;
   display: grid;
   place-items: center;
-  border-radius: 999px;
+  border-radius: var(--rf);
   transition:
     background 0.2s,
     transform 0.2s;
@@ -4544,7 +4602,7 @@ a.mega__gl:hover {
 
 .lbx__x:hover,
 .lbx__nav:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: color-mix(in srgb, var(--on-dark) 28%, transparent);
 }
 
 /* Image ke upar, daayein kone me — uske bahar. */
@@ -4590,10 +4648,10 @@ a.mega__gl:hover {
   bottom: -34px;
   left: 50%;
   transform: translateX(-50%);
-  color: rgba(255, 255, 255, 0.82);
-  background: rgba(255, 255, 255, 0.14);
+  color: color-mix(in srgb, var(--on-dark) 82%, transparent);
+  background: color-mix(in srgb, var(--on-dark) 14%, transparent);
   padding: 5px 12px;
-  border-radius: 999px;
+  border-radius: var(--rf);
   font-size: var(--fs-xs);
   font-weight: var(--fw-bold);
   letter-spacing: 0.03em;
@@ -4730,9 +4788,14 @@ a.mega__gl:hover {
   position: relative;
   overflow: hidden;
   border-radius: var(--r4);
-  background: linear-gradient(120deg, var(--blue-900) 0%, var(--blue-700) 55%, #1b7fb8 100%);
+  background: linear-gradient(
+    120deg,
+    var(--blue-900) 0%,
+    var(--blue-700) 55%,
+    var(--offer-grad-end) 100%
+  );
   padding: clamp(24px, 3.4vw, 40px);
-  color: rgba(255, 255, 255, 0.82);
+  color: color-mix(in srgb, var(--on-dark) 82%, transparent);
 }
 
 /* Orange glow — sirf sajawat, isliye pseudo-element (DOM me ek khaali div nahi) */
@@ -4744,7 +4807,7 @@ a.mega__gl:hover {
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  background: rgba(244, 112, 28, 0.22);
+  background: color-mix(in srgb, var(--orange-500) 22%, transparent);
   filter: blur(20px);
 }
 
@@ -4759,7 +4822,7 @@ a.mega__gl:hover {
 }
 
 .offer h2 {
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-display);
   font-weight: var(--fw-black);
   letter-spacing: -0.03em;
@@ -4769,9 +4832,9 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: rgba(244, 112, 28, 0.2);
-  border: 1px solid rgba(255, 160, 77, 0.4);
-  color: #ffc79b;
+  background: color-mix(in srgb, var(--orange-500) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-glow) 40%, transparent);
+  color: var(--on-dark-accent);
   padding: 5px 13px;
   border-radius: var(--rf);
   font-size: var(--fs-3xs);
@@ -4785,7 +4848,7 @@ a.mega__gl:hover {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #ff9d4d;
+  background: var(--orange-400);
   animation: bl 1.8s infinite;
   flex-shrink: 0;
 }
@@ -4816,14 +4879,14 @@ a.mega__gl:hover {
 }
 
 .offer li svg {
-  color: #7cc7ff;
+  color: var(--on-dark-link);
   flex-shrink: 0;
   margin-top: 3px;
 }
 
 .offer__box {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--on-dark) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-dark) 18%, transparent);
   border-radius: var(--r3);
   padding: 20px;
   text-align: center;
@@ -4834,14 +4897,14 @@ a.mega__gl:hover {
   display: block;
   font-size: var(--fs-offer);
   font-weight: var(--fw-black);
-  color: #fff;
+  color: var(--on-dark);
   letter-spacing: -0.04em;
   line-height: 1;
 }
 
 .offer__box span {
   font-size: var(--fs-2xs);
-  color: rgba(255, 255, 255, 0.7);
+  color: color-mix(in srgb, var(--on-dark) 70%, transparent);
   display: block;
   margin: 6px 0 14px;
 }
@@ -4903,7 +4966,7 @@ a.mega__gl:hover {
 }
 
 .sec--white {
-  background: #fff;
+  background: var(--surface);
 }
 
 .sec--blue {
@@ -4926,7 +4989,7 @@ a.mega__gl:hover {
  * likh deta. Jo cheez ek page ki hai wo us page ke wrapper pe rehni chahiye.
  */
 .tour {
-  background: #f4f7fb;
+  background: var(--tint);
 }
 
 /* ---------- hero ---------- */
@@ -4962,9 +5025,9 @@ a.mega__gl:hover {
   inset: 0;
   background: linear-gradient(
     105deg,
-    rgba(9, 32, 55, 0.94) 8%,
-    rgba(9, 32, 55, 0.72) 48%,
-    rgba(9, 32, 55, 0.42)
+    color-mix(in srgb, var(--navy-overlay) 94%, transparent) 8%,
+    color-mix(in srgb, var(--navy-overlay) 72%, transparent) 48%,
+    color-mix(in srgb, var(--navy-overlay) 42%, transparent)
   );
 }
 
@@ -4979,10 +5042,10 @@ a.mega__gl:hover {
   align-items: center;
   gap: 7px;
   font-size: var(--fs-3xs);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #8fd0ff;
+  color: var(--on-dark-eyebrow);
   padding-top: 8px;
 }
 
@@ -5008,13 +5071,13 @@ a.mega__gl:hover {
 .hf-hero__copy .vhero__eye {
   padding: 5px 11px;
   margin-bottom: 14px;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid color-mix(in srgb, var(--on-dark) 18%, transparent);
   border-radius: var(--rf);
-  background: rgb(255 255 255 / 10%);
+  background: color-mix(in srgb, var(--on-dark) 10%, transparent);
   font-weight: var(--fw-bold);
   letter-spacing: normal;
   text-transform: none;
-  color: #bfe0ff;
+  color: var(--on-dark-eyebrow-2);
 }
 
 /* Reference me star span ka rang leta hai — sunehra sirf tour/blog ke hero me hai */
@@ -5025,10 +5088,10 @@ a.mega__gl:hover {
 /* `.hf-hero h1` — home ka hero bhi yahi font (client, 15 Sep: "sabka same rahe", D-96). */
 .vhero h1,
 .hf-hero h1 {
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-hero-title);
   line-height: 1.25;
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: -0.04em;
   margin: 11px 0 0;
   max-width: 20ch;
@@ -5039,12 +5102,12 @@ a.mega__gl:hover {
 .vhero h1 em,
 .hf-hero h1 em {
   font-style: normal;
-  color: #7cc7ff;
+  color: var(--on-dark-link);
 }
 
 .vhero__sub,
 .hf-hero__sub {
-  color: rgba(255, 255, 255, 0.8);
+  color: color-mix(in srgb, var(--on-dark) 80%, transparent);
   font-size: var(--fs-hero-sub);
   line-height: 1.6;
   margin-top: 11px;
@@ -5069,7 +5132,7 @@ a.mega__gl:hover {
  * bajaye yahan scope kiya gaya hai: `.pkg` wale page pe wo waisa hi rehta hai.
  */
 .vhero .vcrumb {
-  color: rgba(255, 255, 255, 0.55);
+  color: color-mix(in srgb, var(--on-dark) 55%, transparent);
 
   /*
    * ⚠️ **`padding-top: 0` — client ne 9 Sep ko pakda.**
@@ -5091,7 +5154,7 @@ a.mega__gl:hover {
 }
 
 .vhero .vcrumb a:hover {
-  color: #fff;
+  color: var(--on-dark);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -5102,8 +5165,8 @@ a.mega__gl:hover {
 }
 
 .vhero .vcrumb b {
-  color: rgba(255, 255, 255, 0.88);
-  font-weight: 700;
+  color: color-mix(in srgb, var(--on-dark) 88%, transparent);
+  font-weight: var(--fw-bold);
 }
 
 /* ---------- stat rail ---------- */
@@ -5121,7 +5184,7 @@ a.mega__gl:hover {
 }
 
 .vrail__in {
-  background: #fff;
+  background: var(--surface);
   border-radius: var(--r4);
   box-shadow: var(--sh-3);
   display: grid;
@@ -5140,7 +5203,7 @@ a.mega__gl:hover {
 .vrail__c b {
   display: block;
   font-size: var(--fs-stat);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.04em;
   line-height: 1.05;
@@ -5149,7 +5212,7 @@ a.mega__gl:hover {
 .vrail__c span {
   display: block;
   font-size: var(--fs-4xs);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -5164,7 +5227,7 @@ a.mega__gl:hover {
 .vrail__c--p i {
   font-style: normal;
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--muted);
   margin-left: 5px;
 }
@@ -5173,7 +5236,7 @@ a.mega__gl:hover {
 .vrail__c b i {
   font-style: normal;
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--muted);
   margin-left: 5px;
 }
@@ -5268,7 +5331,7 @@ a.mega__gl:hover {
 
 .sh h2 {
   font-size: var(--fs-section);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
 }
 
 /*
@@ -5296,7 +5359,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 11px 13px;
@@ -5305,7 +5368,7 @@ a.mega__gl:hover {
 
 .fbar__l {
   font-size: var(--fs-4xs);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -5315,7 +5378,7 @@ a.mega__gl:hover {
 .fbar__c {
   margin-left: auto;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--muted);
 }
 
@@ -5323,9 +5386,9 @@ a.mega__gl:hover {
   padding: 6px 12px;
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--body);
   cursor: pointer;
 }
@@ -5338,7 +5401,7 @@ a.mega__gl:hover {
 .dpill.on {
   background: var(--blue-600);
   border-color: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 /* Facet ki ginti — `2N / 3D 3`. Server pe `limit` se PEHLE gini gayi hai */
@@ -5367,7 +5430,7 @@ a.mega__gl:hover {
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 15px 16px;
-  background: #fff;
+  background: var(--surface);
   border-top: 3px solid var(--blue-500);
 }
 
@@ -5401,7 +5464,7 @@ a.mega__gl:hover {
   display: inline-block;
   margin-top: 9px;
   font-size: var(--fs-3xs);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   color: var(--blue-700);
   background: var(--blue-50);
   border: 1px solid var(--blue-100);
@@ -5552,12 +5615,12 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-3xs);
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.8);
+  font-weight: var(--fw-bold);
+  color: color-mix(in srgb, var(--on-dark) 80%, transparent);
 }
 
 .vhero__trust svg {
-  color: #7cc7ff;
+  color: var(--on-dark-link);
   flex-shrink: 0;
 }
 
@@ -5566,7 +5629,7 @@ a.mega__gl:hover {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
+  background: color-mix(in srgb, var(--on-dark) 35%, transparent);
   align-self: center;
 }
 
@@ -5586,11 +5649,11 @@ a.mega__gl:hover {
   background: linear-gradient(150deg, var(--blue-900), var(--blue-700));
   border-color: transparent;
   padding: 18px;
-  color: rgba(255, 255, 255, 0.78);
+  color: color-mix(in srgb, var(--on-dark) 78%, transparent);
 }
 
 .wdg--cta h3 {
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-2xl);
   margin-bottom: 6px;
 }
@@ -5625,14 +5688,14 @@ a.mega__gl:hover {
 }
 
 .wdg--cta .fld label {
-  color: rgba(255, 255, 255, 0.62);
+  color: color-mix(in srgb, var(--on-dark) 62%, transparent);
 }
 /* Footnote — button ke neeche ki chhoti line (form ka `footnote`) */
 .wdg--cta small {
   display: block;
   text-align: center;
   font-size: var(--fs-4xs);
-  color: rgba(255, 255, 255, 0.55);
+  color: color-mix(in srgb, var(--on-dark) 55%, transparent);
   margin-top: 9px;
 }
 
@@ -5656,14 +5719,14 @@ a.mega__gl:hover {
  * hissa nahi hai aur kisi theme ke saath badalna bhi nahi chahiye.
  */
 .btn--whatsapp {
-  background: #25d366;
-  color: #fff;
+  background: var(--wa);
+  color: var(--on-dark);
   border-color: transparent;
-  box-shadow: 0 2px 0 #16a34a;
+  box-shadow: 0 2px 0 var(--wa-shadow);
 }
 
 .btn--whatsapp:hover {
-  background: #1fbb59;
+  background: var(--wa-hover);
   border-color: transparent;
 }
 
@@ -5711,7 +5774,7 @@ a.mega__gl:hover {
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--ink-2);
 }
 
@@ -5729,7 +5792,7 @@ a.mega__gl:hover {
 /* Daam — daayein kinare, aur kabhi toot kar do line me nahi */
 .wdgl b,
 .wdg__b ul b {
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   color: var(--blue-600);
   white-space: nowrap;
 }
@@ -5744,7 +5807,7 @@ a.mega__gl:hover {
  */
 .prow__off {
   font-size: var(--fs-3xs);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   color: var(--green-600);
 }
 
@@ -5817,13 +5880,13 @@ a.mega__gl:hover {
   gap: 5px;
   align-self: flex-start;
   font-size: var(--fs-5xs);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: 0.09em;
   text-transform: uppercase;
   padding: 5px 10px;
   border-radius: var(--rf);
   background: var(--orange-500);
-  color: #fff;
+  color: var(--on-dark);
 }
 .bcat--b {
   background: var(--blue-600);
@@ -5833,7 +5896,7 @@ a.mega__gl:hover {
 }
 .bcat--d {
   background: var(--ink);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 /* --- post grid --- */
@@ -5842,7 +5905,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 11px 13px;
@@ -5850,7 +5913,7 @@ a.mega__gl:hover {
 }
 .bfilter__l {
   font-size: var(--fs-4xs);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -5859,7 +5922,7 @@ a.mega__gl:hover {
 .bfilter__c {
   margin-left: auto;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--muted);
 }
 .bpg {
@@ -5870,7 +5933,7 @@ a.mega__gl:hover {
 .bp {
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   overflow: hidden;
@@ -5955,7 +6018,7 @@ a.mega__gl:hover {
   padding-top: 11px;
   border-top: 1px solid var(--line-2);
   font-size: var(--fs-3xs);
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--muted);
 }
 .bp__f i {
@@ -5966,7 +6029,7 @@ a.mega__gl:hover {
   background: var(--faint);
 }
 .bp__f b {
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   color: var(--ink-2);
 }
 
@@ -5988,9 +6051,9 @@ a.mega__gl:hover {
   justify-content: center;
   border-radius: var(--r2);
   border: 1.5px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   font-size: var(--fs-md);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--body);
 }
 .pager a:hover {
@@ -6000,7 +6063,7 @@ a.mega__gl:hover {
 .pager .on {
   background: var(--ink);
   border-color: var(--ink);
-  color: #fff;
+  color: var(--on-dark);
 }
 .pager .dots {
   border: 0;
@@ -6027,7 +6090,7 @@ a.mega__gl:hover {
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
   font-size: var(--fs-md);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--ink-2);
 }
 .cats li:last-child a,
@@ -6041,7 +6104,7 @@ a.mega__gl:hover {
 }
 .cats span {
   font-size: var(--fs-3xs);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   color: var(--muted);
   padding: 2px 9px;
   background: var(--line-2);
@@ -6071,7 +6134,7 @@ a.mega__gl:hover {
 .pop b {
   display: block;
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   line-height: 1.4;
   color: var(--ink);
 }
@@ -6081,7 +6144,7 @@ a.mega__gl:hover {
 .pop span {
   display: block;
   font-size: var(--fs-4xs);
-  font-weight: 600;
+  font-weight: var(--fw-semi);
   color: var(--muted);
   margin-top: 3px;
 }
@@ -6098,10 +6161,10 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   font-size: var(--fs-5xs);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--on-dark);
   background: var(--blue-600);
   padding: 5px 11px;
   border-radius: var(--rf);
@@ -6138,11 +6201,11 @@ a.mega__gl:hover {
   height: 38px;
   border-radius: 50%;
   background: var(--blue-500);
-  color: #fff;
+  color: var(--on-dark);
   display: grid;
   place-items: center;
   font-size: var(--fs-sm);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: -0.02em;
   line-height: 1;
   flex-shrink: 0;
@@ -6150,25 +6213,25 @@ a.mega__gl:hover {
 .ahead__au b {
   display: block;
   font-size: var(--fs-md);
-  font-weight: 800;
-  color: #fff;
+  font-weight: var(--fw-xbold);
+  color: var(--on-dark);
 }
 .ahead__au b + span {
   display: block;
   font-size: var(--fs-3xs);
-  color: rgba(255, 255, 255, 0.62);
-  font-weight: 600;
+  color: color-mix(in srgb, var(--on-dark) 62%, transparent);
+  font-weight: var(--fw-semi);
 }
 .ahead__dot {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
+  background: color-mix(in srgb, var(--on-dark) 35%, transparent);
 }
 .ahead__x {
   font-size: var(--fs-xs);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.72);
+  font-weight: var(--fw-semi);
+  color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
 /*
@@ -6191,7 +6254,7 @@ a.mega__gl:hover {
 
 /* --- article body --- */
 .art {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r4);
   padding: clamp(18px, 2.6vw, 28px);
@@ -6276,7 +6339,7 @@ a.mega__gl:hover {
   font-size: var(--fs-2xs);
   color: var(--muted);
   /* margin-top: 9px; */
-  font-weight: 600;
+  font-weight: var(--fw-semi);
 }
 
 /*
@@ -6314,7 +6377,7 @@ a.mega__gl:hover {
 /* Naap `.blk .lead` (`--fs-lead`) se — yahan sirf rang aur weight, jo article ke apne hain. */
 .art .lead {
   color: var(--ink-2);
-  font-weight: 500;
+  font-weight: var(--fw-med);
 }
 /*
  * ⚠️ **Naap aur neeche ka gap dono `.blk h2` se aate hain** (`--fs-h2`, 10px) — client,
@@ -6341,11 +6404,11 @@ a.mega__gl:hover {
 .art b,
 .art strong {
   color: var(--ink);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
 }
 .art a:not(.b) {
   color: var(--blue-700);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   border-bottom: 1.5px solid var(--blue-100);
 }
 .art a:not(.b):hover {
@@ -6400,7 +6463,7 @@ a.mega__gl:hover {
   background: var(--blue-50);
   color: var(--blue-700);
   font-size: var(--fs-xs);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   display: grid;
   place-items: center;
 }
@@ -6433,7 +6496,7 @@ a.mega__gl:hover {
 .callout b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   color: var(--ink);
   margin-bottom: 4px;
 }
@@ -6443,8 +6506,8 @@ a.mega__gl:hover {
   color: var(--body);
 }
 .callout--w {
-  background: #fff8ef;
-  border-color: #ffe3c4;
+  background: var(--orange-50);
+  border-color: var(--orange-150);
   border-left-color: var(--orange-500);
 }
 .callout--w svg {
@@ -6458,7 +6521,7 @@ a.mega__gl:hover {
 .pullq p {
   font-size: var(--fs-quote);
   line-height: 1.45;
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--ink);
   letter-spacing: -0.02em;
 }
@@ -6475,7 +6538,7 @@ a.mega__gl:hover {
 }
 .share b {
   font-size: var(--fs-4xs);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -6510,11 +6573,11 @@ a.mega__gl:hover {
   height: 52px;
   border-radius: 50%;
   background: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
   display: grid;
   place-items: center;
   font-size: var(--fs-2xl);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   line-height: 1;
   letter-spacing: -0.02em;
   flex-shrink: 0;
@@ -6522,13 +6585,13 @@ a.mega__gl:hover {
 .authorbox b {
   display: block;
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   color: var(--ink);
 }
 .authorbox b + span {
   display: block;
   font-size: var(--fs-3xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -6549,7 +6612,7 @@ a.mega__gl:hover {
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 15px 17px;
-  background: #fff;
+  background: var(--surface);
   box-shadow: var(--sh-1);
 }
 .pn a:hover {
@@ -6561,7 +6624,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-4xs);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -6569,7 +6632,7 @@ a.mega__gl:hover {
 }
 .pn b {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
   line-height: 1.35;
   color: var(--ink);
 }
@@ -6589,7 +6652,7 @@ a.mega__gl:hover {
   padding: 8px 0 8px 13px;
   border-left: 2px solid var(--line-2);
   font-size: var(--fs-sm);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--body);
   line-height: 1.45;
 }
@@ -6685,7 +6748,11 @@ a.mega__gl:hover {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(9, 32, 55, 0.1) 30%, rgba(9, 32, 55, 0.88));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--navy-overlay) 10%, transparent) 30%,
+    color-mix(in srgb, var(--navy-overlay) 88%, transparent)
+  );
 }
 
 .fcard__b {
@@ -6699,7 +6766,7 @@ a.mega__gl:hover {
 }
 
 .fcard h3 {
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-card-lg);
   line-height: 1.25;
   letter-spacing: -0.03em;
@@ -6713,7 +6780,7 @@ a.mega__gl:hover {
 
 /* Wahi tark jo `.bp__x` pe — card ka body text `--fs-body` pe hai. */
 .fcard p {
-  color: rgba(255, 255, 255, 0.78);
+  color: color-mix(in srgb, var(--on-dark) 78%, transparent);
   font-size: var(--fs-body);
   line-height: 1.55;
   margin-top: 9px;
@@ -6727,8 +6794,8 @@ a.mega__gl:hover {
   flex-wrap: wrap;
   margin-top: 12px;
   font-size: var(--fs-3xs);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  font-weight: var(--fw-semi);
+  color: color-mix(in srgb, var(--on-dark) 70%, transparent);
 }
 
 .fcard__m i {
@@ -6736,7 +6803,7 @@ a.mega__gl:hover {
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
+  background: color-mix(in srgb, var(--on-dark) 40%, transparent);
 }
 
 /* --- topic ki filter bar --- */
@@ -6745,7 +6812,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 11px 13px;
@@ -6754,7 +6821,7 @@ a.mega__gl:hover {
 
 .bfilter__l {
   font-size: var(--fs-4xs);
-  font-weight: 900;
+  font-weight: var(--fw-black);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -6764,7 +6831,7 @@ a.mega__gl:hover {
 .bfilter__c {
   margin-left: auto;
   font-size: var(--fs-2xs);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--muted);
 }
 
@@ -6789,9 +6856,9 @@ a.mega__gl:hover {
   justify-content: center;
   border-radius: var(--r2);
   border: 1.5px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   font-size: var(--fs-md);
-  font-weight: 700;
+  font-weight: var(--fw-bold);
   color: var(--body);
 }
 
@@ -6804,7 +6871,7 @@ a.mega__gl:hover {
 .pager .on {
   background: var(--ink);
   border-color: var(--ink);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .pager .dots {
@@ -6857,7 +6924,7 @@ a.mega__gl:hover {
  */
 .cats li > button.on {
   color: var(--blue-700);
-  font-weight: 800;
+  font-weight: var(--fw-xbold);
 }
 
 .cats li > button.on span {
@@ -7008,7 +7075,7 @@ a.mega__gl:hover {
 /* Accent (Italic) aur sub line ke `<p>` — dono `.vhero` ke rules ke saath grouped hain. */
 
 .hf-hero__sub a {
-  color: #fff;
+  color: var(--on-dark);
   text-decoration: underline;
 }
 
@@ -7018,7 +7085,7 @@ a.mega__gl:hover {
   gap: clamp(16px, 3vw, 34px);
   margin-top: 26px;
   padding-top: 20px;
-  border-top: 1px solid rgb(255 255 255 / 18%);
+  border-top: 1px solid color-mix(in srgb, var(--on-dark) 18%, transparent);
 }
 
 /*
@@ -7029,21 +7096,21 @@ a.mega__gl:hover {
   display: block;
   font-size: var(--fs-hero-num);
   font-weight: var(--fw-black);
-  color: #fff;
+  color: var(--on-dark);
   letter-spacing: -0.02em;
 }
 
 .hf-stat span {
   font-size: var(--fs-3xs);
   font-weight: var(--fw-semi);
-  color: rgb(255 255 255 / 72%);
+  color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
 /* ---- form ka card — reference ka `.quote` ---- */
 
 .hf-card {
   position: relative;
-  background: #fff;
+  background: var(--surface);
   border-radius: var(--r4);
   box-shadow: var(--sh-4);
   padding: clamp(18px, 2vw, 24px);
@@ -7054,7 +7121,7 @@ a.mega__gl:hover {
   top: -11px;
   left: clamp(18px, 2vw, 24px);
   background: var(--green-600);
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-5xs);
   font-weight: var(--fw-heading);
   letter-spacing: 0.05em;
@@ -7151,7 +7218,7 @@ a.mega__gl:hover {
    Section heading/line ka font `.sh` ke saath grouped (hamara). Card ke naap design ke. */
 
 .ic {
-  --ic-bg: #fff;
+  --ic-bg: var(--surface);
   --ic-accent: var(--blue-500);
   --ic-icon-bg: var(--blue-50);
   --ic-icon: var(--blue-600);
@@ -7233,7 +7300,7 @@ a.mega__gl:hover {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 18px;
@@ -7264,7 +7331,7 @@ a.mega__gl:hover {
 .icc__i {
   width: 42px;
   height: 42px;
-  border-radius: 11px;
+  border-radius: calc(var(--r2) + 1px);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -7310,7 +7377,7 @@ a.mega__gl:hover {
 .icc--i-inline:not(.icc--bare) .icc__i:not(.icc__i--img) {
   width: 32px;
   height: 32px;
-  border-radius: 9px;
+  border-radius: calc(var(--r2) - 1px);
 }
 
 /* `.art__t` — BLOG / ARTICLE */
@@ -7402,7 +7469,7 @@ a.mega__gl:hover {
 
 /* ---- Home ka saada section (D-96 §12) — FAQ. Background admin se, padding reference ka `.sec`. ---- */
 .hsec {
-  --hsec-bg: #fff;
+  --hsec-bg: var(--surface);
   background: var(--hsec-bg);
   padding: clamp(28px, 3.4vw, 46px) 0;
 }
@@ -7435,12 +7502,12 @@ a.mega__gl:hover {
 
 .vrl::-webkit-scrollbar-track {
   background: var(--line-2);
-  border-radius: 99px;
+  border-radius: var(--rf);
 }
 
 .vrl::-webkit-scrollbar-thumb {
   background: var(--faint);
-  border-radius: 99px;
+  border-radius: var(--rf);
 }
 
 /* Tile — button ya link, dono ek jaise dikhte hain */
@@ -7488,7 +7555,7 @@ a.mega__gl:hover {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgb(255 255 255 / 94%);
+  background: color-mix(in srgb, var(--on-dark) 94%, transparent);
   display: grid;
   place-items: center;
   color: var(--blue-900);
@@ -7501,7 +7568,7 @@ a.mega__gl:hover {
   left: 11px;
   right: 11px;
   z-index: 2;
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-heading);
   line-height: 1.35;
@@ -7511,7 +7578,7 @@ a.mega__gl:hover {
   display: block;
   font-size: var(--fs-5xs);
   font-weight: var(--fw-semi);
-  color: rgb(255 255 255 / 70%);
+  color: color-mix(in srgb, var(--on-dark) 70%, transparent);
 }
 
 /* ---- popup player ---- */
@@ -7531,7 +7598,7 @@ a.mega__gl:hover {
   width: min(960px, 100%);
   aspect-ratio: 16 / 9;
   max-height: calc(100vh - 80px);
-  background: #000;
+  background: var(--black);
   border-radius: var(--r2);
 }
 
@@ -7553,12 +7620,12 @@ a.mega__gl:hover {
   display: grid;
   place-items: center;
   cursor: pointer;
-  color: #fff;
-  background: rgb(255 255 255 / 16%);
+  color: var(--on-dark);
+  background: color-mix(in srgb, var(--on-dark) 16%, transparent);
 }
 
 .vmod__x:hover {
-  background: rgb(255 255 255 / 28%);
+  background: color-mix(in srgb, var(--on-dark) 28%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -7583,7 +7650,7 @@ a.mega__gl:hover {
   border-radius: var(--r3);
   overflow: hidden;
   background: var(--blue-900);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .imcc img {
@@ -7628,7 +7695,7 @@ a.imcc:hover img {
 /* Card title — reference ka 14.5px, hamara 14px (client, 15 Sep: .5 wale naap poore karo). */
 .imcc__b b {
   display: block;
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-base);
   font-weight: var(--fw-heading);
   line-height: 1.3;
@@ -7637,7 +7704,7 @@ a.imcc:hover img {
 .imcc__b span {
   font-size: var(--fs-3xs);
   font-weight: var(--fw-semi);
-  color: rgb(255 255 255 / 72%);
+  color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
 /* Islands ki chip — `.isl__b em`. `inline-block` taaki wo chhoti line ke saath hi rahe. */
@@ -7648,8 +7715,8 @@ a.imcc:hover img {
   margin-left: 7px;
   font-size: var(--fs-5xs);
   font-weight: var(--fw-heading);
-  background: rgb(255 255 255 / 18%);
-  border: 1px solid rgb(255 255 255 / 20%);
+  background: color-mix(in srgb, var(--on-dark) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-dark) 20%, transparent);
   padding: 3px 8px;
   border-radius: var(--rf);
 }
@@ -7715,7 +7782,7 @@ a.imcc:hover img {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 20px;
@@ -7803,7 +7870,7 @@ a.imcc:hover img {
   gap: 4px;
   min-height: 56px;
   padding: 8px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r2);
   text-align: center;
@@ -7888,7 +7955,7 @@ a.imcc:hover img {
   padding: 6px 12px;
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   font: inherit;
   font-size: var(--fs-2xs);
   font-weight: var(--fw-bold);
@@ -7904,7 +7971,7 @@ a.imcc:hover img {
 .ipk__pill.on {
   background: var(--blue-600);
   border-color: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .ipk {
@@ -7916,7 +7983,7 @@ a.imcc:hover img {
 .ipkc {
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   overflow: hidden;
@@ -7967,7 +8034,7 @@ a.imcc:hover img {
   font-weight: var(--fw-heading);
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--on-dark);
   background: var(--orange-500);
 }
 
@@ -8070,7 +8137,7 @@ a.imcc:hover img {
   padding: 2px 6px;
   border-radius: var(--r1);
   background: var(--green-600);
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-3xs);
 }
 
@@ -8131,12 +8198,12 @@ a.imcc:hover img {
 
 .ofc--slider::-webkit-scrollbar-track {
   background: var(--line-2);
-  border-radius: 99px;
+  border-radius: var(--rf);
 }
 
 .ofc--slider::-webkit-scrollbar-thumb {
   background: var(--faint);
-  border-radius: 99px;
+  border-radius: var(--rf);
 }
 
 .ofc--grid {
@@ -8150,7 +8217,7 @@ a.imcc:hover img {
 .ofcc--top {
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   overflow: hidden;
@@ -8188,7 +8255,7 @@ a.imcc:hover img {
   padding: 4px 9px;
   border-radius: var(--r1);
   background: var(--orange-500);
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-4xs);
   font-weight: var(--fw-heading);
   letter-spacing: 0.02em;
@@ -8270,7 +8337,7 @@ a.imcc:hover img {
   padding: 2px 6px;
   border-radius: var(--r1);
   background: var(--green-600);
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-3xs);
   font-weight: var(--fw-heading);
 }
@@ -8285,7 +8352,7 @@ a.imcc:hover img {
   border-radius: var(--r3);
   overflow: hidden;
   background: var(--blue-900);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .ofcc--bg img {
@@ -8326,7 +8393,7 @@ a.imcc:hover img {
 
 .ofcc--bg .ofcc__t {
   display: block;
-  color: #fff;
+  color: var(--on-dark);
   font-size: var(--fs-base);
   font-weight: var(--fw-heading);
 }
@@ -8335,7 +8402,7 @@ a.imcc:hover img {
   display: block;
   margin-top: 3px;
   font-size: var(--fs-2xs);
-  color: rgb(255 255 255 / 72%);
+  color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
 .ofcc--bg .ofcc__pr {
@@ -8343,7 +8410,7 @@ a.imcc:hover img {
   margin-top: 6px;
   font-size: var(--fs-2xl);
   font-weight: var(--fw-black);
-  color: #ffd9b8;
+  color: var(--on-dark-price);
   letter-spacing: -0.02em;
 }
 
@@ -8481,7 +8548,7 @@ a.imcc:hover img {
   background: var(--blue-900);
   text-align: left;
   font: inherit;
-  color: #fff;
+  color: var(--on-dark);
 }
 
 /* Sirf video link, koi image nahi — tab box ki apni oonchai (reference me ye soorat hai hi nahi) */
@@ -8529,7 +8596,7 @@ a.txv__box {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: rgb(255 255 255 / 95%);
+  background: color-mix(in srgb, var(--on-dark) 95%, transparent);
   color: var(--blue-900);
   box-shadow: var(--sh-3);
   transition: transform 0.18s;
@@ -8557,7 +8624,7 @@ a.txv__box:hover .txv__p {
 
 .txv__cap span {
   font-size: var(--fs-2xs);
-  color: rgb(255 255 255 / 72%);
+  color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
 @media (max-width: 1024px) {
@@ -8607,7 +8674,7 @@ a.txv__box:hover .txv__p {
   height: 74px;
   border-radius: 50%;
   border: 2px solid var(--awb-c, var(--gold));
-  background: color-mix(in srgb, var(--awb-c, var(--gold)) 3%, #fff);
+  background: color-mix(in srgb, var(--awb-c, var(--gold)) 3%, var(--surface));
   display: grid;
   place-content: center;
   text-align: center;
@@ -8620,7 +8687,7 @@ a.txv__box:hover .txv__p {
   font-size: var(--fs-base);
   font-weight: var(--fw-black);
   letter-spacing: -0.02em;
-  color: color-mix(in srgb, var(--awb-c, var(--gold)) 56%, #000);
+  color: color-mix(in srgb, var(--awb-c, var(--gold)) 56%, var(--black));
 }
 
 .awb__b span {
@@ -8629,7 +8696,7 @@ a.txv__box:hover .txv__p {
   font-weight: var(--fw-heading);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--awb-c, var(--gold)) 72%, #000);
+  color: color-mix(in srgb, var(--awb-c, var(--gold)) 72%, var(--black));
 }
 
 /* Upload ki hui badge image — apna design laati hai, isliye border/rang nahi */
@@ -8752,8 +8819,8 @@ a.txv__box:hover .txv__p {
   --imap-pad: clamp(12px, 1.6vw, 18px);
   position: relative;
   min-height: 440px;
-  background: #e8f4fb;
-  border: 1px solid #cfe6f4;
+  background: var(--map-sea);
+  border: 1px solid var(--map-sea-line);
   border-radius: var(--r4);
 }
 
@@ -8767,14 +8834,14 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .landmass {
-  fill: #d8ead3;
-  stroke: #a9cfa0;
+  fill: var(--map-land);
+  stroke: var(--map-land-line);
   stroke-width: 1.4;
 }
 
 .home-island-map .hot circle.pin {
   fill: var(--orange-500);
-  stroke: #fff;
+  stroke: var(--surface);
   stroke-width: 2.5;
   transition: 0.18s;
 }
@@ -8794,7 +8861,7 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .hot text {
-  font-size: 9.5px;
+  font-size: var(--fs-7xs);
   font-weight: var(--fw-heading);
   fill: var(--ink-2);
   pointer-events: none;
@@ -8805,7 +8872,7 @@ a.txv__box:hover .txv__p {
   right: 16px;
   bottom: 12px;
   z-index: 2;
-  font-size: 10.5px;
+  font-size: var(--fs-5xs);
   font-weight: var(--fw-bold);
   color: var(--faint);
 }
@@ -8852,18 +8919,18 @@ a.txv__box:hover .txv__p {
   bottom: 12px;
   left: 16px;
   z-index: 2;
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .home-island-map .ipanel__t h3 {
   font-size: var(--fs-hero-num);
   font-weight: var(--fw-black);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 .home-island-map .ipanel__t span {
   font-size: var(--fs-2xs);
-  color: rgb(255 255 255 / 72%);
+  color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
 .home-island-map .ipanel__b {
@@ -8887,7 +8954,7 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .ihl__h {
-  font-size: 10px;
+  font-size: var(--fs-6xs);
   font-weight: var(--fw-heading);
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -8907,7 +8974,7 @@ a.txv__box:hover .txv__p {
   padding: 5px 11px;
   border: 1px solid var(--line);
   border-radius: var(--rf);
-  background: #f4f8fb;
+  background: var(--map-chip);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-bold);
   color: var(--ink-2);
@@ -8938,7 +9005,7 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .icount span {
-  font-size: 10px;
+  font-size: var(--fs-6xs);
   font-weight: var(--fw-bold);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -9065,7 +9132,7 @@ a.txv__box:hover .txv__p {
 .home-island-map .ipill.is-on {
   border-color: var(--blue-600);
   background: var(--blue-600);
-  color: #fff;
+  color: var(--on-dark);
 }
 
 /* ---- Page ke content me enquiry form (D-96 §30) — contact page ka "Send us your dates" ---- */
@@ -9138,15 +9205,15 @@ a.txv__box:hover .txv__p {
   place-items: center;
   width: 40px;
   height: 40px;
-  border-radius: 11px;
+  border-radius: calc(var(--r2) + 1px);
   background: var(--blue-50);
   color: var(--blue-600);
 }
 
 /* WhatsApp hara, "Visit us" narangi — reference ke apne rang */
 .contact-methods .cmeth i.wa {
-  background: #e7faee;
-  color: #25a55a;
+  background: var(--wa-soft);
+  color: var(--wa-ink);
 }
 
 .contact-methods .cmeth i.or {
@@ -9155,7 +9222,7 @@ a.txv__box:hover .txv__p {
 }
 
 .contact-methods .cmeth span {
-  font-size: 10.5px;
+  font-size: var(--fs-5xs);
   font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -9205,7 +9272,7 @@ a.txv__box:hover .txv__p {
 
 .contact-steps .promise b {
   display: block;
-  font-size: 18px;
+  font-size: var(--fs-4xl);
   font-weight: var(--fw-black);
   letter-spacing: -0.03em;
   color: var(--blue-700);
@@ -9248,8 +9315,8 @@ a.txv__box:hover .txv__p {
   padding: 4px 10px;
   border-radius: var(--rf);
   background: var(--blue-600);
-  color: #fff;
-  font-size: 10.5px;
+  color: var(--on-dark);
+  font-size: var(--fs-5xs);
   font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -9379,14 +9446,14 @@ a.txv__box:hover .txv__p {
   flex-shrink: 0;
   width: 34px;
   height: 34px;
-  border-radius: 9px;
+  border-radius: calc(var(--r2) - 1px);
   background: var(--blue-50);
   color: var(--blue-600);
 }
 
 .contact-quick .wdgc b {
   display: block;
-  font-size: 10px;
+  font-size: var(--fs-6xs);
   font-weight: var(--fw-heading);
   letter-spacing: 0.08em;
   text-transform: uppercase;

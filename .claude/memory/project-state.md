@@ -26,6 +26,14 @@
 
 **Tests:** poori suite 1174/1176 — do fail media.test.js ki cleanup me Windows ka ENOTEMPTY (rmdir), is kaam se bahar; wo file akele 20/20 pass · naya `redirects.test.js` (16) · lint · format · admin build pass.
 
+### Theme customizer (17 Sep, dopahar baad)
+
+- **Reference:** `.claude/docs/reference/admin-design-v4.html` = v3 + Settings ▸ **Fonts** (Heading/Body font + 9 step
+  ki size table) · **Colours** (6 rang + Advanced, sab Auto) · **Layout** (width, side space, corners, shadow, button,
+  header height + logo height/max width, footer logo + white box, sticky). Client ne sizes aur colours samajh liye
+- **Hardcoded → token (A-30):** 273 value, look nahi badla (script ne har line verify ki), `StickySide` CSS se padhta hai
+- ⏭️ **Agla:** Fonts · Colours · Layout ka asli admin + API + web `:root` override. Client ka lakshya: _"100% look admin se"_
+
 ### Client ko karna hai (asli DB me abhi kuch nahi — maine nahi chheda)
 
 1. **Settings ▸ 301 Redirects** → From `/packages` → To `/andaman-tour-packages` → Permanent. Tab `/packages/` 404 nahi dega

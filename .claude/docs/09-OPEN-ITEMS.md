@@ -427,6 +427,15 @@ client ko "Brand · Accent · Text · Surface" jaise 5-6 kaam ke naam dikhane ho
 (admin) abhi `:root` ki copy hai — customizer ke din source `settings` banega aur web layout `:root` likhega; (3) font
 family (`--font`) `next/font` se build pe aata hai — runtime pe badalna alag sawaal hai.
 
+**17 Sep — refactor ka pehla kadam ho gaya (look nahi badla).** `globals.css` me seedhe likhe **273** value token
+pe aaye: 128 hex + ~50 rgba (rgba ab `color-mix(in srgb, var(--x) N%, transparent)`), 8 font-size, 51 font-weight,
+radius (8–12px ab `calc(var(--r2) ± N)`, 99px → `--rf`; `50%` gol ke liye waisa hi), aur layout ke naap
+(`--header-h` 64 · `--sticky-top` · `--logo-h`/`-m` 42/34 · `--foot-logo-h`/`-m` · `--btn-h` 44;
+`scroll-padding-top` ab header se). Script har badli line ka resolved value purane se milati thi — **0 farak**.
+`StickySide.jsx` ka `TOP = 78` ab CSS (`top`) se padha jaata hai. ⚠️ `@font-face` ke andar `var()` nahi chalta —
+wahan `400` hi rehna chahiye. Agla: admin ke Fonts · Colours · Layout (`reference/admin-design-v4.html`).
+Naye token site ke naam se hain (`--on-dark-link`, `--wa`, `--map-sea`…); 6 rang + Auto wala dhaancha build me in par baithega.
+
 ---
 
 ### A-29 · Hotels · Add-ons · Transfers badalne pe package page ka cache saaf nahi hota

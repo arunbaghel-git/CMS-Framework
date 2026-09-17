@@ -23,7 +23,7 @@ import { useEffect, useRef } from 'react'
  * - neeche scroll → `top` ghatta hai, `viewport − height − gap` tak. Us par column ka
  *   **neeche wala kinara** screen ke neeche se chipak jaata hai — yaani uska aakhir dikh
  *   jaata hai
- * - upar scroll → `top` wapas 78px tak badhta hai, header ke neeche
+ * - upar scroll → `top` wapas `--sticky-top` (aaj 78px) tak badhta hai, header ke neeche
  *
  * Isliye sidebar content ke saath chalti hai jab tak uska apna aakhir na aa jaaye, aur uske
  * baad ruk jaati hai — bilkul wahi jo reference karta hai.
@@ -33,9 +33,24 @@ import { useEffect, useRef } from 'react'
  * form ke beech scroll "phas" jaata hai, aur mobile pe wo bug ka pakka nuskha hai.
  */
 
-/** Header ke neeche ki jagah, aur column ke neeche ka gap — reference ke apne numbers. */
-const TOP = 78
+/**
+ * Header ke neeche ki jagah — **CSS se padhi jaati hai** (`.pgl__side { top: var(--sticky-top) }`).
+ *
+ * 17 Sep tak yahan `const TOP = 78` tha, aur CSS me bhi `78px`. Settings ▸ Layout se header ki height
+ * badlegi to CSS apne aap badlega — JS ka number wahi rehta aur sidebar header ke neeche chhup jaati.
+ * Isliye ek hi source: CSS. `FALLBACK_TOP` sirf tab jab padhna na ho paaye.
+ */
+const FALLBACK_TOP = 78
 const GAP = 16
+
+/** `style.top` hata kar CSS wali value padho — hamara apna likha hua `top` beech me na aaye. */
+function readTop(side) {
+  const inline = side.style.top
+  side.style.top = ''
+  const top = parseFloat(getComputedStyle(side).top)
+  side.style.top = inline
+  return Number.isFinite(top) ? top : FALLBACK_TOP
+}
 
 /**
  * 1024px se neeche sidebar sticky hai hi nahi (`position: static`, CSS me).
@@ -52,6 +67,7 @@ export default function StickySide({ children }) {
     const side = ref.current
     if (!side) return
 
+    let TOP = readTop(side)
     let last = window.scrollY
     let cur = TOP
     let queued = false
@@ -96,6 +112,7 @@ export default function StickySide({ children }) {
     }
 
     const onResize = () => {
+      if (window.innerWidth > STICKY_FROM) TOP = readTop(side)
       cur = TOP
       last = window.scrollY
       onScroll()
