@@ -20,6 +20,7 @@ import {
   routeStrip,
   slugify,
   themeColorCss,
+  themeFontCss,
   themeLayoutCss,
   videoEmbedUrl,
   withHeadingIds,
@@ -219,7 +220,10 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
      * (`theme-colors.js`, `theme-layout.js`).
      * Server pe banta hai, theme me nahi (D-65 wala tark). Khaali string = theme ke apne rang.
      */
-    themeCss: themeColorCss(settings.themeColors) + themeLayoutCss(settings.themeLayout),
+    themeCss:
+      themeFontCss(settings.themeFonts) +
+      themeColorCss(settings.themeColors) +
+      themeLayoutCss(settings.themeLayout),
 
     /** Resolved image ya `null` — theme ko kabhi media id resolve nahi karni padti. */
     logo,

@@ -1,4 +1,5 @@
 import { env } from '../../core/env.js'
+import { saveCustomFontFile } from './fonts.js'
 import * as settingsService from './service.js'
 import { updateSettingsSchema } from './validation.js'
 
@@ -26,6 +27,15 @@ export async function update(req, res, next) {
     const settings = await settingsService.updateSettings(input)
 
     res.json({ data: { settings: withReadOnly(settings) } })
+  } catch (err) {
+    next(err)
+  }
+}
+
+/** Settings ▸ Fonts ▸ Custom font — ek WOFF/WOFF2 file, jawab me uska URL (settings me abhi kuch nahi likha jaata). */
+export async function uploadFont(req, res, next) {
+  try {
+    res.status(201).json({ data: { file: await saveCustomFontFile(req.file) } })
   } catch (err) {
     next(err)
   }

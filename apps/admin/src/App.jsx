@@ -38,6 +38,7 @@ import TourList from './screens/pages/TourList.jsx'
 import Colours from './screens/settings/Colours.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import CustomCss from './screens/settings/CustomCss.jsx'
+import Fonts from './screens/settings/Fonts.jsx'
 import General from './screens/settings/General.jsx'
 import Layout from './screens/settings/Layout.jsx'
 import Redirects from './screens/settings/Redirects.jsx'
@@ -277,6 +278,7 @@ const APP_ROUTES = [
   { path: '/users/:id/delete', element: <DeleteUser /> },
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
+  { path: '/settings/fonts', element: <Fonts /> },
   { path: '/settings/colours', element: <Colours /> },
   { path: '/settings/layout', element: <Layout /> },
   { path: '/settings/cta', element: <CtaSection /> },

@@ -1,6 +1,9 @@
 import { Router } from 'express'
 import { PERMISSION } from '@cms/shared'
 
+import multer from 'multer'
+
+import { badRequest } from '../../core/errors.js'
 import { requireAuth, requirePermission } from '../../middleware/auth.js'
 import * as controller from './controller.js'
 
@@ -25,4 +28,35 @@ settingsRoutes.patch(
   requireAuth,
   requirePermission(PERMISSION.SETTINGS_UPDATE),
   controller.update,
+)
+
+/**
+ * Settings ▸ Fonts ▸ Custom font upload (client, 17 Sep). Memory me, 2MB tak — asli jaanch (magic bytes)
+ * `fonts.js` me. Media Library me nahi jaata: font image nahi hai, aur Library ka har hissa image maanta hai.
+ */
+const fontUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { files: 1, fileSize: 2 * 1024 * 1024 },
+})
+
+function parseFontUpload(req, res, next) {
+  fontUpload.single('file')(req, res, (err) => {
+    if (!err) return next()
+    if (err instanceof multer.MulterError) {
+      return next(
+        badRequest(
+          err.code === 'LIMIT_FILE_SIZE' ? 'Font file is too large (max 2MB)' : err.message,
+        ),
+      )
+    }
+    return next(err)
+  })
+}
+
+settingsRoutes.post(
+  '/fonts',
+  requireAuth,
+  requirePermission(PERMISSION.SETTINGS_UPDATE),
+  parseFontUpload,
+  controller.uploadFont,
 )

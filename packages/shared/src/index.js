@@ -10,6 +10,7 @@ export * from './import/post-doc.js'
 export * from './path.js'
 export * from './schemas/index.js'
 export * from './theme-colors.js'
+export * from './theme-fonts.js'
 export * from './theme-layout.js'
 /**
  * ⚠️ **Sabse aakhir me, aur wo mayne rakhta hai.** `toc.js` `path.js` aur

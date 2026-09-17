@@ -24,6 +24,16 @@ import {
   THEME_LAYOUT_DEFAULTS,
   THEME_LAYOUT_LIMITS,
 } from '../theme-layout.js'
+import {
+  DEFAULT_FONT_FAMILY,
+  FONT_FAMILY_RE,
+  FONT_FILE_URL_RE,
+  FONT_SCALE_STEPS,
+  FONT_SIZE_LIMITS,
+  FONT_SOURCES,
+  FONT_STYLES,
+  FONT_WEIGHTS,
+} from '../theme-fonts.js'
 
 const themeHexSchema = z
   .string()
@@ -59,6 +69,80 @@ export const themeLayoutSchema = z
     btnShape: z.enum(BUTTON_SHAPES).default(THEME_LAYOUT_DEFAULTS.btnShape),
     sticky: z.boolean().default(THEME_LAYOUT_DEFAULTS.sticky),
     footLogoCard: z.boolean().default(THEME_LAYOUT_DEFAULTS.footLogoCard),
+  })
+  .strict()
+
+/**
+ * **Settings ▸ Fonts** (client, 17 Sep). `faces` server bharta hai (Google download) — admin ka bheja
+ * hua `faces` maana nahi jaata, isliye yahan uski shape bas dheeli hai.
+ */
+const fontFamilyName = z
+  .string()
+  .trim()
+  .max(61)
+  .refine(
+    (v) => v === '' || FONT_FAMILY_RE.test(v),
+    'Font name can only use letters, numbers and spaces',
+  )
+
+const fontFileSchema = z
+  .object({
+    url: z.string().regex(FONT_FILE_URL_RE, 'Upload the font file again'),
+    name: z.string().max(120).default(''),
+    weight: z.enum(FONT_WEIGHTS).default('400'),
+    style: z.enum(FONT_STYLES).default('normal'),
+  })
+  .strict()
+
+const fontSlotSchema = z
+  .object({
+    source: z.enum(FONT_SOURCES).default('google'),
+    google: fontFamilyName.default(DEFAULT_FONT_FAMILY),
+    family: fontFamilyName.default(''),
+    files: z.array(fontFileSchema).max(12).default([]),
+    faces: z.array(z.object({}).passthrough()).max(40).optional(),
+  })
+  .strict()
+  .superRefine((v, ctx) => {
+    if (v.source === 'google' && !v.google) {
+      ctx.addIssue({ code: 'custom', path: ['google'], message: 'Type a Google font name' })
+    }
+    if (v.source === 'custom' && v.files.length && !v.family) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['family'],
+        message: 'Give the custom font a family name',
+      })
+    }
+  })
+
+const [sizeMin, sizeMax] = FONT_SIZE_LIMITS.size
+const [lhMin, lhMax] = FONT_SIZE_LIMITS.lh
+const [lsMin, lsMax] = FONT_SIZE_LIMITS.ls
+const fontStepSchema = (d) =>
+  z
+    .object({
+      size: z.coerce.number().min(sizeMin).max(sizeMax).default(d.size),
+      sizeTablet: z.coerce.number().min(sizeMin).max(sizeMax).default(d.sizeTablet),
+      sizeMobile: z.coerce.number().min(sizeMin).max(sizeMax).default(d.sizeMobile),
+      weight: z.enum(FONT_WEIGHTS).default(d.weight),
+      lh: z.coerce.number().min(lhMin).max(lhMax).default(d.lh),
+      ls: z.coerce.number().min(lsMin).max(lsMax).default(d.ls),
+    })
+    .strict()
+
+export const themeFontsSchema = z
+  .object({
+    heading: fontSlotSchema.default({}),
+    body: fontSlotSchema.default({}),
+    scale: z
+      .object(
+        Object.fromEntries(
+          FONT_SCALE_STEPS.map((s) => [s.key, fontStepSchema(s.defaults).default({})]),
+        ),
+      )
+      .strict()
+      .default({}),
   })
   .strict()
 
@@ -726,6 +810,9 @@ export const settingsSchema = z.object({
 
   /** Chaudai, kone, shadow, button, header/logo — Settings ▸ Layout (client, 17 Sep). */
   themeLayout: themeLayoutSchema.default({}),
+
+  /** Heading/Body font + 9 step ki size table — Settings ▸ Fonts (client, 17 Sep). */
+  themeFonts: themeFontsSchema.default({}),
 })
 
 /**

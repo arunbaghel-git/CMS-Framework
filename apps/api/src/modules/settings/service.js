@@ -1,10 +1,16 @@
-import { DEFAULT_SITE_ID, defaultSettings, toPublicSettings } from '@cms/shared'
+import {
+  DEFAULT_FONT_FAMILY,
+  DEFAULT_SITE_ID,
+  defaultSettings,
+  toPublicSettings,
+} from '@cms/shared'
 
 import { badRequest } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
 import { mediaExists } from '../media/service.js'
 import { menuExists } from '../menus/service.js'
 import { syncPostUrlPattern } from '../entries/service.js'
+import { downloadGoogleFont } from './fonts.js'
 import { Settings } from './model.js'
 
 /**
@@ -146,6 +152,35 @@ export async function isMenuUsedInFooter(menuId, siteId = DEFAULT_SITE_ID) {
  * @param {object} input `updateSettingsSchema` se paas hua hua
  * @param {string} [siteId]
  */
+async function resolveFontFaces(themeFonts, siteId) {
+  const current = (await Settings.findOne({ siteId }).select('themeFonts').lean())?.themeFonts ?? {}
+  const out = { ...themeFonts }
+
+  for (const key of ['heading', 'body']) {
+    const slot = themeFonts[key]
+    if (!slot) continue
+    const { faces: _ignored, ...rest } = slot
+
+    if (rest.source !== 'google' || rest.google === DEFAULT_FONT_FAMILY) {
+      out[key] = { ...rest, faces: [] }
+      continue
+    }
+
+    /** Dono slot me ek hi family ho to ek hi download */
+    const known = ['heading', 'body']
+      .map((k) => current[k])
+      .concat(key === 'body' && out.heading?.google === rest.google ? [out.heading] : [])
+      .find((s) => s?.source === 'google' && s.google === rest.google && s.faces?.length)
+
+    out[key] = {
+      ...rest,
+      faces: known ? known.faces : await downloadGoogleFont(rest.google, siteId),
+    }
+  }
+
+  return out
+}
+
 export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
   await assertMediaRefsExist(input, siteId)
   await assertFooterMenusExist(input, siteId)
@@ -166,6 +201,13 @@ export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
    * badalta hai. Wo theek hai — admin use hamesha teenon field ke saath bhejta hai — par naya
    * nested object jodo to yahi sawaal dobara poochhna hoga.
    */
+  /**
+   * Settings ▸ Fonts — Google font ki files **server laata hai** (`fonts.js`). Admin ka bheja `faces`
+   * kabhi nahi maana jaata; wahi family pehle se download ho to purani files hi (dobara Google nahi).
+   */
+  if (input.themeFonts)
+    input = { ...input, themeFonts: await resolveFontFaces(input.themeFonts, siteId) }
+
   const MERGED_KEYS = ['social', 'blogSettings']
 
   const $set = {}

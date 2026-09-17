@@ -170,6 +170,9 @@ const settingsSchema = new mongoose.Schema(
 
     /** Settings ▸ Layout (client, 17 Sep). Shape `themeLayoutSchema`. Khaali = aaj ki site. */
     themeLayout: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+
+    /** Settings ▸ Fonts (client, 17 Sep). Shape `themeFontsSchema`; `faces` server bharta hai. */
+    themeFonts: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
   },
   {
     timestamps: true,

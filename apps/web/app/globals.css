@@ -244,6 +244,8 @@
    * shift bhi nahi hota.
    */
   --font: 'RupeeLocal', var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Settings ▸ Fonts ▸ Heading Font (17 Sep) — default body wala hi; h1–h6 pe lagta hai */
+  --font-heading: var(--font);
 
   /* ---------- type scale (P4, 1 Sep — client) ----------
      Pehle poore page me 81 `font-size` bikhri hui thi, 20 alag value me. "h1 chhota karo"
@@ -369,6 +371,9 @@ html {
 body {
   margin: 0;
   font-family: var(--font);
+  /* Settings ▸ Fonts ▸ Text Sizes ▸ Body (default wahi jo pehle tha) */
+  font-weight: var(--body-w, 400);
+  letter-spacing: var(--body-ls, normal);
   color: var(--body);
   background: var(--surface);
 
@@ -391,7 +396,7 @@ body {
    * 16px hai) aur `-webkit-font-smoothing: antialiased`. Dono ka apna asar hai; jis din wo
    * chahiye, wo alag faisla hai.
    */
-  line-height: 1.55;
+  line-height: var(--body-lh, 1.55);
 
   /*
    * `overflow-x: hidden` reference se — aur ye cosmetic nahi hai.
@@ -455,6 +460,7 @@ h5,
 h6 {
   margin: 0;
   color: var(--ink);
+  font-family: var(--font-heading);
   line-height: 1.25;
   letter-spacing: -0.02em;
   font-weight: var(--fw-heading);
@@ -463,21 +469,45 @@ h6 {
 /* Settings ▸ Colours ▸ "different colour for each heading" — token tabhi aata hai jab wo on ho */
 h1 {
   color: var(--h1-c, var(--ink));
+  /* Settings ▸ Fonts ▸ Text Sizes ▸ H1 — token tabhi aata hai jab step badla ho */
+  font-weight: var(--h1-w, var(--fw-heading));
+  line-height: var(--h1-lh, 1.25);
+  letter-spacing: var(--h1-ls, -0.02em);
 }
 h2 {
   color: var(--h2-c, var(--ink));
+  /* Settings ▸ Fonts ▸ Text Sizes ▸ H2 — token tabhi aata hai jab step badla ho */
+  font-weight: var(--h2-w, var(--fw-heading));
+  line-height: var(--h2-lh, 1.25);
+  letter-spacing: var(--h2-ls, -0.02em);
 }
 h3 {
   color: var(--h3-c, var(--ink));
+  /* Settings ▸ Fonts ▸ Text Sizes ▸ H3 — token tabhi aata hai jab step badla ho */
+  font-weight: var(--h3-w, var(--fw-heading));
+  line-height: var(--h3-lh, 1.25);
+  letter-spacing: var(--h3-ls, -0.02em);
 }
 h4 {
   color: var(--h4-c, var(--ink));
+  /* Settings ▸ Fonts ▸ Text Sizes ▸ H4 — token tabhi aata hai jab step badla ho */
+  font-weight: var(--h4-w, var(--fw-heading));
+  line-height: var(--h4-lh, 1.25);
+  letter-spacing: var(--h4-ls, -0.02em);
 }
 h5 {
   color: var(--h5-c, var(--ink));
+  /* Settings ▸ Fonts ▸ Text Sizes ▸ H5 — token tabhi aata hai jab step badla ho */
+  font-weight: var(--h5-w, var(--fw-heading));
+  line-height: var(--h5-lh, 1.25);
+  letter-spacing: var(--h5-ls, -0.02em);
 }
 h6 {
   color: var(--h6-c, var(--ink));
+  /* Settings ▸ Fonts ▸ Text Sizes ▸ H6 — token tabhi aata hai jab step badla ho */
+  font-weight: var(--h6-w, var(--fw-heading));
+  line-height: var(--h6-lh, 1.25);
+  letter-spacing: var(--h6-ls, -0.02em);
 }
 
 a {

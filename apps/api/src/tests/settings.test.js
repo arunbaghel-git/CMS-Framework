@@ -424,3 +424,129 @@ describe('Settings ▸ Layout — themeLayout (17 Sep)', () => {
     expect((await layout({ breakpoint: 900 })).status).toBe(400)
   })
 })
+
+describe('Settings ▸ Fonts — themeFonts + upload (17 Sep)', () => {
+  const WOFF2 = Buffer.concat([Buffer.from('wOF2'), Buffer.alloc(64, 1)])
+
+  it('custom font file — magic bytes dekhe jaate hain, naam nahi', async () => {
+    const ok = await authed('post', '/api/settings/fonts', adminJar).attach(
+      'file',
+      WOFF2,
+      'Gilroy-Bold.woff2',
+    )
+    expect(ok.status).toBe(201)
+    expect(ok.body.data.file).toMatchObject({
+      name: 'Gilroy-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    })
+    expect(ok.body.data.file.url).toMatch(
+      /^\/uploads\/sites\/default\/fonts\/custom\/[a-f0-9]+\.woff2$/,
+    )
+
+    const fake = await authed('post', '/api/settings/fonts', adminJar).attach(
+      'file',
+      Buffer.from('\x89PNG....'),
+      'sneaky.woff2',
+    )
+    expect(fake.status).toBe(400)
+
+    const author = await authed('post', '/api/settings/fonts', authorJar).attach(
+      'file',
+      WOFF2,
+      'a.woff2',
+    )
+    expect(author.status).toBe(403)
+  })
+
+  it('custom font settings me jaata hai aur themeCss me @font-face', async () => {
+    const up = await authed('post', '/api/settings/fonts', adminJar).attach(
+      'file',
+      WOFF2,
+      'Gilroy.woff2',
+    )
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      themeFonts: { heading: { source: 'custom', family: 'Gilroy', files: [up.body.data.file] } },
+    })
+    expect(res.status).toBe(200)
+
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.themeFonts.heading.family).toBe('Gilroy')
+
+    const { getPublicSettings } = await import('../modules/public/service.js')
+    const css = (await getPublicSettings()).themeCss
+    expect(css).toContain('font-family:"Gilroy"')
+    expect(css).toContain('--font-heading:"Gilroy", var(--font)')
+  })
+
+  it('Google font — server download karta hai, admin ka bheja faces nahi maanta, dobara download nahi', async () => {
+    const { setFontFetchForTest } = await import('../modules/settings/fonts.js')
+    const calls = []
+    setFontFetchForTest(async (url) => {
+      calls.push(url)
+      if (url.startsWith('https://fonts.googleapis.com/css2')) {
+        return new Response(
+          `/* cyrillic */\n@font-face { font-family: 'Poppins'; font-weight: 100 900; src: url(https://fonts.gstatic.com/s/p/cyr.woff2) format('woff2'); unicode-range: U+0400-045F; }\n` +
+            `/* latin */\n@font-face { font-family: 'Poppins'; font-style: normal; font-weight: 100 900; src: url(https://fonts.gstatic.com/s/p/latin.woff2) format('woff2'); unicode-range: U+0000-00FF; }`,
+          { status: 200 },
+        )
+      }
+      return new Response(WOFF2, { status: 200 })
+    })
+
+    try {
+      const body = {
+        themeFonts: {
+          body: {
+            source: 'google',
+            google: 'Poppins',
+            faces: [{ url: '/uploads/evil.woff2' }],
+          },
+        },
+      }
+      const res = await authed('patch', '/api/settings', adminJar).send(body)
+      expect(res.status).toBe(200)
+
+      const doc = await Settings.findOne({}).lean()
+      const faces = doc.themeFonts.body.faces
+      expect(faces).toHaveLength(1) // cyrillic chhoot gaya
+      expect(faces[0].url).toMatch(
+        /^\/uploads\/sites\/default\/fonts\/google\/poppins\/[a-f0-9]+\.woff2$/,
+      )
+      expect(faces[0]).toMatchObject({ weight: '100 900', unicodeRange: 'U+0000-00FF' })
+      expect(calls.filter((u) => u.includes('gstatic'))).toEqual([
+        'https://fonts.gstatic.com/s/p/latin.woff2',
+      ])
+
+      const before = calls.length
+      await authed('patch', '/api/settings', adminJar).send(body).expect(200)
+      expect(calls.length).toBe(before) // wahi family — koi nayi request nahi
+
+      const { getPublicSettings } = await import('../modules/public/service.js')
+      expect((await getPublicSettings()).themeCss).toContain(`--font:'RupeeLocal', "Poppins"`)
+    } finally {
+      setFontFetchForTest(null)
+    }
+  })
+
+  it('Google pe na mile to 422, samajh aane wale message ke saath', async () => {
+    const { setFontFetchForTest } = await import('../modules/settings/fonts.js')
+    setFontFetchForTest(async () => new Response('bad', { status: 400 }))
+    try {
+      const res = await authed('patch', '/api/settings', adminJar).send({
+        themeFonts: { heading: { source: 'google', google: 'Poppinz' } },
+      })
+      expect(res.status).toBe(422)
+      expect(res.body.error.message).toContain('"Poppinz" was not found on Google Fonts')
+    } finally {
+      setFontFetchForTest(null)
+    }
+  })
+
+  it('size table ki hadd — 400', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      themeFonts: { scale: { h1: { size: 500 } } },
+    })
+    expect(res.status).toBe(400)
+  })
+})
