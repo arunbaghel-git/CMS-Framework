@@ -35,6 +35,7 @@ import BlogPageList from './screens/pages/BlogPageList.jsx'
 import PageList from './screens/pages/PageList.jsx'
 import PostList from './screens/pages/PostList.jsx'
 import TourList from './screens/pages/TourList.jsx'
+import Colours from './screens/settings/Colours.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import CustomCss from './screens/settings/CustomCss.jsx'
 import General from './screens/settings/General.jsx'
@@ -275,6 +276,7 @@ const APP_ROUTES = [
   { path: '/users/:id/delete', element: <DeleteUser /> },
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
+  { path: '/settings/colours', element: <Colours /> },
   { path: '/settings/cta', element: <CtaSection /> },
   { path: '/settings/custom-css', element: <CustomCss /> },
   { path: '/settings/redirects', element: <Redirects /> },

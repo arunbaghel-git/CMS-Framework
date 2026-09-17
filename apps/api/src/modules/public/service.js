@@ -19,6 +19,7 @@ import {
   resolveSectionLabels,
   routeStrip,
   slugify,
+  themeColorCss,
   videoEmbedUrl,
   withHeadingIds,
 } from '@cms/shared'
@@ -211,6 +212,12 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
      * `</style` schema me hi rok diya jaata hai (settings ka `customCss`).
      */
     customCss: settings.customCss ?? '',
+
+    /**
+     * Settings ▸ Colours ka CSS — `html:root{--x:#…}`, **sirf badle hue** token (theme-colors.js).
+     * Server pe banta hai, theme me nahi (D-65 wala tark). Khaali string = theme ke apne rang.
+     */
+    themeCss: themeColorCss(settings.themeColors),
 
     /** Resolved image ya `null` — theme ko kabhi media id resolve nahi karni padti. */
     logo,

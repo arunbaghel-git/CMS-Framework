@@ -11,6 +11,43 @@ import { BUTTON_VARIANTS, LINK_TARGETS, classNameSchema, menuUrlSchema } from '.
  */
 import { heroButtonSchema, sidebarIdSchema, sidebarPositionSchema } from './page.js'
 import { emailSchema } from './user.js'
+import {
+  HEX_COLOR_RE,
+  THEME_ADVANCED_COLOR_KEYS,
+  THEME_COLOR_DEFAULTS,
+  THEME_HEADING_KEYS,
+} from '../theme-colors.js'
+
+const themeHexSchema = z
+  .string()
+  .trim()
+  .regex(HEX_COLOR_RE, 'Use a colour like #1668ae')
+  .transform((v) => v.toLowerCase())
+
+/**
+ * **Settings ▸ Colours** (client, 17 Sep) — 6 rang + Advanced. Poora hisaab `theme-colors.js` me.
+ *
+ * Advanced me **sirf wahi key** hoti hai jiska Auto hataya gaya; key ka na hona = Auto. `headings`
+ * sirf `perHeading` on pe maana jaata hai. `.strict()` — anjaan key chup-chaap na gire (D-43 §3).
+ */
+export const themeColorsSchema = z
+  .object({
+    ...Object.fromEntries(
+      Object.entries(THEME_COLOR_DEFAULTS).map(([k, v]) => [k, themeHexSchema.default(v)]),
+    ),
+    perHeading: z.boolean().default(false),
+    headings: z
+      .object(Object.fromEntries(THEME_HEADING_KEYS.map((h) => [h, themeHexSchema.optional()])))
+      .strict()
+      .default({}),
+    advanced: z
+      .object(
+        Object.fromEntries(THEME_ADVANCED_COLOR_KEYS.map((k) => [k, themeHexSchema.optional()])),
+      )
+      .strict()
+      .default({}),
+  })
+  .strict()
 
 /**
  * `settings` ka contract — 02-ARCHITECTURE §3, spec 004 §3.
@@ -651,6 +688,9 @@ export const settingsSchema = z.object({
     .max(50000)
     .refine((v) => !/<\/style/i.test(v), 'CSS cannot contain "</style"')
     .default(''),
+
+  /** Site ke rang — Settings ▸ Colours (client, 17 Sep). Admin hamesha poora object bhejta hai. */
+  themeColors: themeColorsSchema.default({}),
 })
 
 /**

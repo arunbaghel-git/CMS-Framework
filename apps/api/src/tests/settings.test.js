@@ -341,3 +341,61 @@ describe('PATCH /api/settings', () => {
     expect(res.status).toBe(400)
   })
 })
+
+describe('Settings ▸ Colours — themeColors (17 Sep)', () => {
+  const colours = (body) => authed('patch', '/api/settings', adminJar).send({ themeColors: body })
+
+  it('DB tak jaata hai, aur public payload me sirf badle hue token ka CSS', async () => {
+    const res = await colours({
+      primary: '#0E7490',
+      accent: '#f4701c',
+      heading: '#111d2b',
+      body: '#4a5a6d',
+      page: '#ffffff',
+      dark: '#0b2b4a',
+      perHeading: false,
+      headings: {},
+      advanced: { btnPrimaryBg: '#16a34a' },
+    })
+    expect(res.status).toBe(200)
+
+    /** Whitelist wala jaal — response nahi, DB padho */
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.themeColors.primary).toBe('#0e7490')
+    expect(doc.themeColors.advanced).toEqual({ btnPrimaryBg: '#16a34a' })
+
+    const { getPublicSettings } = await import('../modules/public/service.js')
+    const css = (await getPublicSettings()).themeCss
+    expect(css.startsWith('html:root{')).toBe(true)
+    expect(css).toContain('--blue-600:#0e7490')
+    expect(css).toContain('--btn-p-bg:#16a34a')
+    // accent nahi badla — uska group nahi jaata
+    expect(css).not.toContain('--orange-500')
+  })
+
+  it('kuch saved nahi ya sab default — themeCss khaali (is site ka look waisa hi)', async () => {
+    const { getPublicSettings } = await import('../modules/public/service.js')
+    expect((await getPublicSettings()).themeCss).toBe('')
+
+    await colours({}).expect(200)
+    expect((await getPublicSettings()).themeCss).toBe('')
+
+    const admin = await authed('get', '/api/settings', adminJar)
+    expect(admin.body.data.settings.themeColors).toMatchObject({ primary: '#1668ae', advanced: {} })
+  })
+
+  it('galat rang, anjaan key aur CSS ghusane ki koshish — 400', async () => {
+    expect((await colours({ primary: 'red' })).status).toBe(400)
+    expect((await colours({ primary: '#fff' })).status).toBe(400)
+    expect((await colours({ accent: '#f4701c;}</style>' })).status).toBe(400)
+    expect((await colours({ advanced: { navBg: '#000000' } })).status).toBe(400)
+    expect((await colours({ fontSize: 12 })).status).toBe(400)
+  })
+
+  it('author ke paas settings.update nahi — 403', async () => {
+    const res = await authed('patch', '/api/settings', authorJar).send({
+      themeColors: { primary: '#000000' },
+    })
+    expect(res.status).toBe(403)
+  })
+})

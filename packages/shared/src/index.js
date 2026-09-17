@@ -9,6 +9,7 @@ export * from './import/page-doc.js'
 export * from './import/post-doc.js'
 export * from './path.js'
 export * from './schemas/index.js'
+export * from './theme-colors.js'
 /**
  * ⚠️ **Sabse aakhir me, aur wo mayne rakhta hai.** `toc.js` `path.js` aur
  * `schemas/rich-html.js` dono ko padhta hai; use upar rakhne se wahi cycle wapas aa jaata

@@ -161,6 +161,12 @@ const settingsSchema = new mongoose.Schema(
 
     /** Site ki apni CSS — Settings ▸ Custom CSS (client, 16 Sep). Har page ke <head> me jaati hai. */
     customCss: { type: String, default: '' },
+
+    /**
+     * Site ke rang — Settings ▸ Colours (client, 17 Sep). Shape `themeColorsSchema` (R8).
+     * Khaali `{}` = theme ke apne rang — is site pe koi CSS variable nahi jaata.
+     */
+    themeColors: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
   },
   {
     timestamps: true,

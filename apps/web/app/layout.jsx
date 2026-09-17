@@ -75,12 +75,24 @@ function CustomCss({ css }) {
   return <style dangerouslySetInnerHTML={{ __html: String(css).replace(/<\/style/gi, '') }} />
 }
 
+/**
+ * Settings ▸ Colours (client, 17 Sep) — server se bana `html:root{…}`, sirf hex values (`theme-colors.js`).
+ *
+ * ⚠️ **CustomCss se pehle** — client ki apni CSS rangon ko bhi override kar sake.
+ */
+function ThemeColors({ css }) {
+  if (!css) return null
+
+  return <style dangerouslySetInnerHTML={{ __html: String(css).replace(/<\/style/gi, '') }} />
+}
+
 export default async function RootLayout({ children }) {
   const settings = await getSettings()
 
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        <ThemeColors css={settings?.themeCss} />
         <CustomCss css={settings?.customCss} />
       </head>
       <body>

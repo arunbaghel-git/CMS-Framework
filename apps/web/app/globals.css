@@ -186,6 +186,26 @@
    */
   --pad: 26px;
 
+  /*
+   * Settings ▸ Colours ke Advanced (17 Sep) — default apne group ke token pe. Admin me kisi ka Auto
+   * hatao to site pe sirf yahi token likha jaata hai (`packages/shared/src/theme-colors.js`).
+   */
+  --on-color: #fff;
+  --btn-p-bg: var(--orange-500);
+  --btn-p-text: var(--on-color);
+  --btn-p-hover-bg: var(--orange-600);
+  --btn-p-hover-text: var(--on-color);
+  --btn-s-bg: var(--blue-600);
+  --btn-s-text: var(--on-color);
+  --btn-s-hover-bg: var(--blue-700);
+  --btn-s-hover-text: var(--on-color);
+  --btn-o: var(--blue-700);
+  --header-bg: var(--surface);
+  --header-text: var(--ink-2);
+  --footer-bg: var(--blue-900);
+  --footer-text: var(--on-dark);
+  --card: var(--surface);
+
   /* Layout — Settings ▸ Layout inhi ko likhega */
   --header-h: 64px;
   --sticky-top: calc(var(--header-h) + 14px);
@@ -431,6 +451,26 @@ h6 {
   font-weight: var(--fw-heading);
 }
 
+/* Settings ▸ Colours ▸ "different colour for each heading" — token tabhi aata hai jab wo on ho */
+h1 {
+  color: var(--h1-c, var(--ink));
+}
+h2 {
+  color: var(--h2-c, var(--ink));
+}
+h3 {
+  color: var(--h3-c, var(--ink));
+}
+h4 {
+  color: var(--h4-c, var(--ink));
+}
+h5 {
+  color: var(--h5-c, var(--ink));
+}
+h6 {
+  color: var(--h6-c, var(--ink));
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -535,7 +575,7 @@ a {
 /* Reference ka .b-l — safed, patli border. Ye default variant hai. */
 .btn--outline {
   background: var(--surface);
-  color: var(--blue-700);
+  color: var(--btn-o);
   border: 1.5px solid var(--line);
 }
 
@@ -546,27 +586,29 @@ a {
 
 /* Neela bhara — reference ka .b-b. Neeche 2px ka thos shadow, halka uthaav deta hai. */
 .btn--primary {
-  background: var(--blue-600);
-  color: var(--on-dark);
+  background: var(--btn-s-bg);
+  color: var(--btn-s-text);
   border-color: transparent;
   box-shadow: 0 2px 0 var(--blue-700);
 }
 
 .btn--primary:hover {
-  background: var(--blue-700);
+  background: var(--btn-s-hover-bg);
+  color: var(--btn-s-hover-text);
   border-color: transparent;
 }
 
 /* Orange bhara — reference ka .b-o. Sabse zyada dhyaan kheenchne wale CTA ke liye. */
 .btn--accent {
-  background: var(--orange-500);
-  color: var(--on-dark);
+  background: var(--btn-p-bg);
+  color: var(--btn-p-text);
   border-color: transparent;
   box-shadow: 0 2px 0 var(--orange-600);
 }
 
 .btn--accent:hover {
-  background: var(--orange-600);
+  background: var(--btn-p-hover-bg);
+  color: var(--btn-p-hover-text);
   border-color: transparent;
   box-shadow: 0 2px 0 var(--orange-700);
 }
@@ -580,7 +622,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--surface);
+  background: var(--header-bg);
   box-shadow: var(--sh-1);
 }
 
@@ -660,6 +702,7 @@ a {
 }
 
 .nav__l {
+  /* Settings ▸ Colours ▸ Advanced ▸ Header text (default `--ink-2`) */
   display: flex;
   align-items: center;
   /* Poori height le — warna `full`/`wide` panel aur link ke beech gap reh jaata hai */
@@ -669,7 +712,7 @@ a {
   font-size: var(--fs-sm);
   /* 700, 600 nahi — reference isi weight pe hai aur nav uske bina halki lagti hai */
   font-weight: var(--fw-bold);
-  color: var(--ink-2);
+  color: var(--header-text);
   white-space: nowrap;
   border-bottom: 2.5px solid transparent;
 }
@@ -1104,7 +1147,9 @@ a.mega__gl:hover {
   /* Fine print na ho to bhi footer ka neecha saans le — `.ft__fine` apna
      `padding-bottom` khud laata hai, par wo optional field hai */
   padding-bottom: 20px;
-  background: var(--blue-900);
+  background: var(--footer-bg);
+  /* Footer ke andar ka saara "on dark" text Settings ▸ Colours ▸ Footer text se (default wahi `--on-dark`) */
+  --on-dark: var(--footer-text);
   color: color-mix(in srgb, var(--on-dark) 62%, transparent);
   font-size: var(--fs-sm);
 }
@@ -2775,7 +2820,7 @@ a.mega__gl:hover {
 
 /* Sidebar widget — reference ka `.wdg`. */
 .wdg {
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   box-shadow: var(--sh-1);
@@ -3492,8 +3537,8 @@ a.mega__gl:hover {
 }
 
 .mobar__cta {
-  background: var(--orange-500);
-  color: var(--on-dark);
+  background: var(--btn-p-bg);
+  color: var(--btn-p-text);
   /* Icon nahi hai, sirf text — isliye ek row me aur thoda bada. */
   flex-direction: row;
   gap: 6px;
@@ -3884,7 +3929,7 @@ a.mega__gl:hover {
   display: grid;
   grid-template-columns: 238px minmax(0, 1fr) 226px;
   align-items: stretch;
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   overflow: hidden;
@@ -4324,7 +4369,7 @@ a.mega__gl:hover {
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 16px 17px;
-  background: var(--surface);
+  background: var(--card);
 }
 
 .revc__h {
@@ -5184,7 +5229,7 @@ a.mega__gl:hover {
 }
 
 .vrail__in {
-  background: var(--surface);
+  background: var(--card);
   border-radius: var(--r4);
   box-shadow: var(--sh-3);
   display: grid;
@@ -5430,7 +5475,7 @@ a.mega__gl:hover {
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 15px 16px;
-  background: var(--surface);
+  background: var(--card);
   border-top: 3px solid var(--blue-500);
 }
 
@@ -6254,7 +6299,7 @@ a.mega__gl:hover {
 
 /* --- article body --- */
 .art {
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r4);
   padding: clamp(18px, 2.6vw, 28px);
@@ -7110,7 +7155,7 @@ a.mega__gl:hover {
 
 .hf-card {
   position: relative;
-  background: var(--surface);
+  background: var(--card);
   border-radius: var(--r4);
   box-shadow: var(--sh-4);
   padding: clamp(18px, 2vw, 24px);
@@ -7300,7 +7345,7 @@ a.mega__gl:hover {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 18px;
@@ -7782,7 +7827,7 @@ a.imcc:hover img {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   padding: 20px;
@@ -7983,7 +8028,7 @@ a.imcc:hover img {
 .ipkc {
   display: flex;
   flex-direction: column;
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   overflow: hidden;
@@ -8217,7 +8262,7 @@ a.imcc:hover img {
 .ofcc--top {
   display: flex;
   flex-direction: column;
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r3);
   overflow: hidden;
@@ -8492,7 +8537,7 @@ a.imcc:hover img {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r2);
   padding: 13px 15px;
