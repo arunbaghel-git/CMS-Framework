@@ -1,4 +1,10 @@
-import { DEFAULT_LOCALE, DEFAULT_SITE_ID, isExternalRedirect, normalizePath } from '@cms/shared'
+import {
+  DEFAULT_LOCALE,
+  DEFAULT_SITE_ID,
+  isExternalRedirect,
+  isPubliclyVisible,
+  normalizePath,
+} from '@cms/shared'
 
 import { notFound, unprocessable } from '../../core/errors.js'
 import { logger } from '../../core/logger.js'
@@ -137,6 +143,8 @@ export async function listRedirects(query, siteId = DEFAULT_SITE_ID, locale = DE
  * 2. **`from` ek hi baar** — doosra redirect usi URL pe ho to wahi edit karo
  * 3. **Khud pe nahi, aur ghoom kar wapas nahi** — `/a → /b` pehle se ho to `/b → /a` loop hai
  * 4. **Chain nahi bachti** — `to` khud kisi redirect ka `from` ho to seedha uske aakhri `to` pe
+ * 5. **`to` Trash ya draft page pe nahi** (client, 17 Sep: _"rokna hai"_) — visitor redirect ho kar 404 pe
+ *    girta, aur redirect list me theek dikhta. Wahi "kuch na hona"
  *
  * @returns {Promise<string>} aakhri `to` (chain flatten ke baad)
  */
@@ -158,19 +166,43 @@ async function checkManualRedirect({ from, to, excludeId }, siteId, locale) {
 
   if (isExternalRedirect(to)) return to
 
-  const target = normalizePath(to.split(/[?#]/)[0])
-  if (target.toLowerCase() === from) throw unprocessable('From and To are the same page.')
+  const target = normalizePath(to.split(/[?#]/)[0]).toLowerCase()
+  if (target === from) throw unprocessable('From and To are the same page.')
 
-  const next = await Redirect.findOne({ ...inScope, from: target.toLowerCase(), ...notSelf }).lean()
+  /**
+   * `to` pe koi page hai to wahi aakhri manzil hai — resolve page ko redirect se pehle dekhta hai (§3),
+   * isliye us path pe pada koi purana redirect **follow nahi** karna.
+   */
+  if (await landsOnPage(target, inScope)) return to
+
+  const next = await Redirect.findOne({ ...inScope, from: target, ...notSelf }).lean()
   if (!next) return to
-  if (
-    !isExternalRedirect(next.to) &&
-    normalizePath(next.to.split(/[?#]/)[0]).toLowerCase() === from
-  ) {
+  if (isExternalRedirect(next.to)) return next.to
+
+  const nextTarget = normalizePath(next.to.split(/[?#]/)[0]).toLowerCase()
+  if (nextTarget === from) {
     throw unprocessable(`${target} already redirects back to ${from} — that would loop forever.`)
   }
 
+  await landsOnPage(nextTarget, inScope)
   return next.to
+}
+
+/**
+ * `to` ke path pe page — dikhne wala ho to `true`, koi na ho to `false` (tab chain dekhi jaati hai).
+ * Trash ya draft/scheduled ho to **422** (niyam #5): wahan visitor ko 404 milta.
+ */
+async function landsOnPage(path, inScope) {
+  const page = await Entry.findOne({ ...inScope, path })
+    .select('title status publishAt deletedAt')
+    .lean()
+  if (!page) return false
+  if (isPubliclyVisible(page)) return true
+
+  const why = page.deletedAt ? 'is in the Trash' : 'is not published'
+  throw unprocessable(
+    `"${page.title}" at ${path} ${why} — visitors would see a 404. Choose another To.`,
+  )
 }
 
 /**

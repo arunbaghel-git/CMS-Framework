@@ -170,6 +170,41 @@ describe('create', () => {
     expect(await Redirect.countDocuments()).toBe(0)
   })
 
+  it('To Trash ya draft page pe nahi — 422, visitor 404 pe girta (client, 17 Sep)', async () => {
+    const trashed = await makePage('/old-offers')
+    await Entry.updateOne({ _id: trashed._id }, { deletedAt: new Date() })
+    await makePage('/new-offers', 'draft')
+
+    const t = await create({ from: '/offers', to: '/old-offers' })
+    expect(t.status).toBe(422)
+    expect(t.body.error.message).toContain('is in the Trash')
+
+    const d = await create({ from: '/offers', to: '/new-offers?x=1' })
+    expect(d.status).toBe(422)
+    expect(d.body.error.message).toContain('is not published')
+
+    // chain ke aakhir me trash page — wahan bhi rok
+    await Redirect.create({
+      siteId: 'default',
+      locale: 'en',
+      from: '/b',
+      to: '/old-offers',
+      isAuto: true,
+    })
+    expect((await create({ from: '/a', to: '/b' })).status).toBe(422)
+
+    expect(await Redirect.countDocuments({ isAuto: false })).toBe(0)
+  })
+
+  it('To pe live page ho to us path ka purana redirect follow nahi hota', async () => {
+    await Redirect.create({ siteId: 'default', locale: 'en', from: '/offers', to: '/elsewhere' })
+    await makePage('/offers')
+
+    const res = await create({ from: '/deals', to: '/offers' })
+    expect(res.status).toBe(201)
+    expect(res.body.data.redirect.to).toBe('/offers')
+  })
+
   it('ek from pe do redirect nahi', async () => {
     await create({ from: '/a', to: '/b' })
     const res = await create({ from: '/a', to: '/c' })

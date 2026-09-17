@@ -8809,9 +8809,15 @@ Saath me create/update pe rok (D-86 wala sabak — "kuch na hona" sabse mehnga):
 | `from` pe pehle se redirect | `/a already redirects to /b. Edit that one instead.` |
 | `from` = `to` | `From and To are the same page.` |
 | `/a → /b` hai aur `/b → /a` banao | `…would loop forever.` |
+| `to` (ya chain ka aakhri `to`) Trash/draft page pe | `"X" at /x is in the Trash — visitors would see a 404…` (client, 17 Sep: _"rokna hai"_) |
 
 Chain dono taraf flatten hoti hai — `to` khud redirect ho to seedha uske aakhri `to` pe, aur jo redirects
-`from` pe aa rahe the wo naye `to` pe.
+`from` pe aa rahe the wo naye `to` pe. `to` pe live page ho to us path ka purana redirect follow **nahi** hota
+(resolve wahan page dikhata hai).
+
+**Trash ke saath (client ne poochha, 17 Sep):** trash karne se redirect nahi banta · trash page ke URL **se** redirect
+ban sakta hai · restore pe page jeet-ta hai · Trash se permanent delete us URL ki taraf jaane wale **saare** redirects
+(manual bhi) hata deta hai — client: _"jaisa hai waisa rehne do"_.
 
 ### 4. Auto aur manual
 
