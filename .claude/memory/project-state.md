@@ -1,12 +1,10 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 16 Sep 2026 (raat) — **~321 commit**, **19 push hone baaki** (client ki ijaazat se hi).
-> Aaj ke kaam ke **576 test pass** (home-page · master-lists · entries · web · shared), lint + format clean,
-> admin build pass.
-> ⚠️ **Poori suite aaj nahi chal payi** — C: drive pe sirf ~0.7 GB bachi hai aur vitest temp files pe
-> `ENOSPC` de deti hai (7 file load hi nahi hui, ek bhi test fail nahi hua). Jagah banne pe pehle
-> `pnpm test` chalao — 16 Sep dopahar ko wo **1151/1151** pass thi.
+> **Last updated:** 17 Sep 2026 — docs ki safai. **323 commit**, `origin/main` = HEAD (`2b7813e`) —
+> push hone ko kuch baaki nahi tha.
+> **Poori suite 17 Sep ko chali: 42 files, 1160/1160 pass.** ⚠️ C: drive pe sirf ~0.9 GB bachi hai — 16 Sep
+> ko isi wajah se vitest `ENOSPC` de rahi thi. Suite "no tests"/load error de to pehle disk dekho.
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 
@@ -14,8 +12,8 @@
 
 ## ⏭️ Nayi session yahan se shuru kare — **Home band, Contact page live, do faisle khule** (16 Sep)
 
-> 16 Sep ka handoff. Aakhri commit `1c2887a`. **19 commit push nahi hue** — push sirf client ke kehne pe
-> (`git log --oneline origin/main..HEAD` sach batata hai). Poore faisle **D-96 §24–§33** me.
+> 16 Sep ka handoff. Aakhri commit `1c2887a`. **17 Sep ko sab push mila** (`origin/main` = HEAD) — push sirf
+> client ke kehne pe (`git log --oneline origin/main..HEAD` sach batata hai). Poore faisle **D-96 §24–§33** me.
 
 ### Client ke do khule faisle (pehla kaam — inhi se shuru karo)
 

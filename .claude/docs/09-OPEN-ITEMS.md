@@ -1,103 +1,22 @@
 # 09 — Open Items
 
-**Status:** Phase 0 poora, **Slice 0 (Header + Footer)** poora — D-43 / spec 006, header
-aur footer dono client ke reference se match (25 Aug), footer ka data model **D-44** me
-badla.
+**Last updated:** 17 Sep 2026 — docs ki safai (header naya, band items "resolved" me gaye)
 
-Phase 0 ke original teen backlog items abhi bhi deferred/non-blocking hain (neeche).
+**Status:** Phase 0 · Slice 0 · Phase 1 (Packages) · Phase 2 (Media) poore. Uske upar client ke kehne pe
+page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87–D-90) · Sidebar (D-88) ·
+Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
+`.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Abhi ka milestone: Phase 1 — Packages (spec 007 — 🟢 approved).** Buniyaadi faisla
-26 Aug ko band — Package `entries` ka ek type hai, **D-46**.
-**Slice 1 (engine) · Slice 2 (master lists) · Slice 3 (API + screens) · Slice 4
-(Itinerary Builder) — chaaron ban chuki hain** (D-47 se D-51), aur **public package page
-shuru ho chuka hai** (D-52) — wo har slice ke saath badhega.
-**Slice 5 (Pricing + Hotels) bhi ban gayi** — 27 Aug, **D-56**. Admin ke do naye panel aur
-public page pe price block · catbar · hotels table · add-ons.
-**Slice 6 aur 7 ke bache hue section bhi ban gaye (1 Sep)** — Traveller reviews (**D-70**)
-aur Similar itineraries (**D-71**). Dono ke sawaal client ne band kar diye: §9 #8 → rating
-**haath se** (`reviews[]` se gini nahi jaati), §9 #15 → similar **apne aap** chunte hain.
-`goodToKnow[]` banega hi nahi (**D-68**).
+**Tests:** 17 Sep ko poori suite chali — **42 files, 1160/1160 pass**. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
+16 Sep ko isi wajah se vitest `ENOSPC` de rahi thi. Jagah kam ho to suite phir "no tests"/load error degi —
+wo code ka bug nahi hai.
 
-**Q-2 poora band ho gaya (3 Sep — D-75, phir D-76).** 1 Sep ko Enquiry Forms + Add New Form
-bane (D-72) aur package page ke sidebar me sach me chalta hua form aaya; **3 Sep ko inbox** —
-All Enquiries · Enquiry Detail · Export CSV (date range filter ke saath). Usi din client ne
-use chala kar **chhota bhi kar diya** (D-76): submenu me sirf teen item, detail pe sirf
-Status, aur Notes/Quick Actions dono hat gaye. Email ab bhi nahi (SMTP Phase 0 se blocked).
+**Push:** 17 Sep ko `origin/main` = HEAD (`2b7813e`) — kuch push hona baaki nahi tha. Ginti yahan jaan-boojh
+kar nahi likhi (har commit pe purani hoti hai); sach `git log --oneline origin/main..HEAD` se lo. Push sirf
+ijaazat pe, aur pehle A-12 padho (CI environment ki wajah se red aati hai).
 
-**A-5 band ho gaya (31 Aug)** — `apps/web/.env` ban gayi, revalidate ab configured hai.
-**Q-9 ka bada hissa bhi band (31 Aug — D-65)** — section ke heading aur unke neeche ki lines
-ab admin se aati hain. Saath me ek chup bug bhi nikla: `cancellationText` public payload me
-ja hi nahi raha tha.
-
-**1 Sep — section ki description ab rich text hai (D-69)** — har section pe wahi TipTap
-editor jo Overview pe hai. Migration **015**. Client (unke senior ka order): textarea me
-bold/heading/list ban hi nahi sakti.
-
-**3 Sep — editor ab TinyMCE, saara page content HTML (D-80).** spec 002 ka **doosra** badlaav,
-migration **020**. Client ko Classic Editor jaise **Visual + Text** do tab chahiye the aur
-`class`/`id`/inline `style` likhne pe kuch gayab na ho — TipTap wo kar hi nahi sakta (wo
-schema-based hai). ⚠️ Iske saath **XSS ki problem ab hum paal rahe hain** — keemat `rich-doc.js`
-me D-69 ke waqt pehle se likhi thi.
-
-**3–4 Sep — Bulk Upload (D-81).** Google Sheet + Docs se package pages, **bina kisi Google
-account ke** (`export?format=csv|html` anonymous 200 deta hai). Migration **021**. 4 Sep ko
-client ki asli sheet pe pehla end-to-end chala.
-
-**4 Sep — Itinerary Settings aur structured data ki teen galtiyaan (D-82).** `aggregateRating`
-ab `Product` node pe (Trip pe wo valid hi nahi tha), har din ek `subTrip`, `stripTags` ka
-vaakya-chipkane wala bug, aur `seoSchema` per-package se hat kar `packageDefaults` me
-(**paanchon package pe `false` mila tha** — feature bana kar rakha gaya aur kabhi chala nahi).
-Migration **022**.
-
-**4 Sep — ISR cache sach me on hua (D-83).** `fetch(url, { next: { tags } })` Next 15 me kuch
-cache karta hi nahi (default `no-store`) — poora revalidate dhaancha teen hafte inert pada tha.
-Ab `revalidate` tags ke **saath** hai, unki jagah nahi.
-
-**4 Sep — speed ke do pass (D-84, D-85).** Media `immutable`, har image pe `srcset`, hero ka
-shuffle server pe, `content-visibility` fold ke neeche. **Mobile 68 → 91, desktop 98** — sirf
-LCP (3.35s) bacha hai, aur wo ab bandwidth ka sawaal hai (A-17).
-
-**4 Sep — Bulk Upload har run pe duplicate bana raha tha (D-86).** Dhoondhne ka slug aur save
-karne ka slug do alag the. Us ek `null` se **teen guard chup-chaap mar gaye the**.
-
-**7–8 Sep — Tour Page (D-87).** Slice A (schema) · B (public payload) · C (admin screens) —
-teenon ban gayin. 8 Sep ko client ne admin chala kar bahut kuch palta: Package list ab
-**do-column picker** hai, `showBadges`/`emitSchema` toggle hat gaye, Day wise filter sach me
-chalu hua, aur Pages ki screens **scope se bahar** thin, isliye wapas `NotBuiltYet` pe (A-9 phir
-se khula).
-
-**8 Sep — Slice E (D-88).** `Appearance ▸ Sidebar` — named sidebars, teen widget type
-(`enquiryForm` · `talkToPlanner` · `html`), aur page pe `fields.sidebarId`. **Migration 023.**
-⚠️ Design v3 se paanch farak hain — poora hisaab D-88 §1 me, aur **#2–#5 ka client-attribution
-likha jaana baaki hai**.
-
-**8 Sep — Slice D (theme), D-87 §11.** `apps/web` ka catch-all ab `page`/`tourPage` ke liye
-`TourPage` render karta hai — pehle wahan **sirf `<h1>`** chhapta tha. Iske saath **D-87 ki
-saari slices poori ho gayi hain**. `.pgl` chhua nahi gaya (`.pgl--sideleft` modifier hai), card
-ka markup `PackageCard.jsx` me ek jagah aa gaya, aur `TourSchema` sirf `BreadcrumbList` +
-**ek** `FAQPage` bhejta hai.
-
-**8 Sep — design se milaan ka daur (D-89).** Client ne page chala kar section-by-section milaan
-karwaya; **13 farak** nikle aur sab theek ho gaye. Paanch naye contract (`heroButton`,
-`twoColumn.style`, html widget ka `icon`, enquiryForm ka `heading`/`description`,
-`unwrapBareSpans`) — **koi migration nahi**. Naya khula item: **A-19**.
-
-⚠️ **A-17 (speed) ab dobara naapni padegi** — poora naya page, ~500 line nayi CSS, aur package
-list se `content-visibility` hat gaya (D-89 §4). Purane number (mobile 91 / desktop 98) sirf
-package page ke the.
-
-**Last updated:** 16 Sep 2026 (Contact page D-96 §24–§33; **A-31** naya — code me bacha hua site ka naam)
-
-⚠️ **`pnpm test` is machine pe abhi fail hoti hai — code ki wajah se nahi.** C: drive pe ~0.7 GB bachi hai
-aur vitest apni temp files pe `ENOSPC`/`ENOENT` de deti hai (file **load** hi nahi hoti, "no tests"
-dikhata hai). Jagah banne pe hi poori suite chalegi; 16 Sep dopahar ko wo **1151/1151** pass thi.
-
-⚠️ Neeche ki kuch purani lines (A-9/A-21/A-22 "Ab bhi baaki" me, "Ab ka order", A-17 ka "`/` 404") safai maangti hain — home page ke baad.
-
-⚠️ **Push:** `origin/main` `a0f337c` pe hai. Ginti yahan jaan-boojh kar nahi likhi — wo har
-commit pe purani ho jaati hai aur do baar galat mili. Sach `git log --oneline origin/main..HEAD`
-se lo. Push se pehle A-12 padho: CI un sab pe red aayegi, aur wo red environment ki wajah se hai,
-code ki nahi.
+**Client ke khule faisle (sabse pehle):** contact ke hero ke trust chips (Tour ke `trustBadges` ya page ke apne)
+aur contact ka eyebrow — dono `project-state.md` ke pehle section me.
 
 ---
 
@@ -211,9 +130,266 @@ code ki nahi.
 | **A-13 booking steps ka UI** | ✅ **Ban gaya (1 Sep)** — `Packages ▸ Section Headings ▸ Good to know` wale tab me (pehle alag submenu banaya tha; client ne palta — page pe wo **ek hi section** hai). `bookingSteps` aur `cancellationText` poore raaste par pehle se the (schema · service · payload · theme) par **bharne ki jagah nahi thi**; isliye client ne unka content Section Headings ki description me type kar diya tha, jahan wo numbered list nahi banta. Client ka data bhi hilaya gaya — warna wo text page pe do baar chhapta |
 | **A-5 `apps/web` ki `.env`** | ✅ **Ban gayi — revalidate ab configured hai.** `API_URL=http://localhost:4000` aur `REVALIDATE_SECRET` (`apps/api/.env` se **bilkul same** — verify kiya: dono 42 chars, ek hi fingerprint). Endpoint ab galat secret pe **401** deta hai, `503` nahi — yaani secret load ho chuka hai. `SITE_URL` bhi web pe hi point karta hai (`localhost:3000` API ki CORS allowlist me mila). ⚠️ **Next `.env` sirf boot pe padhta hai** — file banane ke baad web dev server restart karna zaroori hai, warna 503 aata rahega |
 
+
+### 17 Sep 2026 — "Ab bhi baaki" se yahan laaye gaye
+
+Ye sab pehle hi band ho chuke the par khule items ke beech pade the. Poora hisaab jaisa tha waisa neeche hai;
+jo chhoti safai bachi thi wo "🔴 Ab bhi baaki" me **Chhoti bachi hui safai** me nikal di gayi.
+
+#### Q-2 · Enquiries — ✅ **band (3 Sep — D-75)**
+
+Do mahine khula raha, aur do kadam me band hua:
+
+- **1 Sep (D-72)** — Enquiry Forms + Add New Form, aur package page pe sach me chalta form
+- **3 Sep (D-75)** — **inbox**: All Enquiries · Enquiry Detail · Export CSV
+
+Client ka scope: _"jo bina blocker ke ban sakta hai — poora"_. Isliye Send Quotation (SMTP),
+activity feed (Q-4), aur assign/priority/follow-up **nahi** bane — unka panel bhi nahi dikhta
+(D-30). Poora hisaab D-75 me.
+
+⚠️ **`salesAgent` ke permissions ab bhi wahin hain** (`ENTRY_READ` + `MEDIA_READ`). Wo role
+enquiries handle karne ke liye bana tha (D-29) par abhi inbox nahi dekh sakta — uske liye
+`submission.*` chahiye. Ye jaan-boojh kar chhoda gaya: client ne assignment wala hissa scope
+se bahar rakha, aur role ke defaults badalna unse poochhe bina karna theek nahi lagta.
+**Client se poochhna hai:** salesAgent ko inbox dikhna chahiye ya nahi?
+
+---
+
+#### Public page ke chaar section jo abhi bane hi nahi
+
+**Deadline:** koi nahi — page aaj poora chalta hai, ye sections **render hi nahi hote**
+**Yahan isliye hain ki inhe "TODO" kahin aur nahi likha gaya**
+
+Design (`itinerary-v3.html`) me ye chaar the. **Chaaron ban gaye** — ek 31 Aug ko, teen
+1 Sep ko:
+
+| Section | Kya laga | Kab |
+| --- | --- | --- |
+| ~~**Traveller reviews**~~ | ✅ `reviews` collection + `packageDefaults.rating` | **D-70** |
+| ~~**Similar itineraries**~~ | ✅ poori tarah derived, koi field nahi | **D-71** |
+| ~~**"Want this trip on your dates?"**~~ | ✅ button + uska target field | **D-67** |
+| ~~Sidebar ka **price + enquiry widget**~~ | ✅ `forms` module, khol design ka | **D-72** |
+
+> Is section ka kaam khatam ho gaya. Ye heading yahan **itihaas** ke liye hai: yahi wo list
+> thi jo kahin aur "TODO" likhi hi nahi gayi thi, aur usi wajah se do mahine chup padi rahi.
+
+**Q-2 ka atkav is band pe khul gaya (31 Aug).** Client ne teen raaston me se chautha chuna:
+_"button to form par hi jata hai par abhi bana nahi hai to abhi fields bana do jisse bad me
+bhej sake."_ Yaani section **poora ban gaya** aur button ka target ek **field** hai — jis
+din form bane, sirf ek value bharni hai. Khaali URL pe button dikhta hi nahi (D-30).
+
+⚠️ Sidebar wala widget abhi bhi Q-2 pe hai — wahan asli **form** chahiye, sirf ek link nahi.
+
+---
+
+#### A-16 · `pnpm test` asli uploads folder mita deta tha — ✅ **theek ho gaya (2 Sep)**
+
+**Code wala hissa band.** Ek hissa abhi baaki hai: `UPLOAD_DIR` repo ke **bahar** (neeche).
+
+Client kai dinon se ye keh raha tha: _"jo images admin me upload karta hu, koi change karne
+ko bolu fir wo frontend par visible kyu nahi hoti, mujhe fir se upload karna padta hai har
+baar."_
+
+**Wajah `media.test.js` se bhi badi nikli.** Pehle sirf test ki `beforeEach` par shak tha,
+par asli jad `vitest.config.js` me thi:
+
+```js
+// vitest.config.js — har test file pe lagti hai
+UPLOAD_DIR: './uploads',   // ← apps/api/uploads, dev ka ASLI folder
+
+// media.test.js
+const UPLOAD_ROOT = path.resolve(process.cwd(), 'apps/api/uploads')  // hardcoded
+beforeEach(async () => {
+  await rm(UPLOAD_ROOT, { recursive: true, force: true })
+```
+
+Yaani do alag jagah ek hi asli folder pe point kar rahi thi: test me chalne wali **app**
+wahan likhti thi, aur **test** use har baar `rm -r` kar deta tha. Sirf test ka path badalna
+aadha fix hota — app phir bhi asli folder me likhti rehti.
+
+Lakshan isiliye itna uljha hua tha: **DB ke records bache rehte hain**, sirf files jaati
+hain. Admin ki Media list bhari hui dikhti hai, aur frontend pe wahi image 404 deti hai. Aur
+kyunki files sirf tab jaati hain jab koi test chalata hai, client ko lagta tha ki wajah
+"code change" hai — jabki wajah change ke **baad chalne wala test** tha.
+
+⚠️ **Pehli theory galat thi.** Is par pehle `git clean -fdx` ka shak likha gaya tha
+(`uploads/` gitignored hai, to theory theek baithti thi). Wo galat tha — wajah repo ke apne
+test setup me thi. Purani theory par aage koi kaam mat karna.
+
+**Kya laga (2 Sep):**
+
+| Kaam | Kya hua |
+| --- | --- |
+| `vitest.config.js` ka `UPLOAD_DIR` | ab `./.test-uploads-media` — test me chalne wali app asli folder ko chhooti hi nahi |
+| `media.test.js` ka `UPLOAD_ROOT` | ab `getStorageDriver().root` se aata hai, hardcoded nahi — jahan app likhti hai **theek wahi** saaf hota hai, dono drift kar hi nahi sakte |
+| Ek guard | root `.test-` se shuru na ho to file **chalne se pehle** throw karti hai — data mitne ke baad nahi |
+| `afterAll` cleanup | throwaway folder peeche nahi rehta; `.gitignore` me `.test-uploads*/` bhi juda |
+
+**Verify kiya:** poori suite (26 file · **624 test**) chalane ke baad `apps/api/uploads` ki
+files jaisi ki waisi bachi rahin, aur guard ki dono soorat alag se jaanchi gayi.
+
+**Ab bhi baaki — doosri deewar:** `apps/api/.env` me `UPLOAD_DIR` repo ke **bahar** ho
+(jaise `C:/Users/deepa/cms-uploads`). Uske baad koi test, build ya `git clean` usse chhoo hi
+nahi sakta. D-41 absolute path pehle se allow karta hai. Ye file permissions ki wajah se
+2 Sep ko nahi badli ja saki — client khud badlega, aur purani files nayi jagah move karni
+hongi.
+
+⚠️ Jo files pehle ja chuki hain wo **wapas nahi aayengi** — disk se mit chuki hain aur git
+me thi nahi. Ek baar phir upload karni padengi.
+
+Ek sabak bhi hai, aur wo D-42 §2 se juda hai: public API sirf **DB record** dekh kar `null`
+bhejti hai. Record maujood par file gayab — wo soorat wo pakad hi nahi sakti. Isiliye ye
+failure itni chup thi.
+
+Aur ek: **`storage.test.js` ne yahi galti nahi ki thi** kyunki wo apna folder khud banati
+hai. Farak sirf itna tha ki `media.test.js` app ko `createApp()` se chalati hai, aur app ka
+folder config se aata hai — isliye us file ko config se **judna** padta tha, na ki apna path
+likhna.
+
+---
+
+#### A-9 · Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe hain
+
+> ✅ **Band — 14 Sep (D-95).** `post` wala aadha 9 Sep ko spec 008 me band hua tha; `page` wala aaj.
+> `Pages ▸ All Pages · Add New` ab asli screens hain, `page` ka apna field set hai, aur public site pe
+> `components/page/TextPage.jsx` (`page-template-text.html`). Neeche ka hisaab itihaas hai.
+
+> ⚠️ **Ek din ke liye Pages ka hissa band ho gaya tha, phir wapas khul gaya (8 Sep).**
+>
+> D-87 Slice C me Pages ki screens ban gayi thin — par **wo kaam scope me tha hi nahi**, D-87
+> Tour ka kaam tha. Client ne wo mana kiya: _"Pages par kaam to ho hi nahi raha."_ Screens wapas
+> `NotBuiltYet` pe hain aur `page` ka field set phir se khaali hai.
+>
+> ✅ **Ek cheez bach gayi, aur wo asli faayda hai:** ab in screens ka **saancha maujood hai** —
+> `EntriesList.jsx` aur `PageEdit.jsx` dono `type` se chalte hain, aur `lib/use-entries.js` ke
+> hooks kisi bhi content type pe chalte hain. Jis din Pages ya Posts ka kaam aayega, wo screens
+> dobara likhni nahi padengi: `TYPE_CONFIG` me ek row, aur do route.
+>
+> ⚠️ **Neeche wala purana andaza galat nikla** — usme likha tha ki ye "Packages ki screens ka hi
+> doosra roop" hoga aur `PackagesList`/`PackageEdit` `type` se chal jaayengi. Asli kaam ulta
+> hua: un screens ko **chhua hi nahi gaya** (unke apne filter aur bulk actions package ke domain
+> ke hain). Jo sach me share hua wo **data hooks** the, screens nahi.
+
+**Deadline:** koi sakht nahi — par ye **engine ka bacha hua kaam** hai, naya feature nahi
+**Kuch toota nahi hai** — sirf ek gap hai jiska kahin record nahi tha
+
+D-46 ke baad `entries` + `contentTypes` ka engine chal raha hai, aur `page` aur `post`
+dono types **seed me register bhi ho chuke hain**. Docs kai jagah kehte hain ki _"uske baad
+Pages aur Posts sirf apne field set ki baat hain"_ (`05-BUILD-PLAN.md`, D-46).
+
+**Par unki screens bani nahi hain.** `apps/admin/src/lib/nav.js` me unke links maujood hain
+aur wo `NotBuiltYet` pe jaate hain:
+
+```
+/posts   /posts/new   /posts/categories   /posts/tags
+/pages   /pages/new
+```
+
+Yaani API se aaj bhi ek Page ya Post banaya ja sakta hai, par admin me uska koi raasta
+nahi hai.
+
+**Kaam kitna hai:** Packages ki screens (`PackagesList` + `PackageEdit`) ka hi doosra roop —
+dono `type` se chalti hain, hardcoded `package` unme kam jagah hai. Categories aur Tags ke
+liye `TaxonomyScreen` pehle se bana hua hai (wo `type` prop leta hai), sirf do route jodne
+hain.
+
+⚠️ **Ek cheez jo Packages se alag hai:** Pages **hierarchical** hain (D-09) — unke editor me
+ek "Parent" dropdown chahiye, aur list me indent. Package editor me wo hai hi nahi, kyunki
+packages flat hain. Ye copy-paste se nahi aayega.
+
+**Ye yahan isliye likha hai ki ye chup-chaap gayab ho raha tha.** Slice 1 se Slice 4 tak ka
+poora kaam Packages pe kendrit raha, aur is gap ka kisi list me zikr nahi tha — wo sirf tab
+dikhta jab koi sidebar me Posts pe click karta.
+
+⚠️ **Upar wale "Kaam kitna hai" wala andaza galat nikla.** Usme likha tha ki ye "Packages ki
+screens ka hi doosra roop" hoga aur `PackagesList`/`PackageEdit` `type` se chal jaayengi.
+Slice C me asli kaam ulta hua: un screens ko **chhua hi nahi gaya** — unke apne filter,
+`From price` column aur Featured wale bulk action package ke domain ki cheezein hain, aur unhe
+props se on/off karna wahi component banata jise koi chhoona nahi chahta. Jo sach me share hua
+wo **data hooks** the (`lib/use-entries.js`), screens nahi.
+
+Parent dropdown wali chetavni **sahi** nikli — wo `PageEdit.jsx` me bana hua hai, aur Tour page
+pe bhi chalta hai (wahan wo URL nahi badalta, sirf breadcrumb banata hai).
+
+---
+
+#### A-21 · Blog ka `next build` wala pehra — ✅ chaaron naap liye (11 Sep); speed ka kaam A-17 me (D-91)
+
+**11 Sep — production build pe naapa, alag setup me:** git worktree + DB ki copy `merncms_a21` +
+ports 3001/4001. Client ka dev server aur asli DB dono chhue nahi gaye — switch har post ka path
+aur redirect badalta hai, wo asli data pe chalana galat hota.
+
+| #   | Nateeja |
+| --- | ------- |
+| 1   | ✅ **Cache sach me chal raha hai, aur publish use saaf karta hai.** Ek post ki heading/excerpt **seedha DB me** badli (bina revalidate) → `/blog` 6+ second tak purana dikhata raha; service se publish karte hi dono badlaav aa gaye. Isse D-83 wala jhootha pass nahi ho sakta. ⚠️ Pehli koshish me maine `title` badla tha — wo card pe dikhta hi nahi (card `fields.heading` dikhata hai), yaani wo test kuch saabit nahi karta tha |
+| 2   | ✅ Purana URL → **308** → naya URL, naya URL 200. ⚠️ **Bug mila aur theek hua:** switch ke baad `/blog` ke card **ek ghante tak** (`CACHE_SECONDS`) purane URL pe link karte the — `syncPostUrlPattern()` listing ka `path:` tag bhejta hi nahi tha. Ab wahan bhi `blogListingTags()` (wahi helper jo `invalidate()` me hai), test ke saath. Live: switch ke **turant** baad links naye |
+| 3   | ✅ **Hydration / console errors: 0** — `/blog` aur article, 5-5 run (Lighthouse `errors-in-console`). Production me hydration mismatch console error banta hai, to ye wahi jaanch hai jo dev pe chhoot jaati. ⚠️ Pill pe **click** karke filter chalana naapa nahi gaya — Lighthouse interaction nahi karta |
+| 4   | ✅ **Naapa** — `/blog` **85**, article **67** (mobile, 5 run median). Poora hisaab aur wajah **A-17** me |
+
+⚠️ Redirect **308** hai, 301 nahi — Next permanent redirect ko 308 bhejta hai, jabki DB me
+`statusCode: 301` hai. Dono permanent hain aur search engine dono ko ek jaisa maante hain; bas D-91
+ka "301" page pe literally 301 nahi hai.
+
+---
+
+_Neeche 10 Sep ka asli hisaab — waisa ka waisa:_
+
+**Deadline:** blog live jaane se **pehle**
+**Ye "verify karo" nahi, "abhi tak jaancha hi nahi" hai** — aur ek item aisa hai jo dev pe
+**hamesha pass dikhega**
+
+| # | Kya jaanchna hai | Kyun dev server kaafi nahi |
+| - | ---------------- | -------------------------- |
+| 1 | **Naya post publish → listing turant update** | `invalidate()` ab un `blogPage` ke `path:` tag bhejta hai jinme `postList` hai. **ISR sirf production build pe chalti hai** — dev me har request waise bhi fresh hoti hai, isliye ye test wahan **jhootha pass** deta hai. Theek wahi shakl jo D-83 me **teen din** chhupi rahi thi |
+| 2 | **Post ka URL switch → 301** | `syncPostUrlPattern()` ka `revalidateTags` dono path pe. Purana URL cache me 200 de raha ho to switch ke baad bhi wahi dikhega |
+| 3 | **Listing ka client-side filter** | `PostList` `'use client'` hai; hydration ki galti dev me aksar nahi dikhti |
+| 4 | **Speed ka naap** | D-85 ke baad blog ke do naye page kabhi naape hi nahi gaye. ⚠️ **Naapna `next build` + `next start` pe, 5 run ka median** — is machine pe noise 2x tak hai |
+
+⚠️ **Build se pehle dev band karo** — dono ek hi `.next` use karte hain. Dev chalte waqt build
+chalane se uske vendor chunks kat gaye the aur har page 500 dene laga tha (D-89).
+
+**Client ne 10 Sep ko kaha: _"shaam ko, kaam poora hone ke baad."_**
+
+---
+
+#### A-22 · Bulk Upload for blog — ✅ teeno sawaal band (11 Sep); sirf safai baaki (D-92)
+
+**Deadline:** guide team ko bhejne se **pehle**
+**Kuch toota hua nahi hai** — teenon "maine chuna, client ne nahi" wale hain
+
+| #   | Kya                                                     | Kyun poochhna hai                                                                                                                                                                                             |
+| --- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ✅ **Nishaan ke shabd** — band (11 Sep) | Client ne chaaron rakh liye — `Note:` · `Warning:` · `Quote:` · `Caption:` — aur **asli doc pe khud chala kar dekhe**. Shabd unhone apne paas note kar liye |
+| 2   | ✅ **Image ki caption** — band (11 Sep) | Client ne nishaan ki ijaazat di. Ab image ke turant neeche `Caption:` wali line `figcaption` banti hai (D-92 §10) |
+| 3   | ✅ **Table ki pehli row hamesha header** — band (11 Sep) | Client ne khud kaha: _"only first row will be table head other will be table body"_ |
+
+✅ **Guide v3 nahi banegi** (client, 11 Sep) — nishaan unhone khud note kar liye. Dhyan rahe ki guide
+v2 ka caption wala hissa ab purana hai ("image ke neeche italic line likho"); asli niyam `Caption:` hai.
+
+⚠️ **Purana guide doc ab galat hai** (`18Dd6_o8…`) — usme content wala hissa hai hi nahi. Naya
+[guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)
+hai. Drive ka API content update nahi kar sakta (sirf title/folder), isliye purana **trash** karna
+hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
+
+⚠️ Test post `/how-to-plan-an-andaman-trip-test` abhi **live** hai. Client ke kehne pe hatana hai.
+
+---
+
 ---
 
 ## 🔴 Ab bhi baaki
+
+### Chhoti bachi hui safai (band items se nikli)
+
+**Deadline:** koi sakht nahi · **aaj kuch toota nahi**
+
+| Kahan se | Kya | Kiska kaam |
+| --- | --- | --- |
+| A-22 | Purana Bulk Upload guide doc (`18Dd6_o8…`) **trash** karna — naya guide v2 hai, warna team dono padhegi | Client ki ijaazat |
+| A-22 | Test post `/how-to-plan-an-andaman-trip-test` abhi **live** hai — hatana | Client ke kehne pe |
+| Q-2 | `salesAgent` ko Enquiries inbox dikhe ya nahi (`submission.*` permission) | Client ka faisla |
+
+---
 
 ### A-31 · Code me bacha hua site ka naam — hotel categories ka text (D-96 §33)
 
@@ -380,29 +556,6 @@ dobara import kiya jaaye (D-92 §11).
 
 ---
 
-### A-22 · Bulk Upload for blog — ✅ teeno sawaal band (11 Sep); sirf safai baaki (D-92)
-
-**Deadline:** guide team ko bhejne se **pehle**
-**Kuch toota hua nahi hai** — teenon "maine chuna, client ne nahi" wale hain
-
-| #   | Kya                                                     | Kyun poochhna hai                                                                                                                                                                                             |
-| --- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | ✅ **Nishaan ke shabd** — band (11 Sep) | Client ne chaaron rakh liye — `Note:` · `Warning:` · `Quote:` · `Caption:` — aur **asli doc pe khud chala kar dekhe**. Shabd unhone apne paas note kar liye |
-| 2   | ✅ **Image ki caption** — band (11 Sep) | Client ne nishaan ki ijaazat di. Ab image ke turant neeche `Caption:` wali line `figcaption` banti hai (D-92 §10) |
-| 3   | ✅ **Table ki pehli row hamesha header** — band (11 Sep) | Client ne khud kaha: _"only first row will be table head other will be table body"_ |
-
-✅ **Guide v3 nahi banegi** (client, 11 Sep) — nishaan unhone khud note kar liye. Dhyan rahe ki guide
-v2 ka caption wala hissa ab purana hai ("image ke neeche italic line likho"); asli niyam `Caption:` hai.
-
-⚠️ **Purana guide doc ab galat hai** (`18Dd6_o8…`) — usme content wala hissa hai hi nahi. Naya
-[guide v2](https://docs.google.com/document/d/1h7yYppW8LhrztmI92zOKchkIQnuYL2qAW5JWvYBulYI/edit)
-hai. Drive ka API content update nahi kar sakta (sirf title/folder), isliye purana **trash** karna
-hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
-
-⚠️ Test post `/how-to-plan-an-andaman-trip-test` abhi **live** hai. Client ke kehne pe hatana hai.
-
----
-
 ### A-23 · Callout aur nishaan admin ke editor me nahi dikhte (10 Sep, D-92 §7)
 
 **Deadline:** koi nahi — aaj kuch toota hua nahi hai
@@ -416,45 +569,6 @@ page apne aap saade paragraph pe wapas aa jaata hai. Wahi soch `wrapTables()` pe
 
 Par client ise "preview se alag" bata sakta hai. Us din do raaste hain: editor me ek chhota CSS
 preview, ya nishaan ko asli block me badalna (jo Phase 5 ke builder ka kaam hai).
-
----
-
-### A-21 · Blog ka `next build` wala pehra — ✅ chaaron naap liye (11 Sep); speed ka kaam A-17 me (D-91)
-
-**11 Sep — production build pe naapa, alag setup me:** git worktree + DB ki copy `merncms_a21` +
-ports 3001/4001. Client ka dev server aur asli DB dono chhue nahi gaye — switch har post ka path
-aur redirect badalta hai, wo asli data pe chalana galat hota.
-
-| #   | Nateeja |
-| --- | ------- |
-| 1   | ✅ **Cache sach me chal raha hai, aur publish use saaf karta hai.** Ek post ki heading/excerpt **seedha DB me** badli (bina revalidate) → `/blog` 6+ second tak purana dikhata raha; service se publish karte hi dono badlaav aa gaye. Isse D-83 wala jhootha pass nahi ho sakta. ⚠️ Pehli koshish me maine `title` badla tha — wo card pe dikhta hi nahi (card `fields.heading` dikhata hai), yaani wo test kuch saabit nahi karta tha |
-| 2   | ✅ Purana URL → **308** → naya URL, naya URL 200. ⚠️ **Bug mila aur theek hua:** switch ke baad `/blog` ke card **ek ghante tak** (`CACHE_SECONDS`) purane URL pe link karte the — `syncPostUrlPattern()` listing ka `path:` tag bhejta hi nahi tha. Ab wahan bhi `blogListingTags()` (wahi helper jo `invalidate()` me hai), test ke saath. Live: switch ke **turant** baad links naye |
-| 3   | ✅ **Hydration / console errors: 0** — `/blog` aur article, 5-5 run (Lighthouse `errors-in-console`). Production me hydration mismatch console error banta hai, to ye wahi jaanch hai jo dev pe chhoot jaati. ⚠️ Pill pe **click** karke filter chalana naapa nahi gaya — Lighthouse interaction nahi karta |
-| 4   | ✅ **Naapa** — `/blog` **85**, article **67** (mobile, 5 run median). Poora hisaab aur wajah **A-17** me |
-
-⚠️ Redirect **308** hai, 301 nahi — Next permanent redirect ko 308 bhejta hai, jabki DB me
-`statusCode: 301` hai. Dono permanent hain aur search engine dono ko ek jaisa maante hain; bas D-91
-ka "301" page pe literally 301 nahi hai.
-
----
-
-_Neeche 10 Sep ka asli hisaab — waisa ka waisa:_
-
-**Deadline:** blog live jaane se **pehle**
-**Ye "verify karo" nahi, "abhi tak jaancha hi nahi" hai** — aur ek item aisa hai jo dev pe
-**hamesha pass dikhega**
-
-| # | Kya jaanchna hai | Kyun dev server kaafi nahi |
-| - | ---------------- | -------------------------- |
-| 1 | **Naya post publish → listing turant update** | `invalidate()` ab un `blogPage` ke `path:` tag bhejta hai jinme `postList` hai. **ISR sirf production build pe chalti hai** — dev me har request waise bhi fresh hoti hai, isliye ye test wahan **jhootha pass** deta hai. Theek wahi shakl jo D-83 me **teen din** chhupi rahi thi |
-| 2 | **Post ka URL switch → 301** | `syncPostUrlPattern()` ka `revalidateTags` dono path pe. Purana URL cache me 200 de raha ho to switch ke baad bhi wahi dikhega |
-| 3 | **Listing ka client-side filter** | `PostList` `'use client'` hai; hydration ki galti dev me aksar nahi dikhti |
-| 4 | **Speed ka naap** | D-85 ke baad blog ke do naye page kabhi naape hi nahi gaye. ⚠️ **Naapna `next build` + `next start` pe, 5 run ka median** — is machine pe noise 2x tak hai |
-
-⚠️ **Build se pehle dev band karo** — dono ek hi `.next` use karte hain. Dev chalte waqt build
-chalane se uske vendor chunks kat gaye the aur har page 500 dene laga tha (D-89).
-
-**Client ne 10 Sep ko kaha: _"shaam ko, kaam poora hone ke baad."_**
 
 ---
 
@@ -641,6 +755,7 @@ hero pe `fetchpriority="high"`, aur `Lightbox` click pe load hota hai.
 | Uske baad hi hero shuffle ka faisla | Wo LCP bigaadta hai ya nahi — **abhi tak sirf theory hai**, naap nahi. Naap se pehle us feature ko chhedna galat hoga |
 
 ⚠️ **Scope ki baat jo "all pages" se pehle jaanni chahiye:** site pe aaj **paanch hi page**
+> ⚠️ Ye 4 Sep ki haalat hai — ab home, blog, tour, page aur contact sab live hain; speed sirf package + blog pe naapi gayi hai.
 hain, paanchon package. `/` khud **404** deta hai (koi home entry nahi hai), aur Pages/Posts
 ke template bane hi nahi (**A-9**). "All pages 100" ka matlab aaj paanch package page hai.
 
@@ -682,72 +797,6 @@ dikhta hai — missing state kahin defined nahi. Pehle draft me ye chup-chaap "s
 text" maan liya gaya tha; wo developer ka faisla ban raha tha, isliye alag kar diya gaya.
 
 Client se poochhne wala sawaal: **logo na ho to header me uski jagah kya dikhna chahiye?**
-
----
-
-### A-16 · `pnpm test` asli uploads folder mita deta tha — ✅ **theek ho gaya (2 Sep)**
-
-**Code wala hissa band.** Ek hissa abhi baaki hai: `UPLOAD_DIR` repo ke **bahar** (neeche).
-
-Client kai dinon se ye keh raha tha: _"jo images admin me upload karta hu, koi change karne
-ko bolu fir wo frontend par visible kyu nahi hoti, mujhe fir se upload karna padta hai har
-baar."_
-
-**Wajah `media.test.js` se bhi badi nikli.** Pehle sirf test ki `beforeEach` par shak tha,
-par asli jad `vitest.config.js` me thi:
-
-```js
-// vitest.config.js — har test file pe lagti hai
-UPLOAD_DIR: './uploads',   // ← apps/api/uploads, dev ka ASLI folder
-
-// media.test.js
-const UPLOAD_ROOT = path.resolve(process.cwd(), 'apps/api/uploads')  // hardcoded
-beforeEach(async () => {
-  await rm(UPLOAD_ROOT, { recursive: true, force: true })
-```
-
-Yaani do alag jagah ek hi asli folder pe point kar rahi thi: test me chalne wali **app**
-wahan likhti thi, aur **test** use har baar `rm -r` kar deta tha. Sirf test ka path badalna
-aadha fix hota — app phir bhi asli folder me likhti rehti.
-
-Lakshan isiliye itna uljha hua tha: **DB ke records bache rehte hain**, sirf files jaati
-hain. Admin ki Media list bhari hui dikhti hai, aur frontend pe wahi image 404 deti hai. Aur
-kyunki files sirf tab jaati hain jab koi test chalata hai, client ko lagta tha ki wajah
-"code change" hai — jabki wajah change ke **baad chalne wala test** tha.
-
-⚠️ **Pehli theory galat thi.** Is par pehle `git clean -fdx` ka shak likha gaya tha
-(`uploads/` gitignored hai, to theory theek baithti thi). Wo galat tha — wajah repo ke apne
-test setup me thi. Purani theory par aage koi kaam mat karna.
-
-**Kya laga (2 Sep):**
-
-| Kaam | Kya hua |
-| --- | --- |
-| `vitest.config.js` ka `UPLOAD_DIR` | ab `./.test-uploads-media` — test me chalne wali app asli folder ko chhooti hi nahi |
-| `media.test.js` ka `UPLOAD_ROOT` | ab `getStorageDriver().root` se aata hai, hardcoded nahi — jahan app likhti hai **theek wahi** saaf hota hai, dono drift kar hi nahi sakte |
-| Ek guard | root `.test-` se shuru na ho to file **chalne se pehle** throw karti hai — data mitne ke baad nahi |
-| `afterAll` cleanup | throwaway folder peeche nahi rehta; `.gitignore` me `.test-uploads*/` bhi juda |
-
-**Verify kiya:** poori suite (26 file · **624 test**) chalane ke baad `apps/api/uploads` ki
-files jaisi ki waisi bachi rahin, aur guard ki dono soorat alag se jaanchi gayi.
-
-**Ab bhi baaki — doosri deewar:** `apps/api/.env` me `UPLOAD_DIR` repo ke **bahar** ho
-(jaise `C:/Users/deepa/cms-uploads`). Uske baad koi test, build ya `git clean` usse chhoo hi
-nahi sakta. D-41 absolute path pehle se allow karta hai. Ye file permissions ki wajah se
-2 Sep ko nahi badli ja saki — client khud badlega, aur purani files nayi jagah move karni
-hongi.
-
-⚠️ Jo files pehle ja chuki hain wo **wapas nahi aayengi** — disk se mit chuki hain aur git
-me thi nahi. Ek baar phir upload karni padengi.
-
-Ek sabak bhi hai, aur wo D-42 §2 se juda hai: public API sirf **DB record** dekh kar `null`
-bhejti hai. Record maujood par file gayab — wo soorat wo pakad hi nahi sakti. Isiliye ye
-failure itni chup thi.
-
-Aur ek: **`storage.test.js` ne yahi galti nahi ki thi** kyunki wo apna folder khud banati
-hai. Farak sirf itna tha ki `media.test.js` app ko `createApp()` se chalati hai, aur app ka
-folder config se aata hai — isliye us file ko config se **judna** padta tha, na ki apna path
-likhna.
 
 ---
 
@@ -835,98 +884,6 @@ card** ka image bacha rehta hai (Similar itineraries, package archive — spec 0
 **Kyun abhi nahi badla:** client ne kaha _"abhi ke liye sahi aa raha hai, jaisa design me
 hai"_. Design (`itinerary-v3.html`) me paanch-tile mosaic hi hai, aur R15 kehta hai design
 jeetega jab tak client saaf na kahe.
-
----
-
-### A-9 · Pages aur Posts ki screens abhi bhi "abhi nahi bana" pe hain
-
-> ✅ **Band — 14 Sep (D-95).** `post` wala aadha 9 Sep ko spec 008 me band hua tha; `page` wala aaj.
-> `Pages ▸ All Pages · Add New` ab asli screens hain, `page` ka apna field set hai, aur public site pe
-> `components/page/TextPage.jsx` (`page-template-text.html`). Neeche ka hisaab itihaas hai.
-
-> ⚠️ **Ek din ke liye Pages ka hissa band ho gaya tha, phir wapas khul gaya (8 Sep).**
->
-> D-87 Slice C me Pages ki screens ban gayi thin — par **wo kaam scope me tha hi nahi**, D-87
-> Tour ka kaam tha. Client ne wo mana kiya: _"Pages par kaam to ho hi nahi raha."_ Screens wapas
-> `NotBuiltYet` pe hain aur `page` ka field set phir se khaali hai.
->
-> ✅ **Ek cheez bach gayi, aur wo asli faayda hai:** ab in screens ka **saancha maujood hai** —
-> `EntriesList.jsx` aur `PageEdit.jsx` dono `type` se chalte hain, aur `lib/use-entries.js` ke
-> hooks kisi bhi content type pe chalte hain. Jis din Pages ya Posts ka kaam aayega, wo screens
-> dobara likhni nahi padengi: `TYPE_CONFIG` me ek row, aur do route.
->
-> ⚠️ **Neeche wala purana andaza galat nikla** — usme likha tha ki ye "Packages ki screens ka hi
-> doosra roop" hoga aur `PackagesList`/`PackageEdit` `type` se chal jaayengi. Asli kaam ulta
-> hua: un screens ko **chhua hi nahi gaya** (unke apne filter aur bulk actions package ke domain
-> ke hain). Jo sach me share hua wo **data hooks** the, screens nahi.
-
-**Deadline:** koi sakht nahi — par ye **engine ka bacha hua kaam** hai, naya feature nahi
-**Kuch toota nahi hai** — sirf ek gap hai jiska kahin record nahi tha
-
-D-46 ke baad `entries` + `contentTypes` ka engine chal raha hai, aur `page` aur `post`
-dono types **seed me register bhi ho chuke hain**. Docs kai jagah kehte hain ki _"uske baad
-Pages aur Posts sirf apne field set ki baat hain"_ (`05-BUILD-PLAN.md`, D-46).
-
-**Par unki screens bani nahi hain.** `apps/admin/src/lib/nav.js` me unke links maujood hain
-aur wo `NotBuiltYet` pe jaate hain:
-
-```
-/posts   /posts/new   /posts/categories   /posts/tags
-/pages   /pages/new
-```
-
-Yaani API se aaj bhi ek Page ya Post banaya ja sakta hai, par admin me uska koi raasta
-nahi hai.
-
-**Kaam kitna hai:** Packages ki screens (`PackagesList` + `PackageEdit`) ka hi doosra roop —
-dono `type` se chalti hain, hardcoded `package` unme kam jagah hai. Categories aur Tags ke
-liye `TaxonomyScreen` pehle se bana hua hai (wo `type` prop leta hai), sirf do route jodne
-hain.
-
-⚠️ **Ek cheez jo Packages se alag hai:** Pages **hierarchical** hain (D-09) — unke editor me
-ek "Parent" dropdown chahiye, aur list me indent. Package editor me wo hai hi nahi, kyunki
-packages flat hain. Ye copy-paste se nahi aayega.
-
-**Ye yahan isliye likha hai ki ye chup-chaap gayab ho raha tha.** Slice 1 se Slice 4 tak ka
-poora kaam Packages pe kendrit raha, aur is gap ka kisi list me zikr nahi tha — wo sirf tab
-dikhta jab koi sidebar me Posts pe click karta.
-
-⚠️ **Upar wale "Kaam kitna hai" wala andaza galat nikla.** Usme likha tha ki ye "Packages ki
-screens ka hi doosra roop" hoga aur `PackagesList`/`PackageEdit` `type` se chal jaayengi.
-Slice C me asli kaam ulta hua: un screens ko **chhua hi nahi gaya** — unke apne filter,
-`From price` column aur Featured wale bulk action package ke domain ki cheezein hain, aur unhe
-props se on/off karna wahi component banata jise koi chhoona nahi chahta. Jo sach me share hua
-wo **data hooks** the (`lib/use-entries.js`), screens nahi.
-
-Parent dropdown wali chetavni **sahi** nikli — wo `PageEdit.jsx` me bana hua hai, aur Tour page
-pe bhi chalta hai (wahan wo URL nahi badalta, sirf breadcrumb banata hai).
-
----
-
-### Public page ke chaar section jo abhi bane hi nahi
-
-**Deadline:** koi nahi — page aaj poora chalta hai, ye sections **render hi nahi hote**
-**Yahan isliye hain ki inhe "TODO" kahin aur nahi likha gaya**
-
-Design (`itinerary-v3.html`) me ye chaar the. **Chaaron ban gaye** — ek 31 Aug ko, teen
-1 Sep ko:
-
-| Section | Kya laga | Kab |
-| --- | --- | --- |
-| ~~**Traveller reviews**~~ | ✅ `reviews` collection + `packageDefaults.rating` | **D-70** |
-| ~~**Similar itineraries**~~ | ✅ poori tarah derived, koi field nahi | **D-71** |
-| ~~**"Want this trip on your dates?"**~~ | ✅ button + uska target field | **D-67** |
-| ~~Sidebar ka **price + enquiry widget**~~ | ✅ `forms` module, khol design ka | **D-72** |
-
-> Is section ka kaam khatam ho gaya. Ye heading yahan **itihaas** ke liye hai: yahi wo list
-> thi jo kahin aur "TODO" likhi hi nahi gayi thi, aur usi wajah se do mahine chup padi rahi.
-
-**Q-2 ka atkav is band pe khul gaya (31 Aug).** Client ne teen raaston me se chautha chuna:
-_"button to form par hi jata hai par abhi bana nahi hai to abhi fields bana do jisse bad me
-bhej sake."_ Yaani section **poora ban gaya** aur button ka target ek **field** hai — jis
-din form bane, sirf ek value bharni hai. Khaali URL pe button dikhta hi nahi (D-30).
-
-⚠️ Sidebar wala widget abhi bhi Q-2 pe hai — wahan asli **form** chahiye, sirf ek link nahi.
 
 ---
 
@@ -1089,25 +1046,6 @@ kabhi nahi" ka doosra roop: data na mile to page bina us hisse ke bane, poora bu
 
 ---
 
-### Q-2 · Enquiries — ✅ **band (3 Sep — D-75)**
-
-Do mahine khula raha, aur do kadam me band hua:
-
-- **1 Sep (D-72)** — Enquiry Forms + Add New Form, aur package page pe sach me chalta form
-- **3 Sep (D-75)** — **inbox**: All Enquiries · Enquiry Detail · Export CSV
-
-Client ka scope: _"jo bina blocker ke ban sakta hai — poora"_. Isliye Send Quotation (SMTP),
-activity feed (Q-4), aur assign/priority/follow-up **nahi** bane — unka panel bhi nahi dikhta
-(D-30). Poora hisaab D-75 me.
-
-⚠️ **`salesAgent` ke permissions ab bhi wahin hain** (`ENTRY_READ` + `MEDIA_READ`). Wo role
-enquiries handle karne ke liye bana tha (D-29) par abhi inbox nahi dekh sakta — uske liye
-`submission.*` chahiye. Ye jaan-boojh kar chhoda gaya: client ne assignment wala hissa scope
-se bahar rakha, aur role ke defaults badalna unse poochhe bina karna theek nahi lagta.
-**Client se poochhna hai:** salesAgent ko inbox dikhna chahiye ya nahi?
-
----
-
 ### Q-4 · Activity log — banega ya nahi?
 
 **Deadline:** koi nahi — jab client maange
@@ -1142,6 +1080,8 @@ Spec 005 me add karne honge.
 
 ## Ab ka order
 
+> ⚠️ **Itihaas — 31 Aug tak ka kram.** Uske baad ka kaam client ke kehne pe page-by-page chala (D-65 se D-96). Aaj ka kram `project-state.md` me hai.
+
 ```
 1. ✅ Users menu role-aware + Profile screen      (D-37 — 21 Aug)
 2. ✅ Settings — model + migration + General      (D-40 — 21 Aug)
@@ -1161,7 +1101,7 @@ Spec 005 me add karne honge.
     ✅ All Packages + Add New/Edit + Slice 2 ki saat screens
     ✅ A-8 — Overview ka WYSIWYG (TipTap)
 14. ✅ Slice 4 — Itinerary Builder                 (D-51, 26 Aug — 538 tests)
-15. 🟡 Public package page — shuru             (D-52, 26 Aug — 547 tests)
+15. ✅ Public package page — shuru             (D-52, 26 Aug — 547 tests)
     hero · overview · route strip · itinerary · included · booking · gallery
 16. ✅ Dev server tunnel/LAN se khule; CORS reject ab 403  (27 Aug — 541 tests)
     naya env var `EXTRA_CORS_ORIGINS` · spec 003 update
@@ -1176,10 +1116,8 @@ Spec 005 me add karne honge.
 18. ✅ FAQs ka panel — Slice 6 se aage khiska    (D-59, 27 Aug — 565 tests)
     sirf FAQs, policies nahi; page pe <details>, koi JS nahi
 19. ✅ A-5 — apps/web ki .env; revalidate ab configured    (31 Aug)
-20. Slice 6 ka bacha hua hissa — sirf reviews[] + rating   ← agla kaam
-    ⚠️ Itinerary Images pool + gallery (Slice 4/D-52) aur FAQs (D-59) BAN CHUKE hain
-    goodToKnow[] BANEGA HI NAHI (D-68); reviews[] §9 #8 pe ruka hai
-21. Slice 7 → specs/007-packages.md §7
+20. ✅ Slice 6/7 ke bache section — reviews (D-70) · similar (D-71) · forms (D-72)   (1 Sep)
+21. ✅ Slice 7 → specs/007-packages.md §7
 ```
 
 ### Media Phase 2 se aage kyun khisak rahi hai
@@ -1262,7 +1200,7 @@ Column sorting **ban chuki hai**. Posts/Enquiries counts Phase 1 aur 7b pe block
 
 - ✅ `git init` ho chuka — branch `main`, remote `origin` configured
 - ✅ R15 likh diya gaya — design change client se aata hai
-- ⚠️ **Local commits `origin/main` se aage hain.** Ginti yahan jaan-boojh kar nahi likhi —
+- ⚠️ **Push ki haalat `git log --oneline origin/main..HEAD` se lo** (17 Sep ko 0 thi). Ginti yahan jaan-boojh kar nahi likhi —
   wo har commit pe purani ho jaati thi aur do baar galat mili. Sach `git log --oneline
   origin/main..HEAD` se lo. **Rule wahi hai: push sirf permission pe.**
 - ⚠️ **CI ka pehla step `pnpm format:check` hai** (`.github/workflows/ci.yml`:
