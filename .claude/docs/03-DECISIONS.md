@@ -8777,6 +8777,7 @@ kyun hai.
 | 3 | Breadcrumb ka beech wala kadam **Packages ▸ Itinerary Settings** me |
 | 4 | Wahan **dropdown**, aur usme **sirf Tour pages** (client: _"dropdown agar best hai to ise karo"_) |
 | — | `To` me bahar ka link — client ne samjhne ke liye poochha, faisla nahi diya; suggestion (dono, sirf `https://`) pe bana |
+| 5 | **Temporary (302) ka chunav nahi** — _"make it simple no extra things"_ (usi din, screen dekh kar). Form me sirf From + To, har redirect `301`; `statusCode` bhejna 400 |
 
 ### 1. Kya pehle se tha
 

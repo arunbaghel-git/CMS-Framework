@@ -16,13 +16,13 @@
 
 ### Kya bana
 
-| Kya                                                                                                                                                        | Kahan                                                                     |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| **Settings ▸ 301 Redirects** — haath se `from → to` (site ka path ya `https://` link), 301/302, Manual/Automatic filter, search, Edit/Delete               | `screens/settings/Redirects.jsx`, `modules/redirects` (POST + PATCH naye) |
-| Resolve ka kram palta — **dikhne wala page pehle**, redirect sirf 404 ke raaste pe                                                                         | `public/service.js` `resolvePublicPath()`                                 |
-| Rok: page wale path pe redirect nahi · ek from pe ek · loop · chain flatten · auto kabhi manual ko nahi badalta                                            | `redirects/service.js`                                                    |
-| **Package breadcrumb** — `Packages ▸ Itinerary Settings ▸ Breadcrumb` me Tour page ka dropdown (`breadcrumbPageId`); `Section Headings` se label/link hata | `package-defaults`, `ItinerarySettings.jsx`                               |
-| Web: package-defaults fetch `type:tourPage` pe bhi tag                                                                                                     | `apps/web/lib/cms.js`                                                     |
+| Kya                                                                                                                                                                               | Kahan                                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Settings ▸ 301 Redirects** — haath se `from → to` (site ka path ya `https://` link), hamesha 301 (302 ka chunav client ne hataya), Manual/Automatic filter, search, Edit/Delete | `screens/settings/Redirects.jsx`, `modules/redirects` (POST + PATCH naye) |
+| Resolve ka kram palta — **dikhne wala page pehle**, redirect sirf 404 ke raaste pe                                                                                                | `public/service.js` `resolvePublicPath()`                                 |
+| Rok: page wale path pe redirect nahi · ek from pe ek · loop · chain flatten · auto kabhi manual ko nahi badalta                                                                   | `redirects/service.js`                                                    |
+| **Package breadcrumb** — `Packages ▸ Itinerary Settings ▸ Breadcrumb` me Tour page ka dropdown (`breadcrumbPageId`); `Section Headings` se label/link hata                        | `package-defaults`, `ItinerarySettings.jsx`                               |
+| Web: package-defaults fetch `type:tourPage` pe bhi tag                                                                                                                            | `apps/web/lib/cms.js`                                                     |
 
 **Tests:** poori suite 1174/1176 — do fail media.test.js ki cleanup me Windows ka ENOTEMPTY (rmdir), is kaam se bahar; wo file akele 20/20 pass · naya `redirects.test.js` (16) · lint · format · admin build pass.
 

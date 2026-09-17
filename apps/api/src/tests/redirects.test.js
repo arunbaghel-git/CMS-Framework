@@ -137,22 +137,22 @@ describe('create', () => {
     expect(res.body.data.redirect.from).toBe('/old_tour.html')
   })
 
-  it('bahar ka https link aur 302 chalte hain; javascript: / http: / // nahi', async () => {
-    const ok = await create({
-      from: '/whatsapp',
-      to: 'https://wa.me/919999999999',
-      statusCode: 302,
-    })
+  it('bahar ka https link chalta hai; javascript: / http: / // nahi', async () => {
+    const ok = await create({ from: '/whatsapp', to: 'https://wa.me/919999999999' })
     expect(ok.status).toBe(201)
     expect((await resolve('/whatsapp')).body.data).toEqual({
       kind: 'redirect',
       to: 'https://wa.me/919999999999',
-      statusCode: 302,
+      statusCode: 301,
     })
 
     expect((await create({ from: '/a', to: 'javascript:alert(1)' })).status).toBe(400)
     expect((await create({ from: '/b', to: 'http://example.com' })).status).toBe(400)
     expect((await create({ from: '/c', to: '//evil.com' })).status).toBe(400)
+  })
+
+  it('302 ka chunav nahi — statusCode bhejna 400, redirect hamesha 301 (client, 17 Sep)', async () => {
+    expect((await create({ from: '/a', to: '/b', statusCode: 302 })).status).toBe(400)
   })
 
   it('home, query wala from, aur khud pe redirect — teeno mana', async () => {
@@ -224,13 +224,12 @@ describe('update · delete · list', () => {
 
     const res = await authed('patch', `/api/redirects/${auto._id}`, adminJar).send({
       to: '/packages/newer',
-      statusCode: 302,
     })
 
     expect(res.status).toBe(200)
     expect(res.body.data.redirect).toMatchObject({
       to: '/packages/newer',
-      statusCode: 302,
+      statusCode: 301,
       isAuto: false,
     })
   })

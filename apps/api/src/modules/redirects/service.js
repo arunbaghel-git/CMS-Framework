@@ -189,7 +189,7 @@ export async function createRedirect(input, siteId = DEFAULT_SITE_ID, locale = D
     ...scope(siteId, locale),
     from: input.from,
     to,
-    statusCode: input.statusCode ?? 301,
+    statusCode: 301,
     isAuto: false,
     hits: 0,
   })
@@ -217,7 +217,7 @@ export async function updateRedirect(id, input, siteId = DEFAULT_SITE_ID, locale
 
   const doc = await Redirect.findOneAndUpdate(
     { _id: current._id },
-    { $set: { from, to, statusCode: input.statusCode ?? current.statusCode, isAuto: false } },
+    { $set: { from, to, statusCode: 301, isAuto: false } },
     { new: true },
   ).lean()
 

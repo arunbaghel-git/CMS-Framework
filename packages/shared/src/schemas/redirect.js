@@ -116,12 +116,18 @@ export const redirectSchema = z.object({
   updatedAt: z.coerce.date().optional(),
 })
 
-/** Admin ka banaya redirect — `Settings ▸ 301 Redirects` (D-97). */
+/**
+ * Admin ka banaya redirect — `Settings ▸ 301 Redirects` (D-97).
+ *
+ * ⚠️ **`statusCode` yahan nahi hai** — admin ka redirect hamesha `301` (client, 17 Sep: _"make it simple
+ * no extra things"_). Pehle form me Permanent/Temporary ka chunav tha; hata diya. `.strict()` ki wajah se
+ * `statusCode` bhejna ab 400 hai, chup-chaap gir nahi jaata. Collection ka field (`301|302`) waisa hi —
+ * wo D-49 ka shape hai aur resolve use padhta hai.
+ */
 export const createRedirectSchema = z
   .object({
     from: redirectFromSchema,
     to: redirectToSchema,
-    statusCode: statusCodeSchema.default(301),
   })
   .strict()
 
@@ -129,7 +135,6 @@ export const updateRedirectSchema = z
   .object({
     from: redirectFromSchema.optional(),
     to: redirectToSchema.optional(),
-    statusCode: statusCodeSchema.optional(),
   })
   .strict()
 

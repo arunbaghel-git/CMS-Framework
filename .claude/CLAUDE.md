@@ -692,7 +692,7 @@ naam aur unke paragraph) har package page pe chhapta hai, chahe content kisi bhi
 ⚠️ Sanitizer me teen cheezein allow hui, teenon ek hi wajah se (bina unke content **chup-chaap** girta tha):
 SVG ka `<text>`/`<tspan>`, `<address>`, aur `aria-label`.
 **17 Sep — 301 Redirects + package breadcrumb (D-97), koi migration nahi.** `/packages/` pe 404 se shuru hua.
-**Settings ▸ 301 Redirects** — haath se `from → to` (site ka path ya `https://`), 301/302. ⚠️ **Resolve ka kram palta:
+**Settings ▸ 301 Redirects** — haath se `from → to` (site ka path ya `https://`), hamesha 301. ⚠️ **Resolve ka kram palta:
 dikhne wala page pehle, redirect sirf uske na hone pe** — warna redirect ke baad bana page kabhi dikhta hi nahi. Page wale
 path pe redirect ban hi nahi sakta (422), aur auto-redirect admin ke banaye ko kabhi nahi badalta. Package URL
 `/packages/{slug}` hi rahega (client). Breadcrumb ab `Packages ▸ Itinerary Settings` me **Tour page ka dropdown**

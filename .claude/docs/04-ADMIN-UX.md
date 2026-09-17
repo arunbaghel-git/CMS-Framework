@@ -797,9 +797,9 @@ Tab `Custom CSS` ke baad. Layout Hotels/Add Ons wala — left form, right list (
 reference nahi hai). Permission `redirect.*` (admin, editor).
 
 - **Form:** From (`/packages` — trailing slash/bada akshar farak nahi) · To (site ka path ya `https://`
-  link) · Type — Permanent (301) / Temporary (302) · Add redirect / Update + Cancel
-- **List:** All · Manual · Automatic · Search URL… (From ya To) · pagination (20) · columns From · To · Type
-  (`Permanent`/`Temporary` + `Manual`/`Automatic` badge) · row actions Edit · Delete (confirm)
+  link) · Add redirect / Update + Cancel. **Permanent/Temporary ka chunav nahi** — har redirect 301 (client)
+- **List:** All · Manual · Automatic · Search URL… (From ya To) · pagination (20) · columns From · To (auto wale
+  From ke saath `Automatic` badge) · row actions Edit · Delete (confirm)
 - Auto wala edit karo to wo Manual ban jaata hai
 
 ### Packages ▸ Itinerary Settings ▸ Breadcrumb

@@ -991,7 +991,7 @@ CRUD   /api/hotels | /api/add-ons | /api/transfers           ✅ Slice 2
 GET/PATCH /api/package-defaults          ek document, isliye koi :id nahi  ✅ Slice 2
 
 GET    /api/redirects?q=&isAuto=true|false                   ✅ q = from ya to
-POST   /api/redirects                    ✅ D-97 — {from, to, statusCode}
+POST   /api/redirects                    ✅ D-97 — {from, to}, hamesha 301
 PATCH  /api/redirects/:id                ✅ D-97 — edit pe isAuto false
 DELETE /api/redirects/:id                ✅
 

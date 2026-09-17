@@ -20,6 +20,9 @@ import './Settings.css'
  *
  * ⚠️ Auto wale redirect (slug badalne pe) bhi isi list me dikhte hain — `Automatic` badge ke saath.
  * Unhe edit karo to wo `Manual` ban jaate hain aur system unhe phir kabhi nahi badalta (D-97 §4).
+ *
+ * ⚠️ **Sirf From aur To** — Permanent/Temporary ka chunav client ne hataya (17 Sep: _"make it simple no
+ * extra things"_). Har redirect `301` hai; screen ka naam bhi yahi kehta hai.
  */
 
 const FILTERS = [
@@ -30,7 +33,7 @@ const FILTERS = [
 
 const LIMIT = 20
 
-const EMPTY_FORM = { from: '', to: '', statusCode: 301 }
+const EMPTY_FORM = { from: '', to: '' }
 
 export default function Redirects() {
   const { can } = useAuth()
@@ -88,7 +91,7 @@ export default function Redirects() {
 
   function startEdit(item) {
     setEditingId(item.id)
-    setForm({ from: item.from, to: item.to, statusCode: item.statusCode })
+    setForm({ from: item.from, to: item.to })
     setError(null)
     setNotice(null)
   }
@@ -202,32 +205,6 @@ export default function Redirects() {
                 </div>
               </div>
 
-              <div className="field">
-                <label>Type</label>
-                <label className="inline-lbl">
-                  <input
-                    type="radio"
-                    name="redirect-type"
-                    checked={form.statusCode === 301}
-                    onChange={() => setForm({ ...form, statusCode: 301 })}
-                  />{' '}
-                  Permanent (301)
-                </label>
-                <label className="inline-lbl">
-                  <input
-                    type="radio"
-                    name="redirect-type"
-                    checked={form.statusCode === 302}
-                    onChange={() => setForm({ ...form, statusCode: 302 })}
-                  />{' '}
-                  Temporary (302)
-                </label>
-                <div className="hint">
-                  Use Permanent when the old URL is gone for good — search engines move to the new
-                  one. Temporary keeps the old URL in search results.
-                </div>
-              </div>
-
               <button className="btn btn-primary" type="submit" disabled={saving}>
                 {saving ? 'Saving…' : editingId ? 'Update' : 'Add redirect'}
               </button>
@@ -309,13 +286,12 @@ export default function Redirects() {
               <tr>
                 <th>From</th>
                 <th>To</th>
-                <th>Type</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={3} className="muted">
+                  <td colSpan={2} className="muted">
                     Loading…
                   </td>
                 </tr>
@@ -323,7 +299,7 @@ export default function Redirects() {
 
               {!loading && items.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="muted">
+                  <td colSpan={2} className="muted">
                     No redirects yet.
                   </td>
                 </tr>
@@ -334,6 +310,8 @@ export default function Redirects() {
                   <tr key={item.id}>
                     <td>
                       <span className="row-title">{item.from}</span>
+                      {/* Sirf slug badalne se bane redirect pe — kahan se aaya, ye bina alag column ke dikhe */}
+                      {item.isAuto && <span className="badge">Automatic</span>}
                       {(canUpdate || canDelete) && (
                         <div className="row-actions">
                           {canUpdate && (
@@ -367,10 +345,6 @@ export default function Redirects() {
                       )}
                     </td>
                     <td className="muted redirect-to">{item.to}</td>
-                    <td className="muted">
-                      {item.statusCode === 301 ? 'Permanent' : 'Temporary'}{' '}
-                      <span className="badge">{item.isAuto ? 'Automatic' : 'Manual'}</span>
-                    </td>
                   </tr>
                 ))}
             </tbody>
