@@ -214,6 +214,15 @@
   --foot-logo-h: 42px;
   --foot-logo-h-m: 34px;
   --btn-h: 44px;
+  /* Settings ▸ Layout (17 Sep) — default aaj ki site; admin kuch badle tabhi `<head>` me override */
+  --btn-r: var(--r2);
+  --header-pos: sticky;
+  --header-h-m: var(--header-h);
+  --scroll-offset: calc(var(--header-h) + 26px);
+  --logo-max-w: none;
+  --foot-logo-max-w: none;
+  --foot-card-bg: var(--surface);
+  --foot-card-pad: 8px 12px;
 
   /* Mega ke layout widths — spec 006 §2.1. Inhi se allowed column counts nikalte hain. */
   --mega-sm: 420px;
@@ -344,7 +353,7 @@
  */
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--header-h) + 26px);
+  scroll-padding-top: var(--scroll-offset);
 }
 
 /*
@@ -561,7 +570,7 @@ a {
   /* i did it 20px needed */
   padding: 0 20px;
   border: 0;
-  border-radius: var(--r2);
+  border-radius: var(--btn-r);
   font-size: var(--fs-base);
   font-weight: var(--fw-bold);
   white-space: nowrap;
@@ -619,7 +628,7 @@ a {
 /* Reference me header **sticky** hai aur border ki jagah ek halki shadow hai —
    scroll karte waqt nav upar chipki rehti hai. */
 .hdr {
-  position: sticky;
+  position: var(--header-pos);
   top: 0;
   z-index: 100;
   background: var(--header-bg);
@@ -659,6 +668,10 @@ a {
      aspect ratio wale logo header ki height na badlein */
   height: var(--logo-h);
   width: auto;
+  /* Bahut chauda logo menu ko dhakka na de — Settings ▸ Layout ▸ Logo max width (default koi rok nahi) */
+  max-width: var(--logo-max-w);
+  object-fit: contain;
+  object-position: left center;
   flex-shrink: 0;
 }
 
@@ -1214,9 +1227,10 @@ a.mega__gl:hover {
    bhi ye card nuksaan nahi karta. */
 .ft__brand {
   display: inline-flex;
-  background: var(--surface);
+  /* Safed dabba — Settings ▸ Layout ▸ "Show a white box behind the footer logo" */
+  background: var(--foot-card-bg);
   border-radius: calc(var(--r2) + 2px);
-  padding: 8px 12px;
+  padding: var(--foot-card-pad);
   margin-bottom: 16px;
 }
 
@@ -1224,6 +1238,9 @@ a.mega__gl:hover {
   display: block;
   height: var(--foot-logo-h);
   width: auto;
+  max-width: var(--foot-logo-max-w);
+  object-fit: contain;
+  object-position: left center;
 }
 
 /* Text block — icon baayen, label + text daayen. Har block ke neeche ek halki line,
@@ -1577,6 +1594,11 @@ a.mega__gl:hover {
     height: var(--logo-h-m);
   }
 
+  /* Settings ▸ Layout ▸ Header height — mobile (default desktop wala hi) */
+  .hdr__top {
+    min-height: var(--header-h-m);
+  }
+
   /*
    * Sirf icon — **sirf phone pe** (client, 11 Sep, D-94: _"only on mobile award text should be
    * hidden"_). Pehle 1040px pe tha, yaani tablet pe bhi label chhup jaata.
@@ -1612,6 +1634,9 @@ a.mega__gl:hover {
   display: block;
   height: var(--foot-logo-h-m);
   width: auto;
+  max-width: var(--foot-logo-max-w);
+  object-fit: contain;
+  object-position: left center;
 }
 
 /* Nav bachi hui jagah leti hai taaki foot hamesha neeche chipka rahe */

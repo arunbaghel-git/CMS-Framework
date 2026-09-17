@@ -17,6 +17,13 @@ import {
   THEME_COLOR_DEFAULTS,
   THEME_HEADING_KEYS,
 } from '../theme-colors.js'
+import {
+  BUTTON_SHAPES,
+  CORNER_STYLES,
+  SHADOW_STYLES,
+  THEME_LAYOUT_DEFAULTS,
+  THEME_LAYOUT_LIMITS,
+} from '../theme-layout.js'
 
 const themeHexSchema = z
   .string()
@@ -30,6 +37,31 @@ const themeHexSchema = z
  * Advanced me **sirf wahi key** hoti hai jiska Auto hataya gaya; key ka na hona = Auto. `headings`
  * sirf `perHeading` on pe maana jaata hai. `.strict()` — anjaan key chup-chaap na gire (D-43 §3).
  */
+/**
+ * **Settings ▸ Layout** (client, 17 Sep) — hadd `THEME_LAYOUT_LIMITS` se, default aaj ki site.
+ * Hadd ke bahar ka number 400 hai, chup-chaap clamp nahi — admin ko pata chale.
+ */
+const layoutNumber = (key) => {
+  const [min, max] = THEME_LAYOUT_LIMITS[key]
+  return z.coerce
+    .number()
+    .int('Use whole pixels')
+    .min(min, `Must be at least ${min}`)
+    .max(max, `Must be at most ${max}`)
+    .default(THEME_LAYOUT_DEFAULTS[key])
+}
+
+export const themeLayoutSchema = z
+  .object({
+    ...Object.fromEntries(Object.keys(THEME_LAYOUT_LIMITS).map((k) => [k, layoutNumber(k)])),
+    corners: z.enum(CORNER_STYLES).default(THEME_LAYOUT_DEFAULTS.corners),
+    shadow: z.enum(SHADOW_STYLES).default(THEME_LAYOUT_DEFAULTS.shadow),
+    btnShape: z.enum(BUTTON_SHAPES).default(THEME_LAYOUT_DEFAULTS.btnShape),
+    sticky: z.boolean().default(THEME_LAYOUT_DEFAULTS.sticky),
+    footLogoCard: z.boolean().default(THEME_LAYOUT_DEFAULTS.footLogoCard),
+  })
+  .strict()
+
 export const themeColorsSchema = z
   .object({
     ...Object.fromEntries(
@@ -691,6 +723,9 @@ export const settingsSchema = z.object({
 
   /** Site ke rang — Settings ▸ Colours (client, 17 Sep). Admin hamesha poora object bhejta hai. */
   themeColors: themeColorsSchema.default({}),
+
+  /** Chaudai, kone, shadow, button, header/logo — Settings ▸ Layout (client, 17 Sep). */
+  themeLayout: themeLayoutSchema.default({}),
 })
 
 /**

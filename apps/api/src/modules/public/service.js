@@ -20,6 +20,7 @@ import {
   routeStrip,
   slugify,
   themeColorCss,
+  themeLayoutCss,
   videoEmbedUrl,
   withHeadingIds,
 } from '@cms/shared'
@@ -214,10 +215,11 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
     customCss: settings.customCss ?? '',
 
     /**
-     * Settings ▸ Colours ka CSS — `html:root{--x:#…}`, **sirf badle hue** token (theme-colors.js).
+     * Settings ▸ Colours + Layout ka CSS — `html:root{--x:…}`, **sirf badle hue** token
+     * (`theme-colors.js`, `theme-layout.js`).
      * Server pe banta hai, theme me nahi (D-65 wala tark). Khaali string = theme ke apne rang.
      */
-    themeCss: themeColorCss(settings.themeColors),
+    themeCss: themeColorCss(settings.themeColors) + themeLayoutCss(settings.themeLayout),
 
     /** Resolved image ya `null` — theme ko kabhi media id resolve nahi karni padti. */
     logo,

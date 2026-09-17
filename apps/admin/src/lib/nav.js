@@ -319,6 +319,7 @@ export const NAV = [
       { label: 'General', to: '/settings', permission: PERMISSION.SETTINGS_READ },
       /** Site ke rang — client, 17 Sep (reference admin-design-v4.html). Fonts aur Layout isi ke baad aayenge. */
       { label: 'Colours', to: '/settings/colours', permission: PERMISSION.SETTINGS_READ },
+      { label: 'Layout', to: '/settings/layout', permission: PERMISSION.SETTINGS_READ },
       /**
        * Page ka aakhri CTA card — D-67. Design me ye `.offer` hai.
        *
@@ -464,6 +465,7 @@ export const ROUTE_GUARDS = Object.freeze({
   '/settings': PERMISSION.SETTINGS_READ,
   '/settings/cta': PERMISSION.SETTINGS_READ,
   '/settings/colours': PERMISSION.SETTINGS_READ,
+  '/settings/layout': PERMISSION.SETTINGS_READ,
   '/settings/custom-css': PERMISSION.SETTINGS_READ,
   '/settings/redirects': PERMISSION.REDIRECT_READ,
   /**

@@ -39,6 +39,7 @@ import Colours from './screens/settings/Colours.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import CustomCss from './screens/settings/CustomCss.jsx'
 import General from './screens/settings/General.jsx'
+import Layout from './screens/settings/Layout.jsx'
 import Redirects from './screens/settings/Redirects.jsx'
 import BlogSettings from './screens/settings/BlogSettings.jsx'
 import PageSettings from './screens/settings/PageSettings.jsx'
@@ -277,6 +278,7 @@ const APP_ROUTES = [
   { path: '/profile', element: <Profile /> },
   { path: '/settings', element: <General /> },
   { path: '/settings/colours', element: <Colours /> },
+  { path: '/settings/layout', element: <Layout /> },
   { path: '/settings/cta', element: <CtaSection /> },
   { path: '/settings/custom-css', element: <CustomCss /> },
   { path: '/settings/redirects', element: <Redirects /> },

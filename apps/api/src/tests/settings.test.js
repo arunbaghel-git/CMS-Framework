@@ -399,3 +399,28 @@ describe('Settings ▸ Colours — themeColors (17 Sep)', () => {
     expect(res.status).toBe(403)
   })
 })
+
+describe('Settings ▸ Layout — themeLayout (17 Sep)', () => {
+  const layout = (body) => authed('patch', '/api/settings', adminJar).send({ themeLayout: body })
+
+  it('DB tak jaata hai aur themeCss me rang ke saath layout bhi', async () => {
+    const res = await layout({ wrap: 1400, corners: 'round', sticky: false })
+    expect(res.status).toBe(200)
+
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.themeLayout).toMatchObject({ wrap: 1400, corners: 'round', sticky: false, pad: 26 })
+
+    const { getPublicSettings } = await import('../modules/public/service.js')
+    const css = (await getPublicSettings()).themeCss
+    expect(css).toContain('--wrap:1400px')
+    expect(css).toContain('--r2:16px')
+    expect(css).toContain('--header-pos:relative')
+  })
+
+  it('hadd ke bahar, galat enum, anjaan key — 400', async () => {
+    expect((await layout({ wrap: 5000 })).status).toBe(400)
+    expect((await layout({ corners: 'blob' })).status).toBe(400)
+    expect((await layout({ btnHeight: 44.5 })).status).toBe(400)
+    expect((await layout({ breakpoint: 900 })).status).toBe(400)
+  })
+})

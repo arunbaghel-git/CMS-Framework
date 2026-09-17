@@ -264,3 +264,181 @@ form fieldset {
   padding: 10px 14px;
   font-size: 11.5px;
 }
+
+/* ============================================================
+   Settings ▸ Layout (17 Sep) — reference admin-design-v4.html #t-layout
+   ============================================================ */
+.choice-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.choice {
+  flex: 1;
+  min-width: 110px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 10px;
+  cursor: pointer;
+  background: #fff;
+  text-align: center;
+  font-size: 12px;
+  margin: 0 !important;
+  font-weight: 400 !important;
+}
+.choice:hover {
+  border-color: #8c8f94;
+}
+.choice.on {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.choice .demo {
+  height: 34px;
+  margin: 0 auto 6px;
+  width: 70%;
+  background: #dfe6ee;
+  border: 1px solid #b8c7d6;
+}
+.lprev {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: #eef1f4;
+  padding: 14px 0;
+  overflow: hidden;
+}
+.lprev .lp-wrap {
+  margin: 0 auto;
+  background: #fff;
+  border-left: 1px dashed #9aa5b1;
+  border-right: 1px dashed #9aa5b1;
+}
+.lprev .lp-card {
+  background: #fff;
+  border: 1px solid #dfe3e8;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.lprev .lp-card b {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.lprev .lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  background: #ea6a1a;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+}
+.lprev .lp-width {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 6px;
+}
+.hf-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-size: 13px;
+}
+.device-toggle {
+  display: inline-flex;
+  border: 1px solid #8c8f94;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.device-toggle button {
+  padding: 3px 12px;
+  font-size: 12px;
+  color: #2c3338;
+  background: #fff;
+  border: 0;
+  border-left: 1px solid #8c8f94;
+  cursor: pointer;
+}
+.device-toggle button:first-child {
+  border-left: 0;
+}
+.device-toggle button.on {
+  background: var(--primary);
+  color: #fff;
+}
+.hfprev {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #eef1f4;
+  margin: 10px auto 0;
+}
+.hfprev.is-mobile {
+  max-width: 375px;
+}
+.hfprev .hf-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8ef;
+}
+.hfprev .hf-logo {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  color: #50575e;
+  border: 1px dashed #9aa5b1;
+  background: repeating-linear-gradient(45deg, #dfe6ee, #dfe6ee 6px, #eef2f6 6px, #eef2f6 12px);
+}
+.hfprev .hf-nav {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+  font-size: 12px;
+  color: #50575e;
+}
+.hfprev .hf-burger {
+  margin-left: auto;
+  font-size: 18px;
+  color: #50575e;
+}
+.hfprev .hf-body {
+  height: 46px;
+}
+.hfprev .hf-foot {
+  background: #0f2742;
+  padding: 14px;
+}
+.hfprev .hf-card {
+  display: inline-flex;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.hfprev .hf-card.is-bare {
+  background: transparent;
+  padding: 0;
+}
+.hfprev .hf-size {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0;
+  background: #fff;
+  border-top: 1px solid #e2e8ef;
+}
