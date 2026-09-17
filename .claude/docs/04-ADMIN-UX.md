@@ -809,3 +809,20 @@ Sabse upar naya panel — **Packages listing page** dropdown (None + saare Tour 
 
 ⚠️ **Packages ▸ Section Headings** se Breadcrumb label/link ke dono khaane **hat gaye** — wo tabs ke bahar the
 aur har tab pe dikhte the.
+
+## 17 Sep — Settings ▸ Fonts · Colours · Layout (D-98)
+
+Reference `reference/admin-design-v4.html`. Settings ke tab ab: **General · Fonts · Colours · Layout** · CTA Section ·
+Custom CSS · 301 Redirects · …
+
+- **Fonts:** Heading Font + Body Font panel (Google Font naam / Custom font WOFF-WOFF2 upload, har file ka weight +
+  style + Remove) · **Text Sizes** table — 9 row (H1–H6 · Body · Small · Extra small), har row ke neeche "kahan lagta
+  hai", Desktop/Tablet/Mobile + Weight + Line spacing + Character spacing · Preview (Desktop/Tablet/Mobile, preview
+  text sirf browser me) · Reset to Defaults · Save (Google font download ke kaaran thoda ruk sakta hai)
+- **Colours:** Site Colours — Brand (Store Colour, Accent + shade patti) · Text (Headings, Body text) · Backgrounds
+  (Page, Dark sections) · **Advanced** band dabba (Primary/Secondary/Outline button, small grey text, border, har heading
+  ka rang, header/footer, card, star/success/error — har ek pe Auto) · sticky Preview (header, dark hero, card, buttons
+  hover ke saath, status, footer)
+- **Layout:** Page Width (slider 1200–1600 + side space desktop/mobile) · Corners & Shadows (Sharp/Soft/Round, None/Soft/
+  Strong) · Buttons (height, shape) · Header (height desktop/mobile, logo height desktop/mobile — header se bada ho to laal
+  hint, logo max width, sticky) · Footer (logo height, max width, white box) · Preview (1600px scaled + header/footer real size)

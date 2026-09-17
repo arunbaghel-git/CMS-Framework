@@ -32,7 +32,10 @@
   ki size table) · **Colours** (6 rang + Advanced, sab Auto) · **Layout** (width, side space, corners, shadow, button,
   header height + logo height/max width, footer logo + white box, sticky). Client ne sizes aur colours samajh liye
 - **Hardcoded → token (A-30):** 273 value, look nahi badla (script ne har line verify ki), `StickySide` CSS se padhta hai
-- ⏭️ **Agla:** Fonts · Colours · Layout ka asli admin + API + web `:root` override. Client ka lakshya: _"100% look admin se"_
+- ✅ **Bana (shaam, D-98):** Settings ▸ **Fonts** (Google self-host + custom upload + 9 step) · **Colours** (6 + Advanced) ·
+  **Layout** — commits `bc38ee2` `d56bfc6` `3c7dfc3`. Site pe sirf badla hua jaata hai; is site pe Save se kuch nahi badalta
+- ⏭️ **Agla:** client teeno screen browser me chalaye (login karke — maine nahi dekhi). ⚠️ **C: 31–44 MB** pe hai — Mongo
+  (Docker) aur dev API ruk gaye the. Jagah banao, Docker/`pnpm dev` dobara chalao, phir `pnpm test`
 
 ### Client ko karna hai (asli DB me abhi kuch nahi — maine nahi chheda)
 

@@ -8856,3 +8856,84 @@ Tour page se juda nahi tha.
 ### Tests
 
 `redirects.test.js` naya (16, asli DB) · `master-lists.test.js` ka archiveCrumb test ab breadcrumbPageId pe.
+
+## D-98
+
+**Theme admin se — Settings ▸ Fonts · Colours · Layout (client, 17 Sep)**
+
+**Status:** ✅ Teeno ban gaye (API + admin + site). Koi migration nahi. **Render client ne abhi nahi dekha.**
+**Reference:** `.claude/docs/reference/admin-design-v4.html` — v3 + teen naye Settings tab. Base client ki
+`travel-cms-admin_v2.html` (Fonts + Colours), badlaav client ke saath tay hue (neeche).
+
+### Client ka lakshya
+
+_"CMS multiple site ke liye hai — another site data aaye to admin se sab manage ho, code likhne na aana pade."_
+Aam look Settings se; khaas cheezein developer Custom CSS / Custom editor se.
+
+### Faisle
+
+| # | Faisla |
+| --- | --- |
+| 1 | Size: **9 step** (H1–H6 · Body · Small · Extra small), har ek pe Desktop/Tablet/Mobile + weight + line + character spacing |
+| 2 | Rang: **6** (Store Colour · Accent · Headings · Body text · Page background · Dark sections) + **Advanced** (sab Auto) |
+| 3 | Label **"Store Colour"** (client), code me `primary` |
+| 4 | **Layout** tab naya: width, side space, corners, shadow, button, header height + logo height/max width, footer logo + white box, sticky |
+| 5 | Logo ki sirf **height** — width apne aap; max width sirf chaude logo ki rok |
+| 6 | Tinted page background admin me **nahi** (client: _"page background to same hi rahega"_) |
+
+### 1. Pehle hardcoded → token (look nahi badla)
+
+`globals.css` me 273 seedhi values token pe aayin (128 hex, ~50 rgba → `color-mix(…transparent)`, 8 size,
+51 weight, radius, header/logo/button). Script ne har badli line ka resolved value purane se milaya — **0 farak**.
+`@font-face` ke andar `var()` nahi chalta — wahan `400` hi raha. `StickySide.jsx` ka `TOP = 78` ab CSS se padha jaata hai.
+
+### 2. ⚠️ Niyam: jo nahi badla, wo site pe bheja hi nahi jaata
+
+`packages/shared/src/theme-{colors,layout,fonts}.js` — defaults **aaj ke `globals.css` ke values** hain.
+Kisi group ka value default ke barabar ho to uska CSS emit nahi hota. Isliye:
+
+- is site pe pehli baar Save = **koi farak nahi** (formula se bane shade CSS ke hand-tuned shade se thode alag hain)
+- client jo badalta hai, sirf wahi (aur uske auto shade) site pe jaata hai
+- teeno ke tests `globals.css` padh kar defaults milate hain — CSS badlo to defaults bhi
+
+Site pe: public settings me `themeCss` (server pe bana) → `layout.jsx` ka `<style>` **Custom CSS se pehle**.
+Selector `html:root` (`:root` se zyada specific), tablet/mobile ke `@media` blocks alag.
+
+### 3. Colours
+
+- Store Colour group: `--blue-50/100/500/600/700`, `--accent`, dark pe halke neele, widget icon
+- Accent: orange shades, dark pe halka orange; button text naye rang pe padhne layak (`readableOn`)
+- Body/Page: muted, faint, line, slate — page badle to body ke shade bhi dobara
+- Dark: `--blue-900`, shade/scrim/overlay, `--on-dark` (halka dark ho to text gehra)
+- Advanced → naye token: `--btn-p-*` (`.btn--accent`, `.mobar__cta`), `--btn-s-*` (`.btn--primary`), `--btn-o`,
+  `--header-bg/text` (`.hdr`, `.nav__l`), `--footer-bg/text` (`.ft` — footer ke andar `--on-dark` isi se),
+  `--card` (12 card selector), `--gold`/`--green-600`/`--red-500`, per-heading `--h1-c…`
+
+### 4. Layout
+
+- Kone: `sharp` / `soft` (aaj) / `round` → `--r1..r4`. Sharp me `--r2: 2px`, taaki `calc(var(--r2) - 2px)` negative na ho
+- Width ki hadd **1200–1600** — 1100 pe is site ka header menu Awards aur Get quote ke neeche dab gaya (render se dekha)
+- Side space: desktop, mobile (≤760), tablet dono ke beech
+- Logo height header − 16 se zyada nahi (server pe bhi); desktop header badla to mobile ki apni value bhi likhi jaati hai
+- Sticky band: `--header-pos: relative`, sidebar `--sticky-top` aur `scroll-padding` header ke bina
+
+### 5. Fonts
+
+- **Google font save pe server download karta hai** (`apps/api/src/modules/settings/fonts.js`) → `/uploads/sites/<site>/fonts/google/<slug>/<hash>.woff2`.
+  Visitor Google se kuch nahi maangta (D-85). Sirf `latin` + `latin-ext`. Sirf `fonts.gstatic.com` ke URL liye jaate hain
+- Google ek bhi na-maujood weight maango to 400 deta hai → axis kram se aazmaye jaate hain (asli Google pe naapa:
+  DM Sans pehli koshish, Merriweather teesri, Playfair chauthi, Poppins chhathi)
+- Admin ka bheja `faces` kabhi nahi maana jaata; wahi family pehle se ho to dobara download nahi
+- Custom: `POST /api/settings/fonts` — **magic bytes** (`wOF2`/`wOFF`), 2MB, content hash naam
+- Size: har `--fs-*` token ek step me (test check karta hai koi chhoota/do baar nahi). Step badla → uske saare token
+  desktop/tablet/mobile teen naap pe (clamp ki jagah). Default = step ke pehle token ka aaj ka naap
+- ⚠️ **Weight · line spacing · character spacing sirf asli `h1`–`h6` aur `body` pe.** Card title jaise `<div>` ka weight uski
+  apni CSS se — alag refactor
+- Heading font `h1`–`h6` pe (`--font-heading`); component titles jo `<div>` hain wo body font lete hain
+
+### ⚠️ Jo abhi nahi dekha gaya
+
+- Admin screens browser me **login karke** nahi khuli (credentials nahi) — build, lint, tests pass
+- Site pe asar **asli DB ke bina** dekha: page ka HTML + test `themeCss` ek chhote proxy se screenshot — rang, layout, size teeno lage
+- Google download asli network pe sirf **CSS parse** tak chalaya; file save test me nakli fetch se
+- Session ke aakhir me C: **31 MB** pe aa gayi, Mongo (Docker) ruk gaya — dev API bhi. Code ka kasoor nahi (API akele chal jaati hai)

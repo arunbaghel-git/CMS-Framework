@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-97                |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-98                |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -698,7 +698,12 @@ path pe redirect ban hi nahi sakta (422), aur auto-redirect admin ke banaye ko k
 `/packages/{slug}` hi rahega (client). Breadcrumb ab `Packages ▸ Itinerary Settings` me **Tour page ka dropdown**
 (`breadcrumbPageId`) — naam/link us page ke Title/path se, server pe; `Section Headings` se label/link hate.
 Naya admin design reference `reference/travel-cms-admin_v2.html` (fonts + colours) — **client ke saath baad me**.
-⏭️ **Agla kaam: client batayega.** Khule: contact ke trust chips + eyebrow, aur naye design pe baat. `project-state.md` ka pehla section padho.
+**17 Sep shaam — Theme admin se (D-98), koi migration nahi.** Reference `admin-design-v4.html`. **Settings ▸ Fonts · Colours ·
+Layout**: 6 rang + Advanced (Auto), 9 step ki size table, Google font server pe self-host / custom WOFF upload, width ·
+kone · shadow · button · header/logo · footer logo. Pehle `globals.css` ki 273 seedhi values token pe aayin (look nahi badla,
+har line verify). ⚠️ **Jo nahi badla wo site pe bheja hi nahi jaata** — defaults = `globals.css` ke aaj ke value, tests dono ko
+milate hain. ⚠️ Weight/line/spacing sirf `h1`–`h6` + `body` pe.
+⏭️ **Agla kaam: client teeno screen chala kar dekhe.** ⚠️ C: drive bhar gayi thi (Mongo + dev API ruke). `project-state.md` padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

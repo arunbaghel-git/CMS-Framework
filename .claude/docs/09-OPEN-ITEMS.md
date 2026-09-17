@@ -436,6 +436,12 @@ radius (8–12px ab `calc(var(--r2) ± N)`, 99px → `--rf`; `50%` gol ke liye w
 wahan `400` hi rehna chahiye. Agla: admin ke Fonts · Colours · Layout (`reference/admin-design-v4.html`).
 Naye token site ke naam se hain (`--on-dark-link`, `--wa`, `--map-sea`…); 6 rang + Auto wala dhaancha build me in par baithega.
 
+✅ **17 Sep shaam — teeno tab ban gaye (D-98).** Settings ▸ Fonts · Colours · Layout, site pe sirf badle hue token.
+**Bacha hua:** (1) client browser me teeno screen chala kar dekhe (login ke saath abhi nahi dekhi); (2) weight/line/
+spacing sirf `h1`–`h6` + `body` pe — card title `<div>` ka weight token pe laana alag refactor; (3) heading font bhi
+sirf `h1`–`h6` pe; (4) `THEME_COLORS` (admin ke block defaults) abhi bhi `:root` ki copy — rang badle to admin ke
+section-background picker ka "Default" purana dikhayega.
+
 ---
 
 ### A-29 · Hotels · Add-ons · Transfers badalne pe package page ka cache saaf nahi hota

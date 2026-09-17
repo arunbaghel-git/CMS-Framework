@@ -356,6 +356,15 @@ packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  D-64 (usi din) me wapas package ke apne chunav ban gaye
                  singleton — wahi pattern jo settings ka hai. Package ke domain ki
                  globals; settings me jaan-boojh kar NAHI (D-46, §1.8)
+settings.themeColors   ← D-98 — {primary, accent, heading, body, page, dark, perHeading,
+                 headings{h1..h6}, advanced{key: hex}}; advanced me key = Auto hataya
+settings.themeLayout   ← D-98 — {wrap, pad, padMobile, corners, shadow, btnHeight, btnShape,
+                 sticky, headerH(-Mobile), logoH(-Mobile), logoMaxW, footLogoH(-Mobile),
+                 footLogoMaxW, footLogoCard}
+settings.themeFonts    ← D-98 — {heading|body: {source, google, family, files[], faces[]},
+                 scale{h1..h6, body, small, xsmall: {size, sizeTablet, sizeMobile, weight, lh, ls}}}
+                 faces SERVER bharta hai (Google download) — admin ka bheja nahi maana jaata
+                 public settings me teeno ka ek `themeCss` — sirf badle hue token
 redirects      * siteId, locale, from, to, statusCode(301|302), hits, isAuto
                  isAuto false = Settings ▸ 301 Redirects se (D-97); auto use kabhi
                  overwrite nahi karta. from lowercase + bina trailing slash; to =
