@@ -262,24 +262,9 @@
 
      ⚠️ Ye scale hai, ginti nahi. Naya size chahiye to pehle dekho ki maujooda 12 me se koi
      chalta hai ya nahi — 13.7px jodna scale ko scale nahi rehne deta. */
-  --fs-5xs: 10.5px;
-  --fs-4xs: 11px;
-  --fs-3xs: 11.5px;
-  --fs-2xs: 12px;
-  --fs-xs: 12.5px;
-  --fs-sm: 13px;
-  --fs-md: 13.5px;
-  --fs-base: 14px;
-  --fs-lg: 14.5px;
-  --fs-2xl: 16px;
-  --fs-3xl: 17px;
   --fs-7xs: 9.5px;
-  --fs-6xs: 10px;
-  --fs-4xl: 18px;
 
   /* Page ka bada text — teenon screen ke saath badhte hain (`clamp`). */
-  --fs-price: clamp(28px, 3.4vw, 38px);
-  --fs-intro: clamp(15px, 1.6vw, 17px);
 
   /*
    * ⚠️ **Ye das pehle CSS me seedha px/clamp me likhe the** (D-96 §18, client 15 Sep) — future ke customizer
@@ -287,7 +272,6 @@
    * kyunki inme se kisi ka koi saathi scale me nahi tha.
    */
   /* Tour · Page · Blog · Home hero ka h1 aur uske neeche ki line */
-  --fs-hero-sub: clamp(13.5px, 1.3vw, 15.5px);
   /* Stat rail ka number */
   --fs-stat: clamp(20px, 2.4vw, 28px);
   /* Package page ke section ki heading (`.sh h2`) */
@@ -296,15 +280,11 @@
   --fs-price-row: clamp(21px, 2.2vw, 26px);
   --fs-offer: 34px;
   /* Blog — pull quote aur featured card ke title */
-  --fs-quote: clamp(17px, 2vw, 21px);
   /* FAQ ka `+` / `−` */
   --fs-glyph: 20px;
   /* Home Info cards ka label — design ka 10px (D-96 §11). Maujooda scale me nahi tha. */
-  --fs-card-label: 10px;
   /* Home hero ke number aur form card ka heading — design ka 19px (D-96 §10). Heading/body font nahi. */
-  --fs-hero-num: 19px;
   /* Home Award badges ka chhota label (`CHOICE`) — design ka 8px (D-96 §23). Scale me itna chhota koi nahi. */
-  --fs-badge-label: 8px;
 
   /* Headings — `.blk h1`–`h6` ke saath CTA/offer ka bada heading bhi. */
   /*
@@ -317,13 +297,18 @@
   /* h3 ke do apwaad — admin se abhi nahi (Text Elements aane tak): home form card + island map panel, blog ka bada feature card */
   --fs-h3-lg: 19px;
   --fs-h3-xl: 24px;
-  --fs-h4: var(--fs-lg);
-  --fs-h5: var(--fs-md);
-  --fs-h6: var(--fs-sm);
+  --fs-h4: 14.5px;
+  --fs-h5: 13.5px;
+  --fs-h6: 13px;
 
   /* Body copy — paragraph, list item, jo bhi padha jaata hai (P6: 14px). */
-  --fs-body: var(--fs-base);
-  --fs-lead: var(--fs-lg);
+  /*
+   * Text ke teen common naap — client, 18 Sep. Har paragraph/button Body, har meta/nav/breadcrumb Small,
+   * har badge/label Extra small. Settings ▸ Fonts ki Body / Small / Extra small rows inhi ko badalti hain.
+   */
+  --fs-body: 14px;
+  --fs-small: 13px;
+  --fs-xsmall: 11px;
 
   /* ---------- weights ----------
      Inter 400-900 load hota hai. In paanch ke bahar koi weight page pe nahi hai. */
@@ -614,7 +599,7 @@ a {
   padding: 0 20px;
   border: 0;
   border-radius: var(--btn-r);
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-bold);
   white-space: nowrap;
   transition:
@@ -765,7 +750,7 @@ a {
   height: 100%;
   gap: 5px;
   padding: 0 11px;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   /* 700, 600 nahi — reference isi weight pe hai aur nav uske bina halki lagti hai */
   font-weight: var(--fw-bold);
   color: var(--header-text);
@@ -817,7 +802,7 @@ a {
 .drop a {
   display: block;
   padding: 7px 14px;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-med);
   color: var(--body);
 }
@@ -956,7 +941,7 @@ a {
   margin-bottom: 6px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--line-2);
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   color: var(--ink);
 }
@@ -969,7 +954,7 @@ a.mega__gl:hover {
 .mega__group a:not(.mega__gl) {
   display: block;
   padding: 5px 0;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-med);
   line-height: 1.55;
   color: var(--body);
@@ -993,7 +978,7 @@ a.mega__gl:hover {
 }
 
 .mega__cta span {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   color: var(--muted);
   font-weight: var(--fw-semi);
 }
@@ -1010,7 +995,7 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   border-radius: var(--r2);
   background: none;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   cursor: pointer;
 }
 
@@ -1080,7 +1065,7 @@ a.mega__gl:hover {
   justify-content: space-between;
   padding: 14px 18px;
   border-bottom: 1px solid var(--line-2);
-  font-size: var(--fs-lg);
+  font-size: var(--fs-body);
   font-weight: var(--fw-bold);
   color: var(--ink);
   cursor: pointer;
@@ -1099,7 +1084,7 @@ a.mega__gl:hover {
 
 .mnav__acc > summary::after {
   content: '▾';
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   opacity: 0.5;
 }
 
@@ -1117,7 +1102,7 @@ a.mega__gl:hover {
 .mnav__sub a {
   display: block;
   padding: 7px 0;
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-med);
   color: var(--body);
 }
@@ -1136,7 +1121,7 @@ a.mega__gl:hover {
 .mnav__acc--sub > summary {
   padding: 10px 12px;
   border-bottom: 0;
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   /* 800 — group heading baaki headings se bhi bhaari hai (reference ka .gl) */
   font-weight: var(--fw-heading);
   color: var(--ink);
@@ -1158,7 +1143,7 @@ a.mega__gl:hover {
   margin-top: 12px;
   padding-bottom: 5px;
   border-bottom: 1px solid var(--line-2);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--ink);
 }
@@ -1207,7 +1192,7 @@ a.mega__gl:hover {
   /* Footer ke andar ka saara "on dark" text Settings ▸ Colours ▸ Footer text se (default wahi `--on-dark`) */
   --on-dark: var(--footer-text);
   color: color-mix(in srgb, var(--on-dark) 62%, transparent);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
 }
 
 /* Reference me ye `grid-template-columns: 1.5fr 1fr 1fr 1fr` hai. Yahan **flex** hai,
@@ -1235,7 +1220,7 @@ a.mega__gl:hover {
 
 .ft__col h2 {
   margin: 0 0 15px;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1308,7 +1293,7 @@ a.mega__gl:hover {
 
 .ft__sup b {
   display: block;
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1330,7 +1315,7 @@ a.mega__gl:hover {
   white-space: pre-line;
   color: var(--on-dark);
   font-weight: var(--fw-semi);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   line-height: 1.5;
 }
 
@@ -1372,7 +1357,7 @@ a.mega__gl:hover {
   flex-wrap: wrap;
   padding-block: 16px;
   border-top: 1px solid color-mix(in srgb, var(--on-dark) 11%, transparent);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
 }
 
 .ft__copy {
@@ -1382,7 +1367,7 @@ a.mega__gl:hover {
 .ft__note {
   margin: 0;
   max-width: 52ch;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   line-height: 1.6;
   color: color-mix(in srgb, var(--on-dark) 45%, transparent);
 }
@@ -1390,7 +1375,7 @@ a.mega__gl:hover {
 /* Fine print bar ke neeche, poori chaudai me — aur bar se bhi halka */
 .ft__fine {
   margin: 0;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   line-height: 1.6;
   color: color-mix(in srgb, var(--on-dark) 38%, transparent);
 }
@@ -1575,7 +1560,7 @@ a.mega__gl:hover {
   /* Reference ka `.b-s` — 8px padding + 13px/1.55 text = ~36px. */
   min-height: 36px;
   padding: 0 14px;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
 }
 
 @media (max-width: 1040px) {
@@ -1587,7 +1572,7 @@ a.mega__gl:hover {
   button[aria-label='Close menu'] {
     span {
       font-weight: var(--fw-bold);
-      font-size: var(--fs-base);
+      font-size: var(--fs-body);
     }
   }
 
@@ -1615,7 +1600,7 @@ a.mega__gl:hover {
   .hdr__actions .btn {
     /* Height wahi 36px — sirf chaudai aur text chhota hota hai */
     padding: 0 11px;
-    font-size: var(--fs-xs);
+    font-size: var(--fs-small);
   }
 
   /*
@@ -1701,7 +1686,7 @@ a.mega__gl:hover {
   width: 100%;
   /* Drawer ke buttons page wale se thode bade — 12px padding wala purana naap. */
   min-height: 46px;
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
 }
 
 /* ==================================================================
@@ -1747,7 +1732,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--ink-2);
 }
@@ -1784,7 +1769,7 @@ a.mega__gl:hover {
 }
 
 .pintro {
-  font-size: var(--fs-intro);
+  font-size: var(--fs-h3);
   line-height: 1.65;
   color: var(--body);
   margin-top: 14px;
@@ -1797,7 +1782,7 @@ a.mega__gl:hover {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
 }
 
 .pkg__bestfor span {
@@ -1882,7 +1867,7 @@ a.mega__gl:hover {
   place-items: center;
   background: color-mix(in srgb, var(--blue-900) 55%, transparent);
   color: var(--on-dark);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
   letter-spacing: 0.04em;
 }
@@ -2134,7 +2119,7 @@ a.mega__gl:hover {
 
 /** Pehla paragraph — baaki se thoda bada (About ka lead). */
 .blk .lead {
-  font-size: var(--fs-lead);
+  font-size: var(--fs-body);
 }
 
 /*
@@ -2236,7 +2221,7 @@ a.mega__gl:hover {
 }
 
 .route__s span {
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -2245,7 +2230,7 @@ a.mega__gl:hover {
 
 .route__s b {
   display: block;
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   color: var(--ink);
   letter-spacing: -0.02em;
@@ -2286,7 +2271,7 @@ a.mega__gl:hover {
 
 .atg span {
   display: block;
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2295,7 +2280,7 @@ a.mega__gl:hover {
 
 .atg b {
   display: block;
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   color: var(--ink);
   margin-top: 4px;
@@ -2323,7 +2308,7 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
   background: var(--surface);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--body);
 }
@@ -2420,14 +2405,14 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   background: var(--blue-600);
   color: var(--on-dark);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-black);
   letter-spacing: 0.04em;
 }
 
 .itin__k span {
   display: block;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
   color: var(--muted);
   margin-top: 8px;
@@ -2442,7 +2427,7 @@ a.mega__gl:hover {
 .itin__k em {
   font-style: normal;
   display: block;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   color: var(--faint);
   font-weight: var(--fw-semi);
   margin-top: 2px;
@@ -2456,7 +2441,7 @@ a.mega__gl:hover {
 }
 
 .itin__c p {
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   line-height: 1.65;
   color: var(--body);
   margin: 0;
@@ -2513,7 +2498,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   color: var(--ink-2);
   background: var(--line-2);
@@ -2708,7 +2693,7 @@ a.mega__gl:hover {
   border-radius: 50%;
   background: var(--blue-600);
   color: var(--on-dark);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-black);
   display: grid;
   place-items: center;
@@ -2717,7 +2702,7 @@ a.mega__gl:hover {
 .steps b {
   display: block;
   color: var(--ink);
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   /* i am doing it 4px dont change it*/
   margin-bottom: 4px;
@@ -2778,7 +2763,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 7px;
   flex-wrap: wrap;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: var(--muted);
   margin-bottom: 12px;
@@ -2910,7 +2895,7 @@ a.mega__gl:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -2950,7 +2935,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 10px;
   padding: 11px 14px;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
 }
 
 .wdgc + .wdgc {
@@ -2980,7 +2965,7 @@ a.mega__gl:hover {
 }
 
 .wdgc b {
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--slate-500);
@@ -3062,14 +3047,14 @@ a.mega__gl:hover {
 }
 
 .ptitle__p del {
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   color: var(--faint);
   font-weight: var(--fw-semi);
 }
 
 .ptitle__p b {
   display: block;
-  font-size: var(--fs-price);
+  font-size: var(--fs-h1);
   font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.045em;
@@ -3078,7 +3063,7 @@ a.mega__gl:hover {
 
 .ptitle__p span {
   display: block;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--muted);
   margin-bottom: 12px;
@@ -3109,14 +3094,14 @@ a.mega__gl:hover {
 }
 
 .catbar__h b {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.01em;
 }
 
 .catbar__h span {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: var(--muted);
 }
@@ -3154,7 +3139,7 @@ a.mega__gl:hover {
 
 .catbar__g b {
   display: block;
-  font-size: var(--fs-lg);
+  font-size: var(--fs-body);
   font-weight: var(--fw-black);
   color: var(--ink);
   /* Client ka tune (1 Sep) — base heading rule ka 1.25 in chhote card labels pe tang tha.
@@ -3165,7 +3150,7 @@ a.mega__gl:hover {
 
 .catbar__g span {
   display: block;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   color: var(--muted);
   margin-top: 3px;
@@ -3175,7 +3160,7 @@ a.mega__gl:hover {
 
 .catbar__g strong {
   display: block;
-  font-size: var(--fs-3xl);
+  font-size: var(--fs-h3-lg);
   font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.035em;
@@ -3235,7 +3220,7 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
   background: var(--surface);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
   color: var(--ink-2);
   letter-spacing: -0.01em;
@@ -3258,7 +3243,7 @@ a.mega__gl:hover {
 }
 
 .htab button span {
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   color: var(--gold);
   letter-spacing: 0;
@@ -3288,7 +3273,7 @@ a.mega__gl:hover {
   background: var(--blue-50);
   border: 1px solid var(--blue-100);
   border-radius: var(--r2);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--blue-700);
 }
@@ -3322,7 +3307,7 @@ a.mega__gl:hover {
 .tbl {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-body);
   background: var(--surface);
   min-width: 520px;
 }
@@ -3332,7 +3317,7 @@ a.mega__gl:hover {
   color: var(--blue-700);
   text-align: left;
   padding: 11px 14px;
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-black);
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -3470,7 +3455,7 @@ a.mega__gl:hover {
   list-style: none;
   cursor: pointer;
   padding: 15px 18px;
-  font-size: var(--fs-lg);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-bold);
   color: var(--ink);
   display: flex;
@@ -3591,7 +3576,7 @@ a.mega__gl:hover {
   border: 0;
   border-radius: var(--r2);
   font: inherit;
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   color: var(--ink-2);
   background: none;
@@ -3610,7 +3595,7 @@ a.mega__gl:hover {
   /* Icon nahi hai, sirf text — isliye ek row me aur thoda bada. */
   flex-direction: row;
   gap: 6px;
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
 }
 
 /* Sheet ke peeche ka parda — Lightbox wale backdrop jaisa hi. */
@@ -3757,7 +3742,7 @@ a.mega__gl:hover {
 }
 
 .bkg__t del {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   color: color-mix(in srgb, var(--on-dark) 50%, transparent);
   font-weight: var(--fw-semi);
 }
@@ -3773,7 +3758,7 @@ a.mega__gl:hover {
 }
 
 .bkg__t span {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   display: block;
   font-weight: var(--fw-bold);
 }
@@ -3782,7 +3767,7 @@ a.mega__gl:hover {
   font-style: normal;
   display: inline-block;
   margin-top: 9px;
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3836,7 +3821,7 @@ a.mega__gl:hover {
 .bkg__b small {
   display: block;
   text-align: center;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   line-height: 1.5;
   color: var(--muted);
   margin-top: 10px;
@@ -3848,7 +3833,7 @@ a.mega__gl:hover {
 
 .fld label {
   display: block;
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -3864,7 +3849,7 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   border-radius: var(--r2);
   font: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-semi);
   color: var(--ink);
   background: var(--surface);
@@ -3914,7 +3899,7 @@ a.mega__gl:hover {
 }
 
 .fld--check span {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: var(--body);
   line-height: 1.5;
@@ -3923,7 +3908,7 @@ a.mega__gl:hover {
 }
 
 .bkg__err {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: var(--red-500);
   background: var(--red-100);
@@ -4051,7 +4036,7 @@ a.mega__gl:hover {
   white-space: nowrap;
   padding: 4px 9px;
   border-radius: var(--r1);
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4096,7 +4081,7 @@ a.mega__gl:hover {
   display: flex;
   align-items: start;
   gap: 6px;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   color: var(--muted);
   font-weight: var(--fw-semi);
 }
@@ -4133,7 +4118,7 @@ a.mega__gl:hover {
 }
 
 .prow__inc span {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   color: var(--ink-2);
   border: 1px solid var(--line);
@@ -4158,7 +4143,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--muted);
   margin-bottom: 8px;
@@ -4180,12 +4165,12 @@ a.mega__gl:hover {
   color: var(--on-dark);
   padding: 2px 7px;
   border-radius: var(--r1);
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
 }
 
 .prow__p del {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   color: var(--faint);
   font-weight: var(--fw-semi);
 }
@@ -4207,7 +4192,7 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   border-radius: var(--rf);
   background: var(--surface);
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4237,7 +4222,7 @@ a.mega__gl:hover {
   height: 32px;
   padding: 0 9px;
   font: inherit;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   cursor: pointer;
   color: var(--blue-700);
@@ -4449,7 +4434,7 @@ a.mega__gl:hover {
 }
 
 .revc__s {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
   color: var(--gold);
   letter-spacing: 0.08em;
@@ -4474,7 +4459,7 @@ a.mega__gl:hover {
 }
 
 .revc__d {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   color: var(--muted);
   font-weight: var(--fw-semi);
 }
@@ -4488,7 +4473,7 @@ a.mega__gl:hover {
 
 .revc b {
   display: block;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
   color: var(--ink);
   margin-top: 11px;
@@ -4496,14 +4481,14 @@ a.mega__gl:hover {
 
 .revc b span {
   display: block;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: var(--muted);
 }
 
 /* Heading ke saath `— 4.9 average from 412 trips` — reference me inline `<span>`. */
 .rev__avg {
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-bold);
   color: var(--muted);
   letter-spacing: 0;
@@ -4522,7 +4507,7 @@ a.mega__gl:hover {
   display: grid;
   place-items: center;
   font: inherit;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   line-height: 1;
   cursor: pointer;
   color: var(--blue-700);
@@ -4556,7 +4541,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--muted);
 }
@@ -4566,7 +4551,7 @@ a.mega__gl:hover {
   color: var(--on-dark);
   padding: 3px 8px;
   border-radius: var(--r1);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
 }
 
@@ -4724,7 +4709,7 @@ a.mega__gl:hover {
   right: 0;
   width: 36px;
   height: 36px;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
 }
 
 .lbx__nav {
@@ -4765,7 +4750,7 @@ a.mega__gl:hover {
   background: color-mix(in srgb, var(--on-dark) 14%, transparent);
   padding: 5px 12px;
   border-radius: var(--rf);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   letter-spacing: 0.03em;
 }
@@ -4828,7 +4813,7 @@ a.mega__gl:hover {
     width: 32px;
     height: 32px;
     top: -40px;
-    font-size: var(--fs-lg);
+    font-size: var(--fs-body);
   }
 }
 
@@ -4950,7 +4935,7 @@ a.mega__gl:hover {
   color: var(--on-dark-accent);
   padding: 5px 13px;
   border-radius: var(--rf);
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5016,7 +5001,7 @@ a.mega__gl:hover {
 }
 
 .offer__box span {
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   color: color-mix(in srgb, var(--on-dark) 70%, transparent);
   display: block;
   margin: 6px 0 14px;
@@ -5154,7 +5139,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-xbold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -5221,7 +5206,7 @@ a.mega__gl:hover {
 .vhero__sub,
 .hf-hero__sub {
   color: color-mix(in srgb, var(--on-dark) 80%, transparent);
-  font-size: var(--fs-hero-sub);
+  font-size: var(--fs-h3);
   line-height: 1.6;
   margin-top: 11px;
   max-width: 60ch;
@@ -5324,7 +5309,7 @@ a.mega__gl:hover {
 
 .vrail__c span {
   display: block;
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-xbold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -5339,7 +5324,7 @@ a.mega__gl:hover {
 
 .vrail__c--p i {
   font-style: normal;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--muted);
   margin-left: 5px;
@@ -5348,7 +5333,7 @@ a.mega__gl:hover {
 /* `suffix` — `/ person` jaisa chhota tukda, har card pe */
 .vrail__c b i {
   font-style: normal;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--muted);
   margin-left: 5px;
@@ -5411,7 +5396,7 @@ a.mega__gl:hover {
  */
 /* `.sh p` wali hi jodi — muted subtitle, `--fs-md` pe. */
 .blk__intro {
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   line-height: 1.6;
   color: var(--muted);
   margin-bottom: 14px;
@@ -5427,7 +5412,7 @@ a.mega__gl:hover {
 
 /* ⚠️ Aakhri hardcoded naap — D-73 kehta hai har size token se aaye. Value badli nahi. */
 .blk__empty {
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   color: var(--muted);
 }
 
@@ -5453,7 +5438,7 @@ a.mega__gl:hover {
  * hai, isliye naap chhua nahi gaya — sirf hardcoded px ki jagah token aaya (D-73).
  */
 .sh p {
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   color: var(--muted);
   margin-top: 4px;
 }
@@ -5480,7 +5465,7 @@ a.mega__gl:hover {
 }
 
 .fbar__l {
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -5490,7 +5475,7 @@ a.mega__gl:hover {
 
 .fbar__c {
   margin-left: auto;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--muted);
 }
@@ -5500,7 +5485,7 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   border: 1.5px solid var(--line);
   background: var(--surface);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--body);
   cursor: pointer;
@@ -5576,7 +5561,7 @@ a.mega__gl:hover {
   font-style: normal;
   display: inline-block;
   margin-top: 9px;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-xbold);
   color: var(--blue-700);
   background: var(--blue-50);
@@ -5727,7 +5712,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   color: color-mix(in srgb, var(--on-dark) 80%, transparent);
 }
@@ -5772,7 +5757,7 @@ a.mega__gl:hover {
 }
 
 .wdg--cta p {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   line-height: 1.55;
   margin-bottom: 14px;
 }
@@ -5807,7 +5792,7 @@ a.mega__gl:hover {
 .wdg--cta small {
   display: block;
   text-align: center;
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   color: color-mix(in srgb, var(--on-dark) 55%, transparent);
   margin-top: 9px;
 }
@@ -5886,7 +5871,7 @@ a.mega__gl:hover {
   gap: 10px;
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--ink-2);
 }
@@ -5919,7 +5904,7 @@ a.mega__gl:hover {
  * derive hoti hai (strike aur asli daam se) — koi field nahi, taaki wo daam se kabhi alag na ho.
  */
 .prow__off {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-xbold);
   color: var(--green-600);
 }
@@ -5950,7 +5935,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-black);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5992,7 +5977,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 5px;
   align-self: flex-start;
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -6025,7 +6010,7 @@ a.mega__gl:hover {
   margin-bottom: 14px;
 }
 .bfilter__l {
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -6034,7 +6019,7 @@ a.mega__gl:hover {
 }
 .bfilter__c {
   margin-left: auto;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--muted);
 }
@@ -6130,7 +6115,7 @@ a.mega__gl:hover {
   margin-top: auto;
   padding-top: 11px;
   border-top: 1px solid var(--line-2);
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: var(--muted);
 }
@@ -6165,7 +6150,7 @@ a.mega__gl:hover {
   border-radius: var(--r2);
   border: 1.5px solid var(--line);
   background: var(--surface);
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-bold);
   color: var(--body);
 }
@@ -6202,7 +6187,7 @@ a.mega__gl:hover {
   gap: 10px;
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-bold);
   color: var(--ink-2);
 }
@@ -6216,7 +6201,7 @@ a.mega__gl:hover {
   color: var(--blue-600);
 }
 .cats span {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-xbold);
   color: var(--muted);
   padding: 2px 9px;
@@ -6246,7 +6231,7 @@ a.mega__gl:hover {
 }
 .pop b {
   display: block;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   line-height: 1.4;
   color: var(--ink);
@@ -6256,7 +6241,7 @@ a.mega__gl:hover {
 }
 .pop span {
   display: block;
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: var(--muted);
   margin-top: 3px;
@@ -6273,7 +6258,7 @@ a.mega__gl:hover {
 .ahead__cat {
   display: inline-flex;
   align-items: center;
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -6317,7 +6302,7 @@ a.mega__gl:hover {
   color: var(--on-dark);
   display: grid;
   place-items: center;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-black);
   letter-spacing: -0.02em;
   line-height: 1;
@@ -6325,13 +6310,13 @@ a.mega__gl:hover {
 }
 .ahead__au b {
   display: block;
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-xbold);
   color: var(--on-dark);
 }
 .ahead__au b + span {
   display: block;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   color: color-mix(in srgb, var(--on-dark) 62%, transparent);
   font-weight: var(--fw-semi);
 }
@@ -6342,7 +6327,7 @@ a.mega__gl:hover {
   background: color-mix(in srgb, var(--on-dark) 35%, transparent);
 }
 .ahead__x {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
@@ -6449,7 +6434,7 @@ a.mega__gl:hover {
   background: var(--blue-100);
 }
 .artfig figcaption {
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   color: var(--muted);
   /* margin-top: 9px; */
   font-weight: var(--fw-semi);
@@ -6575,7 +6560,7 @@ a.mega__gl:hover {
   border-radius: 50%;
   background: var(--blue-50);
   color: var(--blue-700);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-black);
   display: grid;
   place-items: center;
@@ -6632,7 +6617,7 @@ a.mega__gl:hover {
   border-left: 3px solid var(--orange-500);
 }
 .pullq p {
-  font-size: var(--fs-quote);
+  font-size: var(--fs-h3-lg);
   line-height: 1.45;
   font-weight: var(--fw-bold);
   color: var(--ink);
@@ -6650,7 +6635,7 @@ a.mega__gl:hover {
   border-top: 1px solid var(--line-2);
 }
 .share b {
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -6689,7 +6674,7 @@ a.mega__gl:hover {
   color: var(--on-dark);
   display: grid;
   place-items: center;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-black);
   line-height: 1;
   letter-spacing: -0.02em;
@@ -6697,13 +6682,13 @@ a.mega__gl:hover {
 }
 .authorbox b {
   display: block;
-  font-size: var(--fs-lg);
+  font-size: var(--fs-body);
   font-weight: var(--fw-xbold);
   color: var(--ink);
 }
 .authorbox b + span {
   display: block;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -6711,7 +6696,7 @@ a.mega__gl:hover {
   margin: 3px 0 7px;
 }
 .authorbox p {
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   line-height: 1.6;
   color: var(--body);
 }
@@ -6736,7 +6721,7 @@ a.mega__gl:hover {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -6744,7 +6729,7 @@ a.mega__gl:hover {
   margin-bottom: 7px;
 }
 .pn b {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-body);
   font-weight: var(--fw-xbold);
   line-height: 1.35;
   color: var(--ink);
@@ -6764,7 +6749,7 @@ a.mega__gl:hover {
   display: block;
   padding: 8px 0 8px 13px;
   border-left: 2px solid var(--line-2);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--body);
   line-height: 1.45;
@@ -6906,7 +6891,7 @@ a.mega__gl:hover {
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 12px;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: color-mix(in srgb, var(--on-dark) 70%, transparent);
 }
@@ -6933,7 +6918,7 @@ a.mega__gl:hover {
 }
 
 .bfilter__l {
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -6943,7 +6928,7 @@ a.mega__gl:hover {
 
 .bfilter__c {
   margin-left: auto;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--muted);
 }
@@ -6970,7 +6955,7 @@ a.mega__gl:hover {
   border-radius: var(--r2);
   border: 1.5px solid var(--line);
   background: var(--surface);
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-bold);
   color: var(--body);
 }
@@ -7207,14 +7192,14 @@ a.mega__gl:hover {
  */
 .hf-stat b {
   display: block;
-  font-size: var(--fs-hero-num);
+  font-size: var(--fs-h3-lg);
   font-weight: var(--fw-black);
   color: var(--on-dark);
   letter-spacing: -0.02em;
 }
 
 .hf-stat span {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
@@ -7235,7 +7220,7 @@ a.mega__gl:hover {
   left: clamp(18px, 2vw, 24px);
   background: var(--green-600);
   color: var(--on-dark);
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -7261,7 +7246,7 @@ a.mega__gl:hover {
  * size is big"_). Wahi A-19 wala sawaal: class/tag na ho to kya hoga?
  */
 .hf-card__head > div {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   line-height: 1.5;
   color: var(--muted);
   margin-top: 4px;
@@ -7307,7 +7292,7 @@ a.mega__gl:hover {
   justify-content: center;
   gap: 6px;
   margin-top: 11px;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   color: var(--muted);
 }
 
@@ -7384,7 +7369,7 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -7495,7 +7480,7 @@ a.mega__gl:hover {
 
 /* `.art__t` — BLOG / ARTICLE */
 .icc__t {
-  font-size: var(--fs-card-label);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -7682,14 +7667,14 @@ a.mega__gl:hover {
   right: 11px;
   z-index: 2;
   color: var(--on-dark);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
   line-height: 1.35;
 }
 
 .vrl__n span {
   display: block;
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: color-mix(in srgb, var(--on-dark) 70%, transparent);
 }
@@ -7809,13 +7794,13 @@ a.imcc:hover img {
 .imcc__b b {
   display: block;
   color: var(--on-dark);
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   line-height: 1.3;
 }
 
 .imcc__b span {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
@@ -7826,7 +7811,7 @@ a.imcc:hover img {
   font-style: normal;
   margin-top: 7px;
   margin-left: 7px;
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   background: color-mix(in srgb, var(--on-dark) 18%, transparent);
   border: 1px solid color-mix(in srgb, var(--on-dark) 20%, transparent);
@@ -7934,7 +7919,7 @@ a.imcc:hover img {
   place-items: center;
   background: linear-gradient(135deg, var(--blue-500), var(--blue-900));
   color: var(--muted);
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
 }
 
@@ -7948,7 +7933,7 @@ a.imcc:hover img {
 
 .tmc figcaption b + span {
   display: block;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   color: var(--muted);
 }
 
@@ -8005,7 +7990,7 @@ a.imcc:hover img {
 
 /* Image ke neeche heading — chhoti line */
 .lgg__t span {
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   color: var(--muted);
   line-height: 1.2;
@@ -8013,7 +7998,7 @@ a.imcc:hover img {
 
 /* Bina image ke — sirf naam, reference ka `.clogo` */
 .lgg__t--text span {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.02em;
   color: var(--faint);
@@ -8032,7 +8017,7 @@ a.imcc:hover img {
 /* Reference ka 15.5px, hamara 16px (client, 15 Sep). */
 .lgg__c b {
   display: block;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: 0.06em;
@@ -8070,7 +8055,7 @@ a.imcc:hover img {
   border: 1.5px solid var(--line);
   background: var(--surface);
   font: inherit;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--body);
   cursor: pointer;
@@ -8143,7 +8128,7 @@ a.imcc:hover img {
 .ipkc__off {
   padding: 4px 9px;
   border-radius: var(--r1);
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -8181,7 +8166,7 @@ a.imcc:hover img {
   display: flex;
   align-items: self-start;
   gap: 4px;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: var(--muted);
   line-height: 1.4;
@@ -8203,7 +8188,7 @@ a.imcc:hover img {
   padding: 3px 7px;
   border-radius: var(--r1);
   background: var(--line-2);
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   color: var(--body);
 }
@@ -8226,13 +8211,13 @@ a.imcc:hover img {
 }
 
 .ipkc__pr del {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: var(--faint);
 }
 
 .ipkc__pr b {
-  font-size: var(--fs-hero-num);
+  font-size: var(--fs-h3-lg);
   font-weight: var(--fw-heading);
   color: var(--ink);
   letter-spacing: -0.03em;
@@ -8242,7 +8227,7 @@ a.imcc:hover img {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-heading);
 }
 
@@ -8251,7 +8236,7 @@ a.imcc:hover img {
   border-radius: var(--r1);
   background: var(--green-600);
   color: var(--on-dark);
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
 }
 
 .ipkc__rt span {
@@ -8369,7 +8354,7 @@ a.imcc:hover img {
   border-radius: var(--r1);
   background: var(--orange-500);
   color: var(--on-dark);
-  font-size: var(--fs-4xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -8391,7 +8376,7 @@ a.imcc:hover img {
 }
 
 .ofcc--top .ofcc__sub {
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: var(--muted);
 }
@@ -8406,7 +8391,7 @@ a.imcc:hover img {
   padding: 3px 7px;
   border-radius: var(--r1);
   background: var(--line-2);
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   color: var(--body);
 }
@@ -8427,13 +8412,13 @@ a.imcc:hover img {
 }
 
 .ofcc--top .ofcc__pr del {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: var(--faint);
 }
 
 .ofcc--top .ofcc__pr b {
-  font-size: var(--fs-hero-num);
+  font-size: var(--fs-h3-lg);
   font-weight: var(--fw-heading);
   color: var(--ink);
   letter-spacing: -0.03em;
@@ -8441,7 +8426,7 @@ a.imcc:hover img {
 
 .ofcc--top .ofcc__pr i {
   font-style: normal;
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-semi);
   color: var(--muted);
 }
@@ -8451,7 +8436,7 @@ a.imcc:hover img {
   border-radius: var(--r1);
   background: var(--green-600);
   color: var(--on-dark);
-  font-size: var(--fs-3xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
 }
 
@@ -8507,21 +8492,21 @@ a.imcc:hover img {
 .ofcc--bg .ofcc__t {
   display: block;
   color: var(--on-dark);
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
 }
 
 .ofcc--bg .ofcc__sub {
   display: block;
   margin-top: 3px;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
 .ofcc--bg .ofcc__pr {
   display: block;
   margin-top: 6px;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-black);
   color: var(--on-dark-price);
   letter-spacing: -0.02em;
@@ -8625,7 +8610,7 @@ a.imcc:hover img {
 
 .txv__pt b {
   display: block;
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   color: var(--ink);
   margin-bottom: 2px;
@@ -8731,12 +8716,12 @@ a.txv__box:hover .txv__p {
 /* Reference ka 15px — Logo grid ki closing title jaisa 16px (D-96 §17 amendment) */
 .txv__cap b {
   display: block;
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-heading);
 }
 
 .txv__cap span {
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
@@ -8797,7 +8782,7 @@ a.txv__box:hover .txv__p {
 
 .awb__b b {
   display: block;
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   font-weight: var(--fw-black);
   letter-spacing: -0.02em;
   color: color-mix(in srgb, var(--awb-c, var(--gold)) 56%, var(--black));
@@ -8805,7 +8790,7 @@ a.txv__box:hover .txv__p {
 
 .awb__b span {
   display: block;
-  font-size: var(--fs-badge-label);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -8873,7 +8858,7 @@ a.txv__box:hover .txv__p {
 
 .rdm > summary::after {
   content: '▾';
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   transition: transform 0.18s;
 }
 
@@ -8985,7 +8970,7 @@ a.txv__box:hover .txv__p {
   right: 16px;
   bottom: 12px;
   z-index: 2;
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   color: var(--faint);
 }
@@ -9042,7 +9027,7 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .ipanel__t span {
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
@@ -9055,7 +9040,7 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .ipanel__b > p {
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   line-height: 1.6;
 }
 
@@ -9067,7 +9052,7 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .ihl__h {
-  font-size: var(--fs-6xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -9088,7 +9073,7 @@ a.txv__box:hover .txv__p {
   border: 1px solid var(--line);
   border-radius: var(--rf);
   background: var(--map-chip);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--ink-2);
 }
@@ -9110,7 +9095,7 @@ a.txv__box:hover .txv__p {
 
 .home-island-map .icount b {
   display: block;
-  font-size: var(--fs-3xl);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-black);
   line-height: 1;
   letter-spacing: -0.03em;
@@ -9118,7 +9103,7 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .icount span {
-  font-size: var(--fs-6xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-bold);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -9147,7 +9132,7 @@ a.txv__box:hover .txv__p {
   border: 1.5px solid var(--line);
   border-radius: var(--rf);
   background: var(--surface);
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   color: var(--body);
 }
@@ -9263,7 +9248,7 @@ a.txv__box:hover .txv__p {
 .bkg--page small {
   display: block;
   margin-top: 10px;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   color: var(--muted);
 }
 
@@ -9335,7 +9320,7 @@ a.txv__box:hover .txv__p {
 }
 
 .contact-methods .cmeth span {
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -9343,7 +9328,7 @@ a.txv__box:hover .txv__p {
 }
 
 .contact-methods .cmeth b {
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-heading);
   line-height: 1.3;
   letter-spacing: -0.02em;
@@ -9353,7 +9338,7 @@ a.txv__box:hover .txv__p {
 
 .contact-methods .cmeth em {
   font-style: normal;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: var(--body);
 }
@@ -9385,7 +9370,7 @@ a.txv__box:hover .txv__p {
 
 .contact-steps .promise b {
   display: block;
-  font-size: var(--fs-4xl);
+  font-size: var(--fs-h3-lg);
   font-weight: var(--fw-black);
   letter-spacing: -0.03em;
   color: var(--blue-700);
@@ -9394,7 +9379,7 @@ a.txv__box:hover .txv__p {
 .contact-steps .promise span {
   display: block;
   margin-top: 4px;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   line-height: 1.5;
   color: var(--body);
@@ -9429,7 +9414,7 @@ a.txv__box:hover .txv__p {
   border-radius: var(--rf);
   background: var(--blue-600);
   color: var(--on-dark);
-  font-size: var(--fs-5xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-black);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -9447,7 +9432,7 @@ a.txv__box:hover .txv__p {
 
 .contact-offices .offc address {
   font-style: normal;
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
   line-height: 1.65;
   color: var(--body);
 }
@@ -9464,7 +9449,7 @@ a.txv__box:hover .txv__p {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   color: var(--body);
 }
 
@@ -9516,7 +9501,7 @@ a.txv__box:hover .txv__p {
   gap: 12px;
   padding: 11px 0;
   border-bottom: 1px solid var(--line-2);
-  font-size: var(--fs-base);
+  font-size: var(--fs-body);
 }
 
 .contact-hours .hours div:last-child {
@@ -9546,7 +9531,7 @@ a.txv__box:hover .txv__p {
   gap: 11px;
   padding: 11px 0;
   border-bottom: 1px solid var(--line-2);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
 }
 
 .contact-quick .wdgc:last-child {
@@ -9566,7 +9551,7 @@ a.txv__box:hover .txv__p {
 
 .contact-quick .wdgc b {
   display: block;
-  font-size: var(--fs-6xs);
+  font-size: var(--fs-xsmall);
   font-weight: var(--fw-heading);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -9574,7 +9559,7 @@ a.txv__box:hover .txv__p {
 }
 
 .contact-quick .wdgc a {
-  font-size: var(--fs-md);
+  font-size: var(--fs-body);
   font-weight: var(--fw-heading);
   color: var(--ink);
 }
@@ -9638,7 +9623,7 @@ a.txv__box:hover .txv__p {
   align-items: center;
   gap: 8px;
   margin-top: 12px;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-semi);
   color: var(--muted);
 }
@@ -9702,7 +9687,7 @@ a.txv__box:hover .txv__p {
   gap: 12px;
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-small);
 }
 
 /* Aakhri row pe lakeer nahi — warna wo widget ke apne border ke saath do lakeer bana deti hai */
@@ -9804,7 +9789,7 @@ a.txv__box:hover .txv__p {
 /* Site ka naam — halka, sabse neeche; page khaali na lage aur visitor ko pata rahe ki wo kahan hai */
 .nf__site {
   margin-top: 26px;
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-small);
   font-weight: var(--fw-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;

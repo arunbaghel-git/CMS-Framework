@@ -104,61 +104,47 @@ export const FONT_SCALE_STEPS = Object.freeze([
   {
     key: 'body',
     label: 'Body',
-    used: 'Paragraphs, lists, forms, buttons, menu links in the mega menu',
+    used: 'Paragraphs, lists, forms, buttons, table cells',
     family: 'body',
     tag: 'body',
-    tokens: ['--fs-base', '--fs-lg', '--fs-md', '--fs-body', '--fs-lead'],
+    tokens: ['--fs-body'],
     defaults: { size: 14, sizeTablet: 14, sizeMobile: 14, weight: '400', lh: 1.55, ls: 0 },
   },
   {
     key: 'small',
     label: 'Small',
-    used: 'Meta lines, notes, breadcrumb, nav links, footer links',
+    used: 'Meta lines, notes, breadcrumb, nav and mega menu links, table headings, footer links',
     family: 'body',
     tag: null,
-    tokens: ['--fs-sm', '--fs-xs', '--fs-2xs'],
+    tokens: ['--fs-small'],
     defaults: { size: 13, sizeTablet: 13, sizeMobile: 13, weight: '400', lh: 1.5, ls: 0 },
   },
   {
     key: 'xsmall',
     label: 'Extra small',
-    used: 'Badges, chips, labels, footer column headings',
+    used: 'Badges, chips, labels, footer column headings, award badge text',
     family: 'body',
     tag: null,
-    tokens: [
-      '--fs-3xs',
-      '--fs-4xs',
-      '--fs-5xs',
-      '--fs-6xs',
-      '--fs-7xs',
-      '--fs-card-label',
-      '--fs-badge-label',
-    ],
+    tokens: ['--fs-xsmall'],
     defaults: { size: 11, sizeTablet: 11, sizeMobile: 11, weight: '600', lh: 1.4, ls: 0 },
   },
 ])
 
 /**
- * Wo size token jo **abhi admin se nahi** badalte — daam, stats, quote, bade numbers, h3 ke do apwaad.
+ * Wo size token jo **abhi admin se nahi** badalte — bade daam, stat patti, FAQ icon, map pin, h3 ke do apwaad.
+ * 18 Sep ko client ne baaki sab common kiya: 41 → 17 token (D-99).
  * A-32 ("Text Elements") me har ek ko admin ka dropdown milega. Test dekhta hai ki `globals.css` ka har
  * `--fs-*` ya kisi step me hai ya yahan — beech me koi chhoot na jaaye.
  */
 export const FONT_FIXED_TOKENS = Object.freeze([
-  '--fs-h3-lg',
-  '--fs-h3-xl',
-  '--fs-price',
-  '--fs-offer',
-  '--fs-price-side',
-  '--fs-stat',
-  '--fs-price-row',
-  '--fs-quote',
-  '--fs-intro',
-  '--fs-hero-sub',
-  '--fs-hero-num',
-  '--fs-glyph',
-  '--fs-4xl',
-  '--fs-3xl',
-  '--fs-2xl',
+  '--fs-h3-lg', // 19 — home form card, map panel, hero stats, home ke daam, hotel category daam, pull quote, contact promise
+  '--fs-h3-xl', // 24 — blog ka bada feature card
+  '--fs-offer', // 34 — package page offer box ka daam
+  '--fs-price-side', // 30 — package sidebar booking box ka daam
+  '--fs-stat', // 28 — tour hero ki stat patti
+  '--fs-price-row', // 26 — tour package row ka daam
+  '--fs-glyph', // 20 — FAQ ka + / − icon (client: h3 badle to icon na badle)
+  '--fs-7xs', // 9.5 — island map SVG pin ka text
 ])
 
 /**

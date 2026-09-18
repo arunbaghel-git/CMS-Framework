@@ -61,6 +61,10 @@ describe('Settings ▸ Fonts (theme-fonts)', () => {
       expect(inMedia(767, `--fs-${key}`)).toBe(d(key).sizeMobile)
     }
     expect(root('--fs-h3')).toBe(d('h3').size)
+    // text ke teen common naap (18 Sep)
+    expect(root('--fs-body')).toBe(d('body').size)
+    expect(root('--fs-small')).toBe(d('small').size)
+    expect(root('--fs-xsmall')).toBe(d('xsmall').size)
   })
 
   it('custom font — @font-face apni site ke URL se, heading token', () => {
