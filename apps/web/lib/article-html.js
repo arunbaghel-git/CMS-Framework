@@ -112,6 +112,29 @@ export function normalizeTable(table) {
 }
 
 /**
+ * Client ki likhi `<img>` pe `loading="lazy"` + `decoding="async"` — sirf jahan client ne khud
+ * `loading` na likha ho (18 Sep, speed check).
+ *
+ * ⚠️ **Naap se nikla:** home ke island map (Custom editor) ki **das** `large.webp` page khulte hi
+ * utarti thin — jabki ek waqt me ek hi tab dikhta hai, aur wo section fold se kaafi neeche hai.
+ * Mobile ke 1.6 Mbps pe ye ~330 KB hero ki image ke saath bandwidth baantte the, aur LCP ~4.7s pe
+ * atka tha. Theme ki apni images (`Img.jsx`) pehle se lazy hain; client ka HTML us raaste se
+ * guzarta hi nahi.
+ *
+ * Ghar theme hai, sanitizer nahi — wahi tark jo `wrapTables()` pe hai: DB me client ka HTML jaisa
+ * likha waisa rehta hai. Client ko kisi image ko turant chahiye (fold ke upar) to wo khud
+ * `loading="eager"` likh de — wo chhua nahi jaata.
+ *
+ * @param {string} html
+ */
+export const lazyImages = (html) =>
+  String(html ?? '').replace(/<img\b(?![^>]*\sloading\s*=)([^>]*)>/gi, (tag, attrs) => {
+    const decoding = /\sdecoding\s*=/i.test(attrs) ? '' : ' decoding="async"'
+
+    return `<img loading="lazy"${decoding}${attrs}>`
+  })
+
+/**
  * Har `<table>` ko `.tblw` me lapet do — client, 9 Sep.
  *
  * ⚠️ **`.tblw` sirf border-radius ke liye nahi hai, usme `overflow-x: auto` bhi hai.** Uske bina

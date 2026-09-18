@@ -1,4 +1,5 @@
 import sanitizeHtmlLib from 'sanitize-html'
+import { OWN_ORIGINS } from './env.js'
 
 /**
  * Admin se aayi HTML ki safai — **poore system me ek hi jagah** (D-80).
@@ -296,6 +297,47 @@ function unwrapBareSpans(html) {
   return out
 }
 
+/** Apne origins — `new URL().origin` se, taaki `http://localhost:5173/` aur `…:5173` ek hi ginein. */
+const OWN_UPLOAD_ORIGINS = OWN_ORIGINS.flatMap((o) => {
+  try {
+    return [new URL(o).origin]
+  } catch {
+    return []
+  }
+})
+
+/**
+ * Apni hi site ke `/uploads/…` link ko relative banao — 18 Sep me juda.
+ *
+ * ⚠️ **Client ne pakda, speed check ke waqt:** home ke island map (Custom editor block) ki das
+ * image `http://localhost:5173/uploads/…` se aa rahi thin. Wo Media Library ke **Copy URL** se
+ * aayi thin — wo button jaan-boojh kar poora URL deta hai (`MediaLibrary.jsx` `fullUrl()`), aur
+ * admin ka origin `:5173` hai. Admin band hua to console me das `ERR_CONNECTION_REFUSED`, aur
+ * live server pe ye image **kabhi** nahi chalti.
+ *
+ * Media ka URL jaan-boojh kar relative hota hai (D-42 §2) — yahi niyam ab paste kiye hue HTML pe
+ * bhi. Sirf **apne** origins (`OWN_ORIGINS`) chhue jaate hain; kisi aur site ka link, ya CDN ka
+ * absolute URL (`CDN_BASE_URL`), waisa ka waisa rehta hai.
+ *
+ * ⚠️ **`../../uploads/…` bhi** — wahi image dobara save karne pe admin ke editor (TinyMCE ka
+ * default `relative_urls`) ne use `/pages/home` ke hisaab se relative bana diya tha. Site ke `/` pe
+ * wo sanyog se chalta hai, kisi gehre path pe toot-ta. `uploads/` ke aage ka `../` kabhi sahi
+ * nahi hota — media hamesha root pe hai.
+ *
+ * `sanitize-html` attribute hamesha `"` me likhta hai, isliye regex usi shakl pe hai.
+ *
+ * @param {string} html
+ */
+function relativizeOwnUploads(html) {
+  return html.replace(/(\s(?:src|href|srcset|poster)=")([^"]*)"/g, (_, attr, value) => {
+    let out = value
+    for (const origin of OWN_UPLOAD_ORIGINS) out = out.split(`${origin}/uploads/`).join('/uploads/')
+    out = out.replace(/(^|[\s,])(?:\.\.?\/)+uploads\//g, '$1/uploads/')
+
+    return `${attr}${out}"`
+  })
+}
+
 /**
  * Block-level rich text saaf karo.
  *
@@ -305,7 +347,7 @@ function unwrapBareSpans(html) {
 export function sanitizeBlockHtml(html) {
   if (!html) return ''
 
-  return unwrapBareSpans(sanitizeHtmlLib(String(html), BLOCK))
+  return relativizeOwnUploads(unwrapBareSpans(sanitizeHtmlLib(String(html), BLOCK)))
 }
 
 /**
@@ -317,7 +359,7 @@ export function sanitizeBlockHtml(html) {
 export function sanitizeInlineHtml(html) {
   if (!html) return ''
 
-  return unwrapBareSpans(sanitizeHtmlLib(String(html), INLINE))
+  return relativizeOwnUploads(unwrapBareSpans(sanitizeHtmlLib(String(html), INLINE)))
 }
 
 // ── kaunsa field HTML hai — ek hi jagah ─────────────────────────────────────

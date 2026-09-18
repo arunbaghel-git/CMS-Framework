@@ -9,7 +9,7 @@ import rateLimit from 'express-rate-limit'
 import pinoHttp from 'pino-http'
 import mongoose from 'mongoose'
 
-import { env, isProd, isTest } from './core/env.js'
+import { isProd, isTest, OWN_ORIGINS } from './core/env.js'
 import { logger } from './core/logger.js'
 import { errorHandler, forbidden, notFoundHandler } from './core/errors.js'
 import { checkPending } from './core/migrations/runner.js'
@@ -121,14 +121,7 @@ export function createApp() {
    * tunnel, LAN ka IP, staging ka preview domain. `SITE_URL` ko list nahi banaya ja sakta —
    * wo revalidate webhook ka target bhi hai.
    */
-  const allowedOrigins = [
-    env.SITE_URL,
-    env.ADMIN_URL,
-    ...(env.EXTRA_CORS_ORIGINS ?? '')
-      .split(',')
-      .map((o) => o.trim())
-      .filter(Boolean),
-  ].filter(Boolean)
+  const allowedOrigins = OWN_ORIGINS
 
   app.use(
     cors({

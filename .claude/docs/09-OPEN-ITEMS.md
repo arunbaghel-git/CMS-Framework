@@ -1,6 +1,6 @@
 # 09 — Open Items
 
-**Last updated:** 17 Sep 2026 — 301 Redirects + package breadcrumb (D-97); subah docs ki safai
+**Last updated:** 18 Sep 2026 raat — home ki speed (D-101), A-17 me saare pages ki naap
 
 **Status:** Phase 0 · Slice 0 · Phase 1 (Packages) · Phase 2 (Media) poore. Uske upar client ke kehne pe
 page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87–D-90) · Sidebar (D-88) ·
@@ -696,6 +696,25 @@ karo ya model me `collection: 'importRuns'` pin kar do. Khaali collection tab ha
 ---
 
 ### A-17 · Speed — naap ho chuki hai. Mobile **91**, desktop **98** (4 Sep)
+
+> ✅ **18 Sep — saare pages naape gaye, phir home theek hua (D-101).** Production build, Lighthouse mobile 5 run /
+> desktop 3 run ka median (`benchmarkIndex` 1300–2150, bharosemand). Upar ke 4 Sep aur 11 Sep ke number ab purane hain.
+>
+> | Page | Mobile | Desktop | Mobile LCP | Mobile ka bada kaanta |
+> | --- | --- | --- | --- | --- |
+> | Home `/` | 57 → **93** (PageSpeed 91–97) | 95 → **100** | 5.0 → ~3.05s | ✅ D-101 |
+> | Package `/packages/discover-andaman` | **80** | 100 | 3.6s | 4 Sep ke 91 se neeche — wajah dekhni hai |
+> | Tour `/andaman-tour-packages` | **88** | 100 | 3.6s | — |
+> | Blog `/blog` | **83** | 99 | 4.0s | — |
+> | Article `/blog/how-to-plan-an-andaman-trip` | **62** | 96 | 4.1s | hotlinked image — CLS 0.109, best practices 75 |
+> | Contact `/contact-us` | **85** | 98 | 3.5s | — |
+> | Saada page `/test` | **85** | 100 | 3.3s | — |
+> | 404 | — | — | — | Lighthouse 404 status naapta hi nahi |
+>
+> ⚠️ Home ke alawa ye number **D-101 se pehle** ke hain — drawer wala fix (§4) har page pe laga hai, dobara naapna hai.
+> **Har page pe bacha:** render-blocking CSS (~420ms, poori site ki ek 108 KB file) — D-101 §6. SEO 91 jahan Meta
+> description khaali hai (home, tour, blog, contact, page) — content ka kaam.
+> **Agla:** baaki pages asli PageSpeed pe (`pagespeed.web.dev`, tunnel URL), phir har page ka apna sasta fix.
 
 ⚠️ **11 Sep — blog ke do page pehli baar naape gaye** (A-21 ke saath, production build, Lighthouse
 mobile, D-85 wali settings, 5 run ka median). Upar ke 91/98 **sirf package page** ke hain:

@@ -9046,3 +9046,56 @@ Reviews slider ki card chaudai (`calc((100% − 2 × gap) / 3)`) aur Offer slide
 **Look:** script ne purani aur nayi CSS milaayi (tokens default pe) — farak **sirf** cards gap ka: `.atg .sim .rev__track
 .dgrid .pn .contact-steps .promise` 12→14, `.catbar__g .lgg` 10→14, mobile `.imc` 11→14. Section/block spacing
 bilkul wahi. Test: har card grid token pe hai, aur defaults `globals.css` se milte hain.
+
+## D-101
+
+**Home page ki speed — naap ke saath, mobile 77 → 91–97 (PageSpeed), desktop 100.** 18 Sep, client ka lakshya (A-17):
+_"fast, serve page from cache, score of 100 in Google Page Speed, all pages"_. Koi migration nahi.
+
+**Naapne ka tareeka** wahi jo D-85 me hai: `next build` + `next start`, Lighthouse mobile, 5 run ka median; aakhir me asli
+**PageSpeed Insights** tunnel se (`merncms-site-tunnel`). Local 93 aur PageSpeed 91–97 aapas me milte hain.
+⚠️ Keyless PageSpeed API ka saanjha quota din me khatam ho jaata hai (`429`) — browser se `pagespeed.web.dev` chalta hai.
+
+| Badlaav | Home mobile (median) | LCP |
+| --- | --- | --- |
+| Shuru | 77 | 4.7s |
+| §2 Custom editor ki `<img>` lazy | 89 | 3.35s |
+| ~~§5 `experimental.inlineCss`~~ | ~~74~~ — rad | — |
+| §3 fold ke neeche ke sections `content-visibility` | 92 | ~3.15s |
+| §4 band mobile drawer `content-visibility: hidden` | 93 | ~3.05s |
+
+**§1 — Apne origin ka `/uploads/` link relative, write pe (`relativizeOwnUploads()`, `core/sanitize-html.js`).** Console
+me das `ERR_CONNECTION_REFUSED`: island map (Custom editor) ki image `http://localhost:5173/uploads/…` thin — Media Library
+ka **Copy URL** jaan-boojh kar poora URL deta hai, aur admin ka origin paste ho gaya. Live pe ye image kabhi chalti hi nahi.
+Ab sanitizer (block **aur** inline profile) `OWN_ORIGINS` (`SITE_URL` · `ADMIN_URL` · `EXTRA_CORS_ORIGINS`, ab
+`core/env.js` me ek jagah — CORS bhi wahi padhta hai) wale `src/href/srcset/poster` ko `/uploads/…` bana deta hai, aur
+`../../uploads/` ko bhi. Doosri site ka link aur CDN ka absolute URL nahi chhue jaate.
+⚠️ `../../uploads/` TinyMCE ne banaya tha — default `relative_urls: true` link ko **admin ke page** (`/pages/home`) ke
+hisaab se relative karta hai. Ab `relative_urls: false` + `remove_script_host: true` (`HtmlEditor.jsx`).
+
+**§2 — `lazyImages()` (`apps/web/lib/article-html.js`), `CustomHtml` me.** Island map ki 10 `large.webp` (~330 KB)
+page khulte hi utarti thin, jabki ek waqt me ek tab dikhta hai — hero ki image ke saath bandwidth baantti thin. Client ki
+likhi `<img>` pe `loading="lazy" decoding="async"`, sirf jahan `loading` khud na likha ho. Ghar theme (wahi tark jo
+`wrapTables()` pe) — DB me HTML jaisa likha waisa.
+
+**§3 — `.home > section:not(:first-child)` pe `content-visibility: auto`.** D-85 wala hi ilaaj, home pe. Pehla section
+(hero / jo sabse upar ho) chhoda. Keemat wahi: pehle scroll pe scrollbar ka naap badalta hai, aur `contain: paint`
+section ke bahar ka hissa kaat-ta hai — isliye **`VideoModal` ab `createPortal(…, document.body)`** se: section ke andar
+`position: fixed` screen se nahi, section se chipakta.
+
+**§4 — Band drawer `content-visibility: hidden`.** `visibility: hidden` ka layout **phir bhi hota hai**; drawer me ~205
+element (poora menu) the — page ke pehle layout ke ~361 me se aadhe. `content-visibility` ka transition
+`allow-discrete`, taaki band hote waqt slide ke **baad** lage.
+
+**§5 — `experimental.inlineCss` naapa aur rad hua.** FCP ~0.3s sudhra, par CSS RSC payload me bhi chali gayi — HTML
+340 → 558 KB, TBT 129 → ~600ms, **89 → 74**. `next.config.js` me wajah likhi hai.
+
+**§6 — Jo bacha (A-17):** render-blocking CSS (~420ms) — poori site ki **ek** 108 KB file, home uska ~15% use karta
+hai. Do raaste: critical CSS (CLS ka khatra) ya CSS ka template-wise batwara (ek catch-all route ki wajah se shayad kaam
+na kare). Abhi nahi — pehle baaki pages 90+. **Chhue nahi:** unused JS 46 KB (Next/React framework), legacy JS 11 KB
+(Next ka polyfill, iOS < 15.4 ke liye), hero image ka size (client khud chhoti image lagayega).
+⚠️ Ek aur mila: page ka HTML `Cache-Control: private, no-store` jaata hai — data cache hota hai (D-83), poora page
+CDN/browser me nahi. "Serve page from cache" wali shart hosting ke waqt.
+⚠️ Beech me mila (docs me nahi tha): machine pe **Windows service `MongoDB`** bhi `127.0.0.1:27017` pe chalti hai. Docker
+band hone pe API chup-chaap us **khaali** DB se jud gayi, `My Site` wali settings bana di, aur site ne wo ek ghanta cache
+rakhi. Asli DB (Docker) safe raha.

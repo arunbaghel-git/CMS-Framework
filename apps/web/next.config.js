@@ -12,6 +12,13 @@ const nextConfig = {
    */
   poweredByHeader: false,
 
+  /**
+   * ⚠️ `experimental.inlineCss` **naapa gaya aur rad hua** (18 Sep). Render-blocking CSS (~466ms)
+   * to gayi aur FCP ~0.3s sudhra, par CSS HTML ke saath RSC payload me bhi chali gayi — home ka HTML
+   * 340 → 558 KB, TBT 129 → ~600ms, mobile score **89 → 74** (5 run ka median). Dobara mat jodna
+   * jab tak Next ka ye duplication theek na ho.
+   */
+
   async rewrites() {
     const apiUrl = process.env.API_URL ?? 'http://localhost:4000'
 

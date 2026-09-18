@@ -1,12 +1,31 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 18 Sep 2026 shaam — Layout ▸ Spacing (D-100). Usse pehle D-99 (Fonts). Push baaki —
+> **Last updated:** 18 Sep 2026 raat — home ki speed (D-101). Usse pehle D-100 (Spacing), D-99 (Fonts). Push baaki —
 > `git log --oneline origin/main..HEAD` dekho.
-> **Poori suite 17 Sep ko chali: 42 files, 1160/1160 pass.** ⚠️ C: drive pe sirf ~0.9 GB bachi hai — 16 Sep
-> ko isi wajah se vitest `ENOSPC` de rahi thi. Suite "no tests"/load error de to pehle disk dekho.
+> **Poori suite 18 Sep ko chali: 46 files, 1223/1224 pass** — ek fail `theme-fonts.test.js` (`.hf-stat span`, client ka
+> edit, neeche). C: pe ab ~10 GB (18 Sep: Docker images prune + `docker_data.vhdx` compact, 40 → 25 GB).
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
+
+---
+
+## ⏭️ 18 Sep raat — speed: home ho gaya, ab baaki pages (D-101, A-17)
+
+Client: _"90+ aa rha hai which is good"_ — ab **baaki pages** asli PageSpeed pe, phir har page ka apna sasta fix.
+Render-blocking CSS (critical CSS / CSS batwara) **baad me**, jab sab 90+ ho.
+
+- **Home mobile 77 → 91–97 (PageSpeed), desktop 100.** Poora hisaab D-101; saare pages ki naap A-17 ki table me
+- **Naapna:** `pnpm --filter @cms/web build` + `start` (dev band), Lighthouse CLI npx cache me hai
+  (`~/AppData/Local/npm-cache/_npx/8003d8991b0d346b/node_modules/lighthouse/cli/index.js`, `CHROME_PATH` Chrome ka).
+  Asli PageSpeed: `docker start merncms-site-tunnel` → `docker logs` me `trycloudflare.com` URL → `pagespeed.web.dev`.
+  ⚠️ Keyless PageSpeed API din me `429` deta hai — browser wala chalta hai
+- ⚠️ **Machine pe do MongoDB:** Windows service `MongoDB` (Automatic, `127.0.0.1:27017`) + Docker. Docker band ho to API
+  chup-chaap **khaali** Windows wale DB se judti hai (`My Site` settings bana di thi). Client ko bataya — band karna
+  unka faisla. RAM 7.7 GB me ~0.5 GB khaali rehti hai; background server kabhi-kabhi system band kar deta hai
+- ⚠️ Client ko: hero ki mobile/desktop image chhoti karni hai (khud karenge), aur Home ka **Meta description** bharna hai (SEO 91)
+- ⚠️ Browser me dekhna baaki: video popup (ab portal) aur mobile drawer ki slide — client ne 90+ dekha, ye do cheezein nahi bataayin
+- `.hf-stat span` wala test aur `HtmlEditor.jsx:81` ki lint error ab bhi waise hi — client ke, chhue nahi
 
 ---
 

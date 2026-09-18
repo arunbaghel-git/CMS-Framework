@@ -1039,6 +1039,14 @@ a.mega__gl:hover {
  *
  * `transition` me `visibility` isliye hai ki band hote waqt wo slide **poori hone ke baad**
  * chhupe; khulte waqt wo turant dikh jaati hai (visibility discrete animate hoti hai).
+ *
+ * ⚠️ **`content-visibility: hidden` bhi — speed ke liye** (18 Sep). `visibility: hidden` element ka
+ * layout **phir bhi hota hai**. Drawer me poora menu hai (home pe ~205 element), aur mobile trace me
+ * page ke pehle layout ke ~361 element me se lagbhag aadhe yahi the — band drawer, jo dikhta hi nahi.
+ * Wo layout 4× dheeme CPU pe LCP ke "render delay" me judta tha. `content-visibility: hidden` andar ka
+ * layout/paint chhod deta hai, drawer ka dabba (aur uski slide) waisa hi rehta hai. `allow-discrete` se
+ * band hote waqt ye bhi slide ke **baad** lagta hai — jahan support nahi, wahan andar ka hissa slide
+ * shuru hote hi chhup jaata hai, bas.
  */
 .mdrawer {
   position: fixed;
@@ -1049,9 +1057,11 @@ a.mega__gl:hover {
   background: var(--surface);
   transform: translateX(100%);
   visibility: hidden;
+  content-visibility: hidden;
   transition:
     transform 0.22s,
-    visibility 0.22s;
+    visibility 0.22s,
+    content-visibility 0.22s allow-discrete;
   overflow-y: auto;
   z-index: 101;
 }
@@ -1059,6 +1069,7 @@ a.mega__gl:hover {
 .mdrawer.on {
   transform: translateX(0);
   visibility: visible;
+  content-visibility: visible;
 }
 
 .mdrawer__head {
@@ -7590,6 +7601,27 @@ a.mega__gl:hover {
   --hsec-bg: var(--surface);
   background: var(--hsec-bg);
   padding: var(--space-section) 0;
+}
+
+/*
+ * **Home ke fold ke neeche wale section — layout paint se pehle nahi** (18 Sep, speed check). Wahi ilaaj
+ * jo package page ke `.blk` pe D-85 me laga tha.
+ *
+ * Naap: home pe ~2100 element hain, aur mobile trace me Style & Layout ~1.3s tha — ek hi ~550ms ka
+ * long task, theek FCP ke baad. Hero ki image utar chuki hoti thi par paint nahi ho paati thi (LCP ka
+ * "render delay" ~1.2s).
+ *
+ * Pehla section chhoda gaya hai — wo hero hai (ya jo bhi client ne sabse upar rakha), aur LCP wahi hota hai.
+ *
+ * ⚠️ `.blk` wali dono keemat yahan bhi: pehle scroll pe scrollbar ka naap badalta hai (unchai
+ * `contain-intrinsic-size` se andaaza hai), aur `contain: paint` section ke **bahar** nikalta hissa kaat
+ * deta hai. Isi wajah se video ka popup ab `<body>` me portal se jaata hai (`VideoModal.jsx`) — section
+ * ke andar `position: fixed` screen se nahi, section se chipakta. Section me kabhi tooltip/popover daalo to
+ * yahi baat yaad rakhni hai.
+ */
+.home > section:not(:first-child) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
 }
 
 /*

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   articleHtml,
+  lazyImages,
   leadParagraph,
   markedBlocks,
   normalizeTable,
@@ -382,5 +383,27 @@ describe('readMoreSplit — `Read more:` se collapse (client, 16 Sep)', () => {
     expect(readMoreSplit('<p>A</p><p>B</p>')).toBe('<p>A</p><p>B</p>')
     expect(readMoreSplit('<p>A</p><p>Read more:</p>')).toBe('<p>A</p>')
     expect(readMoreSplit('')).toBe('')
+  })
+})
+
+describe('lazyImages — client ki likhi img (18 Sep, speed check)', () => {
+  it('bina loading wali img pe lazy + async', () => {
+    expect(lazyImages('<div><img src="/uploads/a.webp" alt="x"></div>')).toBe(
+      '<div><img loading="lazy" decoding="async" src="/uploads/a.webp" alt="x"></div>',
+    )
+  })
+
+  it('client ka apna loading/decoding chhua nahi jaata', () => {
+    expect(lazyImages('<img loading="eager" src="/a.webp">')).toBe(
+      '<img loading="eager" src="/a.webp">',
+    )
+    expect(lazyImages('<img decoding="sync" src="/a.webp">')).toBe(
+      '<img loading="lazy" decoding="sync" src="/a.webp">',
+    )
+  })
+
+  it('self-closing aur kai img — sab pe', () => {
+    const out = lazyImages('<img src="/a.webp" /><p>x</p><IMG src="/b.webp">')
+    expect(out.match(/loading="lazy"/g)).toHaveLength(2)
   })
 })

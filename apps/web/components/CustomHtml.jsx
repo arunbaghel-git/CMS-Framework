@@ -1,4 +1,4 @@
-import { wrapTables } from '../lib/article-html.js'
+import { lazyImages, wrapTables } from '../lib/article-html.js'
 import HtmlSwitcher from './home/HtmlSwitcher.jsx'
 
 /**
@@ -30,7 +30,7 @@ export default function CustomHtml({ props = {}, variant = 'section' }) {
   const { background, className, html } = props
   if (!html) return null
 
-  const inner = wrapTables(html)
+  const inner = lazyImages(wrapTables(html))
   const markup = { __html: inner }
   /** Sasta sa sawaal — poori HTML me ek class dhoondhni hai, parse kuch nahi karna. */
   const hasTabs = inner.includes('sw-tab')

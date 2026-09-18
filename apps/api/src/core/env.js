@@ -204,3 +204,19 @@ export const isDev = env.NODE_ENV === 'development'
  * force ka bachav test me bhi test hona chahiye.
  */
 export const isTest = env.NODE_ENV === 'test'
+
+/**
+ * Site ke apne origins — `SITE_URL` · `ADMIN_URL` · `EXTRA_CORS_ORIGINS`.
+ *
+ * Do jagah kaam aate hain, isliye ek hi jagah bante hain: CORS allowlist (`app.js`) aur
+ * sanitizer, jo in origins wale `/uploads/…` link ko relative banata hai
+ * (`core/sanitize-html.js`). Do copies hoti to ek me naya origin judta aur doosre me chhoot jaata.
+ */
+export const OWN_ORIGINS = [
+  env.SITE_URL,
+  env.ADMIN_URL,
+  ...(env.EXTRA_CORS_ORIGINS ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean),
+].filter(Boolean)

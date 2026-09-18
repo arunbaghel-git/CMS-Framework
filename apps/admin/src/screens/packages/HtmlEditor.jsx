@@ -278,6 +278,21 @@ export default function HtmlEditor({ value, onChange, disabled = false, height =
               extended_valid_elements: '*[*]',
               valid_children: '+body[style],+body[script]',
 
+              /**
+               * ⚠️ **URL hamesha `/uploads/…` jaisa — na `../../uploads/…`, na `http://localhost:5173/…`** (18 Sep).
+               *
+               * TinyMCE ka default `relative_urls: true` hai: wo har link ko **admin ke page** ke hisaab se
+               * relative bana deta hai. Home ke island map ko save karte hi `http://localhost:5173/uploads/…`
+               * (Media Library ka Copy URL) `../../uploads/…` ban gaya — `/pages/home` se do seedhi upar.
+               * Site ke `/` pe wo sanyog se chal gaya, par kisi gehre path pe wahi HTML toot jaata.
+               *
+               * `relative_urls: false` + `remove_script_host: true` = apne host ka link `/uploads/…` banta
+               * hai, doosri site ka link poora rehta hai. Server pe wahi niyam `relativizeOwnUploads()` me
+               * bhi hai (`core/sanitize-html.js`) — authority wahi hai, ye sirf turant dikhne ke liye.
+               */
+              relative_urls: false,
+              remove_script_host: true,
+
               /** Paste kiya hua content bhi jyon ka tyon — Word/website se aaya hua bhi. */
               paste_as_text: false,
               paste_data_images: false,

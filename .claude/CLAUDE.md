@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-100               |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-101               |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -710,7 +710,11 @@ ka prastav. ⚠️ **Client ki ijaazat ke bina code mat chhoona.**
 footer h2 alag. Fonts ki H1–H6 ab sirf apne tag ka token; daam/stats/quote `FONT_FIXED_TOKENS` me (A-32 tak). HTML nahi badla.
 **18 Sep shaam — Layout ▸ Spacing (D-100), koi migration nahi:** Section spacing · Block spacing (desktop/mobile) · Cards gap
 (rows + columns). Card grids sab 14 pe common (client). Single content ka andar ka gap Block spacing ke anupaat me.
-⏭️ **Agla kaam: client batayega.** `project-state.md` ka pehla section padho.
+**18 Sep raat — home ki speed (D-101), koi migration nahi:** mobile **77 → 91–97** (asli PageSpeed), desktop 100. Custom editor
+ki images lazy, fold ke neeche ke sections + band drawer `content-visibility`, video popup portal se. Apne origin ka `/uploads/`
+link ab write pe relative (Media Library ke Copy URL se `localhost:5173` paste hua tha). ⚠️ `inlineCss` naapa, **rad** (89→74).
+Bacha: render-blocking CSS (ek 108 KB file) — A-17.
+⏭️ **Agla kaam: baaki pages PageSpeed pe** (A-17). `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

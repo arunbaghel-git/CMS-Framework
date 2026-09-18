@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * Video ka popup player — Customer reviews (D-96 §13) aur Text with video (§22) dono ka.
@@ -13,6 +14,12 @@ import { useEffect, useRef } from 'react'
  * button), na ho to mount ke waqt ka `document.activeElement`.
  *
  * ⚠️ Iframe sirf popup khulne pe banta hai — page ke saath YouTube ka ~500 KB JS nahi (D-85).
+ *
+ * ⚠️ **`<body>` me portal se — section ke andar nahi** (18 Sep, speed check). Home ke sections pe ab
+ * `content-visibility: auto` hai, aur wo `contain: layout paint` lagata hai — us dabbe ke andar
+ * `position: fixed` screen se nahi, **section** se chipakta hai aur uske bahar ka hissa kat jaata hai.
+ * Popup section ke andar render hota to wo section ke andar hi qaid ho jaata. Ye popup sirf click pe
+ * banta hai, isliye `document` tab hamesha maujood hai.
  */
 export default function VideoModal({ title, embedUrl, onClose, openerRef }) {
   const closeRef = useRef(null)
@@ -41,7 +48,7 @@ export default function VideoModal({ title, embedUrl, onClose, openerRef }) {
     }
   }, [])
 
-  return (
+  return createPortal(
     <div
       className="vmod"
       role="dialog"
@@ -78,6 +85,7 @@ export default function VideoModal({ title, embedUrl, onClose, openerRef }) {
           allowFullScreen
         />
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
