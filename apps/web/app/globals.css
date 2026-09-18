@@ -271,7 +271,6 @@
   --fs-md: 13.5px;
   --fs-base: 14px;
   --fs-lg: 14.5px;
-  --fs-xl: 15.5px;
   --fs-2xl: 16px;
   --fs-3xl: 17px;
   --fs-7xs: 9.5px;
@@ -279,10 +278,8 @@
   --fs-4xl: 18px;
 
   /* Page ka bada text — teenon screen ke saath badhte hain (`clamp`). */
-  --fs-title: clamp(26px, 3.6vw, 42px);
   --fs-price: clamp(28px, 3.4vw, 38px);
   --fs-intro: clamp(15px, 1.6vw, 17px);
-  --fs-display: clamp(21px, 2.6vw, 30px);
 
   /*
    * ⚠️ **Ye das pehle CSS me seedha px/clamp me likhe the** (D-96 §18, client 15 Sep) — future ke customizer
@@ -290,20 +287,16 @@
    * kyunki inme se kisi ka koi saathi scale me nahi tha.
    */
   /* Tour · Page · Blog · Home hero ka h1 aur uske neeche ki line */
-  --fs-hero-title: clamp(25px, 3.6vw, 40px);
   --fs-hero-sub: clamp(13.5px, 1.3vw, 15.5px);
   /* Stat rail ka number */
   --fs-stat: clamp(20px, 2.4vw, 28px);
   /* Package page ke section ki heading (`.sh h2`) */
-  --fs-section: clamp(19px, 2.2vw, 25px);
   /* Daam — sidebar ke form ka header, similar row, CTA ka dabba */
   --fs-price-side: 30px;
   --fs-price-row: clamp(21px, 2.2vw, 26px);
   --fs-offer: 34px;
   /* Blog — pull quote aur featured card ke title */
   --fs-quote: clamp(17px, 2vw, 21px);
-  --fs-card-lg: clamp(16px, 1.9vw, 25px);
-  --fs-card-md: clamp(15px, 1.5vw, 17.5px);
   /* FAQ ka `+` / `−` */
   --fs-glyph: 20px;
   /* Home Info cards ka label — design ka 10px (D-96 §11). Maujooda scale me nahi tha. */
@@ -314,9 +307,16 @@
   --fs-badge-label: 8px;
 
   /* Headings — `.blk h1`–`h6` ke saath CTA/offer ka bada heading bhi. */
-  --fs-h1: clamp(19px, 2.1vw, 24px);
-  --fs-h2: clamp(18px, 2vw, 23px);
-  --fs-h3: var(--fs-xl);
+  /*
+   * Headings ke common naap — client, 18 Sep. Har h1 ek, har section heading (h2) ek, har h3 ek.
+   * Tablet/mobile neeche ke @media :root me. Settings ▸ Fonts ki H1/H2/H3 rows inhi ko badalti hain.
+   */
+  --fs-h1: 40px;
+  --fs-h2: 25px;
+  --fs-h3: 16px;
+  /* h3 ke do apwaad — admin se abhi nahi (Text Elements aane tak): home form card + island map panel, blog ka bada feature card */
+  --fs-h3-lg: 19px;
+  --fs-h3-xl: 24px;
   --fs-h4: var(--fs-lg);
   --fs-h5: var(--fs-md);
   --fs-h6: var(--fs-sm);
@@ -534,6 +534,19 @@ a {
 @media (max-width: 1024px) {
   :root {
     --pad: 23px;
+    --fs-h1: 34px;
+    --fs-h2: 23px;
+    --fs-h3-xl: 22px;
+  }
+}
+
+/* Headings ka mobile naap — 767px (Settings ▸ Fonts ka "Mobile" bhi yahi) */
+@media (max-width: 767px) {
+  :root {
+    --fs-h1: 28px;
+    --fs-h2: 21px;
+    --fs-h3-lg: 18px;
+    --fs-h3-xl: 20px;
   }
 }
 
@@ -1758,7 +1771,7 @@ a.mega__gl:hover {
  * clamp alag hoga.
  */
 .ptitle h1 {
-  font-size: var(--fs-title);
+  font-size: var(--fs-h1);
   line-height: 1.1;
   letter-spacing: -0.04em;
   text-wrap: balance;
@@ -2436,7 +2449,7 @@ a.mega__gl:hover {
 }
 
 .itin__c h3 {
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   letter-spacing: -0.02em;
   line-height: 1.35;
   margin: 0 0 7px;
@@ -2634,7 +2647,7 @@ a.mega__gl:hover {
 }
 
 .inx__c h3 {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-black);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -4923,7 +4936,7 @@ a.mega__gl:hover {
 
 .offer h2 {
   color: var(--on-dark);
-  font-size: var(--fs-display);
+  font-size: var(--fs-h2);
   font-weight: var(--fw-black);
   letter-spacing: -0.03em;
 }
@@ -5189,7 +5202,7 @@ a.mega__gl:hover {
 .vhero h1,
 .hf-hero h1 {
   color: var(--on-dark);
-  font-size: var(--fs-hero-title);
+  font-size: var(--fs-h1);
   line-height: 1.25;
   font-weight: var(--fw-black);
   letter-spacing: -0.04em;
@@ -5430,7 +5443,7 @@ a.mega__gl:hover {
 }
 
 .sh h2 {
-  font-size: var(--fs-section);
+  font-size: var(--fs-h2);
   font-weight: var(--fw-xbold);
 }
 
@@ -5535,7 +5548,7 @@ a.mega__gl:hover {
 }
 
 .dcard h3 {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-h3);
   margin: 0 0 5px;
 }
 
@@ -5754,7 +5767,7 @@ a.mega__gl:hover {
 
 .wdg--cta h3 {
   color: var(--on-dark);
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   margin-bottom: 6px;
 }
 
@@ -6089,7 +6102,7 @@ a.mega__gl:hover {
   gap: 8px;
 }
 .bp__b h3 {
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   line-height: 1.35;
   letter-spacing: -0.02em;
 }
@@ -6867,7 +6880,7 @@ a.mega__gl:hover {
 
 .fcard h3 {
   color: var(--on-dark);
-  font-size: var(--fs-card-lg);
+  font-size: var(--fs-h3-xl);
   line-height: 1.25;
   letter-spacing: -0.03em;
   margin-top: 9px;
@@ -6875,7 +6888,7 @@ a.mega__gl:hover {
 }
 
 .fcard--sm h3 {
-  font-size: var(--fs-card-md);
+  font-size: var(--fs-h3);
 }
 
 /* Wahi tark jo `.bp__x` pe — card ka body text `--fs-body` pe hai. */
@@ -7236,7 +7249,7 @@ a.mega__gl:hover {
 
 /* Design ka `.quote__head` — sidebar ke card (`.wdg--cta`) ka naap nahi. */
 .hf-card__head h3 {
-  font-size: var(--fs-hero-num);
+  font-size: var(--fs-h3-lg);
   font-weight: var(--fw-black);
   color: var(--ink);
   letter-spacing: -0.025em;
@@ -7491,7 +7504,7 @@ a.mega__gl:hover {
 
 .icc h3 {
   /* 16px — client, 15 Sep (design ka 15px nahi). */
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-heading);
   color: var(--ink);
   line-height: 1.35;
@@ -8158,7 +8171,7 @@ a.imcc:hover img {
 }
 
 .ipkc__b h3 {
-  font-size: var(--fs-base);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-heading);
   line-height: 1.35;
   min-height: 2.7em;
@@ -8371,7 +8384,7 @@ a.imcc:hover img {
 }
 
 .ofcc--top h3 {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-h3);
   font-weight: var(--fw-heading);
   line-height: 1.35;
   color: var(--ink);
@@ -9023,7 +9036,7 @@ a.txv__box:hover .txv__p {
 }
 
 .home-island-map .ipanel__t h3 {
-  font-size: var(--fs-hero-num);
+  font-size: var(--fs-h3-lg);
   font-weight: var(--fw-black);
   color: var(--on-dark);
 }
@@ -9428,7 +9441,7 @@ a.txv__box:hover .txv__p {
 }
 
 .contact-offices .offc h3 {
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-h3);
   letter-spacing: -0.02em;
 }
 

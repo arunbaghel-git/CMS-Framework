@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 import {
+  FONT_FIXED_TOKENS,
   FONT_SCALE_STEPS,
   defaultThemeFonts,
   normalizeThemeFonts,
@@ -21,27 +22,45 @@ describe('Settings ▸ Fonts (theme-fonts)', () => {
     expect(themeFontCss(defaultThemeFonts())).toBe('')
   })
 
-  it('globals.css ka har --fs-* token kisi ek step me hai — koi chhoota nahi, koi do baar nahi', () => {
-    const all = [...css.matchAll(/^\s*(--fs-[a-z0-9-]+):/gm)].map((m) => m[1])
-    const used = FONT_SCALE_STEPS.flatMap((s) => s.tokens)
+  it('globals.css ka har --fs-* token kisi step me ya fixed list me — koi chhoota nahi, koi do baar nahi', () => {
+    // :root ke @media blocks me wahi token dobara aate hain — ginti ek baar
+    const all = [...new Set([...css.matchAll(/^\s*(--fs-[a-z0-9-]+):/gm)].map((m) => m[1]))]
+    const used = [...FONT_SCALE_STEPS.flatMap((s) => s.tokens), ...FONT_FIXED_TOKENS]
     expect(all.filter((t) => !used.includes(t))).toEqual([])
     expect(used.filter((t) => !all.includes(t))).toEqual([])
     expect(new Set(used).size).toBe(used.length)
   })
 
-  it('H2 badla — us step ke saare token teen naap pe, aur h2 tag ka weight/line/spacing', () => {
+  it('H2 badla — sirf section heading ka token, teen naap pe, aur h2 tag ka weight/line/spacing', () => {
     const fonts = defaultThemeFonts()
     fonts.scale.h2 = { size: 30, sizeTablet: 26, sizeMobile: 22, weight: '700', lh: 1.2, ls: 0 }
     const out = themeFontCss(fonts)
 
-    expect(out).toContain('--fs-section:30px')
     expect(out).toContain('--fs-h2:30px')
-    expect(out).toContain('@media (max-width:1024px){html:root{--fs-section:26px')
-    expect(out).toContain('@media (max-width:767px){html:root{--fs-section:22px')
+    expect(out).toContain('@media (max-width:1024px){html:root{--fs-h2:26px')
+    expect(out).toContain('@media (max-width:767px){html:root{--fs-h2:22px')
     expect(out).toContain('--h2-w:700')
     expect(out).toContain('--h2-lh:1.2')
     // doosre step ke token nahi
-    expect(out).not.toContain('--fs-hero-title')
+    expect(out).not.toContain('--fs-h1')
+    expect(out).not.toContain('--fs-h3')
+  })
+
+  it('H1–H3 ke defaults globals.css ke common heading naap se milte hain (desktop · tablet · mobile)', () => {
+    const root = (name) => Number(css.match(new RegExp(`^  ${name}: ([0-9.]+)px;`, 'm'))?.[1])
+    const inMedia = (width, name) => {
+      const start = css.indexOf(`@media (max-width: ${width}px) {\n  :root {`)
+      const block = css.slice(start, css.indexOf('\n}', start))
+      return Number(block.match(new RegExp(`${name}: ([0-9.]+)px;`))?.[1])
+    }
+    const d = (key) => FONT_SCALE_STEPS.find((s) => s.key === key).defaults
+
+    for (const key of ['h1', 'h2']) {
+      expect(root(`--fs-${key}`)).toBe(d(key).size)
+      expect(inMedia(1024, `--fs-${key}`)).toBe(d(key).sizeTablet)
+      expect(inMedia(767, `--fs-${key}`)).toBe(d(key).sizeMobile)
+    }
+    expect(root('--fs-h3')).toBe(d('h3').size)
   })
 
   it('custom font — @font-face apni site ke URL se, heading token', () => {

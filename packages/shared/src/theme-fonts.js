@@ -10,9 +10,9 @@
  *
  * ## ⚠️ Wahi niyam: jo nahi badla, wo emit nahi hota
  *
- * Step ka default us step ke "pratinidhi" token ka aaj ka naap hai (jaise H2 = `--fs-section`). Jab tak
- * client step na badle, site ke apne alag-alag hand-tuned naap chalte rehte hain. Badla to us step ke
- * saare token desktop/tablet/mobile teen naap pe (clamp ki jagah).
+ * Step ka default `globals.css` ka aaj ka naap hai (H1–H3 ke liye 18 Sep ke common heading naap). Jab tak
+ * client step na badle, CSS apna naap chalata hai. Badla to us step ke saare token desktop/tablet/mobile
+ * teen naap pe.
  *
  * ## ⚠️ Weight · line spacing · character spacing sirf asli tags pe
  *
@@ -35,84 +35,85 @@ export const FONT_FILE_URL_RE = /^\/uploads\/[a-z0-9/_.-]+\.woff2?$/
 
 /**
  * 9 step. `tokens` = `globals.css` ke wo `--fs-*` jo is step ke hain; `tag` = kis HTML tag pe weight etc.
- * Default naap us step ke pehle token ke aaj ke desktop / 1024px / 375px naap hain.
+ *
+ * ## 18 Sep — H1/H2/H3 ab sirf headings (client)
+ *
+ * Client ne site ke headings common kiye: **har h1 40, har section heading (h2) 25, har h3 16**
+ * (desktop · tablet · mobile — `globals.css` `:root` aur uske @media). Isliye H1–H3 steps me ab sirf
+ * `--fs-h1`/`--fs-h2`/`--fs-h3` hain — admin me H2 badlo to **har section heading**, aur kuch nahi.
+ * Pehle H1/H2 me daam, stats, quote jaise non-heading token bhi the; wo ab `FONT_FIXED_TOKENS` me hain
+ * jab tak "Text Elements" (A-32) nahi banta.
+ *
+ * Defaults = `globals.css` ke aaj ke naap (test milata hai).
  */
 export const FONT_SCALE_STEPS = Object.freeze([
   {
     key: 'h1',
     label: 'H1',
-    used: 'Hero and page titles, big offer prices',
+    used: 'Every h1 — hero, page title, blog post title, 404',
     family: 'heading',
     tag: 'h1',
-    tokens: ['--fs-hero-title', '--fs-title', '--fs-price', '--fs-offer', '--fs-h1'],
-    defaults: { size: 40, sizeTablet: 37, sizeMobile: 25, weight: '800', lh: 1.25, ls: -0.8 },
+    tokens: ['--fs-h1'],
+    defaults: { size: 40, sizeTablet: 34, sizeMobile: 28, weight: '800', lh: 1.25, ls: -0.8 },
   },
   {
     key: 'h2',
     label: 'H2',
-    used: 'Section headings, stats, price boxes, big card titles',
+    used: 'Every section heading (footer column headings stay small)',
     family: 'heading',
     tag: 'h2',
-    tokens: [
-      '--fs-section',
-      '--fs-display',
-      '--fs-price-side',
-      '--fs-stat',
-      '--fs-card-lg',
-      '--fs-price-row',
-      '--fs-h2',
-    ],
-    defaults: { size: 25, sizeTablet: 22.5, sizeMobile: 19, weight: '800', lh: 1.25, ls: -0.5 },
+    tokens: ['--fs-h2'],
+    defaults: { size: 25, sizeTablet: 23, sizeMobile: 21, weight: '800', lh: 1.25, ls: -0.5 },
   },
   {
     key: 'h3',
     label: 'H3',
-    used: 'Quotes, big numbers',
+    used: 'Card titles and h3 headings (not the home form card or the big blog card)',
     family: 'heading',
     tag: 'h3',
-    tokens: ['--fs-quote', '--fs-4xl', '--fs-glyph', '--fs-hero-num', '--fs-h3'],
-    defaults: { size: 21, sizeTablet: 20.5, sizeMobile: 17, weight: '800', lh: 1.25, ls: -0.4 },
+    tokens: ['--fs-h3'],
+    defaults: { size: 16, sizeTablet: 16, sizeMobile: 16, weight: '800', lh: 1.25, ls: -0.3 },
   },
   {
     key: 'h4',
     label: 'H4',
-    used: 'Card titles, intro lines',
+    used: 'H4 headings written in the editor',
     family: 'heading',
     tag: 'h4',
-    tokens: ['--fs-card-md', '--fs-3xl', '--fs-intro', '--fs-h4'],
-    defaults: { size: 17.5, sizeTablet: 15.5, sizeMobile: 15, weight: '800', lh: 1.3, ls: -0.35 },
+    tokens: ['--fs-h4'],
+    defaults: { size: 14.5, sizeTablet: 14.5, sizeMobile: 14.5, weight: '800', lh: 1.25, ls: -0.3 },
   },
   {
     key: 'h5',
     label: 'H5',
-    used: 'Widget titles, hero sub-lines',
+    used: 'H5 headings written in the editor',
     family: 'heading',
     tag: 'h5',
-    tokens: ['--fs-2xl', '--fs-xl', '--fs-hero-sub', '--fs-h5'],
-    defaults: { size: 16, sizeTablet: 16, sizeMobile: 16, weight: '800', lh: 1.35, ls: -0.3 },
+    tokens: ['--fs-h5'],
+    defaults: { size: 13.5, sizeTablet: 13.5, sizeMobile: 13.5, weight: '800', lh: 1.25, ls: -0.3 },
   },
   {
     key: 'h6',
     label: 'H6',
-    used: 'Smallest headings',
+    used: 'H6 headings written in the editor',
     family: 'heading',
     tag: 'h6',
-    tokens: ['--fs-md', '--fs-h6'],
-    defaults: { size: 13.5, sizeTablet: 13.5, sizeMobile: 13.5, weight: '800', lh: 1.4, ls: -0.3 },
+    tokens: ['--fs-h6'],
+    defaults: { size: 13, sizeTablet: 13, sizeMobile: 13, weight: '800', lh: 1.25, ls: -0.3 },
   },
   {
     key: 'body',
     label: 'Body',
-    used: 'Paragraphs, lists, forms, buttons',
+    used: 'Paragraphs, lists, forms, buttons, menu links in the mega menu',
     family: 'body',
     tag: 'body',
-    tokens: ['--fs-base', '--fs-lg', '--fs-body', '--fs-lead'],
+    tokens: ['--fs-base', '--fs-lg', '--fs-md', '--fs-body', '--fs-lead'],
     defaults: { size: 14, sizeTablet: 14, sizeMobile: 14, weight: '400', lh: 1.55, ls: 0 },
   },
   {
     key: 'small',
     label: 'Small',
-    used: 'Meta lines, notes, breadcrumb, footer links',
+    used: 'Meta lines, notes, breadcrumb, nav links, footer links',
     family: 'body',
     tag: null,
     tokens: ['--fs-sm', '--fs-xs', '--fs-2xs'],
@@ -121,7 +122,7 @@ export const FONT_SCALE_STEPS = Object.freeze([
   {
     key: 'xsmall',
     label: 'Extra small',
-    used: 'Badges, chips, labels',
+    used: 'Badges, chips, labels, footer column headings',
     family: 'body',
     tag: null,
     tokens: [
@@ -136,6 +137,45 @@ export const FONT_SCALE_STEPS = Object.freeze([
     defaults: { size: 11, sizeTablet: 11, sizeMobile: 11, weight: '600', lh: 1.4, ls: 0 },
   },
 ])
+
+/**
+ * Wo size token jo **abhi admin se nahi** badalte — daam, stats, quote, bade numbers, h3 ke do apwaad.
+ * A-32 ("Text Elements") me har ek ko admin ka dropdown milega. Test dekhta hai ki `globals.css` ka har
+ * `--fs-*` ya kisi step me hai ya yahan — beech me koi chhoot na jaaye.
+ */
+export const FONT_FIXED_TOKENS = Object.freeze([
+  '--fs-h3-lg',
+  '--fs-h3-xl',
+  '--fs-price',
+  '--fs-offer',
+  '--fs-price-side',
+  '--fs-stat',
+  '--fs-price-row',
+  '--fs-quote',
+  '--fs-intro',
+  '--fs-hero-sub',
+  '--fs-hero-num',
+  '--fs-glyph',
+  '--fs-4xl',
+  '--fs-3xl',
+  '--fs-2xl',
+])
+
+/**
+ * 17 Sep wale defaults — sirf migration 026 ke liye, jo DB me saved "purane default" pehchaan kar hataati
+ * hai (warna wo ab "badla hua" gin kar site pe lag jaate — jaise h3 pe 21px).
+ */
+export const FONT_SCALE_DEFAULTS_17_SEP = Object.freeze({
+  h1: { size: 40, sizeTablet: 37, sizeMobile: 25, weight: '800', lh: 1.25, ls: -0.8 },
+  h2: { size: 25, sizeTablet: 22.5, sizeMobile: 19, weight: '800', lh: 1.25, ls: -0.5 },
+  h3: { size: 21, sizeTablet: 20.5, sizeMobile: 17, weight: '800', lh: 1.25, ls: -0.4 },
+  h4: { size: 17.5, sizeTablet: 15.5, sizeMobile: 15, weight: '800', lh: 1.3, ls: -0.35 },
+  h5: { size: 16, sizeTablet: 16, sizeMobile: 16, weight: '800', lh: 1.35, ls: -0.3 },
+  h6: { size: 13.5, sizeTablet: 13.5, sizeMobile: 13.5, weight: '800', lh: 1.4, ls: -0.3 },
+  body: { size: 14, sizeTablet: 14, sizeMobile: 14, weight: '400', lh: 1.55, ls: 0 },
+  small: { size: 13, sizeTablet: 13, sizeMobile: 13, weight: '400', lh: 1.5, ls: 0 },
+  xsmall: { size: 11, sizeTablet: 11, sizeMobile: 11, weight: '600', lh: 1.4, ls: 0 },
+})
 
 export const FONT_SCALE_KEYS = Object.freeze(FONT_SCALE_STEPS.map((s) => s.key))
 
