@@ -1,0 +1,2080 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wanderly CMS — Admin</title>
+<style>
+/* ============================================================
+   DESIGN TOKENS  (port these to :root in globals.css)
+   ============================================================ */
+:root{
+  --nav-bg:#1d2327;
+  --nav-bg-sub:#2c3338;
+  --nav-text:#c3c4c7;
+  --nav-text-hover:#72aee6;
+  --nav-active:#2271b1;
+  --bar-bg:#1d2327;
+  --canvas:#f0f0f1;
+  --surface:#fff;
+  --border:#c3c4c7;
+  --border-soft:#dcdcde;
+  --text:#1d2327;
+  --text-muted:#646970;
+  --link:#2271b1;
+  --primary:#2271b1;
+  --primary-hover:#135e96;
+  --danger:#b32d2e;
+  --success:#00a32a;
+  --warn:#dba617;
+  --radius:3px;
+  --sidebar-w:200px;
+  --sidebar-w-collapsed:52px;
+  --bar-h:32px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);font-size:13px;line-height:1.5;color:var(--text);background:var(--canvas)}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--primary-hover);text-decoration:underline}
+h1,h2,h3,h4{margin:0;font-weight:600}
+input,select,textarea,button{font-family:inherit;font-size:13px}
+
+/* ============================================================
+   ADMIN BAR  (components/admin/AdminBar.jsx)
+   ============================================================ */
+.adminbar{position:fixed;top:0;left:0;right:0;height:var(--bar-h);background:var(--bar-bg);color:#c3c4c7;display:flex;align-items:center;z-index:120;font-size:13px}
+.adminbar .ab-item{display:flex;align-items:center;gap:6px;height:100%;padding:0 10px;color:#c3c4c7;cursor:pointer;white-space:nowrap}
+.adminbar .ab-item:hover{background:#2c3338;color:#72aee6;text-decoration:none}
+.adminbar .ab-brand{font-weight:600;color:#fff;padding-left:14px}
+.adminbar .spacer{flex:1}
+.ab-badge{background:#d63638;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;font-weight:600}
+.ab-avatar{width:20px;height:20px;border-radius:50%;background:#3858e9;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:700}
+
+/* ============================================================
+   SIDEBAR  (components/admin/Sidebar.jsx)
+   ============================================================ */
+.sidebar{position:fixed;top:var(--bar-h);left:0;bottom:0;width:var(--sidebar-w);background:var(--nav-bg);overflow-y:auto;overflow-x:hidden;z-index:110;transition:width .15s ease}
+.sidebar::-webkit-scrollbar{width:8px}
+.sidebar::-webkit-scrollbar-thumb{background:#3c434a;border-radius:4px}
+body.collapsed .sidebar{width:var(--sidebar-w-collapsed)}
+.menu{list-style:none;margin:0;padding:0}
+.menu > li{position:relative}
+.menu-link{display:flex;align-items:center;gap:10px;padding:9px 12px;color:var(--nav-text);font-size:14px;line-height:20px;cursor:pointer;user-select:none}
+.menu-link:hover{background:var(--nav-bg-sub);color:#72aee6;text-decoration:none}
+.menu-link .ico{width:20px;flex:0 0 20px;text-align:center;font-size:15px;opacity:.85}
+.menu-link .label{flex:1;white-space:nowrap;overflow:hidden}
+.menu-link .caret{font-size:9px;opacity:.55;transition:transform .15s}
+li.open > .menu-link .caret{transform:rotate(90deg)}
+li.current > .menu-link{background:var(--nav-active);color:#fff;font-weight:600;box-shadow:inset 4px 0 0 #fff}
+.menu-count{background:#d63638;color:#fff;border-radius:10px;padding:0 6px;font-size:11px;font-weight:600;line-height:17px}
+.submenu{list-style:none;margin:0;padding:6px 0;background:var(--nav-bg-sub);display:none}
+li.open > .submenu{display:block}
+.submenu a{display:block;padding:6px 12px 6px 42px;color:#c3c4c7;font-size:13px}
+.submenu a:hover{color:#72aee6;text-decoration:none}
+.submenu a.active{color:#fff;font-weight:600}
+.menu-sep{height:1px;background:#3c434a;margin:8px 10px}
+body.collapsed .menu-link .label,body.collapsed .menu-link .caret,
+body.collapsed .menu-count,body.collapsed .submenu,body.collapsed .collapse-label{display:none}
+.collapse-btn{margin-top:auto}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.main{margin-left:var(--sidebar-w);margin-top:var(--bar-h);padding:10px 20px 60px;transition:margin-left .15s ease;min-height:calc(100vh - var(--bar-h))}
+body.collapsed .main{margin-left:var(--sidebar-w-collapsed)}
+.page-head{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0 4px}
+.page-head h1{font-size:23px;font-weight:400;line-height:1.3}
+.subtitle{color:var(--text-muted);margin:0 0 14px}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn{display:inline-flex;align-items:center;gap:6px;background:#f6f7f7;border:1px solid var(--primary);color:var(--primary);border-radius:var(--radius);padding:5px 12px;cursor:pointer;line-height:1.6;white-space:nowrap}
+.btn:hover{background:#f0f0f1;border-color:var(--primary-hover);color:var(--primary-hover);text-decoration:none}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:#fff}
+.btn-danger{border-color:var(--danger);color:var(--danger)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-plain{border-color:#8c8f94;color:#2c3338}
+.btn-sm{padding:2px 8px;font-size:12px}
+.btn-lg{padding:7px 16px;font-size:14px}
+.page-title-action{font-size:13px;padding:2px 10px;border-radius:2px}
+
+/* ============================================================
+   CARDS / PANELS
+   ============================================================ */
+.panel{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);box-shadow:0 1px 1px rgba(0,0,0,.04);margin-bottom:18px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border-soft)}
+.panel-head h2{font-size:14px}
+.panel-body{padding:12px}
+.panel-foot{padding:10px 12px;border-top:1px solid var(--border-soft);background:#f6f7f7;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.toggle-ico{color:var(--text-muted);cursor:pointer;font-size:11px}
+
+/* ============================================================
+   TABLES  (WP list-table)
+   ============================================================ */
+.tablenav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+.tablenav .spacer{flex:1}
+.subsubsub{list-style:none;display:flex;gap:4px;padding:0;margin:8px 0;font-size:13px;flex-wrap:wrap}
+.subsubsub li:not(:last-child)::after{content:"|";color:#c3c4c7;margin-left:4px}
+.subsubsub a.current{color:#000;font-weight:600}
+.subsubsub .cnt{color:var(--text-muted)}
+table.list{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);overflow:hidden}
+table.list th,table.list td{padding:9px 10px;text-align:left;vertical-align:middle;border-bottom:1px solid #f0f0f1;font-size:13px}
+table.list thead th{background:#fff;border-bottom:1px solid var(--border-soft);font-weight:600;color:#2c3338;white-space:nowrap}
+table.list tbody tr:hover{background:#f6f7f7}
+table.list tbody tr:last-child td{border-bottom:none}
+.col-cb{width:32px}
+.col-thumb{width:60px}
+.thumb{width:48px;height:34px;border-radius:2px;object-fit:cover;background:linear-gradient(135deg,#dfe6ee,#c3cfdc);display:block}
+.row-title{font-weight:600;font-size:14px;color:var(--link)}
+.row-actions{visibility:hidden;font-size:12px;color:var(--text-muted);margin-top:2px}
+tr:hover .row-actions{visibility:visible}
+.row-actions a{color:var(--link)}
+.row-actions .del{color:var(--danger)}
+.row-actions span:not(:last-child)::after{content:"|";color:#c3c4c7;margin:0 4px}
+.muted{color:var(--text-muted)}
+.nowrap{white-space:nowrap}
+.pagination{display:flex;align-items:center;gap:4px;color:var(--text-muted)}
+.pagination .pg{border:1px solid var(--border);background:#f6f7f7;padding:2px 8px;border-radius:2px;color:#2c3338}
+.pagination .pg.on{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* ============================================================
+   BADGES / PILLS
+   ============================================================ */
+.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:600;line-height:18px;white-space:nowrap}
+.b-pub{background:#e6f6ea;color:#00733b}
+.b-draft{background:#f0f0f1;color:#50575e}
+.b-pend{background:#fcf3d8;color:#8a6100}
+.b-new{background:#e0eefc;color:#0a4b78}
+.b-hot{background:#fce8e8;color:#8a1f1f}
+.b-close{background:#f0f0f1;color:#787c82}
+
+/* ============================================================
+   FORMS
+   ============================================================ */
+.field{margin-bottom:14px}
+.field > label{display:block;font-weight:600;margin-bottom:5px;font-size:13px}
+.hint{color:var(--text-muted);font-size:12px;margin-top:4px}
+.inp,.sel,.ta{width:100%;padding:6px 9px;border:1px solid #8c8f94;border-radius:var(--radius);background:#fff;color:var(--text)}
+.inp:focus,.sel:focus,.ta:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 1px var(--primary)}
+.ta{min-height:110px;resize:vertical}
+.title-input{font-size:20px;padding:8px 10px;line-height:1.4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.inline-lbl{display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:13px}
+.permalink{background:#f6f7f7;border:1px solid var(--border-soft);padding:6px 9px;border-radius:var(--radius);font-size:12px;color:var(--text-muted);margin-top:6px}
+.permalink b{color:var(--text)}
+.checklist{max-height:170px;overflow:auto;border:1px solid var(--border-soft);border-radius:var(--radius);padding:8px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.chip{background:#f0f0f1;border:1px solid var(--border-soft);border-radius:12px;padding:1px 9px;font-size:12px;display:inline-flex;gap:5px;align-items:center}
+.chip b{cursor:pointer;color:var(--text-muted);font-weight:400}
+
+/* editor two-column */
+.edit-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px;align-items:start}
+@media(max-width:1100px){.edit-grid{grid-template-columns:1fr}}
+
+/* fake WYSIWYG */
+.editor-box{border:1px solid var(--border-soft);border-radius:var(--radius);background:#fff}
+.editor-tabs{display:flex;gap:2px;padding:6px 8px 0;background:#f6f7f7;border-bottom:1px solid var(--border-soft)}
+.editor-tabs span{padding:5px 12px;font-size:12px;border:1px solid transparent;border-bottom:none;border-radius:3px 3px 0 0;cursor:pointer;color:var(--text-muted)}
+.editor-tabs span.on{background:#fff;border-color:var(--border-soft);color:var(--text);font-weight:600}
+.editor-tools{display:flex;flex-wrap:wrap;gap:2px;padding:6px 8px;border-bottom:1px solid var(--border-soft);background:#fff}
+.editor-tools i{font-style:normal;width:26px;height:26px;display:grid;place-items:center;border-radius:2px;cursor:pointer;font-size:13px;color:#3c434a}
+.editor-tools i:hover{background:#f0f0f1}
+.editor-area{min-height:300px;padding:14px;outline:none;font-size:14px;line-height:1.7}
+
+/* publish box */
+.pub-row{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid #f0f0f1;gap:8px}
+.pub-row .k{color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.pub-actions{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f6f7f7}
+.featured-drop{border:1px dashed var(--border);border-radius:var(--radius);height:130px;display:grid;place-items:center;color:var(--text-muted);background:#fafafa;cursor:pointer;text-align:center;font-size:12px}
+.featured-drop:hover{border-color:var(--primary);color:var(--primary)}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.stat{background:#fff;border:1px solid var(--border-soft);border-radius:var(--radius);padding:14px 16px;display:flex;gap:12px;align-items:center}
+.stat .si{width:40px;height:40px;border-radius:8px;display:grid;place-items:center;font-size:18px;background:#e0eefc;color:#0a4b78;flex:0 0 40px}
+.stat .n{font-size:22px;font-weight:600;line-height:1.2}
+.stat .l{color:var(--text-muted);font-size:12px}
+.stat .d{font-size:11px;font-weight:600}
+.up{color:var(--success)}.down{color:var(--danger)}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:18px;align-items:start}
+.feedlist{list-style:none;margin:0;padding:0}
+.feedlist li{padding:9px 12px;border-bottom:1px solid #f0f0f1;display:flex;gap:10px;align-items:flex-start}
+.feedlist li:last-child{border-bottom:none}
+.feedlist .dot{width:8px;height:8px;border-radius:50%;background:var(--primary);margin-top:6px;flex:0 0 8px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:150px;padding:12px}
+.bars .bar{flex:1;background:linear-gradient(180deg,#4f94d4,#2271b1);border-radius:3px 3px 0 0;position:relative}
+.bars .bar span{position:absolute;bottom:-19px;left:0;right:0;text-align:center;font-size:11px;color:var(--text-muted)}
+
+/* ============================================================
+   MEDIA
+   ============================================================ */
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.media-item{position:relative;aspect-ratio:1;border:1px solid var(--border-soft);border-radius:var(--radius);background:linear-gradient(135deg,#dfe6ee,#b8c7d6);cursor:pointer;overflow:hidden}
+.media-item:hover{outline:2px solid var(--primary)}
+.media-item .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(29,35,39,.72);color:#fff;font-size:11px;padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ============================================================
+   ITINERARY BUILDER
+   ============================================================ */
+.day{border:1px solid var(--border-soft);border-radius:var(--radius);margin-bottom:10px;background:#fff}
+.day-head{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f6f7f7;border-bottom:1px solid var(--border-soft);cursor:pointer}
+.day-head .grip{color:#a7aaad;cursor:grab}
+.day-head .dnum{background:var(--primary);color:#fff;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 24px}
+.day-head .dt{flex:1;font-weight:600}
+.day-body{padding:12px}
+.day.closed .day-body{display:none}
+
+/* form builder */
+.sc-box{display:flex;align-items:center;gap:6px}
+.sc-box code{flex:1;background:#f6f7f7;border:1px solid var(--border-soft);border-radius:var(--radius);padding:6px 9px;font-size:12px;overflow:auto;white-space:nowrap}
+.fieldrow td{vertical-align:middle}
+.fieldrow .ftype{color:var(--text-muted);font-size:12px}
+.addrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+/* tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border-soft);margin-bottom:16px;flex-wrap:wrap}
+.tabs a{padding:9px 15px;color:var(--text-muted);border:1px solid transparent;border-bottom:none;font-size:14px;margin-bottom:-1px}
+.tabs a.on{background:#fff;border-color:var(--border-soft);color:var(--text);font-weight:600;border-radius:3px 3px 0 0;text-decoration:none}
+
+/* ============================================================
+   SETTINGS › FONTS
+   ============================================================ */
+.font-src{display:flex;gap:18px;margin-bottom:12px}
+.font-src label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.font-files{list-style:none;margin:8px 0 0;padding:0}
+.font-files li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f1}
+.font-files li .fname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.font-files .sel{width:auto;padding:3px 6px}
+.font-preview{border:1px solid var(--border-soft);border-radius:var(--radius);padding:16px;background:#fafafa;margin-top:14px}
+.font-preview .fp-h{margin:0 0 10px;color:#1d2327}
+.font-preview .fp-b{margin:0;color:#3c434a}
+.fp-row{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:baseline}
+.fp-tag{font-size:11px;font-weight:600;color:var(--text-muted);background:#f0f0f1;border-radius:2px;text-align:center;padding:1px 0}
+.type-head{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--border-soft);margin:16px 0 10px;padding-top:14px}
+.type-head b{font-size:13px}
+.type-head .sel{width:auto;padding:3px 6px}
+.type-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin-top:12px}
+.size-group{border:1px solid var(--border-soft);border-radius:var(--radius);background:#fafafa;padding:8px 10px 10px}
+.size-group > b{display:block;font-size:12px;margin-bottom:6px}
+.size-group .type-controls{margin-top:0}
+.size-group .field > label{font-weight:400;color:var(--text-muted)}
+.device-toggle{display:inline-flex;border:1px solid #8c8f94;border-radius:var(--radius);overflow:hidden}
+.device-toggle a{padding:3px 12px;font-size:12px;color:#2c3338;cursor:pointer;border-left:1px solid #8c8f94}
+.device-toggle a:first-child{border-left:none}
+.device-toggle a:hover{text-decoration:none;background:#f0f0f1}
+.device-toggle a.on{background:var(--primary);color:#fff}
+.font-preview{transition:max-width .2s ease}
+
+/* ============================================================
+   SETTINGS › COLOURS
+   ============================================================ */
+.swatch{display:flex;align-items:center;gap:6px}
+.swatch input[type=color]{width:36px;height:32px;padding:2px;border:1px solid #8c8f94;border-radius:var(--radius);background:#fff;cursor:pointer;flex:0 0 36px}
+.swatch .inp{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;max-width:110px}
+.swatch .inp.bad{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger)}
+.color-rows .field{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;margin:0;padding:8px 0;border-bottom:1px solid #f0f0f1}
+.color-rows .field:last-child{border-bottom:none}
+.color-rows .field > label{margin:0}
+.color-group-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin:12px 0 0}
+.color-group-title:first-child{margin-top:0}
+.color-sub{margin:4px 0 0 14px;padding-left:12px;border-left:2px solid var(--border-soft)}
+.color-preview{border:1px solid var(--border-soft);border-radius:var(--radius);background:#fff;overflow:hidden}
+.color-preview .cp-bar{height:8px}
+.color-preview .cp-body{padding:18px 20px}
+.color-preview h1,.color-preview h2,.color-preview h3,.color-preview h4,.color-preview h5,.color-preview h6{margin:0 0 6px;line-height:1.25}
+.color-preview h1{font-size:28px}.color-preview h2{font-size:23px}.color-preview h3{font-size:19px}
+.color-preview h4{font-size:17px}.color-preview h5{font-size:15px}.color-preview h6{font-size:14px}
+.color-preview p{margin:8px 0 14px;font-size:15px;line-height:1.6}
+.color-preview .cp-btn{display:inline-block;padding:9px 18px;border-radius:4px;font-weight:600;font-size:14px;margin-right:8px;border:2px solid transparent;cursor:pointer;transition:background-color .15s,color .15s,border-color .15s}
+.type-head{min-height:43px}
+.type-controls .field{margin:0}
+.type-controls .field > label{font-size:12px}
+@media(max-width:900px){.type-controls{grid-template-columns:1fr}}
+
+.notice{background:#fff;border-left:4px solid var(--primary);padding:10px 12px;margin:12px 0;border-radius:0 3px 3px 0;box-shadow:0 1px 1px rgba(0,0,0,.04);display:flex;justify-content:space-between;gap:10px}
+.notice.ok{border-left-color:var(--success)}
+.notice.warn{border-left-color:var(--warn)}
+.screen{display:none}
+.screen.on{display:block}
+.footer{color:var(--text-muted);font-size:12px;border-top:1px solid var(--border-soft);padding:12px 0;margin-top:26px;display:flex;justify-content:space-between}
+@media(max-width:782px){
+  body:not(.collapsed) .sidebar{width:var(--sidebar-w-collapsed)}
+  .main{margin-left:var(--sidebar-w-collapsed);padding:8px 12px 40px}
+  .row2,.row3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= ADMIN BAR ================= -->
+<header class="adminbar">
+  <a class="ab-item ab-brand">✈ Wanderly</a>
+  <a class="ab-item" href="#" title="View site">⌂ Visit Site</a>
+  <a class="ab-item" data-go="package-edit">＋ New</a>
+  <div class="spacer"></div>
+  <a class="ab-item" data-go="enquiries">✉ <span class="ab-badge">7</span></a>
+  <a class="ab-item">⟳ Cache</a>
+  <a class="ab-item"><span class="ab-avatar">AK</span> Howdy, Aditya ▾</a>
+</header>
+
+<!-- ================= SIDEBAR ================= -->
+<nav class="sidebar">
+  <ul class="menu" id="menu">
+    <li data-screen="dashboard"><a class="menu-link"><span class="ico">⌂</span><span class="label">Dashboard</span></a></li>
+    <li class="has-sub" data-screen="posts">
+      <a class="menu-link"><span class="ico">✎</span><span class="label">Posts</span><span class="caret">▶</span></a>
+      <ul class="submenu">
+        <li><a class="active" data-go="posts">All Posts</a></li>
+        <li><a data-go="post-edit">Add New</a></li>
+        <li><a data-go="taxonomy">Categories</a></li>
+        <li><a data-go="taxonomy">Tags</a></li>
+      </ul>
+    </li>
+    <li data-screen="media"><a class="menu-link"><span class="ico">▤</span><span class="label">Media</span></a></li>
+    <li class="has-sub" data-screen="pages">
+      <a class="menu-link"><span class="ico">▭</span><span class="label">Pages</span><span class="caret">▶</span></a>
+      <ul class="submenu">
+        <li><a class="active" data-go="pages">All Pages</a></li>
+        <li><a data-go="page-edit">Add New</a></li>
+      </ul>
+    </li>
+    <div class="menu-sep"></div>
+    <li class="has-sub" data-screen="packages">
+      <a class="menu-link"><span class="ico">🧳</span><span class="label">Packages</span><span class="caret">▶</span></a>
+      <ul class="submenu">
+        <li><a class="active" data-go="packages">All Packages</a></li>
+        <li><a data-go="package-edit">Add New</a></li>
+        <li><a data-go="taxonomy">Destinations</a></li>
+        <li><a data-go="taxonomy">Travel Themes</a></li>
+        <li><a data-go="taxonomy">Departures &amp; Pricing</a></li>
+      </ul>
+    </li>
+    <li class="has-sub" data-screen="enquiries">
+      <a class="menu-link"><span class="ico">✉</span><span class="label">Enquiries</span><span class="menu-count">7</span><span class="caret">▶</span></a>
+      <ul class="submenu">
+        <li><a class="active" data-go="enquiries">All Enquiries</a></li>
+        <li><a data-go="enquiry-view">Enquiry Detail</a></li>
+        <li><a data-go="enquiry-forms">Enquiry Forms</a></li>
+        <li><a data-go="form-builder">Add New Form</a></li>
+        <li><a data-go="taxonomy">Export CSV</a></li>
+      </ul>
+    </li>
+    <div class="menu-sep"></div>
+    <li class="has-sub" data-screen="appearance">
+      <a class="menu-link"><span class="ico">🎨</span><span class="label">Appearance</span><span class="caret">▶</span></a>
+      <ul class="submenu">
+        <li><a class="active" data-go="appearance">Menus</a></li>
+        <li><a data-go="appearance">Homepage Blocks</a></li>
+        <li><a data-go="appearance">Banners &amp; Sliders</a></li>
+      </ul>
+    </li>
+    <li data-screen="users"><a class="menu-link"><span class="ico">👤</span><span class="label">Users</span></a></li>
+    <li class="has-sub" data-screen="settings">
+      <a class="menu-link"><span class="ico">⚙</span><span class="label">Settings</span><span class="caret">▶</span></a>
+      <ul class="submenu">
+        <li><a class="active" data-go="settings" data-tab="t-general">General</a></li>
+        <li><a data-go="settings" data-tab="t-fonts">Fonts</a></li>
+        <li><a data-go="settings" data-tab="t-colors">Colours</a></li>
+        <li><a data-go="settings" data-tab="t-seo">SEO &amp; Schema</a></li>
+        <li><a data-go="settings" data-tab="t-mail">Email / SMTP</a></li>
+        <li><a data-go="settings" data-tab="t-integrations">Integrations</a></li>
+      </ul>
+    </li>
+    <div class="menu-sep"></div>
+    <li id="collapseBtn"><a class="menu-link"><span class="ico">◀</span><span class="label collapse-label">Collapse menu</span></a></li>
+  </ul>
+</nav>
+
+<main class="main">
+
+<!-- ==================================================================
+     SCREEN: DASHBOARD
+     ================================================================== -->
+<section class="screen on" id="s-dashboard">
+  <div class="page-head"><h1>Dashboard</h1></div>
+  <div class="notice ok"><span><b>Site healthy.</b> Sitemap regenerated 2 hours ago · 148 URLs indexed.</span><a href="#">Dismiss</a></div>
+
+  <div class="stats">
+    <div class="stat"><div class="si">🧳</div><div><div class="n">64</div><div class="l">Packages <span class="d up">+4</span></div></div></div>
+    <div class="stat"><div class="si" style="background:#e6f6ea;color:#00733b">✎</div><div><div class="n">212</div><div class="l">Blog Posts <span class="d up">+9</span></div></div></div>
+    <div class="stat"><div class="si" style="background:#fcf3d8;color:#8a6100">✉</div><div><div class="n">7</div><div class="l">New Enquiries <span class="d up">+7 today</span></div></div></div>
+    <div class="stat"><div class="si" style="background:#fce8e8;color:#8a1f1f">₹</div><div><div class="n">₹18.4L</div><div class="l">Quoted value <span class="d down">−6%</span></div></div></div>
+    <div class="stat"><div class="si" style="background:#efe6fb;color:#5b2d90">👁</div><div><div class="n">42,910</div><div class="l">Sessions (30d) <span class="d up">+12%</span></div></div></div>
+  </div>
+
+  <div class="dash-grid">
+    <div class="panel">
+      <div class="panel-head"><h2>Enquiries — last 7 days</h2><span class="toggle-ico">▾</span></div>
+      <div class="bars">
+        <div class="bar" style="height:45%"><span>Mon</span></div>
+        <div class="bar" style="height:70%"><span>Tue</span></div>
+        <div class="bar" style="height:38%"><span>Wed</span></div>
+        <div class="bar" style="height:88%"><span>Thu</span></div>
+        <div class="bar" style="height:62%"><span>Fri</span></div>
+        <div class="bar" style="height:96%"><span>Sat</span></div>
+        <div class="bar" style="height:54%"><span>Sun</span></div>
+      </div>
+      <div class="panel-foot"><span class="muted">Total 138 enquiries</span><a href="#" data-go="enquiries">View all →</a></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Recent Enquiries</h2><span class="toggle-ico">▾</span></div>
+      <ul class="feedlist">
+        <li><span class="dot"></span><div><b>Priya Menon</b> — Kerala Backwaters 6N/7D <span class="badge b-new">New</span><div class="muted">4 pax · Travel 12 Sep · 18 min ago</div></div></li>
+        <li><span class="dot" style="background:#d63638"></span><div><b>Rahul Sethi</b> — Ladakh Bike Expedition <span class="badge b-hot">Hot</span><div class="muted">2 pax · Travel 02 Oct · 1 hr ago</div></div></li>
+        <li><span class="dot"></span><div><b>Ann Fernandes</b> — Bali Honeymoon <span class="badge b-new">New</span><div class="muted">2 pax · Travel 20 Nov · 3 hrs ago</div></div></li>
+        <li><span class="dot" style="background:#dba617"></span><div><b>Vikram Rao</b> — Rajasthan Heritage <span class="badge b-pend">Quoted</span><div class="muted">6 pax · Travel 05 Dec · Yesterday</div></div></li>
+      </ul>
+      <div class="panel-foot"><span class="muted">7 unread</span><a href="#" data-go="enquiries">Manage →</a></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Quick Draft</h2><span class="toggle-ico">▾</span></div>
+      <div class="panel-body">
+        <div class="field"><label>Title</label><input class="inp" placeholder="e.g. 10 hidden beaches in Goa"></div>
+        <div class="field"><label>Content</label><textarea class="ta" style="min-height:80px" placeholder="What's on your mind?"></textarea></div>
+        <button class="btn btn-primary">Save Draft</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Top Packages (30 days)</h2><span class="toggle-ico">▾</span></div>
+      <table class="list" style="border:none">
+        <tbody>
+          <tr><td><a class="row-title" data-go="package-edit">Kerala Backwaters &amp; Munnar</a></td><td class="nowrap muted">3,204 views</td><td class="nowrap"><b>22</b> enq.</td></tr>
+          <tr><td><a class="row-title" data-go="package-edit">Leh–Ladakh Road Trip</a></td><td class="nowrap muted">2,876 views</td><td class="nowrap"><b>19</b> enq.</td></tr>
+          <tr><td><a class="row-title" data-go="package-edit">Bali Honeymoon Escape</a></td><td class="nowrap muted">2,109 views</td><td class="nowrap"><b>17</b> enq.</td></tr>
+          <tr><td><a class="row-title" data-go="package-edit">Golden Triangle 5N/6D</a></td><td class="nowrap muted">1,745 views</td><td class="nowrap"><b>11</b> enq.</td></tr>
+        </tbody>
+      </table>
+      <div class="panel-foot"><span class="muted">Source: internal analytics</span><a href="#" data-go="packages">All packages →</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: POSTS LIST
+     ================================================================== -->
+<section class="screen" id="s-posts">
+  <div class="page-head">
+    <h1>Posts</h1>
+    <a class="btn page-title-action" data-go="post-edit">Add New Post</a>
+  </div>
+  <ul class="subsubsub">
+    <li><a href="#" class="current">All <span class="cnt">(212)</span></a></li>
+    <li><a href="#">Published <span class="cnt">(186)</span></a></li>
+    <li><a href="#">Drafts <span class="cnt">(19)</span></a></li>
+    <li><a href="#">Pending <span class="cnt">(5)</span></a></li>
+    <li><a href="#">Trash <span class="cnt">(2)</span></a></li>
+  </ul>
+  <div class="tablenav">
+    <select class="sel" style="width:auto"><option>Bulk actions</option><option>Edit</option><option>Move to Trash</option></select>
+    <button class="btn btn-plain">Apply</button>
+    <select class="sel" style="width:auto"><option>All dates</option><option>August 2026</option><option>July 2026</option></select>
+    <select class="sel" style="width:auto"><option>All categories</option><option>Destinations</option><option>Travel Tips</option><option>Food</option></select>
+    <button class="btn btn-plain">Filter</button>
+    <div class="spacer"></div>
+    <input class="inp" style="width:210px" placeholder="Search posts…">
+    <div class="pagination"><span>212 items</span><a class="pg">‹</a><a class="pg on">1</a><a class="pg">2</a><a class="pg">3</a><a class="pg">›</a></div>
+  </div>
+  <table class="list">
+    <thead><tr>
+      <th class="col-cb"><input type="checkbox"></th>
+      <th class="col-thumb"></th><th>Title</th><th>Author</th><th>Categories</th><th>Tags</th><th style="width:44px">💬</th><th>Status</th><th>Date</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><span class="thumb"></span></td>
+        <td>
+          <a class="row-title" data-go="post-edit">15 Things to Do in Munnar Beyond Tea Gardens</a>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div>
+        </td>
+        <td class="muted">Aditya K</td><td class="muted">Destinations, Kerala</td><td class="muted">munnar, hills</td><td class="muted">14</td>
+        <td><span class="badge b-pub">Published</span></td><td class="muted nowrap">18 Aug 2026<div style="font-size:11px">Published</div></td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><span class="thumb"></span></td>
+        <td>
+          <a class="row-title" data-go="post-edit">Ladakh Packing List for First-Time Riders</a>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div>
+        </td>
+        <td class="muted">Neha S</td><td class="muted">Travel Tips</td><td class="muted">ladakh, biking</td><td class="muted">6</td>
+        <td><span class="badge b-draft">Draft</span></td><td class="muted nowrap">16 Aug 2026<div style="font-size:11px">Last modified</div></td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><span class="thumb"></span></td>
+        <td>
+          <a class="row-title" data-go="post-edit">Best Time to Visit Bali — Month by Month</a>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div>
+        </td>
+        <td class="muted">Aditya K</td><td class="muted">Destinations, Intl.</td><td class="muted">bali, weather</td><td class="muted">31</td>
+        <td><span class="badge b-pub">Published</span></td><td class="muted nowrap">11 Aug 2026<div style="font-size:11px">Published</div></td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><span class="thumb"></span></td>
+        <td>
+          <a class="row-title" data-go="post-edit">A Foodie's Guide to Old Delhi in One Day</a>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div>
+        </td>
+        <td class="muted">Ritu M</td><td class="muted">Food</td><td class="muted">delhi, street food</td><td class="muted">2</td>
+        <td><span class="badge b-pend">Pending</span></td><td class="muted nowrap">09 Aug 2026<div style="font-size:11px">Last modified</div></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================================================================
+     SCREEN: POST EDITOR
+     ================================================================== -->
+<section class="screen" id="s-post-edit">
+  <div class="page-head"><h1>Edit Post</h1><a class="btn page-title-action" data-go="post-edit">Add New</a></div>
+  <div class="edit-grid">
+    <div>
+      <div class="field">
+        <input class="inp title-input" value="15 Things to Do in Munnar Beyond Tea Gardens">
+        <div class="permalink">Permalink: https://wanderly.com/blog/<b>things-to-do-in-munnar</b> &nbsp;<a href="#">Edit</a></div>
+      </div>
+      <div class="editor-box">
+        <div class="editor-tabs"><span class="on">Visual</span><span>HTML</span></div>
+        <div class="editor-tools"><i>＋</i><i><b>B</b></i><i><em>I</em></i><i>U</i><i>“</i><i>≡</i><i>⁝≡</i><i>🔗</i><i>🖼</i><i>▦</i><i>&lt;/&gt;</i><i>↺</i><i>↻</i></div>
+        <div class="editor-area" contenteditable="true">
+          <p>Munnar is more than rolling tea estates. Below the postcard views sits a hill town with waterfalls, spice trails, and some of the best trekking in the Western Ghats.</p>
+          <p>Here are fifteen things worth building into a three-day itinerary…</p>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:18px">
+        <div class="panel-head"><h2>SEO &amp; Social</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="field"><label>SEO Title</label><input class="inp" value="15 Things to Do in Munnar (2026 Guide) | Wanderly"><div class="hint">54 / 60 characters</div></div>
+          <div class="field"><label>Meta Description</label><textarea class="ta" style="min-height:70px">Waterfalls, spice trails and treks — a local's guide to Munnar beyond the tea gardens.</textarea><div class="hint">92 / 160 characters</div></div>
+          <div class="row2">
+            <div class="field"><label>Focus Keyword</label><input class="inp" value="things to do in munnar"></div>
+            <div class="field"><label>Canonical URL</label><input class="inp" placeholder="Leave blank for default"></div>
+          </div>
+          <div class="field"><label>OG Image</label><div class="featured-drop">Drag an image or click to choose · 1200×630</div></div>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="panel">
+        <div class="panel-head"><h2>Publish</h2><span class="toggle-ico">▾</span></div>
+        <div class="pub-row"><span class="k">Status:</span><span><b>Published</b> <a href="#">Edit</a></span></div>
+        <div class="pub-row"><span class="k">Visibility:</span><span><b>Public</b> <a href="#">Edit</a></span></div>
+        <div class="pub-row"><span class="k">Published on:</span><span><b>18 Aug 2026, 10:30</b> <a href="#">Edit</a></span></div>
+        <div class="pub-row"><span class="k">Revisions:</span><span><b>12</b> <a href="#">Browse</a></span></div>
+        <div class="pub-actions"><a class="btn btn-danger btn-sm">Move to Trash</a><button class="btn btn-primary">Update</button></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Categories</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="checklist">
+            <label class="inline-lbl"><input type="checkbox" checked> Destinations</label>
+            <label class="inline-lbl" style="padding-left:18px"><input type="checkbox" checked> Kerala</label>
+            <label class="inline-lbl" style="padding-left:18px"><input type="checkbox"> Rajasthan</label>
+            <label class="inline-lbl"><input type="checkbox"> Travel Tips</label>
+            <label class="inline-lbl"><input type="checkbox"> Food &amp; Culture</label>
+            <label class="inline-lbl"><input type="checkbox"> Company News</label>
+          </div>
+          <a href="#" style="font-size:12px;display:inline-block;margin-top:8px">＋ Add New Category</a>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Tags</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <input class="inp" placeholder="Separate tags with commas">
+          <div class="chips"><span class="chip">munnar <b>×</b></span><span class="chip">hills <b>×</b></span><span class="chip">kerala <b>×</b></span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Featured Image</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body"><div class="featured-drop">Set featured image</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Related Packages</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <select class="sel"><option>Search packages…</option></select>
+          <div class="chips"><span class="chip">Kerala Backwaters 6N/7D <b>×</b></span><span class="chip">Munnar Tea Trail 3N/4D <b>×</b></span></div>
+          <div class="hint">Shown as a CTA block at the end of the post.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: PAGES LIST
+     ================================================================== -->
+<section class="screen" id="s-pages">
+  <div class="page-head"><h1>Pages</h1><a class="btn page-title-action" data-go="page-edit">Add New Page</a></div>
+  <ul class="subsubsub">
+    <li><a href="#" class="current">All <span class="cnt">(24)</span></a></li>
+    <li><a href="#">Published <span class="cnt">(21)</span></a></li>
+    <li><a href="#">Drafts <span class="cnt">(3)</span></a></li>
+  </ul>
+  <div class="tablenav">
+    <select class="sel" style="width:auto"><option>Bulk actions</option><option>Move to Trash</option></select>
+    <button class="btn btn-plain">Apply</button>
+    <div class="spacer"></div>
+    <input class="inp" style="width:210px" placeholder="Search pages…">
+  </div>
+  <table class="list">
+    <thead><tr><th class="col-cb"><input type="checkbox"></th><th>Title</th><th>Author</th><th>Template</th><th>Status</th><th>Date</th></tr></thead>
+    <tbody>
+      <tr><td><input type="checkbox"></td><td><a class="row-title" data-go="page-edit">Home</a> <span class="muted">— Front Page</span><div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a>View</a></span></div></td><td class="muted">Aditya K</td><td class="muted">Homepage Builder</td><td><span class="badge b-pub">Published</span></td><td class="muted nowrap">02 Jan 2026</td></tr>
+      <tr><td><input type="checkbox"></td><td><a class="row-title" data-go="page-edit">About Us</a><div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span></div></td><td class="muted">Aditya K</td><td class="muted">Default</td><td><span class="badge b-pub">Published</span></td><td class="muted nowrap">02 Jan 2026</td></tr>
+      <tr><td><input type="checkbox"></td><td>— <a class="row-title" data-go="page-edit">Our Team</a><div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span></div></td><td class="muted">Aditya K</td><td class="muted">Default</td><td><span class="badge b-pub">Published</span></td><td class="muted nowrap">04 Jan 2026</td></tr>
+      <tr><td><input type="checkbox"></td><td><a class="row-title" data-go="page-edit">Contact</a><div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span></div></td><td class="muted">Neha S</td><td class="muted">Contact + Form</td><td><span class="badge b-pub">Published</span></td><td class="muted nowrap">02 Jan 2026</td></tr>
+      <tr><td><input type="checkbox"></td><td><a class="row-title" data-go="page-edit">Visa Assistance</a><div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span></div></td><td class="muted">Ritu M</td><td class="muted">Landing (Wide)</td><td><span class="badge b-draft">Draft</span></td><td class="muted nowrap">14 Aug 2026</td></tr>
+      <tr><td><input type="checkbox"></td><td><a class="row-title" data-go="page-edit">Terms &amp; Cancellation Policy</a><div class="row-actions"><span><a>Edit</a></span><span><a>Quick&nbsp;Edit</a></span><span><a class="del">Trash</a></span></div></td><td class="muted">Aditya K</td><td class="muted">Default</td><td><span class="badge b-pub">Published</span></td><td class="muted nowrap">02 Jan 2026</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================================================================
+     SCREEN: PAGE EDITOR
+     ================================================================== -->
+<section class="screen" id="s-page-edit">
+  <div class="page-head"><h1>Edit Page</h1><a class="btn page-title-action">Add New</a></div>
+  <div class="edit-grid">
+    <div>
+      <div class="field">
+        <input class="inp title-input" value="Visa Assistance">
+        <div class="permalink">Permalink: https://wanderly.com/<b>visa-assistance</b> &nbsp;<a href="#">Edit</a></div>
+      </div>
+      <div class="editor-box">
+        <div class="editor-tabs"><span class="on">Visual</span><span>HTML</span></div>
+        <div class="editor-tools"><i>＋</i><i><b>B</b></i><i><em>I</em></i><i>U</i><i>≡</i><i>🔗</i><i>🖼</i><i>▦</i><i>&lt;/&gt;</i></div>
+        <div class="editor-area" contenteditable="true"><p>We handle documentation, appointment booking and courier for 40+ destinations…</p></div>
+      </div>
+      <div class="panel" style="margin-top:18px">
+        <div class="panel-head"><h2>Page Sections (Block Builder)</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dnum">1</span><span class="dt">Hero Banner</span><span class="muted">Image + heading + CTA</span><a class="btn btn-sm">Edit</a></div></div>
+          <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dnum">2</span><span class="dt">Rich Text</span><span class="muted">Two-column copy</span><a class="btn btn-sm">Edit</a></div></div>
+          <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dnum">3</span><span class="dt">Package Carousel</span><span class="muted">Filter: International</span><a class="btn btn-sm">Edit</a></div></div>
+          <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dnum">4</span><span class="dt">FAQ Accordion</span><span class="muted">8 items</span><a class="btn btn-sm">Edit</a></div></div>
+          <button class="btn">＋ Add Section</button>
+        </div>
+      </div>
+    </div>
+    <aside>
+      <div class="panel">
+        <div class="panel-head"><h2>Publish</h2><span class="toggle-ico">▾</span></div>
+        <div class="pub-row"><span class="k">Status:</span><span><b>Draft</b> <a href="#">Edit</a></span></div>
+        <div class="pub-row"><span class="k">Visibility:</span><span><b>Public</b> <a href="#">Edit</a></span></div>
+        <div class="pub-row"><span class="k">Publish:</span><span><b>Immediately</b> <a href="#">Edit</a></span></div>
+        <div class="pub-actions"><a class="btn btn-sm">Preview</a><button class="btn btn-primary">Publish</button></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Page Attributes</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="field"><label>Parent</label><select class="sel"><option>(no parent)</option><option>About Us</option><option>Services</option></select></div>
+          <div class="field"><label>Template</label><select class="sel"><option>Default</option><option selected>Landing (Wide)</option><option>Contact + Form</option><option>Homepage Builder</option></select></div>
+          <div class="field"><label>Order</label><input class="inp" value="0" style="width:80px"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Featured Image</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body"><div class="featured-drop">Set featured image</div></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: PACKAGES LIST
+     ================================================================== -->
+<section class="screen" id="s-packages">
+  <div class="page-head"><h1>Packages</h1><a class="btn page-title-action" data-go="package-edit">Add New Package</a></div>
+  <ul class="subsubsub">
+    <li><a href="#" class="current">All <span class="cnt">(64)</span></a></li>
+    <li><a href="#">Published <span class="cnt">(58)</span></a></li>
+    <li><a href="#">Drafts <span class="cnt">(4)</span></a></li>
+    <li><a href="#">Sold Out <span class="cnt">(2)</span></a></li>
+    <li><a href="#">Trash <span class="cnt">(1)</span></a></li>
+  </ul>
+  <div class="tablenav">
+    <select class="sel" style="width:auto"><option>Bulk actions</option><option>Set Featured</option><option>Mark Sold Out</option><option>Move to Trash</option></select>
+    <button class="btn btn-plain">Apply</button>
+    <select class="sel" style="width:auto"><option>All destinations</option><option>Kerala</option><option>Ladakh</option><option>Rajasthan</option><option>Bali</option></select>
+    <select class="sel" style="width:auto"><option>All themes</option><option>Honeymoon</option><option>Adventure</option><option>Family</option><option>Pilgrimage</option></select>
+    <select class="sel" style="width:auto"><option>Any duration</option><option>1–3 nights</option><option>4–6 nights</option><option>7+ nights</option></select>
+    <button class="btn btn-plain">Filter</button>
+    <div class="spacer"></div>
+    <input class="inp" style="width:200px" placeholder="Search packages…">
+    <div class="pagination"><span>64 items</span><a class="pg">‹</a><a class="pg on">1</a><a class="pg">2</a><a class="pg">›</a></div>
+  </div>
+  <table class="list">
+    <thead><tr>
+      <th class="col-cb"><input type="checkbox"></th><th class="col-thumb"></th><th>Package</th><th>Code</th><th>Destination</th><th>Duration</th><th>From price</th><th>Theme</th><th>Enq.</th><th>Status</th><th>Updated</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><input type="checkbox"></td><td><span class="thumb"></span></td>
+        <td><a class="row-title" data-go="package-edit">Kerala Backwaters &amp; Munnar</a> <span class="badge b-hot">Featured</span>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Duplicate</a></span><span><a>Itinerary</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div></td>
+        <td class="muted nowrap">KL-BW-07</td><td class="muted">Kerala</td><td class="nowrap">6N / 7D</td><td class="nowrap"><b>₹32,500</b><div class="muted" style="font-size:11px">per person</div></td>
+        <td class="muted">Family</td><td>22</td><td><span class="badge b-pub">Published</span></td><td class="muted nowrap">2 days ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td><td><span class="thumb"></span></td>
+        <td><a class="row-title" data-go="package-edit">Leh–Ladakh Bike Expedition</a>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Duplicate</a></span><span><a>Itinerary</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div></td>
+        <td class="muted nowrap">LA-BK-09</td><td class="muted">Ladakh</td><td class="nowrap">8N / 9D</td><td class="nowrap"><b>₹58,900</b><div class="muted" style="font-size:11px">per person</div></td>
+        <td class="muted">Adventure</td><td>19</td><td><span class="badge b-pub">Published</span></td><td class="muted nowrap">5 days ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td><td><span class="thumb"></span></td>
+        <td><a class="row-title" data-go="package-edit">Bali Honeymoon Escape</a>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Duplicate</a></span><span><a>Itinerary</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div></td>
+        <td class="muted nowrap">ID-BL-05</td><td class="muted">Bali, Indonesia</td><td class="nowrap">5N / 6D</td><td class="nowrap"><b>₹74,000</b><div class="muted" style="font-size:11px">per couple</div></td>
+        <td class="muted">Honeymoon</td><td>17</td><td><span class="badge b-pub">Published</span></td><td class="muted nowrap">1 week ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td><td><span class="thumb"></span></td>
+        <td><a class="row-title" data-go="package-edit">Golden Triangle Heritage</a>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Duplicate</a></span><span><a>Itinerary</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div></td>
+        <td class="muted nowrap">RJ-GT-06</td><td class="muted">Delhi–Agra–Jaipur</td><td class="nowrap">5N / 6D</td><td class="nowrap"><b>₹27,800</b><div class="muted" style="font-size:11px">per person</div></td>
+        <td class="muted">Heritage</td><td>11</td><td><span class="badge b-draft">Draft</span></td><td class="muted nowrap">Yesterday</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td><td><span class="thumb"></span></td>
+        <td><a class="row-title" data-go="package-edit">Char Dham Yatra by Helicopter</a>
+          <div class="row-actions"><span><a>Edit</a></span><span><a>Duplicate</a></span><span><a>Itinerary</a></span><span><a class="del">Trash</a></span><span><a>View</a></span></div></td>
+        <td class="muted nowrap">UK-CD-05</td><td class="muted">Uttarakhand</td><td class="nowrap">4N / 5D</td><td class="nowrap"><b>₹1,85,000</b><div class="muted" style="font-size:11px">per person</div></td>
+        <td class="muted">Pilgrimage</td><td>8</td><td><span class="badge b-close">Sold Out</span></td><td class="muted nowrap">3 weeks ago</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================================================================
+     SCREEN: PACKAGE EDITOR
+     ================================================================== -->
+<section class="screen" id="s-package-edit">
+  <div class="page-head"><h1>Edit Package</h1><a class="btn page-title-action">Add New</a><a class="btn btn-sm" style="margin-left:auto">Preview</a></div>
+  <div class="edit-grid">
+    <div>
+      <div class="field">
+        <input class="inp title-input" value="Kerala Backwaters &amp; Munnar">
+        <div class="permalink">Permalink: https://wanderly.com/packages/<b>kerala-backwaters-munnar</b> &nbsp;<a href="#">Edit</a></div>
+      </div>
+
+      <div class="editor-box">
+        <div class="editor-tabs"><span class="on">Overview</span><span>HTML</span></div>
+        <div class="editor-tools"><i>＋</i><i><b>B</b></i><i><em>I</em></i><i>≡</i><i>🔗</i><i>🖼</i></div>
+        <div class="editor-area" contenteditable="true" style="min-height:180px"><p>Seven days across the Kerala highlands and backwaters — tea estates in Munnar, wildlife in Thekkady, and a night on a private houseboat in Alleppey.</p></div>
+      </div>
+
+      <!-- ITINERARY BUILDER -->
+      <div class="panel" style="margin-top:18px">
+        <div class="panel-head"><h2>Itinerary Builder</h2><span class="muted">7 days · drag to reorder</span></div>
+        <div class="panel-body">
+          <div class="day">
+            <div class="day-head"><span class="grip">⠿</span><span class="dnum">1</span><span class="dt">Arrive Kochi → Drive to Munnar</span><span class="muted">130 km · 4 hrs</span><span class="toggle-ico">▾</span></div>
+            <div class="day-body">
+              <div class="row2">
+                <div class="field"><label>Day Title</label><input class="inp" value="Arrive Kochi → Drive to Munnar"></div>
+                <div class="field"><label>Overnight Stay</label><input class="inp" value="Munnar"></div>
+              </div>
+              <div class="field"><label>Description</label><textarea class="ta" style="min-height:80px">Meet our representative at Kochi airport and drive to Munnar via Cheeyappara and Valara waterfalls. Evening free at leisure.</textarea></div>
+              <div class="row3">
+                <div class="field"><label>Meals</label>
+                  <label class="inline-lbl"><input type="checkbox"> Breakfast</label>
+                  <label class="inline-lbl"><input type="checkbox"> Lunch</label>
+                  <label class="inline-lbl" ><input type="checkbox" checked> Dinner</label>
+                </div>
+                <div class="field"><label>Transfer</label><select class="sel"><option>Private AC Sedan</option><option>Tempo Traveller</option><option>Flight</option><option>Train</option></select></div>
+                <div class="field"><label>Hotel Category</label><select class="sel"><option>3★ Deluxe</option><option selected>4★ Premium</option><option>5★ Luxury</option></select></div>
+              </div>
+              <div class="field"><label>Day Images</label><div class="featured-drop" style="height:80px">＋ Add images</div></div>
+              <a class="btn btn-danger btn-sm">Remove Day</a>
+            </div>
+          </div>
+          <div class="day closed"><div class="day-head"><span class="grip">⠿</span><span class="dnum">2</span><span class="dt">Munnar Sightseeing — Tea Museum &amp; Top Station</span><span class="muted">Overnight: Munnar</span><span class="toggle-ico">▸</span></div><div class="day-body"><div class="hint">Collapsed — click header to expand.</div></div></div>
+          <div class="day closed"><div class="day-head"><span class="grip">⠿</span><span class="dnum">3</span><span class="dt">Munnar → Thekkady, Spice Plantation Walk</span><span class="muted">Overnight: Thekkady</span><span class="toggle-ico">▸</span></div><div class="day-body"><div class="hint">Collapsed — click header to expand.</div></div></div>
+          <div class="day closed"><div class="day-head"><span class="grip">⠿</span><span class="dnum">4</span><span class="dt">Periyar Boat Safari &amp; Kathakali Show</span><span class="muted">Overnight: Thekkady</span><span class="toggle-ico">▸</span></div><div class="day-body"><div class="hint">Collapsed — click header to expand.</div></div></div>
+          <div class="day closed"><div class="day-head"><span class="grip">⠿</span><span class="dnum">5</span><span class="dt">Thekkady → Alleppey Houseboat Check-in</span><span class="muted">Overnight: Houseboat</span><span class="toggle-ico">▸</span></div><div class="day-body"><div class="hint">Collapsed — click header to expand.</div></div></div>
+          <button class="btn">＋ Add Day</button>
+          <button class="btn">⧉ Duplicate Last Day</button>
+        </div>
+      </div>
+
+      <!-- INCLUSIONS -->
+      <div class="panel">
+        <div class="panel-head"><h2>Inclusions &amp; Exclusions</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body row2">
+          <div class="field"><label>Inclusions <span class="muted">(one per line)</span></label><textarea class="ta">6 nights accommodation on twin-sharing basis
+Daily breakfast and dinner
+Private AC vehicle for all transfers
+Houseboat stay with all meals
+All applicable toll, parking and driver allowance</textarea></div>
+          <div class="field"><label>Exclusions <span class="muted">(one per line)</span></label><textarea class="ta">Airfare / train fare
+Monument and safari entry fees
+Personal expenses, tips and laundry
+Travel insurance
+Anything not listed under inclusions</textarea></div>
+        </div>
+      </div>
+
+      <!-- PRICING & DEPARTURES -->
+      <div class="panel">
+        <div class="panel-head"><h2>Pricing &amp; Departures</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="row3">
+            <div class="field"><label>Currency</label><select class="sel"><option>INR (₹)</option><option>USD ($)</option><option>AED</option></select></div>
+            <div class="field"><label>Price From</label><input class="inp" value="32500"></div>
+            <div class="field"><label>Strike-through Price</label><input class="inp" value="38000"></div>
+          </div>
+          <div class="row3">
+            <div class="field"><label>Price Basis</label><select class="sel"><option>Per person</option><option>Per couple</option><option>Per group</option></select></div>
+            <div class="field"><label>GST %</label><input class="inp" value="5"></div>
+            <div class="field"><label>Advance to Book %</label><input class="inp" value="25"></div>
+          </div>
+          <label style="font-weight:600;display:block;margin:6px 0 6px">Occupancy Slabs</label>
+          <table class="list" style="margin-bottom:12px">
+            <thead><tr><th>Occupancy</th><th>3★</th><th>4★</th><th>5★</th><th style="width:60px"></th></tr></thead>
+            <tbody>
+              <tr><td>Double sharing</td><td><input class="inp" value="32500"></td><td><input class="inp" value="41000"></td><td><input class="inp" value="63000"></td><td><a class="row-title del" style="color:var(--danger)">✕</a></td></tr>
+              <tr><td>Triple sharing</td><td><input class="inp" value="29800"></td><td><input class="inp" value="37500"></td><td><input class="inp" value="58000"></td><td><a class="row-title" style="color:var(--danger)">✕</a></td></tr>
+              <tr><td>Extra adult</td><td><input class="inp" value="12000"></td><td><input class="inp" value="15000"></td><td><input class="inp" value="22000"></td><td><a class="row-title" style="color:var(--danger)">✕</a></td></tr>
+              <tr><td>Child (5–11, no bed)</td><td><input class="inp" value="8500"></td><td><input class="inp" value="10500"></td><td><input class="inp" value="14000"></td><td><a class="row-title" style="color:var(--danger)">✕</a></td></tr>
+            </tbody>
+          </table>
+          <button class="btn btn-sm">＋ Add Slab</button>
+          <label style="font-weight:600;display:block;margin:16px 0 6px">Fixed Departures</label>
+          <table class="list">
+            <thead><tr><th>Start date</th><th>End date</th><th>Seats</th><th>Booked</th><th>Status</th><th style="width:60px"></th></tr></thead>
+            <tbody>
+              <tr><td><input class="inp" type="date" value="2026-09-12"></td><td><input class="inp" type="date" value="2026-09-18"></td><td><input class="inp" value="18"></td><td>11</td><td><span class="badge b-pub">Open</span></td><td><a style="color:var(--danger)">✕</a></td></tr>
+              <tr><td><input class="inp" type="date" value="2026-10-03"></td><td><input class="inp" type="date" value="2026-10-09"></td><td><input class="inp" value="18"></td><td>18</td><td><span class="badge b-close">Full</span></td><td><a style="color:var(--danger)">✕</a></td></tr>
+              <tr><td><input class="inp" type="date" value="2026-11-14"></td><td><input class="inp" type="date" value="2026-11-20"></td><td><input class="inp" value="24"></td><td>3</td><td><span class="badge b-pub">Open</span></td><td><a style="color:var(--danger)">✕</a></td></tr>
+            </tbody>
+          </table>
+          <button class="btn btn-sm" style="margin-top:10px">＋ Add Departure</button>
+        </div>
+      </div>
+
+      <!-- FAQ / POLICY -->
+      <div class="panel">
+        <div class="panel-head"><h2>FAQs &amp; Policies</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dt">Is the houseboat private or shared?</span><span class="toggle-ico">▸</span></div><div class="day-body"><textarea class="ta" style="min-height:60px">The houseboat is fully private for your group…</textarea></div></div>
+          <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dt">What is the cancellation policy?</span><span class="toggle-ico">▸</span></div><div class="day-body"><textarea class="ta" style="min-height:60px">Free cancellation up to 21 days before departure…</textarea></div></div>
+          <button class="btn btn-sm">＋ Add FAQ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR META BOXES -->
+    <aside>
+      <div class="panel">
+        <div class="panel-head"><h2>Publish</h2><span class="toggle-ico">▾</span></div>
+        <div class="pub-row"><span class="k">Status:</span><span><b>Published</b> <a href="#">Edit</a></span></div>
+        <div class="pub-row"><span class="k">Visibility:</span><span><b>Public</b> <a href="#">Edit</a></span></div>
+        <div class="pub-row"><span class="k">Availability:</span><span><b>Open</b> <a href="#">Edit</a></span></div>
+        <div class="pub-row"><span class="k">Last updated:</span><span class="muted">2 days ago</span></div>
+        <div class="pub-actions"><a class="btn btn-danger btn-sm">Trash</a><button class="btn btn-primary">Update</button></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Package Details</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="field"><label>Package Code</label><input class="inp" value="KL-BW-07"></div>
+          <div class="row2">
+            <div class="field"><label>Nights</label><input class="inp" value="6"></div>
+            <div class="field"><label>Days</label><input class="inp" value="7"></div>
+          </div>
+          <div class="field"><label>Difficulty</label><select class="sel"><option>Easy</option><option>Moderate</option><option>Challenging</option></select></div>
+          <div class="field"><label>Best Season</label><input class="inp" value="Sep – Mar"></div>
+          <div class="field"><label>Group Size</label><input class="inp" value="2 – 24"></div>
+          <label class="inline-lbl"><input type="checkbox" checked> Featured on homepage</label>
+          <label class="inline-lbl"><input type="checkbox"> Show "Trending" ribbon</label>
+          <label class="inline-lbl"><input type="checkbox" checked> Enable enquiry form</label>
+          <div class="field" style="margin:6px 0 0"><label>Enquiry form</label>
+            <select class="sel"><option>Package Enquiry (default)</option><option>Quick Callback</option><option>Group / MICE Enquiry</option></select>
+            <div class="hint"><a data-go="form-builder">Edit this form</a> · <a data-go="enquiry-forms">All forms</a></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Destinations</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="checklist">
+            <label class="inline-lbl"><input type="checkbox" checked> India</label>
+            <label class="inline-lbl" style="padding-left:18px"><input type="checkbox" checked> Kerala</label>
+            <label class="inline-lbl" style="padding-left:36px"><input type="checkbox" checked> Munnar</label>
+            <label class="inline-lbl" style="padding-left:36px"><input type="checkbox" checked> Alleppey</label>
+            <label class="inline-lbl" style="padding-left:36px"><input type="checkbox" checked> Thekkady</label>
+            <label class="inline-lbl" style="padding-left:18px"><input type="checkbox"> Rajasthan</label>
+            <label class="inline-lbl"><input type="checkbox"> International</label>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Travel Themes</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <input class="inp" placeholder="Add theme…">
+          <div class="chips"><span class="chip">Family <b>×</b></span><span class="chip">Backwaters <b>×</b></span><span class="chip">Nature <b>×</b></span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Gallery</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="featured-drop">Banner image · 1600×900</div>
+          <div class="media-grid" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+            <div class="media-item"></div><div class="media-item"></div><div class="media-item"></div>
+          </div>
+          <button class="btn btn-sm" style="margin-top:10px">＋ Add to gallery</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>SEO</h2><span class="toggle-ico">▾</span></div>
+        <div class="panel-body">
+          <div class="field"><label>SEO Title</label><input class="inp" value="Kerala Backwaters &amp; Munnar Tour 6N/7D | Wanderly"></div>
+          <div class="field"><label>Meta Description</label><textarea class="ta" style="min-height:60px">Munnar tea estates, Periyar wildlife and a private Alleppey houseboat — 7 days from ₹32,500.</textarea></div>
+          <label class="inline-lbl"><input type="checkbox" checked> Emit Product + Trip schema</label>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: ENQUIRIES LIST
+     ================================================================== -->
+<section class="screen" id="s-enquiries">
+  <div class="page-head"><h1>Enquiries</h1><a class="btn page-title-action" data-go="enquiry-forms">Enquiry Forms</a><a class="btn page-title-action">Export CSV</a></div>
+  <ul class="subsubsub">
+    <li><a href="#" class="current">All <span class="cnt">(138)</span></a></li>
+    <li><a href="#">New <span class="cnt">(7)</span></a></li>
+    <li><a href="#">Contacted <span class="cnt">(41)</span></a></li>
+    <li><a href="#">Quoted <span class="cnt">(52)</span></a></li>
+    <li><a href="#">Converted <span class="cnt">(24)</span></a></li>
+    <li><a href="#">Lost <span class="cnt">(14)</span></a></li>
+  </ul>
+  <div class="tablenav">
+    <select class="sel" style="width:auto"><option>Bulk actions</option><option>Assign to…</option><option>Mark Contacted</option><option>Mark Lost</option><option>Delete</option></select>
+    <button class="btn btn-plain">Apply</button>
+    <select class="sel" style="width:auto"><option>All sources</option><option>Package page</option><option>Contact form</option><option>WhatsApp</option><option>Phone</option></select>
+    <select class="sel" style="width:auto"><option>All agents</option><option>Neha S</option><option>Ritu M</option><option>Unassigned</option></select>
+    <input class="inp" type="date" style="width:auto">
+    <button class="btn btn-plain">Filter</button>
+    <div class="spacer"></div>
+    <input class="inp" style="width:190px" placeholder="Search name, email, phone…">
+  </div>
+  <table class="list">
+    <thead><tr>
+      <th class="col-cb"><input type="checkbox"></th><th>Contact</th><th>Package</th><th>Travel date</th><th>Pax</th><th>Budget</th><th>Source</th><th>Assigned</th><th>Status</th><th>Received</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="enquiry-view">Priya Menon</a><div class="muted">priya.m@gmail.com · +91 98••• 21••</div>
+          <div class="row-actions"><span><a>View</a></span><span><a>Reply</a></span><span><a>Assign</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted">Kerala Backwaters 6N/7D</td><td class="nowrap">12 Sep 2026</td><td>4</td><td class="nowrap">₹1.5–2L</td>
+        <td class="muted">Package page</td><td class="muted">—</td><td><span class="badge b-new">New</span></td><td class="muted nowrap">18 min ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="enquiry-view">Rahul Sethi</a><div class="muted">rahul.sethi@outlook.com · +91 99••• 77••</div>
+          <div class="row-actions"><span><a>View</a></span><span><a>Reply</a></span><span><a>Assign</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted">Ladakh Bike Expedition</td><td class="nowrap">02 Oct 2026</td><td>2</td><td class="nowrap">₹1–1.5L</td>
+        <td class="muted">WhatsApp</td><td class="muted">Neha S</td><td><span class="badge b-hot">Hot</span></td><td class="muted nowrap">1 hr ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="enquiry-view">Ann Fernandes</a><div class="muted">ann.f@yahoo.com · +91 90••• 43••</div>
+          <div class="row-actions"><span><a>View</a></span><span><a>Reply</a></span><span><a>Assign</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted">Bali Honeymoon Escape</td><td class="nowrap">20 Nov 2026</td><td>2</td><td class="nowrap">₹2L+</td>
+        <td class="muted">Package page</td><td class="muted">Ritu M</td><td><span class="badge b-new">New</span></td><td class="muted nowrap">3 hrs ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="enquiry-view">Vikram Rao</a><div class="muted">v.rao@corp.in · +91 97••• 10••</div>
+          <div class="row-actions"><span><a>View</a></span><span><a>Reply</a></span><span><a>Assign</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted">Golden Triangle Heritage</td><td class="nowrap">05 Dec 2026</td><td>6</td><td class="nowrap">₹2–3L</td>
+        <td class="muted">Contact form</td><td class="muted">Neha S</td><td><span class="badge b-pend">Quoted</span></td><td class="muted nowrap">Yesterday</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="enquiry-view">Sana Qureshi</a><div class="muted">sana.q@gmail.com · +91 88••• 65••</div>
+          <div class="row-actions"><span><a>View</a></span><span><a>Reply</a></span><span><a>Assign</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted">Char Dham by Helicopter</td><td class="nowrap">18 May 2027</td><td>3</td><td class="nowrap">₹5L+</td>
+        <td class="muted">Phone</td><td class="muted">Ritu M</td><td><span class="badge b-pub">Converted</span></td><td class="muted nowrap">3 days ago</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================================================================
+     SCREEN: ENQUIRY DETAIL
+     ================================================================== -->
+<section class="screen" id="s-enquiry-view">
+  <div class="page-head"><h1>Enquiry #WD-2026-0138</h1><span class="badge b-new">New</span><a class="btn btn-sm" style="margin-left:auto" data-go="enquiries">← Back to list</a></div>
+  <div class="edit-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><h2>Enquiry Details</h2><span class="muted">Received 18 min ago</span></div>
+        <div class="panel-body">
+          <div class="row2">
+            <div class="field"><label>Name</label><input class="inp" value="Priya Menon"></div>
+            <div class="field"><label>Email</label><input class="inp" value="priya.m@gmail.com"></div>
+            <div class="field"><label>Phone</label><input class="inp" value="+91 98765 21430"></div>
+            <div class="field"><label>City</label><input class="inp" value="Bengaluru"></div>
+            <div class="field"><label>Package</label><input class="inp" value="Kerala Backwaters &amp; Munnar (KL-BW-07)"></div>
+            <div class="field"><label>Travel Date</label><input class="inp" type="date" value="2026-09-12"></div>
+            <div class="field"><label>Adults / Children</label><input class="inp" value="2 adults, 2 children (7 &amp; 11)"></div>
+            <div class="field"><label>Budget</label><input class="inp" value="₹1,50,000 – ₹2,00,000"></div>
+          </div>
+          <div class="field"><label>Message</label><textarea class="ta">Hi, we're planning a family trip in September. Can you send a customised quote with a 4-star hotel in Munnar and a private houseboat? Also, is the Periyar boat safari suitable for kids?</textarea></div>
+          <div class="hint">Source: Package page · UTM: google / cpc / kerala-tour · IP 49.36.•.• · Landing /packages/kerala-backwaters-munnar</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Activity &amp; Notes</h2></div>
+        <ul class="feedlist">
+          <li><span class="dot"></span><div><b>Enquiry received</b> from package page<div class="muted">18 Aug 2026, 14:22</div></div></li>
+          <li><span class="dot" style="background:#00a32a"></span><div><b>Auto-reply sent</b> to priya.m@gmail.com<div class="muted">18 Aug 2026, 14:22</div></div></li>
+        </ul>
+        <div class="panel-body">
+          <div class="field"><label>Add internal note</label><textarea class="ta" style="min-height:70px" placeholder="Visible to your team only…"></textarea></div>
+          <button class="btn btn-primary">Add Note</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Send Quotation</h2></div>
+        <div class="panel-body">
+          <div class="row2">
+            <div class="field"><label>Template</label><select class="sel"><option>Kerala Family — 4★</option><option>Custom quote</option></select></div>
+            <div class="field"><label>Quote Amount (₹)</label><input class="inp" placeholder="e.g. 168000"></div>
+          </div>
+          <div class="field"><label>Message</label><textarea class="ta">Dear Priya, thank you for your interest…</textarea></div>
+          <label class="inline-lbl"><input type="checkbox" checked> Attach itinerary PDF</label>
+          <label class="inline-lbl"><input type="checkbox"> Send copy on WhatsApp</label>
+          <button class="btn btn-primary btn-lg" style="margin-top:8px">Send Quotation</button>
+        </div>
+      </div>
+    </div>
+    <aside>
+      <div class="panel">
+        <div class="panel-head"><h2>Manage</h2></div>
+        <div class="panel-body">
+          <div class="field"><label>Status</label><select class="sel"><option selected>New</option><option>Contacted</option><option>Quoted</option><option>Negotiating</option><option>Converted</option><option>Lost</option></select></div>
+          <div class="field"><label>Priority</label><select class="sel"><option>Normal</option><option>Hot</option><option>Low</option></select></div>
+          <div class="field"><label>Assign to</label><select class="sel"><option>Unassigned</option><option>Neha S</option><option>Ritu M</option></select></div>
+          <div class="field"><label>Follow-up on</label><input class="inp" type="date"></div>
+          <button class="btn btn-primary" style="width:100%">Save</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2>Quick Actions</h2></div>
+        <div class="panel-body" style="display:flex;flex-direction:column;gap:8px">
+          <a class="btn">📞 Call +91 98765 21430</a>
+          <a class="btn">💬 WhatsApp</a>
+          <a class="btn">✉ Email</a>
+          <a class="btn">📄 Generate PDF Itinerary</a>
+          <a class="btn btn-danger">Mark as Lost</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: ENQUIRY FORMS (list)
+     ================================================================== -->
+<section class="screen" id="s-enquiry-forms">
+  <div class="page-head"><h1>Enquiry Forms</h1><a class="btn page-title-action" data-go="form-builder">Add New Form</a></div>
+  <p class="subtitle">Every form that feeds the Enquiries inbox. Place one with its shortcode, or pick it on a package under <b>Enable enquiry form</b>.</p>
+  <ul class="subsubsub">
+    <li><a href="#" class="current">All <span class="cnt">(5)</span></a></li>
+    <li><a href="#">Active <span class="cnt">(4)</span></a></li>
+    <li><a href="#">Draft <span class="cnt">(1)</span></a></li>
+  </ul>
+  <div class="tablenav">
+    <select class="sel" style="width:auto"><option>Bulk actions</option><option>Activate</option><option>Deactivate</option><option>Duplicate</option><option>Delete</option></select>
+    <button class="btn btn-plain">Apply</button>
+    <select class="sel" style="width:auto"><option>All placements</option><option>Package pages</option><option>Contact page</option><option>Popup</option><option>Sticky mobile bar</option></select>
+    <button class="btn btn-plain">Filter</button>
+    <div class="spacer"></div>
+    <input class="inp" style="width:190px" placeholder="Search forms&hellip;">
+  </div>
+  <table class="list">
+    <thead><tr>
+      <th class="col-cb"><input type="checkbox"></th><th>Form</th><th>Shortcode</th><th>Fields</th><th>Placement</th><th>Submissions (30d)</th><th>Conv.</th><th>Status</th><th>Modified</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="form-builder">Package Enquiry</a><div class="muted">Default form on every package page</div>
+          <div class="row-actions"><span><a data-go="form-builder">Edit</a></span><span><a>Duplicate</a></span><span><a>Entries</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted nowrap">[wanderly_form id="1"]</td><td>9</td><td class="muted">All package pages</td><td>96</td><td class="nowrap">4.8%</td>
+        <td><span class="badge b-pub">Active</span></td><td class="muted nowrap">2 days ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="form-builder">Contact Us</a><div class="muted">/contact</div>
+          <div class="row-actions"><span><a data-go="form-builder">Edit</a></span><span><a>Duplicate</a></span><span><a>Entries</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted nowrap">[wanderly_form id="2"]</td><td>6</td><td class="muted">Contact page</td><td>24</td><td class="nowrap">3.1%</td>
+        <td><span class="badge b-pub">Active</span></td><td class="muted nowrap">1 week ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="form-builder">Quick Callback</a><div class="muted">Name + phone only, exit-intent popup</div>
+          <div class="row-actions"><span><a data-go="form-builder">Edit</a></span><span><a>Duplicate</a></span><span><a>Entries</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted nowrap">[wanderly_form id="3"]</td><td>2</td><td class="muted">Popup &middot; Sticky mobile bar</td><td>13</td><td class="nowrap">7.4%</td>
+        <td><span class="badge b-pub">Active</span></td><td class="muted nowrap">3 weeks ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="form-builder">Group / MICE Enquiry</a><div class="muted">Corporate and large-group requests</div>
+          <div class="row-actions"><span><a data-go="form-builder">Edit</a></span><span><a>Duplicate</a></span><span><a>Entries</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted nowrap">[wanderly_form id="4"]</td><td>11</td><td class="muted">/group-travel</td><td>5</td><td class="nowrap">2.2%</td>
+        <td><span class="badge b-pub">Active</span></td><td class="muted nowrap">1 month ago</td>
+      </tr>
+      <tr>
+        <td><input type="checkbox"></td>
+        <td><a class="row-title" data-go="form-builder">Visa Assistance</a><div class="muted">Not placed anywhere yet</div>
+          <div class="row-actions"><span><a data-go="form-builder">Edit</a></span><span><a>Duplicate</a></span><span><a>Entries</a></span><span><a class="del">Delete</a></span></div></td>
+        <td class="muted nowrap">[wanderly_form id="5"]</td><td>7</td><td class="muted">&mdash;</td><td>0</td><td class="nowrap">&mdash;</td>
+        <td><span class="badge b-draft">Draft</span></td><td class="muted nowrap">Yesterday</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="tablenav"><span class="muted">5 items</span><div class="spacer"></div>
+    <div class="pagination"><span class="pg on">1</span></div>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: FORM BUILDER (create / edit an enquiry form)
+     ================================================================== -->
+<section class="screen" id="s-form-builder">
+  <div class="page-head"><h1>Enquiry Form</h1><a class="btn btn-sm" style="margin-left:auto" data-go="enquiry-forms">&larr; All forms</a></div>
+  <p class="subtitle">Name it, tick the fields you want, say where it goes. Submissions land in <a href="#" data-go="enquiries">Enquiries</a> and are emailed to your team.</p>
+
+  <div class="edit-grid">
+    <div>
+      <div class="panel">
+        <div class="panel-head"><h2>Basics</h2></div>
+        <div class="panel-body">
+          <div class="row2">
+            <div class="field"><label>Form name</label><input class="inp" value="Package Enquiry"></div>
+            <div class="field"><label>Email enquiries to</label><input class="inp" value="sales@wanderly.com"></div>
+          </div>
+          <div class="hint" style="margin:-8px 0 12px">Comma-separate the addresses for more than one. The enquirer gets an auto-reply either way.</div>
+          <div class="field" style="margin-bottom:0"><label>After submit</label><select class="sel"><option>Redirect to /thank-you</option><option>Show a thank-you message</option></select></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Fields</h2></div>
+        <table class="list" id="fieldTable">
+          <thead><tr><th>Field</th><th style="width:80px">Show</th><th style="width:90px">Required</th><th style="width:80px"></th></tr></thead>
+          <tbody>
+          <tr class="fieldrow">
+            <td><b>Full Name</b><div class="ftype">Text</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox" checked></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Email</b><div class="ftype">Email</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox" checked></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Phone / WhatsApp</b><div class="ftype">Phone</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox" checked></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Package</b><div class="ftype">Dropdown &middot; auto-filled from Packages</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox"></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Travel Date</b><div class="ftype">Date</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox"></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Travellers</b><div class="ftype">Number</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox"></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Budget</b><div class="ftype">Dropdown</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox"></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Message</b><div class="ftype">Long text</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox"></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Consent</b><div class="ftype">Checkbox</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox" checked></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          <tr class="fieldrow">
+            <td><b>Source page</b><div class="ftype">Hidden &middot; captured automatically</div></td>
+            <td><input type="checkbox" checked></td>
+            <td><input type="checkbox"></td>
+            <td><a class="del" data-del-field href="#">Remove</a></td>
+          </tr>
+          </tbody>
+        </table>
+        <div class="panel-foot">
+          <div class="addrow">
+            <input class="inp" id="newFieldLabel" style="width:180px" placeholder="Add a field &mdash; label">
+            <select class="sel" id="newFieldType" style="width:auto"><option>Text</option><option>Email</option><option>Phone</option><option>Number</option><option>Date</option><option>Dropdown</option><option>Checkbox</option><option>Long text</option></select>
+            <button class="btn" id="addFieldBtn">Add</button>
+          </div>
+          <span class="muted"><span id="fieldCount">10</span> fields</span>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="panel">
+        <div class="panel-head"><h2>Save</h2></div>
+        <div class="pub-row"><span class="k">&#9679; Status</span><select class="sel" style="width:auto"><option>Active</option><option>Draft</option></select></div>
+        <div class="pub-actions"><a class="btn">Preview</a><button class="btn btn-primary btn-lg">Save Form</button></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Where it appears</h2></div>
+        <div class="panel-body">
+          <div class="sc-box"><code id="formShortcode">[wanderly_form id="1"]</code><button class="btn btn-sm" id="copyShortcode">Copy</button></div>
+          <div class="hint">Paste this shortcode into any page, post or widget to show the form there.</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: MEDIA
+     ================================================================== -->
+<section class="screen" id="s-media">
+  <div class="page-head"><h1>Media Library</h1><a class="btn page-title-action">Add New</a></div>
+  <div class="tablenav">
+    <select class="sel" style="width:auto"><option>All media items</option><option>Images</option><option>Videos</option><option>Documents (PDF)</option></select>
+    <select class="sel" style="width:auto"><option>All dates</option><option>August 2026</option></select>
+    <select class="sel" style="width:auto"><option>Unattached</option><option>Attached</option></select>
+    <button class="btn btn-plain">Filter</button>
+    <div class="spacer"></div>
+    <input class="inp" style="width:200px" placeholder="Search media…">
+  </div>
+  <div class="media-grid">
+    <div class="media-item"><span class="cap">munnar-tea-hero.jpg</span></div>
+    <div class="media-item"><span class="cap">alleppey-houseboat.jpg</span></div>
+    <div class="media-item"><span class="cap">ladakh-pangong.jpg</span></div>
+    <div class="media-item"><span class="cap">bali-uluwatu.jpg</span></div>
+    <div class="media-item"><span class="cap">taj-sunrise.jpg</span></div>
+    <div class="media-item"><span class="cap">periyar-safari.jpg</span></div>
+    <div class="media-item"><span class="cap">kerala-itinerary.pdf</span></div>
+    <div class="media-item"><span class="cap">jaipur-amber-fort.jpg</span></div>
+    <div class="media-item"><span class="cap">team-photo-2026.jpg</span></div>
+    <div class="media-item"><span class="cap">brochure-winter.pdf</span></div>
+    <div class="media-item"><span class="cap">goa-beach-drone.mp4</span></div>
+    <div class="media-item"><span class="cap">logo-white.svg</span></div>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: TAXONOMY (Destinations / Categories / Themes)
+     ================================================================== -->
+<section class="screen" id="s-taxonomy">
+  <div class="page-head"><h1>Destinations</h1></div>
+  <p class="subtitle">Hierarchical taxonomy shared by Posts and Packages.</p>
+  <div class="edit-grid" style="grid-template-columns:320px minmax(0,1fr)">
+    <div class="panel">
+      <div class="panel-head"><h2>Add New Destination</h2></div>
+      <div class="panel-body">
+        <div class="field"><label>Name</label><input class="inp"></div>
+        <div class="field"><label>Slug</label><input class="inp"><div class="hint">URL-friendly, lowercase, hyphens only.</div></div>
+        <div class="field"><label>Parent</label><select class="sel"><option>None</option><option>India</option><option>— Kerala</option><option>International</option></select></div>
+        <div class="field"><label>Description</label><textarea class="ta" style="min-height:70px"></textarea></div>
+        <div class="field"><label>Banner Image</label><div class="featured-drop" style="height:90px">Choose image</div></div>
+        <button class="btn btn-primary">Add New Destination</button>
+      </div>
+    </div>
+    <table class="list">
+      <thead><tr><th class="col-cb"><input type="checkbox"></th><th>Name</th><th>Slug</th><th>Description</th><th>Packages</th></tr></thead>
+      <tbody>
+        <tr><td><input type="checkbox"></td><td><a class="row-title">India</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span><span><a>View</a></span></div></td><td class="muted">india</td><td class="muted">Domestic destinations</td><td>48</td></tr>
+        <tr><td><input type="checkbox"></td><td>— <a class="row-title">Kerala</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td class="muted">kerala</td><td class="muted">God's own country</td><td>12</td></tr>
+        <tr><td><input type="checkbox"></td><td>—— <a class="row-title">Munnar</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td class="muted">munnar</td><td class="muted">Hill station</td><td>7</td></tr>
+        <tr><td><input type="checkbox"></td><td>— <a class="row-title">Ladakh</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td class="muted">ladakh</td><td class="muted">High-altitude desert</td><td>9</td></tr>
+        <tr><td><input type="checkbox"></td><td><a class="row-title">International</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td class="muted">international</td><td class="muted">Outbound tours</td><td>16</td></tr>
+        <tr><td><input type="checkbox"></td><td>— <a class="row-title">Bali</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td class="muted">bali</td><td class="muted">Indonesia</td><td>6</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: APPEARANCE
+     ================================================================== -->
+<section class="screen" id="s-appearance">
+  <div class="page-head"><h1>Appearance</h1></div>
+  <div class="tabs"><a class="on">Menus</a><a>Homepage Blocks</a><a>Banners &amp; Sliders</a><a>Footer</a></div>
+  <div class="edit-grid" style="grid-template-columns:300px minmax(0,1fr)">
+    <div class="panel">
+      <div class="panel-head"><h2>Add Menu Items</h2></div>
+      <div class="panel-body">
+        <div class="field"><label>Pages</label><div class="checklist" style="max-height:120px"><label class="inline-lbl"><input type="checkbox"> Home</label><label class="inline-lbl"><input type="checkbox"> About Us</label><label class="inline-lbl"><input type="checkbox"> Contact</label><label class="inline-lbl"><input type="checkbox"> Visa Assistance</label></div></div>
+        <div class="field"><label>Destinations</label><div class="checklist" style="max-height:110px"><label class="inline-lbl"><input type="checkbox"> Kerala</label><label class="inline-lbl"><input type="checkbox"> Ladakh</label><label class="inline-lbl"><input type="checkbox"> Bali</label></div></div>
+        <div class="field"><label>Custom Link</label><input class="inp" placeholder="https://"><input class="inp" placeholder="Link text" style="margin-top:6px"></div>
+        <button class="btn">Add to Menu</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>Primary Menu — structure</h2><select class="sel" style="width:auto"><option>Primary Menu</option><option>Footer Menu</option></select></div>
+      <div class="panel-body">
+        <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dt">Home</span><span class="muted">Page</span><span class="toggle-ico">▸</span></div><div class="day-body"><div class="field"><label>Navigation Label</label><input class="inp" value="Home"></div></div></div>
+        <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dt">Destinations</span><span class="muted">Mega menu</span><span class="toggle-ico">▸</span></div><div class="day-body"><div class="hint">4 child items · mega-menu layout enabled</div></div></div>
+        <div class="day" style="margin-left:24px"><div class="day-head"><span class="grip">⠿</span><span class="dt">Kerala</span><span class="muted">sub item</span><span class="toggle-ico">▸</span></div><div class="day-body"></div></div>
+        <div class="day" style="margin-left:24px"><div class="day-head"><span class="grip">⠿</span><span class="dt">Ladakh</span><span class="muted">sub item</span><span class="toggle-ico">▸</span></div><div class="day-body"></div></div>
+        <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dt">Packages</span><span class="muted">Archive</span><span class="toggle-ico">▸</span></div><div class="day-body"></div></div>
+        <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dt">Blog</span><span class="muted">Archive</span><span class="toggle-ico">▸</span></div><div class="day-body"></div></div>
+        <div class="day"><div class="day-head"><span class="grip">⠿</span><span class="dt">Contact</span><span class="muted">Page</span><span class="toggle-ico">▸</span></div><div class="day-body"></div></div>
+      </div>
+      <div class="panel-foot"><a class="btn btn-danger btn-sm">Delete Menu</a><button class="btn btn-primary">Save Menu</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================================================================
+     SCREEN: USERS
+     ================================================================== -->
+<section class="screen" id="s-users">
+  <div class="page-head"><h1>Users</h1><a class="btn page-title-action">Add New User</a></div>
+  <ul class="subsubsub">
+    <li><a href="#" class="current">All <span class="cnt">(9)</span></a></li>
+    <li><a href="#">Administrator <span class="cnt">(2)</span></a></li>
+    <li><a href="#">Editor <span class="cnt">(2)</span></a></li>
+    <li><a href="#">Sales Agent <span class="cnt">(4)</span></a></li>
+    <li><a href="#">Author <span class="cnt">(1)</span></a></li>
+  </ul>
+  <table class="list">
+    <thead><tr><th class="col-cb"><input type="checkbox"></th><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Posts</th><th>Enquiries</th><th>Last login</th></tr></thead>
+    <tbody>
+      <tr><td><input type="checkbox"></td><td><a class="row-title">aditya</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td>Aditya Khanna</td><td class="muted">progryss@gmail.com</td><td>Administrator</td><td>86</td><td>—</td><td class="muted nowrap">Today, 09:12</td></tr>
+      <tr><td><input type="checkbox"></td><td><a class="row-title">neha.s</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td>Neha Sharma</td><td class="muted">neha@wanderly.com</td><td>Sales Agent</td><td>4</td><td>52</td><td class="muted nowrap">Today, 08:40</td></tr>
+      <tr><td><input type="checkbox"></td><td><a class="row-title">ritu.m</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td>Ritu Mehta</td><td class="muted">ritu@wanderly.com</td><td>Editor</td><td>39</td><td>31</td><td class="muted nowrap">Yesterday</td></tr>
+      <tr><td><input type="checkbox"></td><td><a class="row-title">arjun.k</a><div class="row-actions"><span><a>Edit</a></span><span><a class="del">Delete</a></span></div></td><td>Arjun Kapoor</td><td class="muted">arjun@wanderly.com</td><td>Author</td><td>12</td><td>—</td><td class="muted nowrap">3 days ago</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ==================================================================
+     SCREEN: SETTINGS
+     ================================================================== -->
+<section class="screen" id="s-settings">
+  <div class="page-head"><h1>Settings</h1></div>
+  <div class="tabs" id="settingsTabs">
+    <a class="on" data-tab="t-general">General</a>
+    <a data-tab="t-fonts">Fonts</a>
+    <a data-tab="t-colors">Colours</a>
+    <a data-tab="t-reading">Reading &amp; Permalinks</a>
+    <a data-tab="t-seo">SEO &amp; Schema</a>
+    <a data-tab="t-mail">Email / SMTP</a>
+    <a data-tab="t-integrations">Integrations</a>
+  </div>
+
+  <div class="tabpane on" id="t-general">
+    <div class="panel"><div class="panel-head"><h2>Site Identity</h2></div>
+      <div class="panel-body">
+        <div class="row2">
+          <div class="field"><label>Site Title</label><input class="inp" value="Wanderly Travels"></div>
+          <div class="field"><label>Tagline</label><input class="inp" value="Handcrafted journeys across India &amp; beyond"></div>
+          <div class="field"><label>Site URL</label><input class="inp" value="https://wanderly.com"></div>
+          <div class="field"><label>Admin Email</label><input class="inp" value="progryss@gmail.com"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Logo</label><div class="featured-drop" style="height:90px">Upload logo · SVG or PNG</div></div>
+          <div class="field"><label>Favicon</label><div class="featured-drop" style="height:90px">512×512 PNG</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Locale &amp; Currency</h2></div>
+      <div class="panel-body row3">
+        <div class="field"><label>Timezone</label><select class="sel"><option>Asia/Kolkata (UTC+5:30)</option><option>UTC</option></select></div>
+        <div class="field"><label>Date Format</label><select class="sel"><option>18 Aug 2026</option><option>08/18/2026</option><option>2026-08-18</option></select></div>
+        <div class="field"><label>Default Currency</label><select class="sel"><option>INR (₹)</option><option>USD ($)</option></select></div>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Contact &amp; Social</h2></div>
+      <div class="panel-body row2">
+        <div class="field"><label>Phone</label><input class="inp" value="+91 80 4567 8900"></div>
+        <div class="field"><label>WhatsApp Number</label><input class="inp" value="+91 98765 00000"></div>
+        <div class="field"><label>Office Address</label><textarea class="ta" style="min-height:70px">4th Floor, Prestige Tower, MG Road, Bengaluru 560001</textarea></div>
+        <div class="field"><label>Social Links</label>
+          <input class="inp" placeholder="Instagram URL" style="margin-bottom:6px">
+          <input class="inp" placeholder="Facebook URL" style="margin-bottom:6px">
+          <input class="inp" placeholder="YouTube URL">
+        </div>
+      </div>
+      <div class="panel-foot"><span class="muted">Changes apply site-wide</span><button class="btn btn-primary">Save Changes</button></div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="t-fonts" style="display:none">
+    <div class="edit-grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+      <div class="panel font-slot" data-slot="heading"><div class="panel-head"><h2>Heading Font</h2><span class="muted">H1 – H6</span></div>
+        <div class="panel-body"></div>
+      </div>
+      <div class="panel font-slot" data-slot="body"><div class="panel-head"><h2>Body Font</h2><span class="muted">Paragraphs, lists, forms</span></div>
+        <div class="panel-body"></div>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Preview</h2>
+        <div class="device-toggle" id="fpDevice"><a class="on" data-device="desktop">Desktop</a><a data-device="tablet">Tablet</a><a data-device="mobile">Mobile</a></div></div>
+      <div class="panel-body">
+        <div class="row2">
+          <div class="field"><label>Heading preview text</label><input class="inp" id="fpHeadingText" value="Andaman Islands Escape — 6 Nights"><div class="hint">Shown for H1 – H6 below</div></div>
+          <div class="field"><label>Body preview text</label><textarea class="ta" id="fpBodyText" style="min-height:62px">Crystal-clear water, white-sand beaches and coral reefs. Our itinerary covers Port Blair, Havelock and Neil Island with private ferry transfers.</textarea></div>
+        </div>
+        <div class="font-preview" style="margin:0 auto">
+          <div class="fp-row"><span class="fp-tag">H1</span><h1 class="fp-h" data-fp="h1"></h1></div>
+          <div class="fp-row"><span class="fp-tag">H2</span><h2 class="fp-h" data-fp="h2"></h2></div>
+          <div class="fp-row"><span class="fp-tag">H3</span><h3 class="fp-h" data-fp="h3"></h3></div>
+          <div class="fp-row"><span class="fp-tag">H4</span><h4 class="fp-h" data-fp="h4"></h4></div>
+          <div class="fp-row"><span class="fp-tag">H5</span><h5 class="fp-h" data-fp="h5"></h5></div>
+          <div class="fp-row"><span class="fp-tag">H6</span><h6 class="fp-h" data-fp="h6"></h6></div>
+          <div class="fp-row"><span class="fp-tag">Body</span><p class="fp-b" data-fp="p"></p></div>
+        </div>
+        <div class="hint">Preview text is only for trying out fonts here — it isn't published.</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-foot" style="border-top:none"><span class="muted" id="fontStatus">Changes apply site-wide</span><button class="btn btn-primary" id="fontSave">Save Changes</button></div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="t-colors" style="display:none">
+    <div class="edit-grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+      <div>
+        <div class="panel"><div class="panel-head"><h2>Store Colour</h2></div>
+          <div class="panel-body color-rows">
+            <div class="field" style="border-bottom:none"><label>Primary store colour</label><div data-swatch="primary"></div></div>
+            <div class="hint">Main brand colour — header accents, active states, badges</div>
+          </div>
+        </div>
+        <div class="panel"><div class="panel-head"><h2>Buttons</h2></div>
+          <div class="panel-body color-rows">
+            <div class="color-group-title">Primary button</div>
+            <div class="field"><label>Background</label><div data-swatch="btnPrimaryBg"></div></div>
+            <div class="field"><label>Text</label><div data-swatch="btnPrimaryText"></div></div>
+            <div class="field"><label>Hover background</label><div data-swatch="btnPrimaryHoverBg"></div></div>
+            <div class="field"><label>Hover text</label><div data-swatch="btnPrimaryHoverText"></div></div>
+            <div class="color-group-title">Secondary button</div>
+            <div class="field"><label>Background</label><div data-swatch="btnSecondaryBg"></div></div>
+            <div class="field"><label>Text</label><div data-swatch="btnSecondaryText"></div></div>
+            <div class="field"><label>Hover background</label><div data-swatch="btnSecondaryHoverBg"></div></div>
+            <div class="field"><label>Hover text</label><div data-swatch="btnSecondaryHoverText"></div></div>
+          </div>
+        </div>
+        <div class="panel"><div class="panel-head"><h2>Text</h2></div>
+          <div class="panel-body color-rows">
+            <div class="field"><label>Heading colour</label><div data-swatch="heading"></div></div>
+            <label class="inline-lbl" style="margin:10px 0 4px"><input type="checkbox" id="perHeading"> Use a different colour for each heading (H1 – H6)</label>
+            <div class="color-sub" id="perHeadingRows" style="display:none">
+              <div class="field"><label>H1</label><div data-swatch="h1"></div></div>
+              <div class="field"><label>H2</label><div data-swatch="h2"></div></div>
+              <div class="field"><label>H3</label><div data-swatch="h3"></div></div>
+              <div class="field"><label>H4</label><div data-swatch="h4"></div></div>
+              <div class="field"><label>H5</label><div data-swatch="h5"></div></div>
+              <div class="field"><label>H6</label><div data-swatch="h6"></div></div>
+            </div>
+            <div class="field" style="border-top:1px solid #f0f0f1;margin-top:8px"><label>Body font colour</label><div data-swatch="body"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="position:sticky;top:44px"><div class="panel-head"><h2>Preview</h2></div>
+        <div class="panel-body">
+          <div class="color-preview" id="colorPreview">
+            <div class="cp-bar" data-cp="primary"></div>
+            <div class="cp-body">
+              <h1 data-cp="h1">Andaman Islands Escape</h1>
+              <h2 data-cp="h2">Havelock &amp; Neil Island</h2>
+              <h3 data-cp="h3">Day 2 — Radhanagar Beach</h3>
+              <h4 data-cp="h4">What's included</h4>
+              <h5 data-cp="h5">Hotel &amp; transfers</h5>
+              <h6 data-cp="h6">Terms apply</h6>
+              <p data-cp="body">Crystal-clear water, white-sand beaches and coral reefs. Private ferry transfers between Port Blair, Havelock and Neil Island.</p>
+              <span class="cp-btn" data-cp="btnPrimary">Enquire Now</span><span class="cp-btn" data-cp="btnSecondary">View Itinerary</span>
+              <div class="hint" style="margin-top:8px">Hover over the buttons to see the hover colours</div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-foot"><a class="btn btn-sm btn-plain" id="colorReset">Reset to Defaults</a><span class="muted" id="colorStatus" style="margin-left:auto"></span><button class="btn btn-primary" id="colorSave">Save Changes</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="t-reading" style="display:none">
+    <div class="panel"><div class="panel-head"><h2>Homepage &amp; Archives</h2></div>
+      <div class="panel-body">
+        <div class="row2">
+          <div class="field"><label>Front page displays</label><select class="sel"><option>A static page</option><option>Latest posts</option></select></div>
+          <div class="field"><label>Homepage</label><select class="sel"><option>Home</option><option>Landing 2026</option></select></div>
+          <div class="field"><label>Posts page</label><select class="sel"><option>Blog</option></select></div>
+          <div class="field"><label>Items per page</label><input class="inp" value="12"></div>
+        </div>
+        <label class="inline-lbl"><input type="checkbox"> Discourage search engines from indexing this site</label>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Permalink Structure</h2></div>
+      <div class="panel-body">
+        <div class="field"><label>Post URL</label><input class="inp" value="/blog/%postname%"></div>
+        <div class="field"><label>Package URL</label><input class="inp" value="/packages/%slug%"></div>
+        <div class="field"><label>Destination archive</label><input class="inp" value="/destinations/%slug%"></div>
+        <div class="hint">Next.js maps these to <code>app/blog/[slug]</code>, <code>app/packages/[slug]</code>, <code>app/destinations/[slug]</code>.</div>
+      </div>
+      <div class="panel-foot"><span class="muted">Flush cache after changing</span><button class="btn btn-primary">Save Changes</button></div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="t-seo" style="display:none">
+    <div class="panel"><div class="panel-head"><h2>Global SEO Defaults</h2></div>
+      <div class="panel-body">
+        <div class="field"><label>Title Template</label><input class="inp" value="%title% | Wanderly Travels"></div>
+        <div class="field"><label>Default Meta Description</label><textarea class="ta" style="min-height:70px">Customised holiday packages, honeymoon trips and group tours across India and 40+ international destinations.</textarea></div>
+        <div class="field"><label>Default OG Image</label><div class="featured-drop" style="height:90px">1200×630</div></div>
+        <div class="row2">
+          <div class="field"><label>robots.txt</label><textarea class="ta" style="min-height:80px">User-agent: *
+Allow: /
+Sitemap: https://wanderly.com/sitemap.xml</textarea></div>
+          <div class="field"><label>Organization Schema</label>
+            <label class="inline-lbl"><input type="checkbox" checked> Emit Organization</label>
+            <label class="inline-lbl"><input type="checkbox" checked> Emit LocalBusiness</label>
+            <label class="inline-lbl"><input type="checkbox" checked> Emit Breadcrumbs</label>
+            <label class="inline-lbl"><input type="checkbox" checked> Auto-generate sitemap.xml</label>
+          </div>
+        </div>
+      </div>
+      <div class="panel-foot"><span class="muted">Last sitemap build: 2 hours ago</span><button class="btn btn-primary">Save Changes</button></div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="t-mail" style="display:none">
+    <div class="panel"><div class="panel-head"><h2>SMTP</h2></div>
+      <div class="panel-body row2">
+        <div class="field"><label>Host</label><input class="inp" value="smtp.sendgrid.net"></div>
+        <div class="field"><label>Port</label><input class="inp" value="587"></div>
+        <div class="field"><label>Username</label><input class="inp" value="apikey"></div>
+        <div class="field"><label>Password</label><input class="inp" type="password" value="••••••••••••"></div>
+        <div class="field"><label>From Name</label><input class="inp" value="Wanderly Travels"></div>
+        <div class="field"><label>From Email</label><input class="inp" value="hello@wanderly.com"></div>
+      </div>
+      <div class="panel-foot"><a class="btn btn-sm">Send Test Email</a><button class="btn btn-primary">Save Changes</button></div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Enquiry Notifications</h2></div>
+      <div class="panel-body">
+        <div class="field"><label>Notify these addresses on new enquiry</label><input class="inp" value="sales@wanderly.com, neha@wanderly.com"></div>
+        <label class="inline-lbl"><input type="checkbox" checked> Send auto-reply to customer</label>
+        <label class="inline-lbl"><input type="checkbox" checked> Attach package PDF to auto-reply</label>
+        <label class="inline-lbl"><input type="checkbox"> Send daily enquiry digest at 9:00 AM</label>
+        <div class="field" style="margin-top:12px"><label>Auto-reply Template</label><textarea class="ta">Hi {{name}}, thanks for your interest in {{package}}. One of our travel consultants will call you within 2 hours.</textarea>
+          <div class="hint">Variables: {{name}} {{package}} {{travel_date}} {{pax}} {{enquiry_id}}</div>
+        </div>
+      </div>
+      <div class="panel-foot"><span class="muted">Applies to all forms</span><button class="btn btn-primary">Save Changes</button></div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="t-integrations" style="display:none">
+    <div class="panel"><div class="panel-head"><h2>Analytics &amp; Tracking</h2></div>
+      <div class="panel-body row2">
+        <div class="field"><label>GA4 Measurement ID</label><input class="inp" value="G-XXXXXXXXXX"></div>
+        <div class="field"><label>Google Tag Manager ID</label><input class="inp" placeholder="GTM-XXXXXXX"></div>
+        <div class="field"><label>Meta Pixel ID</label><input class="inp" placeholder="1234567890"></div>
+        <div class="field"><label>Google Search Console</label><input class="inp" placeholder="Verification token"></div>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-head"><h2>Third-party Services</h2></div>
+      <div class="panel-body row2">
+        <div class="field"><label>Razorpay Key ID</label><input class="inp" placeholder="rzp_live_..."></div>
+        <div class="field"><label>Razorpay Secret</label><input class="inp" type="password" placeholder="••••••••"></div>
+        <div class="field"><label>Cloudinary Cloud Name</label><input class="inp" value="wanderly-media"></div>
+        <div class="field"><label>WhatsApp Business API Token</label><input class="inp" type="password" placeholder="••••••••"></div>
+        <div class="field"><label>Google Maps API Key</label><input class="inp" type="password" placeholder="••••••••"></div>
+        <div class="field"><label>reCAPTCHA v3 Site Key</label><input class="inp" placeholder="6Lc..."></div>
+      </div>
+      <div class="panel-foot"><span class="muted">Secrets are stored server-side only</span><button class="btn btn-primary">Save Changes</button></div>
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  <span>Thank you for creating with <b>Wanderly CMS</b>.</span>
+  <span>Version 1.0.0 · MERN + Next.js</span>
+</div>
+</main>
+
+<script>
+/* ---------- routing ---------- */
+var screens = document.querySelectorAll('.screen');
+function go(name){
+  screens.forEach(function(s){ s.classList.toggle('on', s.id === 's' + '-' + name); });
+  document.querySelectorAll('#menu > li').forEach(function(li){
+    li.classList.toggle('current', li.dataset.screen === name);
+  });
+  window.scrollTo(0,0);
+  if(location.hash !== '#'+name) history.replaceState(null,'','#'+name);
+}
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-go]');
+  if(t){ e.preventDefault(); go(t.dataset.go); }
+});
+
+/* ---------- sidebar ---------- */
+document.querySelectorAll('#menu > li').forEach(function(li){
+  var link = li.querySelector(':scope > .menu-link');
+  if(!link) return;
+  link.addEventListener('click', function(e){
+    if(li.id === 'collapseBtn'){ document.body.classList.toggle('collapsed'); return; }
+    if(li.classList.contains('has-sub')){
+      var wasOpen = li.classList.contains('open');
+      document.querySelectorAll('#menu > li.open').forEach(function(o){ o.classList.remove('open'); });
+      if(!wasOpen) li.classList.add('open');
+    }
+    if(li.dataset.screen) go(li.dataset.screen);
+  });
+});
+document.querySelectorAll('.submenu a').forEach(function(a){
+  a.addEventListener('click', function(){
+    var ul = a.closest('.submenu');
+    ul.querySelectorAll('a').forEach(function(x){ x.classList.remove('active'); });
+    a.classList.add('active');
+  });
+});
+
+/* ---------- accordions (itinerary / faq / menu items) ---------- */
+document.addEventListener('click', function(e){
+  var head = e.target.closest('.day-head');
+  if(head && !e.target.closest('.btn')){
+    var d = head.parentElement;
+    d.classList.toggle('closed');
+    var ic = head.querySelector('.toggle-ico');
+    if(ic) ic.textContent = d.classList.contains('closed') ? '▸' : '▾';
+  }
+  var ph = e.target.closest('.panel-head .toggle-ico');
+  if(ph){
+    var panel = ph.closest('.panel');
+    var body = panel.querySelector('.panel-body') || panel.querySelector('table') || panel.querySelector('.bars') || panel.querySelector('.feedlist');
+    if(body){
+      var hidden = body.style.display === 'none';
+      body.style.display = hidden ? '' : 'none';
+      ph.textContent = hidden ? '▾' : '▸';
+    }
+  }
+});
+
+/* ---------- settings tabs ---------- */
+function showSettingsTab(id){
+  document.querySelectorAll('#settingsTabs a').forEach(function(x){ x.classList.toggle('on', x.dataset.tab === id); });
+  document.querySelectorAll('.tabpane').forEach(function(p){ p.style.display = p.id === id ? 'block' : 'none'; });
+}
+document.querySelectorAll('#settingsTabs a, .submenu a[data-tab]').forEach(function(a){
+  a.addEventListener('click', function(){ showSettingsTab(a.dataset.tab); });
+});
+
+/* ---------- editor tabs ---------- */
+document.querySelectorAll('.editor-tabs').forEach(function(box){
+  box.querySelectorAll('span').forEach(function(s){
+    s.addEventListener('click', function(){
+      box.querySelectorAll('span').forEach(function(x){ x.classList.remove('on'); });
+      s.classList.add('on');
+    });
+  });
+});
+
+/* ---------- select-all checkboxes ---------- */
+document.querySelectorAll('table.list thead input[type=checkbox]').forEach(function(cb){
+  cb.addEventListener('change', function(){
+    cb.closest('table').querySelectorAll('tbody input[type=checkbox]').forEach(function(x){ x.checked = cb.checked; });
+  });
+});
+
+/* ---------- form builder: fields ---------- */
+var fieldBody = document.querySelector('#fieldTable tbody');
+
+function countFields(){
+  var n = document.getElementById('fieldCount');
+  if(n && fieldBody) n.textContent = fieldBody.querySelectorAll('tr').length;
+}
+
+document.addEventListener('click', function(e){
+  var add = e.target.closest('#addFieldBtn');
+  if(add){
+    e.preventDefault();
+    var label = document.getElementById('newFieldLabel');
+    var type  = document.getElementById('newFieldType');
+    if(!fieldBody || !label.value.trim()){ label.focus(); return; }
+    var tr = document.createElement('tr');
+    tr.className = 'fieldrow';
+    tr.innerHTML = '<td><b>' + label.value.trim() + '</b><div class="ftype">' + type.value + '</div></td>' +
+                   '<td><input type="checkbox" checked></td>' +
+                   '<td><input type="checkbox"></td>' +
+                   '<td><a class="del" data-del-field href="#">Remove</a></td>';
+    fieldBody.appendChild(tr);
+    label.value = '';
+    label.focus();
+    countFields();
+    return;
+  }
+
+  var del = e.target.closest('[data-del-field]');
+  if(del){
+    e.preventDefault();
+    var row = del.closest('tr');
+    if(row){ row.remove(); countFields(); }
+    return;
+  }
+
+  var copy = e.target.closest('#copyShortcode');
+  if(copy){
+    var code = document.getElementById('formShortcode');
+    if(code && navigator.clipboard){ navigator.clipboard.writeText(code.textContent); }
+    copy.textContent = 'Copied';
+    setTimeout(function(){ copy.textContent = 'Copy'; }, 1400);
+  }
+});
+
+/* Enter in the label box adds the field */
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Enter' && e.target.id === 'newFieldLabel'){
+    e.preventDefault();
+    document.getElementById('addFieldBtn').click();
+  }
+});
+
+/* ---------- settings: fonts ---------- */
+(function(){
+  var STORE_KEY = 'wanderly.fonts';
+  var GOOGLE_FONTS = ['Inter','Poppins','Montserrat','DM Sans','Open Sans','Roboto','Lato','Nunito','Raleway','Work Sans','Manrope','Playfair Display','Lora','Merriweather','Cormorant Garamond','Libre Baskerville','DM Serif Display'];
+  var WEIGHTS = [['300','Light'],['400','Regular'],['500','Medium'],['600','Semi Bold'],['700','Bold'],['800','Extra Bold']];
+  var ALL_WEIGHTS = [['100','Thin'],['200','Extra Light'],['300','Light'],['400','Regular'],['500','Medium'],['600','Semi Bold'],['700','Bold'],['800','Extra Bold'],['900','Black']];
+  var state = {
+    heading:{source:'google', google:'Playfair Display', custom:{family:'', files:[]}, tag:'h1', tags:{
+      h1:{size:48, sizeTablet:40, sizeMobile:32, weight:'700', lh:1.2, ls:0},
+      h2:{size:36, sizeTablet:30, sizeMobile:26, weight:'700', lh:1.25, ls:0},
+      h3:{size:28, sizeTablet:24, sizeMobile:22, weight:'600', lh:1.3, ls:0},
+      h4:{size:22, sizeTablet:20, sizeMobile:19, weight:'600', lh:1.35, ls:0},
+      h5:{size:18, sizeTablet:17, sizeMobile:16, weight:'600', lh:1.4, ls:0},
+      h6:{size:16, sizeTablet:15, sizeMobile:15, weight:'600', lh:1.4, ls:0.5}
+    }},
+    body:{source:'google', google:'DM Sans', custom:{family:'', files:[]}, tag:'p', tags:{
+      p:{size:16, sizeTablet:16, sizeMobile:15, weight:'400', lh:1.7, ls:0}
+    }}
+  };
+  try {
+    var saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if(saved) ['heading','body'].forEach(function(k){
+      if(!saved[k]) return;
+      state[k].source = saved[k].source; state[k].google = saved[k].google; state[k].custom.family = saved[k].family || '';
+      Object.keys(saved[k].tags || {}).forEach(function(t){
+        var d = state[k].tags[t];
+        if(d) Object.keys(saved[k].tags[t]).forEach(function(f){ if(f in d) d[f] = saved[k].tags[t][f]; });
+      });
+    });
+  } catch(e){}
+
+  var list = document.createElement('datalist');
+  list.id = 'googleFontList';
+  list.innerHTML = GOOGLE_FONTS.map(function(f){ return '<option value="'+f+'">'; }).join('');
+  document.body.appendChild(list);
+
+  function slotHtml(k){
+    return '<div class="font-src">' +
+        '<label><input type="radio" name="src-'+k+'" value="google"> Google Font</label>' +
+        '<label><input type="radio" name="src-'+k+'" value="custom"> Custom font (WOFF / WOFF2)</label>' +
+      '</div>' +
+      '<div data-pane="google"><div class="field"><label>Font name</label>' +
+        '<input class="inp" list="googleFontList" data-google placeholder="e.g. Poppins">' +
+        '<div class="hint">Type any family from <a href="https://fonts.google.com" target="_blank" rel="noopener">fonts.google.com</a></div></div></div>' +
+      '<div data-pane="custom"><div class="field"><label>Font family name</label><input class="inp" data-family placeholder="e.g. Gilroy"></div>' +
+        '<div class="field" style="margin:0"><label>Font files</label>' +
+        '<label class="featured-drop" style="height:70px">Upload .woff2 / .woff<br>one file per weight<input type="file" accept=".woff,.woff2" multiple hidden data-upload></label>' +
+        '<ul class="font-files" data-files></ul></div></div>' +
+      '<div class="type-head"><b>Size &amp; Spacing</b>' +
+        (k === 'heading' ? '<select class="sel" data-tag>'+Object.keys(state.heading.tags).map(function(t){ return '<option value="'+t+'">'+t.toUpperCase()+'</option>'; }).join('')+'</select>' : '') +
+      '</div>' +
+      '<div class="size-group"><b>Font size (px)</b><div class="type-controls">' +
+        '<div class="field"><label>Desktop</label><input class="inp" type="number" min="8" max="120" data-ts="size" data-device="desktop"></div>' +
+        '<div class="field"><label>Tablet ≤ 1024px</label><input class="inp" type="number" min="8" max="120" data-ts="sizeTablet" data-device="tablet"></div>' +
+        '<div class="field"><label>Mobile ≤ 767px</label><input class="inp" type="number" min="8" max="120" data-ts="sizeMobile" data-device="mobile"></div>' +
+      '</div></div>' +
+      '<div class="type-controls">' +
+        '<div class="field"><label>Font weight</label><select class="sel" data-ts="weight">'+ALL_WEIGHTS.map(function(w){ return '<option value="'+w[0]+'">'+w[0]+' '+w[1]+'</option>'; }).join('')+'</select></div>' +
+        '<div class="field"><label>Line spacing</label><input class="inp" type="number" min="0.8" max="3" step="0.05" data-ts="lh"></div>' +
+        '<div class="field"><label>Character spacing (px)</label><input class="inp" type="number" min="-5" max="20" step="0.1" data-ts="ls"></div>' +
+      '</div>';
+  }
+
+  var DEVICES = {desktop:{key:'size', width:''}, tablet:{key:'sizeTablet', width:'768px'}, mobile:{key:'sizeMobile', width:'375px'}};
+  var device = 'desktop';
+  function setDevice(name){
+    device = name;
+    document.querySelectorAll('#fpDevice a').forEach(function(a){ a.classList.toggle('on', a.dataset.device === name); });
+    document.querySelector('.font-preview').style.maxWidth = DEVICES[name].width;
+    applyStyles('heading'); applyStyles('body');
+  }
+  document.getElementById('fpDevice').addEventListener('click', function(e){
+    var a = e.target.closest('[data-device]');
+    if(a) setDevice(a.dataset.device);
+  });
+
+  function applyStyles(k){
+    Object.keys(state[k].tags).forEach(function(t){
+      var d = state[k].tags[t], el = document.querySelector('.font-preview [data-fp="'+t+'"]');
+      el.style.fontSize = d[DEVICES[device].key] + 'px';
+      el.style.fontWeight = d.weight;
+      el.style.lineHeight = d.lh;
+      el.style.letterSpacing = d.ls + 'px';
+    });
+  }
+
+  function renderFiles(slot, k){
+    slot.querySelector('[data-files]').innerHTML = state[k].custom.files.map(function(f, i){
+      return '<li><span class="fname">'+f.name.replace(/</g,'&lt;')+'</span>' +
+        '<select class="sel" data-weight="'+i+'">'+WEIGHTS.map(function(w){ return '<option value="'+w[0]+'"'+(w[0]===f.weight?' selected':'')+'>'+w[0]+' '+w[1]+'</option>'; }).join('')+'</select>' +
+        '<select class="sel" data-style="'+i+'"><option value="normal">Normal</option><option value="italic"'+(f.style==='italic'?' selected':'')+'>Italic</option></select>' +
+        '<a class="del" href="#" data-remove="'+i+'" style="color:var(--danger)">Remove</a></li>';
+    }).join('');
+  }
+
+  function guessWeight(name){
+    var n = name.toLowerCase();
+    if(/extrabold|extra-bold|heavy|black/.test(n)) return '800';
+    if(/semibold|semi-bold|demibold/.test(n)) return '600';
+    if(/bold/.test(n)) return '700';
+    if(/medium/.test(n)) return '500';
+    if(/light|thin/.test(n)) return '300';
+    return '400';
+  }
+
+  var loadedGoogle = {};
+  function apply(k){
+    var cfg = state[k], family;
+    if(cfg.source === 'google'){
+      family = cfg.google.trim();
+      if(family && !loadedGoogle[family]){
+        loadedGoogle[family] = true;
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css?family='+encodeURIComponent(family)+':300,400,500,600,700,800&display=swap';
+        document.head.appendChild(link);
+      }
+    } else {
+      family = cfg.custom.family.trim() || ('Custom ' + k);
+      cfg.custom.files.forEach(function(f){
+        var face = new FontFace(family, 'url('+f.url+')', {weight:f.weight, style:f.style});
+        face.load().then(function(ff){ document.fonts.add(ff); }).catch(function(){});
+      });
+    }
+    document.querySelectorAll(k === 'heading' ? '.font-preview .fp-h' : '.font-preview .fp-b').forEach(function(el){
+      el.style.fontFamily = family ? '"'+family+'", sans-serif' : '';
+    });
+  }
+
+  document.querySelectorAll('.font-slot').forEach(function(slot){
+    var k = slot.dataset.slot, body = slot.querySelector('.panel-body');
+    body.innerHTML = slotHtml(k);
+
+    function sync(){
+      body.querySelectorAll('input[type=radio]').forEach(function(r){ r.checked = r.value === state[k].source; });
+      body.querySelectorAll('[data-pane]').forEach(function(p){ p.style.display = p.dataset.pane === state[k].source ? '' : 'none'; });
+      body.querySelector('[data-google]').value = state[k].google;
+      body.querySelector('[data-family]').value = state[k].custom.family;
+      renderFiles(slot, k);
+      syncStyles();
+      apply(k);
+    }
+    function syncStyles(){
+      var d = state[k].tags[state[k].tag];
+      if(k === 'heading') body.querySelector('[data-tag]').value = state[k].tag;
+      body.querySelectorAll('[data-ts]').forEach(function(el){ el.value = d[el.dataset.ts]; });
+      applyStyles(k);
+    }
+    function dirty(){ document.getElementById('fontStatus').textContent = 'Unsaved changes'; }
+
+    body.addEventListener('change', function(e){
+      var t = e.target;
+      if(t.type === 'radio'){ state[k].source = t.value; sync(); dirty(); }
+      else if(t.dataset.tag !== undefined){ state[k].tag = t.value; syncStyles(); }
+      else if(t.dataset.ts === 'weight'){ state[k].tags[state[k].tag].weight = t.value; applyStyles(k); dirty(); }
+      else if(t.dataset.upload !== undefined){
+        Array.prototype.forEach.call(t.files, function(file){
+          if(!/\.woff2?$/i.test(file.name)) return;
+          state[k].custom.files.push({name:file.name, url:URL.createObjectURL(file), weight:guessWeight(file.name), style:/italic/i.test(file.name)?'italic':'normal'});
+        });
+        t.value = '';
+        sync(); dirty();
+      }
+      else if(t.dataset.weight){ state[k].custom.files[t.dataset.weight].weight = t.value; apply(k); dirty(); }
+      else if(t.dataset.style){ state[k].custom.files[t.dataset.style].style = t.value; apply(k); dirty(); }
+    });
+    body.addEventListener('input', function(e){
+      var t = e.target;
+      if(t.dataset.google !== undefined){ state[k].google = t.value; dirty(); if(GOOGLE_FONTS.indexOf(t.value) > -1) apply(k); }
+      else if(t.dataset.family !== undefined){ state[k].custom.family = t.value; dirty(); }
+      else if(t.dataset.ts && t.type === 'number' && t.value !== ''){ state[k].tags[state[k].tag][t.dataset.ts] = Number(t.value); applyStyles(k); dirty(); }
+    });
+    body.addEventListener('focusin', function(e){ if(e.target.dataset.device && e.target.dataset.device !== device) setDevice(e.target.dataset.device); });
+    body.addEventListener('focusout', function(e){ if(e.target.matches('[data-google],[data-family]')) apply(k); });
+    body.addEventListener('click', function(e){
+      var rm = e.target.closest('[data-remove]');
+      if(rm){ e.preventDefault(); state[k].custom.files.splice(rm.dataset.remove, 1); sync(); dirty(); }
+    });
+    sync();
+  });
+
+  /* preview text — per-browser only, never published */
+  var TEXT_KEY = 'wanderly.fonts.previewText';
+  var headingText = document.getElementById('fpHeadingText'), bodyText = document.getElementById('fpBodyText');
+  try {
+    var savedText = JSON.parse(localStorage.getItem(TEXT_KEY));
+    if(savedText){ headingText.value = savedText.heading; bodyText.value = savedText.body; }
+  } catch(e){}
+  function showPreviewText(){
+    document.querySelectorAll('.font-preview .fp-h').forEach(function(el){ el.textContent = headingText.value || 'Heading'; });
+    document.querySelector('.font-preview .fp-b').textContent = bodyText.value || 'Body text';
+    try { localStorage.setItem(TEXT_KEY, JSON.stringify({heading:headingText.value, body:bodyText.value})); } catch(e){}
+  }
+  headingText.addEventListener('input', showPreviewText);
+  bodyText.addEventListener('input', showPreviewText);
+  showPreviewText();
+
+  document.getElementById('fontSave').addEventListener('click', function(){
+    var status = document.getElementById('fontStatus');
+    var out = {};
+    ['heading','body'].forEach(function(k){ out[k] = {source:state[k].source, google:state[k].google, family:state[k].custom.family, files:state[k].custom.files.map(function(f){ return {name:f.name, weight:f.weight, style:f.style}; }), tags:state[k].tags}; });
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(out)); status.textContent = 'Saved'; }
+    catch(e){ status.textContent = 'Could not save in this browser'; }
+  });
+})();
+
+/* ---------- settings: colours ---------- */
+(function(){
+  var STORE_KEY = 'wanderly.colors';
+  var HEADINGS = ['h1','h2','h3','h4','h5','h6'];
+  var DEFAULTS = {
+    primary:'#0e7490',
+    btnPrimaryBg:'#f59e0b', btnPrimaryText:'#0b2a3c', btnPrimaryHoverBg:'#d97706', btnPrimaryHoverText:'#ffffff',
+    btnSecondaryBg:'#0e7490', btnSecondaryText:'#ffffff', btnSecondaryHoverBg:'#155e75', btnSecondaryHoverText:'#ffffff',
+    heading:'#0b2a3c', perHeading:false,
+    h1:'#0b2a3c', h2:'#0e7490', h3:'#0b2a3c', h4:'#0b2a3c', h5:'#0b2a3c', h6:'#0b2a3c',
+    body:'#3c4a52'
+  };
+  var state = JSON.parse(JSON.stringify(DEFAULTS));
+  try {
+    var saved = JSON.parse(localStorage.getItem(STORE_KEY));
+    if(saved) Object.keys(saved).forEach(function(k){ if(k in state) state[k] = saved[k]; });
+  } catch(e){}
+
+  var root = document.getElementById('t-colors');
+  var perHeading = document.getElementById('perHeading');
+  var btnStyle = document.createElement('style');
+  document.head.appendChild(btnStyle);
+  root.querySelectorAll('[data-swatch]').forEach(function(el){
+    var k = el.dataset.swatch;
+    el.className = 'swatch';
+    el.innerHTML = '<input type="color" data-color="'+k+'"><input class="inp" data-hex="'+k+'" maxlength="7">';
+  });
+
+  function fill(){
+    root.querySelectorAll('[data-color]').forEach(function(el){ el.value = state[el.dataset.color]; });
+    root.querySelectorAll('[data-hex]').forEach(function(el){ el.value = state[el.dataset.hex]; el.classList.remove('bad'); });
+    perHeading.checked = state.perHeading;
+    render();
+  }
+
+  function render(){
+    document.getElementById('perHeadingRows').style.display = state.perHeading ? '' : 'none';
+    var cp = function(k){ return document.querySelector('#colorPreview [data-cp="'+k+'"]'); };
+    cp('primary').style.background = state.primary;
+    HEADINGS.forEach(function(h){ cp(h).style.color = state.perHeading ? state[h] : state.heading; });
+    cp('body').style.color = state.body;
+    btnStyle.textContent = ['Primary','Secondary'].map(function(n){
+      var sel = '#colorPreview [data-cp="btn'+n+'"]';
+      return sel+'{background:'+state['btn'+n+'Bg']+';color:'+state['btn'+n+'Text']+';border-color:'+state['btn'+n+'Bg']+'}' +
+             sel+':hover{background:'+state['btn'+n+'HoverBg']+';color:'+state['btn'+n+'HoverText']+';border-color:'+state['btn'+n+'HoverBg']+'}';
+    }).join('\n');
+  }
+
+  function dirty(){ document.getElementById('colorStatus').textContent = 'Unsaved changes'; }
+
+  root.addEventListener('input', function(e){
+    var t = e.target;
+    if(t.dataset.color){
+      state[t.dataset.color] = t.value;
+      root.querySelector('[data-hex="'+t.dataset.color+'"]').value = t.value;
+    } else if(t.dataset.hex){
+      var v = t.value.trim();
+      if(v && v[0] !== '#') v = '#' + v;
+      var ok = /^#[0-9a-f]{6}$/i.test(v);
+      t.classList.toggle('bad', !ok);
+      if(!ok) return;
+      state[t.dataset.hex] = v.toLowerCase();
+      root.querySelector('[data-color="'+t.dataset.hex+'"]').value = v;
+    } else return;
+    render(); dirty();
+  });
+  perHeading.addEventListener('change', function(){
+    state.perHeading = perHeading.checked;
+    /* first time on: start each heading from the shared heading colour */
+    if(state.perHeading && HEADINGS.every(function(h){ return state[h] === DEFAULTS[h]; })){
+      HEADINGS.forEach(function(h){ state[h] = state.heading; });
+      fill();
+    }
+    render(); dirty();
+  });
+  document.getElementById('colorReset').addEventListener('click', function(){
+    state = JSON.parse(JSON.stringify(DEFAULTS));
+    fill(); dirty();
+  });
+  document.getElementById('colorSave').addEventListener('click', function(){
+    var status = document.getElementById('colorStatus');
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); status.textContent = 'Saved'; }
+    catch(e){ status.textContent = 'Could not save in this browser'; }
+  });
+
+  fill();
+})();
+
+/* ---------- boot ---------- */
+go((location.hash || '#dashboard').slice(1));
+window.addEventListener('hashchange', function(){ go(location.hash.slice(1)); });
+</script>
+</body>
+</html>
