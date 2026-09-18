@@ -567,3 +567,13 @@ table.scale tr.group td {
   color: #1d2327;
   overflow-wrap: anywhere;
 }
+
+/* Layout ▸ Spacing — desktop/mobile jodi ke neeche ek hint dono khaano ki (field ka 14px margin kaat kar) */
+.group-hint {
+  margin-top: -8px;
+  margin-bottom: 14px;
+}
+
+.group-hint:last-child {
+  margin-bottom: 0;
+}

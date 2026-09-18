@@ -7,6 +7,7 @@ import {
 } from '@cms/shared'
 import { useEffect, useRef, useState } from 'react'
 
+import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import SettingsTabs from './SettingsTabs.jsx'
@@ -199,10 +200,7 @@ export default function Layout() {
 
       <div className="edit-grid theme-grid">
         <div onFocus={onFocus}>
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Page Width</h2>
-            </div>
+          <Panel title="Page Width">
             <div className="panel-body">
               <div className="field">
                 <label htmlFor="lay-wrap-range">Site max width (px)</label>
@@ -254,12 +252,77 @@ export default function Layout() {
                 />
               </div>
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Corners &amp; Shadows</h2>
+          {/*
+           * Spacing (client, 18 Sep). Single content card ke andar ka gap Block spacing ke saath chalta
+           * hai — uska apna khaana jaan-boojh kar nahi (theme-layout.js `BLOCK_IN_RATIO`).
+           */}
+          <Panel title="Spacing">
+            <div className="panel-body">
+              <div className="row2">
+                <NumberField
+                  label="Section spacing — desktop (px)"
+                  name="spaceSection"
+                  value={l.spaceSection}
+                  onChange={set}
+                  disabled={disabled}
+                />
+                <NumberField
+                  label="Section spacing — mobile (px)"
+                  name="spaceSectionMobile"
+                  value={l.spaceSectionMobile}
+                  onChange={set}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="hint group-hint">
+                Space above and below each full-width section on the Home page.
+              </div>
+              <div className="row2">
+                <NumberField
+                  label="Block spacing — desktop (px)"
+                  name="spaceBlock"
+                  value={l.spaceBlock}
+                  onChange={set}
+                  disabled={disabled}
+                />
+                <NumberField
+                  label="Block spacing — mobile (px)"
+                  name="spaceBlockMobile"
+                  value={l.spaceBlockMobile}
+                  onChange={set}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="hint group-hint">
+                Space between blocks on Package, Tour and other pages — between separate cards, and
+                inside a single content card.
+              </div>
+              <div className="row2">
+                <NumberField
+                  label="Cards gap — rows (px)"
+                  name="cardGapRow"
+                  value={l.cardGapRow}
+                  onChange={set}
+                  disabled={disabled}
+                />
+                <NumberField
+                  label="Cards gap — columns (px)"
+                  name="cardGapCol"
+                  value={l.cardGapCol}
+                  onChange={set}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="hint group-hint">
+                Space between cards in every card grid — rows is the space above and below, columns
+                is the space side by side.
+              </div>
             </div>
+          </Panel>
+
+          <Panel title="Corners & Shadows">
             <div className="panel-body">
               <div className="field">
                 <label>Corner style</label>
@@ -302,12 +365,9 @@ export default function Layout() {
                 />
               </div>
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Buttons</h2>
-            </div>
+          <Panel title="Buttons">
             <div className="panel-body row2">
               <NumberField
                 label="Button height (px)"
@@ -330,12 +390,9 @@ export default function Layout() {
                 </select>
               </div>
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Header</h2>
-            </div>
+          <Panel title="Header">
             <div className="panel-body">
               <div className="row2">
                 <div data-dev="desktop">
@@ -398,12 +455,9 @@ export default function Layout() {
                 Keep the header on screen while scrolling
               </label>
             </div>
-          </div>
+          </Panel>
 
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Footer</h2>
-            </div>
+          <Panel title="Footer">
             <div className="panel-body">
               <div className="row2">
                 <div data-dev="desktop">
@@ -447,7 +501,7 @@ export default function Layout() {
                 Turn this off if your footer logo is already made for a dark background.
               </div>
             </div>
-          </div>
+          </Panel>
         </div>
 
         <div className="panel theme-preview-panel">

@@ -11,6 +11,7 @@ import {
 } from '@cms/shared'
 import { useEffect, useState } from 'react'
 
+import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import SettingsTabs from './SettingsTabs.jsx'
@@ -217,11 +218,7 @@ export default function Colours() {
 
       <div className="edit-grid theme-grid">
         <div>
-          <div className="panel">
-            <div className="panel-head">
-              <h2>Site Colours</h2>
-              <span className="muted">6 colours</span>
-            </div>
+          <Panel title="Site Colours" aside={<span className="muted">6 colours</span>}>
             <div className="panel-body color-rows">
               {BASE_FIELDS.map((f) => {
                 const title = f.group !== lastGroup ? f.group : null
@@ -244,7 +241,7 @@ export default function Colours() {
                 )
               })}
             </div>
-          </div>
+          </Panel>
 
           <div className="panel">
             <div className="panel-head">

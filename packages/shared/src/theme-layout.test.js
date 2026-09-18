@@ -79,6 +79,77 @@ describe('Settings ▸ Layout (theme-layout)', () => {
     expect(out).toContain('--r2:2px')
   })
 
+  it('Spacing ke defaults globals.css ke tokens se milte hain', () => {
+    const d = THEME_LAYOUT_DEFAULTS
+    expect(token('--space-section')).toBe(
+      `clamp(${d.spaceSectionMobile}px, 3.4vw, ${d.spaceSection}px)`,
+    )
+    expect(token('--space-block')).toBe(`clamp(${d.spaceBlockMobile}px, 2.8vw, ${d.spaceBlock}px)`)
+    expect(token('--gap-card-row')).toBe(`${d.cardGapRow}px`)
+    expect(token('--gap-card-col')).toBe(`${d.cardGapCol}px`)
+  })
+
+  it('Section spacing badla — sirf --space-section, dono sire, beech ka hissa aaj ki chaudai pe', () => {
+    const out = themeLayoutCss({ spaceSection: 60, spaceSectionMobile: 30 })
+    expect(out).toBe(
+      'html:root{--space-section:clamp(30px, calc(30px + (100vw - 820px) * 0.0566), 60px)}',
+    )
+  })
+
+  it('Block spacing badla — single content ka andar ka gap anupaat me saath', () => {
+    const out = themeLayoutCss({ spaceBlock: 48 })
+    expect(out).toContain('--space-block:clamp(22px, calc(22px + (100vw - 790px) * 0.04561), 48px)')
+    // 48 × 32/38 = 40
+    expect(out).toContain(
+      '--space-block-in:clamp(22px, calc(22px + (100vw - 850px) * 0.04737), 40px)',
+    )
+    expect(out).not.toContain('--space-section')
+  })
+
+  it('desktop aur mobile barabar — seedha px, clamp nahi', () => {
+    expect(themeLayoutCss({ spaceSection: 40, spaceSectionMobile: 40 })).toBe(
+      'html:root{--space-section:40px}',
+    )
+  })
+
+  it('Cards gap — row aur column alag, sirf badla hua', () => {
+    expect(themeLayoutCss({ cardGapRow: 20 })).toBe('html:root{--gap-card-row:20px}')
+    expect(themeLayoutCss({ cardGapCol: 8 })).toBe('html:root{--gap-card-col:8px}')
+  })
+
+  it('har card grid Cards gap ke token pe — koi seedha likha gap nahi bacha', () => {
+    const clean = css.replace(/\/\*[\s\S]*?\*\//g, '')
+    const GRIDS = [
+      '.atg',
+      '.inx',
+      '.catbar__g',
+      '.sim',
+      '.rev__track',
+      '.prows',
+      '.dgrid',
+      '.bpg',
+      '.pn',
+      '.feat',
+      '.feat__side',
+      '.ic__grid',
+      '.vrl',
+      '.imc',
+      '.tmg',
+      '.lgg',
+      '.ipk',
+      '.ofc--grid',
+      '.contact-steps .promise',
+    ]
+    for (const sel of GRIDS) {
+      const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const gaps = [...clean.matchAll(new RegExp(`(?:^|\\n)\\s*${esc} \\{([^}]*)\\}`, 'g'))]
+        .map((m) => (m[1].match(/(?:^|[;\s])gap:\s*([^;]+);/) || [])[1])
+        .filter(Boolean)
+      expect(gaps.length, sel).toBeGreaterThan(0)
+      for (const g of gaps) expect(g, sel).toBe('var(--gap-card-row) var(--gap-card-col)')
+    }
+  })
+
   it('galat/hadd ke bahar ka data normalize pe theek — CSS me kabhi text nahi', () => {
     const l = normalizeThemeLayout({ wrap: 99999, pad: 'x', corners: '}</style>', sticky: 'yes' })
     expect(l.wrap).toBe(1600)

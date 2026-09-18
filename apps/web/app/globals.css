@@ -187,6 +187,26 @@
   --pad: 26px;
 
   /*
+   * Settings ▸ Layout ▸ Spacing (client, 18 Sep). Teen tarah ki "section ke beech ki jagah":
+   *
+   * - `--space-section` — poori chaudai ke band ka upar-neeche (home ke sections, neela banner,
+   *   package ka CTA)
+   * - `--space-block` — block design me ek card se agla card (package · tour · Section layout page)
+   * - `--space-block-in` — single content card ke **andar** block se block (Default page · blog post).
+   *   Iska apna khaana nahi — admin me Block spacing badle to ye usi anupaat me badalta hai
+   *
+   * Cards gap — har card grid ka ek hi naap, row aur column alag. Pehle grids 10 · 11 · 12 · 14 me
+   * bati thin; client ne sab 14 pe common kiya (_"1-2px se kuch nahi hota"_).
+   *
+   * ⚠️ Default yahi hain aur `packages/shared/src/theme-layout.js` me bhi — test dono ko milata hai.
+   */
+  --space-section: clamp(28px, 3.4vw, 46px);
+  --space-block: clamp(22px, 2.8vw, 38px);
+  --space-block-in: clamp(22px, 2.6vw, 32px);
+  --gap-card-row: 14px;
+  --gap-card-col: 14px;
+
+  /*
    * Settings ▸ Colours ke Advanced (17 Sep) — default apne group ke token pe. Admin me kisi ka Auto
    * hatao to site pe sirf yahi token likha jaata hai (`packages/shared/src/theme-colors.js`).
    */
@@ -2258,7 +2278,7 @@ a.mega__gl:hover {
 .atg {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   margin-top: 16px;
 }
 
@@ -2615,7 +2635,7 @@ a.mega__gl:hover {
 .inx {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   margin-top: 14px;
 }
 
@@ -2834,7 +2854,7 @@ a.mega__gl:hover {
 .pgl__main {
   min-width: 0;
   display: grid;
-  gap: clamp(22px, 2.8vw, 38px);
+  gap: var(--space-block);
 }
 
 .pgl__main > * {
@@ -3114,7 +3134,7 @@ a.mega__gl:hover {
 .catbar__g {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: var(--gap-card-row) var(--gap-card-col);
 }
 
 .catbar__g button {
@@ -3974,7 +3994,7 @@ a.mega__gl:hover {
 
 .sim {
   display: grid;
-  gap: 12px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   margin-top: 16px;
 }
 
@@ -4381,8 +4401,8 @@ a.mega__gl:hover {
 .rev__track {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: calc((100% - 24px) / 3);
-  gap: 12px;
+  grid-auto-columns: calc((100% - 2 * var(--gap-card-col)) / 3);
+  gap: var(--gap-card-row) var(--gap-card-col);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
 
@@ -4566,7 +4586,7 @@ a.mega__gl:hover {
  */
 @media (max-width: 1080px) {
   .rev__track {
-    grid-auto-columns: calc((100% - 12px) / 2);
+    grid-auto-columns: calc((100% - var(--gap-card-col)) / 2);
   }
 
   .rev:not(.rev--slider) .rev__track {
@@ -4849,7 +4869,7 @@ a.mega__gl:hover {
  */
 .pkg__cta {
   background: var(--surface);
-  padding-block: clamp(28px, 3.4vw, 46px);
+  padding-block: var(--space-section);
 
   /*
    * Footer aur closing CTA **hamesha** fold ke neeche hote hain, isliye inka layout pehle
@@ -5060,7 +5080,7 @@ a.mega__gl:hover {
 /* ---------- section shell ---------- */
 
 .sec {
-  padding: clamp(28px, 3.4vw, 46px) 0;
+  padding: var(--space-section) 0;
 }
 
 .sec--white {
@@ -5511,7 +5531,7 @@ a.mega__gl:hover {
 
 .prows {
   display: grid;
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   margin-top: 16px;
 }
 
@@ -5520,7 +5540,7 @@ a.mega__gl:hover {
 .dgrid {
   display: grid;
   grid-template-columns: repeat(var(--dcols, 3), 1fr);
-  gap: 12px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   margin-top: 14px;
 }
 
@@ -6026,7 +6046,7 @@ a.mega__gl:hover {
 .bpg {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
 }
 .bp {
   display: flex;
@@ -6382,7 +6402,7 @@ a.mega__gl:hover {
 }
 
 .art > .blk + .blk {
-  margin-top: clamp(22px, 2.6vw, 32px);
+  margin-top: var(--space-block-in);
 }
 
 /*
@@ -6703,7 +6723,7 @@ a.mega__gl:hover {
 .pn {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   margin-top: 14px;
 }
 .pn a {
@@ -6795,13 +6815,13 @@ a.mega__gl:hover {
 .feat {
   display: grid;
   grid-template-columns: 1.45fr 1fr;
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   align-items: stretch;
 }
 
 .feat__side {
   display: grid;
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   align-content: stretch;
 }
 
@@ -7321,7 +7341,7 @@ a.mega__gl:hover {
   --ic-icon-bg: var(--blue-50);
   --ic-icon: var(--blue-600);
   background: var(--ic-bg);
-  padding: clamp(28px, 3.4vw, 46px) 0;
+  padding: var(--space-section) 0;
 }
 
 .hsh {
@@ -7388,7 +7408,7 @@ a.mega__gl:hover {
 .ic__grid {
   display: grid;
   grid-template-columns: repeat(var(--ic-cols, 4), 1fr);
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
 }
 
 /* ---- card ---- */
@@ -7569,7 +7589,7 @@ a.mega__gl:hover {
 .hsec {
   --hsec-bg: var(--surface);
   background: var(--hsec-bg);
-  padding: clamp(28px, 3.4vw, 46px) 0;
+  padding: var(--space-section) 0;
 }
 
 /*
@@ -7587,7 +7607,7 @@ a.mega__gl:hover {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: min(190px, 52vw);
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding-bottom: 10px;
@@ -7737,7 +7757,7 @@ a.mega__gl:hover {
 .imc {
   display: grid;
   grid-template-columns: repeat(var(--imc-cols, 4), 1fr);
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
 }
 
 .imcc {
@@ -7843,11 +7863,13 @@ a.imcc:hover img {
   }
 }
 
-/* Phone — reference ka `.g--tiles` (2 column, 11px gap) ya 1 */
+/*
+ * Phone — reference ka `.g--tiles` (2 column) ya 1. Reference ka 11px gap ab nahi — gap sab card grids
+ * ka ek hai, Settings ▸ Layout ▸ Cards gap (client, 18 Sep).
+ */
 @media (max-width: 760px) {
   .imc {
     grid-template-columns: repeat(var(--imc-mcols, 2), 1fr);
-    gap: 11px;
   }
 
   .imcc__b {
@@ -7872,7 +7894,7 @@ a.imcc:hover img {
   --tm-icon: var(--blue-100);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
 }
 
 .tmc {
@@ -7957,7 +7979,7 @@ a.imcc:hover img {
   padding: 0;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  gap: var(--gap-card-row) var(--gap-card-col);
 }
 
 .lgg__t {
@@ -8075,7 +8097,7 @@ a.imcc:hover img {
 .ipk {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: var(--gap-card-row) var(--gap-card-col);
 }
 
 .ipkc {
@@ -8271,7 +8293,7 @@ a.imcc:hover img {
  * taaki pata chale ki scroll hota hai).
  */
 .ofc {
-  --ofc-gap: 14px;
+  --ofc-gap: var(--gap-card-col);
   --ofc-n: var(--ofc-cols, 4);
 }
 
@@ -8307,7 +8329,7 @@ a.imcc:hover img {
 .ofc--grid {
   display: grid;
   grid-template-columns: repeat(var(--ofc-cols, 4), 1fr);
-  gap: var(--ofc-gap);
+  gap: var(--gap-card-row) var(--gap-card-col);
 }
 
 /* ---- image upar — `.tt` / `.cr` ---- */
@@ -9357,7 +9379,7 @@ a.txv__box:hover .txv__p {
 .contact-steps .promise {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: var(--gap-card-row) var(--gap-card-col);
   margin-top: 16px;
 }
 
@@ -9595,7 +9617,7 @@ a.txv__box:hover .txv__p {
  */
 .secpg {
   display: grid;
-  gap: clamp(22px, 2.8vw, 38px);
+  gap: var(--space-block);
 }
 
 /* ---- `Enquiry form` block ka look — reference ka `.cform` (D-96 §30, client 16 Sep) ---- */

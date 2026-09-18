@@ -8,6 +8,7 @@ import {
 } from '@cms/shared'
 import { useEffect, useState } from 'react'
 
+import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
@@ -130,11 +131,7 @@ function FontSlot({ title, note, slotKey, slot, onChange, disabled, onError }) {
   }
 
   return (
-    <div className="panel">
-      <div className="panel-head">
-        <h2>{title}</h2>
-        <span className="muted">{note}</span>
-      </div>
+    <Panel title={title} aside={<span className="muted">{note}</span>}>
       <div className="panel-body">
         <div className="font-src">
           {[
@@ -267,7 +264,7 @@ function FontSlot({ title, note, slotKey, slot, onChange, disabled, onError }) {
           </>
         )}
       </div>
-    </div>
+    </Panel>
   )
 }
 
@@ -413,11 +410,7 @@ export default function Fonts() {
         />
       </div>
 
-      <div className="panel">
-        <div className="panel-head">
-          <h2>Text Sizes</h2>
-          <span className="muted">Font size in px</span>
-        </div>
+      <Panel title="Text Sizes" aside={<span className="muted">Font size in px</span>}>
         <div className="panel-body scale-wrap">
           <table className="scale">
             <thead>
@@ -497,11 +490,12 @@ export default function Fonts() {
           </table>
           <div className="hint">
             Every heading, title and label on the site uses one of these. Change a row and all the
-            places listed under it change together. Weight, line spacing and character spacing apply
-            to real headings (H1–H6) and body text.
+            places listed under it change together — size, weight, line spacing and character
+            spacing. A few special texts (prices, stats, the big blog card title) keep their own
+            size; Custom CSS can change those.
           </div>
         </div>
-      </div>
+      </Panel>
 
       <div className="panel">
         <div className="panel-head">

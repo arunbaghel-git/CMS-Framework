@@ -1,7 +1,8 @@
 /**
  * Site ka dhaancha — **Settings ▸ Layout** (client, 17 Sep; reference `admin-design-v4.html` `#t-layout`).
  *
- * Chaudai, side ki jagah, kone, shadow, button, header aur logo ke naap. Wahi niyam jo `theme-colors.js`
+ * Chaudai, side ki jagah, sections/blocks ke beech ki jagah, cards gap, kone, shadow, button, header aur
+ * logo ke naap. Wahi niyam jo `theme-colors.js`
  * ka hai: **default = `globals.css` ke `:root` ki aaj ki value**, aur jo nahi badla uska CSS bheja hi nahi
  * jaata — is site pe Save dabane se kuch nahi badalta.
  *
@@ -31,6 +32,13 @@ export const THEME_LAYOUT_DEFAULTS = Object.freeze({
   footLogoHMobile: 34,
   footLogoMaxW: 0,
   footLogoCard: true,
+  /** Spacing (client, 18 Sep) — `--space-section` / `--space-block` ke clamp ke dono sire */
+  spaceSection: 46,
+  spaceSectionMobile: 28,
+  spaceBlock: 38,
+  spaceBlockMobile: 22,
+  cardGapRow: 14,
+  cardGapCol: 14,
 })
 
 /** Har number ki hadd — schema aur normalize dono yahi padhte hain. */
@@ -48,7 +56,34 @@ export const THEME_LAYOUT_LIMITS = Object.freeze({
   footLogoH: [16, 120],
   footLogoHMobile: [16, 100],
   footLogoMaxW: [0, 480],
+  spaceSection: [0, 160],
+  spaceSectionMobile: [0, 120],
+  spaceBlock: [0, 120],
+  spaceBlockMobile: [0, 80],
+  cardGapRow: [0, 60],
+  cardGapCol: [0, 60],
 })
+
+/**
+ * Aaj ke clamp ka dhalaan — `clamp(28px, 3.4vw, 46px)` 820px pe 28 aur 1350px pe 46 hota hai. Admin
+ * sire badle to beech ka hissa **isi chaudai pe** chadhta hai, taaki site ka bartaav wahi rahe.
+ * Single content ka andar ka gap (`--space-block-in`) Block spacing ke anupaat me: 22→22, 38→32.
+ */
+const RAMP = {
+  section: [820, 1350],
+  block: [790, 1360],
+  blockIn: [850, 1230],
+}
+const BLOCK_IN_RATIO = 32 / 38
+
+/** `clamp(min, fluid, max)` — mobile width pe `mobile`, ramp ke aakhir se `desktop`. */
+function fluid(desktop, mobile, [from, to]) {
+  if (desktop === mobile) return `${desktop}px`
+  const slope = Number(((desktop - mobile) / (to - from)).toFixed(5))
+  const lo = Math.min(desktop, mobile)
+  const hi = Math.max(desktop, mobile)
+  return `clamp(${lo}px, calc(${mobile}px + (100vw - ${from}px) * ${slope}), ${hi}px)`
+}
 
 /** Kone — `soft` aaj ki site hai (`--r1..r4`). `sharp` me `--r2` 2px, taaki `calc(var(--r2) - 2px)` 0 bane, negative nahi. */
 const RADII = {
@@ -101,6 +136,12 @@ export function normalizeThemeLayout(input) {
     footLogoHMobile: num('footLogoHMobile'),
     footLogoMaxW: num('footLogoMaxW'),
     footLogoCard: bool('footLogoCard'),
+    spaceSection: num('spaceSection'),
+    spaceSectionMobile: num('spaceSectionMobile'),
+    spaceBlock: num('spaceBlock'),
+    spaceBlockMobile: num('spaceBlockMobile'),
+    cardGapRow: num('cardGapRow'),
+    cardGapCol: num('cardGapCol'),
   }
 }
 
@@ -151,6 +192,20 @@ export function themeLayoutCss(input) {
     root['--foot-card-bg'] = 'transparent'
     root['--foot-card-pad'] = '0px'
   }
+
+  if (l.spaceSection !== d.spaceSection || l.spaceSectionMobile !== d.spaceSectionMobile) {
+    root['--space-section'] = fluid(l.spaceSection, l.spaceSectionMobile, RAMP.section)
+  }
+  if (l.spaceBlock !== d.spaceBlock || l.spaceBlockMobile !== d.spaceBlockMobile) {
+    root['--space-block'] = fluid(l.spaceBlock, l.spaceBlockMobile, RAMP.block)
+    root['--space-block-in'] = fluid(
+      Math.round(l.spaceBlock * BLOCK_IN_RATIO),
+      l.spaceBlockMobile,
+      RAMP.blockIn,
+    )
+  }
+  if (l.cardGapRow !== d.cardGapRow) root['--gap-card-row'] = `${l.cardGapRow}px`
+  if (l.cardGapCol !== d.cardGapCol) root['--gap-card-col'] = `${l.cardGapCol}px`
 
   /** Header saath nahi chalta — sidebar aur "On this page" ko uske liye jagah nahi chhodni. */
   if (!l.sticky) {

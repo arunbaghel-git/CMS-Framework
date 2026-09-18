@@ -417,7 +417,29 @@ describe('Settings ▸ Layout — themeLayout (17 Sep)', () => {
     expect(css).toContain('--header-pos:relative')
   })
 
+  it('Spacing (18 Sep) — DB me padha jaata hai, aur site pe sirf badle hue token', async () => {
+    const res = await layout({ spaceBlock: 48, cardGapRow: 20 })
+    expect(res.status).toBe(200)
+
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.themeLayout).toMatchObject({
+      spaceBlock: 48,
+      spaceBlockMobile: 22,
+      cardGapRow: 20,
+      cardGapCol: 14,
+    })
+
+    const { getPublicSettings } = await import('../modules/public/service.js')
+    const css = (await getPublicSettings()).themeCss
+    expect(css).toContain('--space-block:clamp(22px,')
+    expect(css).toContain('--space-block-in:')
+    expect(css).toContain('--gap-card-row:20px')
+    expect(css).not.toContain('--gap-card-col')
+    expect(css).not.toContain('--space-section')
+  })
+
   it('hadd ke bahar, galat enum, anjaan key — 400', async () => {
+    expect((await layout({ cardGapCol: 200 })).status).toBe(400)
     expect((await layout({ wrap: 5000 })).status).toBe(400)
     expect((await layout({ corners: 'blob' })).status).toBe(400)
     expect((await layout({ btnHeight: 44.5 })).status).toBe(400)
