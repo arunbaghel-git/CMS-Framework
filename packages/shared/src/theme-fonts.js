@@ -14,10 +14,11 @@
  * client step na badle, CSS apna naap chalata hai. Badla to us step ke saare token desktop/tablet/mobile
  * teen naap pe.
  *
- * ## ⚠️ Weight · line spacing · character spacing sirf asli tags pe
+ * ## Weight · line spacing · character spacing — har level ke saath (18 Sep)
  *
- * Size token-wide hai. Weight/line-height/letter-spacing `h1`–`h6` tags aur `body` pe lagte hain — jo
- * card title `<div>` hai uska weight uski apni CSS se aata hai. Wo alag refactor hai.
+ * `globals.css` me har rule jo kisi level ka size leta hai, uska apna weight/line/spacing us level ke
+ * variable ke peeche hai (`var(--small-w, 700)`). Admin na badle to rule ka apna value; badle to level ka.
+ * Jis rule me weight likha hi nahi, wo parent se leta hai (jaise pehle).
  */
 
 export const FONT_WEIGHTS = Object.freeze(['300', '400', '500', '600', '700', '800', '900'])
@@ -257,14 +258,6 @@ export function slotFamily(slot) {
 }
 
 const px = (n) => `${Math.round(n * 100) / 100}px`
-const sameStep = (a, b) =>
-  a.size === b.size &&
-  a.sizeTablet === b.sizeTablet &&
-  a.sizeMobile === b.sizeMobile &&
-  a.weight === b.weight &&
-  a.lh === b.lh &&
-  a.ls === b.ls
-
 /**
  * Site ka font CSS — `@font-face` + `html:root{…}` + tablet/mobile ke `@media`. Sirf badla hua.
  * Har value upar regex/number se guzar chuki hai.
@@ -300,18 +293,26 @@ export function themeFontCss(input) {
 
   for (const step of FONT_SCALE_STEPS) {
     const v = f.scale[step.key]
-    if (sameStep(v, step.defaults)) continue
+    const d = step.defaults
 
-    for (const token of step.tokens) {
-      root[token] = px(v.size)
-      tablet[token] = px(v.sizeTablet)
-      mobile[token] = px(v.sizeMobile)
+    /** Size — teeno naap saath, kyunki tablet/mobile desktop ke saath hi soche jaate hain */
+    if (v.size !== d.size || v.sizeTablet !== d.sizeTablet || v.sizeMobile !== d.sizeMobile) {
+      for (const token of step.tokens) {
+        root[token] = px(v.size)
+        tablet[token] = px(v.sizeTablet)
+        mobile[token] = px(v.sizeMobile)
+      }
     }
-    if (step.tag) {
-      root[`--${step.tag}-w`] = v.weight
-      root[`--${step.tag}-lh`] = String(v.lh)
-      root[`--${step.tag}-ls`] = px(v.ls)
-    }
+
+    /**
+     * Weight / line / spacing — **har ek alag**, sirf jo badla (18 Sep). `globals.css` ka har rule jo is
+     * level ka size leta hai, uska weight/line/spacing `var(--<level>-w, <aaj ki value>)` hai. Sirf size
+     * badalne pe weight bhi bhej dete to us level ke saare rules ke alag-alag weight chup-chaap ek ho jaate.
+     * Small/Extra small ka koi tag nahi, isliye naam `key` se (`--small-w`).
+     */
+    if (v.weight !== d.weight) root[`--${step.key}-w`] = v.weight
+    if (v.lh !== d.lh) root[`--${step.key}-lh`] = String(v.lh)
+    if (v.ls !== d.ls) root[`--${step.key}-ls`] = px(v.ls)
   }
 
   const block = (vars) =>

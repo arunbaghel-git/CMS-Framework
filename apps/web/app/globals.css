@@ -600,7 +600,7 @@ a {
   border: 0;
   border-radius: var(--btn-r);
   font-size: var(--fs-body);
-  font-weight: var(--fw-bold);
+  font-weight: var(--body-w, var(--fw-bold));
   white-space: nowrap;
   transition:
     background 0.16s,
@@ -752,7 +752,7 @@ a {
   padding: 0 11px;
   font-size: var(--fs-small);
   /* 700, 600 nahi — reference isi weight pe hai aur nav uske bina halki lagti hai */
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--header-text);
   white-space: nowrap;
   border-bottom: 2.5px solid transparent;
@@ -803,7 +803,7 @@ a {
   display: block;
   padding: 7px 14px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-med);
+  font-weight: var(--small-w, var(--fw-med));
   color: var(--body);
 }
 
@@ -942,7 +942,7 @@ a {
   padding-bottom: 6px;
   border-bottom: 1px solid var(--line-2);
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   color: var(--ink);
 }
 
@@ -955,8 +955,8 @@ a.mega__gl:hover {
   display: block;
   padding: 5px 0;
   font-size: var(--fs-small);
-  font-weight: var(--fw-med);
-  line-height: 1.55;
+  font-weight: var(--small-w, var(--fw-med));
+  line-height: var(--small-lh, 1.55);
   color: var(--body);
 }
 
@@ -980,7 +980,7 @@ a.mega__gl:hover {
 .mega__cta span {
   font-size: var(--fs-small);
   color: var(--muted);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
 }
 
 /* ============================================================
@@ -1066,7 +1066,7 @@ a.mega__gl:hover {
   padding: 14px 18px;
   border-bottom: 1px solid var(--line-2);
   font-size: var(--fs-body);
-  font-weight: var(--fw-bold);
+  font-weight: var(--body-w, var(--fw-bold));
   color: var(--ink);
   cursor: pointer;
   list-style: none;
@@ -1103,7 +1103,7 @@ a.mega__gl:hover {
   display: block;
   padding: 7px 0;
   font-size: var(--fs-body);
-  font-weight: var(--fw-med);
+  font-weight: var(--body-w, var(--fw-med));
   color: var(--body);
 }
 
@@ -1123,7 +1123,7 @@ a.mega__gl:hover {
   border-bottom: 0;
   font-size: var(--fs-body);
   /* 800 — group heading baaki headings se bhi bhaari hai (reference ka .gl) */
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   color: var(--ink);
 }
 
@@ -1138,13 +1138,13 @@ a.mega__gl:hover {
 
 /* Group heading mobile pe bhi heading hi rehti hai — flatten hone par bhi structure dikhe */
 .mnav__gl {
-  font-weight: var(--fw-heading);
+  font-weight: var(--small-w, var(--fw-heading));
   display: block;
   margin-top: 12px;
   padding-bottom: 5px;
   border-bottom: 1px solid var(--line-2);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--ink);
 }
 
@@ -1221,8 +1221,8 @@ a.mega__gl:hover {
 .ft__col h2 {
   margin: 0 0 15px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.12em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.12em);
   text-transform: uppercase;
   color: var(--on-dark);
 }
@@ -1294,12 +1294,12 @@ a.mega__gl:hover {
 .ft__sup b {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.08em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.08em);
   text-transform: uppercase;
   color: color-mix(in srgb, var(--on-dark) 45%, transparent);
   margin-bottom: 3px;
-  line-height: 1.55;
+  line-height: var(--xsmall-lh, 1.55);
 }
 
 /* `pre-line` isliye ki text ke line breaks **stored data** hain (D-44) — client ne jahan
@@ -1314,9 +1314,9 @@ a.mega__gl:hover {
   display: block;
   white-space: pre-line;
   color: var(--on-dark);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   font-size: var(--fs-small);
-  line-height: 1.5;
+  line-height: var(--small-lh, 1.5);
 }
 
 /* Link dikhne me baaki text jaisa hi hai — reference me bhi underline nahi hai. Farq
@@ -1368,7 +1368,7 @@ a.mega__gl:hover {
   margin: 0;
   max-width: 52ch;
   font-size: var(--fs-xsmall);
-  line-height: 1.6;
+  line-height: var(--xsmall-lh, 1.6);
   color: color-mix(in srgb, var(--on-dark) 45%, transparent);
 }
 
@@ -1376,7 +1376,7 @@ a.mega__gl:hover {
 .ft__fine {
   margin: 0;
   font-size: var(--fs-xsmall);
-  line-height: 1.6;
+  line-height: var(--xsmall-lh, 1.6);
   color: color-mix(in srgb, var(--on-dark) 38%, transparent);
 }
 
@@ -1571,7 +1571,7 @@ a.mega__gl:hover {
   }
   button[aria-label='Close menu'] {
     span {
-      font-weight: var(--fw-bold);
+      font-weight: var(--body-w, var(--fw-bold));
       font-size: var(--fs-body);
     }
   }
@@ -1733,7 +1733,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--ink-2);
 }
 
@@ -1757,8 +1757,8 @@ a.mega__gl:hover {
  */
 .ptitle h1 {
   font-size: var(--fs-h1);
-  line-height: 1.1;
-  letter-spacing: -0.04em;
+  line-height: var(--h1-lh, 1.1);
+  letter-spacing: var(--h1-ls, -0.04em);
   text-wrap: balance;
 }
 
@@ -1770,7 +1770,7 @@ a.mega__gl:hover {
 
 .pintro {
   font-size: var(--fs-h3);
-  line-height: 1.65;
+  line-height: var(--h3-lh, 1.65);
   color: var(--body);
   margin-top: 14px;
   max-width: 70ch;
@@ -1868,8 +1868,8 @@ a.mega__gl:hover {
   background: color-mix(in srgb, var(--blue-900) 55%, transparent);
   color: var(--on-dark);
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.04em;
+  font-weight: var(--small-w, var(--fw-heading));
+  letter-spacing: var(--small-ls, 0.04em);
 }
 
 /*
@@ -2061,7 +2061,7 @@ a.mega__gl:hover {
 .blk h6 {
   font-size: var(--fs-h6);
   margin: 12px 0 5px;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--h6-ls, 0.02em);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -2073,7 +2073,7 @@ a.mega__gl:hover {
  */
 .blk p {
   font-size: var(--fs-body);
-  line-height: 1.65;
+  line-height: var(--body-lh, 1.65);
   color: var(--body);
 }
 
@@ -2151,7 +2151,7 @@ a.mega__gl:hover {
   gap: 9px;
   align-items: flex-start;
   font-size: var(--fs-body);
-  line-height: 1.55;
+  line-height: var(--body-lh, 1.55);
 }
 
 .blk ul.tick svg {
@@ -2222,8 +2222,8 @@ a.mega__gl:hover {
 
 .route__s span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.07em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.07em);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -2231,9 +2231,9 @@ a.mega__gl:hover {
 .route__s b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   color: var(--ink);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--body-ls, -0.02em);
 }
 
 /* Do card ke beech ka teer — reference me ye ek SVG hai, lakeer nahi. */
@@ -2272,8 +2272,8 @@ a.mega__gl:hover {
 .atg span {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.08em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.08em);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -2281,10 +2281,10 @@ a.mega__gl:hover {
 .atg b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   color: var(--ink);
   margin-top: 4px;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--body-ls, -0.01em);
 }
 
 /* Day-by-day */
@@ -2309,7 +2309,7 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   background: var(--surface);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--body);
 }
 
@@ -2406,14 +2406,14 @@ a.mega__gl:hover {
   background: var(--blue-600);
   color: var(--on-dark);
   font-size: var(--fs-small);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.04em;
+  font-weight: var(--small-w, var(--fw-black));
+  letter-spacing: var(--small-ls, 0.04em);
 }
 
 .itin__k span {
   display: block;
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
+  font-weight: var(--small-w, var(--fw-heading));
   color: var(--muted);
   margin-top: 8px;
 }
@@ -2429,20 +2429,20 @@ a.mega__gl:hover {
   display: block;
   font-size: var(--fs-xsmall);
   color: var(--faint);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   margin-top: 2px;
 }
 
 .itin__c h3 {
   font-size: var(--fs-h3);
-  letter-spacing: -0.02em;
-  line-height: 1.35;
+  letter-spacing: var(--h3-ls, -0.02em);
+  line-height: var(--h3-lh, 1.35);
   margin: 0 0 7px;
 }
 
 .itin__c p {
   font-size: var(--fs-body);
-  line-height: 1.65;
+  line-height: var(--body-lh, 1.65);
   color: var(--body);
   margin: 0;
 }
@@ -2473,7 +2473,7 @@ a.mega__gl:hover {
   gap: 9px;
   align-items: flex-start;
   font-size: var(--fs-body);
-  line-height: 1.55;
+  line-height: var(--body-lh, 1.55);
   color: var(--body);
 }
 
@@ -2499,7 +2499,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
   color: var(--ink-2);
   background: var(--line-2);
   padding: 5px 10px;
@@ -2633,8 +2633,8 @@ a.mega__gl:hover {
 
 .inx__c h3 {
   font-size: var(--fs-h3);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.06em;
+  font-weight: var(--h3-w, var(--fw-black));
+  letter-spacing: var(--h3-ls, 0.06em);
   text-transform: uppercase;
   margin: 0 0 10px;
   color: var(--green-600);
@@ -2694,7 +2694,7 @@ a.mega__gl:hover {
   background: var(--blue-600);
   color: var(--on-dark);
   font-size: var(--fs-small);
-  font-weight: var(--fw-black);
+  font-weight: var(--small-w, var(--fw-black));
   display: grid;
   place-items: center;
 }
@@ -2703,7 +2703,7 @@ a.mega__gl:hover {
   display: block;
   color: var(--ink);
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   /* i am doing it 4px dont change it*/
   margin-bottom: 4px;
 }
@@ -2764,7 +2764,7 @@ a.mega__gl:hover {
   gap: 7px;
   flex-wrap: wrap;
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: var(--muted);
   margin-bottom: 12px;
   padding-top: clamp(14px, 2vw, 22px);
@@ -2896,8 +2896,8 @@ a.mega__gl:hover {
   align-items: center;
   gap: 8px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.1em;
+  font-weight: var(--small-w, var(--fw-black));
+  letter-spacing: var(--small-ls, 0.1em);
   text-transform: uppercase;
   color: var(--ink);
   padding: 12px 15px;
@@ -2967,9 +2967,9 @@ a.mega__gl:hover {
 .wdgc b {
   font-size: var(--fs-xsmall);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--xsmall-ls, 0.05em);
   color: var(--slate-500);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
 }
 
 .wdgc a {
@@ -2978,7 +2978,7 @@ a.mega__gl:hover {
    * `body: 15px` ke saath baithta hai; hamara body 14px hai, to yahan bhi wahi.
    */
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   color: var(--ink);
   text-decoration: none;
   overflow: hidden;
@@ -3049,22 +3049,22 @@ a.mega__gl:hover {
 .ptitle__p del {
   font-size: var(--fs-body);
   color: var(--faint);
-  font-weight: var(--fw-semi);
+  font-weight: var(--body-w, var(--fw-semi));
 }
 
 .ptitle__p b {
   display: block;
   font-size: var(--fs-h1);
-  font-weight: var(--fw-black);
+  font-weight: var(--h1-w, var(--fw-black));
   color: var(--ink);
-  letter-spacing: -0.045em;
-  line-height: 1.05;
+  letter-spacing: var(--h1-ls, -0.045em);
+  line-height: var(--h1-lh, 1.05);
 }
 
 .ptitle__p span {
   display: block;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--muted);
   margin-bottom: 12px;
 }
@@ -3095,14 +3095,14 @@ a.mega__gl:hover {
 
 .catbar__h b {
   font-size: var(--fs-small);
-  font-weight: var(--fw-black);
+  font-weight: var(--small-w, var(--fw-black));
   color: var(--ink);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--small-ls, -0.01em);
 }
 
 .catbar__h span {
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: var(--muted);
 }
 
@@ -3140,22 +3140,22 @@ a.mega__gl:hover {
 .catbar__g b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-black);
+  font-weight: var(--body-w, var(--fw-black));
   color: var(--ink);
   /* Client ka tune (1 Sep) — base heading rule ka 1.25 in chhote card labels pe tang tha.
      Reference me ye line nahi hai; jaan-boojh kar hai (R15). */
-  line-height: 1.55;
-  letter-spacing: -0.02em;
+  line-height: var(--body-lh, 1.55);
+  letter-spacing: var(--body-ls, -0.02em);
 }
 
 .catbar__g span {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
   color: var(--muted);
   margin-top: 3px;
   /* Upar wale `b` ke saath jodi — client ka tune (1 Sep). */
-  line-height: 1.55;
+  line-height: var(--xsmall-lh, 1.55);
 }
 
 .catbar__g strong {
@@ -3221,9 +3221,9 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   background: var(--surface);
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
+  font-weight: var(--small-w, var(--fw-heading));
   color: var(--ink-2);
-  letter-spacing: -0.01em;
+  letter-spacing: var(--small-ls, -0.01em);
   transition:
     background 0.15s,
     border-color 0.15s,
@@ -3244,9 +3244,9 @@ a.mega__gl:hover {
 
 .htab button span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
+  font-weight: var(--xsmall-w, var(--fw-black));
   color: var(--gold);
-  letter-spacing: 0;
+  letter-spacing: var(--xsmall-ls, 0);
 }
 
 .htab button[aria-selected='true'] span {
@@ -3274,7 +3274,7 @@ a.mega__gl:hover {
   border: 1px solid var(--blue-100);
   border-radius: var(--r2);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--blue-700);
 }
 
@@ -3318,8 +3318,8 @@ a.mega__gl:hover {
   text-align: left;
   padding: 11px 14px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.07em;
+  font-weight: var(--small-w, var(--fw-black));
+  letter-spacing: var(--small-ls, 0.07em);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -3456,7 +3456,7 @@ a.mega__gl:hover {
   cursor: pointer;
   padding: 15px 18px;
   font-size: var(--fs-h3);
-  font-weight: var(--fw-bold);
+  font-weight: var(--h3-w, var(--fw-bold));
   color: var(--ink);
   display: flex;
   justify-content: space-between;
@@ -3495,7 +3495,7 @@ a.mega__gl:hover {
 .faq details > div {
   padding: 0 18px 17px;
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
 }
 
 /* Andar ke `<p>` ka apna padding nahi — wo wrapper se aa chuka hai. Sirf paragraph ka gap. */
@@ -3577,7 +3577,7 @@ a.mega__gl:hover {
   border-radius: var(--r2);
   font: inherit;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
+  font-weight: var(--xsmall-w, var(--fw-heading));
   color: var(--ink-2);
   background: none;
   cursor: pointer;
@@ -3744,7 +3744,7 @@ a.mega__gl:hover {
 .bkg__t del {
   font-size: var(--fs-small);
   color: color-mix(in srgb, var(--on-dark) 50%, transparent);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
 }
 
 .bkg__t b {
@@ -3760,7 +3760,7 @@ a.mega__gl:hover {
 .bkg__t span {
   font-size: var(--fs-xsmall);
   display: block;
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
 }
 
 .bkg__t i {
@@ -3768,8 +3768,8 @@ a.mega__gl:hover {
   display: inline-block;
   margin-top: 9px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.06em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.06em);
   text-transform: uppercase;
   color: var(--on-dark);
   background: color-mix(in srgb, var(--orange-500) 24%, transparent);
@@ -3822,7 +3822,7 @@ a.mega__gl:hover {
   display: block;
   text-align: center;
   font-size: var(--fs-xsmall);
-  line-height: 1.5;
+  line-height: var(--xsmall-lh, 1.5);
   color: var(--muted);
   margin-top: 10px;
 }
@@ -3834,8 +3834,8 @@ a.mega__gl:hover {
 .fld label {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.05em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.05em);
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 6px;
@@ -3850,7 +3850,7 @@ a.mega__gl:hover {
   border-radius: var(--r2);
   font: inherit;
   font-size: var(--fs-body);
-  font-weight: var(--fw-semi);
+  font-weight: var(--body-w, var(--fw-semi));
   color: var(--ink);
   background: var(--surface);
   transition: 0.14s;
@@ -3900,16 +3900,16 @@ a.mega__gl:hover {
 
 .fld--check span {
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: var(--body);
-  line-height: 1.5;
+  line-height: var(--small-lh, 1.5);
   text-transform: none;
-  letter-spacing: 0;
+  letter-spacing: var(--small-ls, 0);
 }
 
 .bkg__err {
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: var(--red-500);
   background: var(--red-100);
   border-radius: var(--r1);
@@ -4037,8 +4037,8 @@ a.mega__gl:hover {
   padding: 4px 9px;
   border-radius: var(--r1);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.06em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.06em);
   text-transform: uppercase;
   background: var(--orange-500);
   color: var(--on-dark);
@@ -4069,8 +4069,8 @@ a.mega__gl:hover {
  */
 .prow__b h3 {
   font-size: var(--fs-h3);
-  letter-spacing: -0.025em;
-  line-height: 1.25;
+  letter-spacing: var(--h3-ls, -0.025em);
+  line-height: var(--h3-lh, 1.25);
 }
 
 .prow:hover .prow__b h3 {
@@ -4083,7 +4083,7 @@ a.mega__gl:hover {
   gap: 6px;
   font-size: var(--fs-small);
   color: var(--muted);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
 }
 
 .prow__route svg {
@@ -4119,7 +4119,7 @@ a.mega__gl:hover {
 
 .prow__inc span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
   color: var(--ink-2);
   border: 1px solid var(--line);
   background: var(--blue-50);
@@ -4144,7 +4144,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--muted);
   margin-bottom: 8px;
 }
@@ -4166,13 +4166,13 @@ a.mega__gl:hover {
   padding: 2px 7px;
   border-radius: var(--r1);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
+  font-weight: var(--xsmall-w, var(--fw-heading));
 }
 
 .prow__p del {
   font-size: var(--fs-small);
   color: var(--faint);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
 }
 
 .prow__p strong {
@@ -4193,8 +4193,8 @@ a.mega__gl:hover {
   border-radius: var(--rf);
   background: var(--surface);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.06em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.06em);
   text-transform: uppercase;
   color: var(--blue-700);
   white-space: nowrap;
@@ -4223,7 +4223,7 @@ a.mega__gl:hover {
   padding: 0 9px;
   font: inherit;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   cursor: pointer;
   color: var(--blue-700);
   background: var(--surface);
@@ -4435,9 +4435,9 @@ a.mega__gl:hover {
 
 .revc__s {
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
+  font-weight: var(--small-w, var(--fw-heading));
   color: var(--gold);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--small-ls, 0.08em);
 }
 
 /*
@@ -4461,20 +4461,20 @@ a.mega__gl:hover {
 .revc__d {
   font-size: var(--fs-xsmall);
   color: var(--muted);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
 }
 
 .revc p {
   /* Baaki body copy ke saath — 13.5px se 14px (client, 1 Sep — P6). */
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--body);
 }
 
 .revc b {
   display: block;
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
+  font-weight: var(--small-w, var(--fw-heading));
   color: var(--ink);
   margin-top: 11px;
 }
@@ -4482,16 +4482,16 @@ a.mega__gl:hover {
 .revc b span {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: var(--muted);
 }
 
 /* Heading ke saath `— 4.9 average from 412 trips` — reference me inline `<span>`. */
 .rev__avg {
   font-size: var(--fs-body);
-  font-weight: var(--fw-bold);
+  font-weight: var(--body-w, var(--fw-bold));
   color: var(--muted);
-  letter-spacing: 0;
+  letter-spacing: var(--body-ls, 0);
 }
 
 .rev__nav {
@@ -4508,7 +4508,7 @@ a.mega__gl:hover {
   place-items: center;
   font: inherit;
   font-size: var(--fs-h3);
-  line-height: 1;
+  line-height: var(--h3-lh, 1);
   cursor: pointer;
   color: var(--blue-700);
   background: var(--surface);
@@ -4542,7 +4542,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 7px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--muted);
 }
 
@@ -4552,7 +4552,7 @@ a.mega__gl:hover {
   padding: 3px 8px;
   border-radius: var(--r1);
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
+  font-weight: var(--small-w, var(--fw-heading));
 }
 
 /*
@@ -4751,8 +4751,8 @@ a.mega__gl:hover {
   padding: 5px 12px;
   border-radius: var(--rf);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.03em;
+  font-weight: var(--small-w, var(--fw-bold));
+  letter-spacing: var(--small-ls, 0.03em);
 }
 
 /*
@@ -4922,8 +4922,8 @@ a.mega__gl:hover {
 .offer h2 {
   color: var(--on-dark);
   font-size: var(--fs-h2);
-  font-weight: var(--fw-black);
-  letter-spacing: -0.03em;
+  font-weight: var(--h2-w, var(--fw-black));
+  letter-spacing: var(--h2-ls, -0.03em);
 }
 
 .offer__live {
@@ -4936,8 +4936,8 @@ a.mega__gl:hover {
   padding: 5px 13px;
   border-radius: var(--rf);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.06em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.06em);
   text-transform: uppercase;
   margin-bottom: 12px;
 }
@@ -5140,8 +5140,8 @@ a.mega__gl:hover {
   align-items: center;
   gap: 7px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-xbold);
-  letter-spacing: 0.12em;
+  font-weight: var(--xsmall-w, var(--fw-xbold));
+  letter-spacing: var(--xsmall-ls, 0.12em);
   text-transform: uppercase;
   color: var(--on-dark-eyebrow);
   padding-top: 8px;
@@ -5188,9 +5188,9 @@ a.mega__gl:hover {
 .hf-hero h1 {
   color: var(--on-dark);
   font-size: var(--fs-h1);
-  line-height: 1.25;
-  font-weight: var(--fw-black);
-  letter-spacing: -0.04em;
+  line-height: var(--h1-lh, 1.25);
+  font-weight: var(--h1-w, var(--fw-black));
+  letter-spacing: var(--h1-ls, -0.04em);
   margin: 11px 0 0;
   max-width: 20ch;
   text-wrap: balance;
@@ -5207,7 +5207,7 @@ a.mega__gl:hover {
 .hf-hero__sub {
   color: color-mix(in srgb, var(--on-dark) 80%, transparent);
   font-size: var(--fs-h3);
-  line-height: 1.6;
+  line-height: var(--h3-lh, 1.6);
   margin-top: 11px;
   max-width: 60ch;
 }
@@ -5310,8 +5310,8 @@ a.mega__gl:hover {
 .vrail__c span {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-xbold);
-  letter-spacing: 0.08em;
+  font-weight: var(--xsmall-w, var(--fw-xbold));
+  letter-spacing: var(--xsmall-ls, 0.08em);
   text-transform: uppercase;
   color: var(--muted);
   margin-top: 5px;
@@ -5325,7 +5325,7 @@ a.mega__gl:hover {
 .vrail__c--p i {
   font-style: normal;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--muted);
   margin-left: 5px;
 }
@@ -5334,7 +5334,7 @@ a.mega__gl:hover {
 .vrail__c b i {
   font-style: normal;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--muted);
   margin-left: 5px;
 }
@@ -5397,7 +5397,7 @@ a.mega__gl:hover {
 /* `.sh p` wali hi jodi — muted subtitle, `--fs-md` pe. */
 .blk__intro {
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--muted);
   margin-bottom: 14px;
 }
@@ -5429,7 +5429,7 @@ a.mega__gl:hover {
 
 .sh h2 {
   font-size: var(--fs-h2);
-  font-weight: var(--fw-xbold);
+  font-weight: var(--h2-w, var(--fw-xbold));
 }
 
 /*
@@ -5466,8 +5466,8 @@ a.mega__gl:hover {
 
 .fbar__l {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.08em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.08em);
   text-transform: uppercase;
   color: var(--muted);
   margin-right: 2px;
@@ -5476,7 +5476,7 @@ a.mega__gl:hover {
 .fbar__c {
   margin-left: auto;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--muted);
 }
 
@@ -5486,7 +5486,7 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   background: var(--surface);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--body);
   cursor: pointer;
 }
@@ -5552,7 +5552,7 @@ a.mega__gl:hover {
  */
 .dcard p {
   font-size: var(--fs-body);
-  line-height: 1.5;
+  line-height: var(--body-lh, 1.5);
   margin: 0;
 }
 
@@ -5562,7 +5562,7 @@ a.mega__gl:hover {
   display: inline-block;
   margin-top: 9px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-xbold);
+  font-weight: var(--xsmall-w, var(--fw-xbold));
   color: var(--blue-700);
   background: var(--blue-50);
   border: 1px solid var(--blue-100);
@@ -5713,7 +5713,7 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
   color: color-mix(in srgb, var(--on-dark) 80%, transparent);
 }
 
@@ -5758,7 +5758,7 @@ a.mega__gl:hover {
 
 .wdg--cta p {
   font-size: var(--fs-small);
-  line-height: 1.55;
+  line-height: var(--small-lh, 1.55);
   margin-bottom: 14px;
 }
 
@@ -5872,7 +5872,7 @@ a.mega__gl:hover {
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--ink-2);
 }
 
@@ -5905,7 +5905,7 @@ a.mega__gl:hover {
  */
 .prow__off {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-xbold);
+  font-weight: var(--xsmall-w, var(--fw-xbold));
   color: var(--green-600);
 }
 
@@ -5936,8 +5936,8 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.06em;
+  font-weight: var(--small-w, var(--fw-black));
+  letter-spacing: var(--small-ls, 0.06em);
   text-transform: uppercase;
   color: var(--blue-600);
   white-space: nowrap;
@@ -5978,8 +5978,8 @@ a.mega__gl:hover {
   gap: 5px;
   align-self: flex-start;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.09em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.09em);
   text-transform: uppercase;
   padding: 5px 10px;
   border-radius: var(--rf);
@@ -6011,8 +6011,8 @@ a.mega__gl:hover {
 }
 .bfilter__l {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.08em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.08em);
   text-transform: uppercase;
   color: var(--muted);
   margin-right: 2px;
@@ -6020,7 +6020,7 @@ a.mega__gl:hover {
 .bfilter__c {
   margin-left: auto;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--muted);
 }
 .bpg {
@@ -6088,8 +6088,8 @@ a.mega__gl:hover {
 }
 .bp__b h3 {
   font-size: var(--fs-h3);
-  line-height: 1.35;
-  letter-spacing: -0.02em;
+  line-height: var(--h3-lh, 1.35);
+  letter-spacing: var(--h3-ls, -0.02em);
 }
 .bp:hover .bp__b h3 {
   color: var(--blue-700);
@@ -6104,7 +6104,7 @@ a.mega__gl:hover {
  */
 .bp__x {
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--body);
 }
 .bp__f {
@@ -6116,7 +6116,7 @@ a.mega__gl:hover {
   padding-top: 11px;
   border-top: 1px solid var(--line-2);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: var(--muted);
 }
 .bp__f i {
@@ -6151,7 +6151,7 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   background: var(--surface);
   font-size: var(--fs-body);
-  font-weight: var(--fw-bold);
+  font-weight: var(--body-w, var(--fw-bold));
   color: var(--body);
 }
 .pager a:hover {
@@ -6188,7 +6188,7 @@ a.mega__gl:hover {
   padding: 9px 0;
   border-bottom: 1px dashed var(--line-2);
   font-size: var(--fs-body);
-  font-weight: var(--fw-bold);
+  font-weight: var(--body-w, var(--fw-bold));
   color: var(--ink-2);
 }
 .cats li:last-child a,
@@ -6202,7 +6202,7 @@ a.mega__gl:hover {
 }
 .cats span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-xbold);
+  font-weight: var(--xsmall-w, var(--fw-xbold));
   color: var(--muted);
   padding: 2px 9px;
   background: var(--line-2);
@@ -6232,8 +6232,8 @@ a.mega__gl:hover {
 .pop b {
   display: block;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
-  line-height: 1.4;
+  font-weight: var(--small-w, var(--fw-bold));
+  line-height: var(--small-lh, 1.4);
   color: var(--ink);
 }
 .pop a:hover b {
@@ -6242,7 +6242,7 @@ a.mega__gl:hover {
 .pop span {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: var(--muted);
   margin-top: 3px;
 }
@@ -6259,8 +6259,8 @@ a.mega__gl:hover {
   display: inline-flex;
   align-items: center;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.12em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.12em);
   text-transform: uppercase;
   color: var(--on-dark);
   background: var(--blue-600);
@@ -6303,22 +6303,22 @@ a.mega__gl:hover {
   display: grid;
   place-items: center;
   font-size: var(--fs-small);
-  font-weight: var(--fw-black);
-  letter-spacing: -0.02em;
-  line-height: 1;
+  font-weight: var(--small-w, var(--fw-black));
+  letter-spacing: var(--small-ls, -0.02em);
+  line-height: var(--small-lh, 1);
   flex-shrink: 0;
 }
 .ahead__au b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-xbold);
+  font-weight: var(--body-w, var(--fw-xbold));
   color: var(--on-dark);
 }
 .ahead__au b + span {
   display: block;
   font-size: var(--fs-xsmall);
   color: color-mix(in srgb, var(--on-dark) 62%, transparent);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
 }
 .ahead__dot {
   width: 3px;
@@ -6328,7 +6328,7 @@ a.mega__gl:hover {
 }
 .ahead__x {
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
@@ -6437,7 +6437,7 @@ a.mega__gl:hover {
   font-size: var(--fs-small);
   color: var(--muted);
   /* margin-top: 9px; */
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
 }
 
 /*
@@ -6490,13 +6490,13 @@ a.mega__gl:hover {
  * chhup jaati hai.
  */
 .art h2 {
-  letter-spacing: -0.03em;
+  letter-spacing: var(--h2-ls, -0.03em);
   margin-top: clamp(26px, 3vw, 36px);
   scroll-margin-top: 96px;
 }
 /* Naap aur neeche ka 7px gap `.blk h3` se — sirf upar ka margin article ka apna. */
 .art h3 {
-  letter-spacing: -0.02em;
+  letter-spacing: var(--h3-ls, -0.02em);
   margin-top: 24px;
 }
 .art b,
@@ -6524,7 +6524,7 @@ a.mega__gl:hover {
   display: block;
   padding-left: 19px;
   font-size: var(--fs-body);
-  line-height: 1.65;
+  line-height: var(--body-lh, 1.65);
   color: var(--body);
 }
 .art ul li::before {
@@ -6545,7 +6545,7 @@ a.mega__gl:hover {
   display: block;
   padding-left: 36px;
   font-size: var(--fs-body);
-  line-height: 1.65;
+  line-height: var(--body-lh, 1.65);
   color: var(--body);
   min-height: 25px;
 }
@@ -6561,7 +6561,7 @@ a.mega__gl:hover {
   background: var(--blue-50);
   color: var(--blue-700);
   font-size: var(--fs-small);
-  font-weight: var(--fw-black);
+  font-weight: var(--small-w, var(--fw-black));
   display: grid;
   place-items: center;
 }
@@ -6594,13 +6594,13 @@ a.mega__gl:hover {
 .callout b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-black);
+  font-weight: var(--body-w, var(--fw-black));
   color: var(--ink);
   margin-bottom: 4px;
 }
 .callout p {
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--body);
 }
 .callout--w {
@@ -6636,8 +6636,8 @@ a.mega__gl:hover {
 }
 .share b {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.1em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.1em);
   text-transform: uppercase;
   color: var(--muted);
   margin-right: 2px;
@@ -6675,29 +6675,29 @@ a.mega__gl:hover {
   display: grid;
   place-items: center;
   font-size: var(--fs-h3);
-  font-weight: var(--fw-black);
-  line-height: 1;
-  letter-spacing: -0.02em;
+  font-weight: var(--h3-w, var(--fw-black));
+  line-height: var(--h3-lh, 1);
+  letter-spacing: var(--h3-ls, -0.02em);
   flex-shrink: 0;
 }
 .authorbox b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-xbold);
+  font-weight: var(--body-w, var(--fw-xbold));
   color: var(--ink);
 }
 .authorbox b + span {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.06em;
+  font-weight: var(--xsmall-w, var(--fw-bold));
+  letter-spacing: var(--xsmall-ls, 0.06em);
   text-transform: uppercase;
   color: var(--muted);
   margin: 3px 0 7px;
 }
 .authorbox p {
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--body);
 }
 .pn {
@@ -6722,16 +6722,16 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.1em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.1em);
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 7px;
 }
 .pn b {
   font-size: var(--fs-body);
-  font-weight: var(--fw-xbold);
-  line-height: 1.35;
+  font-weight: var(--body-w, var(--fw-xbold));
+  line-height: var(--body-lh, 1.35);
   color: var(--ink);
 }
 .pn a:hover b {
@@ -6750,9 +6750,9 @@ a.mega__gl:hover {
   padding: 8px 0 8px 13px;
   border-left: 2px solid var(--line-2);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--body);
-  line-height: 1.45;
+  line-height: var(--small-lh, 1.45);
 }
 .toc li a:hover {
   color: var(--blue-600);
@@ -6880,7 +6880,7 @@ a.mega__gl:hover {
 .fcard p {
   color: color-mix(in srgb, var(--on-dark) 78%, transparent);
   font-size: var(--fs-body);
-  line-height: 1.55;
+  line-height: var(--body-lh, 1.55);
   margin-top: 9px;
   max-width: 52ch;
 }
@@ -6892,7 +6892,7 @@ a.mega__gl:hover {
   flex-wrap: wrap;
   margin-top: 12px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: color-mix(in srgb, var(--on-dark) 70%, transparent);
 }
 
@@ -6919,8 +6919,8 @@ a.mega__gl:hover {
 
 .bfilter__l {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.08em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.08em);
   text-transform: uppercase;
   color: var(--muted);
   margin-right: 2px;
@@ -6929,7 +6929,7 @@ a.mega__gl:hover {
 .bfilter__c {
   margin-left: auto;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--muted);
 }
 
@@ -6956,7 +6956,7 @@ a.mega__gl:hover {
   border: 1.5px solid var(--line);
   background: var(--surface);
   font-size: var(--fs-body);
-  font-weight: var(--fw-bold);
+  font-weight: var(--body-w, var(--fw-bold));
   color: var(--body);
 }
 
@@ -7200,7 +7200,7 @@ a.mega__gl:hover {
 
 .hf-stat span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
@@ -7221,8 +7221,8 @@ a.mega__gl:hover {
   background: var(--green-600);
   color: var(--on-dark);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.05em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.05em);
   text-transform: uppercase;
   padding: 4px 10px;
   border-radius: var(--rf);
@@ -7247,7 +7247,7 @@ a.mega__gl:hover {
  */
 .hf-card__head > div {
   font-size: var(--fs-small);
-  line-height: 1.5;
+  line-height: var(--small-lh, 1.5);
   color: var(--muted);
   margin-top: 4px;
 }
@@ -7350,13 +7350,13 @@ a.mega__gl:hover {
  */
 .hsh h2 {
   font-size: var(--fs-h2);
-  font-weight: var(--fw-heading);
+  font-weight: var(--h2-w, var(--fw-heading));
 }
 
 /* Line editor se aati hai — `<p>` ho ya na ho, naap `.hsh__d` pe (A-19). */
 .hsh__d {
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--muted);
   margin-top: 4px;
 }
@@ -7370,8 +7370,8 @@ a.mega__gl:hover {
   align-items: center;
   gap: 6px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.06em;
+  font-weight: var(--small-w, var(--fw-heading));
+  letter-spacing: var(--small-ls, 0.06em);
   text-transform: uppercase;
   color: var(--blue-600);
   white-space: nowrap;
@@ -7481,8 +7481,8 @@ a.mega__gl:hover {
 /* `.art__t` — BLOG / ARTICLE */
 .icc__t {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.12em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.12em);
   text-transform: uppercase;
   color: var(--orange-500);
 }
@@ -7490,15 +7490,15 @@ a.mega__gl:hover {
 .icc h3 {
   /* 16px — client, 15 Sep (design ka 15px nahi). */
   font-size: var(--fs-h3);
-  font-weight: var(--fw-heading);
+  font-weight: var(--h3-w, var(--fw-heading));
   color: var(--ink);
-  line-height: 1.35;
+  line-height: var(--h3-lh, 1.35);
 }
 
 /* Description — **body font** (client, 15 Sep), design ka 12.5px nahi. Wahi jo `.blk p` ka hai. */
 .icc p {
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--body);
 }
 
@@ -7668,14 +7668,14 @@ a.mega__gl:hover {
   z-index: 2;
   color: var(--on-dark);
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
-  line-height: 1.35;
+  font-weight: var(--small-w, var(--fw-heading));
+  line-height: var(--small-lh, 1.35);
 }
 
 .vrl__n span {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: color-mix(in srgb, var(--on-dark) 70%, transparent);
 }
 
@@ -7795,13 +7795,13 @@ a.imcc:hover img {
   display: block;
   color: var(--on-dark);
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
-  line-height: 1.3;
+  font-weight: var(--body-w, var(--fw-heading));
+  line-height: var(--body-lh, 1.3);
 }
 
 .imcc__b span {
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: color-mix(in srgb, var(--on-dark) 72%, transparent);
 }
 
@@ -7812,7 +7812,7 @@ a.imcc:hover img {
   margin-top: 7px;
   margin-left: 7px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
+  font-weight: var(--xsmall-w, var(--fw-heading));
   background: color-mix(in srgb, var(--on-dark) 18%, transparent);
   border: 1px solid color-mix(in srgb, var(--on-dark) 20%, transparent);
   padding: 3px 8px;
@@ -7897,7 +7897,7 @@ a.imcc:hover img {
   margin: 0;
   flex: 1;
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--ink-2);
 }
 
@@ -7920,14 +7920,14 @@ a.imcc:hover img {
   background: linear-gradient(135deg, var(--blue-500), var(--blue-900));
   color: var(--muted);
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
 }
 
 /* Naam — body font (client, 15 Sep), design ka 13.5px nahi. */
 .tmc figcaption b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   color: var(--ink);
 }
 
@@ -7991,16 +7991,16 @@ a.imcc:hover img {
 /* Image ke neeche heading — chhoti line */
 .lgg__t span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
   color: var(--muted);
-  line-height: 1.2;
+  line-height: var(--xsmall-lh, 1.2);
 }
 
 /* Bina image ke — sirf naam, reference ka `.clogo` */
 .lgg__t--text span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.02em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.02em);
   color: var(--faint);
 }
 
@@ -8018,9 +8018,9 @@ a.imcc:hover img {
 .lgg__c b {
   display: block;
   font-size: var(--fs-h3);
-  font-weight: var(--fw-black);
+  font-weight: var(--h3-w, var(--fw-black));
   color: var(--ink);
-  letter-spacing: 0.06em;
+  letter-spacing: var(--h3-ls, 0.06em);
 }
 
 .lgg__c span {
@@ -8056,7 +8056,7 @@ a.imcc:hover img {
   background: var(--surface);
   font: inherit;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--body);
   cursor: pointer;
 }
@@ -8129,8 +8129,8 @@ a.imcc:hover img {
   padding: 4px 9px;
   border-radius: var(--r1);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.02em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.02em);
   text-transform: uppercase;
   color: var(--on-dark);
   background: var(--orange-500);
@@ -8157,8 +8157,8 @@ a.imcc:hover img {
 
 .ipkc__b h3 {
   font-size: var(--fs-h3);
-  font-weight: var(--fw-heading);
-  line-height: 1.35;
+  font-weight: var(--h3-w, var(--fw-heading));
+  line-height: var(--h3-lh, 1.35);
   min-height: 2.7em;
 }
 
@@ -8167,9 +8167,9 @@ a.imcc:hover img {
   align-items: self-start;
   gap: 4px;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: var(--muted);
-  line-height: 1.4;
+  line-height: var(--xsmall-lh, 1.4);
 }
 
 .ipkc__route svg {
@@ -8189,7 +8189,7 @@ a.imcc:hover img {
   border-radius: var(--r1);
   background: var(--line-2);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
   color: var(--body);
 }
 
@@ -8212,7 +8212,7 @@ a.imcc:hover img {
 
 .ipkc__pr del {
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: var(--faint);
 }
 
@@ -8228,7 +8228,7 @@ a.imcc:hover img {
   align-items: center;
   gap: 4px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-heading);
+  font-weight: var(--small-w, var(--fw-heading));
 }
 
 .ipkc__rt b {
@@ -8355,8 +8355,8 @@ a.imcc:hover img {
   background: var(--orange-500);
   color: var(--on-dark);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.02em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.02em);
   text-transform: uppercase;
 }
 
@@ -8370,14 +8370,14 @@ a.imcc:hover img {
 
 .ofcc--top h3 {
   font-size: var(--fs-h3);
-  font-weight: var(--fw-heading);
-  line-height: 1.35;
+  font-weight: var(--h3-w, var(--fw-heading));
+  line-height: var(--h3-lh, 1.35);
   color: var(--ink);
 }
 
 .ofcc--top .ofcc__sub {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: var(--muted);
 }
 
@@ -8392,7 +8392,7 @@ a.imcc:hover img {
   border-radius: var(--r1);
   background: var(--line-2);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
   color: var(--body);
 }
 
@@ -8413,7 +8413,7 @@ a.imcc:hover img {
 
 .ofcc--top .ofcc__pr del {
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: var(--faint);
 }
 
@@ -8427,7 +8427,7 @@ a.imcc:hover img {
 .ofcc--top .ofcc__pr i {
   font-style: normal;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-semi);
+  font-weight: var(--xsmall-w, var(--fw-semi));
   color: var(--muted);
 }
 
@@ -8437,7 +8437,7 @@ a.imcc:hover img {
   background: var(--green-600);
   color: var(--on-dark);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
+  font-weight: var(--xsmall-w, var(--fw-heading));
 }
 
 /* ---- image background — `.cat` ---- */
@@ -8493,7 +8493,7 @@ a.imcc:hover img {
   display: block;
   color: var(--on-dark);
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
 }
 
 .ofcc--bg .ofcc__sub {
@@ -8507,9 +8507,9 @@ a.imcc:hover img {
   display: block;
   margin-top: 6px;
   font-size: var(--fs-h3);
-  font-weight: var(--fw-black);
+  font-weight: var(--h3-w, var(--fw-black));
   color: var(--on-dark-price);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--h3-ls, -0.02em);
 }
 
 @media (max-width: 1024px) {
@@ -8563,14 +8563,14 @@ a.imcc:hover img {
 
 .txv__c h2 {
   font-size: var(--fs-h2);
-  font-weight: var(--fw-heading);
+  font-weight: var(--h2-w, var(--fw-heading));
   margin-bottom: 12px;
 }
 
 /* Editor ki HTML — `<p>` ho ya na ho, naap div pe (A-19). Body font (client). */
 .txv__t {
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
   color: var(--body);
 }
 
@@ -8611,14 +8611,14 @@ a.imcc:hover img {
 .txv__pt b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   color: var(--ink);
   margin-bottom: 2px;
 }
 
 .txv__pt p {
   font-size: var(--fs-body);
-  line-height: 1.55;
+  line-height: var(--body-lh, 1.55);
   color: var(--body);
 }
 
@@ -8717,7 +8717,7 @@ a.txv__box:hover .txv__p {
 .txv__cap b {
   display: block;
   font-size: var(--fs-h3);
-  font-weight: var(--fw-heading);
+  font-weight: var(--h3-w, var(--fw-heading));
 }
 
 .txv__cap span {
@@ -8783,16 +8783,16 @@ a.txv__box:hover .txv__p {
 .awb__b b {
   display: block;
   font-size: var(--fs-body);
-  font-weight: var(--fw-black);
-  letter-spacing: -0.02em;
+  font-weight: var(--body-w, var(--fw-black));
+  letter-spacing: var(--body-ls, -0.02em);
   color: color-mix(in srgb, var(--awb-c, var(--gold)) 56%, var(--black));
 }
 
 .awb__b span {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.06em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.06em);
   text-transform: uppercase;
   color: color-mix(in srgb, var(--awb-c, var(--gold)) 72%, var(--black));
 }
@@ -8848,7 +8848,7 @@ a.txv__box:hover .txv__p {
   cursor: pointer;
   list-style: none;
   font-size: var(--fs-body);
-  font-weight: var(--fw-bold);
+  font-weight: var(--body-w, var(--fw-bold));
   color: var(--blue-600);
 }
 
@@ -8971,7 +8971,7 @@ a.txv__box:hover .txv__p {
   bottom: 12px;
   z-index: 2;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
+  font-weight: var(--xsmall-w, var(--fw-bold));
   color: var(--faint);
 }
 
@@ -9041,7 +9041,7 @@ a.txv__box:hover .txv__p {
 
 .home-island-map .ipanel__b > p {
   font-size: var(--fs-body);
-  line-height: 1.6;
+  line-height: var(--body-lh, 1.6);
 }
 
 /* "Don't miss" ke chips */
@@ -9053,8 +9053,8 @@ a.txv__box:hover .txv__p {
 
 .home-island-map .ihl__h {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.07em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.07em);
   text-transform: uppercase;
   color: var(--faint);
 }
@@ -9074,7 +9074,7 @@ a.txv__box:hover .txv__p {
   border-radius: var(--rf);
   background: var(--map-chip);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--ink-2);
 }
 
@@ -9096,16 +9096,16 @@ a.txv__box:hover .txv__p {
 .home-island-map .icount b {
   display: block;
   font-size: var(--fs-h3);
-  font-weight: var(--fw-black);
-  line-height: 1;
-  letter-spacing: -0.03em;
+  font-weight: var(--h3-w, var(--fw-black));
+  line-height: var(--h3-lh, 1);
+  letter-spacing: var(--h3-ls, -0.03em);
   color: var(--blue-700);
 }
 
 .home-island-map .icount span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.05em;
+  font-weight: var(--xsmall-w, var(--fw-bold));
+  letter-spacing: var(--xsmall-ls, 0.05em);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -9133,7 +9133,7 @@ a.txv__box:hover .txv__p {
   border-radius: var(--rf);
   background: var(--surface);
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
+  font-weight: var(--small-w, var(--fw-bold));
   color: var(--body);
 }
 
@@ -9321,17 +9321,17 @@ a.txv__box:hover .txv__p {
 
 .contact-methods .cmeth span {
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.1em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.1em);
   text-transform: uppercase;
   color: var(--muted);
 }
 
 .contact-methods .cmeth b {
   font-size: var(--fs-h3);
-  font-weight: var(--fw-heading);
-  line-height: 1.3;
-  letter-spacing: -0.02em;
+  font-weight: var(--h3-w, var(--fw-heading));
+  line-height: var(--h3-lh, 1.3);
+  letter-spacing: var(--h3-ls, -0.02em);
   color: var(--ink);
   word-break: break-word;
 }
@@ -9339,7 +9339,7 @@ a.txv__box:hover .txv__p {
 .contact-methods .cmeth em {
   font-style: normal;
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: var(--body);
 }
 
@@ -9380,8 +9380,8 @@ a.txv__box:hover .txv__p {
   display: block;
   margin-top: 4px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
-  line-height: 1.5;
+  font-weight: var(--small-w, var(--fw-semi));
+  line-height: var(--small-lh, 1.5);
   color: var(--body);
 }
 
@@ -9415,8 +9415,8 @@ a.txv__box:hover .txv__p {
   background: var(--blue-600);
   color: var(--on-dark);
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-black);
-  letter-spacing: 0.1em;
+  font-weight: var(--xsmall-w, var(--fw-black));
+  letter-spacing: var(--xsmall-ls, 0.1em);
   text-transform: uppercase;
 }
 
@@ -9427,13 +9427,13 @@ a.txv__box:hover .txv__p {
 
 .contact-offices .offc h3 {
   font-size: var(--fs-h3);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--h3-ls, -0.02em);
 }
 
 .contact-offices .offc address {
   font-style: normal;
   font-size: var(--fs-body);
-  line-height: 1.65;
+  line-height: var(--body-lh, 1.65);
   color: var(--body);
 }
 
@@ -9552,15 +9552,15 @@ a.txv__box:hover .txv__p {
 .contact-quick .wdgc b {
   display: block;
   font-size: var(--fs-xsmall);
-  font-weight: var(--fw-heading);
-  letter-spacing: 0.08em;
+  font-weight: var(--xsmall-w, var(--fw-heading));
+  letter-spacing: var(--xsmall-ls, 0.08em);
   text-transform: uppercase;
   color: var(--muted);
 }
 
 .contact-quick .wdgc a {
   font-size: var(--fs-body);
-  font-weight: var(--fw-heading);
+  font-weight: var(--body-w, var(--fw-heading));
   color: var(--ink);
 }
 
@@ -9624,7 +9624,7 @@ a.txv__box:hover .txv__p {
   gap: 8px;
   margin-top: 12px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-semi);
+  font-weight: var(--small-w, var(--fw-semi));
   color: var(--muted);
 }
 
@@ -9766,15 +9766,15 @@ a.txv__box:hover .txv__p {
 .nf h1 {
   margin-top: 6px;
   font-size: var(--fs-h1);
-  font-weight: var(--fw-heading);
-  letter-spacing: -0.02em;
+  font-weight: var(--h1-w, var(--fw-heading));
+  letter-spacing: var(--h1-ls, -0.02em);
   color: var(--ink);
 }
 
 .nf p {
   margin-top: 10px;
   font-size: var(--fs-body);
-  line-height: 1.7;
+  line-height: var(--body-lh, 1.7);
   color: var(--body);
 }
 
@@ -9790,8 +9790,8 @@ a.txv__box:hover .txv__p {
 .nf__site {
   margin-top: 26px;
   font-size: var(--fs-small);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.12em;
+  font-weight: var(--small-w, var(--fw-bold));
+  letter-spacing: var(--small-ls, 0.12em);
   text-transform: uppercase;
   color: var(--faint);
 }

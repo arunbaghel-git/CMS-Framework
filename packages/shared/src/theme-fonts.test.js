@@ -67,6 +67,51 @@ describe('Settings ▸ Fonts (theme-fonts)', () => {
     expect(root('--fs-xsmall')).toBe(d('xsmall').size)
   })
 
+  it('Small ka weight/line/spacing badla — unke variable jaate hain (tag nahi, key se)', () => {
+    const fonts = defaultThemeFonts()
+    fonts.scale.small = {
+      size: 13,
+      sizeTablet: 13,
+      sizeMobile: 13,
+      weight: '600',
+      lh: 1.4,
+      ls: 0.2,
+    }
+    const out = themeFontCss(fonts)
+    // size nahi badla — wo nahi jaata
+    expect(out).not.toContain('--fs-small')
+    expect(out).toContain('--small-w:600')
+    expect(out).toContain('--small-lh:1.4')
+    expect(out).toContain('--small-ls:0.2px')
+  })
+
+  it('sirf size badla — weight/line/spacing ke variable nahi jaate (rules ke apne weight bache rahein)', () => {
+    const fonts = defaultThemeFonts()
+    fonts.scale.h3 = { ...fonts.scale.h3, size: 18, sizeTablet: 18, sizeMobile: 17 }
+    const out = themeFontCss(fonts)
+    expect(out).toContain('--fs-h3:18px')
+    expect(out).not.toContain('--h3-w')
+    expect(out).not.toContain('--h3-lh')
+    expect(out).not.toContain('--h3-ls')
+  })
+
+  it('globals.css ka har weight/line/spacing jo level-size rule me hai, us level ke variable ke peeche', () => {
+    const clean = css.replace(/\/\*[\s\S]*?\*\//g, '')
+    const blocks = [...clean.matchAll(/\{([^{}]*)\}/g)].map((m) => m[1])
+    const LEVELS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'small', 'xsmall']
+    let checked = 0
+    for (const b of blocks) {
+      const lv = (b.match(/font-size:\s*var\(--fs-([a-z0-9]+)\)/) || [])[1]
+      if (!LEVELS.includes(lv)) continue
+      for (const m of b.matchAll(/(font-weight|line-height|letter-spacing):\s*([^;]+);/g)) {
+        expect(m[2].startsWith(`var(--${lv}-`), m[0]).toBe(true)
+        checked++
+      }
+    }
+    // ~290 declaration — koi naya rule bina variable ke juda to yahi test pakdega
+    expect(checked).toBeGreaterThan(250)
+  })
+
   it('custom font — @font-face apni site ke URL se, heading token', () => {
     const fonts = defaultThemeFonts()
     fonts.heading = {
