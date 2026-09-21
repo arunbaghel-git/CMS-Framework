@@ -96,6 +96,7 @@ export default function General() {
       phone: settings.phone,
       whatsapp: settings.whatsapp,
       quoteUrl: settings.quoteUrl ?? '',
+      floatingContactSide: settings.floatingContactSide ?? 'right',
       address: settings.address,
       social: settings.social,
     }
@@ -374,6 +375,30 @@ export default function General() {
                 <div className="hint">
                   Where the <b>Get free quote</b> button on the mobile bar goes, on pages without a
                   form of their own. Leave it empty and that button is not shown.
+                </div>
+              </div>
+
+              {/*
+                Do gol button jo desktop pe har page ke kone me chipke rehte hain.
+                On/off ka alag switch nahi hai — Phone aur WhatsApp dono khaali karo to wo
+                apne aap gayab (wahi guard jo mobile patti pe hai). Hint yahi batati hai,
+                warna client "band kaise karun" pe atak jaata.
+              */}
+              <div className="field">
+                <label htmlFor="s-float-side">Floating buttons position</label>
+                <select
+                  id="s-float-side"
+                  className="sel"
+                  value={settings.floatingContactSide ?? 'right'}
+                  onChange={set('floatingContactSide')}
+                >
+                  <option value="right">Right</option>
+                  <option value="left">Left</option>
+                </select>
+                <div className="hint">
+                  Which corner the round <b>WhatsApp</b> and <b>Phone</b> buttons sit in on desktop.
+                  They use the numbers above — clear both and the buttons are not shown. On phones
+                  the bottom bar replaces them.
                 </div>
               </div>
 

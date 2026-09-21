@@ -830,3 +830,19 @@ Custom CSS · 301 Redirects · …
   desktop/mobile · Block spacing desktop/mobile · Cards gap rows/columns, har jodi ke neeche ek hint) · Corners & Shadows (Sharp/Soft/Round, None/Soft/
   Strong) · Buttons (height, shape) · Header (height desktop/mobile, logo height desktop/mobile — header se bada ho to laal
   hint, logo max width, sticky) · Footer (logo height, max width, white box) · Preview (1600px scaled + header/footer real size)
+
+### Settings ▸ General — Contact & Social me ek naya dropdown (21 Sep, D-102)
+
+`Get quote link` ke theek baad: **Floating buttons position** — `Right` (default) · `Left`.
+
+Ye desktop pe har page ke kone me chipke do gol button (WhatsApp + phone) ka side chunta hai —
+reference ka `.float`. Client ka shabd: _"left ya right ka dropdown **for both buttons**"_, yaani
+dono ke liye **ek hi** field.
+
+⚠️ **On/off ka koi checkbox nahi, aur wo jaan-boojh kar nahi hai.** Button usi `Phone` aur
+`WhatsApp Number` se bante hain jo isi panel me upar hain — dono khaali karo to button apne aap
+gayab (wahi D-30 guard jo mobile patti pe hai). Field ke neeche ki hint yahi batati hai, warna
+client "inhe band kaise karun" pe atak jaata.
+
+⚠️ Hint field ke **andar** hai (`quoteUrl` ka hi pattern), bahar nahi — panel `.row2` grid hai aur
+alag `div.field` ek poora khaali khaana kha leta.

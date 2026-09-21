@@ -572,3 +572,56 @@ describe('Settings ▸ Fonts — themeFonts + upload (17 Sep)', () => {
     expect(res.status).toBe(400)
   })
 })
+
+/**
+ * Desktop ke do floating button (client, 21 Sep).
+ *
+ * Reference ka `.float` saaton site reference me tha par theme me kabhi bana nahi — isliye
+ * yahan sabse zaroori test wo hai jo **poori chain** dekhe: Zod → DB → public payload. Beech
+ * me se ek kadam chhoot jaana hi is repo ka sabse aam bug hai (D-89: "bana hua par juda nahi").
+ */
+describe('Settings ▸ General — floating buttons ka side (21 Sep)', () => {
+  const side = (value) =>
+    authed('patch', '/api/settings', adminJar).send({ floatingContactSide: value })
+
+  it('left DB tak jaata hai aur public payload me bhi', async () => {
+    expect((await side('left')).status).toBe(200)
+
+    /**
+     * ⚠️ Response nahi, **DB** padho. Settings ka model `strict` hai — field model me na ho
+     * to Mongoose use bina kuch kahe gira deta hai, API phir bhi 200 deti hai aur admin
+     * "Saved." dikhata hai.
+     */
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.floatingContactSide).toBe('left')
+
+    const { getPublicSettings } = await import('../modules/public/service.js')
+    expect((await getPublicSettings()).floatingContactSide).toBe('left')
+  })
+
+  it('default right hai, aur purani settings pe bhi right hi milta hai', async () => {
+    const { getPublicSettings } = await import('../modules/public/service.js')
+    expect((await getPublicSettings()).floatingContactSide).toBe('right')
+
+    /** Jis site ne ye field kabhi save hi nahi kiya — payload me phir bhi `right` */
+    await Settings.updateOne({}, { $unset: { floatingContactSide: '' } })
+    expect((await getPublicSettings()).floatingContactSide).toBe('right')
+  })
+
+  it('anjaan value pe 400 — `center` jaisa kuch CSS me class bana deta', async () => {
+    expect((await side('center')).status).toBe(400)
+    expect((await side('')).status).toBe(400)
+  })
+
+  it('side badalne se phone/whatsapp nahi udte', async () => {
+    await authed('patch', '/api/settings', adminJar)
+      .send({ phone: '+91 98100 66496', whatsapp: '+91 98100 66496' })
+      .expect(200)
+
+    await side('left').expect(200)
+
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.phone).toBe('+91 98100 66496')
+    expect(doc.whatsapp).toBe('+91 98100 66496')
+  })
+})

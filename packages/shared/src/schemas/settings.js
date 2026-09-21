@@ -785,6 +785,25 @@ export const settingsSchema = z.object({
    */
   quoteUrl: z.string().trim().max(500).default(''),
 
+  /**
+   * Desktop pe chipke hue do gol button — WhatsApp aur phone — kis taraf rahein (client, 21 Sep).
+   *
+   * Ye reference ka `.float` hai aur wo **saaton site reference me maujood tha** (`home-nav-v3` ·
+   * `tour-v3` · `itinerary-v3` · `blog-v1` · `blog-detail-v1` · `contact-us` ·
+   * `page-template-text`), bilkul ek hi CSS ke saath — par theme me kabhi bana hi nahi. Yaani ye
+   * naya feature nahi, **chhoota hua** hissa hai (R15). Reference me wo hamesha `right` pe hai;
+   * `left` client ka maanga hua vikalp hai.
+   *
+   * ⚠️ **Iska koi on/off toggle jaan-boojh kar nahi hai.** Buttons `phone` aur `whatsapp` se hi
+   * bante hain — dono khaali ho to component khud `null` lautata hai (wahi D-30 wala guard jo
+   * `.mobar` pe hai). Alag toggle rakhne ka matlab hota "band" ke **do** matlab, aur wo ek din
+   * alag ho jaate: number bhara hua par toggle off, ya ulta.
+   *
+   * ⚠️ 760px se neeche ye dikhte hi nahi — wahan `.mobar` pehle se yahi do kaam karti hai. Dono
+   * ek saath dikhna hi is field ka sabse aasan tootna hai, isliye wo rok **CSS me** hai.
+   */
+  floatingContactSide: z.enum(['right', 'left']).default('right'),
+
   searchEngineVisible: z.boolean().default(false),
 
   /**

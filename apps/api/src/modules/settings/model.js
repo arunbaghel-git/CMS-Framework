@@ -156,6 +156,9 @@ const settingsSchema = new mongoose.Schema(
     /** Mobile patti ka Get free quote link — khaali to wo button nahi aata (client, 16 Sep). */
     quoteUrl: { type: String, default: '' },
 
+    /** Desktop ke do floating button kis taraf — `right` (reference) ya `left` (client, 21 Sep). */
+    floatingContactSide: { type: String, default: 'right' },
+
     /** Staging pe safe default — spec 004 §3. Launch pe manually on hota hai. */
     searchEngineVisible: { type: Boolean, default: false },
 

@@ -3564,6 +3564,59 @@ a.mega__gl:hover {
    Isliye tokens page ke hain, par shakl yahin tay hui hai.
    ================================================================== */
 
+/* ---------- desktop ke do floating button ----------
+   Reference: `.float` — saaton site reference me bilkul ek jaisa
+   (home-nav-v3 · tour-v3 · itinerary-v3 · blog-v1 · blog-detail-v1 · contact-us ·
+   page-template-text). Theme me ye kabhi bana hi nahi tha (client, 21 Sep).
+
+   Reference me ye hamesha daayein hai. `left` client ka maanga hua vikalp hai, aur wo
+   ek **modifier** se aata hai — `.float` ko seedha badalna wahi galti hoti jo `.pgl`
+   pe bachayi gayi thi (D-87 §11): base class kai jagah padhi jaati hai.
+
+   ⚠️ z-index ka kram reference se: .sidetab 94 < .float 95 < .mobar 96. */
+
+.float {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+/*
+ * ⚠️ `right: auto` zaroori hai — sirf `left` likhne se dono taraf set reh jaate aur
+ * button khinch kar poori chaudai le leta.
+ */
+.float--left {
+  left: 16px;
+  right: auto;
+}
+
+.float a {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--on-dark);
+  box-shadow: var(--sh-3);
+  transition: transform 0.16s;
+}
+
+.float a:hover {
+  transform: scale(1.08);
+}
+
+.f-wa {
+  background: var(--wa);
+}
+
+.f-ph {
+  background: var(--blue-600);
+}
+
 /* ---------- mobile ki neeche wali patti ----------
    Reference: itinerary-v3.html — `.mobar`
 
@@ -3659,6 +3712,15 @@ a.mega__gl:hover {
 }
 
 @media (max-width: 760px) {
+  /*
+   * Gol button yahan gayab — patti wahi do kaam (Call · WhatsApp) pehle se karti hai, aur
+   * dono ek saath dikhne ka matlab hota ek hi number ke do button ek hi screen pe.
+   * Reference me bhi theek yahi line hai (`.sidetab,.float{display:none}`).
+   */
+  .float {
+    display: none;
+  }
+
   .mobar {
     display: grid;
   }

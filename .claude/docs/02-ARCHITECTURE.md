@@ -97,6 +97,10 @@ migrations       name, appliedAt, checksum
 settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  faviconMediaId, timezone, dateFormat, currency,
                  phone, whatsapp, address, social{facebook,instagram,youtube,x},
+                 floatingContactSide(right|left, default right — D-102)
+                 desktop ke do gol button (.float) kis kone me. ON/OFF ka koi
+                 field NAHI — phone aur whatsapp dono khaali to button hi nahi
+                 (wahi D-30 guard jo .mobar pe hai); 760px neeche .mobar leti hai
                  headerButtons[{ label, url, target, variant, icon,
                                  iconOnlyOnMobile, className, enabled,
                                  position(left|right, default right — D-94) }]   max 4

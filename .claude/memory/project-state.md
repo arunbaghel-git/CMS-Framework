@@ -1,33 +1,134 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 21 Sep 2026 — agla kaam SEO bulk export+import; 18 Sep raat home ki speed (D-101). Usse pehle D-100 (Spacing), D-99 (Fonts). Push baaki —
-> `git log --oneline origin/main..HEAD` dekho.
-> **Poori suite 18 Sep ko chali: 46 files, 1223/1224 pass** — ek fail `theme-fonts.test.js` (`.hf-stat span`, client ka
-> edit, neeche). C: pe ab ~10 GB (18 Sep: Docker images prune + `docker_data.vhdx` compact, 40 → 25 GB).
+> **Last updated:** 21 Sep 2026 — **desktop ke floating WhatsApp + phone button ban gaye (D-102)**.
+> Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
+> _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
+> (Spacing), D-99 (Fonts). Push baaki — `git log --oneline origin/main..HEAD` dekho.
+> **Poori suite 21 Sep shaam ko chali: 48 files, 1240/1244 pass** — fail wahi **do purani file**:
+> (1) `theme-fonts.test.js` (`.hf-stat span`, client ka apna edit — chhua nahi), (2) `media.test.js`
+> — `ENOTEMPTY: rmdir '…\.test-uploads-media\sites\default'`, yaani `bulk-imports.test.js` ke saath
+> **saanjhe upload folder** ki race. A-16 ki doosri shakl, poora hisaab **A-11** me. Dono me koi asli
+> bug nahi.
+> ⚠️ **A-11 ka naya saboot:** har run me **kaunsi** file haarti hai wo badalta rehta hai (21 Sep subah
+> `bulk-imports`, shaam `media`), aur **kitne** test girte hain wo bhi (1 se 3). Ginti dekhte waqt isi
+> se dhoka hota hai. Ilaaj: dono ko alag `UPLOAD_DIR` do.
+> ⚠️ **`pnpm lint` me ek pre-existing error hai** — `HtmlEditor.jsx:81` ka unused `label` param, commit
+> `7688ab0` (18 Sep) se. Mera kaam nahi, client ke hand-edit wale area me hai, isliye **chhua nahi**.
+> C: pe ab ~10 GB (18 Sep: Docker images prune + `docker_data.vhdx` compact, 40 → 25 GB).
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
+> ✅ `.claude/` ab git me **track hai** (commit `75beb7f`) — 18 Sep wala _"git se bahar hai"_ ab purana hai.
 
 ---
 
-## ⏭️ 21 Sep — agla kaam: **SEO details ka bulk export + import (URL ke saath)**
+## ✅ 21 Sep shaam — desktop ke floating WhatsApp + phone button (D-102)
 
-Client ne is session ke aakhir me ye maanga — **abhi kuch bana nahi, na hi koi faisla hua**. Shuru karne se pehle
-client se scope poochho: kaun se fields (Meta Title · Meta Description · canonical · noindex?), kis type pe (package ·
-post · page · tour), file CSV ho ya Google Sheet, aur update ka milaan **URL/path** se hoga (client ke shabd:
-_"with url"_). Bulk Upload (`bulk-imports`) ka dhaancha pehle se hai — D-81/92/95 padho, `targets.js` ka teen-cheez
-wala batwara wahi kaam aayega. Export aaj **kahin nahi hai**, wo naya hissa hoga.
+Client ka ask: _"whatsapp and phone icon on desktop too but with settings — in which side left or right"_,
+phir _"settings ke general me left ya right ka dropdown denge **for both buttons**, kisi bhi reference me
+dekho kaise aa rahe hai desktop par"_.
 
-### Aaj ka chhota kaam (koi code nahi badla)
+⚠️ **Reference dekhne pe nikla ki ye naya feature hai hi nahi.** `.float` **saaton site reference me**
+maujood hai (`home-nav-v3` · `tour-v3` · `itinerary-v3` · `blog-v1` · `blog-detail-v1` · `contact-us` ·
+`page-template-text`), bilkul ek hi CSS ke saath — aur theme me wo **kabhi bani hi nahi**. `.mobar` ban gayi
+thi (usi reference me, do line neeche), `.float` chhoot gayi. Lakshan wahi jo D-86/D-89 me likha hai —
+**"kuch na hona"**, koi error nahi.
 
-- Client ka package import doc parser se chala kar dekha — **0 warning, 0 blocker** (asli DB ki master lists ke saath).
-  Uske doc me 4 FAQ jawab **beech se kate hue** the (`"the sailings are reli|heir best"`), Meta Description adhoori,
-  aur `Best For` me typo — sab content ki cheezein, client ko batayi
-- Bold/heading ki jaanch: label bold ho, heading style me ho, ya value bold ho — **parsing pe koi asar nahi**. Bold
-  sirf teen jagah page tak jaata hai: Overview · Day Description · FAQ Answer (baaki khaane `textOf()` se jaate hain)
-- **Naya sample doc banaya** (client ki Drive me, `1pnOCYEvCVc4R27gVzAEC4VElxc-aIoLWKZ9ThYRHzKI`) — heading + bold
-  wala, local HTML pe 0 issue. ⚠️ Client ko use **"Anyone with the link"** karna hai; abhi anonymous export **401**
-  deta hai, aur importer bina login ke padhta hai (D-81)
+**Banaya:** `settings.floatingContactSide` (`right`/`left`) · Settings ▸ General ▸ Contact & Social me
+dropdown · `components/FloatingContact.jsx` · `.float`/`.float--left`/`.f-wa`/`.f-ph` CSS · mount
+`layout.jsx` me. **9 naye test** (4 API + 5 CSS invariant). **Koi migration nahi** — field defaulted hai
+aur public projection me `?? 'right'`.
+
+### Paanch baatein jo yaad rehni chahiye
+
+1. **Reference ne chaar faisle khud kar diye** — WhatsApp upar/phone neeche, 48×48 gol **bina label**
+   (`aria-label` se naam), default `right`, aur 760px neeche `display: none`. Poochhne ki zaroorat hi nahi padi
+2. ⚠️ **Mera ek mashwara reference ne kaat diya** — maine kaha tha "desktop pe hover karne par number
+   dikhe"; reference me saada `tel:` hai. R15: reference jeeta, idea chhoda
+3. ⚠️ **On/off toggle jaan-boojh kar nahi hai** — `phone`/`whatsapp` dono khaali to component `null`
+   (D-30 wala guard). Alag toggle = "band" ke **do** matlab, jo ek din alag ho jaate
+4. ⚠️ **`left` modifier se aaya** (`.float--left { left: 16px; right: auto }`) — `right: auto` bina
+   button khinch kar poori chaudai le leta. `.pgl--sideleft` wala hi sabak (D-87 §11)
+5. ⚠️ **Mount `layout.jsx` me hai, page component me nahi** — `.mobar` page-by-page lagayi gayi thi aur wo
+   **tour page aur blog listing pe aaj bhi nahi hai**. Wahi galti dobara nahi ki
+
+✅ **Cache ka kaam nahi karna pada** — `updateSettings()` pehle se `revalidateTags(['settings'])` bhejti hai
+aur `getSettings()` usi tag pe hai. Agar ye home ke section me rakha jaata to A-26/A-29 wala bug dobara banta.
+
+⚠️ **Aankh se dekha nahi gaya** — `next build` nahi chalayi (dev band karna padta, D-89). Client chala kar
+dekhe: (1) desktop pe dono button daayein kone me, WhatsApp upar; (2) Left chun kar baayein; (3) 760px se
+neeche gol button gayab aur patti haazir; (4) sirf ek number bhara ho to ek hi button.
+
+### Usi jaanch se do naye open item
+
+- **A-34** — `.sidetab` (reference ki vertical `Why us?` / `Offers` patti) bhi kabhi nahi bani. Client:
+  _"patti baad me"_. ⚠️ Wo `.float` jitna chhota kaam **nahi** — uska content bhi settings me aayega
+- **A-35** — do cheezein ek hi din me milna ittefaq nahi. Poora class-level milaan chahiye: reference me
+  kaunsi class hai jo `globals.css` me hai hi nahi
+
+### Client ka doosra ask abhi khula hai — **home ka form popup**
+
+Usi message me client ne **home page pe form popup** bhi maanga (session based · 1 time ya multi time ·
+kitne time tak), ek screenshot ke saath jo unhone khud kaha _"not actual design reference, only details"_.
+Uska poora plan de diya gaya hai par **code nahi chhua** — chaar sawaal khule hain, aur sabse zaroori:
+**"kitne time tak" ka matlab** (auto-close · N din dobara na dikhe · campaign ki Start/End date). Baaki
+teen: popup me image (ek/teen/koi nahi), aur wo `Settings ▸ Popup` me rahe (mera mashwara — cache isi se
+theek rehta hai) ya home ke section me.
+
+---
+
+## ⏭️ 21 Sep — agla kaam: **SEO ka bulk export + import** — client ke "full details" ka intezaar
+
+Client ka ask (21 Sep, unke shabd): Bulk Upload ke **"What are you importing?"** dropdown me naya option
+— **`meta upload`**. Usme **teen** cheez export aur import ho: **SEO Title · Meta Description · page url**.
+Aur _"in all pages jahan bhi ye honge"_. **Poora hisaab, jaanch aur chaaron khule sawaal → `09-OPEN-ITEMS.md`
+ka A-33.**
+
+⚠️ **Client ne kaha hai ki poori details wo khud bhejenge** — tab tak sirf doc likhi gayi hai, **code
+bilkul nahi chhua**. Wahi niyam jo A-32 (Fonts) pe chal raha hai.
+
+### ✅ Jaanch ho gayi — SEO Title aur Meta Description **kaam kar rahe hain**
+
+Asli DB pe, chalti hui site pe (`localhost:3000`) — package · page · post teeno pe `<title>` aur
+`<meta name="description">` SEO ke box se aa rahe hain. Poori chain judi hui hai (admin panel →
+`entries` ka `$set` whitelist → chaaron public projection → `generateMetadata()`), **koi
+"bana hua par juda nahi" wala tootan nahi**.
+
+⚠️ **Kami data ki hai, code ki nahi** — 28 live entries me se sirf **5** pe SEO bhara hai
+(tourPage · blogPage · homePage pe **zero**). Yahi A-17 ka "SEO 91" hai. Table A-33 me.
+
+⚠️ `seo.canonical` · `noindex` · `og*` schema me hain aur `generateMetadata()` unhe padhta bhi hai,
+par **admin me sirf title aur description ke do box hain**. Client se poochha gaya hai ki export/import
+me jodne hain ya nahi.
+
+### Shuru karne se pehle — teen baatein jo pata chal chuki hain
+
+1. **`targets.js` ka teen-cheez wala batwara poora nahi padega.** Aaj sheet me sirf **Google Doc ke
+   link** hote hain (`docUrlsFromSheet`); meta upload me data **row me hi** hai. Chauthi cheez judegi:
+   _"sheet kaise padhi jaaye"_. Badle me doc fetch, images aur master lists **teeno nahi** chahiye —
+   ye target baaki teen se **sasta** hai
+2. **`New / Existing` is target pe bemaani hai** — SEO se page banta hi nahi. Har row Existing; URL
+   match na ho to `Failed`, aur mode ka radio chhupega
+3. **URL ka milaan normalize karke** (lowercase · origin hata kar · aakhir ka `/` hata kar) —
+   **D-86 bilkul yahi galti thi**
+
+### Client se poochhe gaye chaar sawaal (jawab baaki)
+
+1. Export ki file wapas kaise — **Google Sheet ka link** (jaisa abhi hai) ya **CSV upload** (naya raasta)?
+2. **Khaali cell** = field chhodo, ya khaali kar do? (D-65 wala "khaali ke do matlab")
+3. Export me kaun — sab types ek file (Published + Draft), sirf Published, ya type chun kar?
+4. Dropdown ka naam — `Meta upload` (client ke shabd) ya `SEO meta (existing pages)` jaisa kuch?
+
+### 21 Sep ka baaki chhota kaam (koi code nahi badla)
+
+- Client ka package import doc parser se chala kar dekha — **0 warning, 0 blocker** (asli DB ki master
+  lists ke saath). Uske doc me 4 FAQ jawab **beech se kate hue** the (`"the sailings are reli|heir best"`),
+  Meta Description adhoori, aur `Best For` me typo — sab content ki cheezein, client ko batayi
+- Bold/heading ki jaanch: label bold ho, heading style me ho, ya value bold ho — **parsing pe koi asar
+  nahi**. Bold sirf teen jagah page tak jaata hai: Overview · Day Description · FAQ Answer
+- **Naya sample doc banaya** (client ki Drive me, `1pnOCYEvCVc4R27gVzAEC4VElxc-aIoLWKZ9ThYRHzKI`) —
+  heading + bold wala, local HTML pe 0 issue. ⚠️ Client ko use **"Anyone with the link"** karna hai;
+  abhi anonymous export **401** deta hai, aur importer bina login ke padhta hai (D-81)
 
 ---
 

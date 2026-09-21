@@ -395,6 +395,131 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ---
 
+### A-35 · Reference ke saath poora milaan — aur kya chhoot gaya hai? (21 Sep, D-102 se nikla)
+
+**Deadline:** koi sakht nahi · **aaj kuch toota nahi**
+
+D-102 me `.float` isliye mili ki client ne khud kaha _"kisi bhi reference me dekho"_. Wo **saaton site
+reference me** thi, bilkul ek hi CSS ke saath, aur theme me kabhi bani hi nahi. Uske saath hi `.sidetab`
+bhi nikli (A-34).
+
+⚠️ **Do cheezein ek hi din me milna ittefaq nahi hai.** Dono ka lakshan wahi tha jo D-86/D-89 me likha
+gaya hai — **"kuch na hona"**. Koi error nahi, koi toota page nahi, isliye aaj tak kisi ne nahi dekha.
+Aur dono wo hain jo page ke **bahaav me nahi** hain (fixed/floating), yaani section-by-section milaan
+me bhi chhoot jaati hain.
+
+**Karne wala kaam:** har site reference ka poora class-level milaan — reference me kaunsi class hai
+jo `globals.css` me hai hi nahi. Ye ek script se ho sakta hai (A-15 ki design-check scripts ka hi
+agla kadam), aur uska blind spot bhi wahi hai jo A-15 me likha hai.
+
+---
+
+### A-34 · `.sidetab` — reference ki vertical patti, abhi tak nahi bani (21 Sep, D-102 §8)
+
+**Deadline:** client ke kehne pe · **aaj kuch toota nahi**
+**Client, 21 Sep:** _"only these 2 buttons ke liye banao aur patti baad me"_
+
+`.float` ke saath hi mili. Daayein kinare pe, screen ke beech (`top: 50%`), do khadi (vertical) patti —
+reference me **`Why us?`** aur **`Offers`**, dono alag rang ki, `writing-mode: vertical-rl`. z-index 94
+(`.float` 95 se neeche), aur 760px pe wo bhi `.float` ke saath hi chhup jaati hai.
+
+Saaton site reference me maujood hai, theme me nahi bani.
+
+⚠️ **Banate waqt ek sawaal pehle poochhna hoga jo `.float` pe nahi tha:** patti me **kya likha ho aur
+wo kahan le jaaye** — wo content hai, aur wo `settings` me aayega (list, `headerButtons[]` jaisa). `.float`
+me ye sawaal tha hi nahi kyunki uske dono number pehle se `settings` me the. Yaani ye `.float` jitna
+chhota kaam **nahi** hai.
+
+⚠️ Aur ek: `.float` bhi daayein hai aur `.sidetab` bhi. Dono ek saath on hone pe wo ek doosre se
+takraate nahi (ek `bottom: 16px`, doosri `top: 50%`) — par `floatingContactSide: 'left'` chunne pe
+sirf `.float` baayein jaati hai, `.sidetab` daayein hi rehti hai. Tab uska apna side field chahiye ya
+nahi — client ka faisla.
+
+---
+
+### A-33 · SEO ka bulk export + import (21 Sep — client ka naya ask, scope abhi khula)
+
+**Deadline:** client ke "full details" pe · **abhi koi code nahi badla**
+(client: _"when i would have full details i will share"_)
+
+Client ka ask, unke shabd me: Bulk Upload ke **"What are you importing?"** dropdown me ek naya
+option — **`meta upload`**. Usme **teen** cheez export aur import ho: **SEO Title · Meta
+Description · page url**. Aur: _"in all pages jahan bhi ye honge wo export aur import kar sake"_.
+
+#### ✅ Pehli jaanch: SEO Title aur Meta Description **kaam kar rahe hain** (asli DB + chalti site)
+
+| Path | Type | `<title>` | `<meta name="description">` |
+| --- | --- | --- | --- |
+| `/packages/andaman-escape-5-nights` | package | ✅ SEO Title se | ✅ Meta Description se |
+| `/andaman-beaches/bharatpur-beach` | page | ✅ | ✅ |
+| `/blog/andaman-ferry-booking` | post | ✅ | ✅ |
+| `/andaman-tour-packages` | tourPage | Title se (SEO khaali) | **koi nahi** |
+| `/` | homePage | Title se (SEO khaali) | **koi nahi** |
+
+Poori chain judi hui hai — **koi "bana hua par juda nahi" wala tootan nahi** (D-89 wala pattern
+yahan nahi mila): admin ka SEO panel (`PageEdit.jsx` — page · tourPage · post · blogPage ·
+homePage — aur `PackageEdit.jsx`) → `entries/service.js` ke **dono** `$set` whitelist me `seo`
+**hai** → chaaron public projection (`toPublicPost` · `toPublicPage` · `toPublicHome` ·
+`toPublicEntry`) `seo` bhejti hain → `generateMetadata()` (`app/[[...slug]]/page.jsx`) use
+padhta hai. Fallback: `seo.title || title`, aur `seo.description || fields.shortDescription ||
+excerpt`.
+
+⚠️ **Asli kami data ki hai, code ki nahi** — 28 live entries me se sirf **5** pe SEO bhara hai:
+
+```
+package   5 published  → 1 pe SEO
+page      4 (3 + 1 draft) → 2 pe SEO
+post     15 published  → 2 pe SEO
+tourPage  2 published  → 0
+blogPage  1 published  → 0
+homePage  1 published  → 0
+```
+
+Yahi **A-17 ka "SEO 91"** hai (home · tour · blog · contact · page pe Meta description khaali).
+Yaani client ka ye ask sahi jagah pe hai — 23 page haath se bharne se bach jaayenge.
+
+⚠️ **`seo.canonical` aur `seo.noindex` schema me hain par admin ki SEO panel me nahi.**
+`seoSchema` (`packages/shared/src/schemas/seo.js`) me `canonical` · `noindex` · `nofollow` ·
+`ogTitle` · `ogDescription` · `ogImageId` · `twitterCard` · `schemaType` · `focusKeyword` sab
+hain, aur `generateMetadata()` me `canonical`/`noindex`/`og*` padhe bhi jaate hain — par admin
+me **sirf title aur description** ke do box hain. Client ne teen field maange hain, to baaki
+chhode ja rahe hain; unse poochha gaya hai ki export/import me jodne hain ya nahi.
+
+#### Dhaancha — jo abhi se pata hai
+
+`bulk-imports` ka ~85% reuse hoga (Google fetch · SSRF guard · run + rows ka model · claim loop ·
+atki hui rows · Past imports screen · polling). Par **ek cheez `targets.js` ke teen-cheez wale
+batware se bahar hai**, aur wahi is target ki sabse badi baat hai:
+
+⚠️ **Aaj sheet me sirf Google Doc ke link hote hain** — ek row = ek doc = ek page
+(`docUrlsFromSheet`). Meta upload me **data sheet ki row me hi hai**, koi doc nahi. Yaani
+`targets.js` me **chauthi** cheez judegi: _"sheet kaise padhi jaaye"_. Iske badle is target me
+doc fetch, images (`inline-images.js`) aur master lists (`buildRefs`) **teenon nahi** chahiye —
+to ye target baaki teen se **sasta** hai, mehnga nahi.
+
+⚠️ **`New / Existing` ka elaan is target pe bemaani hai** — SEO Title + Meta Description se page
+**banta hi nahi**. Har row ko Existing maanna padega; URL match na ho to row `Failed`
+("No page found at this URL"), aur mode ka radio is target pe chhupega. (D-81 me wo elaan
+**assertion** tha — yahan assert karne ko kuch hai hi nahi.)
+
+⚠️ **URL ka milaan normalize karke** — trim · apne origin ka `https://site.com` hissa hata kar ·
+**lowercase** · aakhir ka `/` hata kar. `path` hamesha `slugify()` se banta hai yaani lowercase
+hai. **D-86 bilkul yahi galti thi** — client ne `Package URL` bade akshar me likha tha, Mongo
+case-sensitive hai, lookup hamesha khaali aata tha, aur teen guard chup-chaap mar gaye the.
+
+**Export aaj kahin nahi hai** — wo poora naya hissa hai.
+
+#### Client se poochhe gaye chaar sawaal — jawab abhi nahi aaya
+
+| # | Sawaal | Kyun kaam ruka hai |
+| --- | --- | --- |
+| 1 | **Export ki file wapas kaise aayegi** — Google Sheet ka link (jaisa abhi hai) ya CSV file seedha upload? | Aaj importer sirf **link** leta hai. File upload ka matlab API me naya multipart raasta + apna size/type guard — alag kaam hai, baad me jodna mehnga |
+| 2 | **Khaali cell ka matlab** — us field ko chhoda jaaye, ya khaali kar diya jaaye? | Ye D-65 wala **"khaali ke do matlab"** hai. `clear` chuna to ek adhoori sheet 20 page ka SEO chup-chaap uda degi; `skip` chuna to sheet se mitane ka raasta hi nahi bachega (teesra vikalp: `-` jaisa nishaan) |
+| 3 | **Export me kaun aaye** — sab types ek file me (Published + Draft), sirf Published, ya type chun kar? | Client ke shabd "in all pages" sab types ki taraf jaate hain; file me `Type`/`Status` read-only column chahiye honge |
+| 4 | **Dropdown ka naam** — `Meta upload` (client ke shabd) ya `SEO meta (existing pages)` jaisa kuch? | Aaj ke teeno option (`Packages` · `Blog posts` · `Pages`) batate hain **kya banega**; ye option kuch banata hi nahi. Naam `IMPORT_TARGET_LABEL` se dropdown **aur** Past imports ke tab **dono** pe jaata hai |
+
+---
+
 ### A-32 · Fonts ka dhaancha — "Text Elements" (17 Sep raat, discussion chal rahi hai)
 
 **Deadline:** client ke jawab pe · **koi code nahi badla** (client ne mana kiya hai)
@@ -881,6 +1006,30 @@ Teen asli raaste:
 | `beforeEach` ke round trips ghatao — roles/contentTypes `beforeAll` me ek baar | Sabse saaf. Par tests ko ek doosre se alag rakhna padega: aaj har test maan kar chalta hai ki DB khaali hai |
 | Vitest ki parallelism cap karo (`maxThreads`) | Ek line ka kaam, par poori suite dheemi ho jaati hai |
 | Har file ka apna Mongo (in-memory server) | Contention poori tarah khatam, par ek nayi dependency (R3) |
+
+---
+
+⚠️ **21 Sep — ek doosri shakl mili, aur wo Mongo ki nahi hai.** Poori suite pe
+`bulk-imports.test.js > page ka import … sirf On this page ka note` fail hua:
+
+```
+ENOENT: no such file or directory, mkdir
+  'apps\api\.test-uploads-media\sites\default\media\2026\09\6ab0dd51…'
+  — the image was removed from the article
+```
+
+Ye **A-16 ke fix ki doosri deewar** hai. `vitest.config.js` sab tests ko **ek hi**
+`UPLOAD_DIR` (`./.test-uploads-media`) deta hai, aur `media.test.js` ki `beforeEach` usi
+folder ko `rm -r` karti hai. Vitest files parallel chalata hai — to jab bulk-import ki row
+apni inline image utaar rahi hoti hai, folder beech me gayab ho jaata hai. Importer wo row
+girata nahi, ek `note` laga kar image hata deta hai — isliye lakshan **logic bug jaisa**
+dikhta hai (`issues` me ek extra entry), "file system ki galti" jaisa nahi. Wahi shakl jo
+A-16 pe thi.
+
+**Sirf test me hai, prod me nahi.** Ilaaj A-16 wala hi: upload root **per-file** ho
+(`.test-uploads-<file>`), taaki jo folder ek file saaf karti hai wo doosri file ka ho hi na.
+`media.test.js` ka `UPLOAD_ROOT` pehle se app ke storage driver se aata hai, aur `.test-`
+wala guard bhi hai — bas root ab **saanjha** hai, aur yahi bachi hui kami hai.
 
 ---
 

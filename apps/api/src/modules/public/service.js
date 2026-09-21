@@ -233,6 +233,8 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
     whatsapp: settings.whatsapp,
     /** Mobile patti ka CTA — theme use link ki tarah kholti hai, popup nahi (client, 16 Sep). */
     quoteUrl: settings.quoteUrl ?? '',
+    /** Desktop ke floating button kis taraf (client, 21 Sep). Purani settings pe `right`. */
+    floatingContactSide: settings.floatingContactSide ?? 'right',
     address: settings.address,
     social: settings.social,
 

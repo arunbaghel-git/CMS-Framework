@@ -1,5 +1,6 @@
 import { Inter } from 'next/font/google'
 
+import FloatingContact from '../components/FloatingContact.jsx'
 import SiteFooter from '../components/SiteFooter.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { getSettings } from '../lib/cms.js'
@@ -99,6 +100,13 @@ export default async function RootLayout({ children }) {
         <SiteHeader />
         {children}
         <SiteFooter />
+        {/*
+          Yahan hai, kisi page component me nahi — ye har page pe ek jaisa hai aur
+          `settings` upar pehle se maujood hai. Page-by-page lagane ka matlab hota ki
+          naya page type banate waqt wo har baar chhoot sakta hai (`.mobar` ke saath
+          theek yahi ho chuka hai — tour aur blog listing pe wo aaj bhi nahi hai).
+        */}
+        <FloatingContact settings={settings} />
       </body>
     </html>
   )

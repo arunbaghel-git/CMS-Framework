@@ -714,7 +714,33 @@ footer h2 alag. Fonts ki H1–H6 ab sirf apne tag ka token; daam/stats/quote `FO
 ki images lazy, fold ke neeche ke sections + band drawer `content-visibility`, video popup portal se. Apne origin ka `/uploads/`
 link ab write pe relative (Media Library ke Copy URL se `localhost:5173` paste hua tha). ⚠️ `inlineCss` naapa, **rad** (89→74).
 Bacha: render-blocking CSS (ek 108 KB file) — A-17.
-⏭️ **Agla kaam: baaki pages PageSpeed pe** (A-17). `project-state.md` ka pehla section padho.
+**21 Sep — SEO ka bulk export + import maanga gaya (A-33), abhi koi code nahi.** Bulk Upload ke dropdown me
+naya target — **SEO Title · Meta Description · page url**, sab types pe, milaan **URL se**. Client ne kaha
+hai poori details wo khud bhejenge, isliye is session me **sirf jaanch aur doc**.
+✅ Jaanch ka nateeja: **SEO Title/Meta Description kaam kar rahe hain** (package · page · post pe live
+verify) — kami **data** ki hai, 28 entries me se sirf 5 pe SEO bhara hai, aur tour/blog/home pe zero.
+⚠️ Teen baatein pehle se pata hain: `targets.js` me **chauthi** cheez judegi (aaj sheet me sirf Doc ke
+link hote hain, yahan data row me hi hai), **New/Existing is target pe bemaani hai** (SEO se page banta
+nahi — har row Existing), aur **URL ka milaan normalize karke** hona chahiye — D-86 bilkul yahi galti thi.
+**21 Sep — desktop ke floating WhatsApp + phone button (D-102), koi migration nahi.** Client ne maanga aur
+saath me kaha _"kisi bhi reference me dekho"_ — nikla ki `.float` **saaton site reference me** hai, bilkul
+ek hi CSS ke saath, aur theme me **kabhi bani hi nahi**. Yaani naya feature nahi, **chhoota hua** hissa
+(R15). Reference ne chaar faisle khud kar diye: WhatsApp upar, 48×48 gol bina label, default `right`, aur
+760px neeche `display: none` (wahan `.mobar` yahi do kaam karti hai). Naya field **`settings.floatingContactSide`**
+(`right`/`left`) — Settings ▸ General ▸ Contact & Social me ek dropdown, **dono button ke liye ek hi** (client).
+Mount `layout.jsx` me hai, kisi page component me nahi.
+⚠️ **On/off toggle jaan-boojh kar nahi hai** — `phone`/`whatsapp` dono khaali to button hi nahi bante (D-30
+wala guard). Alag toggle rakhne ka matlab "band" ke **do** matlab, jo ek din alag ho jaate.
+⚠️ `left` ek **modifier** hai (`.float--left`, `right: auto` ke saath) — base class seedha badalna wahi galti
+hoti jo `.pgl--sideleft` pe bachayi gayi thi.
+⚠️ Mera ek mashwara **reference ne kaat diya** — "hover pe number dikhe" reference me hai hi nahi, saada
+`tel:` hai. R15: reference jeeta.
+⚠️ **`.sidetab` bhi usi din mili aur wo bhi kabhi nahi bani** — client: _"patti baad me"_ (**A-34**). Do
+cheezein ek din me milna ittefaq nahi — poora class-level milaan **A-35** me.
+
+⏭️ **Agla kaam: A-33 ke chaar sawaal ka jawab** (`09-OPEN-ITEMS.md`), phir code. Saath me **home ka form
+popup** — uske bhi chaar sawaal khule hain (khaas kar _"kitne time tak"_ ka matlab). Uske baad baaki pages
+PageSpeed pe (A-17). `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

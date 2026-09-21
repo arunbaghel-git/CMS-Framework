@@ -9099,3 +9099,100 @@ CDN/browser me nahi. "Serve page from cache" wali shart hosting ke waqt.
 ⚠️ Beech me mila (docs me nahi tha): machine pe **Windows service `MongoDB`** bhi `127.0.0.1:27017` pe chalti hai. Docker
 band hone pe API chup-chaap us **khaali** DB se jud gayi, `My Site` wali settings bana di, aur site ne wo ek ghanta cache
 rakhi. Asli DB (Docker) safe raha.
+
+---
+
+## D-102
+
+**Desktop ke floating WhatsApp + phone button — reference ka `.float`, jo kabhi bana hi nahi tha**
+(client, 21 Sep 2026)
+
+**Status:** ✅ ban gaya · koi migration nahi
+
+### §1 — Ye naya feature nahi hai
+
+Client ne kaha _"whatsapp and phone icon on desktop too but with settings — in which side left or
+right"_, aur saath me _"kisi bhi reference me dekho kaise aa rahe hai desktop par"_.
+
+Dekhne pe nikla ki `.float` **saaton site reference me maujood hai**, bilkul ek hi CSS ke saath —
+`home-nav-v3` · `tour-v3` · `itinerary-v3` · `blog-v1` · `blog-detail-v1` · `contact-us` ·
+`page-template-text`. Theme me wo kabhi bana hi nahi. Yaani R15 ke hisaab se ye **chhoota hua**
+hissa tha, naya ask nahi.
+
+⚠️ **Lakshan wahi tha jo D-86 aur D-89 me likha gaya hai — "kuch na hona".** Koi error nahi, koi
+toota hua page nahi. `.mobar` ban gayi thi (wo bhi usi reference me thi, do line neeche) aur
+`.float` chhoot gayi. Reference se milaan **section-by-section** hota to ye pehle din pakda jaata.
+
+### §2 — Reference ne chaar faisle khud kar diye
+
+| Sawaal | Reference ka jawab |
+| --- | --- |
+| Kram | WhatsApp **upar**, phone neeche (`flex-direction: column`) |
+| Shakl | 48×48 gol, sirf icon, **koi label nahi** — naam `aria-label` me |
+| Default taraf | `right: 16px; bottom: 16px` |
+| Mobile | 760px se neeche `display: none` — wahan `.mobar` yahi do kaam karti hai |
+
+z-index ka kram bhi wahin se: `.sidetab` 94 < **`.float` 95** < `.mobar` 96.
+
+⚠️ **Ek mashwara reference ne kaat diya.** Maine pehle kaha tha ki desktop pe hover karne par number
+dikhna chahiye (kyunki desktop pe `tel:` ka khaas matlab nahi). Reference me saada `tel:` link hai —
+R15 ke hisaab se wo jeeta, aur wo idea chhod diya gaya.
+
+### §3 — `floatingContactSide`, aur uska **koi on/off toggle nahi**
+
+Ek hi field, dono button ke liye (client ka apna shabd: _"left ya right ka dropdown **for both
+buttons**"_): `settings.floatingContactSide` — `'right'` (default) | `'left'`.
+
+⚠️ **Toggle jaan-boojh kar nahi hai.** Button `settings.phone` aur `settings.whatsapp` se bante hain;
+dono khaali to component `null` lautata hai — wahi D-30 wala guard jo `.mobar` pe pehle se hai. Alag
+toggle rakhne ka matlab hota **"band" ke do matlab**, aur wo ek din alag ho jaate: number bhara hua
+par toggle off, ya ulta. Admin ki hint yahi batati hai, warna client "band kaise karun" pe atak jaata.
+
+### §4 — `left` ek **modifier** hai, `.float` ka badla hua roop nahi
+
+```css
+.float        { right: 16px }
+.float--left  { left: 16px; right: auto }
+```
+
+⚠️ **`right: auto` zaroori hai** — sirf `left` likhne se dono taraf set reh jaate aur button khinch
+kar poori chaudai le leta. Base class ko seedha badalna wahi galti hoti jo `.pgl` pe bachayi gayi thi
+(D-87 §11): `.pgl--sideleft` bhi isliye modifier bana tha.
+
+### §5 — Dono ek saath kabhi nahi, aur wo rok **CSS me** hai
+
+760px se neeche `.float` gayab, `.mobar` haazir. Ye JS se karne ka matlab hota server pe ye tay karna
+ki screen kitni chaudi hai — jo ISR ke saath ho hi nahi sakta (sab ko ek hi HTML jaata hai).
+
+Iska test bhi likha gaya (`apps/web/components/floating-contact.test.js`) — component ka render test
+is repo me possible nahi (theme ke components ka koi render setup nahi), par ye invariant **CSS me**
+hai aur CSS padhi ja sakti hai. Wahi tark jo D-92 §10 pe liya gaya tha.
+
+⚠️ Test likhte waqt ek cheez khud pakdi gayi: `globals.css` me `@media (max-width: 760px)` ke
+**kai** block hain, isliye sirf pehla uthana galat jawab deta hai.
+
+### §6 — `layout.jsx` me mount, kisi page component me nahi
+
+`settings` wahan pehle se hai, aur isse ye saare page type pe ek saath aa jaata hai.
+
+⚠️ **Page-by-page lagane ka nateeja saamne hi hai** — `.mobar` har page component me alag se lagayi
+gayi thi aur wo **tour page aur blog listing pe aaj bhi nahi hai**. Naya page type banate waqt aisi
+cheez har baar chhoot sakti hai.
+
+### §7 — Kahan-kahan juda (chain poori hai)
+
+Zod (`schemas/settings.js`) → Mongoose model (**strict** — bina iske field chup-chaap girta, API
+phir bhi 200 deti) → public projection (`toPublicSettings`) → admin ka dropdown → theme.
+
+⚠️ Test **response nahi, DB** padhta hai — wahi whitelist wala jaal jo `updatePackageDefaults()` pe
+chaar baar lag chuka hai.
+
+✅ **Cache ka koi kaam nahi karna pada** — `updateSettings()` pehle se `revalidateTags(['settings'])`
+bhejti hai aur `getSettings()` usi tag pe hai. A-26/A-29 wala rog yahan banta hi nahi. Agar ye field
+home ke section me rakha jaata to wahi bug dobara banta.
+
+### §8 — Jo nahi banaya
+
+**`.sidetab`** — daayein kinare pe khadi do vertical patti (`Why us?` · `Offers`), z-index 94. Wo bhi
+saaton reference me hai aur wo bhi kabhi nahi bani. Client ne 21 Sep ko kaha _"only these 2 buttons
+ke liye banao aur patti baad me"_ — isliye wo khuli hui hai (A-34).
