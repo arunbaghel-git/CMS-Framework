@@ -9467,6 +9467,21 @@ Shortcut ka faayda us jaal ke saamne kuch bhi nahi tha. Ab uska apna test hai.
 aur ye match hi nahi honge — wahi niyam jo `Best For`, `Ferries` aur hotel ke daam pe pehle se hai.
 Client ke template me ye baat likhi jaani chahiye.
 
+### §6.1 — Bullets din wale bullets jaise (client, usi din live dekh kar)
+
+Client ne asli doc import karke page chala kar dekha: _"li ka marker color jaisa
+`/packages/discover-andaman` pe hai waisa karo, baaki theek hai."_
+
+Un bullets ka rang browser se aata hi nahi — itinerary ke din me wo `::before` ka **6px neela
+dot** (`--blue-500`) hai. Notes ke liye wahi teen rule **dobara likhne ki jagah selector me
+`.nts` jod diya gaya** (`RichTextDoc className="rt nts"`).
+
+⚠️ **Copy na banane ki wajah wahi hai jo D-43 §2 aur D-65 pe likhi hai** — do jagah ek jaisa CSS
+ek din alag ho jaata hai. Aur yahan wo itihaas theek isi rule pe pehle se likha hai: wo pehle
+`.itin__l` thi, ek class jo theme khud lagata tha, aur D-80 me editor se aayi `<ul>` pe wo class
+hoti hi nahi thi. Dono list ki wajah ek hi hai — **dono editor se aati hain**, isliye dono
+**jagah** se bandhi hain, class se nahi (A-19).
+
 ### §7 — Kya nahi banaya
 
 - **`Section Headings` me Notes ka tab** — client ne per-package heading maanga (§3)

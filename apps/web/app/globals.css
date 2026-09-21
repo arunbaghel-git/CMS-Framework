@@ -2491,7 +2491,19 @@ a.mega__gl:hover {
  * style bilkul wahi hai (verify kiya) — aur ab client ki banayi nayi list bhi apne aap sahi
  * dikhti hai, jo class wale raaste me kabhi nahi hoti.
  */
-.itin__c ul {
+/*
+ * ⚠️ **`.nts` (Notes section, D-104) yahin juda hai — apni copy bana kar nahi.**
+ *
+ * Client ne 21 Sep ko dekh kar kaha ki Notes ke bullets din wale bullets jaise hone chahiye.
+ * Teen rule dobara likhne ka matlab hota do jagah, aur wo **ek din alag ho jaatin** — wahi
+ * sabak jo D-43 §2 aur D-65 pe mila, aur jo theek upar is list ke apne `.itin__l` wale
+ * itihaas me likha hai. Selector me ek naam jodna hi poora badlaav hai.
+ *
+ * Dono ki wajah bhi ek hi hai: dono list **editor se** aati hain, yaani unpe koi class nahi
+ * hoti — isliye dono **jagah** se bandhi hain.
+ */
+.itin__c ul,
+.nts ul {
   display: grid;
   gap: 7px;
   margin: 11px 0 0;
@@ -2499,7 +2511,8 @@ a.mega__gl:hover {
   list-style: none;
 }
 
-.itin__c ul li {
+.itin__c ul li,
+.nts ul li {
   display: flex;
   gap: 9px;
   align-items: flex-start;
@@ -2508,7 +2521,8 @@ a.mega__gl:hover {
   color: var(--body);
 }
 
-.itin__c ul li::before {
+.itin__c ul li::before,
+.nts ul li::before {
   content: '';
   width: 6px;
   height: 6px;

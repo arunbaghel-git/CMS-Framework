@@ -654,7 +654,7 @@ export default function PackagePage({ entry, defaults, settings }) {
                    * aur usme likha hua niyam yahan bhi lagta hai: is component me sirf wo HTML
                    * aati hai jo **write pe** saaf ho chuki hai (R20).
                    */}
-                  <RichTextDoc html={entry.notes.content} />
+                  <RichTextDoc html={entry.notes.content} className="rt nts" />
                 </section>
               )}
 
