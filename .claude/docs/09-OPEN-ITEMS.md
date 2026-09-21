@@ -398,9 +398,25 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ---
 
-### A-39 · D-104 — aankh se dekhna baaki, aur API restart (21 Sep)
+### A-39 · D-104 / D-105 — client ne live dekh liya; do chhoti cheezein baaki (21 Sep)
 
-**Deadline:** agli session ki pehli cheez · **kuch toota hua nahi** — 1280 test, lint, dono build pass
+**Deadline:** koi sakht nahi · **kuch toota hua nahi** — 1287 test, lint, dono build pass
+
+✅ **Server restart ho chuka aur client ne page chala kar dekh liya.** Usi se do cheezein nikli aur
+dono theek ho gayin: bullets ka rang (D-104 §6.1) aur master list ka khaali-value bug (**D-105**).
+Doc ka format bhi client ne screenshot se confirm karwa liya — sahi tha, koi code nahi badla.
+
+⚠️ **Ab sirf ye do baaki hain:**
+
+| # | Kya | Kyun |
+| --- | --- | --- |
+| 1 | **Admin ka hard refresh** (Ctrl+Shift+R) ke baad Add Ons pe khaali karke Update — D-105 ka fix browser me tab aayega | Vite ka purana bundle |
+| 2 | Bulk Upload — `Notes Heading`/`Notes Content` **`Day wise Itinerary` se pehle**; din ke purane `Notes` pe row me note dikhe | D-104 §6 |
+
+⚠️ **Client ko doc ka template batana hai** — do naye label, aur din ke neeche ka purana `Notes :`
+ab kaam nahi karta.
+
+<details><summary>Purani poori list (restart se pehle)</summary>
 
 `pnpm cms migrate` (027) aur `pnpm seed` dono chal chuki hain aur DB verify ho chuki hai
 (0 bache hue `note`, meals `Breakfast (83) · Lunch (2) · Dinner (24)`). Par:
@@ -419,8 +435,7 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 | 6 | Listing card pe `Breakfast` chip abhi bhi aata ho (meals ab `Breakfast` bade akshar me hain) | `hasBreakfast()` |
 | 7 | Bulk Upload — `Notes Heading`/`Notes Content` **`Day wise Itinerary` se pehle**; din ke purane `Notes` pe row me note dikhe | D-104 §6 |
 
-⚠️ **Client ko doc ka template batana hai** — do naye label, aur din ke neeche ka purana `Notes :`
-ab kaam nahi karta.
+</details>
 
 ---
 

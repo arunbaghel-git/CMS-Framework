@@ -2,14 +2,15 @@
 
 > Har session ke shuru me padho, aur session ke end me update karo.
 > **Last updated:** 21 Sep 2026 — din me **teen feature bane** (**D-102** floating WhatsApp + phone
-> button, **D-103** Enquiries ▸ Popup, **D-104** itinerary ke do khaane + naya Notes section —
+> button, **D-103** Enquiries ▸ Popup, **D-104** itinerary ke do khaane + naya Notes section, **D-105** master list ka khaali-value bug —
 > **migration 027**) aur **do jaanch hui bina code badle** (**A-33** SEO ka bulk export+import,
 > **A-38** Kerala package ka import). Kram ke liye neeche ka 📍 block padho.
 > Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
 > _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
 > (Spacing), D-99 (Fonts). Push baaki — `git log --oneline origin/main..HEAD` dekho.
-> **D-104 ke baad suite: 49 files, 1280/1282 pass** — dono fail wahi purane hain
-> (`theme-fonts.test.js` + A-11 ka race). D-104 me **13 naye test** jude.
+> **D-105 ke baad suite: 50 files, 1287/1289 pass** — dono fail wahi purane hain
+> (`theme-fonts.test.js` = client ka apna CSS edit, aur A-11 ka upload-folder race).
+> D-104 me 13 naye test, D-105 me 6.
 > (Usse pehle 21 Sep raat: 49 files, 1267/1268 — fail sirf `theme-fonts.test.js`.)
 > (Usse pehle shaam ko: 48 files, 1240/1244 — tab media.test.js ne A-11 wala race khaya tha.)
 > Purani do-fail wali haalat ka hisaab:
@@ -33,12 +34,13 @@
 
 Aaj **teen alag dhaage** chale, isliye neeche ek se zyada "agla kaam" likha dikhta hai. Asli kram:
 
-| #   | Dhaaga                                 | Haalat                                                                                                                              | Kahan                 |
-| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| 0   | **D-104 · Itinerary + Notes section**  | ✅ **ban gaya, migration 027 chal chuki.** ⚠️ **API restart baaki** — dev server purana code chala raha hai (neeche)                | neeche pehla section  |
-| 1   | **A-38 · Kerala package ka import**    | Client ka **zinda sawaal** — _"some content doesn't come on frontend"_. Jaanch ho chuki, **teen kism ki kami**, koi code nahi badla | neeche doosra section |
-| 2   | **A-37 · Popup ko aankh se dekhna**    | D-103 ban chuka, test + live payload pass. **Browser me khulte hue dekha nahi**                                                     | `09-OPEN-ITEMS.md`    |
-| 3   | **A-33 · SEO ka bulk export + import** | Client ke _"full details"_ ka intezaar — **chaar sawaal khule**                                                                     | neeche aakhri section |
+| #   | Dhaaga                                      | Haalat                                                                                                                              | Kahan                 |
+| --- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 0   | **D-104 · Itinerary + Notes section**       | ✅ **ban gaya, client ne live chala kar dekh liya** — migration 027 chal chuki, bullets bhi theek (§6.1)                            | neeche pehla section  |
+| 0   | **D-105 · Master list ka khaali-value bug** | ✅ **theek ho gaya** — client ne Add Ons pe pakda. Admin me rebuild ho chuka, **client ka hard refresh baaki**                      | neeche doosra section |
+| 1   | **A-38 · Kerala package ka import**         | Client ka **zinda sawaal** — _"some content doesn't come on frontend"_. Jaanch ho chuki, **teen kism ki kami**, koi code nahi badla | neeche doosra section |
+| 2   | **A-37 · Popup ko aankh se dekhna**         | D-103 ban chuka, test + live payload pass. **Browser me khulte hue dekha nahi**                                                     | `09-OPEN-ITEMS.md`    |
+| 3   | **A-33 · SEO ka bulk export + import**      | Client ke _"full details"_ ka intezaar — **chaar sawaal khule**                                                                     | neeche aakhri section |
 
 **Agli session sabse pehle #1 dekhe** — wo client ka poochha hua sawaal hai aur uska jawab teen hisson
 me bant-ta hai (design · admin ka data · doc). #2 chhota hai (paanch minute ka browser check). #3 tab
@@ -93,7 +95,18 @@ per-day `note` khatam · transfer ki do alag chip · Bulk Upload me `Notes Headi
 6. **Mitane se pehle DB ginayi gayi** — 84 din me se 49 pe `note` tha, **sirf paanch alag lines**,
    sab chhoti chip. Paanchon D-104 §4 ki table me likhi hain
 
-### ⚠️ Bacha hua — do cheezein
+### ✅ Client ne usi shaam live chala kar dekh liya — do cheezein nikli
+
+1. **Bullets** — client: _"li ka marker color jaisa `/packages/discover-andaman` pe hai waisa karo,
+   baaki theek hai."_ Un bullets ka rang browser se aata hi nahi, wo `::before` ka 6px **neela dot**
+   hai. Notes ab wahi rule use karta hai (`className="rt nts"`), aur CSS me **teen selector me `.nts`
+   juda — apni copy banayi nahi**. Wajah is rule ke apne itihaas me likhi hai: wo pehle `.itin__l` thi,
+   ek class jo theme lagata tha, aur D-80 ke baad editor ki `<ul>` pe wo hoti hi nahi thi (A-19).
+   Poora hisaab **D-104 §6.1**
+2. **Doc ka format sahi nikla** — client ne screenshot bheja (`Notes Heading: Notes` ek line me,
+   `Notes Content` alag line pe, beech me page break). Saboot DB me tha. **Koi code nahi badla**
+
+### ⚠️ Bacha hua
 
 - **API restart baaki.** `pnpm cms migrate` aur `pnpm seed` dono chal chuki hain (DB verify:
   0 bache hue `note`, meals `Breakfast (83) · Lunch (2) · Dinner (24)`), par `:4000` pe chalta
@@ -109,6 +122,31 @@ per-day `note` khatam · transfer ki do alag chip · Bulk Upload me `Notes Headi
 Bulk Upload me do naye label hain: **`Notes Heading`** aur **`Notes Content`**, aur dono
 **`Day wise Itinerary` se PEHLE** likhne hote hain (uske baad parser din ke labels padhta hai).
 Din ke neeche ka purana `Notes :` ab kaam nahi karta — wo girta hai aur row me note dikhta hai.
+
+---
+
+## ✅ 21 Sep — master list me bhara hua khaana khaali nahi ho pata tha (D-105)
+
+Client, Kerala ke add-ons theek karte hue: _"in Add Ons why i am not able to update any value"_.
+
+**Lakshan wahi jo is repo me baar-baar aata hai — kuch na hona.** API 200, admin _"Add-on updated."_,
+DB me purani value. Koi error kahin nahi. Saboot DB me pada tha: Kerala ke do add-ons pe `where` =
+`"All three ferry legs"` — wo **Andaman ke `Ferry class upgrade`** ki line hai.
+
+**Jad admin me thi, server me nahi** — `submit()` ki ek line har khaali value gira deti thi. Wajah
+theek thi (khaali `destinationId` 422 deta hai) par us line ne **har optional khaane** ko bhi pakad
+liya — paanchon screens pe.
+
+### Teen baatein jo yaad rehni chahiye
+
+1. ⚠️ **Server ka raasta pehle verify kiya gaya, tab admin me dekha** — Zod, service ka `$set`
+   (whitelist nahi) aur model teenon saaf the. Bina us kadam ke shak seedha `updatePackageDefaults()`
+   wale whitelist jaal pe jaata, jo yahan tha hi nahi
+2. ⚠️ **Khaali ke do matlab, ab field pe nirbhar** — `required` khaali nahi jaata (wo form ki galti
+   hai), optional **edit pe** jaata hai (= "hata do"), create pe nahi (wahan "hata do" ki baat hi nahi
+   hoti). D-65 ka doosra roop
+3. ⚠️ **Niyam JSX se bahar nikla** — `lib/master-list-payload.js`, 6 test. `submit()` ke andar uska
+   test likha hi nahi ja sakta tha, **aur isiliye wo galti chup padi rahi**. D-92 §11 wala hi sabak
 
 ---
 
