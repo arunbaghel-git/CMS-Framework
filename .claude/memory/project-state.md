@@ -26,6 +26,30 @@
 
 ---
 
+## ⏭️ 21 Sep (sabse aakhir) — Kerala ka package import hua, client ne "content nahi aa raha" poochha (A-38)
+
+**Koi code nahi badla.** Client ne sheet + doc se Kerala ka package import kiya
+(`/packages/alleppey-backwater-weekender-houseboat-2n-3d`) — import **0 blocker, 2 note** pe saaf chala.
+Milaan karke teen kism ki kami nikli; poora hisaab **A-38** me:
+
+1. **Design se hi page pe nahi** — `Best For` (sirf card pe, D-55), strike-through sirf chuni hui category ka,
+   Meta Title/Description `<head>` me
+2. **Admin me data nahi** — Hotels list khaali (isliye "Hotels on this package" ki table khaali), Add-ons ke
+   `Price`/`Where` khaali, gallery aur What's included/Good to know/reviews abhi bhi **Andaman** ka content
+   (`packageDefaults` — A-31 wali jad)
+3. **Doc me theek karna** — Day 2 Meals ka `Evening tea` (enum sirf Breakfast/Lunch/Dinner), Day 3 Notes 200
+   akshar pe kata, `Banner Image URL` khaali
+
+⚠️ **Parser ka khula kinara (A-38 ke aakhir me):** anjaan heading chup-chaap **upar wale khaane ki value** me
+chipak jaati hai — is doc me `Pricing` `bestFor` ke andar chala gaya (DB me `"…short break\nPricing"`), pehle
+usi doc me `Transfers` ne yahi kiya tha. Na warning, na note. Client ka faisla chahiye: parser warning de, ya
+sirf template me likha rahe.
+
+⏭️ **Agla:** client doc theek karega aur admin me Kerala ki master lists/defaults bharega; uske baad dobara
+import karke page dekhna. Parser warning wala faisla bhi client se poochna hai.
+
+---
+
 ## ✅ 21 Sep raat — Enquiries ▸ Popup (D-103)
 
 Client ka ask do message me aaya aur **doosre ne scope badla**: pehle _"form Popup on home page /

@@ -395,6 +395,40 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ---
 
+### A-38 · Kerala ka package Bulk Upload se aaya — teen tarah ki kami (21 Sep, koi code nahi badla)
+
+**Deadline:** client ke kaam pe · **kuch toota nahi** — import saaf chala (0 blocker, 2 note)
+
+Client ne Kerala ka package sheet + doc se import kiya (`/packages/alleppey-backwater-weekender-houseboat-2n-3d`)
+aur poochha ki _"some content doesn't come on frontend"_. Doc asli parser + asli DB se chala kar milaan kiya gaya —
+**doc theek hai**, kami teen alag jagah hai:
+
+**1 — Design ke hisaab se page pe hai hi nahi (kuch nahi karna):** `Best For` sirf listing card pe aata hai
+(D-55), strike-through daam sirf **chuni hui** category ka (baaki JS se badalte hain, page source me nahi), aur
+Meta Title/Description page pe nahi — wo `<head>` me hain.
+
+**2 — Admin me data nahi hai (doc ka dosh nahi):**
+
+| Page pe khaali | Ghar |
+| --- | --- |
+| "Hotels on this package" — sirf heading, table khaali | `Packages ▸ Hotels` me Kerala ka koi hotel hai hi nahi (table derived hai — D-58) |
+| Add-ons table ke `Price` aur `Where` | `Packages ▸ Add Ons` me sirf naam bane, baaki khaali |
+| Hero ki gallery me **Andaman** ki 5 image | Banner na ho to `Itinerary Images` (packageDefaults) se bharti hai |
+| What's included · Good to know · policies · reviews · price note | Sab `packageDefaults` se, abhi Andaman ka text (A-31 wali hi jad) |
+
+**3 — Doc me theek karne wale (client ko bataya):** Day 2 Meals ka `Evening tea` gir jaata hai (enum sirf
+Breakfast/Lunch/Dinner), Day 3 ka Notes **200 akshar pe kat gaya**, aur `Banner Image URL` khaali hai.
+
+⚠️ **Ek chup bug jaisi cheez — parser ka khula kinara.** Doc me `Best For` ke baad seedha `Pricing` heading tha.
+`Pricing` koi maloom label nahi hai, isliye wo **value ka hissa** ban gaya: DB me `bestFor` =
+`"A first houseboat night on a short break\nPricing"`, aur wahi listing card pe chhapega. Isse pehle usi doc ke
+purane version me `Transfers` ne yahi kiya tha. **Anjaan heading chup-chaap upar wale khaane me chipak jaati hai** —
+na warning, na note. Ilaaj do me se ek (client ka faisla): (a) parser doc ke un blocks pe warning de jo kisi label
+se match na karein, ya (b) template me hi likha ho ki sirf maloom heading likhni hain. Aaj ka bachav: doc me har
+value ke baad **maloom label** hi aaye.
+
+---
+
 ### A-37 · Popup — aankh se dekhna baaki (21 Sep, D-103)
 
 **Deadline:** client ke dekhne pe · **kuch toota hua nahi** — 1265+ test, lint, dono build pass
