@@ -1,7 +1,7 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 18 Sep 2026 raat — home ki speed (D-101). Usse pehle D-100 (Spacing), D-99 (Fonts). Push baaki —
+> **Last updated:** 21 Sep 2026 — agla kaam SEO bulk export+import; 18 Sep raat home ki speed (D-101). Usse pehle D-100 (Spacing), D-99 (Fonts). Push baaki —
 > `git log --oneline origin/main..HEAD` dekho.
 > **Poori suite 18 Sep ko chali: 46 files, 1223/1224 pass** — ek fail `theme-fonts.test.js` (`.hf-stat span`, client ka
 > edit, neeche). C: pe ab ~10 GB (18 Sep: Docker images prune + `docker_data.vhdx` compact, 40 → 25 GB).
@@ -10,7 +10,28 @@
 
 ---
 
-## ⏭️ 18 Sep raat — speed: home ho gaya, ab baaki pages (D-101, A-17)
+## ⏭️ 21 Sep — agla kaam: **SEO details ka bulk export + import (URL ke saath)**
+
+Client ne is session ke aakhir me ye maanga — **abhi kuch bana nahi, na hi koi faisla hua**. Shuru karne se pehle
+client se scope poochho: kaun se fields (Meta Title · Meta Description · canonical · noindex?), kis type pe (package ·
+post · page · tour), file CSV ho ya Google Sheet, aur update ka milaan **URL/path** se hoga (client ke shabd:
+_"with url"_). Bulk Upload (`bulk-imports`) ka dhaancha pehle se hai — D-81/92/95 padho, `targets.js` ka teen-cheez
+wala batwara wahi kaam aayega. Export aaj **kahin nahi hai**, wo naya hissa hoga.
+
+### Aaj ka chhota kaam (koi code nahi badla)
+
+- Client ka package import doc parser se chala kar dekha — **0 warning, 0 blocker** (asli DB ki master lists ke saath).
+  Uske doc me 4 FAQ jawab **beech se kate hue** the (`"the sailings are reli|heir best"`), Meta Description adhoori,
+  aur `Best For` me typo — sab content ki cheezein, client ko batayi
+- Bold/heading ki jaanch: label bold ho, heading style me ho, ya value bold ho — **parsing pe koi asar nahi**. Bold
+  sirf teen jagah page tak jaata hai: Overview · Day Description · FAQ Answer (baaki khaane `textOf()` se jaate hain)
+- **Naya sample doc banaya** (client ki Drive me, `1pnOCYEvCVc4R27gVzAEC4VElxc-aIoLWKZ9ThYRHzKI`) — heading + bold
+  wala, local HTML pe 0 issue. ⚠️ Client ko use **"Anyone with the link"** karna hai; abhi anonymous export **401**
+  deta hai, aur importer bina login ke padhta hai (D-81)
+
+---
+
+## 18 Sep raat — speed: home ho gaya, ab baaki pages (D-101, A-17)
 
 Client: _"90+ aa rha hai which is good"_ — ab **baaki pages** asli PageSpeed pe, phir har page ka apna sasta fix.
 Render-blocking CSS (critical CSS / CSS batwara) **baad me**, jab sab 90+ ho.
