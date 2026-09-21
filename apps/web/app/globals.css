@@ -3595,39 +3595,73 @@ a.mega__gl:hover {
   z-index: 200;
   display: grid;
   place-items: center;
-  padding: 16px;
+  /*
+   * ⚠️ Upar 56px — wahan **close button baithta hai**, dabbe ke bahar (`.pmod__x`). Itni jagah
+   * na chhodo to wo chhoti screen pe screen se bahar chala jaata hai.
+   */
+  padding: 56px 16px 16px;
   background: color-mix(in srgb, var(--ink) 62%, transparent);
-  overflow-y: auto;
+}
+
+/*
+ * ⚠️ **Shell isliye hai ki close button dabbe ke BAHAR baith sake** (client, 21 Sep).
+ *
+ * Button pehle `.pmod__box` ke andar tha aur image ke **upar** chhapta tha — client ne wahi
+ * pakda. Bahar le jaane ka matlab hai ki uska `position: absolute` kisi aise maa-baap se
+ * naape jo **scroll aur clip dono na karta ho**; `.pmod__box` dono karta hai
+ * (`overflow-y: auto` + rounded corners), yaani wahan rakhne se button kat jaata ya dabbe
+ * ke saath scroll hota.
+ *
+ * Ye bilkul wahi dhaancha hai jo `.vmod` (video popup, D-101 §5) pe pehle se chal raha hai.
+ *
+ * ⚠️ Shell ki apni koi ooncha-neechai nahi hai — wo dabbe jitni hi hai. Isliye button ke
+ * aas-paas ki khaali jagah ab bhi `.pmod` ki hai, aur wahan click karne pe popup band hota
+ * hai (wo handler `event.target === event.currentTarget` pe chalta hai).
+ */
+.pmod__shell {
+  position: relative;
+  width: min(560px, 100%);
 }
 
 .pmod__box {
-  position: relative;
-  width: min(840px, 100%);
+  width: 100%;
   background: var(--surface);
   border-radius: var(--r2);
   box-shadow: var(--sh-3);
   overflow: hidden;
   /*
-   * Lamba form chhoti screen pe — dabba khud scroll kare, page nahi (page to `noscroll`
-   * pe hai). Bina iske phone pe Submit tak pahunchne ka koi raasta hi nahi bachta.
+   * ⚠️ **Ye scroll ab aakhri sahara hai, roz ka raasta nahi.**
+   *
+   * Client ne 21 Sep ko poochha ki scroller kyun aa raha hai. Wajah do thi: dabba **840px**
+   * chauda tha aur uski image `aspect-ratio: 4/3` pe thi — yaani ek hi image **630px ooonchi**
+   * ban jaati thi, aur uske neeche poora form. Ek popup aadhi se zyada screen le leta tha.
+   *
+   * Ab chaudai 560px hai aur image ki ooonchai `vh` se bandhi hai (neeche), to aam screen pe
+   * scroll aata hi nahi. Ye rule phir bhi rehta hai: chhoti screen (ya lamba form) pe dabba khud
+   * scroll kare, page nahi — bina iske phone pe Submit tak pahunchne ka koi raasta nahi bachta.
+   *
+   * ⚠️ `.pmod` se `overflow-y: auto` **hata diya gaya** — dono jagah scroll hone ka matlab tha
+   * **do scrollbar**, aur wahi client ko dikh rahe the.
    */
-  max-height: calc(100dvh - 32px);
+  max-height: calc(100dvh - 88px);
   overflow-y: auto;
 }
 
 .pmod__x {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  /* Dabbe ke bahar, upar — `.vmod__x` wali hi jagah aur wahi naap. */
+  top: -44px;
+  right: 0;
   z-index: 2;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: 50%;
+  display: grid;
+  place-items: center;
   cursor: pointer;
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: var(--sh-3);
+  color: var(--on-dark);
+  background: color-mix(in srgb, var(--on-dark) 16%, transparent);
   font-size: var(--fs-small);
   line-height: 1;
 }
@@ -3653,12 +3687,20 @@ a.mega__gl:hover {
 .pmod__pic {
   display: block;
   width: 100%;
-  height: 100%;
   /*
-   * ⚠️ `aspect-ratio` + `object-fit` dono zaroori hain. Client ki teen image teen alag naap
-   * ki hongi; bina iske patti ooncha-neecha ho jaati hai aur heading uspe tedhi baithti.
+   * ⚠️ **Ooonchai `vh` se bandhi hai, `aspect-ratio` se nahi — aur wahi scroller ka ilaaj hai.**
+   *
+   * Pehle yahan `aspect-ratio: 4/3` tha, yaani image ki ooonchai **dabbe ki chaudai** se banti
+   * thi: 840px chauda dabba = 630px oonchi image, aur uske neeche poora form. Popup screen se
+   * bahar nikal jaata tha (client, 21 Sep).
+   *
+   * `clamp` ka beech wala hissa viewport se juda hai, isliye chhoti screen pe patti apne aap
+   * chhoti ho jaati hai — wahan jagah form ki zyada zaroori hai.
+   *
+   * `object-fit: cover` ab bhi utna hi zaroori hai: client ki teen image teen alag naap ki
+   * hongi, aur fixed ooonchai ke bina patti ooncha-neecha ho jaati aur heading uspe tedhi baithti.
    */
-  aspect-ratio: 4 / 3;
+  height: clamp(130px, 20vh, 220px);
   object-fit: cover;
 }
 

@@ -108,7 +108,13 @@ export default function PopupForm({ popup, sourcePath }) {
         if (event.target === event.currentTarget) setOpen(false)
       }}
     >
-      <div className="pmod__box">
+      {/*
+        ⚠️ **Shell — close button dabbe ke BAHAR baithta hai** (client, 21 Sep): pehle wo image ke
+        upar chhapta tha. Bahar rakhne ke liye use ek aisa maa-baap chahiye jo scroll aur clip
+        dono na kare, aur `.pmod__box` dono karta hai. Wahi dhaancha `.vmod` (video popup) pe
+        pehle se hai.
+      */}
+      <div className="pmod__shell">
         <button
           ref={closeRef}
           className="pmod__x"
@@ -119,52 +125,54 @@ export default function PopupForm({ popup, sourcePath }) {
           ✕
         </button>
 
-        {images.length > 0 && (
-          /*
+        <div className="pmod__box">
+          {images.length > 0 && (
+            /*
             Ginti class me jaati hai (`pmod__pics--2`), inline style me nahi — client ne ginti
             khud chunni thi, aur layout CSS me rehna chahiye taaki mobile pe wo badal sake.
           */
-          <div className={`pmod__pics pmod__pics--${images.length}`}>
-            {images.map((image, index) => (
-              <Img
-                key={image.url ?? index}
-                image={image}
-                alt=""
-                className="pmod__pic"
-                /*
+            <div className={`pmod__pics pmod__pics--${images.length}`}>
+              {images.map((image, index) => (
+                <Img
+                  key={image.url ?? index}
+                  image={image}
+                  alt=""
+                  className="pmod__pic"
+                  /*
                   `eager` — popup khulne ke baad hi mount hota hai, yaani ye kabhi pehli screen
                   ka hissa nahi hota. `lazy` yahan ulta kaam karta: image tab utarti jab popup
                   pehle se saamne hota, aur client ko khaali dabba dikhta.
                 */
-                eager
-              />
-            ))}
+                  eager
+                />
+              ))}
 
-            {popup.heading && (
-              <h2 className="pmod__h" dangerouslySetInnerHTML={{ __html: popup.heading }} />
-            )}
-          </div>
-        )}
+              {popup.heading && (
+                <h2 className="pmod__h" dangerouslySetInnerHTML={{ __html: popup.heading }} />
+              )}
+            </div>
+          )}
 
-        {/*
+          {/*
           Image na ho to heading bhi apni jagah chahiye — warna wo chup-chaap gayab ho jaati
           (D-30 wala "khaali ka matlab" nahi, ye seedhi galti hoti).
         */}
-        {images.length === 0 && popup.heading && (
-          <h2
-            className="pmod__h pmod__h--plain"
-            dangerouslySetInnerHTML={{ __html: popup.heading }}
-          />
-        )}
+          {images.length === 0 && popup.heading && (
+            <h2
+              className="pmod__h pmod__h--plain"
+              dangerouslySetInnerHTML={{ __html: popup.heading }}
+            />
+          )}
 
-        <div className="pmod__body">
-          <EnquiryForm
-            form={popup.form}
-            variant="page"
-            heading={popup.formHeading}
-            description={popup.description}
-            sourcePath={sourcePath}
-          />
+          <div className="pmod__body">
+            <EnquiryForm
+              form={popup.form}
+              variant="page"
+              heading={popup.formHeading}
+              description={popup.description}
+              sourcePath={sourcePath}
+            />
+          </div>
         </div>
       </div>
     </div>,
