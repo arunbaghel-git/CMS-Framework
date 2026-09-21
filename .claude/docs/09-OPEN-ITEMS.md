@@ -1,16 +1,19 @@
 # 09 — Open Items
 
-**Last updated:** 21 Sep 2026 raat — D-104 (itinerary ke do khaane + naya Notes section, migration 027).
-Usse pehle usi din D-102 (floating contact) aur D-103 (popup).
+**Last updated:** 21 Sep 2026 raat — D-103 §8 (popup ki naap + close button, **A-37 band**), D-104
+(itinerary ke do khaane + naya Notes section, migration 027) aur D-105 (master list ka khaali-value
+bug). Usse pehle usi din D-102 (floating contact) aur D-103 (popup).
+⚠️ **`:3000` toota hua chhoda gaya hai** — `pnpm dev:web` restart chahiye, poora hisaab A-39 aur
+`project-state.md` ke sabse upar.
 
 **Status:** Phase 0 · Slice 0 · Phase 1 (Packages) · Phase 2 (Media) poore. Uske upar client ke kehne pe
 page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87–D-90) · Sidebar (D-88) ·
 Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
 `.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Tests:** 21 Sep (D-104 ke baad) — **49 files, 1280/1282 pass**; dono fail purane hain
-(`theme-fonts.test.js` = client ka apna CSS edit, aur A-11 ka upload-folder race). Usse pehle
-17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
+**Tests:** 21 Sep (din ke aakhir me) — **51 files, 1292/1293 pass**; **ek hi fail** aur wo purana hai
+(`theme-fonts.test.js` = client ka apna CSS edit). `media.test.js` is run me pass hui — A-11 ka race
+aata-jaata rehta hai. Usse pehle 17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
 16 Sep ko isi wajah se vitest `ENOSPC` de rahi thi. Jagah kam ho to suite phir "no tests"/load error degi —
 wo code ka bug nahi hai.
 
@@ -462,6 +465,7 @@ Doc ka format bhi client ne screenshot se confirm karwa liya — sahi tha, koi c
 | # | Kya | Kyun |
 | --- | --- | --- |
 | 1 | **Admin ka hard refresh** (Ctrl+Shift+R) ke baad Add Ons pe khaali karke Update — D-105 ka fix browser me tab aayega | Vite ka purana bundle |
+| 1.5 | ⚠️ **`pnpm dev:web` restart karna hoga** — 21 Sep ki shaam dev chalte hue `next build` chala diya gaya aur `:3000` **500** dene laga (D-89 wala `.next` jaal, D-103 §8 ke aakhir me). Code me kuch nahi toota | Dono ek hi `.next` use karte hain |
 | 2 | Bulk Upload — `Notes Heading`/`Notes Content` **`Day wise Itinerary` se pehle**; din ke purane `Notes` pe row me note dikhe | D-104 §6 |
 
 ⚠️ **Client ko doc ka template batana hai** — do naye label, aur din ke neeche ka purana `Notes :`
@@ -538,7 +542,13 @@ value ke baad **maloom label** hi aaye.
 
 ---
 
-### A-37 · Popup — aankh se dekhna baaki (21 Sep, D-103)
+### ✅ A-37 · Popup — **band** (21 Sep, D-103 §8)
+
+> Client ne popup browser me khul_te hue dekha aur teen cheezein batayin: width/height, scroller, aur
+> close icon ki jagah. **Teenon theek ho gayin** — poora hisaab **D-103 §8** me, 4 naye CSS-invariant
+> test ke saath. Neeche wali check-list itihaas hai.
+
+### A-37 (itihaas) · Popup — aankh se dekhna baaki
 
 **Deadline:** client ke dekhne pe · **kuch toota hua nahi** — 1265+ test, lint, dono build pass
 

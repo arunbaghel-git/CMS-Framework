@@ -2,16 +2,18 @@
 
 > Har session ke shuru me padho, aur session ke end me update karo.
 > **Last updated:** 21 Sep 2026 — din me **teen feature bane** (**D-102** floating WhatsApp + phone
-> button, **D-103** Enquiries ▸ Popup, **D-104** itinerary ke do khaane + naya Notes section, **D-105** master list ka khaali-value bug —
+> button, **D-103** Enquiries ▸ Popup + uski naap (§8), **D-104** itinerary ke do khaane + naya Notes
+> section, **D-105** master list ka khaali-value bug —
 > **migration 027**) aur **do jaanch hui bina code badle** (**A-33** SEO ka bulk export+import,
 > **A-38** Kerala package ka import). Din ke aakhir me **A-40** (Settings ▸ Integrations) aaya aur
 > client ne use **rok diya** — sirf doc likhi gayi, koi code nahi. Kram ke liye neeche ka 📍 block padho.
 > Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
 > _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
 > (Spacing), D-99 (Fonts). Push baaki — `git log --oneline origin/main..HEAD` dekho.
-> **D-105 ke baad suite: 50 files, 1287/1289 pass** — dono fail wahi purane hain
-> (`theme-fonts.test.js` = client ka apna CSS edit, aur A-11 ka upload-folder race).
-> D-104 me 13 naye test, D-105 me 6.
+> **Din ke aakhir me suite: 51 files, 1292/1293 pass** — **ek hi fail**, aur wo purana hai:
+> `theme-fonts.test.js` (`.hf-stat span`, client ka apna CSS edit — chhua nahi).
+> `media.test.js` is run me pass hui (A-11 ka race aata-jaata rehta hai).
+> Aaj ke naye test: D-104 me 13, D-105 me 6, D-103 §8 me 4.
 > (Usse pehle 21 Sep raat: 49 files, 1267/1268 — fail sirf `theme-fonts.test.js`.)
 > (Usse pehle shaam ko: 48 files, 1240/1244 — tab media.test.js ne A-11 wala race khaya tha.)
 > Purani do-fail wali haalat ka hisaab:
@@ -40,16 +42,35 @@ Aaj **teen alag dhaage** chale, isliye neeche ek se zyada "agla kaam" likha dikh
 | 0   | **D-104 · Itinerary + Notes section**       | ✅ **ban gaya, client ne live chala kar dekh liya** — migration 027 chal chuki, bullets bhi theek (§6.1)                                            | neeche pehla section  |
 | 0   | **D-105 · Master list ka khaali-value bug** | ✅ **theek ho gaya** — client ne Add Ons pe pakda. Admin me rebuild ho chuka, **client ka hard refresh baaki**                                      | neeche doosra section |
 | 1   | **A-38 · Kerala package ka import**         | Client ka **zinda sawaal** — _"some content doesn't come on frontend"_. Jaanch ho chuki, **teen kism ki kami**, koi code nahi badla                 | neeche doosra section |
-| 2   | **A-37 · Popup ko aankh se dekhna**         | D-103 ban chuka, test + live payload pass. **Browser me khulte hue dekha nahi**                                                                     | `09-OPEN-ITEMS.md`    |
+| 0   | **D-103 §8 · Popup ki naap + close button** | ✅ **theek ho gaya** — client ne popup live dekha (A-37 **band**). Width 840→560, scroller gaya, close button dabbe ke bahar                        | neeche teesra section |
 | 3   | **A-40 · Settings ▸ Integrations**          | 🔒 **Client ne rok diya** — _"abhi main confirm nahi hu, ise bhi mat banao, abhi sirf doc me update kar lo"_. **Koi code nahi**; chaar sawaal khule | `09-OPEN-ITEMS.md`    |
 | 4   | **A-33 · SEO ka bulk export + import**      | Client ke _"full details"_ ka intezaar — **chaar sawaal khule**                                                                                     | neeche aakhri section |
 
-**Agli session sabse pehle #1 dekhe** — wo client ka poochha hua sawaal hai aur uska jawab teen hisson
-me bant-ta hai (design · admin ka data · doc). #2 chhota hai (paanch minute ka browser check). #3 tab
-tak ruka hai jab tak client details na bhejein.
+## 🔴 SABSE PEHLE — `:3000` toota hua chhoda gaya hai
 
-⚠️ **Aaj do feature bane aur dono commit ho chuke hain** — **D-102** (desktop ke floating WhatsApp +
-phone button) aur **D-103** (Enquiries ▸ Popup). Dono ke apne section neeche hain.
+⚠️ **Web ka dev server 500 de raha hai, aur code me kuch nahi toota.** 21 Sep ki shaam maine dev
+chalte hue `pnpm --filter @cms/web build` chala diya; dono ek hi `.next` use karte hain, build ne
+uske vendor chunks kaat diye. **Ye D-89 me pehle se likhi hui chetavni hai aur phir bhi lagi.**
+
+**Ilaaj:** jis cmd window me web chal raha hai wahan `Ctrl+C`, phir `pnpm dev:web`. `.next` apne aap
+dobara ban jaayega. API `:4000` aur admin `:5173` theek hain — unhe haath nahi laga.
+
+**Seedha niyam, aage ke liye:** `next build` chalane se **pehle** `netstat -ano | grep ":3000"` se
+dekho ki port khaali hai ya nahi.
+
+---
+
+**Agli session ka kram:** pehle upar wala restart, phir **A-38** (client ka zinda sawaal — uska jawab
+teen hisson me bant-ta hai: design · admin ka data · doc). **A-40** aur **A-33** dono client ke jawab
+pe ruke hain — un par code nahi chhoona.
+
+⚠️ **Aaj chaar feature bane aur sab commit ho chuke hain** — **D-102** (floating WhatsApp + phone),
+**D-103** (Popup, aur shaam ko uski naap — §8), **D-104** (itinerary ke do khaane + Notes section,
+migration 027) aur **D-105** (master list ka khaali-value bug). Har ek ka apna section neeche hai.
+
+⚠️ **Client ke haath me do chhote kaam chhode hain:** admin ka **hard refresh** (D-105 ka fix Vite ke
+purane bundle ki wajah se dikhega nahi), aur Bulk Upload ke naye labels (`Notes Heading`/`Notes
+Content`) ko ek baar chala kar dekhna. Dono **A-39** me likhe hain.
 
 ⚠️ **Do naye open item aaj nikle jo kisi kaam ka hissa nahi the** — **A-34** (`.sidetab` bhi reference
 me hai aur kabhi bani nahi; client: _"patti baad me"_) aur **A-35** (do cheezein ek din me milna
@@ -214,8 +235,32 @@ images) · `components/PopupForm.jsx` + `lib/popup-visibility.js` + `.pmod*` CSS
 
 ### Bacha hua
 
-- **A-37** — popup **aankh se dekha nahi gaya**. Maine DB me ek test config likh di hai (mongosh se,
-  asli DB pe): home page, 5 second, `session`. Client `Enquiries ▸ Popup` me badal ya band kar sakta hai
+- ✅ **A-37 band** — client ne usi din shaam popup browser me khul_te hue dekha. Teen cheezein batayin
+  aur teenon theek ho gayin (**D-103 §8**): width **840 → 560px**, scroller gaya, aur close button ab
+  dabbe ke **bahar** hai (pehle image ke upar chhapta tha).
+
+### ✅ 21 Sep shaam — popup ki naap aur close button (D-103 §8)
+
+Client ne popup live dekh kar kaha: _"popup ki width aur height thik karo, why there is scroller
+coming, aur close icon ko popup ke side me rakho not on image."_
+
+**Teenon ki ek hi jad thi:** dabba 840px chauda tha aur image `aspect-ratio: 4/3` pe — yaani **ek**
+image hi 630px oonchi, aur uske neeche poora form.
+
+1. ⚠️ **`aspect-ratio` ki jagah `vh`** — `aspect-ratio` ooonchai ko **chaudai** se baandhta hai, yaani
+   chhoti screen pe bhi image apna hissa nahi chhodti. Popup ko viewport me samaana hai, to uski sabse
+   badi cheez ki hadd bhi viewport se aani chahiye (`clamp(130px, 20vh, 220px)`)
+2. ⚠️ **Dabbe ka scroll hataya NAHI gaya** — wo chhoti screen pe Submit tak pahunchne ka ekmatra
+   raasta hai. Do scrollbar ka ilaaj **parde** se `overflow-y` hatana tha
+3. ⚠️ **Close button ke liye `.pmod__shell` jodna pada** — `.pmod__box` scroll bhi karta hai aur clip
+   bhi, to button wahan rakhne se wo kat jaata ya dabbe ke saath scroll hota. Ye naya dhaancha nahi
+   hai: `.vmod` (video popup) pe wahi pehle se hai, aur naap/jagah bhi wahin se li
+4. ⚠️ **Parde ki padding ab `56px` upar** — wo jagah **button ke liye** hai; hat gayi to button chhoti
+   screen pe bahar chala jaata hai. Iska apna test hai
+5. ⚠️ **Test likhte waqt do baar apne hi comments code samajh liye gaye** (`aspect-ratio` aur
+   `pmod__box` dono purane comments me likhe hain). Ab CSS aur JSX dono **comments hata kar** padhe
+   jaate hain — is repo me comments me aksar purani value likhi hoti hai, isliye ye jaal yahan aam hai
+
 - **A-36** — poora `settings` object har page ke HTML me jaata hai (popup ab nahi, baaki sab haan).
   Ye A-17 (speed) ka hissa hai
 - **Jo nahi banaya:** campaign ki Start/End date (client ne nahi maanga), auto-close (maine khilaf

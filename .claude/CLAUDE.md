@@ -777,6 +777,23 @@ wo line upar wale khaane me **chipak** jaati (A-38 wali galti) — ab mapper use
 chahiye. Deploy pe **`pnpm cms migrate` aur `pnpm seed` dono**, phir **API restart**.
 ⚠️ Aankh se dekhna baaki — **API dev server abhi purana code chala raha hai**.
 
+**21 Sep shaam — popup ki naap (D-103 §8), master list ka bug (D-105), aur ek naya ask jo roka gaya.**
+Client ne popup **live dekha** (A-37 band): width 840→560, scroller gaya (parde se `overflow-y` hata,
+dabbe wala rehne diya — wo phone pe Submit tak pahunchne ka ekmatra raasta hai), aur close button ab
+`.pmod__shell` ke sahare dabbe ke **bahar** hai (`.vmod` wala hi dhaancha).
+⚠️ **`aspect-ratio` ki jagah `vh`** — wo ooonchai ko **chaudai** se baandhta hai, isliye 840px ke dabbe
+me ek image 630px oonchi ban jaati thi. Popup ko viewport me samaana hai, to hadd bhi viewport se.
+⚠️ **D-105 — master list me bhara hua khaana khaali nahi ho pata tha.** `submit()` ki ek line har khaali
+value gira deti thi; wajah theek thi (khaali `destinationId` 422 deta hai) par usne har **optional**
+khaane ko bhi pakad liya — paanchon screens pe. Lakshan wahi: API 200, "updated.", DB me purani value.
+Niyam ab `lib/master-list-payload.js` me hai apne test ke saath — `submit()` ke andar uska test likha
+hi nahi ja sakta tha, **aur isiliye wo galti chup padi rahi** (D-92 §11 wala sabak).
+⚠️ **A-40 — `Settings ▸ Integrations` (header/footer/body) client ne ROK diya**: _"abhi main confirm
+nahi hu, ise bhi mat banao, abhi sirf doc me update kar lo"_. Jaanch aur chaar khule sawaal
+`09-OPEN-ITEMS.md` me. ⚠️ Wo feature R20 ka apwaad maangta hai aur `customCss` se **alag** khatra hai.
+⚠️ **`next build` chalane se pehle `netstat` se `:3000` dekho** — dev chalte hue build chala diya gaya
+aur dev server 500 dene laga (D-89 ka jaal, dobara). Code me kuch nahi toota tha.
+
 ⏭️ **Agla kaam: A-33 ke chaar sawaal ka jawab** (`09-OPEN-ITEMS.md`), phir code. Saath me popup ko
 aankh se dekhna (A-37). Uske baad baaki pages PageSpeed pe (A-17). `project-state.md` ka pehla section
 padho.

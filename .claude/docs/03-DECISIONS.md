@@ -9551,3 +9551,71 @@ Pehle jaanch li gayi ki koi optional khaana khaali string pe 422 to nahi deta �
 ⚠️ **`submit()` ke andar rehne se is niyam ka test likha hi nahi ja sakta tha**, aur usi wajah se wo
 galti chup padi rahi. Yahi sabak D-92 §11 me `wrapTables()` pe mila tha: jo sirf chalane pe dikhta
 hai, wo live page pe hi pakda jaata hai — aur tab tak client use jhel chuka hota hai.
+
+---
+
+## D-103 §8 — Popup ki naap aur close button (client, 21 Sep 2026, live dekh kar)
+
+**Status:** ✅ theek ho gaya · koi migration nahi
+
+Client ne popup **browser me khul_te hue** dekha (A-37 ka wahi check jo baaki tha) aur teen cheezein
+batayin: _"popup ki width aur height thik karo, why there is scroller coming, aur close icon ko popup
+ke side me rakho not on image."_
+
+### Teenon shikayat ki **ek hi jad** thi
+
+Dabba `840px` chauda tha aur uski image `aspect-ratio: 4 / 3` pe. Yaani image ki ooonchai **dabbe ki
+chaudai se** banti thi — **ek** image hi `630px` oonchi, aur uske neeche poora form. Popup screen se
+bahar nikal jaata tha, aur isliye scrollbar aata tha.
+
+| Kya | Pehle | Ab |
+| --- | --- | --- |
+| Chaudai | `min(840px, 100%)` | **`min(560px, 100%)`** |
+| Image ki ooonchai | `aspect-ratio: 4/3` (chaudai se) | **`clamp(130px, 20vh, 220px)`** (viewport se) |
+| Scroll | `.pmod` **aur** `.pmod__box` dono | sirf `.pmod__box` |
+| Close button | dabbe ke **andar**, image ke upar | dabbe ke **bahar** (`top: -44px`) |
+
+⚠️ **Dabbe ka scroll hataya nahi gaya, sirf bemaani ho gaya.** Wo chhoti screen pe (ya lambe form pe)
+Submit tak pahunchne ka **ekmatra** raasta hai — hata dene se phone pe form bhara hi nahi ja sakta.
+Do scrollbar ka ilaaj `.pmod` (parde) se `overflow-y` hatana tha, dabbe se nahi.
+
+⚠️ **`aspect-ratio` ki jagah `vh` — aur wo ittefaq nahi hai.** `aspect-ratio` ooonchai ko **chaudai**
+se baandhta hai, yaani chhoti screen pe bhi image apna hissa nahi chhodti. Popup ko viewport me
+samaana hai, isliye uski sabse badi cheez ki hadd bhi **viewport** se aani chahiye. `object-fit:
+cover` ab bhi utna hi zaroori hai — client ki teen image teen alag naap ki hongi.
+
+### ⚠️ Close button ke liye ek shell jodna pada, aur wo naya dhaancha nahi hai
+
+Button `.pmod__box` ke andar tha. Use bahar le jaane ke liye aisa maa-baap chahiye jo **scroll aur
+clip dono na kare** — aur `.pmod__box` dono karta hai (`overflow-y: auto` + rounded corners). Wahan
+rakhne se button ya kat jaata, ya dabbe ke saath scroll hota.
+
+Isliye `.pmod__shell` — bilkul wahi dhaancha jo **`.vmod`** (video popup) pe pehle se chal raha hai,
+aur naap/jagah bhi wahin se li gayi (`top: -44px`, 36×36, `--on-dark` ka 16% wala circle).
+
+⚠️ **Parde ki `padding` ab `56px 16px 16px` hai** — upar ki jagah **button ke liye** hai. Wo hat gayi
+to button chhoti screen pe screen ke bahar chala jaata hai, aur tab popup band karne ka Esc ke alawa
+koi raasta nahi bachta. Iska apna test hai.
+
+⚠️ **Shell ki apni koi ooonchai nahi hai** (wo dabbe jitni hi hai), isliye button ke aas-paas ki khaali
+jagah ab bhi `.pmod` ki hai — aur wahan click karne pe popup band hota hai. Wo handler
+`event.target === event.currentTarget` pe chalta hai, to shell ke aane se wo toota nahi.
+
+### 4 naye test — aur wo client ke dekhe hue tootan se aaye hain
+
+`apps/web/components/popup-form.test.js` — wahi tark jo `floating-contact.test.js` ke sar pe likha hai:
+is component ka sabse aasan tootan **CSS me** hai, JSX me nahi.
+
+⚠️ **Test likhte waqt do baar apne hi comments code samajh liye gaye** — `aspect-ratio` ka zikr
+`.pmod__pic` ke apne comment me hai aur `.pmod__box` ka zikr JSX ke comment me, aur dono assertion
+unhi pe pass/fail ho rahi thi. Ab CSS aur JSX dono **comments hata kar** padhe jaate hain. Is repo me
+comments me aksar **purani** value likhi hoti hai, isliye ye jaal yahan aam hai.
+
+### ⚠️ Usi shaam ek aur sabak — D-89 wala `.next` jaal dobara laga
+
+Verify karne ke liye `pnpm --filter @cms/web build` chala diya gaya **jabki dev server chal raha tha**.
+Dono ek hi `.next` use karte hain; build ne uske vendor chunks kaat diye aur `:3000` **500** dene laga.
+Code me kuch nahi toota tha — sirf chalta hua process. Ilaaj: dev server restart.
+
+**Ye chetavni D-89 me pehle se likhi hai**, aur usi din client ko bhi batayi gayi thi. Phir bhi lagi.
+Seedha niyam: **`next build` chalane se pehle `netstat` se dekho ki `:3000` khaali hai ya nahi.**
