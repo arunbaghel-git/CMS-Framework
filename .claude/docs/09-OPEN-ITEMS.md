@@ -398,6 +398,57 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ---
 
+### A-40 · Settings ▸ Integrations — teen khaane (21 Sep, client ka naya ask, **koi code nahi**)
+
+**Deadline:** client ke confirm pe · **abhi kuch nahi bana**
+**Client, 21 Sep:** _"in settings submenu Integrations — there will be 3 input field header, footer,
+body … ask if any question"_, aur poochhne par: **_"abhi main confirm nahi hu, ise bhi mat banao,
+abhi sirf doc me update kar lo"_**
+
+Wahi niyam jo **A-32** (Fonts ka "Text Elements") aur **A-33** (SEO ka bulk export) pe chal raha hai —
+client ke confirm se pehle code nahi chhua jaata.
+
+#### Jo jaanch ho chuki hai (agli session ye dobara na kare)
+
+**Saancha pehle se maujood hai — `Settings ▸ Custom CSS` (D-96 §25) bilkul yahi shakl hai:**
+`settings.customCss` → model me ek `String` → `toPublicSettings()` → theme har page ke `<head>` me
+daalti hai. Integrations bhi `settings.integrations{header, body, footer}` hoga, screen
+`/settings/integrations`, permission `settings.read`/`settings.update` — koi naya module nahi, koi
+migration nahi (field defaulted hoga).
+
+#### ⚠️ Chaar sawaal khule hain — inke bina kaam shuru nahi ho sakta
+
+| # | Sawaal | Kyun kaam ruka hai |
+| --- | --- | --- |
+| 1 | **_"inka content frontend par nahi show hona chahiye jab content bhar de tab"_ ka matlab** — (a) khaali ho to site pe kuch na jaaye, (b) abhi site se jodna hi nahi (sirf admin + save), ya (c) code chale par text ki tarah na chhape? | Teenon ka kaam alag hai. (b) me theme chhui hi nahi jaati; (a) aur (c) me poora raasta judta hai |
+| 2 | **`<script>` chalega ya nahi** | Ye is feature ka sabse bada faisla hai — neeche apna hissa |
+| 3 | **Kaun badal sake** — sirf `admin`, ya `editor` bhi (aaj baaki saari settings editor bhi badal sakta hai) | #2 se seedha juda hai |
+| 4 | **Teen khaane lagte kahan hain** — standard (header → `</head>` se pehle · body → `<body>` khulte hi · footer → `</body>` se pehle), ya kuch aur | GTM ka `noscript` `<body>` ke turant baad hi kaam karta hai |
+
+#### ⚠️ Ye feature R20 ka jaan-boojh kar liya gaya apwaad maangta hai
+
+Integrations ka matlab hi **Google Analytics · Meta Pixel · GTM** hai, aur teenon `<script>` hain.
+Sanitizer (`core/sanitize-html.js`) `<script>` girata hai — yaani ya to ye field sanitizer se **bahar**
+rahegi, ya feature kaam hi nahi karega.
+
+⚠️ **Ye `customCss` se alag khatra hai, aur us farak ko halka nahi samajhna chahiye.** `customCss` ke
+apne comment me likha hai: _"CSS me JavaScript nahi chalti, isliye is ek rok (`</style`) ke baad
+yahan XSS ka raasta nahi bachta."_ Integrations me **wo baat sach nahi hai** — jo bhi ye khaana bhar
+sakta hai wo har visitor ke browser me koi bhi JS chala sakta hai. Isliye sawaal #3 (kaun badal sake)
+sawaal #2 ka hissa hai, uske baad ki baat nahi.
+
+#### ⚠️ Ek cheez jo banate waqt **zaroor** dekhni hogi — A-36
+
+`MobileNav` (header, **har page pe**) poora `settings` object prop me leta hai, aur client component ke
+props RSC flight data me serialize hote hain. Yaani Integrations ka poora code **do baar** har page ke
+HTML me jaayega — ek baar `<head>`/`<body>` me chalne ke liye, ek baar flight data me bemaani.
+
+**D-103 §7 me theek yahi popup ke saath hua tha** aur ilaaj wahan likha hai: `getSettings()` use nikaal
+deti hai aur `getPopup()` alag hai (wahi cached fetch, koi naya round trip nahi). Integrations pe bhi
+pehle din se wahi batwara chahiye — baad me jodna A-36 ko aur bada karta hai.
+
+---
+
 ### A-39 · D-104 / D-105 — client ne live dekh liya; do chhoti cheezein baaki (21 Sep)
 
 **Deadline:** koi sakht nahi · **kuch toota hua nahi** — 1287 test, lint, dono build pass

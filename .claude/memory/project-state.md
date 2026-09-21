@@ -4,7 +4,8 @@
 > **Last updated:** 21 Sep 2026 — din me **teen feature bane** (**D-102** floating WhatsApp + phone
 > button, **D-103** Enquiries ▸ Popup, **D-104** itinerary ke do khaane + naya Notes section, **D-105** master list ka khaali-value bug —
 > **migration 027**) aur **do jaanch hui bina code badle** (**A-33** SEO ka bulk export+import,
-> **A-38** Kerala package ka import). Kram ke liye neeche ka 📍 block padho.
+> **A-38** Kerala package ka import). Din ke aakhir me **A-40** (Settings ▸ Integrations) aaya aur
+> client ne use **rok diya** — sirf doc likhi gayi, koi code nahi. Kram ke liye neeche ka 📍 block padho.
 > Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
 > _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
 > (Spacing), D-99 (Fonts). Push baaki — `git log --oneline origin/main..HEAD` dekho.
@@ -34,13 +35,14 @@
 
 Aaj **teen alag dhaage** chale, isliye neeche ek se zyada "agla kaam" likha dikhta hai. Asli kram:
 
-| #   | Dhaaga                                      | Haalat                                                                                                                              | Kahan                 |
-| --- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| 0   | **D-104 · Itinerary + Notes section**       | ✅ **ban gaya, client ne live chala kar dekh liya** — migration 027 chal chuki, bullets bhi theek (§6.1)                            | neeche pehla section  |
-| 0   | **D-105 · Master list ka khaali-value bug** | ✅ **theek ho gaya** — client ne Add Ons pe pakda. Admin me rebuild ho chuka, **client ka hard refresh baaki**                      | neeche doosra section |
-| 1   | **A-38 · Kerala package ka import**         | Client ka **zinda sawaal** — _"some content doesn't come on frontend"_. Jaanch ho chuki, **teen kism ki kami**, koi code nahi badla | neeche doosra section |
-| 2   | **A-37 · Popup ko aankh se dekhna**         | D-103 ban chuka, test + live payload pass. **Browser me khulte hue dekha nahi**                                                     | `09-OPEN-ITEMS.md`    |
-| 3   | **A-33 · SEO ka bulk export + import**      | Client ke _"full details"_ ka intezaar — **chaar sawaal khule**                                                                     | neeche aakhri section |
+| #   | Dhaaga                                      | Haalat                                                                                                                                              | Kahan                 |
+| --- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 0   | **D-104 · Itinerary + Notes section**       | ✅ **ban gaya, client ne live chala kar dekh liya** — migration 027 chal chuki, bullets bhi theek (§6.1)                                            | neeche pehla section  |
+| 0   | **D-105 · Master list ka khaali-value bug** | ✅ **theek ho gaya** — client ne Add Ons pe pakda. Admin me rebuild ho chuka, **client ka hard refresh baaki**                                      | neeche doosra section |
+| 1   | **A-38 · Kerala package ka import**         | Client ka **zinda sawaal** — _"some content doesn't come on frontend"_. Jaanch ho chuki, **teen kism ki kami**, koi code nahi badla                 | neeche doosra section |
+| 2   | **A-37 · Popup ko aankh se dekhna**         | D-103 ban chuka, test + live payload pass. **Browser me khulte hue dekha nahi**                                                                     | `09-OPEN-ITEMS.md`    |
+| 3   | **A-40 · Settings ▸ Integrations**          | 🔒 **Client ne rok diya** — _"abhi main confirm nahi hu, ise bhi mat banao, abhi sirf doc me update kar lo"_. **Koi code nahi**; chaar sawaal khule | `09-OPEN-ITEMS.md`    |
+| 4   | **A-33 · SEO ka bulk export + import**      | Client ke _"full details"_ ka intezaar — **chaar sawaal khule**                                                                                     | neeche aakhri section |
 
 **Agli session sabse pehle #1 dekhe** — wo client ka poochha hua sawaal hai aur uska jawab teen hisson
 me bant-ta hai (design · admin ka data · doc). #2 chhota hai (paanch minute ka browser check). #3 tab
