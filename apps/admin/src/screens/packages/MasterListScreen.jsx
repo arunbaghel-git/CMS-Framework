@@ -4,6 +4,7 @@ import { HOTEL_CATEGORIES, HOTEL_CATEGORY_LABEL, formatReviewMonth, starString }
 
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
 import { api, errorMessage } from '../../lib/api.js'
+import { toMasterListPayload } from '../../lib/master-list-payload.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
 import { openPicker } from '../../lib/date-input.js'
@@ -255,18 +256,10 @@ export default function MasterListScreen({ list, tabs }) {
     setNotice(null)
 
     /**
-     * Khaali strings **bheji nahi jaati**. `destinationId` pe khaali string bhejne ka
-     * matlab hai server pe "ye destination dhoondho" — aur wo 422 deta hai, jabki asli
-     * baat sirf itni hai ki field bhara hi nahi gaya.
+     * Kaunsa khaali khaana bheja jaaye — poora niyam aur uska itihaas
+     * `lib/master-list-payload.js` me hai (wo yahan se isliye nikla ki uska test likha ja sake).
      */
-    const payload = Object.fromEntries(
-      Object.entries(form).filter(
-        ([key, value]) =>
-          (value !== '' && value != null) ||
-          /** Image hatayi to `null` jaana chahiye — warna edit pe purani image chup-chaap bachi rehti. */
-          (editingId && mediaKeys.includes(key)),
-      ),
-    )
+    const payload = toMasterListPayload(form, { fields: config.fields, editingId })
 
     try {
       if (editingId) {

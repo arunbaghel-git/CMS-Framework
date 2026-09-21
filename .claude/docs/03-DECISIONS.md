@@ -9488,3 +9488,66 @@ hoti hi nahi thi. Dono list ki wajah ek hi hai — **dono editor se aati hain**,
 - **`packageDefaults` me Notes ka global fallback** — na maanga gaya; jodne ka matlab hota "khaali ke
   do matlab" ka sawaal phir se
 - **Meals ka koi suggestion/datalist** — teen naam ka dropdown wapas wahi hadd hota jo hatayi gayi
+
+---
+
+## D-105
+
+**Master lists me bhara hua khaana khaali nahi kiya ja sakta tha** (client, 21 Sep 2026)
+
+**Status:** ✅ theek ho gaya · koi migration nahi
+
+Client, Kerala ke add-ons theek karte hue: _"in Add Ons why i am not able to update any value"_.
+
+### §1 — Lakshan wahi tha jo is repo me baar-baar aata hai: **kuch na hona**
+
+Client `Where` mitakar **Update** dabata tha. API **200** deti thi, admin _"Add-on updated."_
+dikhata tha, aur DB me **purani value** baithi rehti thi. Koi error kahin nahi — na browser me,
+na server pe. Bilkul wahi shakl jo D-86 (guard chup-chaap mar gaye) aur D-89 ("bana hua par juda
+nahi") me likhi hai.
+
+Saboot DB me pada tha: Kerala ke do add-ons pe `where` = `"All three ferry legs"` — wo **Andaman
+ke `Ferry class upgrade`** ki line hai. Client use mitana chah raha tha aur mita hi nahi paa raha tha.
+
+### §2 — Jad admin me thi, server me nahi
+
+Poora server ka raasta saaf tha, aur wo pehle verify kiya gaya: `updateAddOnSchema.parse({price:''})`
+→ `{price:''}` ✅ · `updateItem()` ka `$set: input` generic hai (koi whitelist nahi) ✅ ·
+`addOnSchema` (model) me `price`/`where` dono hain ✅.
+
+Galti `MasterListScreen.jsx` ke `submit()` me ek line thi:
+
+```js
+(value !== '' && value != null) || (editingId && mediaKeys.includes(key))
+```
+
+**Koi bhi khaali value payload se gir jaati thi.** Uski asli wajah theek thi aur us waqt likhi bhi
+gayi thi — khaali `destinationId` server pe _"ye destination dhoondho"_ ban jaata hai aur 422 deta
+hai. Par us ek line ne **har optional khaane** ko bhi pakad liya, aur nateeja ye tha ki bhara hua
+khaana **kabhi khaali ho hi nahi sakta tha** — paanchon screens pe: add-on ka `price`/`where`,
+hotel ka `room`/`note`, transfer ka `icon`, review ka `month`/`lastLine`, video review ka
+`packageName`.
+
+### §3 — Khaali ke do matlab, aur wo **field pe** nirbhar karte hain
+
+| Khaana | Khaali bheja jaata hai? |
+| --- | --- |
+| `required` (naam · destination · category · stars · video link) | ❌ — wo form ki galti hai, server ki baat nahi |
+| optional text | ✅ **sirf edit pe** — matlab "isse hata do" |
+| `media` | ❌ create pe · ✅ edit pe (`null`, warna purani image chipki rehti) |
+
+⚠️ **Create pe khaali ab bhi nahi jaata, aur wo jaan-boojh kar hai** — nayi row pe "hata do" ki koi
+baat hi nahi hoti; wahan khaali ka matlab sirf "bhara nahi", aur schema ka apna default (`''`) wahi
+kaam kar deta hai. Ye D-65 wale **"khaali ke do matlab"** ka hi doosra roop hai.
+
+Pehle jaanch li gayi ki koi optional khaana khaali string pe 422 to nahi deta — `month` · `lastLine` ·
+`room` · `note` · `icon` · `packageName`, chhaton pass. `videoUrl` (`.url()`) 422 deta, par wo
+`required` hai, isliye us raaste pe aata hi nahi.
+
+### §4 — Niyam JSX se bahar nikla, apne test ke saath
+
+`lib/master-list-payload.js` → `toMasterListPayload()`, **6 test**.
+
+⚠️ **`submit()` ke andar rehne se is niyam ka test likha hi nahi ja sakta tha**, aur usi wajah se wo
+galti chup padi rahi. Yahi sabak D-92 §11 me `wrapTables()` pe mila tha: jo sirf chalane pe dikhta
+hai, wo live page pe hi pakda jaata hai — aur tab tak client use jhel chuka hota hai.
