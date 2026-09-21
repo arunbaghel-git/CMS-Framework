@@ -395,6 +395,47 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ---
 
+### A-37 · Popup — aankh se dekhna baaki (21 Sep, D-103)
+
+**Deadline:** client ke dekhne pe · **kuch toota hua nahi** — 1265+ test, lint, dono build pass
+
+Poori chain live verify ho chuki hai (payload resolved, gating sahi, CSS bundle me), par **popup ko
+browser me khulte hue dekha nahi gaya** — uske liye 5 second ruk kar dekhna padta hai.
+
+⚠️ **Maine DB me ek test config likh di hai** (mongosh se, asli DB pe): `enabled: true`, form
+`Home Page`, heading `Special Offers`, 5 second, `session`, sirf **Home page** pe. Client ise
+`Enquiries ▸ Popup` me khol kar badal ya band kar sakta hai.
+
+| # | Kya dekhna hai | Kyun |
+| --- | --- | --- |
+| 1 | `/` khol kar 5 second ruko — popup aaye, form bhara ja sake, submit Enquiries me pahunche | Poora raasta |
+| 2 | Band karke page **reload** karo — dobara na aaye (`session`). Naya tab kholo — phir aaye | `sessionStorage` |
+| 3 | `Show again` → `Again after a few days` pe `Days` ka khaana khule | Conditional field |
+| 4 | 1, 2 aur 3 image chun kar dekho — layout ginti ke hisaab se badle; phone pe teesri neeche jaaye | `.pmod__pics--N` |
+| 5 | Esc se band · parde pe click se band · peeche ka page scroll na ho | `noscroll` + portal |
+| 6 | Sirf `Packages` tick karke `/` kholo — popup **na** aaye | `showOn` gating |
+
+---
+
+### A-36 · `settings` ka poora object har page ke HTML me jaata hai (21 Sep, D-103 §7 se nikla)
+
+**Deadline:** koi sakht nahi · **aaj kuch toota nahi** — par ye **A-17 (speed)** ka hissa hai
+
+`MobileNav` (header me, yaani **har page pe**), `MobileBar` aur `TourSchema` — teeno client
+components hain aur teeno **poora `settings` object** prop me lete hain. Client component ke props
+RSC flight data me serialize hote hain, yaani har page ke HTML me poori settings jaati hai:
+`themeCss`, `customCss`, `footerColumns[]`, `headerButtons[]`, `social`, sab.
+
+D-103 me ye popup ki wajah se pakda gaya (popup ka resolved form har page pe ja raha tha) aur wahan
+ka ilaaj sirf popup ke liye tha — `getSettings()` ab use nikal deti hai. **Baaki sab ab bhi jaata
+hai.**
+
+**Karne wala kaam:** teeno component ko sirf wo field do jo unhe chahiye (`MobileNav` ko shayad
+logo · phone · whatsapp · quoteUrl · headerButtons). ⚠️ Header D-94 ka kaam hai aur nazuk hai —
+pehle naap lo ki kitna KB bacha, phir haath lagao.
+
+---
+
 ### A-35 · Reference ke saath poora milaan — aur kya chhoot gaya hai? (21 Sep, D-102 se nikla)
 
 **Deadline:** koi sakht nahi · **aaj kuch toota nahi**

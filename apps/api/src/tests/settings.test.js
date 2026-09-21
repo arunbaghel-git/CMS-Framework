@@ -625,3 +625,153 @@ describe('Settings ▸ General — floating buttons ka side (21 Sep)', () => {
     expect(doc.whatsapp).toBe('+91 98100 66496')
   })
 })
+
+/**
+ * `Enquiries ▸ Popup` (client, 21 Sep — D-103).
+ *
+ * Data `settings.popupSettings` me hai (screen Enquiries me hai, par wo alag baat hai), aur
+ * public payload me wo **resolved** jaata hai — form aur images server pe khul kar.
+ *
+ * ⚠️ Yahan sabse zyada keemat un teen test ki hai jo **"popup nahi dikhta"** dekhte hain. Unka
+ * lakshan ek hi hai (kuch na hona), aur wahi is repo ki sabse aam bug ki shakl hai.
+ */
+describe('Enquiries ▸ Popup — popupSettings (21 Sep)', () => {
+  const save = (body) => authed('patch', '/api/settings', adminJar).send({ popupSettings: body })
+
+  const publicSettings = async () => {
+    const { getPublicSettings } = await import('../modules/public/service.js')
+    return getPublicSettings()
+  }
+
+  /** Ek chalta hua form — popup ko iski id chahiye. */
+  async function makeForm(patch = {}) {
+    const res = await authed('post', '/api/forms', adminJar).send({
+      name: 'Popup Enquiry',
+      status: 'active',
+      fields: [{ key: 'name', label: 'Your Name', type: 'text', required: true }],
+      ...patch,
+    })
+    expect(res.status).toBe(201)
+    return res.body.data.form
+  }
+
+  /** Poora chalta hua popup — har test isme se ek cheez todta hai. */
+  const working = (formId, patch = {}) => ({
+    enabled: true,
+    formId,
+    heading: 'Special Offers',
+    formHeading: 'Get Free Quotes',
+    delaySeconds: 8,
+    frequency: 'days',
+    frequencyDays: 3,
+    showOn: { homePage: true, package: true },
+    ...patch,
+  })
+
+  it('poori chain — Zod se DB, DB se resolved public payload', async () => {
+    const form = await makeForm()
+    expect((await save(working(form.id))).status).toBe(200)
+
+    /** ⚠️ Response nahi, DB — model `strict` hai aur field chhoot jaane pe API phir bhi 200 deti. */
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.popupSettings).toMatchObject({
+      enabled: true,
+      formId: form.id,
+      heading: 'Special Offers',
+      delaySeconds: 8,
+      frequency: 'days',
+      frequencyDays: 3,
+    })
+    expect(doc.popupSettings.showOn).toMatchObject({ homePage: true, package: true, post: false })
+
+    const { popup } = await publicSettings()
+    /** Form **resolved** jaata hai — theme ko kabhi id nahi kholni padti. */
+    expect(popup.form.id).toBe(form.id)
+    expect(popup.form.fields[0].key).toBe('name')
+    expect(popup.delaySeconds).toBe(8)
+    expect(popup.showOn.homePage).toBe(true)
+
+    /** ⚠️ Kachcha `formId`/`imageIds` payload me **kabhi nahi** — allowlist ka poora tark yahi hai. */
+    expect(popup.formId).toBeUndefined()
+    expect(popup.imageIds).toBeUndefined()
+  })
+
+  it('enabled off — payload me popup null', async () => {
+    const form = await makeForm()
+    await save(working(form.id, { enabled: false })).expect(200)
+    expect((await publicSettings()).popup).toBe(null)
+  })
+
+  it('koi form chuna hi nahi — popup null', async () => {
+    await save(working('', {})).expect(200)
+    expect((await publicSettings()).popup).toBe(null)
+  })
+
+  it('kisi page pe tick nahi — popup null', async () => {
+    const form = await makeForm()
+    await save(working(form.id, { showOn: {} })).expect(200)
+    expect((await publicSettings()).popup).toBe(null)
+  })
+
+  it('form mit gaya to popup chup-chaap band, 500 nahi (D-42 §2 wali soch)', async () => {
+    const form = await makeForm()
+    await save(working(form.id)).expect(200)
+    expect((await publicSettings()).popup).not.toBe(null)
+
+    await authed('delete', `/api/forms/${form.id}`, adminJar).expect(200)
+
+    /** Settings me `formId` ab bhi padi hai — payload phir bhi `null`, koi toota reference nahi. */
+    expect((await publicSettings()).popup).toBe(null)
+  })
+
+  it('draft form bhi popup nahi dikhata — public raaste pe wo hai hi nahi', async () => {
+    const form = await makeForm({ status: 'draft' })
+    await save(working(form.id)).expect(200)
+    expect((await publicSettings()).popup).toBe(null)
+  })
+
+  it('adhoora PATCH baaki popup nahi udaata (MERGED_KEYS)', async () => {
+    /**
+     * ⚠️ Ye 10 Sep wala `blogSettings` data-loss hai, popup pe. Admin ka form hamesha poora
+     * object bhejta hai isliye wahan ye kabhi nahi dikhta — ek script se ek field patch karte
+     * hi dikhta hai.
+     */
+    const form = await makeForm()
+    await save(working(form.id)).expect(200)
+
+    await save({ enabled: false }).expect(200)
+
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.popupSettings.enabled).toBe(false)
+    expect(doc.popupSettings.formId).toBe(form.id)
+    expect(doc.popupSettings.heading).toBe('Special Offers')
+    expect(doc.popupSettings.frequencyDays).toBe(3)
+  })
+
+  it('hadd ke bahar aur anjaan value — 400', async () => {
+    expect((await save({ frequency: 'weekly' })).status).toBe(400)
+    expect((await save({ delaySeconds: 5000 })).status).toBe(400)
+    expect((await save({ delaySeconds: -1 })).status).toBe(400)
+    expect((await save({ frequencyDays: 0 })).status).toBe(400)
+    /** Teen se zyada image — rok schema me hai, admin ki hint me nahi. */
+    expect((await save({ imageIds: ['a', 'b', 'c', 'd'] })).status).toBe(400)
+    expect((await save({ showOn: { nosuchtype: true } })).status).toBe(400)
+  })
+
+  it('heading ki HTML write pe saaf hoti hai (R20)', async () => {
+    const form = await makeForm()
+    await save(working(form.id, { heading: 'Special <script>alert(1)</script> Offers' })).expect(
+      200,
+    )
+
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.popupSettings.heading).not.toContain('<script>')
+  })
+
+  it('author badal nahi sakta — settings.update nahi hai', async () => {
+    const res = await authed('patch', '/api/settings', authorJar).send({
+      popupSettings: { enabled: true },
+    })
+    expect(res.status).toBe(403)
+  })
+})

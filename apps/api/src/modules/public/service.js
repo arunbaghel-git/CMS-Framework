@@ -181,6 +181,52 @@ const columnHasContent = (c) => Boolean(c.heading || c.textBlocks.length || c.me
  *
  * `adminEmail` bahar **nahi** jaata — wo notification address hai, site ka content nahi.
  */
+/**
+ * `Enquiries ▸ Popup` ka public roop (client, 21 Sep — D-103).
+ *
+ * **Resolve server pe hota hai, theme me nahi** — wahi tark jo D-65 (`toSectionLabels()`) aur
+ * D-88 (`sidebarWidgets[]`) pe hai. Theme ko na media id resolve karni padti hai, na form.
+ *
+ * ⚠️ **Teen shart me se ek bhi toote to `null`**, aur teenon ka lakshan ek hi hai — popup nahi
+ * aata. Ye jaan-boojh kar hai (D-30): adhoora popup us khaali dabbe se behtar hai jo form ke
+ * bina banta.
+ *
+ *   1. `enabled` off
+ *   2. koi `formId` nahi, **ya** wo form mit chuka / draft hai
+ *   3. kisi bhi page type pe `showOn` tick nahi
+ *
+ * ⚠️ `showOn` ka faisla **theme me** hota hai, yahan nahi — payload me poora `showOn` jaata hai
+ * aur catch-all use `entry.type` se milaata hai. Yahan karne ka matlab hota popup ko har page ke
+ * payload me daalna, aur tab popup badalne pe **har** `path:` tag saaf karna padta (A-26 wala
+ * bug). `settings` ka apna tag pehle se chalta hai, isliye wo raasta nahi liya.
+ */
+async function toPublicPopup(popup, siteId) {
+  if (!popup?.enabled || !popup.formId) return null
+
+  const showOn = popup.showOn ?? {}
+  if (!Object.values(showOn).some(Boolean)) return null
+
+  const form = await getPublicFormById(popup.formId, siteId)
+  /** Form mit gaya ya draft ho gaya — D-42 §2 wali hi soch, sirf media ki jagah form. */
+  if (!form) return null
+
+  const images = (
+    await Promise.all((popup.imageIds ?? []).map((id) => toDisplayImage(id, 'large', siteId)))
+  ).filter(Boolean)
+
+  return {
+    form,
+    images,
+    heading: popup.heading ?? '',
+    formHeading: popup.formHeading ?? '',
+    description: popup.description ?? '',
+    delaySeconds: popup.delaySeconds ?? 5,
+    frequency: popup.frequency ?? 'session',
+    frequencyDays: popup.frequencyDays ?? 7,
+    showOn,
+  }
+}
+
 export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
   const settings = await getSettings(siteId)
 
@@ -235,6 +281,14 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
     quoteUrl: settings.quoteUrl ?? '',
     /** Desktop ke floating button kis taraf (client, 21 Sep). Purani settings pe `right`. */
     floatingContactSide: settings.floatingContactSide ?? 'right',
+
+    /**
+     * `Enquiries ▸ Popup` — resolved (form + images), ya `null` (D-103).
+     *
+     * ⚠️ Kachcha `popupSettings` **kabhi** bahar nahi jaata: usme `formId`/`imageIds` hain, jinka
+     * theme ke liye koi matlab nahi, aur allowlist ka poora tark yahi hai.
+     */
+    popup: await toPublicPopup(settings.popupSettings, siteId),
     address: settings.address,
     social: settings.social,
 

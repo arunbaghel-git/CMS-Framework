@@ -10,6 +10,7 @@ import { BUTTON_VARIANTS, LINK_TARGETS, classNameSchema, menuUrlSchema } from '.
  * ki ek din unke enum alag ho jaayein — wahi jaal jo `menu.location` pe pakda gaya tha.
  */
 import { heroButtonSchema, sidebarIdSchema, sidebarPositionSchema } from './page.js'
+import { htmlSchema, inlineHtmlSchema } from './rich-html.js'
 import { emailSchema } from './user.js'
 import {
   HEX_COLOR_RE,
@@ -390,6 +391,125 @@ export const tourSettingsSchema = z.object({
  * Featured image na ho to **koi banner nahi**. Shaam ko client ne dono yahan maange — ek hi jagah,
  * sab pages ke liye. `tourSettings`/`blogSettings` wala hi saancha.
  */
+/**
+ * **Enquiries ▸ Popup** — poori site ka ek popup form (client, 21 Sep).
+ *
+ * ## Data `settings` me hai, screen `Enquiries` me — aur ye jaan-boojh kar hai
+ *
+ * Client ne kaha _"popup enquiries me banega as a submenu"_, aur saath hi _"single popup only
+ * and single setting for all pages"_. Yaani ye ek **singleton** hai, list nahi — isliye iska
+ * ghar `settings` hai. Screen ki jagah data ki jagah tay nahi karti: bilkul yahi `blogSettings`
+ * pe hai, jo `settings` me rehti hai par screen `Posts ▸ Blog settings` me hai (D-93).
+ *
+ * ⚠️ **`settings` me hone ka ek asli faayda hai** — `updateSettings()` pehle se
+ * `revalidateTags(['settings'])` bhejti hai, yaani popup badlo aur wo **turant** site pe.
+ * Agar ye home ka section hota to badlaav ek ghante tak na dikhta (A-26/A-29 wala bug).
+ */
+export const POPUP_FREQUENCIES = Object.freeze(['session', 'once', 'days', 'always'])
+
+/**
+ * Kin page types pe popup aaye — client ne **type ke checkbox** chune, per-page list nahi.
+ *
+ * ⚠️ Wajah client ke kaam ki hai: naya page banega to wo apne type ka niyam **khud** le lega.
+ * Per-page list me naya page apne aap nahi judta aur use yaad rakh kar jodna padta — aur
+ * bhoolna hi is repo ki sabse aam galti hai (D-86, D-89).
+ *
+ * ⚠️ Ye wahi chhe type hain jo theme ki catch-all branch me hain. **Naya page type jodo to
+ * yahan bhi jodo** — warna us type pe popup chup-chaap kabhi nahi aayega.
+ */
+export const POPUP_PAGE_TYPES = Object.freeze([
+  'homePage',
+  'package',
+  'tourPage',
+  'post',
+  'blogPage',
+  'page',
+])
+
+/**
+ * ⚠️ **`.strict()` jaan-boojh kar** — anjaan key pe 400, chup-chaap gir jaana nahi.
+ *
+ * Bina iske `showOn: { tourPages: true }` (ek `s` zyada) 200 deta hai, "Saved." dikhta hai, aur
+ * popup un pages pe **kabhi nahi** aata. Wo bug dhoondhne me ghante lagte hain kyunki har taraf
+ * ka code sahi dikhta hai — theek wahi shakl jo D-86 aur D-102 me thi. Ek page type ka naam
+ * galat likhna sabse aasan galti hai, isliye rok yahin.
+ */
+const popupShowOnSchema = z
+  .object(Object.fromEntries(POPUP_PAGE_TYPES.map((type) => [type, z.boolean().default(false)])))
+  .strict()
+
+export const popupSettingsSchema = z.object({
+  /**
+   * ⚠️ Ye toggle `floatingContactSide` (D-102) ke ulta hai — wahan jaan-boojh kar **nahi** rakha
+   * gaya tha, kyunki number khaali karna hi "band" ka saaf matlab tha.
+   *
+   * Yahan wo tark nahi chalta: popup ek **campaign** hai. Client offer khatam hone pe use band
+   * karega aur agle offer pe wapas chalu — poora heading, image aur form dobara bharwana galat
+   * hota. Isliye yahan switch hai.
+   */
+  enabled: z.boolean().default(false),
+
+  /**
+   * Kaunsa enquiry form — `Enquiries ▸ Enquiry Forms` me se.
+   *
+   * ⚠️ Popup ke **apne** fields nahi hain, aur ye sabse zaroori faisla hai. Screenshot me jo saat
+   * khaane the (Name · Email · Phone · Date of Travel · Trip Duration · Number of People · Message)
+   * wo sab `forms` module se aate hain. Popup me unhe dobara banane ka matlab hota ek hi form ki
+   * paribhasha **do jagah** — theek wahi galti jo D-86 me `Package URL` ke do naam se hui thi.
+   *
+   * Khaali `formId` = popup render hi nahi hota, chahe `enabled` kuch bhi ho. Form ke bina wo ek
+   * khaali dabba hai (D-30).
+   */
+  formId: z.string().trim().max(60).default(''),
+
+  /** Image ke upar ki badi line — `Special Offers`. Inline profile: block tags ghus hi na sakein. */
+  heading: inlineHtmlSchema.pipe(z.string().max(200)).default(''),
+
+  /** Form ke upar ki chhoti line — `Get Free Quotes`. */
+  formHeading: inlineHtmlSchema.pipe(z.string().max(200)).default(''),
+  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+
+  /**
+   * Kitni image — **client khud chunta hai** (unke shabd: _"if i choose 2 then 2, i choose 1 then
+   * one"_). Theme ginti dekh kar layout banati hai: 1 poori chaudai, 2 aadhi-aadhi, 3 teen hisse.
+   *
+   * ⚠️ Chhat **3** pe hai. Screenshot me teen thin, aur teen se zyada phone pe itni patli ho jaati
+   * hain ki unme kuch dikhta hi nahi — ye rok admin me hint se nahi, schema se lagti hai.
+   *
+   * ⚠️ Media ki id write pe **check nahi** hoti — wahi precedent jo `tourSettings.bannerMediaId`
+   * aur `pageSettings` pe hai. Guard D-42 §2 hai: resolve na ho to payload me `null` jaata hai,
+   * isliye toota `<img>` banta hi nahi.
+   */
+  imageIds: z.array(z.string().trim().max(60)).max(3).default([]),
+
+  /**
+   * Page khulne ke kitne second baad popup aaye — client: _"admin can handle by enter time"_.
+   *
+   * `0` ka matlab turant. Chhat 300 (paanch minute) — isse aage koi asli use nahi hai aur bina
+   * hadd ke ek typo (`50000`) popup ko hamesha ke liye gayab kar deta.
+   */
+  delaySeconds: z.number().int().min(0).max(300).default(5),
+
+  /**
+   * Dobara kab dikhe — client ke pehle message ke _"session based / 1 time or multitime"_ ka jawab.
+   *
+   * | Value | Matlab | Kahan yaad rehta hai |
+   * | --- | --- | --- |
+   * | `session` | tab band hone tak ek baar | `sessionStorage` |
+   * | `once` | ek baar dekh liya, kabhi dobara nahi | `localStorage` |
+   * | `days` | `frequencyDays` din baad phir | `localStorage` + timestamp |
+   * | `always` | har page load pe (testing ke liye) | kuch nahi |
+   *
+   * ⚠️ **Ye sab sirf browser me rehta hai, server pe nahi** — aur wo majboori hai, chunav nahi.
+   * Har page ek hi cached HTML deta hai (ISR), isliye server ko pata ho hi nahi sakta ki kis
+   * aadmi ne popup dekha. Nateeja: user apni history saaf kare to popup phir dikhega.
+   */
+  frequency: z.enum(POPUP_FREQUENCIES).default('session'),
+  frequencyDays: z.number().int().min(1).max(365).default(7),
+
+  showOn: popupShowOnSchema.default({}),
+})
+
 export const pageSettingsSchema = z.object({
   /** Featured image na ho to hero ka banner. Page ki apni Featured image jeet-ti hai. */
   bannerMediaId: z.string().nullable().default(null),
@@ -731,6 +851,15 @@ export const settingsSchema = z.object({
   pageSettings: pageSettingsSchema.default({}),
 
   /**
+   * `Enquiries ▸ Popup` — poori site ka ek popup form (client, 21 Sep).
+   *
+   * ⚠️ Wahi chetavni: **model me bhi** hona chahiye (`settings/model.js`), warna Mongoose `strict`
+   * ise chup-chaap gira deta aur admin `"Saved."` dikhata. Aur `MERGED_KEYS` me bhi — warna ek
+   * adhoora PATCH poora popup uda de.
+   */
+  popupSettings: popupSettingsSchema.default({}),
+
+  /**
    * `{year}` placeholder theme replace karta hai, taaki har 1 January ko client ko
    * copyright line haath se badalni na pade.
    */
@@ -845,7 +974,24 @@ export const updateSettingsSchema = settingsSchema
   .omit({ siteId: true })
   .partial()
   // `.partial()` sirf upar wale level pe lagti hai — nested `social` ko alag se batana padta hai
-  .extend({ social: socialUpdateSchema.partial().optional() })
+  .extend({
+    social: socialUpdateSchema.partial().optional(),
+
+    /**
+     * ⚠️ **`popupSettings` ko bhi alag se `.partial()` chahiye, aur uski wajah ek asli data
+     * loss hai** (21 Sep, test se pakdi gayi).
+     *
+     * `popupSettingsSchema` ke har field pe `.default()` hai. Uske bina `{ enabled: false }`
+     * jaisa adhoora PATCH Zod se **poora** object ban kar nikalta hai (`formId: ''`,
+     * `heading: ''`…), aur `MERGED_KEYS` wala merge un khaali defaults ko DB pe likh deta hai —
+     * yaani ek chhota patch poora popup uda deta hai.
+     *
+     * Ye theek wahi 10 Sep wala `blogSettings` bug hai, sirf ek kadam pehle: wahan poora object
+     * replace ho raha tha, yahan Zod use khud bhar deti hai. **Naya nested object jodo to yahan
+     * bhi jodo.**
+     */
+    popupSettings: popupSettingsSchema.partial().optional(),
+  })
 
 /** Naye instance ke defaults — seed aur test dono yahi use karte hain. */
 export function defaultSettings(overrides = {}) {

@@ -7,6 +7,7 @@ import {
 
 import { badRequest } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
+import { sanitizeBlockHtml, sanitizeInlineHtml } from '../../core/sanitize-html.js'
 import { mediaExists } from '../media/service.js'
 import { menuExists } from '../menus/service.js'
 import { syncPostUrlPattern } from '../entries/service.js'
@@ -181,7 +182,35 @@ async function resolveFontFaces(themeFonts, siteId) {
   return out
 }
 
+/**
+ * `Enquiries ▸ Popup` ki HTML **write pe** saaf — R20 (D-103).
+ *
+ * ⚠️ **Settings me ye pehli HTML hai.** Aaj tak yahan sab plain text tha (`customCss` ka apna
+ * alag guard schema me hai), isliye is module me koi sanitizer tha hi nahi. `sidebars` ka
+ * `sanitizeSidebarWidgets()` bilkul yahi kaam karta hai.
+ *
+ * ⚠️ **Naya HTML field settings me jodo to yahan bhi jodo.** Chhoot jaane ka matlab ye nahi ki
+ * content girega — wo **bina safai ke bach jaayega**, aur wahi zyada khatarnak hai. Theek yahi
+ * chetavni `sanitizeContent()` pe likhi hai (D-87).
+ *
+ * `heading`/`formHeading` inline profile pe hain (block tags `<h2>` me ghus hi na sakein),
+ * `description` block profile pe.
+ */
+function sanitizePopupSettings(popup) {
+  if (!popup || typeof popup !== 'object') return popup
+
+  const out = { ...popup }
+  if ('heading' in out) out.heading = sanitizeInlineHtml(out.heading)
+  if ('formHeading' in out) out.formHeading = sanitizeInlineHtml(out.formHeading)
+  if ('description' in out) out.description = sanitizeBlockHtml(out.description)
+  return out
+}
+
 export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
+  if (input.popupSettings) {
+    input = { ...input, popupSettings: sanitizePopupSettings(input.popupSettings) }
+  }
+
   await assertMediaRefsExist(input, siteId)
   await assertFooterMenusExist(input, siteId)
   await ensureSettings(siteId)
@@ -208,7 +237,13 @@ export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
   if (input.themeFonts)
     input = { ...input, themeFonts: await resolveFontFaces(input.themeFonts, siteId) }
 
-  const MERGED_KEYS = ['social', 'blogSettings']
+  /**
+   * ⚠️ `popupSettings` yahan isliye hai ki uska `showOn` ek **nested object** hai. Merge ek hi
+   * star gehra hai, yaani `showOn` poora badalta hai — admin use hamesha chhe key ke saath bhejta
+   * hai, to wo theek hai. Par ek script se `{ enabled: false }` bhejte hi baaki sab ud jaata,
+   * bilkul wahi jo 10 Sep ko `blogSettings` pe hua tha.
+   */
+  const MERGED_KEYS = ['social', 'blogSettings', 'popupSettings']
 
   const $set = {}
   for (const [key, value] of Object.entries(input)) {

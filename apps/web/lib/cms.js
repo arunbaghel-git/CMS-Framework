@@ -64,10 +64,40 @@ async function getJson(path, tags) {
   }
 }
 
+/**
+ * Site ki settings — **popup ke bina**.
+ *
+ * ⚠️ **`popup` yahan se jaan-boojh kar nikala jaata hai** (21 Sep, D-103 — live check pe pakda).
+ *
+ * `settings` ka poora object teen client components ko jaata hai (`MobileNav` header me, yaani
+ * **har page pe**, aur `MobileBar`/`TourSchema`). Client component ke props RSC flight data me
+ * serialize hote hain — matlab popup ka poora maal, **resolved form ke saare fields samet**, har
+ * page ke HTML me chala jaata, un pages pe bhi jahan popup kabhi dikhta hi nahi.
+ *
+ * Popup `getPopup()` se alag milta hai. **Ye doosra round trip nahi hai** — dono wahi ek cached
+ * fetch padhte hain (`settings` tag), isliye cache ka poora faayda waisa ka waisa rehta hai.
+ *
+ * ⚠️ Baaki settings ab bhi poori jaati hai. Use chhaant-na alag kaam hai (A-36) — `MobileNav`
+ * ko sirf chaar-paanch field chahiye, poora object nahi.
+ */
 export async function getSettings() {
   const data = await getJson('/public/settings', ['settings'])
+  if (!data?.settings) return null
 
-  return data?.settings ?? null
+  const { popup: _popup, ...rest } = data.settings
+  return rest
+}
+
+/**
+ * Sirf popup — `Enquiries ▸ Popup` (D-103), server pe pehle se resolved (form + images).
+ *
+ * Wahi cached fetch jo `getSettings()` padhti hai, isliye koi naya round trip nahi aur koi naya
+ * cache tag nahi (D-83 wala hi tark jo `resolve` pe liya gaya tha).
+ */
+export async function getPopup() {
+  const data = await getJson('/public/settings', ['settings'])
+
+  return data?.settings?.popup ?? null
 }
 
 /** @param {string} location theme ki declared location — `header`, `footerColumn1`… */

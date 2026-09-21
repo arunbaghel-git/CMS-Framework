@@ -1,11 +1,13 @@
 import { notFound, permanentRedirect, redirect } from 'next/navigation'
 
+import PopupForm from '../../components/PopupForm.jsx'
 import PostPage from '../../components/blog/PostPage.jsx'
 import HomePage from '../../components/home/HomePage.jsx'
 import PackagePage from '../../components/package/PackagePage.jsx'
 import TextPage from '../../components/page/TextPage.jsx'
 import TourPage from '../../components/tour/TourPage.jsx'
-import { getPackageDefaults, getSettings, resolvePath } from '../../lib/cms.js'
+import { getPackageDefaults, getPopup, getSettings, resolvePath } from '../../lib/cms.js'
+import { popupForType } from '../../lib/popup-visibility.js'
 
 /**
  * **Poore public site ka ekmatra route** — D-09, R10.
@@ -57,27 +59,15 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default async function CatchAllPage({ params }) {
-  const { slug } = await params
-  const path = toPath(slug)
-
-  const result = await resolvePath(path)
-
-  if (!result) notFound()
-
-  if (result.kind === 'redirect') {
-    /**
-     * `301` aur `302` do alag cheezein hain aur Next me unke do alag helper hain.
-     *
-     * Auto-redirects hamesha `301` hote hain (D-49) — slug badalna permanent faisla hai.
-     * `302` bhejne ka matlab hota search engine purana URL index me rakhe rahe.
-     */
-    if (result.statusCode === 301) permanentRedirect(result.to)
-    redirect(result.to)
-  }
-
-  const { entry } = result
-
+/**
+ * Page ka render — saari type ki branch yahin hain.
+ *
+ * ⚠️ **Ye `CatchAllPage` se isliye alag nikala gaya (21 Sep, D-103)** ki popup har page pe aana
+ * tha. Har branch me `<PopupForm/>` jodne ka matlab hota **chhe jagah** ek hi cheez, aur is file
+ * me theek isi ki chetavni pehle se likhi hai (`blogPage` 10 Sep ko yahan **nahi** juda tha aur
+ * uska page khaali chhapta raha). Ab render ek jagah hai aur popup uske bahar, ek hi baar.
+ */
+async function renderEntry(entry) {
   /**
    * Home page — `/` (client, 15 Sep, D-96).
    *
@@ -180,5 +170,62 @@ export default async function CatchAllPage({ params }) {
       <h1>{entry.title}</h1>
       {entry.fields?.shortDescription && <p>{entry.fields.shortDescription}</p>}
     </main>
+  )
+}
+
+/**
+ * **Poore public site ka ekmatra route ka asli entry point.**
+ *
+ * Teen kaam, is kram me: URL resolve, redirect, aur phir render + popup.
+ *
+ * ⚠️ **Popup yahan hai, kisi page component me nahi** (D-103). `renderEntry()` chhe branch me
+ * bant-ta hai; popup unme se kisi ek me rakhne ka matlab hota ki wo baaki paanch pe chhoot
+ * jaaye — aur is repo me wo galti teen baar ho chuki hai (`blogPage` ka khaali page,
+ * `.mobar` jo aaj bhi tour aur blog listing pe nahi hai, aur D-89 ke 13 me se zyada tar farak).
+ * Yahan naya page type jodne wale ko popup ke baare me sochna hi nahi padta.
+ *
+ * ⚠️ `getSettings()` ka fetch render se **pehle** shuru hota hai par `await` uske baad — dono
+ * saath chalte hain. `renderEntry()` ki apni `getSettings()` call usi cached fetch pe girti hai
+ * (`lib/cms.js` ka `settings` tag), isliye ye doosra round trip nahi hai.
+ */
+export default async function CatchAllPage({ params }) {
+  const { slug } = await params
+  const path = toPath(slug)
+
+  const result = await resolvePath(path)
+
+  if (!result) notFound()
+
+  if (result.kind === 'redirect') {
+    /**
+     * `301` aur `302` do alag cheezein hain aur Next me unke do alag helper hain.
+     *
+     * Auto-redirects hamesha `301` hote hain (D-49) — slug badalna permanent faisla hai.
+     * `302` bhejne ka matlab hota search engine purana URL index me rakhe rahe.
+     */
+    if (result.statusCode === 301) permanentRedirect(result.to)
+    redirect(result.to)
+  }
+
+  const { entry } = result
+
+  const popupPromise = getPopup()
+  const page = await renderEntry(entry)
+
+  return (
+    <>
+      {page}
+      {/*
+        ⚠️ `showOn` ka faisla **yahan** hota hai, component ke andar nahi — warna popup ka poora
+        data (heading + form ke saare fields) har page ke RSC payload me jaata, un pages pe bhi
+        jahan wo kabhi dikhta hi nahi. `popupForType()` un pages pe `null` deti hai aur tab
+        `PopupForm` kuch serialize karta hi nahi.
+
+        Ye live check pe hi pakda gaya tha: pehle popup `settings` ke saath aata tha aur
+        `MobileNav` (header, har page pe) poora `settings` client ko bhejta hai — to gating ke
+        bawajood maal har page pe pahunch raha tha. Isliye ab `getPopup()` alag hai.
+      */}
+      <PopupForm popup={popupForType(await popupPromise, entry.type)} sourcePath={entry.path} />
+    </>
   )
 }

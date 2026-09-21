@@ -222,6 +222,18 @@ export const NAV = [
       { label: 'All Enquiries', to: '/enquiries', permission: PERMISSION.SUBMISSION_READ },
       { label: 'Enquiry Forms', to: '/enquiries/forms', permission: PERMISSION.FORM_READ },
       { label: 'Add New Form', to: '/enquiries/forms/new', permission: PERMISSION.FORM_CREATE },
+
+      /**
+       * Popup — client ne yahi jagah chuni (21 Sep): _"popup enquiries me banega as a submenu"_.
+       *
+       * ⚠️ **Permission `settings.read` hai, `form.*` nahi** — data `settings.popupSettings` me
+       * rehta hai (wahi jagah jo `blogSettings` ki hai, D-93). Yahan `form.read` maangna jhootha
+       * ishaara deta: form to sirf **chuna** jaata hai, badla nahi.
+       *
+       * `read` isliye, `update` nahi — baaki saari settings screens ka yahi saancha hai: andar
+       * aane do, aur badalne ki rok screen ke `fieldset` pe (`settings.update`).
+       */
+      { label: 'Popup', to: '/enquiries/popup', permission: PERMISSION.SETTINGS_READ },
     ],
   },
   /**
@@ -477,6 +489,12 @@ export const ROUTE_GUARDS = Object.freeze({
   '/tour/settings': PERMISSION.SETTINGS_READ,
   /** Blog settings — menu me ab **Posts** ke neeche (client, 11 Sep, D-93), guard wahi. */
   '/posts/settings': PERMISSION.SETTINGS_READ,
+  /**
+   * Popup — menu me **Enquiries** ke neeche (client, 21 Sep, D-103), par storage
+   * `settings.popupSettings` me hai. Teesri baar wahi baat: **jagah badalne se permission nahi
+   * badalti**, aur `form.read` maangna yahan jhooth hota (form sirf chuna jaata hai).
+   */
+  '/enquiries/popup': PERMISSION.SETTINGS_READ,
   /**
    * Menus screen khud `menu.update` na hone pe form disable kar deti hai — `author` aur
    * `contributor` menu **dekh** sakte hain (link banate waqt ye kaam ka hai), badal nahi.

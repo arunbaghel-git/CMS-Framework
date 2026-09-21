@@ -97,6 +97,16 @@ migrations       name, appliedAt, checksum
 settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  faviconMediaId, timezone, dateFormat, currency,
                  phone, whatsapp, address, social{facebook,instagram,youtube,x},
+                 popupSettings{ enabled, formId, heading, formHeading,      ← D-103
+                                description, imageIds[] max 3, delaySeconds,
+                                frequency(session|once|days|always),
+                                frequencyDays,
+                                showOn{ homePage, package, tourPage,
+                                        post, blogPage, page } }  ← .strict()
+                 Screen `Enquiries ▸ Popup` hai, par data yahan — wahi
+                 batwara jo tourSettings/blogSettings pe hai. Public payload
+                 me `popup` RESOLVED jaata hai (form + images), aur
+                 `getSettings()` use nikal deti hai (D-103 §7)
                  floatingContactSide(right|left, default right — D-102)
                  desktop ke do gol button (.float) kis kone me. ON/OFF ka koi
                  field NAHI — phone aur whatsapp dono khaali to button hi nahi

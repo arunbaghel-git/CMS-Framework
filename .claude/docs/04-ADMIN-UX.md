@@ -846,3 +846,29 @@ client "inhe band kaise karun" pe atak jaata.
 
 ⚠️ Hint field ke **andar** hai (`quoteUrl` ka hi pattern), bahar nahi — panel `.row2` grid hai aur
 alag `div.field` ek poora khaali khaana kha leta.
+
+### Enquiries ▸ Popup (21 Sep, D-103)
+
+Nayi screen, `Enquiries` ke submenu me teesri (`All Enquiries` · `Enquiry Forms` · `Add New Form` ke
+baad). Client ne jagah khud chuni: _"popup enquiries me banega as a submenu"_.
+
+Paanch panel:
+
+| Panel | Kya |
+| --- | --- |
+| **The popup** | `Show this popup on the site` checkbox · `Enquiry form` dropdown (sirf active forms) |
+| **What it says** | Heading (image ke upar) · Heading above the form · Text above the form — teeno `HtmlEditor` |
+| **Images** | 0–3 `MediaDrop` slot. Ek chuno to agla slot apne aap khul jaata hai |
+| **When it appears** | `Show after` (second) · `Show again` dropdown · `Days` (sirf tab jab dropdown `days` pe ho) |
+| **Where it appears** | 6 checkbox — Home page · Packages · Tour pages · Blog posts · Blog listing · Pages. Save isi panel ke `panel-foot` me |
+
+⚠️ **Popup ke apne form fields nahi hain** — client `Enquiry Forms` me form banata hai aur yahan use
+sirf chunta hai. Bina form chune popup kabhi nahi dikhta.
+
+⚠️ **`Days` ka khaana sirf tab dikhta hai jab uska matlab ho.** Hamesha dikhane ka matlab hota ek
+aisa number jo chup-chaap kuch nahi karta, aur client uspe bharosa kar baithta.
+
+⚠️ **Label `HtmlEditor` ko prop se nahi diye jaate** — wo `label` leta hai par render nahi karta
+(pre-existing; `pnpm lint` isi pe error deta hai). Baaki har screen (`SidebarWidgets`,
+`BookingPanel`) label bahar `.field` me likhti hai; yahan bhi wahi. Prop bhej dene se label
+chup-chaap gayab hota.

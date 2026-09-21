@@ -9196,3 +9196,128 @@ home ke section me rakha jaata to wahi bug dobara banta.
 **`.sidetab`** — daayein kinare pe khadi do vertical patti (`Why us?` · `Offers`), z-index 94. Wo bhi
 saaton reference me hai aur wo bhi kabhi nahi bani. Client ne 21 Sep ko kaha _"only these 2 buttons
 ke liye banao aur patti baad me"_ — isliye wo khuli hui hai (A-34).
+
+---
+
+## D-103
+
+**Enquiries ▸ Popup — poori site ka ek popup enquiry form** (client, 21 Sep 2026)
+
+**Status:** ✅ ban gaya · koi migration nahi
+
+### §1 — Client ne scope do baar badla, aur dono baar chhota nahi kiya
+
+Pehla message: _"form Popup on home page / session based / 1 time or multitime / kitne time tak"_,
+ek screenshot ke saath jiske baare me unhone khud kaha _"this image is not actual design reference,
+its only details"_.
+
+Doosra message ne teen cheezein badlin:
+
+1. _"popup enquiries me banega as a submenu"_ — jagah `Settings` nahi, **Enquiries**
+2. _"only home page nahi hoga, may be all pages ke liye ho"_ — sirf home nahi
+3. _"saare options admin ke paas ho — kitna time baad dikhe, kaun se page par"_
+
+Uske baad ke chaar jawab: **single popup only, single setting for all pages** · page **type ke
+checkbox** se · timing _"admin can handle by enter time"_ · images **jitni chahiye utni**
+(_"if i choose 2 then 2, i choose 1 then one"_).
+
+### §2 — Screen Enquiries me, data `settings` me — aur ye teesri baar hai
+
+`settings.popupSettings`. Screen `/enquiries/popup`.
+
+**Screen ki jagah data ki jagah tay nahi karti.** Bilkul wahi batwara `Tour settings` (8 Sep —
+menu me Tour ke neeche, storage `settings.tourSettings`) aur `Blog settings` (D-93 — menu me Posts
+ke neeche, storage `settings.blogSettings`) pe ho chuka hai. Permission bhi wahi rehti hai:
+`settings.read` nav pe, `settings.update` form pe. `form.read` maangna jhooth hota — form yahan
+sirf **chuna** jaata hai.
+
+⚠️ **`settings` me hone ka ek asli faayda hai:** `updateSettings()` pehle se
+`revalidateTags(['settings'])` bhejti hai, yaani popup badlo aur wo **turant** site pe. Home ka
+section hota to badlaav ek ghante tak na dikhta — A-26/A-29 wala hi rog.
+
+⚠️ Route `/enquiries/popup` **`/enquiries/:id` se pehle** hai. File me ye chetavni pehle se likhi
+thi (`forms` ke liye), aur wahi jaal is static segment pe bhi lagta.
+
+### §3 — Popup ke apne fields nahi hain
+
+Screenshot me saat khaane the. Wo sab `forms` module se aate hain — client `Enquiry Forms` me form
+banata hai aur popup me use **chun** leta hai (`formId`). Popup ko fields ka gyaan hai hi nahi.
+
+Form ki paribhasha do jagah rakhne ka nateeja D-86 me dekha ja chuka hai. Theme me bhi doosra form
+component nahi bana — `EnquiryForm` ka `variant="page"` (koi card nahi, kyunki popup khud card hai),
+wahi faisla jo D-87 §11 pe tha.
+
+### §4 — Dikhne ka faisla teen hisson me bant-ta hai
+
+| Sawaal | Kahan |
+| --- | --- |
+| Popup chalu hai? form hai? koi page ticked hai? | **server** — `toPublicPopup()` (API) |
+| *Is* page pe aaye ya nahi | **server** — `popupForType()` (catch-all) |
+| Is *visitor* ko aaye ya nahi | **browser** — `sessionStorage`/`localStorage` |
+
+Teesra server pe ho hi **nahi sakta**: har page ek hi cached HTML deta hai (ISR), isliye server ko
+pata ho hi nahi sakta ki kis visitor ne popup dekha. Iska ek nateeja client ko pata hona chahiye —
+**history saaf karne pe popup phir dikhega**.
+
+### §5 — Page chunav **type ke checkbox** se, per-page list se nahi
+
+`POPUP_PAGE_TYPES` — `homePage` · `package` · `tourPage` · `post` · `blogPage` · `page`.
+
+Client ka faisla, aur wo unke kaam ka hai: **naya page banega to wo apne type ka niyam khud le
+lega.** Per-page list me naya page apne aap nahi judta aur use yaad rakh kar jodna padta — aur
+bhoolna hi is repo ki sabse aam galti hai.
+
+⚠️ `showOn` **`.strict()`** hai. Bina iske `showOn: { tourPages: true }` (ek `s` zyada) 200 deta,
+"Saved." dikhta, aur popup un pages pe **kabhi nahi** aata. Ek page type ka naam galat likhna sabse
+aasan galti hai, isliye rok schema me.
+
+⚠️ Ye chhe naam **theme ki catch-all branch** ke saath jude hue hain. Naya page type jodo to
+`POPUP_PAGE_TYPES` me bhi jodo — warna us type pe popup chup-chaap kabhi nahi aayega.
+
+### §6 — Teen bug tests ne pakde, live chalane se pehle
+
+**(a) Adhoora PATCH poora popup uda deta tha.** `popupSettingsSchema` ke har field pe `.default()`
+hai; `updateSettingsSchema` ka `.partial()` **sirf upar wale level pe** lagti hai (file me ye
+comment pehle se tha). Isliye `{ enabled: false }` Zod se **poora** object ban kar nikalta
+(`formId: ''`, `heading: ''`…) aur `MERGED_KEYS` wala merge un khaali defaults ko DB pe likh deta.
+Ye 10 Sep wale `blogSettings` data-loss ka hi ek kadam pehle wala roop hai. Ilaaj:
+`popupSettings: popupSettingsSchema.partial().optional()`.
+
+**(b) `showOn` ki anjaan key chup-chaap gir rahi thi** — `.strict()` (§5).
+
+**(c) Heading ki HTML sanitize hi nahi ho rahi thi.** ⚠️ **Settings me ye pehli HTML hai** — aaj tak
+yahan sab plain text tha (`customCss` ka apna guard schema me hai), isliye is module me koi sanitizer
+tha hi nahi. Ab `sanitizePopupSettings()` hai (R20), `sidebars` ke `sanitizeSidebarWidgets()` wala
+hi saancha. **Naya HTML field settings me jodo to wahan bhi jodo** — chhoot jaane ka matlab ye nahi
+ki content girega, wo **bina safai ke bach jaayega**.
+
+### §7 — Aur ek bug **live check** pe nikla, jo koi test nahi pakadta
+
+Popup pehle `getSettings()` ke saath aata tha. Gating (`popupForType()`) sahi thi, par `/blog` aur
+package page ke HTML me popup ka poora maal — **resolved form ke saare fields samet** — phir bhi
+mil raha tha.
+
+Jad: `settings` ka poora object teen **client components** ko jaata hai — `MobileNav` (header me,
+yaani **har page pe**), `MobileBar` aur `TourSchema`. Client component ke props RSC flight data me
+serialize hote hain. Yaani gating ke bawajood maal har page pe pahunch raha tha.
+
+Ilaaj: `getSettings()` ab `popup` **nikal** deti hai, aur popup `getPopup()` se alag milta hai.
+**Doosra round trip nahi** — dono wahi ek cached fetch padhte hain (`settings` tag).
+
+⚠️ Baaki settings ab bhi poori serialize hoti hai. `MobileNav` ko chaar-paanch field chahiye, poora
+object nahi — wo alag kaam hai (**A-36**).
+
+### §8 — Form badle to `settings` ka cache bhi saaf
+
+`forms/service.js` ab `type:package` + **`settings`** + `pathTagsForForm()` bhejti hai. Popup ka form
+`pathTagsForForm()` me aata hi nahi (popup kisi ek page ka nahi, settings ka hissa hai). Bina iske
+popup ka form ek ghante tak purana rehta, aur uska lakshan phir wahi "save nahi hua" jaisa hota.
+
+### §9 — Jo nahi banaya
+
+- **Campaign ki Start/End date** — maine mashwara diya tha, client ne us sawaal ka jawab timing ke
+  saath diya (_"kab popup aayega admin can handle by enter time"_) aur tareekh nahi maangi. Jodna
+  aasan hai: do field + `toPublicPopup()` me ek shart
+- **Auto-close (N second baad popup khud band)** — maine iske khilaf salaah di (user form bhar raha
+  ho aur popup gayab ho jaaye) aur client ne nahi maanga
+- **Kai popups ki list** — client ne saaf kaha _"single popup only"_

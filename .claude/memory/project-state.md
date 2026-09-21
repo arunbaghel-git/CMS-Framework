@@ -1,11 +1,15 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 21 Sep 2026 — **desktop ke floating WhatsApp + phone button ban gaye (D-102)**.
+> **Last updated:** 21 Sep 2026 — **Enquiries ▸ Popup ban gaya (D-103)**, aur usse pehle usi din
+> **desktop ke floating WhatsApp + phone button (D-102)**.
 > Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
 > _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
 > (Spacing), D-99 (Fonts). Push baaki — `git log --oneline origin/main..HEAD` dekho.
-> **Poori suite 21 Sep shaam ko chali: 48 files, 1240/1244 pass** — fail wahi **do purani file**:
+> **Poori suite 21 Sep raat ko chali: 49 files, 1267/1268 pass** — fail sirf `theme-fonts.test.js`
+> (`.hf-stat span`, client ka apna edit — chhua nahi). `media.test.js` is run me pass hui.
+> (Usse pehle shaam ko: 48 files, 1240/1244 — tab media.test.js ne A-11 wala race khaya tha.)
+> Purani do-fail wali haalat ka hisaab:
 > (1) `theme-fonts.test.js` (`.hf-stat span`, client ka apna edit — chhua nahi), (2) `media.test.js`
 > — `ENOTEMPTY: rmdir '…\.test-uploads-media\sites\default'`, yaani `bulk-imports.test.js` ke saath
 > **saanjhe upload folder** ki race. A-16 ki doosri shakl, poora hisaab **A-11** me. Dono me koi asli
@@ -19,6 +23,53 @@
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 > ✅ `.claude/` ab git me **track hai** (commit `75beb7f`) — 18 Sep wala _"git se bahar hai"_ ab purana hai.
+
+---
+
+## ✅ 21 Sep raat — Enquiries ▸ Popup (D-103)
+
+Client ka ask do message me aaya aur **doosre ne scope badla**: pehle _"form Popup on home page /
+session based / 1 time or multitime / kitne time tak"_ (ek screenshot ke saath, jiske baare me
+unhone khud kaha _"not actual design reference, only details"_), phir _"popup enquiries me banega as
+a submenu, and only home page nahi hoga may be all pages ke liye ho, to saare options admin ke paas
+ho — kitna time baad dikhe, kaun se page par"_.
+
+Chaar jawab: **single popup only, single setting for all pages** · page **type ke checkbox** se ·
+timing _"admin can handle by enter time"_ · images **jitni chahiye utni** (_"if i choose 2 then 2"_).
+
+**Bana:** `settings.popupSettings` · screen `/enquiries/popup` · `toPublicPopup()` (resolved form +
+images) · `components/PopupForm.jsx` + `lib/popup-visibility.js` + `.pmod*` CSS. **23 naye test**
+(10 API + 14 pure-logic − overlap). **Koi migration nahi.**
+
+### Chhe baatein jo yaad rehni chahiye
+
+1. **Screen Enquiries me, data `settings` me — teesri baar** (`tourSettings` 8 Sep, `blogSettings`
+   D-93). Screen ki jagah data ki jagah tay nahi karti. `settings` me hone ka asli faayda: uska apna
+   `revalidateTags(['settings'])` pehle se chalta hai, yaani badlaav **turant** — home ka section
+   hota to A-26/A-29 wala ek-ghanta rog lagta
+2. **Popup ke apne fields nahi** — form `Enquiry Forms` se chuna jaata hai (D-86). Theme me bhi
+   doosra form component nahi — `EnquiryForm variant="page"` (D-87 §11)
+3. ⚠️ **Teen bug tests ne pakde, live se pehle:** (a) adhoora PATCH poora popup uda deta tha —
+   `.partial()` sirf upar wale level pe lagti hai, isliye Zod khaali defaults bhar deti thi;
+   (b) `showOn` ki anjaan key chup-chaap girti thi — ab `.strict()`; (c) heading ki HTML sanitize hi
+   nahi ho rahi thi — **settings me ye pehli HTML hai**, is module me sanitizer tha hi nahi (R20)
+4. ⚠️ **Chautha bug sirf live chalane pe mila (D-103 §7).** Gating sahi thi, phir bhi popup ka poora
+   maal (resolved form ke saare fields samet) `/blog` aur package page ke HTML me tha. Jad:
+   `MobileNav` (header, **har page pe**) poora `settings` object leta hai, aur client component ke
+   props RSC flight data me serialize hote hain. Ab `getSettings()` `popup` nikal deti hai aur
+   `getPopup()` alag hai — **wahi cached fetch**, koi naya round trip nahi
+5. ⚠️ **Route `/enquiries/popup` `:id` se pehle** — file me ye chetavni `forms` ke liye pehle se thi
+6. **Catch-all restructure hua** — `renderEntry()` alag nikla taaki popup **ek hi jagah** jude. Chhe
+   branch me jodne ka nateeja saamne hai: `.mobar` aaj bhi tour aur blog listing pe nahi hai
+
+### Bacha hua
+
+- **A-37** — popup **aankh se dekha nahi gaya**. Maine DB me ek test config likh di hai (mongosh se,
+  asli DB pe): home page, 5 second, `session`. Client `Enquiries ▸ Popup` me badal ya band kar sakta hai
+- **A-36** — poora `settings` object har page ke HTML me jaata hai (popup ab nahi, baaki sab haan).
+  Ye A-17 (speed) ka hissa hai
+- **Jo nahi banaya:** campaign ki Start/End date (client ne nahi maanga), auto-close (maine khilaf
+  salaah di), kai popups ki list (client: _"single popup only"_)
 
 ---
 
@@ -55,9 +106,12 @@ aur public projection me `?? 'right'`.
 ✅ **Cache ka kaam nahi karna pada** — `updateSettings()` pehle se `revalidateTags(['settings'])` bhejti hai
 aur `getSettings()` usi tag pe hai. Agar ye home ke section me rakha jaata to A-26/A-29 wala bug dobara banta.
 
-⚠️ **Aankh se dekha nahi gaya** — `next build` nahi chalayi (dev band karna padta, D-89). Client chala kar
-dekhe: (1) desktop pe dono button daayein kone me, WhatsApp upar; (2) Left chun kar baayein; (3) 760px se
-neeche gol button gayab aur patti haazir; (4) sirf ek number bhara ho to ek hi button.
+✅ **Live verify ho gaya (usi raat).** Pehle bhoolna hua tha — `:3000` pe `next start` ka build **subah
+10:57 ka** tha, isliye client ko kuch dikha hi nahi (**A-24 wali shakl, teesri baar**). Rebuild ke baad:
+paanchon page type pe `.float` (home · tour · blog · contact · package — **tour aur blog listing pe bhi,
+jahan `.mobar` aaj bhi nahi hai**), aur client ke `Left` chunne ke baad `class="float float--left"`.
+⚠️ Ab bhi client ki aankh se baaki: 760px se neeche gol button gayab + patti haazir, aur sirf ek number
+bhara ho to ek hi button.
 
 ### Usi jaanch se do naye open item
 

@@ -125,8 +125,13 @@ export async function updateForm(id, input, siteId = DEFAULT_SITE_ID) {
    *
    * ⚠️ **Aur jin pages ke section me ye form chuna gaya hai unke `path:` tag** (D-96) — home ka
    * hero. Bina iske button label ya fields badalne ke baad home ek ghante tak purana form dikhata.
+   *
+   * ⚠️ **`settings` bhi — `Enquiries ▸ Popup` ka form usi payload me resolve hota hai** (D-103).
+   * Wo `pathTagsForForm()` me nahi aata: popup kisi ek page ka nahi, settings ka hissa hai.
+   * Bina iske popup ka form ek ghante tak purana rehta — theek wahi A-26 wala rog, aur uska
+   * lakshan phir wahi "save nahi hua" jaisa hota.
    */
-  await revalidateTags(['type:package', ...(await pathTagsForForm(id, siteId))])
+  await revalidateTags(['type:package', 'settings', ...(await pathTagsForForm(id, siteId))])
 
   return toApi(updated)
 }
@@ -150,7 +155,7 @@ export async function deleteForm(id, siteId = DEFAULT_SITE_ID) {
 
   await Form.deleteOne({ _id: id })
   /** Delete ke baad section ka form `null` hai aur card gayab hona chahiye — wahi pages saaf. */
-  await revalidateTags(['type:package', ...(await pathTagsForForm(id, siteId))])
+  await revalidateTags(['type:package', 'settings', ...(await pathTagsForForm(id, siteId))])
 
   return { id: String(id) }
 }

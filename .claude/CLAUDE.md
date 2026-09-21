@@ -738,9 +738,29 @@ hoti jo `.pgl--sideleft` pe bachayi gayi thi.
 ⚠️ **`.sidetab` bhi usi din mili aur wo bhi kabhi nahi bani** — client: _"patti baad me"_ (**A-34**). Do
 cheezein ek din me milna ittefaq nahi — poora class-level milaan **A-35** me.
 
-⏭️ **Agla kaam: A-33 ke chaar sawaal ka jawab** (`09-OPEN-ITEMS.md`), phir code. Saath me **home ka form
-popup** — uske bhi chaar sawaal khule hain (khaas kar _"kitne time tak"_ ka matlab). Uske baad baaki pages
-PageSpeed pe (A-17). `project-state.md` ka pehla section padho.
+**21 Sep — Enquiries ▸ Popup (D-103), koi migration nahi.** Poori site ka **ek** popup enquiry form
+(client: _"single popup only and single setting for all pages"_). Screen `Enquiries` ke submenu me
+(client ne jagah khud chuni), **data `settings.popupSettings` me** — wahi batwara jo `tourSettings`
+(8 Sep) aur `blogSettings` (D-93) pe hai. Admin se: form ka chunav · heading/text · **0–3 image
+(ginti client chunta hai)** · `Show after` second · `Show again` (session/once/N days/always) ·
+aur **page type ke 6 checkbox**.
+⚠️ **Popup ke apne fields nahi hain** — form `Enquiry Forms` se chuna jaata hai (D-86 wala sabak).
+Theme me bhi doosra form component nahi — `EnquiryForm variant="page"`.
+⚠️ **"Kaun dekh chuka hai" sirf browser me hai** — ISR me sab ko ek hi HTML jaata hai, isliye server
+ko pata ho hi nahi sakta. Nateeja: history saaf karne pe popup phir dikhega.
+⚠️ **Teen bug tests ne pakde:** adhoora PATCH poora popup uda deta tha (`.partial()` sirf upar wale
+level pe lagti hai), `showOn` ki anjaan key chup-chaap girti thi (ab `.strict()`), aur heading ki HTML
+sanitize hi nahi ho rahi thi — **settings me ye pehli HTML hai**, ab `sanitizePopupSettings()` (R20).
+⚠️ **Chautha bug sirf live chalane pe mila (D-103 §7):** gating sahi hone ke bawajood popup ka poora
+maal har page ke HTML me ja raha tha, kyunki `MobileNav` (header, har page pe) **poora `settings`
+object** client ko bhejta hai. Ab `getSettings()` `popup` nikal deti hai aur `getPopup()` alag hai.
+Baaki settings ab bhi poori jaati hai — **A-36**.
+⚠️ Route `/enquiries/popup` **`/enquiries/:id` se pehle** hona zaroori tha.
+⚠️ Aankh se dekhna baaki — **A-37**. Maine DB me ek **test config** likh di hai (home page pe, 5 second).
+
+⏭️ **Agla kaam: A-33 ke chaar sawaal ka jawab** (`09-OPEN-ITEMS.md`), phir code. Saath me popup ko
+aankh se dekhna (A-37). Uske baad baaki pages PageSpeed pe (A-17). `project-state.md` ka pehla section
+padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

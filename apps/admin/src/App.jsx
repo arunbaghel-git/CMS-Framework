@@ -19,6 +19,7 @@ import BulkUpload from './screens/bulk-upload/BulkUpload.jsx'
 import BulkUploadRun from './screens/bulk-upload/BulkUploadRun.jsx'
 import EnquiriesList from './screens/enquiries/EnquiriesList.jsx'
 import EnquiryDetail from './screens/enquiries/EnquiryDetail.jsx'
+import PopupSettings from './screens/enquiries/PopupSettings.jsx'
 import FormBuilder from './screens/forms/FormBuilder.jsx'
 import MediaLibrary from './screens/media/MediaLibrary.jsx'
 import FormsList from './screens/forms/FormsList.jsx'
@@ -257,10 +258,11 @@ const APP_ROUTES = [
   { path: '/enquiries/forms', element: <FormsList /> },
   { path: '/enquiries/forms/new', element: <FormBuilder /> },
   { path: '/enquiries/forms/:id', element: <FormBuilder /> },
+  /** Popup — D-103. Ye bhi static segment hai, isliye `:id` se **pehle** (neeche wali chetavni). */
+  { path: '/enquiries/popup', element: <PopupSettings /> },
   /**
-   * ⚠️ `/enquiries/:id` **`forms` waalon ke baad** — warna `forms` ek enquiry ki id samajh
-   * liya jaata aur Enquiry Forms ki screen "Enquiry not found" pe khulti. Wahi kram jo
-   * `/packages/:id` pe hai.
+   * ⚠️ `/enquiries/:id` **`forms` aur `popup` dono ke baad** — warna wo ek enquiry ki id samajh
+   * liye jaate aur screen "Enquiry not found" pe khulti. Wahi kram jo `/packages/:id` pe hai.
    */
   { path: '/enquiries/:id', element: <EnquiryDetail /> },
   { path: '/packages/whats-included', element: <PackageDefaults section="whatsIncluded" /> },
