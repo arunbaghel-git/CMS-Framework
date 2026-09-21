@@ -254,14 +254,62 @@ describe('toEntryInput — wo cheezein jo service 422 deti', () => {
     expect(() => itinerarySchema.parse(input.fields.itinerary)).not.toThrow()
   })
 
-  it('anjaan meal chup-chaap girta nahi', () => {
+  /**
+   * D-104 — pehle yahan enum tha aur `Brunch` ek issue ban kar **gir** jaata tha. Client ne
+   * 21 Sep ko free text maanga; ab jo doc me likha hai wahi din pe pahunchta hai.
+   */
+  it('meals free text hain — anjaan shabd bhi bachta hai', () => {
     const { input, issues } = toEntryInput(
-      doc('<p>Day wise Itinerary</p><p>Day 1</p><p>Meals</p><p>Breakfast, Brunch</p>'),
+      doc('<p>Day wise Itinerary</p><p>Day 1</p><p>Meals</p><p>Breakfast, Evening tea</p>'),
       refs,
     )
 
-    expect(input.fields.itinerary[0].meals).toEqual(['breakfast'])
-    expect(issues.find((issue) => issue.label === 'Day 1 → Meals').value).toBe('Brunch')
+    expect(input.fields.itinerary[0].meals).toEqual(['Breakfast', 'Evening tea'])
+    expect(issues.find((issue) => issue.label === 'Day 1 → Meals')).toBeUndefined()
+  })
+
+  /**
+   * Din ka `Notes` ab kahin nahi jaata (D-104) — par chup-chaap girta bhi nahi.
+   *
+   * ⚠️ Label `DAY_LABELS` me jaan-boojh kar bacha hai: hata dene pe wo line kisi label se match
+   * na karti aur **upar wale khaane me chipak** jaati (A-38 wali galti).
+   */
+  it('din ka purana Notes girta hai, par ek note ke saath', () => {
+    const { input, issues } = toEntryInput(
+      doc('<p>Day wise Itinerary</p><p>Day 1</p><p>Notes</p><p>Carry a permit</p>'),
+      refs,
+    )
+
+    expect(input.fields.itinerary[0].note).toBeUndefined()
+
+    const issue = issues.find((i) => i.label === 'Day 1 → Notes')
+    expect(issue.level).toBe('note')
+    expect(issue.value).toBe('Carry a permit')
+    expect(issue.message).toContain('Notes Content')
+  })
+
+  /** Naya top-level Notes section — heading plain text, content doc ki apni HTML (D-104). */
+  it('Notes Heading aur Notes Content package ke Notes section me jaate hain', () => {
+    const { input } = toEntryInput(
+      doc(
+        '<p>Notes Heading</p><p>Before you travel</p>' +
+          '<p>Notes Content</p><p>Carry a <strong>valid ID</strong></p>' +
+          '<p>Day wise Itinerary</p><p>Day 1</p><p>Day Title</p><p>Arrive</p>',
+      ),
+      refs,
+    )
+
+    expect(input.fields.notes.heading).toBe('Before you travel')
+    expect(input.fields.notes.content).toContain('<strong>valid ID</strong>')
+  })
+
+  it('Notes na ho to dono khaali rehte hain — section page pe aata hi nahi', () => {
+    const { input } = toEntryInput(
+      doc('<p>Day wise Itinerary</p><p>Day 1</p><p>Day Title</p><p>Arrive</p>'),
+      refs,
+    )
+
+    expect(input.fields.notes).toEqual({ heading: '', content: '' })
   })
 })
 

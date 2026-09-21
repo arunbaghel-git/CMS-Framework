@@ -8,6 +8,8 @@ import {
   cheapestPricing,
   durationBucket,
   extractBlockText,
+  hasBreakfast,
+  hasPackageNotes,
   htmlToText,
   isEmptyHtml,
   isPubliclyVisible,
@@ -858,10 +860,15 @@ async function toPackageCards(docs, siteId, locale, defaultRating) {
          */
         hasFerries: Boolean(fields.ferriesNote?.trim()),
 
-        /** `Breakfast` ka chip — itinerary ke kisi bhi din breakfast ho to. */
-        hasBreakfast: itinerary.some((day) =>
-          (Array.isArray(day.meals) ? day.meals : []).includes('breakfast'),
-        ),
+        /**
+         * `Breakfast` ka chip — itinerary ke kisi bhi din breakfast ho to.
+         *
+         * ⚠️ Meals 21 Sep se **free text** hain (D-104), isliye ye `includes('breakfast')` se
+         * nahi ho sakta — client `Breakfast (buffet)` bhi likhta hai. Matcher
+         * `packages/shared` me ek hi jagah hai (`hasBreakfast`), taaki card ka chip aur koi
+         * bhi doosra reader ek hi niyam padhe.
+         */
+        hasBreakfast: itinerary.some((day) => hasBreakfast(day.meals)),
 
         /** Image ke upar ka badge — pehla Package Type (`HONEYMOON`, `2 DIVES`). */
         tag: typeById.get((d.taxonomies?.packageTypes ?? [])[0])?.name ?? '',
@@ -2563,6 +2570,21 @@ async function toPublicEntry(doc, siteId, locale) {
     },
 
     /**
+     * Notes section — `Popular add-ons` ke theek upar (D-104, client 21 Sep).
+     *
+     * `fields` ke **bahar** hai, wahi lakeer jo `rating`/`pricing`/`hotels` pe khinchi hai:
+     * `fields` wo hai jo entry pe jaisa ka waisa likha hai, aur ye theme ke liye pehle se tay
+     * kiya hua jawab hai — dono khaali hon to `null`, yaani theme ko "dikhana hai ya nahi"
+     * khud nahi poochhna padta (D-42 §2 wala hi tark).
+     */
+    notes: hasPackageNotes(fields.notes)
+      ? {
+          heading: fields.notes?.heading ?? '',
+          content: fields.notes?.content ?? '',
+        }
+      : null,
+
+    /**
      * Rating — package ki apni, warna `packageDefaults` wali (D-87 §3).
      *
      * `fields` ke **bahar** hai, jaan-boojh kar: `fields` wo hai jo entry pe jaisa ka waisa
@@ -2578,7 +2600,7 @@ async function toPublicEntry(doc, siteId, locale) {
       description: day.description ?? '',
       meals: day.meals ?? [],
       dayTag: day.dayTag ?? '',
-      note: day.note ?? '',
+      /** `note` yahan se **hat gaya** (D-104) — uski jagah package-level `notes` section hai. */
       transferNote: day.transferNote ?? '',
       stay: stayById.get(day.overnightStayId) ?? null,
       transfer: transferById.get(day.transferId) ?? null,

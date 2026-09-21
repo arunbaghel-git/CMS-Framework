@@ -19,7 +19,7 @@ import {
 } from './Pricing.jsx'
 import { HeroRating, RatingNote } from './Rating.jsx'
 import Reviews from './Reviews.jsx'
-import RichText from './RichText.jsx'
+import RichText, { RichTextDoc } from './RichText.jsx'
 import Schema from './Schema.jsx'
 import SectionHead from './SectionHead.jsx'
 import Similar from './Similar.jsx'
@@ -75,8 +75,6 @@ import StickySide from './StickySide.jsx'
  * | Traveller reviews | ✅ universal reviews + haath se likhi rating (client, 1 Sep) |
  * | Similar itineraries | ✅ poori tarah derived — wahi nights/days wale package |
  */
-
-const MEAL_LABEL = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
 
 /**
  * Breadcrumb ka beech wala crumb — package archive.
@@ -229,26 +227,29 @@ const ChipIcon = ({ name }) => (
 function dayChips(day) {
   return [
     /**
-     * Transfer ki chip **tab bhi** banti hai jab sirf duration likhi ho.
+     * ⚠️ **Transfer aur uski duration ab do alag chip hain** (client, 21 Sep — D-104).
      *
-     * Pehle shart `day.transfer &&` thi, yaani transfer na chuna ho to poori chip gir jaati
-     * thi — aur uske saath client ka likha hua `90 min` bhi. Ye chup tha: admin me text
-     * bhara dikhta tha, page pe kuch nahi aata.
+     * Pehle dono ek hi chip me jude the (`Ferry: About 2 hrs`) aur client ne poochha ki
+     * duration transfer me merge ho kar kyun aa rahi hai. Ab dono apna naam le kar aate hain —
+     * `Transfer: Flight` aur `Transfer duration: About 2 hrs` — client ke apne shabd me.
      *
-     * Duration akeli ho to icon ghadi ka hai, gaadi ka nahi — bina transfer ke gaadi ka
-     * icon ek aisi baat keh deta hai jo likhi hi nahi gayi.
+     * ⚠️ **Duration ki chip transfer ke bina bhi banti hai.** Ye shart D-64 me isliye khuli thi
+     * ki pehle `day.transfer &&` thi, yaani transfer na chuna ho to client ka likha hua
+     * `90 min` page pe **aata hi nahi tha** — aur wo bilkul chup tha.
      */
-    (day.transfer || day.transferNote) && {
-      text: [day.transfer?.name, day.transferNote].filter(Boolean).join(': '),
-      icon: day.transfer ? 'car' : 'clock',
-      emoji: day.transfer?.icon || '',
+    day.transfer && {
+      text: `Transfer: ${day.transfer.name}`,
+      icon: 'car',
+      emoji: day.transfer.icon || '',
     },
+    day.transferNote && { text: `Transfer duration: ${day.transferNote}`, icon: 'clock' },
     day.stay && { text: `Stay: ${day.stay.name}`, icon: 'bed' },
+    /** Meals ab free text hain (D-104) — jo client ne likha wahi chhapta hai. */
     day.meals.length > 0 && {
-      text: `${day.meals.map((m) => MEAL_LABEL[m] ?? m).join(', ')} included`,
+      text: `${day.meals.join(', ')} included`,
       icon: 'meal',
     },
-    day.note && { text: day.note, icon: 'clock' },
+    /* `day.note` ki chip **hat gayi** (D-104) — uski jagah page ka apna Notes section hai. */
   ].filter(Boolean)
 }
 
@@ -632,6 +633,31 @@ export default function PackagePage({ entry, defaults, settings }) {
                * "abhi nahi bana" nahi, "toota hua" lagta hai.
                */}
               <HotelsSection hotels={entry.hotels} label={labels.hotels} />
+
+              {/*
+               * Notes — `Popular add-ons` ke **theek upar** (client, 21 Sep — D-104).
+               *
+               * ⚠️ **Heading yahan `labels` se nahi aata.** Baaki har section ka heading
+               * `packageDefaults.sectionLabels` se aata hai (D-65); is ek ka heading package ka
+               * apna hai, aur isliye `SectionHead` bhi use nahi hota.
+               *
+               * Server pehle hi tay kar chuka hai ki section dikhega ya nahi — dono khaali hone
+               * pe `entry.notes` `null` aata hai (D-42 §2 wala hi tark), isliye yahan koi
+               * "khaali hai kya" wali ginti nahi hai.
+               */}
+              {entry.notes && (
+                <section className="blk" id="notes">
+                  {entry.notes.heading && <h2>{entry.notes.heading}</h2>}
+                  {/*
+                   * `RichTextDoc` — wahi jagah jahan is page ki baaki saari admin-likhi HTML
+                   * jaati hai (Overview, section descriptions). Uska `.rt` typography deta hai,
+                   * aur usme likha hua niyam yahan bhi lagta hai: is component me sirf wo HTML
+                   * aati hai jo **write pe** saaf ho chuki hai (R20).
+                   */}
+                  <RichTextDoc html={entry.notes.content} />
+                </section>
+              )}
+
               <AddOns addOns={entry.addOns} label={labels.addOns} />
 
               {(included.length > 0 || excluded.length > 0 || wrote('included')) && (

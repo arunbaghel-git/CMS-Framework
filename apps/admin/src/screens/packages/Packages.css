@@ -234,18 +234,9 @@
 }
 
 /*
- * Itinerary ke din me Meals ke teen checkbox — ek hi row me (client, 1 Sep).
+ * `.meals-row` **hat gayi — D-104 (21 Sep).**
  *
- * `.inline-lbl` khud flex hai, isliye har checkbox apni line le leta tha aur `.row3` ke us
- * column me neeche bahut jagah bachi rehti thi. Wrap isliye hai ki 782px se neeche `.row3`
- * ek column ka ho jaata hai, aur wahan teen checkbox ek line me nahi bharte.
+ * Wo Meals ke teen checkbox ko ek row me rakhti thi (client, 1 Sep). Meals ab free text hain
+ * (checkbox teen ki hadd lagate the, aur client ke doc ka `Evening tea` usi wajah se girta
+ * tha — A-38), to ab wahan ek saada `.inp` hai aur is rule ka koi bachcha nahi bacha.
  */
-.meals-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-}
-
-.meals-row .inline-lbl {
-  margin-bottom: 0;
-}

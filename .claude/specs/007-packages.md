@@ -373,11 +373,15 @@ title             `Arrive at Sri Vijaya Puram, Corbyn's Cove…`
 overnightStay     dropdown — Destinations se   ← client ne free text se badla
 description       paragraph
 highlights[]      bullet list (page ka `itin__l`)
-meals             breakfast · lunch · dinner (checkbox)
+meals             free text, comma se alag — `Breakfast, Evening tea`  ⚠️ **D-104 (21 Sep)**
+                  pehle teen ka checkbox tha; client ke doc ka `Evening tea` chup-chaap girta tha (A-38)
 transfer          Transfer list se
 transferNote      `90 min`  ✅ **din pe** — ek hi Ferry teen alag duration pe chalti hai (D-51 §2)
 dayTag            `Arrival day`  — din ke card pe chhota label
-note              `Approx. 4 hrs sightseeing` · `Add-ons priced below`  ✅ free text, fixed icon (D-51 §1)
+⚠️ note           **HAT GAYA — D-104 (21 Sep).** Wo chip 200 akshar pe kat jaati thi aur client
+                  usme poora paragraph likh raha tha (A-38). Uski jagah package ka apna
+                  `notes{heading,content}` section hai — Popular add-ons ke theek upar.
+                  Migration 027 ne purana text DB se mita diya (client ka faisla)
 ```
 
 Din drag se reorder hote hain (wahi `useListDrag` jo menus me hai), aur collapse/expand
@@ -510,8 +514,9 @@ nahi gaya:
 | Route strip | **itinerary se derived** (§3.1) |
 | At a glance — Duration · Ferries · Hotels · Best season | derived · ferriesNote ❓ · category · bestSeason |
 | Day-by-day itinerary | itinerary[] |
-| Din ki chips | `Stay:` overnightStay · transfer · meals · note |
+| Din ki chips | `Transfer:` · `Transfer duration:` · `Stay:` · meals ⚠️ **D-104** — transfer aur duration ab **do alag** chip (pehle `Ferry: 2 hrs` ek me juda tha); `note` ki chip hat gayi |
 | Hotel category tabs + tables | categoryPricing[] + hotels[] |
+| **Notes** | `fields.notes{heading,content}` — **D-104**, add-ons ke theek upar. Page ka ekmatra section jiska **heading bhi per-package** hai (baaki sab `sectionLabels` se — D-65). Dono khaali = section hai hi nahi |
 | Popular add-ons | **Add Ons** — package me chune hue (§1.4) |
 | What's included | **What's Included** — global, `packageDefaults` (§1.5, §1.8) |
 | Good to know before you book | `sectionLabels.booking.description` + `packageDefaults` ke bookingSteps/cancellation (§2.1, D-68) |

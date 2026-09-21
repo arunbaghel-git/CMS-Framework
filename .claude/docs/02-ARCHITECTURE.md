@@ -241,6 +241,18 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          inhi se banta hai. pricing me SIRF categoryPricing[]
                          hai — currency settings.currency se (D-56 §2), aur
                          basis/GST/advance client ne hata diye (D-57 §3)
+                         package pe notes{heading,content} bhi — D-104 (21 Sep).
+                         Page pe "Popular add-ons" ke THEEK UPAR ka section.
+                         ⚠️ Page ka EKMATRA section jiska heading bhi per-package
+                         hai (baaki sab packageDefaults.sectionLabels se — D-65),
+                         isliye PACKAGE_SECTIONS me hai hi nahi. DONO khaali =
+                         section hai hi nahi; payload me tab null jaata hai.
+                         content HTML hai (sanitizeEntryFields me), heading plain.
+                         ⚠️ itinerary[].note 21 Sep ko HAT GAYA (D-104) — wo chip
+                         200 akshar pe katti thi; migration 027 ne text MITA diya
+                         (client ka faisla). Usi migration me meals enum se free
+                         text hue (['breakfast'] → ['Breakfast']) — ab teen ki
+                         hadd nahi, kyunki "Evening tea" bhi hota hai (A-38)
                          package pe rating{value,count} bhi — D-87 (D-70 palta).
                          KHAALI value par packageDefaults.rating chalti hai;
                          package ka apna number use OVERRIDE karta hai, mitata

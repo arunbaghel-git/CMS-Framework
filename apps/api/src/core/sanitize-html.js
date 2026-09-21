@@ -563,6 +563,14 @@ export function sanitizeEntryFields(fields) {
     )
   }
 
+  /**
+   * Package ka Notes section (D-104) — sirf `content` HTML hai; `heading` plain text hai aur
+   * schema use waisa hi rakhta hai.
+   */
+  if (out.notes && typeof out.notes === 'object') {
+    out.notes = { ...out.notes, content: sanitizeBlockHtml(out.notes.content) }
+  }
+
   /** Page/Tour Page ka sub heading — asli editor hai, plain text nahi (D-87 faisla #3). */
   if (out.subheading !== undefined) out.subheading = sanitizeBlockHtml(out.subheading)
 

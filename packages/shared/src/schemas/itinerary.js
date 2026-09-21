@@ -13,7 +13,34 @@ import { htmlSchema } from './rich-html.js'
  * jaati hai — theek wahi bug jo Slice 0 me menu builder pe pakda gaya tha (D-43 §5).
  */
 
-export const MEALS = Object.freeze(['breakfast', 'lunch', 'dinner'])
+/**
+ * Ek din ka meal jo `Breakfast` mana jaaye — listing card ka `Breakfast` chip isi se banta
+ * hai (`hasBreakfast`, `public/service.js`).
+ *
+ * ⚠️ **Ye matcher yahan hai, wahan nahi.** Meals 21 Sep se **free text** hain (client): doc me
+ * comma se alag karke kitne bhi likhe ja sakte hain, kyunki `Evening tea` jaise meal bhi hote
+ * hain — A-38 me wahi chup-chaap gir gaya tha. Free text ho jaane ka matlab hai ki "is package
+ * me breakfast hai ya nahi" ab **shabd dekh kar** tay hota hai, aur wo faisla ek hi jagah rehna
+ * chahiye: do jagah likha jaata to ek din card ka chip aur page ka chip alag baat kehte (wahi
+ * sabak jo D-43 §2 aur D-65 pe mila).
+ */
+const BREAKFAST = 'breakfast'
+
+/**
+ * Kisi bhi din ka meal `Breakfast` se shuru hota hai?
+ *
+ * `startsWith` isliye, poora milaan nahi: client `Breakfast (buffet)` ya `Breakfast at hotel`
+ * likhta hai aur teenon ek hi baat kehte hain. Yahi udaar niyam purana `parseMeals()` enum ke
+ * saath lagata tha — wo chala gaya, niyam bacha hai.
+ */
+export function hasBreakfast(meals = []) {
+  return (Array.isArray(meals) ? meals : []).some((meal) =>
+    String(meal ?? '')
+      .trim()
+      .toLowerCase()
+      .startsWith(BREAKFAST),
+  )
+}
 
 /**
  * Din ke text khaanon ki lambai ki hadd — **yahan se, aur sirf yahan se**.
@@ -31,13 +58,10 @@ export const ITINERARY_LIMITS = Object.freeze({
   description: 8000,
   transferNote: 60,
   dayTag: 60,
-  note: 200,
-})
-
-export const MEAL_LABEL = Object.freeze({
-  breakfast: 'Breakfast',
-  lunch: 'Lunch',
-  dinner: 'Dinner',
+  /** Ek meal ka naam — `Breakfast`, `Evening tea at the jetty`. */
+  meal: 60,
+  /** Ek din me kitne meal — chip ek hi line me chhapti hai, list nahi. */
+  meals: 10,
 })
 
 export const itineraryDaySchema = z.object({
@@ -82,7 +106,23 @@ export const itineraryDaySchema = z.object({
    */
   description: htmlSchema.pipe(z.string().max(ITINERARY_LIMITS.description)),
 
-  meals: z.array(z.enum(MEALS)).max(3).default([]),
+  /**
+   * Us din ke meals — **free text**, comma se alag (client, 21 Sep).
+   *
+   * ⚠️ Pehle ye `z.enum(['breakfast','lunch','dinner'])` tha, yaani sirf teen. Client ke asli
+   * doc me `Evening tea` likha tha aur wo importer me chup-chaap **gir** jaata tha (A-38) —
+   * enum ke bahar ka shabd row ke issues me to aata tha, par us din ka meal page pe kabhi nahi
+   * pahunchta. Client ka faisla: teen se zyada ho sakte hain, isliye ginti ki koi hadd hi mat
+   * rakho.
+   *
+   * **Array hi rahi, string nahi** — chip `Breakfast, Evening tea included` banti hai, aur
+   * `Breakfast` ka pata bhi har item pe alag se lagana hota hai (`hasBreakfast()`). Ek hi
+   * string rakhne par dono jagah comma dobara todni padti, do alag jagah.
+   */
+  meals: z
+    .array(z.string().trim().min(1).max(ITINERARY_LIMITS.meal))
+    .max(ITINERARY_LIMITS.meals)
+    .default([]),
 
   /** Transfer list ki id — `Private cab`, `Ferry`, `Airport drop`. */
   transferId: z.string().nullable().default(null),
@@ -102,16 +142,21 @@ export const itineraryDaySchema = z.object({
   /** Din ke card pe chhota label — `Arrival day`, `Departure`. */
   dayTag: z.string().max(ITINERARY_LIMITS.dayTag).default(''),
 
-  /**
-   * Ek free-text line jo din ke card pe ek chip banti hai — `Approx. 4 hrs sightseeing`,
-   * `Add-ons priced below` (spec 007 §9 #10, D-51 §1).
+  /*
+   * `note` **hata diya gaya** (client, 21 Sep — D-104).
    *
-   * Baaki saari chips **structured data se** banti hain (stay, transfer, meals). Ye do
-   * kisi field se nahi aatin — isliye ek free line. Khaali ho to chip dikhti hi nahi.
+   * Wo din ke card pe ek chip banti thi (`Approx. 4 hrs sightseeing`, spec 007 §9 #10,
+   * D-51 §1). Client ne uski jagah package-level **Notes section** maanga (Popular add-ons
+   * ke theek upar, `fields.notes`), aur saath hi kaha ki phir ye din wala khaana rehna hi
+   * nahi chahiye — ek hi cheez ke do ghar hone ka nateeja is repo me pehle dekha ja chuka hai
+   * (D-86).
    *
-   * Icon fixed hai, client nahi chunta: ek line ke liye do field bharwana bhaari hai.
+   * Asli wajah A-38 me dikhi: client Day 3 ke `Notes` me poora paragraph likh raha tha aur wo
+   * **200 akshar pe kat** jaata tha, kyunki ye khaana ek chip ke liye bana tha. Section usi
+   * text ki sahi jagah hai.
+   *
+   * ⚠️ Purana data migration 027 ne DB se **hata** diya hai (client ka faisla).
    */
-  note: z.string().max(ITINERARY_LIMITS.note).default(''),
 
   /*
    * `hotelCategory` **hata diya gaya** (client, 27 Aug — D-64).

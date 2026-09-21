@@ -321,7 +321,8 @@ describe('import chalana', () => {
     expect(entry.fields.pricing.categoryPricing[0].priceFrom).toBe(24999)
     /** `Kids < 5 years` adhoora nahi katna chahiye */
     expect(entry.fields.shortDescription).toBe('Kids < 5 years free.')
-    expect(entry.fields.itinerary[0].meals).toEqual(['breakfast', 'dinner'])
+    /** D-104 — meals free text hain, to doc ka bada akshar waisa ka waisa bachta hai */
+    expect(entry.fields.itinerary[0].meals).toEqual(['Breakfast', 'Dinner'])
   })
 
   it('naam match na kare to draft rehta hai — content phir bhi aata hai', async () => {

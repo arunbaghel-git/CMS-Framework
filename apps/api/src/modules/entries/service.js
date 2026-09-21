@@ -14,6 +14,7 @@ import {
   faqsSchema,
   heroButtonSchema,
   itinerarySchema,
+  packageNotesSchema,
   packageAddOnsSchema,
   packageHotelsSchema,
   durationQuery,
@@ -215,6 +216,15 @@ function normalizeFields(fields, contentType) {
 
   /** Duplicate ids gir jaati hain — ek add-on do baar chunne ka koi matlab nahi. */
   if (has('addOns')) out.addOns = [...new Set(packageAddOnsSchema.parse(fields.addOns))]
+
+  /**
+   * Notes section — heading + content, dono package ke apne (D-104, client 21 Sep).
+   *
+   * Parse yahan isliye ki `content` **HTML** hai: `htmlSchema` ise string me baandhti hai aur
+   * lambai ki hadd lagati hai. Safai alag se `sanitizeEntryFields()` me hoti hai, jo iske
+   * **baad** chalti hai — wahi jodi jo `heading` pe pehle se hai (R20).
+   */
+  if (has('notes')) out.notes = packageNotesSchema.parse(fields.notes)
 
   /** FAQ ki apni stable `id` — wahi wajah jo itinerary ke din pe hai (D-43 §5). */
   if (has('faqs')) {

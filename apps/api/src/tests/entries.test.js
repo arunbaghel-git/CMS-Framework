@@ -892,6 +892,9 @@ describe('package content type ka shape', () => {
       'hotels',
       'addOns',
       'faqs',
+      // D-104 (21 Sep) — "Popular add-ons" ke theek upar ka section. Page ka ekmatra
+      // section jiska heading bhi per-package hai (baaki sab sectionLabels se — D-65)
+      'notes',
       'bestFor',
       'ferriesNote',
       // D-87 (7 Sep) — D-70 palta. Listing page pe chaudah package ek doosre ke neeche
@@ -1280,11 +1283,12 @@ describe('itinerary', () => {
 
     expect(day.meals).toEqual([])
     expect(day.overnightStayId).toBeNull()
-    expect(day.note).toBe('')
 
     // `hotelCategory` aur `highlights` dono D-64 me hate — bheje jaayein to bhi nahi bachte
     expect(day.hotelCategory).toBeUndefined()
     expect(day.highlights).toBeUndefined()
+    // `note` D-104 me hata — uski jagah package ka apna Notes section hai
+    expect(day.note).toBeUndefined()
   })
 
   it('galat itinerary 400 deti hai — Mixed hone ke baawajood', async () => {
@@ -1292,10 +1296,24 @@ describe('itinerary', () => {
     // public page ka aadha render usi se banta hai
     const res = await createEntry(adminJar, {
       title: 'Andaman',
-      fields: { itinerary: [{ title: 'Day one', meals: ['brunch'] }] },
+      fields: { itinerary: [{ title: 'Day one', meals: [{ name: 'brunch' }] }] },
     })
 
     expect(res.status).toBe(400)
+  })
+
+  /**
+   * D-104 — meals ab free text hain, par field phir bhi ek array of strings hai. Pehle yahan
+   * `['brunch']` 400 deti thi; ab wo bilkul theek value hai.
+   */
+  it('anjaan meal ab chalta hai — enum hat gaya (D-104)', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { itinerary: [{ title: 'Day one', meals: ['Breakfast', 'Evening tea'] }] },
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.entry.fields.itinerary[0].meals).toEqual(['Breakfast', 'Evening tea'])
   })
 
   it('bina title ke din reject hota hai', async () => {
@@ -2070,6 +2088,121 @@ describe('FAQs', () => {
     expect(faqs).toHaveLength(1)
     expect(faqs[0].question).toBe('Which ferry class is included?')
     expect(faqs[0].answer).toBe('Base class, included.')
+  })
+})
+
+/**
+ * Notes section — `Popular add-ons` ke theek upar (D-104, client 21 Sep).
+ *
+ * Ye page ka ekmatra section hai jiska **heading bhi package ka apna** hai (baaki sab
+ * `packageDefaults.sectionLabels` se aate hain — D-65).
+ */
+describe('Notes section (D-104)', () => {
+  const publish = (id) => authed('post', `/api/entries/${id}/publish`, adminJar).send({})
+
+  it('heading aur content dono save hote hain', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { notes: { heading: 'Before you travel', content: '<p>Carry a valid ID</p>' } },
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.data.entry.fields.notes).toEqual({
+      heading: 'Before you travel',
+      content: '<p>Carry a valid ID</p>',
+    })
+  })
+
+  it('adhoora bheja jaaye to doosra khaali bharta hai — poora field udta nahi', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { notes: { content: '<p>Only content</p>' } },
+    })
+
+    expect(res.body.data.entry.fields.notes.heading).toBe('')
+    expect(res.body.data.entry.fields.notes.content).toBe('<p>Only content</p>')
+  })
+
+  /** R20 — HTML ki safai **write pe** hoti hai, render pe kabhi nahi. */
+  it('content write pe sanitize hoti hai', async () => {
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: {
+        notes: { heading: 'Notes', content: '<p>Safe</p><script>alert(1)</script>' },
+      },
+    })
+
+    // ⚠️ Response nahi, **DB** padhi ja rahi hai — wahi sabak jo whitelist wale jaal pe mila
+    const stored = await Entry.findById(created.body.data.entry.id).lean()
+
+    expect(stored.fields.notes.content).toContain('Safe')
+    expect(stored.fields.notes.content).not.toContain('<script')
+  })
+
+  it('heading 120 se lambi ho to 400', async () => {
+    const res = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { notes: { heading: 'x'.repeat(121) } },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('public payload me notes jaate hain', async () => {
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { notes: { heading: 'Before you travel', content: '<p>Carry a valid ID</p>' } },
+    })
+    await publish(created.body.data.entry.id)
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+
+    expect(res.body.data.entry.notes).toEqual({
+      heading: 'Before you travel',
+      content: '<p>Carry a valid ID</p>',
+    })
+  })
+
+  /**
+   * ⚠️ Dono khaali hone pe payload me `null` jaata hai, khaali object nahi — theme ko "dikhana
+   * hai ya nahi" khud nahi poochhna padta (D-42 §2 wala hi tark).
+   */
+  it('dono khaali hon to payload me null — section page pe aata hi nahi', async () => {
+    const created = await createEntry(adminJar, { title: 'Andaman' })
+    await publish(created.body.data.entry.id)
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+
+    expect(res.body.data.entry.notes).toBeNull()
+  })
+
+  it('sirf heading ho to bhi section jaata hai', async () => {
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { notes: { heading: 'Before you travel' } },
+    })
+    await publish(created.body.data.entry.id)
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+
+    expect(res.body.data.entry.notes.heading).toBe('Before you travel')
+  })
+})
+
+/** Din ka `note` D-104 me hata — public payload me bhi ab nahi jaata. */
+describe('din ka purana note (D-104 me hata)', () => {
+  it('bheja jaaye to na store hota hai, na payload me aata hai', async () => {
+    const created = await createEntry(adminJar, {
+      title: 'Andaman',
+      fields: { itinerary: [{ title: 'Day one', note: 'Approx. 4 hrs sightseeing' }] },
+    })
+    await authed('post', `/api/entries/${created.body.data.entry.id}/publish`, adminJar).send({})
+
+    const stored = await Entry.findById(created.body.data.entry.id).lean()
+    expect(stored.fields.itinerary[0].note).toBeUndefined()
+
+    const res = await request(app).get('/api/public/resolve?path=/packages/andaman')
+    expect(res.body.data.entry.itinerary[0].note).toBeUndefined()
   })
 })
 

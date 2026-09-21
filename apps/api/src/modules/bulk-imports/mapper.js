@@ -3,6 +3,7 @@ import {
   FAQ_LIMITS,
   HOTEL_CATEGORIES,
   ITINERARY_LIMITS,
+  PACKAGE_NOTES_LIMITS,
   normalizeName,
   parseCount,
   parseMeals,
@@ -346,13 +347,26 @@ function buildItinerary(days, refs, issues) {
     })
     if (transfer.issue) issues.push(transfer.issue)
 
-    const { meals, unknown } = parseMeals(field('meals'))
-    if (unknown.length > 0) {
+    /**
+     * Meals ab free text hain (D-104) — jo likha hai wo waisa hi jaata hai, comma pe kata hua.
+     * Pehle yahan enum ke bahar ke shabd ka note chhapta tha; ab girane ko kuch hai hi nahi.
+     */
+    const meals = parseMeals(field('meals')).map((meal) =>
+      clamp(meal, ITINERARY_LIMITS.meal, at('Meals'), clampWarnings),
+    )
+
+    /**
+     * ⚠️ Din ka purana `Notes` khaana ab kahin nahi jaata (D-104) — par chup-chaap girta bhi
+     * nahi. Client ke purane doc me wo har din pe likha hai, aur bina is note ke uska text
+     * "kahin chala gaya" jaisa lagta: koi error nahi, bas ek paragraph kam. Wahi lakshan jo
+     * D-86/D-89 me likha hai.
+     */
+    if (field('notes')) {
       issues.push(
         note(
-          at('Meals'),
-          unknown.join(', '),
-          'Only Breakfast, Lunch and Dinner can be used, so these were left out.',
+          at('Notes'),
+          field('notes'),
+          'Day notes are no longer used — put this text in the "Notes Content" field above the itinerary.',
         ),
       )
     }
@@ -371,7 +385,6 @@ function buildItinerary(days, refs, issues) {
         clampWarnings,
       ),
       dayTag: clamp(field('dayTag'), ITINERARY_LIMITS.dayTag, at('Day Tag'), clampWarnings),
-      note: clamp(field('notes'), ITINERARY_LIMITS.note, at('Notes'), clampWarnings),
     }
   })
 
@@ -391,6 +404,8 @@ function buildItinerary(days, refs, issues) {
 export function toEntryInput(parsed, refs) {
   const { values, days } = parsed
   const issues = []
+  /** `clamp()` yahan bhi kaat kar batata hai — wahi jodi jo din aur FAQ pe hai. */
+  const clampWarnings = []
 
   for (const warning of parsed.warnings ?? []) issues.push(note('Document', '', warning))
 
@@ -485,8 +500,26 @@ export function toEntryInput(parsed, refs) {
       hotels: buildHotels(values, refs, issues),
       faqs: buildFaqs(parsed.faqs, issues),
       addOns: addOns.ids,
+
+      /**
+       * Notes section — `Popular add-ons` ke theek upar (D-104).
+       *
+       * Heading **plain text** hai (wo `<h2>` ke andar jaata hai) aur content doc ki apni HTML,
+       * taaki bold/list/link bach jaayein — wahi batwara jo Overview aur Day Description pe hai.
+       */
+      notes: {
+        heading: textOf(values, 'notesHeading').slice(0, PACKAGE_NOTES_LIMITS.heading),
+        content: clamp(
+          String(values.notesContent?.html ?? '').trim(),
+          PACKAGE_NOTES_LIMITS.content,
+          'Notes Content',
+          clampWarnings,
+        ),
+      },
     },
   }
+
+  for (const message of clampWarnings) issues.push(note(message.split(' was ')[0], '', message))
 
   /** `null` count field me bemaani hai — khaali chhod dena behtar hai. */
   if (input.fields.nights === null) delete input.fields.nights

@@ -440,6 +440,48 @@ export default function PackageEdit() {
             </Panel>
 
             {/*
+             * Notes — page pe `Popular add-ons` ke **theek upar** ka section (D-104, client 21 Sep).
+             *
+             * ⚠️ **Heading bhi yahan hai, `Section Headings` pe nahi** — page ka ye ekmatra section
+             * hai jiska heading package ka apna hai, aur wo client ka faisla hai: notes har package
+             * ke alag hote hain to unka naam bhi alag hona chahiye.
+             *
+             * Ye panel purana per-day "Note" khaana badalta hai (wo 200 akshar pe kat-ta tha).
+             */}
+            <Panel key="notes" title="Notes">
+              <div className="panel-body">
+                <div className="field">
+                  <label htmlFor="notes-heading">Heading</label>
+                  <input
+                    id="notes-heading"
+                    className="inp"
+                    placeholder="Things to know before you travel"
+                    value={form.fields.notes?.heading ?? ''}
+                    onChange={(e) =>
+                      setField('notes', { ...(form.fields.notes ?? {}), heading: e.target.value })
+                    }
+                    disabled={readOnly}
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Content</label>
+                  <HtmlEditor
+                    height={220}
+                    value={form.fields.notes?.content ?? ''}
+                    onChange={(html) =>
+                      setField('notes', { ...(form.fields.notes ?? {}), content: html })
+                    }
+                    disabled={readOnly}
+                  />
+                  <div className="hint">
+                    Leave both empty and the section does not appear on the page
+                  </div>
+                </div>
+              </div>
+            </Panel>
+
+            {/*
              * FAQs — design me ye panel "FAQs & Policies" tha; client ne sirf FAQs maanga
              * (27 Aug, D-59). Cancellation policy wahin hai jahan wo pehle se thi —
              * packageDefaults, kyunki wo har package pe same hai (§2.1).

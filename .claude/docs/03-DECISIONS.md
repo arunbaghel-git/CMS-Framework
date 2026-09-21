@@ -9325,3 +9325,144 @@ popup ka form ek ghante tak purana rehta, aur uska lakshan phir wahi "save nahi 
 - **Auto-close (N second baad popup khud band)** — maine iske khilaf salaah di (user form bhar raha
   ho aur popup gayab ho jaaye) aur client ne nahi maanga
 - **Kai popups ki list** — client ne saaf kaha _"single popup only"_
+
+---
+
+## D-104
+
+**Itinerary ke do khaane badle, aur ek naya Notes section bana** (client, 21 Sep 2026)
+
+**Status:** ✅ ban gaya · **migration 027**
+
+### §1 — Client ke chaar point, aur teen faisle jo poochhne pade
+
+Client ke shabd:
+
+1. _"make Meals input field in Itinerary Builder not checkbox becouse it could be more then 3 so in
+   doc we can enter comma saperate"_
+2. _"Popular add-ons ke thik upar ek notes ka section hoga jisme notes section aayega heading an
+   content … also update in bulk upload for package bulk upload"_
+3. _"itinerary builder me Transfer duration me About 2 hrs text data in doc to Transfer me merge
+   hoke page par kyu aa rha hai"_
+4. _"since Note is going to be section then remove from itinerary builder"_
+
+#3 ek **sawaal** tha, instruction nahi — jawab §5 me. Baaki teen pe teen cheezein client se poochhi
+gayin, kyunki har jawab alag kaam banata tha:
+
+| Sawaal | Client ka jawab |
+| --- | --- |
+| Notes section ka heading kahan se — global ya per-package? | **Heading + content dono per-package** |
+| Purane per-day `note` ka kya — DB me chhodein, mitaayein, ya section me jod dein? | **Migration se DB se bhi saaf** |
+| Meals free text hone ke baad listing card ka `Breakfast` chip kaise tay ho? | **Text me `breakfast` shabd dhoondho** |
+
+### §2 — Meals ab free text hain (enum gaya)
+
+`z.array(z.enum(['breakfast','lunch','dinner'])).max(3)` → `z.array(z.string().trim().min(1))`.
+
+**Ye A-38 ka seedha nateeja hai.** Client ke asli Kerala doc me Day 2 pe `Evening tea` likha tha.
+Importer use enum ke bahar maan kar row ke issues me likh deta tha — yaani client ko **bataya** to
+jaata tha, par us din ka wo meal page pe **kabhi nahi** pahunchta tha. Client ka jawab seedha tha:
+teen se zyada ho sakte hain, to ginti ki hadd hi mat rakho.
+
+⚠️ **Array hi rahi, ek string nahi.** Chip `Breakfast, Evening tea included` banti hai **aur** har
+item ko alag se dekhna padta hai (`hasBreakfast()`); ek hi string rakhne par comma dono jagah dobara
+todni padti — do alag jagah, wahi jaal jo D-43 §2 pe likha hai.
+
+⚠️ **`MEAL_LABEL` khatam ho gaya.** Wo enum code (`breakfast`) ko dikhne wale naam (`Breakfast`) me
+badalta tha, **do jagah** — `packages/shared` me aur `PackagePage.jsx` me apni copy. Ab jo likha hai
+wahi chhapta hai, to naksha ki zaroorat hi nahi.
+
+⚠️ **`hasBreakfast()` `packages/shared` me hai, `public/service.js` me nahi.** Listing card ka
+`Breakfast` chip isi se banta hai aur wo pehle `meals.includes('breakfast')` tha — free text ke saath
+wo `Breakfast (buffet)` pe jhootha `false` deta. Matcher ek hi jagah hai, isliye kal koi doosra reader
+bhi wahi niyam padhega (D-65 wala hi tark).
+
+Admin me ab ek text box hai (`Breakfast, Dinner`), aur **comma pe todna/jodna wahin hota hai** — DB
+me har meal apni entry rehti hai.
+
+### §3 — Naya `fields.notes` — page ka ekmatra per-package heading wala section
+
+`packages/shared/src/schemas/package-notes.js` — `{ heading, content }`. Page pe `Popular add-ons`
+ke **theek upar**, `<section class="blk" id="notes">`.
+
+⚠️ **Heading `Section Headings` se NAHI aata, aur ye D-65 ka apwaad hai.** Page ke baaki nau section
+apna heading `packageDefaults.sectionLabels` se lete hain — ek jagah badlo, sab packages pe lage.
+Client ne is ek ke liye ulta maanga (_"heading an content"_), aur uski wajah bhi saaf hai: notes har
+package ke **apne** hote hain, to unka naam bhi har package ka apna hona chahiye (`Ferry timings` ek
+pe, `Permit rules` doosre pe). Isliye ye section `PACKAGE_SECTIONS` me **hai hi nahi** aur
+`Section Headings` screen pe uska koi tab bhi nahi — tab banane ka matlab hota do jagah.
+
+⚠️ **Khaali ka matlab yahan D-65 se ulta hai.** Wahan khaali `heading` pe theme ka default wapas aata
+hai (section bina title ke na rahe); yahan **dono khaali = section hai hi nahi**. Ye section optional
+hai, aur theme us par kuch gadhti nahi: sirf heading likhi ho to akela heading, sirf content ho to
+bina heading ke content — dono soorat client ki likhi hui hain.
+
+Faisla payload me hota hai, theme me nahi — `notes` ya to poora object hai ya `null` (D-42 §2 wala
+hi tark, taaki theme ko "dikhana hai ya nahi" khud na poochhna pade).
+
+⚠️ `content` HTML hai, isliye `sanitizeEntryFields()` me wo bhi juda (R20). **Heading plain text hai**
+— wo `<h2>` ke andar seedha chhapta hai, aur wahan editor dene ka matlab hota client heading ke andar
+`<p>` daal de. Wahi lakeer jo `sectionLabels.heading` pe hai.
+
+### §4 — Per-day `note` hat gaya, aur uska text mit gaya
+
+`itinerary[].note` ek chip thi (`Approx. 4 hrs sightseeing`, spec 007 §9 #10, D-51 §1).
+
+**Asli wajah A-38 me dikhi thi:** client us khaane me poora paragraph likh raha tha aur wo **200 akshar
+pe kat** jaata tha — kyunki wo khaana ek chip ke liye bana tha. Section usi text ki sahi jagah hai, aur
+client ne khud kaha ki tab wo din wala khaana rehna hi nahi chahiye.
+
+**Mitane se pehle asli DB ginayi gayi — 84 din me se 49 pe `note` tha, aur wo sirf paanch alag
+lines thi.** Sab chhoti chip hi hain, yaani field jiske liye bana tha wahi usme likha tha; koi lamba
+paragraph is soorat me nahi khoya. Record isliye yahan hai ki mitaya hua text kahin to likha rahe:
+
+| Kitne din pe | Line |
+| --- | --- |
+| 12 | `Add-ons priced below` |
+| 11 | `Approx. 3 hrs sightseeing` |
+| 11 | `Ferry tickets included` |
+| 11 | `Kept free in case a ferry is cancelled` |
+| 4 | `Approx. 4 hrs sightseeing` |
+
+⚠️ **Migration 027 ne wo text DB se mita diya** — ye client ka chuna hua vikalp hai (teen me se: DB me
+pada rehne do · mita do · naye section me jod do). Isliye `down()` use wapas nahi la sakta; wo sirf
+`meals` ka naksha ulta karta hai. Asli rollback `mongodump` hai — wahi jo D-80/020 pe likha gaya tha.
+
+⚠️ **Importer me `Notes` ka label jaan-boojh kar bacha hua hai.** Client ke purane doc me har din ke
+neeche `Notes :` likha hai. Label `DAY_LABELS` se hata dene ka matlab hota ki wo line kisi label se
+match na kare — aur tab wo **upar wale khaane ki value me chipak** jaati, bina kisi warning ke. **A-38
+me theek yahi hua tha** (`Pricing` `bestFor` ke andar chala gaya tha). Ab parser use padhta hai aur
+mapper use **girata hai, ek note ke saath**: _"Day notes are no longer used — put this text in the
+'Notes Content' field above the itinerary."_
+
+### §5 — Transfer aur duration ab do alag chip (client ka sawaal #3 ka jawab)
+
+Client ne poochha ki doc ka `Transfer duration: About 2 hrs` page pe Transfer me **merge ho kar** kyun
+aa raha hai. Wo bug nahi tha — `PackagePage.jsx` dono ko ek chip me jodti thi:
+
+```js
+text: [day.transfer?.name, day.transferNote].filter(Boolean).join(': ')   // `Ferry: About 2 hrs`
+```
+
+Client ka faisla: do alag chip, apne naam ke saath — **`Transfer: Flight`** aur
+**`Transfer duration: About 2 hrs`** (unke apne shabd). Wahi shakl jo `Stay: Havelock` ki pehle se hai.
+
+⚠️ **Duration ki chip transfer ke bina bhi banti hai** — ye shart D-64 me isliye kholi gayi thi ki
+pehle `day.transfer &&` thi, yaani transfer na chuna ho to client ka likha hua `90 min` page pe **aata
+hi nahi tha**, bilkul chup-chaap. Batwaare me wo shart bach gayi hai.
+
+### §6 — Bulk Upload me do naye label
+
+`Notes Heading` (plain text) aur `Notes Content` (doc ki apni HTML — bold/list/link bachte hain, wahi
+batwara jo Overview aur Day Description pe hai). `Notes` akela likha ho to wo content maana jaata hai.
+
+⚠️ **Dono `Day wise Itinerary` se PEHLE likhne hote hain.** Uske baad parser `DAY_LABELS` padhta hai
+aur ye match hi nahi honge — wahi niyam jo `Best For`, `Ferries` aur hotel ke daam pe pehle se hai.
+Client ke template me ye baat likhi jaani chahiye.
+
+### §7 — Kya nahi banaya
+
+- **`Section Headings` me Notes ka tab** — client ne per-package heading maanga (§3)
+- **`packageDefaults` me Notes ka global fallback** — na maanga gaya; jodne ka matlab hota "khaali ke
+  do matlab" ka sawaal phir se
+- **Meals ka koi suggestion/datalist** — teen naam ka dropdown wapas wahi hadd hota jo hatayi gayi

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { MEALS, MEAL_LABEL, routeStrip } from '@cms/shared'
+import { routeStrip } from '@cms/shared'
 
 import { confirmRemove } from '../../lib/confirm.js'
 import { useListDrag } from '../../lib/drag-list.js'
@@ -36,7 +36,6 @@ function blankDay() {
     transferId: null,
     transferNote: '',
     dayTag: '',
-    note: '',
   }
 }
 
@@ -113,7 +112,6 @@ export default function ItineraryBuilder({
       nameOf(destinations, day.overnightStayId) &&
         `Stay: ${nameOf(destinations, day.overnightStayId)}`,
       nameOf(transfers, day.transferId),
-      day.note,
     ].filter(Boolean)
 
     return bits.join(' · ')
@@ -218,29 +216,31 @@ export default function ItineraryBuilder({
                     <div className="field">
                       <label>Meals</label>
                       {/*
-                       * Teenon ek hi line me (client, 1 Sep — "space available hai").
-                       * `.inline-lbl` khud flex hai, to wo ek-ek karke neeche baithte the;
-                       * unhe ek row me laane ke liye maa-baap ko flex karna padta hai.
+                       * ⚠️ **Ab teen checkbox nahi, ek free text hai** (client, 21 Sep — D-104).
+                       *
+                       * Checkbox ka matlab tha ki sirf teen meal ho sakte hain, aur client ke
+                       * asli doc me `Evening tea` likha tha — wo importer me chup-chaap gir
+                       * jaata tha (A-38). Ab jo likha jaaye wahi page pe chip banta hai.
+                       *
+                       * ⚠️ **Store array hai, ye input string** — comma pe todna/jodna yahin
+                       * hota hai, taaki DB me har meal apni entry rahe (`hasBreakfast()` har
+                       * item ko alag dekhti hai).
                        */}
-                      <div className="meals-row">
-                        {MEALS.map((meal) => (
-                          <label className="inline-lbl" key={meal}>
-                            <input
-                              type="checkbox"
-                              checked={day.meals.includes(meal)}
-                              onChange={(e) =>
-                                update(index, {
-                                  meals: e.target.checked
-                                    ? [...day.meals, meal]
-                                    : day.meals.filter((m) => m !== meal),
-                                })
-                              }
-                              disabled={disabled}
-                            />{' '}
-                            {MEAL_LABEL[meal]}
-                          </label>
-                        ))}
-                      </div>
+                      <input
+                        className="inp"
+                        placeholder="Breakfast, Dinner"
+                        value={day.meals.join(', ')}
+                        onChange={(e) =>
+                          update(index, {
+                            meals: e.target.value
+                              .split(',')
+                              .map((meal) => meal.trim())
+                              .filter(Boolean),
+                          })
+                        }
+                        disabled={disabled}
+                      />
+                      <div className="hint">Comma separated — Breakfast, Evening tea</div>
                     </div>
 
                     <div className="field">
@@ -284,17 +284,6 @@ export default function ItineraryBuilder({
                         onChange={(e) => update(index, { dayTag: e.target.value })}
                         disabled={disabled}
                       />
-                    </div>
-                    <div className="field">
-                      <label>Note</label>
-                      <input
-                        className="inp"
-                        placeholder="Approx. 4 hrs sightseeing"
-                        value={day.note}
-                        onChange={(e) => update(index, { note: e.target.value })}
-                        disabled={disabled}
-                      />
-                      <div className="hint">Leave empty and no chip appears</div>
                     </div>
                   </div>
 

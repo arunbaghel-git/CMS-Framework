@@ -1,14 +1,16 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 21 Sep 2026 — din me **do feature bane** (**D-102** floating WhatsApp + phone
-> button, **D-103** Enquiries ▸ Popup) aur **do jaanch hui bina code badle** (**A-33** SEO ka bulk
-> export+import, **A-38** Kerala package ka import). Kram ke liye neeche ka 📍 block padho.
+> **Last updated:** 21 Sep 2026 — din me **teen feature bane** (**D-102** floating WhatsApp + phone
+> button, **D-103** Enquiries ▸ Popup, **D-104** itinerary ke do khaane + naya Notes section —
+> **migration 027**) aur **do jaanch hui bina code badle** (**A-33** SEO ka bulk export+import,
+> **A-38** Kerala package ka import). Kram ke liye neeche ka 📍 block padho.
 > Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
 > _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
 > (Spacing), D-99 (Fonts). Push baaki — `git log --oneline origin/main..HEAD` dekho.
-> **Poori suite 21 Sep raat ko chali: 49 files, 1267/1268 pass** — fail sirf `theme-fonts.test.js`
-> (`.hf-stat span`, client ka apna edit — chhua nahi). `media.test.js` is run me pass hui.
+> **D-104 ke baad suite: 49 files, 1280/1282 pass** — dono fail wahi purane hain
+> (`theme-fonts.test.js` + A-11 ka race). D-104 me **13 naye test** jude.
+> (Usse pehle 21 Sep raat: 49 files, 1267/1268 — fail sirf `theme-fonts.test.js`.)
 > (Usse pehle shaam ko: 48 files, 1240/1244 — tab media.test.js ne A-11 wala race khaya tha.)
 > Purani do-fail wali haalat ka hisaab:
 > (1) `theme-fonts.test.js` (`.hf-stat span`, client ka apna edit — chhua nahi), (2) `media.test.js`
@@ -33,7 +35,8 @@ Aaj **teen alag dhaage** chale, isliye neeche ek se zyada "agla kaam" likha dikh
 
 | #   | Dhaaga                                 | Haalat                                                                                                                              | Kahan                 |
 | --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| 1   | **A-38 · Kerala package ka import**    | Client ka **zinda sawaal** — _"some content doesn't come on frontend"_. Jaanch ho chuki, **teen kism ki kami**, koi code nahi badla | neeche pehla section  |
+| 0   | **D-104 · Itinerary + Notes section**  | ✅ **ban gaya, migration 027 chal chuki.** ⚠️ **API restart baaki** — dev server purana code chala raha hai (neeche)                | neeche pehla section  |
+| 1   | **A-38 · Kerala package ka import**    | Client ka **zinda sawaal** — _"some content doesn't come on frontend"_. Jaanch ho chuki, **teen kism ki kami**, koi code nahi badla | neeche doosra section |
 | 2   | **A-37 · Popup ko aankh se dekhna**    | D-103 ban chuka, test + live payload pass. **Browser me khulte hue dekha nahi**                                                     | `09-OPEN-ITEMS.md`    |
 | 3   | **A-33 · SEO ka bulk export + import** | Client ke _"full details"_ ka intezaar — **chaar sawaal khule**                                                                     | neeche aakhri section |
 
@@ -51,6 +54,61 @@ object har page ke HTML me) D-103 ki live jaanch se nikla aur wo A-17 ka hissa h
 
 ⚠️ **Popup ki ek test config DB me padi hai** (maine mongosh se likhi): home page, 5 second,
 `session`, form `Home Page`. Client use `Enquiries ▸ Popup` me badal ya band kar sakta hai.
+
+---
+
+## ✅ 21 Sep (sabse aakhir) — itinerary ke do khaane badle, naya Notes section (D-104)
+
+Client ke chaar point aaye. Teen instruction the, ek **sawaal** tha. Poora hisaab **D-104** me;
+yahan sirf wo jo yaad rehna chahiye.
+
+**Bana:** `fields.notes{heading,content}` (naya `package-notes.js`) · meals free text ·
+per-day `note` khatam · transfer ki do alag chip · Bulk Upload me `Notes Heading`/`Notes Content` ·
+**migration 027**. **13 naye test.**
+
+### Teen sawaal client se poochhe gaye, aur teenon ka jawab kaam badal deta tha
+
+| Sawaal                                          | Jawab                                               |
+| ----------------------------------------------- | --------------------------------------------------- |
+| Notes ka heading global ya per-package?         | **dono per-package** — page ka ekmatra aisa section |
+| Purane per-day `note` ka kya?                   | **migration se DB se saaf**                         |
+| Meals free text hone pe `Breakfast` chip kaise? | **text me `breakfast` shabd dhoondho**              |
+
+### Chhe baatein jo yaad rehni chahiye
+
+1. ⚠️ **Meals ka enum A-38 ki wajah se gaya.** Client ke Kerala doc me `Evening tea` tha aur wo
+   importer me **gir** jaata tha — issue me likha to jaata tha, par page pe kabhi nahi pahunchta.
+   Ab koi hadd nahi. `MEAL_LABEL` bhi khatam (wo **do jagah** thi — shared me aur `PackagePage.jsx`
+   me apni copy)
+2. ⚠️ **`hasBreakfast()` `packages/shared` me hai.** Listing card ka chip pehle
+   `meals.includes('breakfast')` se banta tha; free text me wo `Breakfast (buffet)` pe jhootha
+   `false` deta. Matcher ek hi jagah — D-65 wala hi tark
+3. ⚠️ **Notes ka heading `Section Headings` me NAHI hai, aur wo D-65 ka apwaad hai.** Client ne
+   per-package maanga. Isliye ye section `PACKAGE_SECTIONS` me hai hi nahi
+4. ⚠️ **"Khaali" ka matlab yahan ulta hai** — baaki sections me khaali heading pe theme ka default
+   wapas aata hai; yahan **dono khaali = section hai hi nahi** (payload me `null`)
+5. ⚠️ **Importer me din ka `Notes` label jaan-boojh kar bacha hai.** Hata dene pe wo line kisi
+   label se match na karti aur **upar wale khaane me chipak** jaati — **A-38 me theek yahi hua tha**.
+   Ab mapper use girata hai, ek note ke saath
+6. **Mitane se pehle DB ginayi gayi** — 84 din me se 49 pe `note` tha, **sirf paanch alag lines**,
+   sab chhoti chip. Paanchon D-104 §4 ki table me likhi hain
+
+### ⚠️ Bacha hua — do cheezein
+
+- **API restart baaki.** `pnpm cms migrate` aur `pnpm seed` dono chal chuki hain (DB verify:
+  0 bache hue `note`, meals `Breakfast (83) · Lunch (2) · Dinner (24)`), par `:4000` pe chalta
+  dev server **purana code** chala raha hai — live resolve me abhi bhi `note: ""` aata hai aur
+  `notes` key hai hi nahi. Restart ke baad ye check dobara chalao:
+  `curl "localhost:4000/api/public/resolve?path=/packages/andaman-escape-5-nights"`
+- **Aankh se dekhna baaki** — admin ka naya Notes panel, meals ka text box, aur page pe Notes
+  section + do alag transfer chip. `:3000` pe bhi rebuild chahiye (A-24 wali shakl — teen baar
+  ho chuki hai)
+
+### Client ko batana hai — doc ka template
+
+Bulk Upload me do naye label hain: **`Notes Heading`** aur **`Notes Content`**, aur dono
+**`Day wise Itinerary` se PEHLE** likhne hote hain (uske baad parser din ke labels padhta hai).
+Din ke neeche ka purana `Notes :` ab kaam nahi karta — wo girta hai aur row me note dikhta hai.
 
 ---
 

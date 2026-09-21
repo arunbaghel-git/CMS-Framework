@@ -122,6 +122,21 @@ const PACKAGE_FIELDS = [
   },
   {
     /**
+     * Page ka **Notes** section — `Popular add-ons` ke theek upar (client, 21 Sep, D-104).
+     *
+     * Ismein heading **aur** content dono package ke apne hain — poora tark
+     * `schemas/package-notes.js` me. Ye page ka ekmatra section hai jiska heading
+     * `Section Headings` se nahi aata, aur wo client ka faisla hai.
+     *
+     * Isne purana per-day `itinerary[].note` badla hai (migration 027).
+     */
+    key: 'notes',
+    type: 'group',
+    label: 'Notes',
+    help: 'Add-ons se upar ka section — apna heading aur text',
+  },
+  {
+    /**
      * `first-timers on a short break` — **ek line**, chips nahi (client, 26 Aug, D-55).
      *
      * Ye **listing card** pe dikhta hai (`tour-v3.html`), package page pe nahi:

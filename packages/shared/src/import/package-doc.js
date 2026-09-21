@@ -1,4 +1,3 @@
-import { MEALS } from '../schemas/itinerary.js'
 import {
   byLongestFirst,
   emptyValue,
@@ -6,7 +5,6 @@ import {
   FAQ_SECTION_LABELS,
   isEmptyBlock,
   matchLabel,
-  normalizeName,
   parseNameList,
   pushValue,
   splitBlocks,
@@ -73,6 +71,16 @@ export const DOC_LABELS = Object.freeze({
   'package url': 'packageUrl',
   'short description': 'shortDescription',
   overview: 'overview',
+  /**
+   * Notes section — `Popular add-ons` ke theek upar (D-104, client 21 Sep).
+   *
+   * ⚠️ **Ye upar wale hisse ke labels hain, yaani `Day wise Itinerary` se PEHLE likhne hote
+   * hain.** Uske baad parser `DAY_LABELS` padhta hai aur ye match hi nahi honge — wahi niyam
+   * jo `Best For`, `Ferries` aur hotel ke daam pe pehle se hai.
+   */
+  'notes heading': 'notesHeading',
+  'notes content': 'notesContent',
+  notes: 'notesContent',
 })
 
 /**
@@ -100,6 +108,19 @@ export const DAY_LABELS = Object.freeze({
   transfer: 'transfer',
   'transfer duration': 'transferDuration',
   'day tag': 'dayTag',
+  /**
+   * ⚠️ **`Notes` ab kisi din pe nahi jaata** (D-104) — par label yahan **jaan-boojh kar** bacha
+   * hua hai.
+   *
+   * Client ke purane doc me har din ke neeche `Notes :` likha hai. Label yahan se hata dene ka
+   * matlab hota ki wo line kisi bhi label se match na kare, aur tab wo **upar wale khaane ki
+   * value me chipak** jaati — yaani Day Description ke aakhir me `Notes` aur uske neeche ka
+   * poora paragraph jud jaata, bina kisi warning ke. A-38 me theek yahi hua tha (`Pricing`
+   * `bestFor` ke andar chala gaya tha).
+   *
+   * Isliye parser use padhta hai aur mapper use **girata hai, ek note ke saath** — client ko
+   * saaf dikhe ki ab wo text `Notes Content` me jaana chahiye.
+   */
   notes: 'notes',
   note: 'notes',
   'day description': 'description',
@@ -235,29 +256,16 @@ export function parsePackageDoc(html) {
 }
 
 /**
- * `Breakfast, Dinner` → `['breakfast', 'dinner']`, aur jo na samajh aaye wo alag se.
+ * `Breakfast, Evening tea` → `['Breakfast', 'Evening tea']`.
  *
- * ⚠️ **Anjaan shabd chup-chaap girta nahi** — wo `unknown` me lautta hai taaki row ke issues
- * me likha ja sake. Client ne `Brunch` likha ho to use ye pata chalna chahiye, na ki us din
- * ka meal chup-chaap gayab ho jaana chahiye.
+ * ⚠️ **Yahan ab koi enum nahi hai** (client, 21 Sep — D-104). Pehle sirf `Breakfast`/`Lunch`/
+ * `Dinner` pehchane jaate the aur baaki shabd `unknown` me laut kar row ke issues me chhapte
+ * the — yaani client ko bataya to jaata tha, par us din ka meal page pe **kabhi nahi** pahunchta
+ * tha. A-38 me client ke asli doc ka `Evening tea` isi tarah gira tha.
  *
- * Ek akshar wale (`B`, `L`, `D`) jaan-boojh kar nahi pehchane jaate: `D` ko `Dinner` maanna
- * andaza hai, aur is importer ka poora niyam yahi hai ki wo andaza na lagaye.
+ * Ab jo likha hai wo waisa ka waisa jaata hai, sirf comma (aur `·`, `|`, nayi line) pe kata
+ * hua. Bada akshar client ka apna rehta hai, kyunki ye ab **naam** hai, code nahi.
  */
 export function parseMeals(text) {
-  const meals = []
-  const unknown = []
-
-  for (const token of parseNameList(text)) {
-    const found = MEALS.find((meal) => normalizeName(token).startsWith(meal))
-
-    if (found) {
-      if (!meals.includes(found)) meals.push(found)
-      continue
-    }
-
-    unknown.push(token)
-  }
-
-  return { meals, unknown }
+  return parseNameList(text)
 }

@@ -1,13 +1,16 @@
 # 09 — Open Items
 
-**Last updated:** 18 Sep 2026 raat — home ki speed (D-101), A-17 me saare pages ki naap
+**Last updated:** 21 Sep 2026 raat — D-104 (itinerary ke do khaane + naya Notes section, migration 027).
+Usse pehle usi din D-102 (floating contact) aur D-103 (popup).
 
 **Status:** Phase 0 · Slice 0 · Phase 1 (Packages) · Phase 2 (Media) poore. Uske upar client ke kehne pe
 page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87–D-90) · Sidebar (D-88) ·
 Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
 `.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Tests:** 17 Sep ko poori suite chali — **42 files, 1160/1160 pass**. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
+**Tests:** 21 Sep (D-104 ke baad) — **49 files, 1280/1282 pass**; dono fail purane hain
+(`theme-fonts.test.js` = client ka apna CSS edit, aur A-11 ka upload-folder race). Usse pehle
+17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
 16 Sep ko isi wajah se vitest `ENOSPC` de rahi thi. Jagah kam ho to suite phir "no tests"/load error degi —
 wo code ka bug nahi hai.
 
@@ -392,6 +395,46 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 | A-22 | Purana Bulk Upload guide doc (`18Dd6_o8…`) **trash** karna — naya guide v2 hai, warna team dono padhegi | Client ki ijaazat |
 | A-22 | Test post `/how-to-plan-an-andaman-trip-test` abhi **live** hai — hatana | Client ke kehne pe |
 | Q-2 | `salesAgent` ko Enquiries inbox dikhe ya nahi (`submission.*` permission) | Client ka faisla |
+
+---
+
+### A-39 · D-104 — aankh se dekhna baaki, aur API restart (21 Sep)
+
+**Deadline:** agli session ki pehli cheez · **kuch toota hua nahi** — 1280 test, lint, dono build pass
+
+`pnpm cms migrate` (027) aur `pnpm seed` dono chal chuki hain aur DB verify ho chuki hai
+(0 bache hue `note`, meals `Breakfast (83) · Lunch (2) · Dinner (24)`). Par:
+
+⚠️ **`:4000` pe chalta API dev server purana code chala raha hai** — live resolve me abhi bhi
+`note: ""` aata hai aur `notes` key hai hi nahi. `node --watch` hone ke baad bhi reload nahi hua.
+**Restart zaroori hai**, aur `:3000` pe rebuild bhi (**A-24 wali shakl — ye teesri-chauthi baar hai**).
+
+| # | Kya dekhna hai | Kyun |
+| --- | --- | --- |
+| 1 | Restart ke baad `curl "localhost:4000/api/public/resolve?path=/packages/andaman-escape-5-nights"` — `notes` key aaye, `note` kahin na ho | Poora payload |
+| 2 | Admin ▸ Edit Package ▸ **Notes** panel — heading + editor, dono khaali chhodo to page pe section na aaye | Naya panel |
+| 3 | Itinerary ke din me **Meals ab ek text box** hai — `Breakfast, Evening tea` likho, page pe wahi chip aaye | D-104 §2 |
+| 4 | Din me **Note ka khaana ab nahi** hona chahiye | D-104 §4 |
+| 5 | Page pe **do alag chip** — `Transfer: …` aur `Transfer duration: …` | D-104 §5 |
+| 6 | Listing card pe `Breakfast` chip abhi bhi aata ho (meals ab `Breakfast` bade akshar me hain) | `hasBreakfast()` |
+| 7 | Bulk Upload — `Notes Heading`/`Notes Content` **`Day wise Itinerary` se pehle**; din ke purane `Notes` pe row me note dikhe | D-104 §6 |
+
+⚠️ **Client ko doc ka template batana hai** — do naye label, aur din ke neeche ka purana `Notes :`
+ab kaam nahi karta.
+
+---
+
+### A-38 ka parser wala kinara — aadha band ho gaya (D-104)
+
+A-38 ke aakhir me likha tha ki **anjaan heading chup-chaap upar wale khaane ki value me chipak jaati
+hai** (`Pricing` `bestFor` ke andar chala gaya tha), aur uska ilaaj client ka faisla maangta hai.
+
+**D-104 me us jaal ka ek muh band kar diya gaya** — din ka `Notes` label `DAY_LABELS` me bacha rehne
+diya gaya, chahe wo ab kahin store nahi hota. Hata dene ka matlab hota ki client ke purane doc ki wo
+line **theek wahi galti** dobara karti. Ab wo padhi jaati hai aur ek note ke saath girti hai.
+
+⚠️ **Poora sawaal ab bhi khula hai** — baaki anjaan headings ke liye parser warning de ya nahi, wo
+client ka faisla hai (A-38 ke aakhir me likha hua).
 
 ---
 

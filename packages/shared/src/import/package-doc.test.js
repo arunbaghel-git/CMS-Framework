@@ -227,18 +227,19 @@ describe('ek-ek khaane ko padhna', () => {
     expect(parseNameList('Port Blair · Havelock')).toEqual(['Port Blair', 'Havelock'])
   })
 
-  it('parseMeals anjaan shabd chupata nahi, lauta deta hai', () => {
-    expect(parseMeals('Breakfast, Dinner')).toEqual({
-      meals: ['breakfast', 'dinner'],
-      unknown: [],
-    })
-    // `Brunch` girna nahi chahiye — client ko dikhna chahiye ki wo nahi liya gaya
-    expect(parseMeals('Breakfast, Brunch')).toEqual({
-      meals: ['breakfast'],
-      unknown: ['Brunch'],
-    })
-    // Ek akshar jaan-boojh kar nahi pehchane jaate — wo andaza hota
-    expect(parseMeals('B, D').unknown).toEqual(['B', 'D'])
+  /**
+   * D-104 (21 Sep) — pehle yahan enum tha aur ye test uska tha: anjaan shabd `unknown` me lautta
+   * tha taaki row ke issues me chhape. Us bartaav ka asli nateeja A-38 me dikha — client ke doc ka
+   * `Evening tea` **bataya** to jaata tha, par us din ke meals me kabhi pahunchta nahi tha.
+   *
+   * Ab koi enum hi nahi hai: jo likha hai wahi bachta hai, bade akshar samet.
+   */
+  it('parseMeals free text hai — jo likha hai wahi bachta hai', () => {
+    expect(parseMeals('Breakfast, Dinner')).toEqual(['Breakfast', 'Dinner'])
+    expect(parseMeals('Breakfast, Evening tea')).toEqual(['Breakfast', 'Evening tea'])
+    // Wahi separators jo baaki liston pe chalte hain (`parseNameList`)
+    expect(parseMeals('Breakfast · Dinner')).toEqual(['Breakfast', 'Dinner'])
+    expect(parseMeals('')).toEqual([])
   })
 
   it('parseSlug poore URL se bhi aur akele slug se bhi kaam karta hai', () => {

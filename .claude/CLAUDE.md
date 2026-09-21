@@ -758,6 +758,25 @@ Baaki settings ab bhi poori jaati hai — **A-36**.
 ⚠️ Route `/enquiries/popup` **`/enquiries/:id` se pehle** hona zaroori tha.
 ⚠️ Aankh se dekhna baaki — **A-37**. Maine DB me ek **test config** likh di hai (home page pe, 5 second).
 
+**21 Sep — itinerary ke do khaane badle, naya Notes section (D-104), migration 027.** Client ke chaar
+point: meals **free text** (checkbox nahi — teen se zyada ho sakte hain), `Popular add-ons` ke theek
+upar naya **Notes section** (`fields.notes{heading,content}`), din ka `note` khatam, aur transfer ka
+sawaal.
+⚠️ **Notes ka heading per-package hai — page ka ekmatra aisa section** (baaki nau `sectionLabels` se,
+D-65). Client ka faisla. Isliye wo `PACKAGE_SECTIONS` me hai hi nahi, aur "khaali" ka matlab bhi ulta
+hai: **dono khaali = section hai hi nahi** (payload me `null`).
+⚠️ **Meals ka enum A-38 ki wajah se gaya** — client ke doc ka `Evening tea` importer me **gir** jaata
+tha. `MEAL_LABEL` khatam (do jagah thi); `hasBreakfast()` ab `packages/shared` me ek hi jagah, kyunki
+card ka chip `includes('breakfast')` se banta tha aur wo `Breakfast (buffet)` pe jhootha hota.
+⚠️ **Din ka `note` migration 027 ne DB se mita diya** (client ka faisla) — 49 din, **paanch alag lines**,
+paanchon D-104 §4 me likhi hain. Importer me `Notes` ka label **jaan-boojh kar bacha** hai: hata dene pe
+wo line upar wale khaane me **chipak** jaati (A-38 wali galti) — ab mapper use girata hai, ek note ke saath.
+⚠️ Transfer aur duration ab **do alag chip** — `Transfer: Flight` · `Transfer duration: About 2 hrs`
+(client ke apne shabd). Pehle `Ferry: 2 hrs` ek me jude the; wo bug nahi tha, par client ne alag maanga.
+⚠️ Bulk Upload ke naye label `Notes Heading`/`Notes Content` **`Day wise Itinerary` se PEHLE** aane
+chahiye. Deploy pe **`pnpm cms migrate` aur `pnpm seed` dono**, phir **API restart**.
+⚠️ Aankh se dekhna baaki — **API dev server abhi purana code chala raha hai**.
+
 ⏭️ **Agla kaam: A-33 ke chaar sawaal ka jawab** (`09-OPEN-ITEMS.md`), phir code. Saath me popup ko
 aankh se dekhna (A-37). Uske baad baaki pages PageSpeed pe (A-17). `project-state.md` ka pehla section
 padho.

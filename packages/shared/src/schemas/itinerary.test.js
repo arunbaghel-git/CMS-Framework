@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { itineraryDaySchema, nightsByStay, routeStrip } from './itinerary.js'
+import { hasBreakfast, itineraryDaySchema, nightsByStay, routeStrip } from './itinerary.js'
 
 /**
  * Route strip — spec 007 §3.1 ki sabse zaroori derived cheez.
@@ -84,20 +84,40 @@ describe('itineraryDaySchema', () => {
 
     expect(parsed.overnightStayId).toBeNull()
     expect(parsed.meals).toEqual([])
-    expect(parsed.note).toBe('')
     expect(parsed.description).toBe('')
 
     // `highlights` aur `hotelCategory` dono D-64 me hate — bheje jaayein to bhi nahi bachte
     expect(parsed.highlights).toBeUndefined()
     expect(parsed.hotelCategory).toBeUndefined()
+
+    // `note` D-104 me hata — bheja jaaye to bhi nahi bachta
+    expect(itineraryDaySchema.parse({ title: 'x', note: 'Approx. 4 hrs' }).note).toBeUndefined()
   })
 
-  it('meals me sirf teen known values chalti hain', () => {
-    expect(() => itineraryDaySchema.parse({ title: 'x', meals: ['brunch'] })).toThrow()
-    expect(itineraryDaySchema.parse({ title: 'x', meals: ['breakfast', 'dinner'] }).meals).toEqual([
-      'breakfast',
-      'dinner',
+  /**
+   * D-104 — pehle yahan enum ka test tha ("sirf teen known values chalti hain"). Client ne 21
+   * Sep ko wo hadd hi hata di: `Evening tea` jaise meal bhi hote hain aur wo importer me
+   * chup-chaap gir jaate the (A-38).
+   */
+  it('meals free text hain — jo likha hai wahi bachta hai', () => {
+    expect(
+      itineraryDaySchema.parse({ title: 'x', meals: ['Breakfast', 'Evening tea'] }).meals,
+    ).toEqual(['Breakfast', 'Evening tea'])
+  })
+
+  it('meals trim hote hain aur khaali item nahi chalta', () => {
+    expect(itineraryDaySchema.parse({ title: 'x', meals: ['  Breakfast  '] }).meals).toEqual([
+      'Breakfast',
     ])
+    expect(() => itineraryDaySchema.parse({ title: 'x', meals: ['   '] })).toThrow()
+  })
+
+  it('hasBreakfast shabd dekh kar tay karti hai, poora milaan nahi', () => {
+    expect(hasBreakfast(['Breakfast (buffet)'])).toBe(true)
+    expect(hasBreakfast(['  breakfast at hotel'])).toBe(true)
+    expect(hasBreakfast(['Lunch', 'Evening tea'])).toBe(false)
+    expect(hasBreakfast([])).toBe(false)
+    expect(hasBreakfast(undefined)).toBe(false)
   })
 
   it('hotelCategory ab hai hi nahi — bheji jaaye to bhi gir jaati hai (D-64)', () => {
