@@ -7,7 +7,7 @@ import {
 
 import { badRequest } from '../../core/errors.js'
 import { revalidateTags } from '../../core/revalidate.js'
-import { sanitizeBlockHtml, sanitizeInlineHtml } from '../../core/sanitize-html.js'
+import { sanitizePopupSettings } from '../../core/sanitize-html.js'
 import { mediaExists } from '../media/service.js'
 import { menuExists } from '../menus/service.js'
 import { syncPostUrlPattern } from '../entries/service.js'
@@ -182,31 +182,13 @@ async function resolveFontFaces(themeFonts, siteId) {
   return out
 }
 
-/**
- * `Enquiries ▸ Popup` ki HTML **write pe** saaf — R20 (D-103).
- *
- * ⚠️ **Settings me ye pehli HTML hai.** Aaj tak yahan sab plain text tha (`customCss` ka apna
- * alag guard schema me hai), isliye is module me koi sanitizer tha hi nahi. `sidebars` ka
- * `sanitizeSidebarWidgets()` bilkul yahi kaam karta hai.
- *
- * ⚠️ **Naya HTML field settings me jodo to yahan bhi jodo.** Chhoot jaane ka matlab ye nahi ki
- * content girega — wo **bina safai ke bach jaayega**, aur wahi zyada khatarnak hai. Theek yahi
- * chetavni `sanitizeContent()` pe likhi hai (D-87).
- *
- * `heading`/`formHeading` inline profile pe hain (block tags `<h2>` me ghus hi na sakein),
- * `description` block profile pe.
- */
-function sanitizePopupSettings(popup) {
-  if (!popup || typeof popup !== 'object') return popup
-
-  const out = { ...popup }
-  if ('heading' in out) out.heading = sanitizeInlineHtml(out.heading)
-  if ('formHeading' in out) out.formHeading = sanitizeInlineHtml(out.formHeading)
-  if ('description' in out) out.description = sanitizeBlockHtml(out.description)
-  return out
-}
-
 export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
+  /**
+   * `Enquiries ▸ Popup` ki HTML **write pe** saaf — R20 (D-103).
+   *
+   * ⚠️ Sanitizer `core/sanitize-html.js` me hai, yahan nahi — R20 saaf kehta hai ki har service
+   * apna sanitize na likhe. "Kaunsa field HTML hai" ka jawab ek hi file me rehna chahiye.
+   */
   if (input.popupSettings) {
     input = { ...input, popupSettings: sanitizePopupSettings(input.popupSettings) }
   }

@@ -513,9 +513,24 @@ D-75). Write pe saaf karne se DB me hamesha safe HTML rehti hai aur theme bharos
 Sanitizer ka bharosa client-side pe rakhna hi wo galti hai jisse XSS aata hai — attacker admin
 ka JS chhod kar seedha API call kar sakta hai.
 
-⚠️ **"Kaunsa field HTML hai" ka jawab bhi ek hi jagah hai** — `sanitize-html.js` ke
-`sanitizeContent()` / `sanitizeEntryFields()` / `sanitizePackageDefaults()`. Naya HTML field
+⚠️ **"Kaunsa field HTML hai" ka jawab bhi ek hi jagah hai** — `sanitize-html.js`. Naya HTML field
 jodo to **wahan** jodo, har service me apna sanitize mat likho.
+
+Aaj paanch entry point hain, aur **naya HTML field inme se kisi ek me judta hai**:
+
+| Function | Kya saaf karta hai |
+| --- | --- |
+| `sanitizeContent()` | `content.blocks[]` — `richText` · `twoColumn` · `cards` · `faqs` … (D-87) |
+| `sanitizeEntryFields()` | entry ke apne fields — `heading`, overview, itinerary, FAQ ke jawab |
+| `sanitizeSidebarWidgets()` | named sidebar ka `html` widget (D-88) |
+| `sanitizePackageDefaults()` | `whatsIncluded` · policies · section descriptions |
+| `sanitizePopupSettings()` | `settings.popupSettings` — popup ke heading/text (D-103) |
+
+⚠️ Chhoot jaane ka lakshan ulta hai aur isiliye khatarnak hai: content **girta nahi**, wo **bina
+safai ke bach** jaata hai. Koi error kahin nahi aata.
+
+⚠️ **21 Sep ka sabak:** `sanitizePopupSettings()` pehle `settings/service.js` me likha gaya tha —
+yaani theek wahi jo ye rule mana karta hai. Doc-check pe pakda gaya, tab hi yahan aaya.
 
 ---
 

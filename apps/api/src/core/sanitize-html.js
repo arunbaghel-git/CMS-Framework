@@ -662,3 +662,29 @@ export function sanitizePackageDefaults(input) {
 
   return out
 }
+
+/**
+ * `Enquiries ▸ Popup` ki HTML — `settings.popupSettings` (D-103).
+ *
+ * ⚠️ **Settings me ye pehli HTML thi.** Aaj tak wahan sab plain text tha (`customCss` ka apna
+ * alag guard schema me hai), isliye us module ko kabhi sanitizer ki zaroorat hi nahi padi.
+ *
+ * ⚠️ **Naya HTML field settings me jodo to yahan bhi jodo** — wahi jaal jo `sanitizeContent()`,
+ * `sanitizeEntryFields()` aur `sanitizeSidebarWidgets()` ke upar likha hai: chhoot jaane ka matlab
+ * ye **nahi** ki content gir jaayega — wo **bina safai ke bach** jaayega. Aur popup har us page pe
+ * khulta hai jiska type ticked hai.
+ *
+ * `heading`/`formHeading` inline profile pe hain (block tags `<h2>` ke andar ghus hi na sakein),
+ * `description` block profile pe.
+ */
+export function sanitizePopupSettings(popup) {
+  if (!popup || typeof popup !== 'object') return popup
+
+  const out = { ...popup }
+
+  if ('heading' in out) out.heading = sanitizeInlineHtml(out.heading)
+  if ('formHeading' in out) out.formHeading = sanitizeInlineHtml(out.formHeading)
+  if ('description' in out) out.description = sanitizeBlockHtml(out.description)
+
+  return out
+}

@@ -1,8 +1,9 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 21 Sep 2026 — **Enquiries ▸ Popup ban gaya (D-103)**, aur usse pehle usi din
-> **desktop ke floating WhatsApp + phone button (D-102)**.
+> **Last updated:** 21 Sep 2026 — din me **do feature bane** (**D-102** floating WhatsApp + phone
+> button, **D-103** Enquiries ▸ Popup) aur **do jaanch hui bina code badle** (**A-33** SEO ka bulk
+> export+import, **A-38** Kerala package ka import). Kram ke liye neeche ka 📍 block padho.
 > Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
 > _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
 > (Spacing), D-99 (Fonts). Push baaki — `git log --oneline origin/main..HEAD` dekho.
@@ -23,6 +24,33 @@
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 > ✅ `.claude/` ab git me **track hai** (commit `75beb7f`) — 18 Sep wala _"git se bahar hai"_ ab purana hai.
+
+---
+
+## 📍 21 Sep ke aakhir me haalat — neeche teen ⏭️ section hain, kram ye hai
+
+Aaj **teen alag dhaage** chale, isliye neeche ek se zyada "agla kaam" likha dikhta hai. Asli kram:
+
+| #   | Dhaaga                                 | Haalat                                                                                                                              | Kahan                 |
+| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| 1   | **A-38 · Kerala package ka import**    | Client ka **zinda sawaal** — _"some content doesn't come on frontend"_. Jaanch ho chuki, **teen kism ki kami**, koi code nahi badla | neeche pehla section  |
+| 2   | **A-37 · Popup ko aankh se dekhna**    | D-103 ban chuka, test + live payload pass. **Browser me khulte hue dekha nahi**                                                     | `09-OPEN-ITEMS.md`    |
+| 3   | **A-33 · SEO ka bulk export + import** | Client ke _"full details"_ ka intezaar — **chaar sawaal khule**                                                                     | neeche aakhri section |
+
+**Agli session sabse pehle #1 dekhe** — wo client ka poochha hua sawaal hai aur uska jawab teen hisson
+me bant-ta hai (design · admin ka data · doc). #2 chhota hai (paanch minute ka browser check). #3 tab
+tak ruka hai jab tak client details na bhejein.
+
+⚠️ **Aaj do feature bane aur dono commit ho chuke hain** — **D-102** (desktop ke floating WhatsApp +
+phone button) aur **D-103** (Enquiries ▸ Popup). Dono ke apne section neeche hain.
+
+⚠️ **Do naye open item aaj nikle jo kisi kaam ka hissa nahi the** — **A-34** (`.sidetab` bhi reference
+me hai aur kabhi bani nahi; client: _"patti baad me"_) aur **A-35** (do cheezein ek din me milna
+ittefaq nahi — reference ka poora class-level milaan chahiye). Teesra **A-36** (poora `settings`
+object har page ke HTML me) D-103 ki live jaanch se nikla aur wo A-17 ka hissa hai.
+
+⚠️ **Popup ki ek test config DB me padi hai** (maine mongosh se likhi): home page, 5 second,
+`session`, form `Home Page`. Client use `Enquiries ▸ Popup` me badal ya band kar sakta hai.
 
 ---
 

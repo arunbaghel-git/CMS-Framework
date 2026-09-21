@@ -9287,9 +9287,13 @@ Ye 10 Sep wale `blogSettings` data-loss ka hi ek kadam pehle wala roop hai. Ilaa
 
 **(c) Heading ki HTML sanitize hi nahi ho rahi thi.** ⚠️ **Settings me ye pehli HTML hai** — aaj tak
 yahan sab plain text tha (`customCss` ka apna guard schema me hai), isliye is module me koi sanitizer
-tha hi nahi. Ab `sanitizePopupSettings()` hai (R20), `sidebars` ke `sanitizeSidebarWidgets()` wala
-hi saancha. **Naya HTML field settings me jodo to wahan bhi jodo** — chhoot jaane ka matlab ye nahi
-ki content girega, wo **bina safai ke bach jaayega**.
+tha hi nahi. Ab `sanitizePopupSettings()` hai (R20). **Naya HTML field settings me jodo to wahan bhi
+jodo** — chhoot jaane ka matlab ye nahi ki content girega, wo **bina safai ke bach jaayega**.
+
+⚠️ **Wo function pehle galat jagah likha gaya tha** — `settings/service.js` me, jabki R20 saaf kehta
+hai ki har service apna sanitize na likhe. Session ke aakhir me doc-check pe pakda gaya aur
+`core/sanitize-html.js` me chala gaya, baaki chaar ke saath. R20 ki table ab paanchon entry point
+ginati hai (usme `sanitizeSidebarWidgets()` bhi chhoota hua tha).
 
 ### §7 — Aur ek bug **live check** pe nikla, jo koi test nahi pakadta
 
