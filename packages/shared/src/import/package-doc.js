@@ -80,7 +80,17 @@ export const DOC_LABELS = Object.freeze({
    */
   'notes heading': 'notesHeading',
   'notes content': 'notesContent',
-  notes: 'notesContent',
+  /*
+   * ⚠️ **Akela `Notes` label NAHI hai, aur ye jaan-boojh kar hai.**
+   *
+   * Pehle wo `notesContent` ka shortcut tha. Client ne doc me bilkul seedhi cheez likhi —
+   * `Notes Heading` ke neeche heading ki value **`Notes`** — aur wo value khud ek label ban
+   * gayi: heading khaali reh gayi aur wo shabd content ka shuruaat maana gaya. Koi error nahi,
+   * bas ek khaali heading. Wahi "kuch na hona" wala lakshan jo D-86/D-89 me likha hai.
+   *
+   * `Notes Heading` aur `Notes Content` dono saaf likhe hote hain, to shortcut ka faayda us
+   * jaal ke saamne kuch bhi nahi tha.
+   */
 })
 
 /**

@@ -303,6 +303,29 @@ describe('toEntryInput — wo cheezein jo service 422 deti', () => {
     expect(input.fields.notes.content).toContain('<strong>valid ID</strong>')
   })
 
+  /**
+   * ⚠️ **Client ne doc me heading ki value `Notes` likhi, aur wo chup-chaap gayab ho gayi.**
+   *
+   * Wajah: `Notes` khud ek label tha (`notesContent` ka shortcut). Value label ban gayi,
+   * heading khaali reh gayi, aur koi error kahin nahi aaya. Shortcut hata diya gaya — ab
+   * `Notes` sirf ek shabd hai.
+   *
+   * Ye test us shortcut ke wapas aane ka pehra hai.
+   */
+  it('heading ki value khud "Notes" ho to bhi bachti hai', () => {
+    const { input } = toEntryInput(
+      doc(
+        '<p>Notes Heading</p><p>Notes</p>' +
+          '<p>Notes Content</p><p>Carry a valid photo ID.</p>' +
+          '<p>Day wise Itinerary</p><p>Day 1</p><p>Day Title</p><p>Arrive</p>',
+      ),
+      refs,
+    )
+
+    expect(input.fields.notes.heading).toBe('Notes')
+    expect(input.fields.notes.content).toContain('Carry a valid photo ID.')
+  })
+
   it('Notes na ho to dono khaali rehte hain — section page pe aata hi nahi', () => {
     const { input } = toEntryInput(
       doc('<p>Day wise Itinerary</p><p>Day 1</p><p>Day Title</p><p>Arrive</p>'),

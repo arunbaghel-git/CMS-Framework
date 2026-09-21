@@ -9454,7 +9454,14 @@ hi nahi tha**, bilkul chup-chaap. Batwaare me wo shart bach gayi hai.
 ### §6 — Bulk Upload me do naye label
 
 `Notes Heading` (plain text) aur `Notes Content` (doc ki apni HTML — bold/list/link bachte hain, wahi
-batwara jo Overview aur Day Description pe hai). `Notes` akela likha ho to wo content maana jaata hai.
+batwara jo Overview aur Day Description pe hai).
+
+⚠️ **Akela `Notes` label pehle tha, aur wo usi din hata dena pada.** Wo `Notes Content` ka shortcut
+tha. Client ne doc me bilkul seedhi cheez likhi — `Notes Heading` ke neeche heading ki value **`Notes`**
+— aur wo value **khud ek label ban gayi**: heading khaali reh gayi aur wo shabd content ka shuruaat maana
+gaya. Koi error nahi, bas ek khaali heading. **Ye wahi shakl hai jo A-38 ke `Pricing` ki thi** — sirf ulti
+taraf se: wahan text label na hone ki wajah se chipak gaya, yahan text label hone ki wajah se ud gaya.
+Shortcut ka faayda us jaal ke saamne kuch bhi nahi tha. Ab uska apna test hai.
 
 ⚠️ **Dono `Day wise Itinerary` se PEHLE likhne hote hain.** Uske baad parser `DAY_LABELS` padhta hai
 aur ye match hi nahi honge — wahi niyam jo `Best For`, `Ferries` aur hotel ke daam pe pehle se hai.
