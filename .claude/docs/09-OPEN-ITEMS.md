@@ -705,7 +705,35 @@ nahi — client ka faisla.
 
 ---
 
-### A-33 · SEO ka bulk export + import (21 Sep — client ka naya ask, scope abhi khula)
+### ✅ A-33 · SEO ka bulk export + import — **ban gaya** (22 Sep, D-107)
+
+> Client ne chaaron sawaal ke jawab de diye aur usi din pura bana: Bulk Upload ke dropdown me
+> chautha target **Meta upload**, aur page-head pe **Export SEO**. Poora hisaab **D-107** me.
+> **19 naye test**, koi migration nahi.
+>
+> **Chaaron faisle client ke:** Sheet ka link (CSV upload nahi) · khaali cell us khaane ko chhoota
+> hi nahi · export me sab types par **sirf Published** · sirf teen field.
+>
+> ✅ **"Check karo chal raha hai ya nahi" wale hisse ka jawab: haan, pehle se chal raha tha.** Poori
+> chain judi hui thi (admin panel → `$set` whitelist → chaaron public projection →
+> `generateMetadata()`), aur package · page · post teenon pe live verify hua. **Kami data ki thi** —
+> 28 live entries me se sirf 5 pe SEO bhara tha, aur tour/blog/home pe zero. Yahi **A-17** ka
+> "SEO 91" hai.
+>
+> ⚠️ **`seo.canonical` aur `seo.noindex` ab bhi admin me pahunchte hi nahi.** Schema me hain,
+> `generateMetadata()` unhe padhta bhi hai, par SEO panel me unka koi box nahi hai. Client ne teen
+> field hi rakhe (D-107 §3 #4). Jis din wo khulein, sheet me do column jodna hi kaafi hai —
+> `SEO_COLUMN` me do naam aur `toSeoUpdate()` me do line.
+>
+> ⚠️ **`targets.js` me ab chauthi cheez hai** — _sheet kaise padhi jaaye_. D-92 me likha "sirf teen
+> cheezein" ab purana hai (D-107 §4).
+>
+> **Live check pe ek baat mili jo kisi test se nahi milti:** baaki har SEO test me ek hi row thi, to
+> _"pehli row chali, doosri giri"_ wala raasta kabhi chala hi nahi tha. Ab uska apna test hai.
+
+<details><summary>Purana record (21 Sep — jab scope khula tha)</summary>
+
+### A-33 (itihaas) · SEO ka bulk export + import (21 Sep — jab scope khula tha)
 
 **Deadline:** client ke "full details" pe · **abhi koi code nahi badla**
 (client: _"when i would have full details i will share"_)
@@ -785,6 +813,10 @@ case-sensitive hai, lookup hamesha khaali aata tha, aur teen guard chup-chaap ma
 | 2 | **Khaali cell ka matlab** — us field ko chhoda jaaye, ya khaali kar diya jaaye? | Ye D-65 wala **"khaali ke do matlab"** hai. `clear` chuna to ek adhoori sheet 20 page ka SEO chup-chaap uda degi; `skip` chuna to sheet se mitane ka raasta hi nahi bachega (teesra vikalp: `-` jaisa nishaan) |
 | 3 | **Export me kaun aaye** — sab types ek file me (Published + Draft), sirf Published, ya type chun kar? | Client ke shabd "in all pages" sab types ki taraf jaate hain; file me `Type`/`Status` read-only column chahiye honge |
 | 4 | **Dropdown ka naam** — `Meta upload` (client ke shabd) ya `SEO meta (existing pages)` jaisa kuch? | Aaj ke teeno option (`Packages` · `Blog posts` · `Pages`) batate hain **kya banega**; ye option kuch banata hi nahi. Naam `IMPORT_TARGET_LABEL` se dropdown **aur** Past imports ke tab **dono** pe jaata hai |
+
+---
+
+</details>
 
 ---
 

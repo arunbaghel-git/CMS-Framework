@@ -1,4 +1,4 @@
-import { IMPORT_ROW_STATUS, IMPORT_TARGET_LABEL } from '@cms/shared'
+import { IMPORT_ROW_STATUS, IMPORT_TARGET, IMPORT_TARGET_LABEL } from '@cms/shared'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
@@ -47,7 +47,14 @@ export default function BulkUploadRun() {
    * ⚠️ Purane run me `target` hai hi nahi (wo is field se pehle bane the), isliye fallback
    * `Packages` hai — us waqt import package ka hi hota tha.
    */
-  const title = (IMPORT_TARGET_LABEL[run.target] ?? IMPORT_TARGET_LABEL.package).plural
+  /**
+   * ⚠️ SEO wale run me column me **page** hote hain, "Meta upload" nahi (D-107). Baaki teen
+   * target me pehla column wahi cheez hai jo ban rahi hai; yahan kuch banta hi nahi.
+   */
+  const title =
+    run.target === IMPORT_TARGET.SEO
+      ? 'Page'
+      : (IMPORT_TARGET_LABEL[run.target] ?? IMPORT_TARGET_LABEL.package).plural
   const done = run.counts.total - run.counts.pending
 
   return (
@@ -122,13 +129,21 @@ export default function BulkUploadRun() {
                 ) : (
                   <span className="muted">—</span>
                 )}
-                <div className="row-actions">
-                  <span>
-                    <a href={row.docUrl} target="_blank" rel="noreferrer">
-                      Open document
-                    </a>
-                  </span>
-                </div>
+                {/*
+                  ⚠️ SEO wale run me koi doc hota hi nahi (D-107), aur khaali `href` **sabse
+                  bura** roop leta hai: browser use "yahi page" samajh kar link ko chalne deta
+                  hai, yaani client "Open document" daba kar wahin ka wahin reh jaata aur samajhta
+                  ki kuch toot gaya.
+                */}
+                {row.docUrl && (
+                  <div className="row-actions">
+                    <span>
+                      <a href={row.docUrl} target="_blank" rel="noreferrer">
+                        Open document
+                      </a>
+                    </span>
+                  </div>
+                )}
               </td>
 
               <td className="nowrap">

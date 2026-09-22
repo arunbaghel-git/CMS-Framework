@@ -7,6 +7,7 @@ import {
   parsePackageDoc,
   parsePageDoc,
   parsePostDoc,
+  seoRowsFromSheet,
   TAXONOMY_TYPE,
 } from '@cms/shared'
 
@@ -199,6 +200,39 @@ export const TARGET_CONFIG = Object.freeze({
       input.fields = { ...mapped.newOnlyFields, ...input.fields }
       return mapped.newOnlyIssues ?? []
     },
+  },
+
+  /**
+   * SEO ka bulk upload — **teen purane target se alag kism ka** (D-107, client 21 Sep).
+   *
+   * Upar likha hai ki target se sirf **teen** cheezein badalti hain. Is target ne ek **chauthi**
+   * jodi: _sheet kaise padhi jaaye_. Aaj tak sheet me sirf Google Doc ke link hote the
+   * (`docUrlsFromSheet`) aur asli maal doc me hota tha; yahan doc hai hi nahi — maal **row me
+   * hi** hai. `sheetRows` hone ka matlab hai "ye target apni sheet khud padhta hai".
+   *
+   * Badle me is target ko teenon purani cheezein **nahi** chahiye: koi doc parse nahi
+   * (`parse`/`map` nahi), koi master list nahi (`buildRefs` khaali), koi image nahi
+   * (`allowImages: false`), aur koi banner nahi (`setImage`/`getImage` nahi). Yaani ye target
+   * baaki teen se **sasta** hai, mehnga nahi.
+   *
+   * ⚠️ **`entryType` yahan `null` hai, aur wo bhool nahi hai.** Package · post · page · tour ·
+   * blog · home — sab isme aate hain. Row `path` se dhoondhi jaati hai, type se nahi (R10:
+   * `entries.path` hi ekmatra pehchaan hai).
+   *
+   * ⚠️ **`New / Existing` is target pe bemaani hai** — SEO Title se koi page banta hi nahi.
+   * `updatesSeoOnly` isi wajah se hai: service us elaan wale dono guard ko chhod deti hai aur
+   * admin mode ka radio dikhata hi nahi. Us elaan ko yahan "maan" lena (D-81 ka assertion) ek
+   * jhootha chunav hota, kyunki dono taraf ka jawab ek hi hai.
+   */
+  [IMPORT_TARGET.SEO]: {
+    entryType: null,
+    label: IMPORT_TARGET_LABEL[IMPORT_TARGET.SEO].one,
+    labelPlural: IMPORT_TARGET_LABEL[IMPORT_TARGET.SEO].many,
+    updatesSeoOnly: true,
+    sheetRows: seoRowsFromSheet,
+    buildRefs: async () => ({}),
+    allowImages: false,
+    slugLabel: 'Page URL',
   },
 })
 

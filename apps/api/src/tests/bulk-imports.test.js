@@ -1405,3 +1405,416 @@ describe('page ka import (D-95, client 14 Sep)', () => {
     expect(res.body.data.runs.map((r) => r.target)).toEqual(['page'])
   })
 })
+
+/**
+ * SEO ka bulk upload (D-107, client 21 Sep).
+ *
+ * ⚠️ Ye target baaki teen se **alag kism ka** hai, aur yahi teen baatein test bhi karti hain:
+ * koi page banta nahi, sheet me doc ke link nahi hote, aur ek hi run me har type ke page aate
+ * hain.
+ */
+describe('SEO ka bulk upload (D-107)', () => {
+  /** Sheet me ab doc ke link nahi — data row me hi hota hai. */
+  const seoCsv = (rows) => ['Page URL,Type,SEO Title,Meta Description', ...rows].join('\n')
+
+  async function runSeoImport(csv) {
+    const deps = { fetchImpl: fakeFetch({}, csv) }
+    const { startImport } = await import('../modules/bulk-imports/service.js')
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+
+    const run = await startImport(
+      { sheetUrl: SHEET_URL, target: 'seo' },
+      { user, permissions: [] },
+      DEFAULT_SITE_ID,
+      deps,
+    )
+
+    await drain(deps)
+
+    return ImportRun.findById(run.id).lean()
+  }
+
+  const makeEntry = (over = {}) =>
+    Entry.create({
+      siteId: DEFAULT_SITE_ID,
+      locale: 'en',
+      type: 'page',
+      title: 'About us',
+      slug: 'about-us',
+      path: '/about-us',
+      status: ENTRY_STATUS.PUBLISHED,
+      content: { version: 1, blocks: [] },
+      ...over,
+    })
+
+  it('maujooda page ka SEO badalta hai — page banta nahi', async () => {
+    const page = await makeEntry()
+    const before = await Entry.countDocuments({})
+
+    const run = await runSeoImport(seoCsv(['/about-us,Page,New title,New description']))
+
+    expect(run.target).toBe('seo')
+    expect(run.rows[0].status).toBe('published')
+    expect(run.rows[0].action).toBe('updated')
+    expect(await Entry.countDocuments({})).toBe(before)
+
+    const after = await Entry.findById(page._id).lean()
+
+    expect(after.seo.title).toBe('New title')
+    expect(after.seo.description).toBe('New description')
+  })
+
+  /**
+   * ⚠️ Sabse zaroori test — `updateEntry()` ka `$set` poora `seo` replace karta hai, isliye
+   * bina merge ke `canonical`/`noindex` chup-chaap udd jaate.
+   */
+  it('canonical aur noindex bache rehte hain', async () => {
+    const page = await makeEntry({
+      seo: { title: 'Old', canonical: 'https://site.com/x', noindex: true },
+    })
+
+    await runSeoImport(seoCsv(['/about-us,Page,New title,']))
+
+    const after = await Entry.findById(page._id).lean()
+
+    expect(after.seo).toMatchObject({
+      title: 'New title',
+      canonical: 'https://site.com/x',
+      noindex: true,
+    })
+  })
+
+  it('khaali cell us khaane ko chhoota hi nahi', async () => {
+    const page = await makeEntry({ seo: { title: 'Old title', description: 'Old description' } })
+
+    await runSeoImport(seoCsv(['/about-us,Page,,Only the description']))
+
+    const after = await Entry.findById(page._id).lean()
+
+    expect(after.seo.title).toBe('Old title')
+    expect(after.seo.description).toBe('Only the description')
+  })
+
+  it('dono cell khaali ho to row Skipped — DB chhua hi nahi jaata', async () => {
+    const page = await makeEntry({ seo: { title: 'Old title' } })
+
+    const run = await runSeoImport(seoCsv(['/about-us,Page,,']))
+
+    expect(run.rows[0].status).toBe('skipped')
+    expect((await Entry.findById(page._id).lean()).version).toBe(page.version)
+  })
+
+  /** D-86 wali jad: bade akshar, poora URL aur aakhir ka slash — teenon wahi page hain. */
+  it('bade akshar wala poora URL bhi wahi page dhoondhta hai', async () => {
+    const page = await makeEntry()
+
+    const run = await runSeoImport(seoCsv(['https://site.example/About-Us/,Page,Matched,']))
+
+    expect(run.rows[0].status).toBe('published')
+    expect((await Entry.findById(page._id).lean()).seo.title).toBe('Matched')
+  })
+
+  it('URL na mile to row Failed — kuch banta nahi', async () => {
+    const before = await Entry.countDocuments({})
+
+    const run = await runSeoImport(seoCsv(['/kahin-nahi,Page,T,D']))
+
+    expect(run.rows[0].status).toBe('failed')
+    expect(run.rows[0].error).toMatch(/No page with the address/)
+    expect(await Entry.countDocuments({})).toBe(before)
+  })
+
+  it('Trash wala page saaf message deta hai', async () => {
+    await makeEntry({ deletedAt: new Date() })
+
+    const run = await runSeoImport(seoCsv(['/about-us,Page,T,D']))
+
+    expect(run.rows[0].status).toBe('failed')
+    expect(run.rows[0].error).toMatch(/is in the Trash/)
+  })
+
+  it('ek hi page do baar likha ho to doosri row Skipped', async () => {
+    await makeEntry()
+
+    const run = await runSeoImport(seoCsv(['/about-us,Page,First,', '/about-us,Page,Second,']))
+
+    expect(run.rows.map((r) => r.status)).toEqual(['published', 'skipped'])
+    expect(run.rows[1].error).toBe('This page is listed twice')
+    expect((await Entry.findOne({ path: '/about-us' }).lean()).seo.title).toBe('First')
+  })
+
+  it('bina URL wali row Failed hoti hai', async () => {
+    const run = await runSeoImport(seoCsv([',Page,Orphan title,']))
+
+    expect(run.rows[0].status).toBe('failed')
+    expect(run.rows[0].error).toBe('This row has no page address')
+  })
+
+  it('draft page ka SEO lagta hai par row Draft rehti hai — wo live nahi hai', async () => {
+    const page = await makeEntry({ status: ENTRY_STATUS.DRAFT })
+
+    const run = await runSeoImport(seoCsv(['/about-us,Page,Draft title,']))
+
+    expect(run.rows[0].status).toBe('draft')
+    expect((await Entry.findById(page._id).lean()).seo.title).toBe('Draft title')
+  })
+
+  it('published page dobara publish nahi hota — publishAt waisa hi rehta hai', async () => {
+    const publishAt = new Date('2026-01-01T00:00:00.000Z')
+    const page = await makeEntry({ publishAt })
+
+    await runSeoImport(seoCsv(['/about-us,Page,New title,']))
+
+    const after = await Entry.findById(page._id).lean()
+
+    expect(after.status).toBe(ENTRY_STATUS.PUBLISHED)
+    expect(after.publishAt.toISOString()).toBe(publishAt.toISOString())
+  })
+
+  it('Page URL ka column hi na ho to import shuru hi nahi hota', async () => {
+    const deps = { fetchImpl: fakeFetch({}, 'SEO Title,Meta Description\nT,D') }
+    const { startImport } = await import('../modules/bulk-imports/service.js')
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+
+    await expect(
+      startImport(
+        { sheetUrl: SHEET_URL, target: 'seo' },
+        { user, permissions: [] },
+        DEFAULT_SITE_ID,
+        deps,
+      ),
+    ).rejects.toThrow(/No "Page URL" column/)
+  })
+
+  it('har type ka page ek hi run me — package, post aur home saath', async () => {
+    await makeEntry({ type: 'package', slug: 'x', path: '/packages/x', title: 'X' })
+    await makeEntry({ type: 'post', slug: 'y', path: '/blog/y', title: 'Y' })
+    await makeEntry({ type: 'homePage', slug: 'home', path: '/', title: 'Home' })
+
+    const run = await runSeoImport(
+      seoCsv(['/packages/x,Package,PT,', '/blog/y,Blog post,BT,', '/,Home,HT,']),
+    )
+
+    expect(run.rows.map((r) => r.status)).toEqual(['published', 'published', 'published'])
+    expect((await Entry.findOne({ path: '/packages/x' }).lean()).seo.title).toBe('PT')
+    expect((await Entry.findOne({ path: '/blog/y' }).lean()).seo.title).toBe('BT')
+    expect((await Entry.findOne({ path: '/' }).lean()).seo.title).toBe('HT')
+  })
+
+  /**
+   * ⚠️ Ek row ka girna doosri ko nahi rokta — aur ye test live check ke baad juda.
+   * Baaki har SEO test me **ek hi** row thi, to "pehli chali, doosri giri" wala raasta kisi test
+   * se guzarta hi nahi tha.
+   */
+  it('pehli row chalti hai aur doosri Failed hoti hai — doosri atakti nahi', async () => {
+    await makeEntry()
+
+    const run = await runSeoImport(seoCsv(['/about-us,Page,Good,', '/kahin-nahi-hai,Page,Bad,']))
+
+    expect(run.rows.map((r) => r.status)).toEqual(['published', 'failed'])
+  })
+
+  it('Past imports me ?target=seo sirf SEO ke run', async () => {
+    await makeEntry()
+    await runSeoImport(seoCsv(['/about-us,Page,T,']))
+
+    const res = await authed('get', '/api/bulk-imports?target=seo', adminJar).expect(200)
+
+    expect(res.body.data.runs.map((r) => r.target)).toEqual(['seo'])
+  })
+})
+
+describe('SEO ka export (D-107)', () => {
+  const publish = (over) =>
+    Entry.create({
+      siteId: DEFAULT_SITE_ID,
+      locale: 'en',
+      type: 'page',
+      status: ENTRY_STATUS.PUBLISHED,
+      content: { version: 1, blocks: [] },
+      ...over,
+    })
+
+  it('published page CSV me aate hain, draft nahi', async () => {
+    await publish({
+      title: 'Live page',
+      slug: 'live',
+      path: '/live',
+      seo: { title: 'Live SEO', description: 'Live description' },
+    })
+    await publish({
+      title: 'Draft page',
+      slug: 'draft',
+      path: '/draft',
+      status: ENTRY_STATUS.DRAFT,
+      seo: { title: 'Draft SEO' },
+    })
+
+    const res = await authed('get', '/api/bulk-imports/export/seo', adminJar).expect(200)
+
+    expect(res.headers['content-type']).toMatch(/text\/csv/)
+    expect(res.headers['content-disposition']).toMatch(/attachment; filename="seo-/)
+    expect(res.text).toContain('"Page URL","Type","SEO Title","Meta Description"')
+    expect(res.text).toContain('"/live","Page","Live SEO","Live description"')
+    expect(res.text).not.toContain('/draft')
+  })
+
+  /**
+   * ⚠️ Export ka header **wahi** hona chahiye jo import dhoondhta hai. Do jagah likhne ka
+   * nateeja D-86 me dekha ja chuka hai, aur uska lakshan yahan "kuch na hona" hota.
+   */
+  it('export ka header wahi hai jo import padhta hai', async () => {
+    await publish({ title: 'Round trip', slug: 'round-trip', path: '/round-trip' })
+
+    const res = await authed('get', '/api/bulk-imports/export/seo', adminJar).expect(200)
+    const { parseCsv, seoRowsFromSheet } = await import('@cms/shared')
+    const { rows, warnings } = seoRowsFromSheet(parseCsv(res.text))
+
+    expect(warnings).toEqual([])
+    expect(rows).toContainEqual({ url: '/round-trip', title: '', description: '' })
+  })
+
+  it('CSV injection se bacha hua hai — formula wali value quote hoti hai', async () => {
+    await publish({ title: 'Evil', slug: 'evil', path: '/evil', seo: { title: '=1+1' } })
+
+    const res = await authed('get', '/api/bulk-imports/export/seo', adminJar).expect(200)
+
+    expect(res.text).toContain('"\'=1+1"')
+  })
+
+  it('bina permission ke 403', async () => {
+    await authed('get', '/api/bulk-imports/export/seo', editorJar).expect(403)
+  })
+})
+
+/**
+ * Worker ka claim aur release (22 Sep — live pe pakda gaya).
+ *
+ * Client ka 28-row wala SEO import **305 second** le raha tha, jabki asli kaam 2 second ka tha.
+ * Wajah: ek row claim hone ke baad `processing` pe anaath chhoot gayi thi, aur use
+ * `reclaimStuckRows()` ne **theek 5 minute** baad uthaya. Dono raaste yahan test hote hain.
+ *
+ * ⚠️ Ye bug SEO target ka nahi tha — wo **D-81 ke worker** me tha aur teeno purane import pe
+ * lagta hai. SEO ne use sirf **dikhaya**, kyunki uski row 200ms ki hoti hai, to 5 minute ka
+ * intezaar chhupta nahi. Doc wale import me har row khud ~3 second leti hai aur wahan ye farak
+ * "thoda slow hai" jaisa lagta tha.
+ */
+describe('worker — row ka claim aur release (22 Sep)', () => {
+  const seoCsv = (rows) => ['Page URL,SEO Title,Meta Description', ...rows].join('\n')
+
+  const makeEntry = (over = {}) =>
+    Entry.create({
+      siteId: DEFAULT_SITE_ID,
+      locale: 'en',
+      type: 'page',
+      title: 'About us',
+      slug: 'about-us',
+      path: '/about-us',
+      status: ENTRY_STATUS.PUBLISHED,
+      content: { version: 1, blocks: [] },
+      ...over,
+    })
+
+  /** Run bana do par worker mat chalao — har test apna tick khud chalata hai. */
+  async function queueRun(csv) {
+    const deps = { fetchImpl: fakeFetch({}, csv) }
+    const { startImport } = await import('../modules/bulk-imports/service.js')
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+
+    const run = await startImport(
+      { sheetUrl: SHEET_URL, target: 'seo' },
+      { user, permissions: [] },
+      DEFAULT_SITE_ID,
+      deps,
+    )
+
+    return { runId: run.id, deps }
+  }
+
+  it('doosre worker ki pakdi hui row agli row ko nahi rokti', async () => {
+    await makeEntry()
+    await makeEntry({ slug: 'x', path: '/x', title: 'X' })
+
+    const { runId, deps } = await queueRun(seoCsv(['/about-us,A,', '/x,B,']))
+
+    /**
+     * Pehli row ko "koi aur worker" pakad leta hai — theek wahi haalat jo do process saath
+     * chalne pe banti hai (ya jab ek purana process abhi zinda ho).
+     */
+    await ImportRun.updateOne(
+      { _id: runId },
+      {
+        $set: {
+          status: 'running',
+          'rows.0.status': 'processing',
+          'rows.0.claimedAt': new Date(),
+        },
+      },
+    )
+
+    expect((await processImportQueue(deps)).processed).toBe(1)
+
+    const run = await ImportRun.findById(runId).lean()
+
+    /** Pehli row doosre ke paas hi rahi — hum uspe dobara kaam nahi karte. */
+    expect(run.rows[0].status).toBe('processing')
+    /** ⚠️ Pehle yahi row anaath reh jaati thi — tick pehli wali ko dobara chala deta tha. */
+    expect(run.rows[1].status).toBe('published')
+    expect((await Entry.findOne({ path: '/x' }).lean()).seo.title).toBe('B')
+  })
+
+  it('shuru hi na ho paane wali row wapas kataar me aati hai — failed nahi hoti', async () => {
+    await makeEntry()
+
+    const { runId, deps } = await queueRun(seoCsv(['/about-us,Retry me,']))
+
+    /** Mongo ki hichki jaisi galti — row ki apni koi kharaabi nahi. */
+    const brokenDeps = { fetchImpl: deps.fetchImpl }
+    Object.defineProperty(brokenDeps, 'refs', {
+      get() {
+        throw new Error('mongo hichki')
+      },
+    })
+
+    expect((await processImportQueue(brokenDeps)).processed).toBe(1)
+
+    let run = await ImportRun.findById(runId).lean()
+
+    expect(run.rows[0].status).toBe('pending')
+    expect(run.rows[0].claimedAt).toBeNull()
+    expect(run.rows[0].attempts).toBe(1)
+    expect(run.status).toBe('running')
+
+    /** Agla tick — **do second baad**, paanch minute baad nahi. */
+    expect((await processImportQueue(deps)).processed).toBe(1)
+
+    run = await ImportRun.findById(runId).lean()
+
+    expect(run.rows[0].status).toBe('published')
+    expect(run.status).toBe('done')
+    expect((await Entry.findOne({ path: '/about-us' }).lean()).seo.title).toBe('Retry me')
+  })
+
+  it('baar-baar na chal paane wali row MAX_ATTEMPTS pe Failed ho jaati hai', async () => {
+    await makeEntry()
+
+    const { runId, deps } = await queueRun(seoCsv(['/about-us,Never,']))
+
+    const brokenDeps = { fetchImpl: deps.fetchImpl }
+    Object.defineProperty(brokenDeps, 'refs', {
+      get() {
+        throw new Error('mongo hichki')
+      },
+    })
+
+    await processImportQueue(brokenDeps)
+    await processImportQueue(brokenDeps)
+
+    const run = await ImportRun.findById(runId).lean()
+
+    expect(run.rows[0].status).toBe('failed')
+    expect(run.rows[0].error).toMatch(/could not be started/)
+    /** Run band ho jaana chahiye — warna admin me "Importing…" anant tak chalta. */
+    expect(run.status).toBe('done')
+  })
+})

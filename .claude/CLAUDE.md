@@ -825,9 +825,27 @@ ke HTML me do baar jaata (A-36, D-103 §7 wala hi bug).
 ⚠️ **Permission aur nav dono pehle se rakhe hue the** — teesri baar (`.float` D-102, `.sidetab` A-34).
 **Naya kaam shuru karne se pehle dhoondho ki wo pehle se rakha to nahi hai.**
 
+**22 Sep — SEO ka bulk export + import (D-107), A-33 band, koi migration nahi.** Bulk Upload me chautha
+target **`Meta upload`** (client ke apne shabd) aur page-head pe **`Export SEO`** (`tools.export`, jo spec
+001 se reserved pada tha — **chauthi baar** koi cheez pehle se rakhi mili). Teen field: Page URL · SEO
+Title · Meta Description, **sab types par sirf Published**, milaan **`path`** se.
+✅ Pehle ye jaancha gaya ki SEO chal bhi raha hai ya nahi — **chal raha tha**; kami **data** ki thi (28
+live entries me se sirf 5 pe SEO, tour/blog/home pe zero — yahi A-17 ka "SEO 91").
+⚠️ **`targets.js` me ab chauthi cheez hai** — _sheet kaise padhi jaaye_ (D-92 ka "sirf teen" purana ho
+gaya). SEO wali sheet me doc ke link nahi hote, maal row me hi hota hai; badle me is target ko doc parse,
+images aur master lists **teeno nahi** chahiye.
+⚠️ **`updateEntry()` ka `$set` poora `seo` replace karta hai** — isliye `toSeoUpdate()` purane `seo` ke
+upar merge karta hai. Bina uske har import har page ka `canonical`/`noindex`/`og*` chup-chaap uda deta.
+⚠️ **`New/Existing` is target pe dikhta hi nahi** (SEO se page banta nahi) aur **`status` kabhi nahi
+chhua jaata** (draft draft rehta hai, live dobara publish nahi hota).
+⚠️ **URL normalize hota hai** — origin · query · hash · bada akshar · aakhir ka slash sab. **D-86 theek
+yahi galti thi.** ⚠️ `csvCell()` ab `packages/shared` me hai (`forms` ki copy hat gayi).
+⚠️ Live check ne ek test ki kami pakdi — _"pehli row chali, doosri giri"_ wala raasta kisi test se guzarta
+hi nahi tha. Aur: alag se script chalao to yaad rakho ki `:4000` ka server **apna** worker tick karta hai.
+
 ⏭️ **Agla kaam: A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn't come on
-frontend"_). Uske baad **A-33 / A-40 / A-32** — teeno client ke jawab pe ruke hain. Phir baaki pages
-PageSpeed pe (A-17). `project-state.md` ka pehla section padho.
+frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka). Phir baaki pages PageSpeed pe (A-17).
+`project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

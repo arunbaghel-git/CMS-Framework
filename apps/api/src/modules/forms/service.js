@@ -1,6 +1,12 @@
 import mongoose from 'mongoose'
 
-import { DEFAULT_SITE_ID, ENQUIRY_STATUSES, deriveEnquiryColumns, emptyForm } from '@cms/shared'
+import {
+  csvCell,
+  DEFAULT_SITE_ID,
+  deriveEnquiryColumns,
+  emptyForm,
+  ENQUIRY_STATUSES,
+} from '@cms/shared'
 
 import { notFound, unprocessable } from '../../core/errors.js'
 import { logger } from '../../core/logger.js'
@@ -501,14 +507,12 @@ export async function bulkEnquiries({ ids, action }, siteId = DEFAULT_SITE_ID) {
  * ⚠️ Har cell `csvCell()` se guzarta hai: `=`, `+`, `-`, `@` se shuru hone wali value Excel
  * me **formula** ban jaati hai (CSV injection). Enquiry ka text bahar se aata hai, isliye ye
  * ehtiyaat yahan zaroori hai, sundar nahi.
+ *
+ * ⚠️ **`csvCell()` ab `packages/shared` me hai** (D-107) — wo yahin likha hua tha, aur SEO wale
+ * export ko bilkul wahi chahiye tha. Do copies ka nateeja is repo me teen baar dekha ja chuka
+ * hai (`htmlToText`, `bestFor`, aur D-86 ka slug), aur is ek pe wo sabse mehnga hota: ek copy
+ * me injection guard theek ho aur doosri me na ho, to farak kisi ko dikhta hi nahi.
  */
-function csvCell(value) {
-  const s = value === null || value === undefined ? '' : String(value)
-  const guarded = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s
-
-  return `"${guarded.replace(/"/g, '""')}"`
-}
-
 export async function exportEnquiriesCsv(query, siteId = DEFAULT_SITE_ID) {
   /**
    * Wahi filter jo list pe lagta hai — date range, status, form aur search sab.

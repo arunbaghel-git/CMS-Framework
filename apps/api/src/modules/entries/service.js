@@ -2032,6 +2032,55 @@ export async function allEntryTitles(type, siteId = DEFAULT_SITE_ID, locale = DE
   return docs.map((doc) => ({ id: String(doc._id), name: doc.title ?? '', slug: doc.slug ?? '' }))
 }
 
+/**
+ * Published entries ka SEO — **har type ka**, bulk export ke liye (D-107).
+ *
+ * ⚠️ **Sirf Published** — client ka faisla (21 Sep). Draft page file me nahi aate, yaani
+ * client jo file kholta hai wo bilkul wahi hai jo aaj Google ko dikh raha hai.
+ *
+ * ⚠️ **Yahan `type` ka koi filter nahi hai, aur wo poore feature ka point hai.** Package · post ·
+ * page · tour · blog · home — sab ek hi file me. `resolvePath()` ke baad `path` hi har page ki
+ * ekmatra pehchaan hai (R10), isliye ek hi list saare types ko sambhal leti hai.
+ *
+ * Cap ke bina nahi bheja jaata — `PACKAGE_LIST_SCAN_CAP` wali hi soch: ek din 5,000 page wali
+ * site pe ye query chup-chaap poori memory kha jaati.
+ *
+ * @param {number} limit
+ * @returns {Promise<{ path: string, type: string, title: string, seo: object }[]>}
+ */
+export async function allEntriesForSeo(limit, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  const docs = await Entry.find(
+    { ...scope(siteId, locale), deletedAt: null, status: ENTRY_STATUS.PUBLISHED },
+    { path: 1, type: 1, title: 1, seo: 1 },
+  )
+    .sort({ type: 1, path: 1 })
+    .limit(limit)
+    .lean()
+
+  return docs.map((doc) => ({
+    path: doc.path ?? '',
+    type: doc.type ?? '',
+    title: doc.title ?? '',
+    seo: doc.seo ?? {},
+  }))
+}
+
+/**
+ * Path se entry — SEO ka bulk import isi se page dhoondhta hai (D-107).
+ *
+ * ⚠️ **Trash wali entry bhi lautati hai**, bilkul `findEntryBySlug()` ki tarah aur usi wajah se:
+ * importer ko `null` milne aur "ye page Trash me hai" me farak karna aata hona chahiye. Chup
+ * `null` wahi D-86 wala jaal hai, jahan ek na-milne wale lookup ne teen guard maar diye the.
+ *
+ * @param {string} path — pehle se normalized (`pathFromUrl()`)
+ * @returns {Promise<object|null>}
+ */
+export async function findEntryByPath(path, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
+  if (!path) return null
+
+  return Entry.findOne({ ...scope(siteId, locale), path }).lean()
+}
+
 export async function findEntryBySlug(
   type,
   slug,

@@ -1,59 +1,131 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 22 Sep 2026 — do kaam: **popup client ke saath settle** (D-103 §9–§9.7, chaar
-> round) aur **Settings ▸ Integrations ban gaya** (D-106 — A-40 band, hydration wala sudhaar §5.1).
-> Dono me koi migration nahi. **Agla kaam: A-33 — SEO ka bulk export + import** (client ne khud chuna). Client ne khud chala kar har baar bataya, aur aakhir me mera raasta
-> **palta**: scroll theek karne ke liye main content chhota kar raha tha, unhone `label` optional
-> karwaya. **Suite 1311/1312** — fail sirf `theme-fonts.test.js` (`.hf-stat span`, client ka apna
-> CSS edit, chhua nahi). Poora hisaab neeche ke **22 Sep** wale section me. ⚠️ **Push baaki hai**
-> (`git log --oneline origin/main..HEAD`).
+> **Last updated:** 22 Sep 2026 — **SEO ka bulk export + import ban gaya (D-107, A-33 band)**. Usse
+> pehle usi din: popup client ke saath settle (D-103 §9–§9.7) aur **Settings ▸ Integrations**
+> (D-106, A-40 band). Teenon me **koi migration nahi**.
+> **Suite: 52 files, 1365/1366 pass** — akela fail wahi purana `theme-fonts.test.js`
+> (`.hf-stat span`, client ka apna CSS edit — chhua nahi). SEO ke **41 naye test**.
+> ⚠️ **Push baaki hai** (`git log --oneline origin/main..HEAD`).
 >
 > **Usse pehle — 21 Sep:** din me **teen feature bane** (**D-102** floating WhatsApp + phone
 > button, **D-103** Enquiries ▸ Popup + uski naap (§8), **D-104** itinerary ke do khaane + naya Notes
-> section, **D-105** master list ka khaali-value bug —
-> **migration 027**) aur **do jaanch hui bina code badle** (**A-33** SEO ka bulk export+import,
-> **A-38** Kerala package ka import). Din ke aakhir me **A-40** (Settings ▸ Integrations) aaya aur
-> client ne use **rok diya** — sirf doc likhi gayi, koi code nahi. Kram ke liye neeche ka 📍 block padho.
-> Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
-> _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
-> (Spacing), D-99 (Fonts). ✅ **21 Sep ka sab kuch push ho chuka** (`origin/main == HEAD`, reflog me
-> `update by push`) — ye line pehle "push baaki" kehti thi, 22 Sep ko verify karke badli gayi.
-> **Din ke aakhir me suite: 51 files, 1292/1293 pass** — **ek hi fail**, aur wo purana hai:
-> `theme-fonts.test.js` (`.hf-stat span`, client ka apna CSS edit — chhua nahi).
-> `media.test.js` is run me pass hui (A-11 ka race aata-jaata rehta hai).
-> Aaj ke naye test: D-104 me 13, D-105 me 6, D-103 §8 me 4.
-> (Usse pehle 21 Sep raat: 49 files, 1267/1268 — fail sirf `theme-fonts.test.js`.)
-> (Usse pehle shaam ko: 48 files, 1240/1244 — tab media.test.js ne A-11 wala race khaya tha.)
-> Purani do-fail wali haalat ka hisaab:
-> (1) `theme-fonts.test.js` (`.hf-stat span`, client ka apna edit — chhua nahi), (2) `media.test.js`
-> — `ENOTEMPTY: rmdir '…\.test-uploads-media\sites\default'`, yaani `bulk-imports.test.js` ke saath
-> **saanjhe upload folder** ki race. A-16 ki doosri shakl, poora hisaab **A-11** me. Dono me koi asli
-> bug nahi.
-> ⚠️ **A-11 ka naya saboot:** har run me **kaunsi** file haarti hai wo badalta rehta hai (21 Sep subah
-> `bulk-imports`, shaam `media`), aur **kitne** test girte hain wo bhi (1 se 3). Ginti dekhte waqt isi
-> se dhoka hota hai. Ilaaj: dono ko alag `UPLOAD_DIR` do.
-> ⚠️ **`pnpm lint` me ek pre-existing error hai** — `HtmlEditor.jsx:81` ka unused `label` param, commit
-> `7688ab0` (18 Sep) se. Mera kaam nahi, client ke hand-edit wale area me hai, isliye **chhua nahi**.
+> section, **D-105** master list ka khaali-value bug — **migration 027**) aur **do jaanch hui bina
+> code badle** (**A-33** SEO ka scope, **A-38** Kerala package ka import). Din ke aakhir me **A-40**
+> (Settings ▸ Integrations) aaya aur client ne use rok diya. Kram ke liye neeche ka 📍 block padho.
+> ✅ **21 Sep ka sab kuch push ho chuka** (`origin/main == HEAD` us waqt).
+> ⚠️ **A-11 ka naya saboot:** har run me **kaunsi** file haarti hai wo badalta rehta hai (21 Sep
+> subah `bulk-imports`, shaam `media`), aur **kitne** test girte hain wo bhi (1 se 3). Ginti dekhte
+> waqt isi se dhoka hota hai. Ilaaj: dono ko alag `UPLOAD_DIR` do.
+> ⚠️ **`pnpm lint` me ek pre-existing error hai** — `HtmlEditor.jsx:81` ka unused `label` param,
+> commit `7688ab0` (18 Sep) se. Mera kaam nahi, client ke hand-edit wale area me hai — **chhua nahi**.
 > C: pe ab ~10 GB (18 Sep: Docker images prune + `docker_data.vhdx` compact, 40 → 25 GB).
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
-> ✅ `.claude/` ab git me **track hai** (commit `75beb7f`) — 18 Sep wala _"git se bahar hai"_ ab purana hai.
+> ✅ `.claude/` ab git me **track hai** (commit `75beb7f`).
 
 ---
 
-## 📍 22 Sep ke aakhir me — agla kaam **A-33 (SEO ka bulk export + import)**
+## 📍 22 Sep ke aakhir me — **A-33 band, agla kaam client batayega**
 
-Client ne session band karte waqt khud kaha: _"can we close this session so i can start new session
-for seo bulk import and export"_. Yaani **agli session ka kaam A-33 hai** — uske chaar khule sawaal
-aur poori jaanch `09-OPEN-ITEMS.md` me hai.
+Client ne session ke beech me hi poori jaankari de di aur kaam usi din poora ho gaya. Ab **koi
+ruka hua kaam client ke jawab pe nahi hai sivaay A-32 (Fonts) aur A-38 ke.**
 
-⚠️ **Do cheezein jo agli session ko turant pata honi chahiye:**
+⚠️ **Teen cheezein jo agli session ko turant pata honi chahiye:**
 
-1. **Client ka dummy test code abhi `integrations.header` me pada hai** (`<meta name="test-integration">`
-   - ek `console.log` wala script) — wo **site pe live** hai. Nuksaan koi nahi, par client ko
-     `Settings ▸ Integrations` se khaali karna hai. Isse pehle poochh lena ki hataana hai ya nahi.
+1. **Client ka dummy test code abhi `integrations.header` me pada hai**
+   (`<meta name="test-integration">` + ek `console.log` wala script) — wo **site pe live** hai.
+   Nuksaan koi nahi, par client ko `Settings ▸ Integrations` se khaali karna hai.
 2. **Push baaki hai** — `git log --oneline origin/main..HEAD`.
+3. **Deploy pe kuch nahi chahiye** — D-107 me na migration hai, na naya content type. Sirf naya
+   code. (`pnpm seed` ya `pnpm cms migrate` **nahi**.)
+
+---
+
+## ✅ 22 Sep (aakhir me) — SEO ka bulk export + import (D-107), **A-33 band**
+
+Client (21 Sep): _"in Bulk Upload — dropdown name: **meta upload** … SEO Title, Meta Description,
+page url … in all pages jahan bhi ye honge … or check karna kya working hai seo title or
+description."_ 22 Sep ko chaaron sawaal ke jawab aaye aur kaam usi din poora hua.
+
+**Bana:** `IMPORT_TARGET.SEO` (`Meta upload`) · `seo-mapper.js` · `pathFromUrl()` ·
+`seoRowsFromSheet()` · `exportSeoCsv()` · `GET /api/bulk-imports/export/seo` (`tools.export`) ·
+Bulk Upload pe `Export SEO` ka button. **41 naye test. Koi migration nahi.**
+
+### ✅ Pehla hissa: SEO **pehle se chal raha tha**
+
+Client ke ask ka aadha hissa "check karo" tha. Poori chain judi hui mili — admin panel → `$set`
+whitelist → chaaron public projection → `generateMetadata()` — aur package · page · post teenon pe
+live verify hua. **Kami data ki thi**: 28 live entries me se sirf **5** pe SEO bhara tha, aur
+tour/blog/home pe **zero**. Yahi **A-17** ka "SEO 91" hai.
+
+### Chaar faisle, chaaron client ke
+
+1. Export ki file wapas **Google Sheet ke link se** (CSV upload nahi)
+2. **Khaali cell us khaane ko chhoota hi nahi** — mitane ka koi nishaan bhi nahi
+3. Export me **sab types, par sirf Published**
+4. **Sirf teen field** — Page URL · SEO Title · Meta Description
+
+### Saat baatein jo yaad rehni chahiye
+
+1. ⚠️ **`targets.js` me ab chauthi cheez hai** — _sheet kaise padhi jaaye_. D-92 ka "sirf teen
+   cheezein badalti hain" ab purana hai. Badle me is target ko teenon purani **nahi** chahiye (doc
+   parse, images, master lists) — wo baaki se **sasta** hai
+2. ⚠️ **`seo` ka merge hi is kaam ka sabse chup nuksaan tha** — `updateEntry()` ka `$set` poora
+   `seo` replace karta hai, to bina merge ke har page ka `canonical`/`noindex`/`og*` udd jaata,
+   bina error ke. Live check pe wo chaaron bache hue verify kiye gaye
+3. ⚠️ **`New/Existing` is target pe dikhta hi nahi** — SEO se page banta nahi, to dono jawab ek hi
+   hain. Aisa chunav dikhana jiska asar na ho, jhootha bharosa deta hai
+4. ⚠️ **`status` kabhi nahi chhua jaata** — draft draft rehta hai, live dobara publish nahi hota
+   (warna 40 page ki "Published on" udd jaati)
+5. ⚠️ **`tools.export` pehle se reserved tha** (spec 001, 19 Aug) — **chauthi baar** (`.float`
+   D-102, `.sidetab` A-34, `settings.scripts.update` D-106). **Naya gadhne se pehle dhoondho**
+6. ⚠️ **`csvCell()` ab `packages/shared` me hai** — `forms/service.js` ki copy hat gayi. Do copies
+   me se ek me injection guard theek ho aur doosri me na ho, to farak kisi ko dikhta hi nahi
+7. ⚠️ **`canonical`/`noindex` ab bhi admin me pahunchte hi nahi** — schema me hain, theme unhe
+   padhta bhi hai, par SEO panel me box nahi hai. Client ne teen field hi rakhe; jis din wo khulein,
+   `SEO_COLUMN` me do naam aur `toSeoUpdate()` me do line kaafi hai
+
+### Live check (asli DB)
+
+**Export:** 28 row + header, `Type` ke naam asli content types se (koi andar ka naam nahi).
+**Import:** `https://andamantourism.org/Test/` (bada akshar + poora URL + slash) → `/test` mil gaya,
+SEO laga, baaki `seo` ke khaane bache. Page wapas purani haalat me, run hata diya — **DB waisi ki
+waisi**.
+
+⚠️ **Live check ne ek test ki kami pakdi** — baaki har SEO test me **ek hi** row thi, to _"pehli row
+chali, doosri giri"_ wala raasta kabhi chala hi nahi tha. Ab uska apna test hai.
+
+⚠️ **Alag se script chalao to yaad rakho:** `:4000` pe chalta API server **apna**
+`processImportQueue()` tick karta hai (`index.js`), yaani wo aapke script ke worker ke saath **race**
+karta hai. Live check me ek row ek pal ke liye `processing` pe dikhi thi — wo code ka bug nahi tha.
+
+---
+
+### ⚠️ Usi din: worker ki ek purani kamzori live pe pakdi gayi (D-107 §11)
+
+Client ka **pehla asli import 305 second** le raha tha. DB ka hisaab: 22 row shuru me hi skip,
+**5 row 1.2 second me**, aur **ek row atak gayi** — use `reclaimStuckRows()` ne theek **5 minute**
+baad uthaya. Yaani asli kaam 2 second ka tha.
+
+Client ne API restart kiya aur wahi import **2.5 second** me ho gaya (6 update, 22 chhue nahi,
+0 issue) — par wajah restart se **chhup gayi thi, gayi nahi**. Ab wo theek ho gayi:
+
+- **`claimRow()` ab do kadam ka hai** aur `{ run, row }` lautata hai — pehle wo bata hi nahi sakta
+  tha ki usne kaunsi row li, aur caller `rows.find(status === 'processing')` se **pehli** processing
+  row utha leta tha. Do worker saath chalte hi dono ek hi row pe kaam karte aur doosri anaath reh
+  jaati
+- **`actorFor()`/`buildRefMaps()` ab `try` ke andar** hain, aur unki galti pe nayi `releaseRow()`
+  row ko wapas `pending` kar deti hai — agli koshish **2 second** me, 5 minute me nahi
+
+⚠️ **Ye bug D-81 ka tha, SEO ka nahi** — teeno purane import pe lagta hai. SEO ne use sirf
+**dikhaya**, kyunki uski row 200ms ki hoti hai. **3 naye test**, aur pehla wala purane code pe sach
+me girta hai.
+
+⚠️ `importRow()` ka fail hona isse **alag** hi rakha gaya — wahan galti row ki apni hoti hai, to wo
+seedha `Failed` rehti hai. `releaseRow()` sirf "kaam **shuru** hi nahi ho paaya" ke liye hai.
+
+⚠️ `reclaimStuckRows()` hata nahi — wo us haalat ke liye hai jahan **process hi mar jaaye**.
 
 ---
 

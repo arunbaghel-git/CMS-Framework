@@ -41,8 +41,33 @@ const issue = { type: mongoose.Schema.Types.Mixed }
 
 const rowSchema = new mongoose.Schema(
   {
-    docUrl: { type: String, required: true },
+    /**
+     * ⚠️ **`required` jaan-boojh kar hata diya gaya (D-107).**
+     *
+     * Teen purane target me har row **ek Google Doc** hai. SEO wale target me koi doc hota hi
+     * nahi — sheet ki row me hi poora maal hota hai, aur row ki pehchaan uska `path` hai.
+     *
+     * Ye ek **widening** hai: purane saare row me ye field bhara hua hai, isliye na backfill
+     * chahiye, na migration. Koi index bhi isse nahi banta.
+     */
+    docUrl: { type: String, default: '' },
     docId: { type: String, default: null },
+
+    /**
+     * Sheet ki row ka kachcha maal — **sirf `seo` target ke liye** (D-107).
+     *
+     * Doc wale target me ye `null` rehta hai: wahan maal doc me hota hai aur wo row chalte waqt
+     * fetch hota hai. SEO me sheet sirf **ek baar** padhi jaati hai (`startImport` me), isliye
+     * har row ko apni value yahin le kar chalni padti hai.
+     *
+     * ⚠️ Sheet ko row-dar-row dobara padhna ek asli vikalp tha aur use **rad** kiya gaya: worker
+     * ke chalte-chalte client sheet badal sakta hai, aur tab aadhi run purani sheet pe aur aadhi
+     * nayi pe chalti — bina kisi nishaan ke.
+     *
+     * `Mixed` isliye ki shape ka ghar `packages/shared` hai (R8) aur use do jagah likhne ka
+     * matlab hota ki ek din wo alag ho jaayein — wahi wajah jo upar `issue` pe likhi hai.
+     */
+    values: { type: mongoose.Schema.Types.Mixed, default: null },
 
     status: {
       type: String,

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { errorMessage } from '../../lib/api.js'
+import { useAuth } from '../../lib/auth.jsx'
 import './BulkUpload.css'
 import { startImport, useImportRuns } from './useBulkImports.js'
 
@@ -52,8 +53,20 @@ export default function BulkUpload() {
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState(null)
 
+  const { can } = useAuth()
+
   /** Radio ke label aur API ke error message ek hi jagah se aate hain (`IMPORT_TARGET_LABEL`). */
   const words = IMPORT_TARGET_LABEL[target]
+
+  /**
+   * SEO wala target poori screen ko thoda alag chalata hai (D-107).
+   *
+   * ⚠️ `New / Existing` yahan **dikhta hi nahi**, aur wo ek faisla hai. Wo elaan is baat ka hai
+   * ki sheet naye page laa rahi hai ya purane — par SEO Title se koi page banta hi nahi, yaani
+   * dono ka jawab ek hi hota. Ek aisa chunav dikhana jiska koi asar na ho, client ko wahi
+   * bharosa deta hai jo jhootha hota hai.
+   */
+  const isSeo = target === IMPORT_TARGET.SEO
 
   async function onImport(event) {
     event.preventDefault()
@@ -76,6 +89,16 @@ export default function BulkUpload() {
     <>
       <div className="page-head">
         <h1>Bulk Upload</h1>
+        {/*
+          Export seedha ek `<a>` hai, koi fetch + blob nahi — wahi jo `EnquiriesList` pe hai.
+          Token cookie me hai, isliye browser ka apna download hi kaafi hai, aur file ka naam
+          server ke `Content-Disposition` se aata hai.
+        */}
+        {can('tools.export') && (
+          <a className="btn page-title-action" href="/api/bulk-imports/export/seo">
+            Export SEO
+          </a>
+        )}
       </div>
       <p className="subtitle">Import pages from Google Docs listed in a Google Sheet.</p>
 
@@ -110,8 +133,9 @@ export default function BulkUpload() {
                 ))}
               </select>
               <p className="hint">
-                Each kind has its own document template — the labels inside the documents are
-                different.
+                {isSeo
+                  ? 'This does not create anything — it only updates the SEO Title and Meta Description of pages that already exist.'
+                  : 'Each kind has its own document template — the labels inside the documents are different.'}
               </p>
             </div>
 
@@ -127,7 +151,18 @@ export default function BulkUpload() {
                 onChange={(e) => setSheetUrl(e.target.value)}
               />
               <p className="hint">
-                The sheet needs a <b>Doc File</b> column with a link to each {words.one} document.
+                {isSeo ? (
+                  <>
+                    The sheet needs a <b>Page URL</b> column, and a <b>SEO Title</b> or{' '}
+                    <b>Meta Description</b> column. Export the current SEO first — that file already
+                    has the right columns.
+                  </>
+                ) : (
+                  <>
+                    The sheet needs a <b>Doc File</b> column with a link to each {words.one}{' '}
+                    document.
+                  </>
+                )}
               </p>
             </div>
 
@@ -141,34 +176,36 @@ export default function BulkUpload() {
               Bina iske ek purana URL galti se nayi sheet me reh jaaye to wo ek live package ko
               chup-chaap overwrite kar deta.
             */}
-            <div className="field">
-              <label>What is in this sheet?</label>
-              <label className="inline-lbl">
-                <input
-                  type="radio"
-                  name="mode"
-                  checked={mode === 'new'}
-                  disabled={busy}
-                  onChange={() => setMode('new')}
-                />{' '}
-                New {words.many}
-              </label>{' '}
-              <label className="inline-lbl bu-mode">
-                <input
-                  type="radio"
-                  name="mode"
-                  checked={mode === 'existing'}
-                  disabled={busy}
-                  onChange={() => setMode('existing')}
-                />{' '}
-                Existing {words.many}
-              </label>
-              <p className="hint">
-                {mode === 'new'
-                  ? `Any document whose address already exists will be left as Failed, so nothing live is overwritten by mistake.`
-                  : `Any document whose address does not exist yet will be left as Failed.`}
-              </p>
-            </div>
+            {!isSeo && (
+              <div className="field">
+                <label>What is in this sheet?</label>
+                <label className="inline-lbl">
+                  <input
+                    type="radio"
+                    name="mode"
+                    checked={mode === 'new'}
+                    disabled={busy}
+                    onChange={() => setMode('new')}
+                  />{' '}
+                  New {words.many}
+                </label>{' '}
+                <label className="inline-lbl bu-mode">
+                  <input
+                    type="radio"
+                    name="mode"
+                    checked={mode === 'existing'}
+                    disabled={busy}
+                    onChange={() => setMode('existing')}
+                  />{' '}
+                  Existing {words.many}
+                </label>
+                <p className="hint">
+                  {mode === 'new'
+                    ? `Any document whose address already exists will be left as Failed, so nothing live is overwritten by mistake.`
+                    : `Any document whose address does not exist yet will be left as Failed.`}
+                </p>
+              </div>
+            )}
 
             <button type="submit" className="btn btn-primary" disabled={busy || !sheetUrl.trim()}>
               {busy ? 'Reading sheet…' : 'Import'}
@@ -181,9 +218,19 @@ export default function BulkUpload() {
             ye line pehle hi likhi hai, error message ka intezaar kiye bina.
           */}
           <p className="hint bu-note">
-            The sheet and every document must be shared as <b>Anyone with the link — Viewer</b>. The{' '}
-            {words.many} are published automatically; any row with a problem is left as a draft with
-            the reason shown.
+            {isSeo ? (
+              <>
+                The sheet must be shared as <b>Anyone with the link — Viewer</b>. An empty cell
+                leaves that field as it is, so a half-filled sheet never wipes anything. A row whose
+                address is not found is left as Failed.
+              </>
+            ) : (
+              <>
+                The sheet and every document must be shared as <b>Anyone with the link — Viewer</b>.
+                The {words.many} are published automatically; any row with a problem is left as a
+                draft with the reason shown.
+              </>
+            )}
           </p>
         </div>
       </div>

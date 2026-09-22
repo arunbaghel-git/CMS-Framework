@@ -620,10 +620,11 @@ hota.
 
 ---
 
-## Bulk Upload — ek screen, do target (D-81, D-92)
+## Bulk Upload — ek screen, chaar target (D-81, D-92, D-95, D-107)
 
 Google Sheet me Google Docs ki list, aur har doc se ek page. Pehle sirf package (D-81, 3–4 Sep);
-10 Sep se blog post bhi (D-92).
+10 Sep se blog post bhi (D-92), 14 Sep se saada page (D-95), aur 22 Sep se **SEO ka bulk upload**
+(D-107) — jo baaki teen se alag kism ka hai.
 
 ⚠️ **Ye screen admin design me hai hi nahi** — client ne design ke baad maanga. Isliye koi nayi
 shakl nahi gadhi gayi: wahi `.panel` + `table.list` jo baaki screens pe hai. Iska apna design
@@ -634,14 +635,38 @@ chahiye ho to wo client se aayega (R15).
 | Sidebar | **top-level `Bulk Upload`, submenu nahi** — client, 3 Sep: _"sidebar me menu banana hai not submenu"_ |
 | Routes | `/bulk-upload` (form + Past imports) · `/bulk-upload/:id` (ek run ka nateeja) |
 | Permission | dono screen `tools.import` pe — aaj sirf `admin` ke paas (migration 021) |
+| `Export SEO` | page-head pe, `tools.export` pe (D-107) — poori site ka SEO ek CSV me |
 
 ### Import ka form
 
 | Field | Kya hai |
 | --- | --- |
-| `What are you importing?` | dropdown — `Packages` / `Blog posts`. Har kism ka apna doc template hai |
+| `What are you importing?` | dropdown — `Packages` / `Blog posts` / `Pages` / `Meta upload` |
 | `Google Sheet link` | sheet me `Doc File` column, har row me ek doc ka link |
 | `What is in this sheet?` | radio — `New packages` / `Existing packages` (ya `… posts`) |
+
+### `Meta upload` — SEO ka bulk upload (D-107, client 21 Sep)
+
+Dropdown ka naam **client ke apne shabd** hain (_"dropdown name: meta upload"_). Ye target teen
+jagah baaki se alag chalta hai:
+
+| Kya | Kaise |
+| --- | --- |
+| Sheet me kya hota hai | `Page URL` · `SEO Title` · `Meta Description` ke column — **koi doc ka link nahi**, maal row me hi hai |
+| `What is in this sheet?` | **dikhta hi nahi** — SEO Title se koi page banta nahi, to `New/Existing` ke dono jawab ek hi hain |
+| Pehla column (run screen pe) | `Page` — kyunki yahan kuch **banta** nahi, sirf badalta hai |
+
+⚠️ **Khaali cell us khaane ko chhoota hi nahi** (client ka faisla). Aadhi bhari sheet se kabhi kuch
+mitta nahi — par sheet se **mitane ka koi raasta bhi nahi** hai, wo admin me hi hota hai. Ye D-65
+wale _"khaali ke do matlab"_ ka ulta sira hai, aur dono baar faisla client ka tha.
+
+⚠️ **`Export SEO` pehle chalao, phir usi file ko bharo** — file me wahi column hote hain jo import
+dhoondhta hai (`SEO_COLUMN`, ek hi jagah). Export me **sab types aate hain par sirf Published**
+(client). `Type` ka column sirf padhne ke liye hai — import use dekhta hi nahi, kyunki page ki
+pehchaan uska `path` hai.
+
+⚠️ **URL kaise bhi likho, chalega** — `https://site.com/Packages/X/` aur `/packages/x` ek hi page
+hain (origin, query, hash aur bade akshar sab normalize hote hain). **D-86 theek yahi galti thi.**
 
 ⚠️ **Dropdown hai, sidebar me doosra menu nahi** — client ka faisla (10 Sep). Do top-level menu
 banana D-81 wali unki apni baat ke ulta jaata, aur Past imports ki list bhi ek hi rehti hai.
@@ -657,8 +682,9 @@ button ki taraf bhejta jo us naam se hai hi nahi.
 
 ### Past imports
 
-Filter (`.subsubsub`): `All` · `Packages` · `Blog posts` · `Pages` — default `All` (client, 11 Sep;
-Pages 14 Sep).
+Filter (`.subsubsub`): `All` · `Packages` · `Blog posts` · `Pages` · `Meta upload` — default `All`
+(client, 11 Sep; Pages 14 Sep; Meta upload 22 Sep). Tab ke naam `IMPORT_TARGET_LABEL` se aate hain,
+isliye naya target jodte hi wo apne aap dikhta hai.
 
 **Pagination (client, 14 Sep)** — 20 ek page pe, list ke upar `N items ‹ 1 ›`. `All` me teeno type ke
 run **jud kar** aate hain (har type ke 20, yaani 60 tak); har type ka tab apne 20. Pehle list sirf

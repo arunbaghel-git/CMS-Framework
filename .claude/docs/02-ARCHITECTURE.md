@@ -463,12 +463,23 @@ enquiries      * siteId, formId, formName, sourcePath, values{}, status,
                  inbox banegi, dono me se ek naam chunna padega — us din tak ye farq
                  yahan likha hua hai taaki chup na rahe
 importRuns     * siteId, sheetUrl, sheetId, mode(new|existing),       ← D-81, migration 021
-                 target(package|post),                                ← D-92, 10 Sep
+                 target(package|post|page|seo),                       ← D-92, D-95, D-107
                  status(queued|running|done|failed), startedBy,
                  warnings[], error, finishedAt,
                  rows[{ docUrl, docId, status, action(created|updated), entryId,
                         title, path, issues[{ level, label, value, message }],
-                        error, claimedAt, attempts }]                  max 200
+                        values, error, claimedAt, attempts }]          max 200
+                 docUrl ab REQUIRED nahi (D-107) — `seo` wali row ka koi doc hota
+                 hi nahi, uski pehchaan `path` hai. Widening hai: purane har row me
+                 wo bhara hua hai, isliye na backfill na migration
+                 values (Mixed, default null) sirf `seo` target pe — sheet ki row ka
+                 kachcha maal. Sheet EK BAAR padhi jaati hai, isliye har row apni
+                 value saath le kar chalti hai; row-dar-row dobara padhne ka matlab
+                 hota ki beech me sheet badalne pe aadhi run purani aur aadhi nayi
+                 sheet pe chale — bina kisi nishaan ke
+                 ⚠️ `seo` target kisi ek type ka nahi hai (entryType null) — wo har
+                 type ke maujooda page ka seo{title,description} badalta hai aur
+                 KOI page banata nahi (D-107 §5)
                  rows SUBDOCUMENT hain, alag collection nahi — hamesha run ke
                  saath padhi jaati hain, akele kabhi query nahi hoti
                  sheet me kuch LIKHA nahi jaata — status ka ghar yahi hai (client)

@@ -10021,3 +10021,226 @@ khaane khaali karne pe page se **sab kuch gayab** — khaali `<div>` tak nahi (D
   (wahi faisla jo D-102 pe liya gaya tha)
 - **Safai ka koi vikalp** — "sanitize karke daalo" wala mode banane ka matlab hota GA/Pixel/GTM ka
   kaam na karna
+
+---
+
+## D-107
+
+**SEO ka bulk export + import — Bulk Upload ka chautha target** (client, 21–22 Sep 2026)
+
+**Status:** ✅ ban gaya · koi migration nahi
+
+### §1 — Client ka ask
+
+**21 Sep:** _"in Bulk Upload — dropdown name: **meta upload**. kya import/export hoga — SEO Title,
+Meta Description, page url. conclusion: in all pages jahan bhi ye honge wo export aur import kar
+sake. or check karna kya working hai seo title or description, ask if any question."_
+
+**22 Sep:** chaar sawaal poochhe gaye, chaaron ke jawab aaye (§3).
+
+### §2 — Pehle jaanch: SEO Title aur Meta Description **pehle se kaam kar rahe the**
+
+Client ke ask ka aadha hissa "check karo chal raha hai ya nahi" tha, aur wo pehle chala:
+
+| Path | Type | `<title>` | `<meta name="description">` |
+| --- | --- | --- | --- |
+| `/packages/andaman-escape-5-nights` | package | ✅ SEO Title se | ✅ Meta Description se |
+| `/andaman-beaches/bharatpur-beach` | page | ✅ | ✅ |
+| `/blog/andaman-ferry-booking` | post | ✅ | ✅ |
+| `/andaman-tour-packages` | tourPage | Title se (SEO khaali) | koi nahi |
+| `/` | homePage | Title se (SEO khaali) | koi nahi |
+
+Poori chain judi hui thi — **koi "bana hua par juda nahi" wala tootan nahi** (D-82/D-89/D-90 wali
+shakl yahan nahi mili): admin ka SEO panel (`PageEdit.jsx` — page · tourPage · post · blogPage ·
+homePage — aur `PackageEdit.jsx`) → `entries/service.js` ke dono `$set` whitelist me `seo` hai →
+chaaron public projection `seo` bhejti hain → `generateMetadata()` use padhta hai.
+
+⚠️ **Kami data ki thi, code ki nahi** — 28 live entries me se sirf **5** pe SEO bhara tha
+(tourPage · blogPage · homePage pe zero). Yahi **A-17** ka "SEO 91" hai. Yaani client ka ask sahi
+jagah pe tha: 23 page haath se bharne se bach gaye.
+
+### §3 — Chaar faisle, chaaron client ke
+
+| # | Sawaal | Client ka jawab |
+| --- | --- | --- |
+| 1 | Export ki file wapas kaise aaye | **Google Sheet ka link** — wahi flow jo baaki teen target ka hai. CSV upload nahi |
+| 2 | Khaali cell ka matlab | **Us khaane ko chhedo mat.** Mitane ka nishaan bhi nahi |
+| 3 | Export me kaun aaye | **Sab types, sirf Published** |
+| 4 | Kaun se field | **Sirf teen** — Page URL · SEO Title · Meta Description |
+
+⚠️ **#2 D-65 ke ulta hai, aur wo jaan-boojh kar hai.** Wahan khaali `description` line ko **hata**
+deti hai; yahan khaali cell kuch nahi karta. Dono baar faisla client ka tha, aur dono baar wajah
+ek hi: jo nuksaan wapas na ho sake wo default kabhi nahi banta. Aadhi bhari sheet se poori site ka
+SEO udd jaana yahan wahi nuksaan hota — aur uska koi error bhi nahi aata.
+
+⚠️ **#4 ka nateeja:** `seo.canonical` aur `seo.noindex` schema me hain, `generateMetadata()` unhe
+padhta bhi hai, par **admin ki SEO panel me unka koi box nahi hai** — yaani aaj unhe bharne ka koi
+raasta hi nahi. Client ko bataya gaya; unhone teen field hi rakhe. Jis din wo khulein, sheet me do
+column jodna hi kaafi hai.
+
+### §4 — `targets.js` me **chauthi** cheez judi
+
+D-92 me likha gaya tha ki target se sirf **teen** cheezein badalti hain: doc kaise padha jaaye,
+payload kaise bane, aur kaunsi master lists chahiye. SEO ne ek chauthi jodi — **sheet kaise padhi
+jaaye**.
+
+Aaj tak sheet me sirf **Google Doc ke link** hote the (`docUrlsFromSheet`) aur asli maal doc me
+hota tha. Yahan doc hai hi nahi: maal **row me hi** hai. Isliye `TARGET_CONFIG.seo` ke paas
+`sheetRows` hai, aur `startImport()` usi se tay karti hai ki sheet kis tarah rows banegi.
+
+Badle me is target ko teenon purani cheezein **nahi** chahiye — koi doc parse nahi, koi image nahi,
+koi master list nahi (`buildRefs: async () => ({})`). **Ye target baaki teen se sasta hai, mehnga
+nahi.**
+
+### §5 — Teen niyam jo is target pe ulte hain
+
+1. ⚠️ **`entryType` `null` hai.** Package · post · page · tour · blog · home — sab ek hi run me
+   aate hain. Row `path` se dhoondhi jaati hai, type se nahi (R10: `entries.path` hi ekmatra
+   pehchaan hai). Ek hi export file me poori site aati hai, aur yahi client ka _"in all pages"_ hai
+2. ⚠️ **`New / Existing` bemaani hai.** SEO Title se koi page banta hi nahi, yaani us elaan ke dono
+   jawab ek hi hain. Service dono guard chhod deti hai aur admin radio dikhata hi nahi — ek aisa
+   chunav dikhana jiska koi asar na ho, jhootha bharosa deta hai
+3. ⚠️ **`status` kabhi nahi chhua jaata.** Draft page draft hi rehta hai aur live page dobara
+   publish nahi hota. `publishEntry()` bulane ka matlab hota ki 40 page ka SEO theek karne ke
+   badle unki "Published on" tareekh udd jaaye (wahi wajah jo D-81 ke `alreadyLive` guard pe hai)
+
+### §6 — Do chup nuksaan jo pehle hi band kar diye gaye
+
+⚠️ **`seo` ka merge.** `updateEntry()` ka `$set` poora `seo` object **replace** karta hai. Sirf
+`{title, description}` bhejne ka matlab hota ki us page ka `canonical`, `noindex`, `ogTitle`,
+`twitterCard` aur `schemaType` — sab chup-chaap mit jaayein, bina kisi error ke. `toSeoUpdate()`
+isliye purane `seo` ke upar likhta hai. Ye wahi shakl hai jo `updatePackageDefaults()` ke whitelist
+wale jaal ki hai, aur wahi jo `page` target ke `prepare` hook (D-95) ne `fields` pe bachayi thi.
+Live check me asli page pe verify hua: `noindex` · `nofollow` · `twitterCard` · `schemaType`
+chaaron bache.
+
+⚠️ **URL ka normalize.** `pathFromUrl()` origin, `?query`, `#hash` aur aakhir ka slash hata kar
+**lowercase** karta hai. **D-86 theek yahi galti thi** — client ne `Package URL` bade akshar me
+likha tha, Mongo case-sensitive hai, lookup hamesha khaali aata tha, aur us ek `null` se teen guard
+chup-chaap mar gaye the. Live check me `https://…/Test/` ne `/test` dhoondh liya.
+
+### §7 — Export
+
+`GET /api/bulk-imports/export/seo` · permission **`tools.export`** · Bulk Upload ke page-head pe
+`Export SEO` ka button. Columns: `Page URL · Type · SEO Title · Meta Description`.
+
+⚠️ **`tools.export` naya permission nahi hai** — wo `permissions.js` me 19 Aug se declared pada tha
+aur aaj tak kisi route ne use use hi nahi kiya, bilkul `tools.import` ki tarah. **Ye chauthi baar
+hai** ki naye kaam ki cheez pehle se rakhi mili (`.float` D-102, `.sidetab` A-34,
+`settings.scripts.update` D-106). **Naya gadhne se pehle dhoondho.**
+
+⚠️ **Column ke naam `SEO_COLUMN` se aate hain — export aur import dono wahi padhte hain.** Do jagah
+likhne ka nateeja D-86 me dekha ja chuka hai. Yahan wo galti "export ne `SEO Title` likha, import
+`Meta Title` dhoondhta raha" ki shakl leti, aur uska lakshan bhi wahi hota: **kuch na hona**. Ek
+test iska round-trip karta hai — export ka apna output import ke parser se guzarta hai.
+
+⚠️ **`Type` ka naam DB ki content type se aata hai, hardcoded map se nahi** (R11). `tourPage` ek
+andar ka naam hai; file me `Tour Page` likha jaata hai, aur client us type ka label badle to file
+usi din badal jaayegi. `Type` sirf padhne ke liye hai — import use dekhta hi nahi.
+
+⚠️ **`SEO_EXPORT_MAX = 2000`** — cap abhi rakhi gayi hai, tab nahi jab dikkat aaye. Is site pe ~30
+page hain, par ye framework pandrah instance pe chalta hai. Wahi soch `PACKAGE_LIST_SCAN_CAP` aur
+`MAX_IMPORT_ROWS` pe hai.
+
+⚠️ **`csvCell()` ab `packages/shared` me hai.** Wo `forms/service.js` ke andar likha hua tha aur
+SEO export ko bilkul wahi chahiye tha (CSV injection ka guard — `=`, `+`, `-`, `@` se shuru hone
+wali value Excel me formula ban jaati hai). Do copies ka nateeja is repo me teen baar dekha ja
+chuka hai (`htmlToText`, `bestFor`, D-86 ka slug), aur is ek pe wo sabse mehnga hota: ek copy me
+guard theek ho aur doosri me na ho, to farak kisi ko dikhta hi nahi.
+
+### §8 — Schema: do field, **koi migration nahi**
+
+`importRuns` ki `rowSchema` me:
+
+- `docUrl` ab `required` nahi hai (`default: ''`) — SEO wali row ka koi doc hota hi nahi. Ye ek
+  **widening** hai: purane saare row me wo field bhara hua hai, isliye na backfill chahiye na
+  migration, aur koi index isse banta hi nahi
+- naya `values` (`Mixed`, `default: null`) — sheet ki row ka kachcha maal. Sheet sirf **ek baar**
+  padhi jaati hai, to har row ko apni value saath le kar chalna padta hai
+
+⚠️ **Sheet ko row-dar-row dobara padhna ek asli vikalp tha aur wo rad kiya gaya:** worker ke
+chalte-chalte client sheet badal sakta hai, aur tab aadhi run purani sheet pe aur aadhi nayi pe
+chalti — bina kisi nishaan ke.
+
+### §9 — Live check (asli DB)
+
+**Export:** 28 row + header. `Type` ke naam asli content types se (`Package` · `Post` · `Page` ·
+`Tour Page` · `Blog Page` · `Home Page`) — koi andar ka naam nahi. 23 page ka SEO khaali mila.
+
+**Import:** ek row `https://andamantourism.org/Test/` (bada akshar + poora URL + aakhir ka slash) →
+`/test` mil gaya, `seo.title`/`description` lage, aur `noindex`/`nofollow`/`twitterCard`/
+`schemaType` bache. Uske baad page wapas apni purani haalat me kar diya gaya aur run hata diya —
+DB waisi ki waisi (42 entries, koi naya page nahi bana).
+
+⚠️ **Live check me ek cheez dikhi jo code ka bug nahi thi:** `:4000` pe chalta API server **apna**
+`processImportQueue()` tick karta hai (`index.js`), isliye wo script ke worker ke saath race karta
+hai aur row ek pal ke liye `processing` pe dikhti hai. Alag se chalne wale kisi bhi script ko ye
+yaad rakhna chahiye.
+
+**Aur ek baat live check se mili:** baaki har SEO test me **ek hi** row thi, to _"pehli row chali,
+doosri giri"_ wala raasta kisi test se guzarta hi nahi tha. Ab uska apna test hai.
+
+### §10 — Jo jaan-boojh kar nahi bana
+
+- **CSV file ka upload** — client ne Sheet ka link chuna (§3 #1). Uska matlab hota API me naya
+  multipart raasta aur uska apna size/type guard
+- **`canonical` / `noindex` / OG** — client ne teen field hi rakhe (§3 #4)
+- **Khaali cell se mitane ka koi nishaan** — client ne `skip` chuna, `-` wala vikalp nahi
+- **Draft page export me** — client ne sirf Published chuna
+- **Type ya status ka filter** — ek adhoori file utaar kar client samajh sakta hai ki poori site ho
+  gayi
+
+---
+
+## D-107 §11 — Worker ki wo kamzori jo SEO import ne dikhayi (22 Sep, live pe pakdi)
+
+**Status:** ✅ theek ho gaya · koi migration nahi
+
+Client ka pehla asli SEO import **305 second** le raha tha. DB ka hisaab:
+
+```
+28 row → 22 shuru me hi skipped (dono cell khaali)
+5 row  → 10:10:45.3 se 10:10:46.5 tak   (1.2 second me paanchon)
+1 row  → 10:10:46 pe claim, phir ATKI; 10:15:48 pe attempts:2 ke saath dobara uthi
+```
+
+Yaani **asli kaam 2 second ka tha aur 5 minute ek hi row ke intezaar me gaye** — `STUCK_AFTER_MS`
+theek 5 minute hai, to `reclaimStuckRows()` hi use wapas laya. Client ne API restart kiya aur wahi
+import **2.5 second** me ho gaya, par wajah restart se chhup gayi, gayi nahi.
+
+### Do jagah row claim ho kar beech me chhoot sakti thi
+
+1. **`actorFor()` `try` block ke bahar tha.** Uska ek throw (Mongo ki hichki — is machine pe ~0.5 GB
+   RAM bachti hai) poore tick ko le doobta tha. Row `processing` pe padi rehti, aur `claimRow()`
+   sirf `pending` dhoondhta hai — yaani agla tick use **kabhi** nahi uthata. Agli koshish sirf
+   `reclaimStuckRows()` se, 5 minute baad
+2. **`claimRow()` ye bata hi nahi sakta tha ki usne kaunsi row li.** Wo ek `findOneAndUpdate` tha
+   aur caller `rows.find(status === 'processing')` se row dhoondhta tha — yaani **pehli** processing
+   row, zaroori nahi ki wahi jo abhi claim hui. Do worker saath chal jaayein (ya ek purana process
+   abhi zinda ho) to dono **ek hi** row pe kaam karte aur doosri anaath reh jaati
+
+### Ilaaj
+
+- **`claimRow()` ab do kadam ka hai** — pehle padho ki kaunsi row chahiye, phir usi `_id` pe
+  `status: pending` ki shart ke saath likho (`$elemMatch` ke saath positional `$`). Beech me koi
+  aur wahi row le gaya to khaali haath lautta hai aur agla tick agli row uthata hai. Ab wo
+  `{ run, row }` lautata hai, yaani **kaunsi row** ka sawaal hi khatam
+- **`actorFor()` aur `buildRefMaps()` ab `try` ke andar** hain, aur unki galti pe nayi
+  **`releaseRow()`** chalti hai: row wapas `pending`, `claimedAt: null`. Agli koshish **2 second**
+  me, 5 minute me nahi
+- `releaseRow()` `finishRow()` se hi hoti hai, taaki run band karne ka hisaab ek hi jagah rahe.
+  `MAX_ATTEMPTS` yahan bhi lagta hai — warna ek lagataar girta hua actor row ko hamesha kataar me
+  ghumata rehta
+
+⚠️ **`importRow()` ka fail hona isse alag hi rakha gaya.** Wahan galti **row ki apni** hoti hai
+(naam nahi mila, URL nahi mila) — wo hamesha galat rahegi, isliye row seedha `failed` hoti hai.
+`releaseRow()` sirf "kaam **shuru** hi nahi ho paaya" wale case ke liye hai. Dono ko ek karna
+donon me se ek ko jhooth bana deta: ya to asli galti retry hoti rehti, ya hichki `Failed` kehlati.
+
+⚠️ **Ye bug D-81 ka hai, SEO ka nahi** — teeno purane import pe lagta tha. SEO ne use sirf
+**dikhaya**, kyunki uski row 200ms ki hoti hai aur 5 minute ka intezaar chhupta nahi; doc wale
+import me har row khud ~3 second leti hai, wahan wo "thoda slow hai" jaisa lagta tha. **3 naye
+test**, aur pehla wala purane code pe sach me girta hai.
+
+⚠️ **`reclaimStuckRows()` hata nahi** — wo ab bhi zaroori hai. Ye dono fix us haalat ke liye hain
+jahan process **zinda** rehta hai; wo us haalat ke liye hai jahan process hi mar jaaye.

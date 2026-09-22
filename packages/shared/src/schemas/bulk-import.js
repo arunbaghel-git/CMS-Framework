@@ -62,7 +62,12 @@ export const issueSchema = z.object({
 })
 
 export const importRowSchema = z.object({
-  docUrl: z.string().max(2000),
+  /**
+   * ⚠️ **Khaali ho sakta hai, aur wo D-107 se hai.** Teen purane target me har row ek Google Doc
+   * hai; SEO wale target me koi doc hota hi nahi — wahan row ki pehchaan `path` hai. Isliye
+   * `min(1)` nahi lagti, warna poori SEO wali run validation pe girti.
+   */
+  docUrl: z.string().max(2000).default(''),
   docId: z.string().max(120).nullable().default(null),
   status: z.enum(IMPORT_ROW_STATUSES),
   /** Package pehle se tha ya abhi bana — client ko "duplicate to nahi bana?" ka jawab. */
@@ -109,7 +114,20 @@ export const IMPORT_MODES = Object.freeze(Object.values(IMPORT_MODE))
  * ⚠️ Ye `mode` se alag cheez hai aur dono ek saath chalte hain: `target` kehta hai **kya** ban
  * raha hai, `mode` kehta hai **naya ya purana**.
  */
-export const IMPORT_TARGET = Object.freeze({ PACKAGE: 'package', POST: 'post', PAGE: 'page' })
+export const IMPORT_TARGET = Object.freeze({
+  PACKAGE: 'package',
+  POST: 'post',
+  PAGE: 'page',
+  /**
+   * SEO ka bulk upload (D-107) — baaki teen se **alag kism ka** target.
+   *
+   * Teen jaan-boojh kar ulte niyam: ye koi page **banata nahi** (sirf maujooda page ka SEO
+   * badalta hai), iski sheet me Google Doc ke link **nahi** hote (maal row me hi hota hai), aur
+   * ye kisi ek `entryType` ka nahi hai — package, post, page, tour, blog aur home **sab** isme
+   * aate hain.
+   */
+  SEO: 'seo',
+})
 
 export const IMPORT_TARGETS = Object.freeze(Object.values(IMPORT_TARGET))
 
@@ -131,6 +149,12 @@ export const IMPORT_TARGET_LABEL = Object.freeze({
   [IMPORT_TARGET.POST]: { one: 'post', many: 'posts', plural: 'Blog posts' },
   /** Saade page — `page-template-text.html` (client, 14 Sep, D-95). */
   [IMPORT_TARGET.PAGE]: { one: 'page', many: 'pages', plural: 'Pages' },
+  /**
+   * `plural` client ke apne shabd hain (_"dropdown name: meta upload"_, 21 Sep) — isliye wo
+   * baaki teen ki tarah type ka naam nahi hai. Wahi naam dropdown pe aur Past imports ke tab pe
+   * jaata hai.
+   */
+  [IMPORT_TARGET.SEO]: { one: 'page', many: 'pages', plural: 'Meta upload' },
 })
 
 export const startImportSchema = z

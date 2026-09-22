@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   hasFixedPath,
   normalizePath,
+  pathFromUrl,
   rebasePath,
   resolvePath,
   slugify,
@@ -147,5 +148,44 @@ describe('hasFixedPath — home page (D-96)', () => {
     // Nested type ka path parent se banta hai, pattern se nahi
     expect(hasFixedPath({ urlPattern: '/', hierarchical: true })).toBe(false)
     expect(hasFixedPath(null)).toBe(false)
+  })
+})
+
+describe('pathFromUrl — SEO ka bulk import (D-107)', () => {
+  it('poora URL, origin ke bina, aur bina slash wala — teenon ek hi path', () => {
+    expect(pathFromUrl('https://andamantourism.org/packages/x')).toBe('/packages/x')
+    expect(pathFromUrl('/packages/x')).toBe('/packages/x')
+    expect(pathFromUrl('packages/x')).toBe('/packages/x')
+    expect(pathFromUrl('//andamantourism.org/packages/x')).toBe('/packages/x')
+  })
+
+  it('bade akshar lowercase ho jaate hain — D-86 theek yahi galti thi', () => {
+    expect(pathFromUrl('https://site.com/Packages/Discover-Andaman/')).toBe(
+      '/packages/discover-andaman',
+    )
+  })
+
+  it('query aur hash girte hain — client analytics wala poora link chipkata hai', () => {
+    expect(pathFromUrl('/blog/a?utm_source=sheet&x=1')).toBe('/blog/a')
+    expect(pathFromUrl('/blog/a#top')).toBe('/blog/a')
+    expect(pathFromUrl('https://site.com/blog/a?u=1#top')).toBe('/blog/a')
+  })
+
+  it('aakhir ka slash aur aas-paas ki jagah hat-ti hai', () => {
+    expect(pathFromUrl('  /about/team/  ')).toBe('/about/team')
+    expect(pathFromUrl('/about//team')).toBe('/about/team')
+  })
+
+  it('sirf origin ka matlab home page hai', () => {
+    expect(pathFromUrl('https://site.com')).toBe('/')
+    expect(pathFromUrl('https://site.com/')).toBe('/')
+    expect(pathFromUrl('/')).toBe('/')
+  })
+
+  it('khaali cell pe khaali string — caller use Failed row banata hai', () => {
+    expect(pathFromUrl('')).toBe('')
+    expect(pathFromUrl('   ')).toBe('')
+    expect(pathFromUrl(null)).toBe('')
+    expect(pathFromUrl(undefined)).toBe('')
   })
 })

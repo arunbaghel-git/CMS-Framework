@@ -152,3 +152,120 @@ export function docUrlsFromSheet(rows) {
 
   return { urls, warnings }
 }
+
+/**
+ * Ek cell CSV me likhne layak — **aur ye safai sirf sundarta ke liye nahi hai**.
+ *
+ * `=`, `+`, `-`, `@` se shuru hone wali value Excel me **formula** ban jaati hai (CSV
+ * injection). SEO Title/Meta Description client ke apne likhe hue hote hain aur enquiry ka
+ * text to bahar se aata hai, isliye dono jagah ye pehra zaroori hai.
+ *
+ * ⚠️ **Ye pehle `forms/service.js` ke andar rehta tha.** SEO export ko bilkul yahi chahiye tha,
+ * aur do copies ka nateeja is repo me teen baar dekha ja chuka hai (`htmlToText`, `bestFor`,
+ * aur D-86 ka slug). Isliye wo yahan aa gaya aur `forms` ab yahi padhta hai.
+ *
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function csvCell(value) {
+  const text = value === null || value === undefined ? '' : String(value)
+  const guarded = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text
+
+  return `"${guarded.replace(/"/g, '""')}"`
+}
+
+/**
+ * SEO wali sheet ke column ke naam — **export aur import dono yahi padhte hain** (D-107).
+ *
+ * ⚠️ Do jagah likhna theek wahi galti hoti jo **D-86** me hui thi: wahan dhoondhne ka slug aur
+ * save karne ka slug do alag jagah bante the, aur har import duplicate page bana deta tha. Yahan
+ * wo galti "export ne `SEO Title` likha, import `Meta Title` dhoondhta raha" ki shakl me aati —
+ * aur uska lakshan bhi wahi hota: **kuch na hona**, bina error ke.
+ */
+export const SEO_COLUMN = Object.freeze({
+  URL: 'Page URL',
+  TYPE: 'Type',
+  TITLE: 'SEO Title',
+  DESCRIPTION: 'Meta Description',
+})
+
+/**
+ * Har column ke wo naam jo padhte waqt maane jaayenge.
+ *
+ * ⚠️ Saada `title` aur `description` jaan-boojh kar **nahi** hain. Client ki sheet me page ka
+ * apna `Title` column hona bilkul aam hai, aur use SEO Title samajh lene ka matlab hota ki
+ * import chup-chaap har page ka `<title>` badal de.
+ */
+const SEO_ALIASES = Object.freeze({
+  url: ['page url', 'url', 'path', 'page address', 'page link'],
+  title: ['seo title', 'meta title'],
+  description: ['meta description', 'seo description'],
+})
+
+const findColumn = (header, names) => header.findIndex((name) => names.includes(name))
+
+/**
+ * SEO wali sheet ki rows padho — har row ek page.
+ *
+ * Doc wale import se ye **poori tarah alag** hai: wahan sheet me sirf Google Doc ke link hote
+ * hain aur asli maal doc me hota hai; yahan maal **row me hi** hai aur koi doc hai hi nahi.
+ *
+ * ⚠️ **Column position se nahi, naam se** — wahi wajah jo `docUrlsFromSheet()` pe likhi hai.
+ * Par yahan pehle column wala fallback **nahi** hai: teen text column ek jaise dikhte hain, aur
+ * galat andaza yahan "har page ka SEO Title me Meta Description bhar dena" ban jaata.
+ *
+ * @param {string[][]} rows
+ * @returns {{ rows: { url: string, title: string|null, description: string|null }[], warnings: string[] }}
+ */
+export function seoRowsFromSheet(rows) {
+  const warnings = []
+
+  if (rows.length === 0) return { rows: [], warnings: ['The sheet is empty'] }
+
+  const header = rows[0].map(normalizeHeader)
+  const urlColumn = findColumn(header, SEO_ALIASES.url)
+  const titleColumn = findColumn(header, SEO_ALIASES.title)
+  const descriptionColumn = findColumn(header, SEO_ALIASES.description)
+
+  if (urlColumn === -1) {
+    return {
+      rows: [],
+      warnings: [
+        `No "${SEO_COLUMN.URL}" column was found. Export the current SEO first and edit that file — it already has the right columns.`,
+      ],
+    }
+  }
+
+  if (titleColumn === -1 && descriptionColumn === -1) {
+    return {
+      rows: [],
+      warnings: [
+        `Neither a "${SEO_COLUMN.TITLE}" nor a "${SEO_COLUMN.DESCRIPTION}" column was found, so there is nothing to import.`,
+      ],
+    }
+  }
+
+  /**
+   * ⚠️ Ek column ka na hona **rukawat nahi** hai — wo us field ko chhoota hi nahi.
+   *
+   * Client ka faisla (21 Sep): khaali cell ka matlab "is khaane ko chhedo mat" hai. Sirf
+   * Meta Description wali sheet bhejna isliye bilkul jaayaz hai, par wo chup nahi rehna
+   * chahiye — warna client sochta rahega ki Title kyun nahi badla.
+   */
+  if (titleColumn === -1) warnings.push(`No "${SEO_COLUMN.TITLE}" column — titles were left as is`)
+  if (descriptionColumn === -1) {
+    warnings.push(`No "${SEO_COLUMN.DESCRIPTION}" column — descriptions were left as is`)
+  }
+
+  const cell = (cells, column) => (column === -1 ? null : String(cells[column] ?? '').trim())
+
+  const body = rows.slice(1).map((cells) => ({
+    url: String(cells[urlColumn] ?? '').trim(),
+    title: cell(cells, titleColumn),
+    description: cell(cells, descriptionColumn),
+  }))
+
+  if (body.length === 0) warnings.push('The sheet has a header but no rows')
+
+  return { rows: body, warnings }
+}

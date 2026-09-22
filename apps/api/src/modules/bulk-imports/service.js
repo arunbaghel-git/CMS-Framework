@@ -1,4 +1,5 @@
 import {
+  csvCell,
   DEFAULT_SITE_ID,
   docUrlsFromSheet,
   ENTRY_STATUS,
@@ -8,6 +9,8 @@ import {
   IMPORT_TARGET,
   MAX_IMPORT_ROWS,
   parseCsv,
+  pathFromUrl,
+  SEO_COLUMN,
   slugify,
 } from '@cms/shared'
 
@@ -22,13 +25,22 @@ import {
 } from '../../core/google-fetch.js'
 import { cleanGoogleHtml } from '../../core/google-html.js'
 import { logger } from '../../core/logger.js'
-import { createEntry, findEntryBySlug, publishEntry, updateEntry } from '../entries/service.js'
+import { listContentTypes } from '../content-types/service.js'
+import {
+  allEntriesForSeo,
+  createEntry,
+  findEntryByPath,
+  findEntryBySlug,
+  publishEntry,
+  updateEntry,
+} from '../entries/service.js'
 import { createMediaFromUpload, mediaExists } from '../media/service.js'
 import { getRolePermissions } from '../roles/service.js'
 import { User } from '../users/model.js'
 import { importInlineImages, mediaIdFromUrl } from './inline-images.js'
 import { hasBlocker } from './mapper.js'
 import { ImportRun } from './model.js'
+import { toSeoUpdate } from './seo-mapper.js'
 import { buildRefMaps, targetOf } from './targets.js'
 
 /**
@@ -95,36 +107,17 @@ const MAX_KEPT_RUNS = 20
 const runsOfTarget = (target) =>
   target === IMPORT_TARGET.PACKAGE ? { $in: [IMPORT_TARGET.PACKAGE, null] } : target
 
-/* ── run shuru karna ──────────────────────────────────────────────────────── */
+/* ── sheet → rows ─────────────────────────────────────────────────────────── */
 
 /**
- * Sheet padho aur run bana do.
+ * Doc wale target ki rows — sheet me sirf link hote hain (D-81).
  *
- * ⚠️ Sheet **abhi**, isi request me padhi jaati hai (wo ek chhoti fetch hai). Wajah UX ki hai:
- * sabse aam galti "galat ya un-shared sheet ka link" hai, aur uska jawab client ko **turant**
- * milna chahiye — ek 422 ke roop me, na ki poll karte-karte 30 second baad.
+ * ⚠️ Ek hi doc do baar likha ho to doosri baar **skip** — dono ko chalane ka matlab hota ki
+ * doosra pehle ko update karta aur client ko lagta ki kuch gadbad hai.
  */
-export async function startImport(input, actor, siteId = DEFAULT_SITE_ID, deps = {}) {
-  const sheetId = sheetIdFromUrl(input.sheetUrl)
-
-  if (!sheetId) {
-    throw unprocessable(
-      'That does not look like a Google Sheet link. Open the sheet, copy the address bar, and paste it here.',
-    )
-  }
-
-  const csv = await fetchSheetCsv(sheetId, deps)
-  const { urls, warnings } = docUrlsFromSheet(parseCsv(csv))
-
-  if (urls.length === 0) {
-    throw unprocessable(warnings[0] ?? 'No document links were found in that sheet')
-  }
-
-  /**
-   * Ek hi doc do baar likha ho to doosri baar **skip** — dono ko chalane ka matlab hota ki
-   * doosra pehle ko update karta aur client ko lagta ki kuch gadbad hai.
-   */
+function docRowSeeds({ urls, warnings }) {
   const seen = new Set()
+
   const rows = urls.slice(0, MAX_IMPORT_ROWS).map((docUrl) => {
     const docId = docIdFromUrl(docUrl)
     const duplicate = docId && seen.has(docId)
@@ -144,7 +137,90 @@ export async function startImport(input, actor, siteId = DEFAULT_SITE_ID, deps =
       : { docUrl, docId, status: IMPORT_ROW_STATUS.PENDING }
   })
 
-  if (urls.length > MAX_IMPORT_ROWS) {
+  return { rows, warnings, total: urls.length }
+}
+
+/**
+ * SEO wale target ki rows — maal row me hi hai (D-107).
+ *
+ * Yahan row ki pehchaan `docId` nahi, **`path`** hai (R10). Isliye duplicate bhi usi se ginta
+ * hai: ek hi page do baar likha ho to doosri baar skip — warna doosri row pehli ka kaam chup-chaap
+ * palat deti aur client ko sirf "kuch to hua" dikhta.
+ *
+ * ⚠️ Do haalat yahin ruk jaati hain, worker tak jaati hi nahi: bina URL wali row (wo hamesha
+ * client ki galti hai) aur wo row jiske **dono** khaane khaali hain. Doosri ko `pending` rakhna
+ * bemaani hota — client ka faisla ye hai ki khaali cell kuch badalta hi nahi, to us row ka poora
+ * matlab hi "kuch mat karo" hai. Use chupchaap chhod dena bhi galat hota: Past imports me uski
+ * ginti `Skipped` me dikhni chahiye, warna client sochta rahega ki wo page kyun nahi badla.
+ */
+function seoRowSeeds({ rows: values, warnings }) {
+  const seen = new Set()
+
+  const rows = values.slice(0, MAX_IMPORT_ROWS).map((value) => {
+    const path = pathFromUrl(value.url)
+    const seed = { docUrl: '', docId: null, path, values: value }
+
+    if (!path) {
+      return { ...seed, status: IMPORT_ROW_STATUS.FAILED, error: 'This row has no page address' }
+    }
+
+    if (seen.has(path)) {
+      return { ...seed, status: IMPORT_ROW_STATUS.SKIPPED, error: 'This page is listed twice' }
+    }
+
+    seen.add(path)
+
+    const empty = !String(value.title ?? '').trim() && !String(value.description ?? '').trim()
+
+    return empty
+      ? { ...seed, status: IMPORT_ROW_STATUS.SKIPPED, error: 'Both cells were empty' }
+      : { ...seed, status: IMPORT_ROW_STATUS.PENDING }
+  })
+
+  return { rows, warnings, total: values.length }
+}
+
+/* ── run shuru karna ──────────────────────────────────────────────────────── */
+
+/**
+ * Sheet padho aur run bana do.
+ *
+ * ⚠️ Sheet **abhi**, isi request me padhi jaati hai (wo ek chhoti fetch hai). Wajah UX ki hai:
+ * sabse aam galti "galat ya un-shared sheet ka link" hai, aur uska jawab client ko **turant**
+ * milna chahiye — ek 422 ke roop me, na ki poll karte-karte 30 second baad.
+ */
+export async function startImport(input, actor, siteId = DEFAULT_SITE_ID, deps = {}) {
+  const sheetId = sheetIdFromUrl(input.sheetUrl)
+
+  if (!sheetId) {
+    throw unprocessable(
+      'That does not look like a Google Sheet link. Open the sheet, copy the address bar, and paste it here.',
+    )
+  }
+
+  const csv = await fetchSheetCsv(sheetId, deps)
+  const target = targetOf(input.target)
+
+  /**
+   * Sheet ko row me badalne ke **do** tareeke hain, aur target batata hai kaunsa (D-107).
+   *
+   * Teen purane target me sheet sirf **Google Doc ke link** rakhti hai; SEO wale target me
+   * poora maal row me hi hota hai. Isiliye `sheetRows` wala target apni sheet khud padhta hai.
+   */
+  const { rows, warnings, total } = target.sheetRows
+    ? seoRowSeeds(target.sheetRows(parseCsv(csv)))
+    : docRowSeeds(docUrlsFromSheet(parseCsv(csv)))
+
+  if (rows.length === 0) {
+    throw unprocessable(
+      warnings[0] ??
+        (target.sheetRows
+          ? 'No rows were found in that sheet'
+          : 'No document links were found in that sheet'),
+    )
+  }
+
+  if (total > MAX_IMPORT_ROWS) {
     warnings.push(`Only the first ${MAX_IMPORT_ROWS} rows were taken from the sheet`)
   }
 
@@ -238,6 +314,80 @@ async function importBanner(url, actor, siteId, deps) {
 }
 
 /**
+ * Ek sheet row → ek maujooda page ka SEO (D-107).
+ *
+ * Yahan koi doc fetch nahi hoti — maal `row.values` me pehle se hai — isliye ye function sirf
+ * teen kaam karta hai: page dhoondho, `seo` merge karo, likh do.
+ *
+ * ⚠️ **`updateEntry()` se hi jaata hai, seedha Mongo se nahi.** Uske andar `path:` cache tag ki
+ * safai aur revision dono hain. Seedha `$set` karne ka matlab hota ki badla hua SEO site pe
+ * **ek ghante tak** na dikhe — bilkul wahi lakshan jo D-83 (ISR inert) aur A-26 (sidebar) pe
+ * mila tha, aur jise client hamesha _"save hi nahi hua"_ samajhta hai.
+ *
+ * ⚠️ **Page ka `status` kabhi nahi chhua jaata.** Draft page draft hi rehta hai aur live page
+ * dobara publish nahi hota. `publishEntry()` yahan bulana `publishAt` ko aaj ki tareekh pe
+ * reset kar deta — 40 page ka SEO theek karne ke badle unki "Published on" udd jaati.
+ */
+async function importSeoRow(run, row, actor) {
+  const siteId = run.siteId
+  const path = row.path
+
+  const existing = await findEntryByPath(path, siteId)
+
+  if (!existing) {
+    throw new Error(
+      `No page with the address "${path}" was found. Export the current SEO to see the exact addresses.`,
+    )
+  }
+
+  if (existing.deletedAt) {
+    throw new Error(`The page at "${path}" is in the Trash. Restore it, then import again.`)
+  }
+
+  const { seo, changed, issues } = toSeoUpdate(row.values, existing)
+
+  if (changed.length === 0) {
+    return {
+      status: IMPORT_ROW_STATUS.SKIPPED,
+      action: null,
+      entryId: existing._id,
+      title: existing.title ?? '',
+      path: existing.path ?? path,
+      issues,
+      error: 'Both cells were empty',
+    }
+  }
+
+  /** `version` abhi padha jaata hai — run lamba hota hai aur beech me koi save kar sakta hai. */
+  const entry = await updateEntry(
+    String(existing._id),
+    { seo, version: existing.version },
+    actor,
+    siteId,
+  )
+
+  /**
+   * Row ka status page ki **apni** haalat batata hai, import ke nateeje ki nahi.
+   *
+   * Yahan "published" ka matlab hai _"ye badlaav abhi live hai"_, aur "draft" ka _"page abhi
+   * live nahi hai, isliye ye SEO bhi kisi ko nahi dikhega"_. Doosra hissa client ke liye
+   * zaroori hai — warna wo ek draft page ka SEO bhar kar Google me dhoondhta rehta.
+   */
+  return {
+    status:
+      entry.status === ENTRY_STATUS.PUBLISHED
+        ? IMPORT_ROW_STATUS.PUBLISHED
+        : IMPORT_ROW_STATUS.DRAFT,
+    action: 'updated',
+    entryId: entry.id ?? entry._id,
+    title: entry.title ?? existing.title ?? '',
+    path: entry.path ?? path,
+    issues,
+    error: null,
+  }
+}
+
+/**
  * Ek doc → ek package.
  *
  * Yahan har `throw` ek **row** ko giraata hai, poore run ko nahi. Ek doc ka private ho jaana
@@ -251,6 +401,17 @@ async function importRow(run, row, refs, actor, deps) {
    * `img` khule ya nahi. Baaki poora function dono ke liye ek jaisa hai (spec 008).
    */
   const target = targetOf(run.target)
+
+  /**
+   * SEO wala target neeche ka poora daur chalta hi nahi (D-107).
+   *
+   * Neeche jo kuch hai — doc fetch, inline images, parse, map, banner, create/publish — wo sab
+   * **ek page banane** ka kaam hai. SEO import koi page banata hi nahi; wo ek maujooda page ke
+   * do khaane badalta hai. Us raaste pe use bhejne ka matlab hota ki har `if (target.seo)` uske
+   * andar ghusta jaaye, aur wahi jodna D-81 ke module ko dheere-dheere do modules ka mix bana
+   * deta.
+   */
+  if (target.updatesSeoOnly) return importSeoRow(run, row, actor)
 
   let html = cleanGoogleHtml(await fetchDocHtml(row.docId, deps), {
     allowImages: target.allowImages,
@@ -463,17 +624,45 @@ async function importRow(run, row, refs, actor, deps) {
 /* ── worker ───────────────────────────────────────────────────────────────── */
 
 /**
- * Ek pending row uthao — **atomic**.
+ * Ek pending row uthao — **atomic**, aur bata do ki **kaunsi** uthayi.
  *
- * Filter hi lock hai: `findOneAndUpdate` ek hi row ko `processing` kar paata hai, chahe do
- * instance ek saath chal rahe hon. Wahi pattern jo `publishDueEntries()` me hai (R2), aur wahi
- * wajah — DB sach ka ghar hai, process ki memory nahi.
+ * Filter hi lock hai: claim wali `findOneAndUpdate` ek hi row ko `processing` kar paati hai,
+ * chahe do instance ek saath chal rahe hon. Wahi pattern jo `publishDueEntries()` me hai (R2),
+ * aur wahi wajah — DB sach ka ghar hai, process ki memory nahi.
+ *
+ * ⚠️ **Do kadam isliye hain ki ek kadam ye nahi bata sakta ki kaunsi row mili.** Pehle ye ek hi
+ * `findOneAndUpdate` tha, aur caller phir `rows.find(status === 'processing')` se row dhoondhta
+ * tha — yaani **pehli** processing row, zaroori nahi ki wahi jo abhi claim hui. Do worker saath
+ * chal jaayein (ya ek purana process abhi zinda ho) to dono ek hi row pe kaam karte the aur
+ * doosri row **anaath** `processing` pe padi reh jaati thi. Uska lakshan client ko **theek 5
+ * minute ka intezaar** dikhta tha (`STUCK_AFTER_MS`), aur asli import 2 second ka hota tha.
+ * Ye 22 Sep ko SEO ke import pe pakda gaya — 28 row ka import **305 second** le raha tha.
+ *
+ * Pehla kadam sirf **padhta** hai (kaunsi row chahiye), doosra usi `_id` pe `status: pending`
+ * ki shart ke saath likhta hai — yaani beech me koi aur wahi row le gaya to ye khaali haath
+ * lautta hai aur agla tick agli row uthata hai. `$elemMatch` ke saath positional `$` usi element
+ * pe lagta hai.
+ *
+ * @returns {Promise<{ run: object, row: object }|null>}
  */
 async function claimRow(now) {
-  return ImportRun.findOneAndUpdate(
+  const candidate = await ImportRun.findOne(
     {
       status: { $in: [IMPORT_RUN_STATUS.QUEUED, IMPORT_RUN_STATUS.RUNNING] },
       'rows.status': IMPORT_ROW_STATUS.PENDING,
+    },
+    { rows: { $elemMatch: { status: IMPORT_ROW_STATUS.PENDING } } },
+  )
+    .sort({ createdAt: 1 })
+    .lean()
+
+  const rowId = candidate?.rows?.[0]?._id
+  if (!rowId) return null
+
+  const run = await ImportRun.findOneAndUpdate(
+    {
+      _id: candidate._id,
+      rows: { $elemMatch: { _id: rowId, status: IMPORT_ROW_STATUS.PENDING } },
     },
     {
       $set: {
@@ -483,8 +672,14 @@ async function claimRow(now) {
       },
       $inc: { 'rows.$.attempts': 1 },
     },
-    { new: true, sort: { createdAt: 1 } },
+    { new: true },
   )
+
+  if (!run) return null
+
+  const row = run.rows.find((entry) => String(entry._id) === String(rowId))
+
+  return row ? { run, row } : null
 }
 
 /** Row ka nateeja wapas usi jagah likho, aur run khatam hua ho to use band kar do. */
@@ -510,6 +705,43 @@ async function finishRow(runId, rowId, result) {
     run.finishedAt = new Date()
     await run.save()
   }
+}
+
+/**
+ * Row claim to ho gayi thi, par kaam **shuru hi nahi ho paaya** — use wapas kataar me daal do.
+ *
+ * ⚠️ Ye `importRow()` ke fail hone se **alag** cheez hai. Wahan doc ya row me kuch galat hota
+ * hai (naam nahi mila, URL nahi mila) — wo hamesha galat rahega, isliye row seedha `failed`
+ * hoti hai aur dobara koshish bemaani hai. Yahan galti **row ki nahi** hai: actor nahi ban paaya
+ * ya master lists nahi aayi, yaani Mongo ki ek hichki. Aisi row ko `failed` kehna jhooth hai.
+ *
+ * Pehle aisi galti `processImportQueue()` se **bahar nikal jaati thi** (`actorFor` `try` ke bahar
+ * tha), aur row `processing` pe padi reh jaati thi — agli koshish `reclaimStuckRows()` ke bharose,
+ * yaani **paanch minute** baad. Ab wo agle tick pe hoti hai, **do second** me.
+ *
+ * `attempts` claim ke waqt hi badh chuka hai, isliye `MAX_ATTEMPTS` yahan bhi lagta hai — warna
+ * ek lagataar girta hua actor row ko hamesha ke liye kataar me ghumata rehta.
+ */
+async function releaseRow(run, row, err) {
+  logger.warn(
+    { err, runId: String(run._id), rowId: String(row._id), attempts: row.attempts },
+    'Bulk import row shuru hi nahi ho payi — wapas kataar me',
+  )
+
+  if (row.attempts >= MAX_ATTEMPTS) {
+    await finishRow(run._id, row._id, {
+      status: IMPORT_ROW_STATUS.FAILED,
+      error: `This row could not be started: ${String(err?.message ?? 'something went wrong')}`.slice(
+        0,
+        500,
+      ),
+    })
+
+    return
+  }
+
+  /** `finishRow()` se hi — wo run ko band karne ka hisaab bhi rakhti hai (yahan band nahi hoga). */
+  await finishRow(run._id, row._id, { status: IMPORT_ROW_STATUS.PENDING, claimedAt: null })
 }
 
 /**
@@ -558,13 +790,29 @@ export async function reclaimStuckRows(now = new Date()) {
  * karti.
  */
 export async function processImportQueue(deps = {}) {
-  const run = await claimRow(new Date())
-  if (!run) return { processed: 0 }
+  const claimed = await claimRow(new Date())
+  if (!claimed) return { processed: 0 }
 
-  const row = run.rows.find((entry) => entry.status === IMPORT_ROW_STATUS.PROCESSING)
-  if (!row) return { processed: 0 }
+  const { run, row } = claimed
 
-  const actor = await actorFor(run.startedBy)
+  /**
+   * ⚠️ **Ye do line `try` ke andar hain, aur wo jaan-boojh kar hai.**
+   *
+   * Pehle `actorFor()` bahar tha. Uska ek throw poore tick ko le doobta tha aur row `processing`
+   * pe chhoot jaati thi — paanch minute ke intezaar ke saath. Ab wo `releaseRow()` se turant
+   * wapas kataar me aati hai.
+   */
+  let actor
+  let refs
+
+  try {
+    actor = await actorFor(run.startedBy)
+    refs = deps.refs ?? (await buildRefMaps(run.target, run.siteId))
+  } catch (err) {
+    await releaseRow(run, row, err)
+
+    return { processed: 1 }
+  }
 
   if (!actor) {
     await finishRow(run._id, row._id, {
@@ -576,8 +824,6 @@ export async function processImportQueue(deps = {}) {
   }
 
   try {
-    const refs = deps.refs ?? (await buildRefMaps(run.target, run.siteId))
-
     await finishRow(run._id, row._id, await importRow(run, row, refs, actor, deps))
   } catch (err) {
     /**
@@ -722,4 +968,55 @@ export async function getImportRun(id, siteId = DEFAULT_SITE_ID) {
   if (!run) throw notFound('That import could not be found')
 
   return toApi(run)
+}
+
+/* ── SEO ka export ────────────────────────────────────────────────────────── */
+
+/**
+ * Ek file me kitne page — `allEntriesForSeo()` ki chhat.
+ *
+ * ⚠️ Cap **abhi** rakhi gayi hai, tab nahi jab dikkat aaye. Aaj is site pe ~30 page hain, par
+ * ye framework pandrah instance pe chalta hai; ek 5,000-page wali site pe bina cap ke ye query
+ * poori collection memory me uthaati aur response bhi utna hi bhaari hota. Wahi soch
+ * `PACKAGE_LIST_SCAN_CAP` (D-87 Slice B) aur `MAX_IMPORT_ROWS` pe hai.
+ */
+export const SEO_EXPORT_MAX = 2000
+
+/**
+ * Poori site ka SEO ek CSV me — import ka doosra sira (D-107, client 21 Sep).
+ *
+ * ⚠️ **Column ke naam `SEO_COLUMN` se aate hain, haath se nahi likhe jaate.** Import wahi
+ * constant padhta hai. Do jagah likhne ka nateeja D-86 me dekha ja chuka hai: wahan dhoondhne
+ * aur save karne ka slug alag ho gaya tha, aur har import duplicate page bana raha tha — bina
+ * kisi error ke. Yahan wo galti "export ne `SEO Title` likha, import `Meta Title` dhoondhta
+ * raha" banti, aur uska lakshan bhi wahi hota: **kuch na hona**.
+ *
+ * ⚠️ **`Type` ka naam DB ki content type se aata hai, hardcoded map se nahi** — R11. `tourPage`
+ * ek andar ka naam hai; client ki file me `Tour page` likha hona chahiye, aur agar client us
+ * type ka label badal de to file usi din badal jaani chahiye.
+ *
+ * `Type` sirf padhne ke liye hai — import use dekhta hi nahi, kyunki page ki pehchaan uska
+ * `path` hai (R10). Wo file me isliye hai ki client Sheets me type se chhaant sake.
+ *
+ * @param {string} [siteId]
+ * @returns {Promise<string>}
+ */
+export async function exportSeoCsv(siteId = DEFAULT_SITE_ID) {
+  const [entries, { contentTypes }] = await Promise.all([
+    allEntriesForSeo(SEO_EXPORT_MAX, siteId),
+    listContentTypes({ page: 1, limit: 100 }, siteId),
+  ])
+
+  const labelOf = new Map(contentTypes.map((type) => [type.key, type.label]))
+
+  const header = [SEO_COLUMN.URL, SEO_COLUMN.TYPE, SEO_COLUMN.TITLE, SEO_COLUMN.DESCRIPTION]
+
+  const rows = entries.map((entry) => [
+    entry.path,
+    labelOf.get(entry.type) ?? entry.type,
+    entry.seo?.title ?? '',
+    entry.seo?.description ?? '',
+  ])
+
+  return [header, ...rows].map((row) => row.map(csvCell).join(',')).join('\r\n')
 }

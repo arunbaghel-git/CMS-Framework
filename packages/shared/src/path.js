@@ -146,3 +146,41 @@ export function rebasePath(childPath, oldParentPath, newParentPath) {
 
   return normalizePath(`${newBase}${child.slice(oldBase.length)}`)
 }
+
+/**
+ * Client ke likhe hue kisi bhi URL se site ka apna `path` — SEO ka bulk import (D-107).
+ *
+ * Sheet me client teen me se kuch bhi likh sakta hai, aur teenon ek hi page hain:
+ *
+ * ```
+ * https://andamantourism.org/Packages/Discover-Andaman/
+ * /packages/discover-andaman
+ * packages/discover-andaman?utm_source=sheet#top
+ * ```
+ *
+ * ⚠️ **Lowercase karna yahan ek zaroorat hai, safai nahi.** `path` hamesha `slugify()` se
+ * banta hai yaani lowercase hota hai, aur Mongo case-sensitive hai. **D-86 theek yahi galti
+ * thi**: client ne `Package URL` bade akshar me likha tha, lookup hamesha khaali aata tha,
+ * aur har import ek naya duplicate page bana deta tha — bina kisi error ke. Us waqt teen
+ * guard is ek `null` se chup-chaap mar gaye the.
+ *
+ * `?query` aur `#hash` isliye girte hain ki wo page ki pehchaan ka hissa nahi hain —
+ * client aksar analytics wala poora link copy karke chipka deta hai.
+ *
+ * @param {string} value
+ * @returns {string} `/` se shuru hota path, ya khaali string agar kuch bacha hi na ho
+ */
+export function pathFromUrl(value) {
+  const raw = String(value ?? '').trim()
+  if (!raw) return ''
+
+  /** Origin sirf tab hatta hai jab wo sach me ek URL ho — `//` wala protocol-relative bhi. */
+  const withoutOrigin = raw.replace(/^([a-z][a-z0-9+.-]*:)?\/\/[^/]+/i, '')
+  const withoutQuery = withoutOrigin.split('#')[0].split('?')[0]
+  const trimmed = withoutQuery.trim()
+
+  /** `https://site.com` akela — yaani home page. */
+  if (!trimmed) return raw === withoutOrigin ? '' : '/'
+
+  return normalizePath(trimmed.toLowerCase())
+}
