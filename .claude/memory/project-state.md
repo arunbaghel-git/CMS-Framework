@@ -8,8 +8,11 @@
 >
 > **Suite: 54 files, 1402/1403 pass** — akela fail wahi purana `theme-fonts.test.js`
 > (`.hf-stat span`, client ka apna CSS edit — chhua nahi). Mail ke **37 naye test** (29 API + 8 shared).
-> ✅ **Client ne Email screen chala kar dekh li** — mail MailDev me pahunchi, poora raasta live
-> verify. Usi chalane se **ek asli bug nikla aur theek hua**: `hasPassword` (**D-108 §9**).
+> ✅ **Client ne poora raasta do baar chala kar dekha — MailDev pe, aur apne asli Google Workspace
+> account (`arun@progryss.com`) se.** Mail `progryss@gmail.com` ke **Inbox me aayi, Spam me nahi**.
+> **A-42 band.** Usi chalane se **ek asli bug nikla aur theek hua**: `hasPassword` (**D-108 §9**).
+> ⚠️ **Client ne `Enquiry Notifications` panel mana kar diya** (D-108 §10) — nayi enquiry pe
+> **email nahi jaayegi**, aur SMTP ka aaj koi asli grahak nahi hai (sirf `Send Test Email`).
 > ⚠️ **Push baaki hai** (`git log --oneline origin/main..HEAD`).
 >
 > **Usse pehle — 21 Sep:** din me **teen feature bane** (**D-102** floating WhatsApp + phone
@@ -34,10 +37,11 @@
 
 ⚠️ **Paanch cheezein jo agli session ko turant pata honi chahiye:**
 
-1. **A-42 ab sirf password wale teen flow tak simat gaya hai** — mukhya raasta client ne chala kar
-   dekh liya (mail MailDev me pahunchi, `panel-foot` bhi theek). Bacha hua sabse zaroori check
-   **#2** hai: password bhar ke Save, phir sirf From Name badal kar Save — mail **phir bhi jaani
-   chahiye**. Jo ho chuka hai wo bhi wahin likha hai — dobara mat karna.
+1. **A-42 band — SMTP ka kaam poora ho chuka hai.** Client ne asli Google Workspace account se mail
+   bhej kar dekh li (Inbox me aayi). Password wale teenon flow bhi chal gaye. **Isme ab kuch nahi
+   karna.** ⚠️ Ek baat yaad rahe: **client ka network port 465 block karta hai, 587 khula hai** —
+   agli baar bhi mail ki dikkat pe **pehle yahi dekho**, `ETIMEDOUT` bilkul "code toota hai" jaisa
+   dikhta hai.
 2. **Dev me mail ke liye asli account ki zaroorat nahi** — `docker compose up -d maildev`, phir
    screen me Host `localhost` · Port `1025`. Inbox `http://localhost:1080`. (`06-OPERATIONS.md` §4.2)
 3. **Client ka dummy test code abhi `integrations.header` me pada hai**

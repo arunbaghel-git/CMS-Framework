@@ -940,15 +940,24 @@ khaali value se dono matlab nikalna wahi galti hai jo D-105 pe pakdi gayi thi.
 likha hai. Kisi aur address ka khaana jaan-boojh kar nahi hai: wo `settings.update` wale har user
 ko site ke naam pe mail bhejne ka raasta de deta.
 
-### ⚠️ Design se do farak — dono jaan-boojh kar (D-108 §7)
+### ⚠️ Design se ek bada farak — **client ka faisla** (D-108 §7, §10)
 
-| Design me hai | Abhi nahi bana | Kyun |
+**Client, 22 Sep:** _"ok its working i dont need Enquiry Notifications panel"_
+
+| Design me hai | Banega? | Kyun |
 | --- | --- | --- |
-| `Enquiry Notifications` panel (notify addresses · auto-reply · template) | Poora panel | SMTP pehle chalta hua verify ho. Ye alag kaam hai |
-| `Attach package PDF to auto-reply` | Checkbox | PDF generator hai hi nahi |
-| `Send daily enquiry digest at 9:00 AM` | Checkbox | Scheduler nahi hai (R8 — DB-based, `setTimeout` kabhi nahi) |
+| `Enquiry Notifications` panel (notify addresses · auto-reply · template) | ❌ **Nahi** | **Client ne mana kiya** (22 Sep), SMTP live chal jaane ke baad |
+| `Attach package PDF to auto-reply` | ❌ Nahi | Upar wale panel ka hissa. PDF generator hai bhi nahi |
+| `Send daily enquiry digest at 9:00 AM` | ❌ Nahi | Wahi panel. Scheduler bhi nahi hai (R8 — DB-based, `setTimeout` kabhi nahi) |
 
-**Ye R15 ka deviation hai aur client ko batana hai.** Wajah D-30 wali hi hai — _khaali panel
-dikhane se behtar hai wo panel na dikhna_ — aur uske upar A-41: is repo ka sabse baar-baar aane
-wala bug yahi hai ki cheez ban jaati hai aur koi use padhta hi nahi. Ek checkbox jo kuch na kare
-usse bura hai ki wo hai hi nahi, kyunki client uspe bharosa kar baithta hai.
+⚠️ **Ye ab "abhi nahi" nahi, "nahi" hai** — yaani R15 ka ek **client-approved deviation**, koi
+bacha hua kaam nahi. Pehle ye "SMTP verify hone ke baad dekhenge" likha tha; 22 Sep ko client ne
+chala kar dekhne ke baad faisla de diya.
+
+⚠️ **Seedha natija:** nayi enquiry pe **kisi ko email nahi jaayegi** — wo `Enquiries` inbox me
+aayegi aur wahin se dekhni padegi (D-75/76 wali hi soch).
+
+Do checkbox waise bhi na bante, aur wo wajah rehni chahiye: D-30 — _khaali panel dikhane se behtar
+hai wo panel na dikhna_ — aur uske upar A-41, ki is repo ka sabse baar-baar aane wala bug yahi hai
+ki cheez ban jaati hai aur koi use padhta hi nahi. Ek checkbox jo kuch na kare usse bura hai ki wo
+hai hi nahi, kyunki client uspe bharosa kar baithta hai.

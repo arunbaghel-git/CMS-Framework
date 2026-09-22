@@ -2,10 +2,12 @@
 
 **Last updated:** 22 Sep 2026 — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
 **SMTP ka sabse purana blocker khul gaya** (Phase 0, 19 Aug se). Koi migration nahi.
-✅ **Client ne screen chala kar dekh li aur mail MailDev me pahunchi** — poora raasta live verify
-(screen → PATCH → DB → test → asli SMTP → inbox). Usi chalane se **ek asli bug nikla** aur theek
-hua: `hasPassword` (**D-108 §9**) — wo 29 API test se guzar gaya tha, kyunki wo sab payload khud
-banate hain. **A-42** ab sirf password wale teen flow tak simat gaya hai.
+✅ **Client ne poora raasta do baar chala kar dekha — MailDev pe, aur apne asli Google Workspace
+account se.** Mail `progryss@gmail.com` ke **Inbox me aayi, Spam me nahi**. **A-42 band.**
+⚠️ Usi chalane se **ek asli bug nikla** aur theek hua: `hasPassword` (**D-108 §9**) — wo 29 API
+test se guzar gaya tha, kyunki wo sab payload **khud banate hain**. Ilaaj D-105 wala.
+⚠️ **Client ne `Enquiry Notifications` panel mana kar diya** (D-108 §10) — yaani nayi enquiry pe
+**email nahi jaayegi**, aur SMTP ka aaj koi asli grahak nahi hai (sirf `Send Test Email`).
 ✅ **SMTP ab admin panel se configure hota hai**, `.env` se nahi — `settings.mail`. Uske peeche ruke
 chaar kaam ab **ban sakte hain**: enquiry notification + auto-reply (D-75/76), `forgot`/`reset`
 auth routes, Enquiries ▸ Send Quotation, aur user ka email badalna. **Koi apne aap nahi bana** —
@@ -407,41 +409,47 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
-### A-42 · Email / SMTP — **mukhya raasta live chal gaya**; sirf password wale teen flow baaki (22 Sep, D-108)
+### ✅ A-42 · Email / SMTP — **band** (22 Sep, D-108 §9–§10)
 
-**Deadline:** koi sakht nahi · **kuch toota hua nahi** — 37 test (29 API + 8 shared), 54 files
-1402/1403
+> Client ne screen chala kar poora raasta dekh liya — **do baar**: pehle MailDev pe, phir apne
+> **asli Google Workspace account** (`arun@progryss.com`) se. Mail `progryss@gmail.com` ke
+> **Inbox me aayi, Spam me nahi**.
+>
+> ✅ Password wale teenon flow bhi chal gaye — sabse zaroori wala bhi: sirf From Name badal kar
+> Save, aur mail **phir bhi gayi** (khaali password = "purana rehne do", D-105 ka guard).
+>
+> ⚠️ **Usi chalane se ek asli bug nikla tha — `hasPassword` (D-108 §9).** 29 API test usse nahi
+> pakad paaye kyunki wo sab payload **khud banate hain**; toota hua raasta sirf screen me tha.
+> Ilaaj D-105 wala: niyam ab `toMailUpdate()` me hai, `handleSubmit()` ke andar nahi (+8 test).
+>
+> ⚠️ **Deliverability wala pass alag se mayne rakhta hai** — MailDev wo kabhi sabit nahi kar
+> sakta tha (D-108 §6 me yahi likha tha). Spam me na jaana `progryss.com` ke SPF se aaya.
+>
+> ⚠️ **Client ka network port 465 block karta hai** (587 khula hai). Bhejne se pehle dono ports pe
+> TCP connect karke dekh liya gaya tha, isliye wo galat koshish hui hi nahi. `ETIMEDOUT` bilkul
+> "code toota hai" jaisa dikhta hai jabki wo network ka mamla hota hai — **agli baar bhi pehle
+> yahi dekho.**
 
-✅ **Client ne screen chala kar dekh li, aur usi se ek asli bug nikla** — `hasPassword` wala
-(**D-108 §9**), jo 29 API test se guzar gaya tha kyunki wo sab payload khud banate hain. Theek ho
-chuka (`toMailUpdate()` + 8 naye shared test).
+---
 
-Jo **verify ho chuka** hai (dobara mat karo):
+### ⚠️ SMTP ban gaya, par uska koi asli grahak abhi nahi hai (22 Sep, D-108 §10)
 
-| ✅ | Saboot |
-| --- | --- |
-| Screen khulti hai, `NotBuiltYet` nahi | Client ka screenshot — tabs, chhe khaane `row2` me, hints |
-| **`panel-foot` ke teen bachche theek baithte hain** | Wahi screenshot. Ye is list ka **sabse bada shak** tha |
-| Save → DB | `settings.mail` `12:22:40` pe likhi gayi (host · port · fromName · fromEmail) |
-| Send Test Email → **asli SMTP** → inbox | MailDev `12:22:46`, `From: Test Site <cms@test.local>` → `To: progryss@gmail.com` |
-| `to` logged-in user ka apna email hai | Wahi mail — body se address nahi liya gaya (D-108 §5) |
+**Deadline:** koi sakht nahi · **kuch toota hua nahi**
 
-Jo **abhi bhi baaki** hai — teenon **password** se jude hain, aur client ne password bhara hi nahi
-tha (MailDev ko auth chahiye hi nahi, `hasPasswordEnc: false`):
+**Client, 22 Sep:** _"ok its working i dont need Enquiry Notifications panel"_
 
-| # | Kya dekhna hai | Kyun |
-| --- | --- | --- |
-| 1 | Password bhar ke Save → reload → khaana **khaali** khule par hint kahe _"A password is saved"_ | `hasPassword` ka poora round trip |
-| 2 | Phir sirf From Name badal kar Save → mail **phir bhi jaaye** | Khaali password = "purana rehne do" — **D-105 wali galti**, sabse zaroori check |
-| 3 | `Remove saved password` → hint wapas _"Gmail needs an App Password"_ pe aaye | `clearPassword` |
-| 4 | Galat host daal kar test → screen pe **saaf error**, 500 nahi | `verify()` ka message |
+Yaani reference ka doosra panel **banega hi nahi** — ye ab R15 ka **client-approved deviation** hai,
+koi bacha hua kaam nahi (`04-ADMIN-UX.md` me likha hai).
 
-⚠️ **#2 sabse zaroori hai** — API test usse pakad chuka hai, par screen ka apna raasta (`password: ''`
-bhejna) sirf browser me chalta hai. **§9 ne abhi dikhaya hai ki screen ka raasta API test se alag
-hota hai**, isliye is ek pe bharosa test se nahi, chala kar hi aana chahiye.
+⚠️ **Seedha natija:** nayi enquiry pe **kisi ko email nahi jaayegi**. Enquiry `Enquiries` inbox me
+aati rahegi (D-75/76) aur wahin se dekhni padegi. Ye wahi soch hai jo D-76 me thi.
 
-⚠️ Password bharne ke liye MailDev kaam nahi aayega (wo auth maangta hi nahi) — koi bhi bekaar
-value chalegi, kyunki jaanch sirf "store hui ya nahi" ki hai, "sahi hai ya nahi" ki nahi.
+⚠️ **To aaj SMTP ka istemaal karne wala sirf `Send Test Email` hai** — feature poora bana hua hai,
+chal raha hai, par uska koi asli grahak nahi. Ye likha hona chahiye, warna ek din koi poochhega ki
+"mail bhejne wala code kis kaam ka hai".
+
+**Agla grahak:** `forgot` / `reset` auth routes — Phase 0 se deferred the, **ab unblocked** hain.
+Kaam: token collection + 2 route + login screen ka dead link zinda karna. Client ne maanga nahi hai.
 
 ---
 

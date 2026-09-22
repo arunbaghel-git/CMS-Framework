@@ -10485,3 +10485,51 @@ body se nahi.
 Email` · `Sends to you at …` · `Save Changes`, ek hi line me.
 
 **Suite ab: 54 files, 1402/1403 pass.**
+
+### §10 — Asli account se live verify, aur `Enquiry Notifications` **rad** (22 Sep, client)
+
+#### ✅ Asli Google Workspace account se poora raasta chala
+
+MailDev ke baad client ne apne asli account se test kiya. `progryss.com` **Google Workspace** pe
+hai (MX `aspmx.l.google.com`), isliye Gmail ka hi SMTP laga:
+
+```
+host smtp.gmail.com · port 587 · user arun@progryss.com · from Progryss <arun@progryss.com>
+```
+
+Mail `progryss@gmail.com` ke **Inbox me aayi — Spam me nahi**.
+
+| ✅ | Kya sabit hua |
+| --- | --- |
+| App Password chala | Google ne SMTP login sweekar kiya |
+| DB se decrypt chala | Password encrypted store hua tha, bhejte waqt khola gaya (§2) |
+| Asli SMTP handshake | `smtp.gmail.com:587` — `secure` port se derive hua (§3 #1) |
+| **Deliverability** | Inbox, spam nahi — `progryss.com` ke SPF me `_spf.google.com` laga hua hai |
+| **Khaali password = "purana rehne do"** | Client ne sirf From Name badal kar Save kiya aur mail **phir bhi gayi** (§5, D-105 ka guard) |
+
+⚠️ **Deliverability wala point MailDev kabhi sabit nahi kar sakta tha** — §6 me yahi likha gaya
+tha, aur wo sach nikla. Isiliye asli account wala pass alag se zaroori tha.
+
+⚠️ **Ek cheez jo pehle se samajh leni chahiye thi aur kaam aayi:** client ka network **port 465
+block** karta hai (587 khula hai). Bhejne se pehle dono ports pe TCP connect karke dekh liya gaya
+tha, isliye 465 wali galat koshish hui hi nahi. `ETIMEDOUT` bilkul "code toota hai" jaisa dikhta
+hai, jabki wo network ka mamla hota hai.
+
+#### ⚠️ `Enquiry Notifications` panel **banega hi nahi** — client ka faisla
+
+**Client, 22 Sep:** _"ok its working i dont need Enquiry Notifications panel"_
+
+§7 me ye panel "abhi nahi, SMTP verify hone ke baad" likha gaya tha — **ab wo "nahi" ho gaya
+hai.** Yaani reference ka doosra panel (notify addresses · auto-reply · template · PDF attach ·
+daily digest) ab R15 ka ek **client-approved deviation** hai, koi bacha hua kaam nahi.
+
+⚠️ **Iska seedha natija samajh lena chahiye: nayi enquiry pe kisi ko email nahi jaayegi.**
+Enquiry `Enquiries` inbox me aati rahegi (D-75/76) aur wahin se dekhni padegi. Ye wahi soch hai jo
+D-76 me thi — client ne tab bhi _"only"_ kaha tha aur inbox hi chuna tha.
+
+⚠️ **To aaj SMTP ka istemaal karne wala sirf `Send Test Email` hai.** Ye ek ajeeb haalat hai aur
+use likha hona chahiye: feature poora bana hua hai, chal raha hai, par uska koi asli grahak abhi
+nahi hai. Agla grahak `forgot`/`reset` auth routes honge (Phase 0 se deferred, ab unblocked).
+
+✅ **A-42 band** — screen, save, asli SMTP, deliverability aur password wale teenon flow, sab
+client ne chala kar dekh liye.
