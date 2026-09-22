@@ -3743,7 +3743,12 @@ a.mega__gl:hover {
    * `object-fit: cover` ab bhi utna hi zaroori hai: client ki teen image teen alag naap ki
    * hongi, aur fixed ooonchai ke bina patti ooncha-neecha ho jaati aur heading uspe tedhi baithti.
    */
-  height: clamp(130px, 20vh, 220px);
+  /*
+   * ⚠️ **22 Sep ko chhoti ki gayi** — `clamp(130px, 20vh, 220px)` thi. Client ne desktop pe scroller
+   * dobara pakda; 220px ki chhat ek popup ke liye bahut thi, aur us jagah ki zaroorat form ko hai.
+   * Ab 1000px ki screen pe patti ~140px ki hai, 176px ki jagah.
+   */
+  height: clamp(110px, 14vh, 160px);
   object-fit: cover;
 }
 
@@ -3765,7 +3770,8 @@ a.mega__gl:hover {
 }
 
 .pmod__body {
-  padding: 18px 20px 22px;
+  /* ⚠️ 22 Sep ko `18px 20px 22px` se kam — scroller ki katauti ka hissa (§9.6). */
+  padding: 14px 18px 16px;
 }
 
 /*
@@ -3789,6 +3795,36 @@ a.mega__gl:hover {
   border-radius: 0;
   background: none;
   box-shadow: none;
+}
+
+/*
+ * ⚠️ **Popup ke andar form ka vertical rhythm kasa hua hai** (client, 22 Sep: _"still scroller
+ * coming on desktop"_).
+ *
+ * Naap: pehle screenshot me scrollbar ke thumb se content **~838px** nikla jabki jagah ~755px thi.
+ * §9.2 ne andar ka card hata kar ~52px bachaye, par §9.5 ke heading ne ~27px wapas le liye — net
+ * sirf ~25px, isliye scroller bana raha. Ye teen katautiyaan milaa kar ~100px aur bachati hain.
+ *
+ * ⚠️ **Sab `.pmod__body` ke andar scoped hai.** Package ka sidebar, tour ka `.wdg--cta`, home ka
+ * hero card aur contact page — sab wahi `EnquiryForm` hain, aur unka spacing chhua nahi ja raha.
+ * Ek jagah ki tangi doosri jagah le jaane ka matlab hota ki koi doosra page chup-chaap bhinch jaaye.
+ */
+.pmod__body .fld {
+  margin-bottom: 9px;
+}
+
+.pmod__body .bkg__two {
+  margin-bottom: 9px;
+}
+
+/*
+ * ⚠️ Textarea `rows={3}` JSX me hai aur wo har form pe saanjha hai — isliye ooonchai yahan CSS se
+ * kam ki ja rahi hai, JSX badal kar nahi. `resize: vertical` waisa hi hai, to jise lamba message
+ * likhna hai wo khud badha sakta hai.
+ */
+.pmod__body .fld textarea {
+  min-height: 56px;
+  height: 56px;
 }
 
 /*

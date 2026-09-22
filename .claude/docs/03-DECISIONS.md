@@ -9768,3 +9768,46 @@ R20). Dono ka bartaav ek hi test me bandha gaya hai taaki koi ise "ek jaisa" kar
 branch se aaj kuch nahi badalta.
 
 3 naye test (ab 14).
+
+### §9.6 — Scroller phir bhi aa raha tha: paanch katautiyaan, naap ke saath (client, 22 Sep)
+
+Client: _"still scroller coming on desktop"_ — §9.2 ke baad bhi.
+
+⚠️ **Wajah saaf thi jab naapa gaya:** §9.2 ne andar ka card hata kar **~52px** bachaye the, par usi
+din §9.5 ke heading ne **~27px wapas** le liye. Net sirf ~25px — itne se scroller nahi jaata.
+
+**Naap kahan se aayi:** 21 Sep ke screenshot me scrollbar ke **thumb ka anupaat** (675/750) se content
+**~838px** nikla, jabki dikhne ki jagah ~755px thi. Ye andaaza nahi, screenshot se naapa hua number
+hai — D-85 wala hi tark ("naap lo, maan mat lo").
+
+| Katauti | Bachat |
+| --- | --- |
+| Andar ka card hata (§9.2) | −52px |
+| Heading juda (§9.5) | **+27px** |
+| Image ki chhat `220px → 160px` (`clamp(110px, 14vh, 160px)`) | −53px |
+| Field ka gap `13px → 9px` (chaar jagah) | −16px |
+| Textarea `115px → 56px` | −59px |
+| Body ki padding `40px → 30px` | −10px |
+
+**Content ab ~675px** (838 se). Yaani **~760px viewport** tak bina scroll ke aata hai.
+
+⚠️ **Har katauti `.pmod__body` ke ANDAR scoped hai.** Package ka sidebar, tour ka `.wdg--cta`, home
+ka hero card aur contact page — sab wahi `EnquiryForm` hain. Ek jagah ki tangi doosri jagah le jaane
+ka matlab hota ki koi doosra page chup-chaap bhinch jaaye. Test dono taraf dekhta hai: popup me 9px,
+baaki jagah 13px.
+
+⚠️ **Textarea ki ooonchai CSS se kam hui, `rows={3}` chhua nahi gaya** — wo JSX har form pe saanjha
+hai. `resize: vertical` bacha hua hai, to lamba message likhne wala khud badha sakta hai.
+
+⚠️ **760px se chhoti window pe scroll phir bhi aayega, aur uski wajah ab image nahi hai** — form khud
+~500px ka hai (7 khaane). Uske liye do hi raaste hain, dono client ke faisle: popup wale form me kam
+khaane, ya `--btn-h`/field ki ooonchai poore site pe kam karna. Abhi koi nahi liya gaya.
+
+#### ⚠️ `ruleOf()` ki teesri seema — multi-line selector list
+
+Test likhte waqt `ruleOf('.fld textarea')` ne galat rule uthaya: wo selector **do jagah** hai, aur ek
+`.fld input,\n.fld select,\n.fld textarea {` wali list me — `\n` wala anchor wahan bhi lag jaata hai.
+Us ek assertion me seedha `css.toContain()` use kiya gaya hai, wajah likh kar. Helper ki do purani
+seemaayein pehle se uske sar pe likhi hain (escape aur descendant selector); ye teesri hai.
+
+3 naye test (ab 17).

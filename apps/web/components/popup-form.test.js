@@ -268,3 +268,50 @@ describe('Form ke upar ka heading aur line (client, 22 Sep)', () => {
     expect(css).toContain('.bkg--page .bkg__lead')
   })
 })
+
+describe('Popup ki ooonchai — scroller ki katauti (client, 22 Sep: "still scroller coming on desktop")', () => {
+  /**
+   * ⚠️ **Ye naap se aayi hai, andaaze se nahi.** 21 Sep ke screenshot me scrollbar ke thumb se
+   * content **~838px** nikla jabki jagah ~755px thi. §9.2 (andar ka card) ne ~52px bachaye the par
+   * §9.5 (heading) ne ~27px wapas le liye — net sirf ~25px, isliye scroller bana raha.
+   *
+   * Paanch katautiyaan milaa kar content ~675px pe aata hai, yaani ~760px viewport tak bina scroll.
+   * Har ek `.pmod__body` ke **andar** scoped hai — package sidebar, tour ka `.wdg--cta`, home ka hero
+   * aur contact page sab wahi `EnquiryForm` hain aur unka spacing chhua nahi gaya.
+   */
+  it('popup ke andar field ka gap kasa hua hai — par sirf popup ke andar', () => {
+    expect(ruleOf('.pmod__body .fld')).toContain('margin-bottom: 9px')
+    expect(ruleOf('.pmod__body .bkg__two')).toContain('margin-bottom: 9px')
+
+    /** Baaki jagah ka gap waisa ka waisa — ek jagah ki tangi doosri pe nahi jaani chahiye */
+    expect(ruleOf('.bkg__b .fld')).toContain('margin-bottom: 13px')
+    expect(ruleOf('.bkg__two')).toContain('margin-bottom: 13px')
+  })
+
+  /**
+   * ⚠️ Textarea `rows={3}` JSX me hai aur har form pe saanjha hai — isliye ooonchai CSS se kam ki
+   * gayi hai, JSX badal kar nahi. `resize: vertical` bacha hua hai, to lamba message likhne wala
+   * khud badha sakta hai.
+   */
+  it('popup ka textarea chhota hai, par JSX ke rows chhue bina', () => {
+    expect(ruleOf('.pmod__body .fld textarea')).toContain('height: 56px')
+
+    /**
+     * ⚠️ Yahan `ruleOf()` nahi — `.fld textarea` **do jagah** hai, aur ek multi-line selector
+     * list me (`.fld input,\n.fld select,\n.fld textarea {`). Anchor wahan bhi lag jaata hai, to
+     * helper galat rule laut aata tha. Ye `ruleOf()` ki teesri seema hai; seedha dhoondhna yahan
+     * saaf hai.
+     */
+    expect(css).toContain('min-height: 70px')
+    /** JSX ke `rows` ko haath nahi laga — lamba message likhne wala khud badha sake */
+    expect(read('./package/EnquiryForm.jsx')).toContain('rows={3}')
+  })
+
+  /** Image ki patti bhi chhoti hui — 220px ki chhat ek popup ke liye bahut thi. */
+  it('image ki chhat 160px hai, 220px nahi', () => {
+    const rule = ruleOf('.pmod__pic')
+
+    expect(rule).toContain('clamp(110px, 14vh, 160px)')
+    expect(rule).not.toContain('220px')
+  })
+})
