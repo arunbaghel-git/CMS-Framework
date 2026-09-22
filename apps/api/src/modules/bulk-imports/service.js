@@ -731,10 +731,11 @@ async function releaseRow(run, row, err) {
   if (row.attempts >= MAX_ATTEMPTS) {
     await finishRow(run._id, row._id, {
       status: IMPORT_ROW_STATUS.FAILED,
-      error: `This row could not be started: ${String(err?.message ?? 'something went wrong')}`.slice(
-        0,
-        500,
-      ),
+      error:
+        `This row could not be started: ${String(err?.message ?? 'something went wrong')}`.slice(
+          0,
+          500,
+        ),
     })
 
     return
