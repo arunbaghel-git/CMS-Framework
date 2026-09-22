@@ -723,3 +723,65 @@ describe('enquiries inbox', () => {
     expect(detail.body.data.enquiry.values.hotelCategory).toBe('Deluxe')
   })
 })
+
+/**
+ * Field ka label **optional** (client, 22 Sep: _"just make labels of form elements optional —
+ * if filled then visible, if not then not visible"_).
+ *
+ * ⚠️ Wajah client ki thi aur theek thi: popup me scroll isliye aa raha tha ki har khaane ke upar
+ * ek label ki line thi. Main uska ilaaj **content chhota karke** kar raha tha (image ki ooonchai,
+ * textarea) — client ne roka. Label hatane se ~116px bachte hain aur design ka koi hissa chhota
+ * nahi hota.
+ */
+describe('Form field ka label optional hai (22 Sep)', () => {
+  it('khaali label save hota hai — aur khaali hi wapas aata hai', async () => {
+    const form = await makeForm({
+      fields: [
+        { key: 'name', label: '', type: 'text', required: true, placeholder: 'Your name' },
+        { key: 'email', label: 'Email', type: 'email', required: true },
+      ],
+    })
+
+    /** ⚠️ Response nahi, DB — Mongoose `strict` aur Zod dono chup-chaap gira sakte hain */
+    const doc = await Form.findById(form.id).lean()
+    expect(doc.fields[0].label).toBe('')
+    expect(doc.fields[0].placeholder).toBe('Your name')
+    /** Doosre field ka label waisa ka waisa — khaali karna ek chunav hai, sab pe nahi lagta */
+    expect(doc.fields[1].label).toBe('Email')
+  })
+
+  it('khaali label public payload me bhi khaali jaata hai', async () => {
+    const form = await makeForm({
+      fields: [{ key: 'name', label: '', type: 'text', required: true, placeholder: 'Your name' }],
+    })
+
+    const { getPublicFormById } = await import('../modules/forms/service.js')
+    const pub = await getPublicFormById(form.id)
+
+    expect(pub.fields[0].label).toBe('')
+    /**
+     * ⚠️ Placeholder zaroor jaana chahiye — bina label ke wahi batata hai ki khaane me kya likhna
+     * hai, aur theme usi se `aria-label` banati hai.
+     */
+    expect(pub.fields[0].placeholder).toBe('Your name')
+  })
+
+  it('label bhejna zaroori nahi — default khaali hai', async () => {
+    const form = await makeForm({
+      fields: [{ key: 'name', type: 'text', required: false }],
+    })
+
+    const doc = await Form.findById(form.id).lean()
+    expect(doc.fields[0].label).toBe('')
+  })
+
+  it('bahut lamba label ab bhi 400 deta hai — sirf `min` hata hai, `max` nahi', async () => {
+    const res = await authed('post', '/api/forms', adminJar).send({
+      name: 'Long label',
+      status: 'active',
+      fields: [{ key: 'name', label: 'x'.repeat(121), type: 'text' }],
+    })
+
+    expect(res.status).toBe(400)
+  })
+})

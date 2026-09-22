@@ -3744,11 +3744,14 @@ a.mega__gl:hover {
    * hongi, aur fixed ooonchai ke bina patti ooncha-neecha ho jaati aur heading uspe tedhi baithti.
    */
   /*
-   * ⚠️ **22 Sep ko chhoti ki gayi** — `clamp(130px, 20vh, 220px)` thi. Client ne desktop pe scroller
-   * dobara pakda; 220px ki chhat ek popup ke liye bahut thi, aur us jagah ki zaroorat form ko hai.
-   * Ab 1000px ki screen pe patti ~140px ki hai, 176px ki jagah.
+   * ⚠️ **22 Sep ko ek baar chhoti ki gayi thi aur usi din WAPAS laayi gayi** (§9.7).
+   *
+   * Maine scroller ka ilaaj image chhoti karke kiya tha (`clamp(110px, 14vh, 160px)`). Client ne
+   * roka: _"why you are making images height small to fix scroll"_ — aur wo theek the. Scroller
+   * ki asli jad form ke **labels** the, image nahi; content chhota karna lakshan dabaana tha,
+   * ilaaj nahi.
    */
-  height: clamp(110px, 14vh, 160px);
+  height: clamp(130px, 20vh, 220px);
   object-fit: cover;
 }
 
@@ -3818,14 +3821,10 @@ a.mega__gl:hover {
 }
 
 /*
- * ⚠️ Textarea `rows={3}` JSX me hai aur wo har form pe saanjha hai — isliye ooonchai yahan CSS se
- * kam ki ja rahi hai, JSX badal kar nahi. `resize: vertical` waisa hi hai, to jise lamba message
- * likhna hai wo khud badha sakta hai.
+ * ⚠️ **Textarea ki ooonchai yahan se 22 Sep ko hata di gayi** (§9.7). Maine use 115px se 56px kiya
+ * tha — wo bhi wahi content ki katauti thi jispe client ne rok lagayi. Ab wo baaki forms jaisa hi
+ * hai (`rows={3}`, `min-height: 70px`).
  */
-.pmod__body .fld textarea {
-  min-height: 56px;
-  height: 56px;
-}
 
 /*
  * Form ke upar ka heading aur line — dono admin ke field hain (`formHeading`, `description`).

@@ -217,7 +217,7 @@ export default function FormBuilder() {
 
   function removeField(index) {
     const field = form.fields[index]
-    if (!confirmRemove(field.label)) return
+    if (!confirmRemove(field.label || field.key)) return
 
     set({ fields: form.fields.filter((_, i) => i !== index) })
   }
@@ -384,6 +384,16 @@ export default function FormBuilder() {
           </Panel>
 
           <Panel title="Fields">
+            {/*
+              ⚠️ Ye hint 22 Sep ko juda (client ne label optional karwaya). Iske bina khaali label
+              ek **galti** jaisa lagta — client ko pata hi nahi chalta ki wo ek chunav hai. Wahi
+              soch jo `quoteUrl` aur `floatingContactSide` ki hints pe hai (D-30 / D-102).
+            */}
+            <div className="hint" style={{ marginBottom: 10 }}>
+              Clear a field&rsquo;s name to hide it on the site — the box still works, and the
+              placeholder tells people what to type. Handy where space is tight, like the popup.
+            </div>
+
             <table className="list field-table">
               <thead>
                 <tr>
@@ -410,7 +420,7 @@ export default function FormBuilder() {
                         value={field.label}
                         onChange={(e) => setField(index, { label: e.target.value })}
                         disabled={readOnly}
-                        aria-label={`${field.label} label`}
+                        aria-label={`${field.label || field.key} label`}
                       />
                       <div className="ftype">
                         {FORM_FIELD_TYPE_LABEL[field.type] ?? field.type}
@@ -439,7 +449,7 @@ export default function FormBuilder() {
                           onChange={(e) => setField(index, { placeholder: e.target.value })}
                           placeholder="Placeholder — e.g. +91 98765 43210"
                           disabled={readOnly}
-                          aria-label={`${field.label} placeholder`}
+                          aria-label={`${field.label || field.key} placeholder`}
                         />
                       )}
 
@@ -475,7 +485,7 @@ export default function FormBuilder() {
                               })
                             }
                             disabled={readOnly}
-                            aria-label={`${field.label} options`}
+                            aria-label={`${field.label || field.key} options`}
                           />
                           <div className="hint">One option per line.</div>
                         </>
@@ -487,7 +497,7 @@ export default function FormBuilder() {
                         checked={field.show !== false}
                         onChange={(e) => setField(index, { show: e.target.checked })}
                         disabled={readOnly}
-                        aria-label={`Show ${field.label}`}
+                        aria-label={`Show ${field.label || field.key}`}
                       />
                     </td>
                     <td>
@@ -496,7 +506,7 @@ export default function FormBuilder() {
                         checked={Boolean(field.required)}
                         onChange={(e) => setField(index, { required: e.target.checked })}
                         disabled={readOnly}
-                        aria-label={`${field.label} required`}
+                        aria-label={`${field.label || field.key} required`}
                       />
                     </td>
                     <td>

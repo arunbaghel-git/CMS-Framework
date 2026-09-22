@@ -9811,3 +9811,50 @@ Us ek assertion me seedha `css.toContain()` use kiya gaya hai, wajah likh kar. H
 seemaayein pehle se uske sar pe likhi hain (escape aur descendant selector); ye teesri hai.
 
 3 naye test (ab 17).
+
+### §9.7 — Scroll ka asli ilaaj: form ka label **optional** (client, 22 Sep)
+
+Client ne mera §9.6 wala raasta **rok diya**: _"why you are making images height small to fix
+scroll — just make labels of form elements optional, if filled then visible if not then no visible,
+make images height 100%. i have checked by removing labels"_.
+
+⚠️ **Wo bilkul theek the, aur ye is session ka sabse seekhne layak sabak hai.** Main lakshan
+(scroll) ko **content chhota karke** daba raha tha — image ki chhat 220→160, textarea 115→56. Ek
+baar nahi, do baar. Client ne khud browser me label hata kar dekh liya aur jad batayi: **har khaane
+ke upar ek label ki line thi**, 4 khaane = **~116px**. Utni hi bachat, aur design ka koi hissa chhota
+nahi hota.
+
+**Palta gaya (§9.6 se):** image wapas `clamp(130px, 20vh, 220px)`, textarea wapas 115px
+(`.pmod__body .fld textarea` rule poora hata).
+**Rakha gaya:** field ka gap `13→9` aur body ki padding `40→30` — wo spacing hai, content nahi.
+Client ne unpe kuch nahi kaha; kahein to wo bhi palat jaayenge.
+
+**Naya contract:** `formFieldSchema.label` ab `z.string().trim().max(120).default('')` hai —
+`min(1)` hat gaya. `max` waisa ka waisa.
+
+| Kahan | Kya badla |
+| --- | --- |
+| `schemas/form.js` | `label` optional |
+| `EnquiryForm` | khaali label pe `<label>` banta hi nahi |
+| `EnquiryForm` | **`aria-label`** — `placeholder` ya `key` se |
+| `FormBuilder` | hint, aur chhe `aria-label` ab `field.label \|\| field.key` pe |
+
+⚠️ **"Label chhupa do" ka matlab sirf DIKHNE ka hai.** Bina `aria-label` ke wo khaana screen reader
+pe bina naam ka milta hai ("Edit text, blank") — wo ek asli tootan hoti, sirf dikhne ki baat nahi.
+Placeholder uska badal **nahi** hai: kai screen reader use padhte hi nahi, aur type karte hi wo gayab
+ho jaata hai.
+
+⚠️ **Checkbox is niyam ka apwaad hai** — uske paas placeholder hota hi nahi, to bina label ke wo ek
+bina matlab ka dabba hai. Uska `<span>` hamesha chhapta hai.
+
+⚠️ **Ye code ka badlaav hai, content ka nahi** — labels **abhi bhi dikhenge** jab tak client
+`Enquiries ▸ Enquiry Forms` me unhe khaali na kare. Ye jaan-boojh kar hai: unka likha content koi
+script se nahi mitaya gaya.
+
+**Naap (naapa hua ~838px se):** card −52, heading +27, gap −16, padding −10, **4 label −116** →
+**~671px**. Yaani ~760px viewport tak bina scroll — wahi jagah jahan §9.6 ne content chhota karke
+pahunchaya tha, **par image aur textarea poore naap pe**.
+
+7 naye test: 4 API (`forms.test.js` — khaali label DB tak, public payload me, default khaali, `max`
+ab bhi 400) aur 3 theme (`<label>` banta hi nahi · `aria-label` lagta hai · checkbox apwaad hai).
+Saath me §9.6 wale do test palte — ab wo ye dekhte hain ki image/textarea **poore naap pe** hain.

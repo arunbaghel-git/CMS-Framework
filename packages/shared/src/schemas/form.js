@@ -77,7 +77,20 @@ export const formFieldSchema = z.object({
     .max(60)
     .regex(/^[a-zA-Z][a-zA-Z0-9]*$/, 'Field key must be camelCase letters and digits'),
 
-  label: z.string().min(1).max(120),
+  /**
+   * ⚠️ **Label ab khaali ho sakta hai — `min(1)` 22 Sep ko hata** (client: _"just make labels of
+   * form elements optional, if filled then visible, if not then not visible"_).
+   *
+   * Wajah client ki thi aur theek thi: popup me scroll isliye aa raha tha ki har khaane ke upar ek
+   * label ki line thi. Main uska ilaaj **content chhota karke** kar raha tha (image ki ooonchai,
+   * textarea) — client ne roka: _"why you are making images height small to fix scroll"_. Label
+   * hatane se ~116px bachte hain aur design ka koi hissa chhota nahi hota.
+   *
+   * ⚠️ **Khaali label ka matlab "dikhe nahi" hai, "hai hi nahi" nahi.** Theme wahan `aria-label`
+   * lagati hai (placeholder ya `key` se), warna screen reader ko wo khaana bina naam ka milta — wo
+   * ek asli tootan hoti, sirf dikhne ki baat nahi. Poora tark `EnquiryForm` me.
+   */
+  label: z.string().trim().max(120).default(''),
 
   type: z.enum(FORM_FIELD_TYPES),
 

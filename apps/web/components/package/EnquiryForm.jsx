@@ -118,13 +118,32 @@ function Field({ field, value, onChange, packages, categories }) {
 
   if (field.type === 'select' && options.length === 0) return null
 
+  /**
+   * ⚠️ **Label khaali ho to input ko `aria-label` chahiye** (22 Sep, client ne label optional
+   * karwaya).
+   *
+   * Bina iske wo khaana screen reader pe **bina naam ke** milta hai — yaani "Edit text, blank".
+   * Placeholder uska badal nahi hai: kai screen reader use padhte hi nahi, aur type karte hi wo
+   * gayab ho jaata hai. Isliye naam `placeholder` → `key` se liya jaata hai.
+   *
+   * Yaani "label chhupa do" ka matlab sirf **dikhne** ka hai; khaane ka naam kabhi nahi jaata.
+   */
   const common = {
     id,
     required: field.required,
     value: value ?? '',
     onChange: (e) => onChange(e.target.value),
+    'aria-label': field.label ? undefined : field.placeholder || field.key,
   }
 
+  /**
+   * ⚠️ **Checkbox pe label optional wala niyam nahi chalta, aur wo jaan-boojh kar hai.**
+   *
+   * Baaki khaano ka matlab `placeholder` se samajh aa jaata hai (`Your name`, `you@example.com`).
+   * Checkbox ke paas placeholder hota hi nahi — bina label ke wo ek **bina matlab ka dabba** hai,
+   * jise na dekh kar samajh aaye na padh kar. Isliye yahan label hamesha chhapta hai; khaali ho to
+   * `aria-label` `key` se banta hai taaki kam se kam screen reader ko naam mile.
+   */
   if (field.type === 'checkbox') {
     return (
       <label className="fld fld--check" htmlFor={id}>
@@ -133,6 +152,7 @@ function Field({ field, value, onChange, packages, categories }) {
           type="checkbox"
           checked={value === true}
           required={field.required}
+          aria-label={field.label ? undefined : field.key}
           onChange={(e) => onChange(e.target.checked)}
         />
         <span>{field.label}</span>
@@ -143,7 +163,14 @@ function Field({ field, value, onChange, packages, categories }) {
   /* Half-width ka layout `.bkg__two` karta hai, field khud nahi — yahan koi extra class nahi. */
   return (
     <div className="fld">
-      <label htmlFor={id}>{field.label}</label>
+      {/*
+       * ⚠️ **Khaali label pe `<label>` banta hi nahi** — client ka faisla (22 Sep): _"if filled
+       * then visible, if not then not visible"_. Khaali `<label>` chhod dene ka matlab hota ek
+       * khaali line jo phir bhi jagah leti (`margin-bottom: 6px` + line-height).
+       *
+       * Khaane ka naam phir bhi rehta hai — `common` me `aria-label` (upar ka tark).
+       */}
+      {field.label ? <label htmlFor={id}>{field.label}</label> : null}
 
       {field.type === 'textarea' && (
         <textarea {...common} rows={3} placeholder={field.placeholder || undefined} />

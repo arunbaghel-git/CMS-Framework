@@ -293,25 +293,62 @@ describe('Popup ki ooonchai — scroller ki katauti (client, 22 Sep: "still scro
    * gayi hai, JSX badal kar nahi. `resize: vertical` bacha hua hai, to lamba message likhne wala
    * khud badha sakta hai.
    */
-  it('popup ka textarea chhota hai, par JSX ke rows chhue bina', () => {
-    expect(ruleOf('.pmod__body .fld textarea')).toContain('height: 56px')
+  /**
+   * ⚠️ **Popup me content chhota karke scroll theek karna mana hai** — client ka faisla (22 Sep):
+   * _"why you are making images height small to fix scroll"_.
+   *
+   * Maine image `clamp(110px, 14vh, 160px)` ki thi aur textarea 56px — dono wapas le liye gaye.
+   * Asli ilaaj form ke **label optional** karna tha (neeche wala describe), jo ~116px bachata hai
+   * aur design ka koi hissa chhota nahi karta.
+   *
+   * Ye test isliye hai ki agli baar koi scroll dekh kar phir se yahi shortcut na le.
+   */
+  it('image aur textarea apne poore naap pe hain — content chhota karke scroll nahi thika jaata', () => {
+    expect(ruleOf('.pmod__pic')).toContain('clamp(130px, 20vh, 220px)')
 
     /**
      * ⚠️ Yahan `ruleOf()` nahi — `.fld textarea` **do jagah** hai, aur ek multi-line selector
      * list me (`.fld input,\n.fld select,\n.fld textarea {`). Anchor wahan bhi lag jaata hai, to
-     * helper galat rule laut aata tha. Ye `ruleOf()` ki teesri seema hai; seedha dhoondhna yahan
-     * saaf hai.
+     * helper galat rule laut aata tha. Ye `ruleOf()` ki teesri seema hai.
      */
     expect(css).toContain('min-height: 70px')
-    /** JSX ke `rows` ko haath nahi laga — lamba message likhne wala khud badha sake */
+    expect(css).not.toContain('.pmod__body .fld textarea')
+    /** JSX ke `rows` ko kabhi haath nahi laga */
     expect(read('./package/EnquiryForm.jsx')).toContain('rows={3}')
   })
+})
 
-  /** Image ki patti bhi chhoti hui — 220px ki chhat ek popup ke liye bahut thi. */
-  it('image ki chhat 160px hai, 220px nahi', () => {
-    const rule = ruleOf('.pmod__pic')
+describe('Form ka label optional (client, 22 Sep) — scroll ka asli ilaaj', () => {
+  const form = read('./package/EnquiryForm.jsx')
 
-    expect(rule).toContain('clamp(110px, 14vh, 160px)')
-    expect(rule).not.toContain('220px')
+  /**
+   * ⚠️ Client: _"just make labels of form elements optional — if filled then visible, if not then
+   * not visible"_. Khaali `<label>` chhod dena kaafi nahi hota: wo phir bhi `margin-bottom: 6px`
+   * aur apni line-height ki jagah leta hai.
+   */
+  it('khaali label pe <label> banta hi nahi', () => {
+    expect(form).toMatch(/field\.label \? <label htmlFor=\{id\}>/)
+  })
+
+  /**
+   * ⚠️ **Ye is badlaav ka sabse zaroori guard hai.**
+   *
+   * "Label chhupa do" ka matlab sirf **dikhne** ka hai. Bina `aria-label` ke wo khaana screen
+   * reader pe bina naam ka milta hai ("Edit text, blank") — wo ek asli tootan hoti, sirf dikhne ki
+   * baat nahi. Placeholder uska badal nahi hai: kai screen reader use padhte hi nahi, aur type
+   * karte hi wo gayab ho jaata hai.
+   */
+  it('label na ho to input ko aria-label milta hai', () => {
+    expect(form).toContain("'aria-label': field.label ? undefined : field.placeholder || field.key")
+  })
+
+  /**
+   * ⚠️ Checkbox is niyam ka apwaad hai, aur wo jaan-boojh kar hai: uske paas placeholder hota hi
+   * nahi, to bina label ke wo ek bina matlab ka dabba hai. Uska `<span>` hamesha rehta hai.
+   */
+  it('checkbox ka label hamesha chhapta hai — uske paas placeholder hota hi nahi', () => {
+    const block = form.slice(form.indexOf("field.type === 'checkbox'"))
+    const end = block.indexOf('/* Half-width')
+    expect(block.slice(0, end > 0 ? end : 900)).toContain('<span>{field.label}</span>')
   })
 })
