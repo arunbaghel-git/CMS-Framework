@@ -837,6 +837,29 @@ export const updateMailSchema = mailSettingsSchema
   .partial()
   .extend({ clearPassword: z.boolean().optional() })
 
+/**
+ * Screen ka form → `PATCH /api/settings/mail` ka payload.
+ *
+ * ⚠️ **Padhne ki shakl aur likhne ki shakl alag hain, aur yahi is feature ka sabse chup jaal
+ * hai.** `GET` me `hasPassword` aata hai (kyunki asli password kabhi nahi aata), par wo likhne
+ * wali cheez hai hi nahi — `updateMailSchema` `.strict()` hai, to use bhejte hi poora Save
+ * **400** ho jaata hai. Screen `GET` ka jawab seedha apne form me rakhti hai, isliye wo key
+ * bina kuch kiye hi payload me pahunch jaati hai.
+ *
+ * Ye galti 22 Sep ko **live chalane pe** pakdi gayi — 29 API test isse nahi pakad paaye, kyunki
+ * wo sab payload **khud banate** hain; jo raasta toota tha wo sirf screen me tha.
+ *
+ * ⚠️ **Isiliye ye niyam yahan hai, `handleSubmit()` ke andar nahi** — bilkul wahi faisla jo
+ * D-105 me `lib/master-list-payload.js` pe liya gaya tha. Wahan bhi likha hai: _"`submit()` ke
+ * andar uska test likha hi nahi ja sakta tha, **aur isiliye wo galti chup padi rahi**."_
+ *
+ * Naya read-only field (jaise kabhi `lastTestedAt`) jodo to use **yahan** girao.
+ */
+export function toMailUpdate(form) {
+  const { hasPassword: _hasPassword, ...payload } = form ?? {}
+  return payload
+}
+
 export const settingsSchema = z.object({
   siteId: z.string().default(DEFAULT_SITE_ID),
 

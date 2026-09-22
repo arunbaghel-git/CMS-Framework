@@ -1,8 +1,11 @@
 # 09 — Open Items
 
 **Last updated:** 22 Sep 2026 — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
-**SMTP ka sabse purana blocker khul gaya** (Phase 0, 19 Aug se). Naya **A-42** (screen aankh se
-dekhna baaki). Koi migration nahi.
+**SMTP ka sabse purana blocker khul gaya** (Phase 0, 19 Aug se). Koi migration nahi.
+✅ **Client ne screen chala kar dekh li aur mail MailDev me pahunchi** — poora raasta live verify
+(screen → PATCH → DB → test → asli SMTP → inbox). Usi chalane se **ek asli bug nikla** aur theek
+hua: `hasPassword` (**D-108 §9**) — wo 29 API test se guzar gaya tha, kyunki wo sab payload khud
+banate hain. **A-42** ab sirf password wale teen flow tak simat gaya hai.
 ✅ **SMTP ab admin panel se configure hota hai**, `.env` se nahi — `settings.mail`. Uske peeche ruke
 chaar kaam ab **ban sakte hain**: enquiry notification + auto-reply (D-75/76), `forgot`/`reset`
 auth routes, Enquiries ▸ Send Quotation, aur user ka email badalna. **Koi apne aap nahi bana** —
@@ -23,12 +26,12 @@ page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87
 Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
 `.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Tests:** 22 Sep (D-108 ke baad) — **53 files, 1394/1395 pass**. **Asli fail ek hi hai** aur wo
+**Tests:** 22 Sep (D-108 §9 ke baad) — **54 files, 1402/1403 pass**. **Asli fail ek hi hai** aur wo
 purana hai (`theme-fonts.test.js` = `.hf-stat span`, client ka apna CSS edit — chhua nahi).
 ⚠️ Vitest _"2 failed"_ files dikha sakti hai jabki test sirf ek gira ho — doosri file `media.test.js`
 hoti hai, jo **hook** me girti hai (A-11 ka race), aur akele chalane pe 20/20 pass hoti hai. **Ginti
 dekhte waqt isi se dhoka hota hai** — usi din ek run me wo giri aur agle me pass ho gayi.
-Usse pehle 22 Sep: 52 files, 1364/1366. 21 Sep: 51 files, 1292/1293. 17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
+Usse pehle usi din: 53 files 1394/1395 (D-108), 52 files 1364/1366 (D-107). 21 Sep: 51 files, 1292/1293. 17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
 16 Sep ko isi wajah se vitest `ENOSPC` de rahi thi. Jagah kam ho to suite phir "no tests"/load error degi —
 wo code ka bug nahi hai.
 
@@ -404,36 +407,41 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
-### A-42 · Email / SMTP ka screen aankh se dekha nahi gaya (22 Sep, D-108)
+### A-42 · Email / SMTP — **mukhya raasta live chal gaya**; sirf password wale teen flow baaki (22 Sep, D-108)
 
-**Deadline:** agli session ka pehla kaam · **kuch toota hua nahi** — 29 naye test, admin build,
-aur asli SMTP raasta MailDev pe chala kar verify
+**Deadline:** koi sakht nahi · **kuch toota hua nahi** — 37 test (29 API + 8 shared), 54 files
+1402/1403
 
-Jo **ho chuka** hai (dobara mat karo):
+✅ **Client ne screen chala kar dekh li, aur usi se ek asli bug nikla** — `hasPassword` wala
+(**D-108 §9**), jo 29 API test se guzar gaya tha kyunki wo sab payload khud banate hain. Theek ho
+chuka (`toMailUpdate()` + 8 naye shared test).
 
-- **29 test pass** — permission, password ka kahin leak na hona, khaali-password wala niyam,
-  `clearPassword`, dotted `$set`, encrypt/decrypt, `secure` ka port se derive hona
-- **Asli SMTP** — `core/mailer.js` se MailDev pe mail bheji gayi aur wo inbox me **pahunchi**
-  (From name/address/subject/body sab sahi). Ye raasta tests se guzarta hi nahi (`jsonTransport`)
-- **API dev server ne naya code utha liya** — `GET /api/settings/mail` `:4000` pe 401 deta hai
-  (route hai), jabki `/api/settings/nonexistent` 404
-- **`pnpm --filter @cms/admin build` pass** — JSX/import ki galti pakdi jaati
+Jo **verify ho chuka** hai (dobara mat karo):
 
-Jo **baaki** hai — browser me:
+| ✅ | Saboot |
+| --- | --- |
+| Screen khulti hai, `NotBuiltYet` nahi | Client ka screenshot — tabs, chhe khaane `row2` me, hints |
+| **`panel-foot` ke teen bachche theek baithte hain** | Wahi screenshot. Ye is list ka **sabse bada shak** tha |
+| Save → DB | `settings.mail` `12:22:40` pe likhi gayi (host · port · fromName · fromEmail) |
+| Send Test Email → **asli SMTP** → inbox | MailDev `12:22:46`, `From: Test Site <cms@test.local>` → `To: progryss@gmail.com` |
+| `to` logged-in user ka apna email hai | Wahi mail — body se address nahi liya gaya (D-108 §5) |
+
+Jo **abhi bhi baaki** hai — teenon **password** se jude hain, aur client ne password bhara hi nahi
+tha (MailDev ko auth chahiye hi nahi, `hasPasswordEnc: false`):
 
 | # | Kya dekhna hai | Kyun |
 | --- | --- | --- |
-| 1 | `docker compose up -d maildev` → Admin ▸ Settings ▸ **Email / SMTP** asli screen khule, `NotBuiltYet` nahi | Route naya hai; splat (`/settings/*`) se specificity ka mamla |
-| 2 | Host `localhost` · Port `1025` · From `cms@test.local` → Save → **Send Test Email** → `localhost:1080` pe mail dikhe | Poora raasta, screen se |
-| 3 | Password bhar ke Save → reload → khaana **khaali** khule par hint kahe "A password is saved" | `hasPassword` |
-| 4 | Phir sirf From Name badal kar Save → mail **phir bhi jaaye** | Khaali password = "purana rehne do" (D-105 wali galti) |
-| 5 | `Remove saved password` → hint wapas "Gmail needs an App Password" pe aaye | `clearPassword` |
-| 6 | Galat host daal kar test → screen pe **saaf error**, 500 nahi | `verify()` ka message |
-| 7 | `panel-foot` me teen cheezein ek line me theek dikhein (test button · "Sends to you at …" · Save) | `space-between` + `flex-wrap`, teen bachche — reference me do the |
+| 1 | Password bhar ke Save → reload → khaana **khaali** khule par hint kahe _"A password is saved"_ | `hasPassword` ka poora round trip |
+| 2 | Phir sirf From Name badal kar Save → mail **phir bhi jaaye** | Khaali password = "purana rehne do" — **D-105 wali galti**, sabse zaroori check |
+| 3 | `Remove saved password` → hint wapas _"Gmail needs an App Password"_ pe aaye | `clearPassword` |
+| 4 | Galat host daal kar test → screen pe **saaf error**, 500 nahi | `verify()` ka message |
 
-⚠️ **#7 sabse zyada shak wali hai** — `.panel-foot` `justify-content: space-between` hai aur
-reference me uske **do** bachche the; maine teesra (muted span) beech me joda hai. Wo `General.jsx`
-me pehle se chalta hai, par wahan span aur button hi hain, teen cheezein nahi.
+⚠️ **#2 sabse zaroori hai** — API test usse pakad chuka hai, par screen ka apna raasta (`password: ''`
+bhejna) sirf browser me chalta hai. **§9 ne abhi dikhaya hai ki screen ka raasta API test se alag
+hota hai**, isliye is ek pe bharosa test se nahi, chala kar hi aana chahiye.
+
+⚠️ Password bharne ke liye MailDev kaam nahi aayega (wo auth maangta hi nahi) — koi bhi bekaar
+value chalegi, kyunki jaanch sirf "store hui ya nahi" ki hai, "sahi hai ya nahi" ki nahi.
 
 ---
 

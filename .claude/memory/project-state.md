@@ -4,11 +4,13 @@
 > **Last updated:** 22 Sep 2026 — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
 > **repo ka sabse purana blocker khul gaya** (SMTP, Phase 0 / 19 Aug se). Usse pehle usi din:
 > SEO ka bulk export + import (D-107, A-33 band), popup settle (D-103 §9–§9.7), aur
-> **Settings ▸ Integrations** (D-106, A-40 band). **Chaaron me koi migration nahi.** > **Suite: 53 files, 1394/1395 pass** — akela fail wahi purana `theme-fonts.test.js`
-> (`.hf-stat span`, client ka apna CSS edit — chhua nahi). Mail ke **29 naye test**.
+> **Settings ▸ Integrations** (D-106, A-40 band). **Chaaron me koi migration nahi.**
+>
+> **Suite: 54 files, 1402/1403 pass** — akela fail wahi purana `theme-fonts.test.js`
+> (`.hf-stat span`, client ka apna CSS edit — chhua nahi). Mail ke **37 naye test** (29 API + 8 shared).
+> ✅ **Client ne Email screen chala kar dekh li** — mail MailDev me pahunchi, poora raasta live
+> verify. Usi chalane se **ek asli bug nikla aur theek hua**: `hasPassword` (**D-108 §9**).
 > ⚠️ **Push baaki hai** (`git log --oneline origin/main..HEAD`).
-> ⚠️ **Email screen aankh se dekhi nahi gayi — A-42.** Asli SMTP raasta MailDev pe verify ho chuka
-> hai (mail inbox me pahunchi), par browser me screen kholi nahi gayi.
 >
 > **Usse pehle — 21 Sep:** din me **teen feature bane** (**D-102** floating WhatsApp + phone
 > button, **D-103** Enquiries ▸ Popup + uski naap (§8), **D-104** itinerary ke do khaane + naya Notes
@@ -32,9 +34,10 @@
 
 ⚠️ **Paanch cheezein jo agli session ko turant pata honi chahiye:**
 
-1. **Email / SMTP screen browser me dekhi nahi gayi — A-42.** Wahan saat point ki list hai, aur
-   **#7 (panel-foot me teen bachche) sabse zyada shak wali** hai. Jo ho chuka hai wo bhi wahin
-   likha hai — dobara mat karna.
+1. **A-42 ab sirf password wale teen flow tak simat gaya hai** — mukhya raasta client ne chala kar
+   dekh liya (mail MailDev me pahunchi, `panel-foot` bhi theek). Bacha hua sabse zaroori check
+   **#2** hai: password bhar ke Save, phir sirf From Name badal kar Save — mail **phir bhi jaani
+   chahiye**. Jo ho chuka hai wo bhi wahin likha hai — dobara mat karna.
 2. **Dev me mail ke liye asli account ki zaroorat nahi** — `docker compose up -d maildev`, phir
    screen me Host `localhost` · Port `1025`. Inbox `http://localhost:1080`. (`06-OPERATIONS.md` §4.2)
 3. **Client ka dummy test code abhi `integrations.header` me pada hai**
@@ -61,7 +64,19 @@ the aur ab **chaaron ban sakte hain** (par **koi apne aap nahi bana** — har ek
 (`GET`/`PATCH /api/settings/mail`, `POST /api/settings/mail/test`) · `EmailSmtp.jsx` ·
 docker-compose me **MailDev**. **29 naye test. Koi migration nahi.**
 
-### ⚠️ Teen baatein jo yaad rehni chahiye
+### ⚠️ §9 — screen pehli baar chalte hi phat gayi, aur wo sabse kaam ki cheez nikli
+
+Client ne Save dabaya aur error aaya: `Unrecognized key(s) in object: 'hasPassword'`. Jad ye ki
+**padhne ki shakl aur likhne ki shakl alag hain** — `GET` `hasPassword` bhejta hai (asli password
+kabhi nahi), aur screen server ka poora jawab wapas bhej deti thi. `.strict()` ne theek hi roka.
+
+⚠️ **29 API test isse pakad nahi paaye, kyunki wo sab payload KHUD banate hain** — "server ka jawab
+wapas server ko bhejna" wale raaste pe koi test guzarta hi nahi tha. **Ye D-105 wali shakl hai**,
+aur ilaaj bhi wahi: niyam ab `toMailUpdate()` me hai (`packages/shared`), `handleSubmit()` ke andar
+nahi, aur uske **8 test** hain. D-105 ki line — _"`submit()` ke andar uska test likha hi nahi ja
+sakta tha, aur isiliye wo galti chup padi rahi"_ — usi din dobara sach nikli.
+
+### ⚠️ Teen aur baatein jo yaad rehni chahiye
 
 1. **`mail` Zod ke `settingsSchema` me hai hi nahi — sirf Mongoose model me.** Ye galti nahi,
    **pehra** hai: `toPublicSettings()` us schema se parse karta hai aur Zod anjaan keys strip kar

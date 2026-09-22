@@ -10421,3 +10421,67 @@ CSS edit — chhua nahi). Koi migration nahi.
 
 ⚠️ **Screen aankh se dekhi nahi gayi** — admin build pass hai (JSX/import ki galti pakdi jaati),
 par browser me kholi nahi gayi. **A-42.**
+
+### §9 — ⚠️ Screen pehli baar chalte hi phat gayi: `hasPassword` (22 Sep, live pe pakdi)
+
+Client ne screen kholi, chhe khaane bhare, **Save** dabaya — aur error aaya:
+
+> `Unrecognized key(s) in object: 'hasPassword'`
+
+Kuch save nahi hua. DB me `mail` `null` pada tha.
+
+**Jad:** padhne ki shakl aur likhne ki shakl **alag hain**. `GET /api/settings/mail` `hasPassword`
+bhejta hai (kyunki asli password kabhi nahi bhejta — §1), par wo likhne wali cheez hai hi nahi.
+Screen server ka poora jawab seedha apne form me rakh leti thi, aur Save pe wahi poora form
+`updateMailSchema` me chala jaata tha. Wo `.strict()` hai (§ `integrationsSchema` wali hi wajah),
+to usne theek hi reject kiya.
+
+⚠️ **Schema nirdosh tha. Galti screen me thi — aur `.strict()` ne apna kaam kiya.** Bina uske wo
+key chup-chaap girti aur bug kabhi dikhta hi nahi; ye theek wahi faayda hai jo D-103 ke `showOn`
+pe likha gaya tha.
+
+#### ⚠️ 29 API test isse pakad kyun nahi paaye
+
+**Kyunki wo sab payload khud banate hain.** Har test `.send({ host, password, … })` likhta hai —
+yaani wo **wahi shakl** bhejta hai jo schema maangti hai. Jo raasta toota tha — _"server ka jawab
+wapas server ko bhejna"_ — us par koi test guzarta hi nahi tha.
+
+Ye **D-105 wali shakl** hai, aur wahan ka ilaaj yahan bhi laga: niyam ab `handleSubmit()` ke andar
+nahi, ek **naam wale, test ho sakne wale** function me hai —
+
+```js
+// packages/shared/src/schemas/settings.js
+export function toMailUpdate(form) {
+  const { hasPassword: _hasPassword, ...payload } = form ?? {}
+  return payload
+}
+```
+
+D-105 me likha tha: _"`submit()` ke andar uska test likha hi nahi ja sakta tha, **aur isiliye wo
+galti chup padi rahi**."_ Yahan wo baat dobara sach nikli, sirf 8 ghante baad.
+
+**8 naye test** (`packages/shared/src/schemas/mail.test.js`). Pehla test theek wahi haalat
+dohraata hai jo live pe fail hui: server ka jawab lo → `toMailUpdate()` → `updateMailSchema`
+pass honi chahiye.
+
+#### Ek chhota saaf-safai ka faayda
+
+Screen me `hasPassword` ka **alag `useState` hata diya** — ab wo `form` se hi padha jaata hai.
+Do jagah ek hi sach rakhne ka matlab hota ki wo ek din alag ho jaayein. Aur naya read-only field
+(kabhi `lastTestedAt` jaisa) jodne wale ko ab **ek hi jagah** dikhegi jahan use girana hai.
+
+#### ✅ Uske baad poora raasta live chala
+
+| Kahan | Kya mila |
+| --- | --- |
+| DB | `12:22:40` — `host: localhost` · `port: 1025` · `fromName: Test Site` · `fromEmail: cms@test.local` |
+| MailDev | `12:22:46` — `From: Test Site <cms@test.local>` → `To: progryss@gmail.com`, subject `Test email from your website` |
+
+Yaani screen → `PATCH` → DB → `POST /mail/test` → `getMailConfig()` → `resolveMailConfig()` →
+**asli SMTP** → inbox. Aur `to` wahi aaya jo §5 me tay hua tha — logged-in user ka apna email,
+body se nahi.
+
+✅ **`panel-foot` ke teen bachche bhi theek nikle** (A-42 #7 ka sabse bada shak) — `Send Test
+Email` · `Sends to you at …` · `Save Changes`, ek hi line me.
+
+**Suite ab: 54 files, 1402/1403 pass.**

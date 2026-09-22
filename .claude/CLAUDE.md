@@ -866,10 +866,17 @@ alag se chala kar dekha gaya aur mail pahunchi. Dev me asli account chahiye hi n
 ⚠️ **Feature poora pehle se rakha hua tha** — design, nav entry, tab, `SMTP_*` env vars, `SMTP_PASS` ka
 redact hona. Sirf route nahi tha. **Paanchvi baar** (`.float` · `.sidetab` · `settings.scripts.update` ·
 `tools.export`). ⚠️ Reference ka `Enquiry Notifications` panel jaan-boojh kar nahi bana (R15 deviation,
-client ko batana hai). ⚠️ Screen aankh se dekhni baaki — **A-42**. Deploy pe **`pnpm install`** chahiye.
+client ko batana hai). Deploy pe **`pnpm install`** chahiye.
+✅ **Client ne screen chala kar dekh li — mail MailDev me pahunchi**, poora raasta live verify.
+⚠️ **Usi chalane se ek asli bug nikla (D-108 §9): `hasPassword`.** `GET` wo key bhejta hai (asli password
+kabhi nahi), screen poora jawab wapas bhej deti thi, aur `.strict()` ne Save rok diya — _"Unrecognized
+key(s)"_. **29 API test isse pakad nahi paaye kyunki wo sab payload KHUD banate hain**; "server ka jawab
+wapas server ko bhejna" wale raaste pe koi test tha hi nahi. **Ye D-105 wali shakl hai** — ilaaj bhi wahi:
+niyam ab `toMailUpdate()` me (`packages/shared`), `handleSubmit()` ke andar nahi, **8 naye test** ke saath.
+**Sabak dobara:** jo niyam `submit()` ke andar likha hai, uska test likha hi nahi ja sakta.
 
-⏭️ **Agla kaam: A-42** (Email screen browser me dekhna — 5 minute ka kaam, list `09-OPEN-ITEMS.md` me).
-Phir **A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn't come on frontend"_).
+⏭️ **Agla kaam: A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn't come on frontend"_).
+A-42 me sirf password wale teen flow bache hain (chhota kaam).
 Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed pe (A-17).
 SMTP khulne ke baad **enquiry notification (D-75/76)** bhi ab ban sakta hai — client se poochho.
 `project-state.md` ka pehla section padho.

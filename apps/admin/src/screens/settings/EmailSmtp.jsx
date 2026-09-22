@@ -1,4 +1,4 @@
-import { updateMailSchema } from '@cms/shared'
+import { toMailUpdate, updateMailSchema } from '@cms/shared'
 import { useEffect, useState } from 'react'
 
 import { api, errorMessage } from '../../lib/api.js'
@@ -32,12 +32,15 @@ export default function EmailSmtp() {
   const { can, user } = useAuth()
   const canEdit = can('settings.update')
 
-  const [form, setForm] = useState(null)
   /**
-   * Password screen pe kabhi aata hi nahi — server sirf `hasPassword` bhejta hai. Ye flag
-   * do kaam karta hai: placeholder `••••••••` dikhana, aur `Clear` button kab dikhe.
+   * Form me server ka **poora** jawab rehta hai, `hasPassword` ke saath — wo do kaam karta hai:
+   * placeholder `••••••••` dikhana, aur `Remove saved password` kab dikhe.
+   *
+   * ⚠️ **Save pe wo key `toMailUpdate()` girati hai.** Wo padhne ki cheez hai, likhne ki nahi;
+   * bhejte hi `updateMailSchema` (`.strict()`) poora Save 400 kar deti hai. Poora tark us
+   * function ke upar hai — aur wo galti 22 Sep ko live chalane pe hi pakdi gayi thi.
    */
-  const [hasPassword, setHasPassword] = useState(false)
+  const [form, setForm] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
@@ -45,10 +48,9 @@ export default function EmailSmtp() {
   const [notice, setNotice] = useState(null)
 
   /** ⚠️ `/settings` nahi — mail wahan jaata hi nahi (Zod use strip kar deti hai). Apna route. */
-  const load = (mail) => {
-    setForm({ ...EMPTY, ...mail, password: '' })
-    setHasPassword(Boolean(mail.hasPassword))
-  }
+  const load = (mail) => setForm({ ...EMPTY, ...mail, password: '' })
+
+  const hasPassword = Boolean(form?.hasPassword)
 
   useEffect(() => {
     api
@@ -79,8 +81,12 @@ export default function EmailSmtp() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    /** Wahi schema jo server chalata hai (R8) — port ki hadd aur email ki shakl yahin pakdi jaati hai. */
-    const parsed = updateMailSchema.safeParse(form)
+    /**
+     * Wahi schema jo server chalata hai (R8) — port ki hadd aur email ki shakl yahin pakdi
+     * jaati hai. `toMailUpdate()` pehle chalti hai: wo padhne-wali keys girati hai, warna
+     * `.strict()` unhi pe 400 de deti hai.
+     */
+    const parsed = updateMailSchema.safeParse(toMailUpdate(form))
     if (!parsed.success) {
       setError(parsed.error.issues[0].message)
       setNotice(null)
