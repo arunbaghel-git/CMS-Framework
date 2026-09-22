@@ -9734,3 +9734,37 @@ Mota hisaab (form ek column me — 7 khaane + message + submit ≈ 740px):
 667px wali screen pe form khud itna lamba hai ki wo samaa hi nahi sakta. Do raaste, dono client ke
 faisle hain: popup wale form me **kam khaane** rakhna, ya popup ke andar field ka gap kasna. Abhi
 koi nahi liya gaya.
+
+### §9.5 — `Heading above the form` chhap hi nahi raha tha (client, 22 Sep)
+
+Client: _"Heading above the form me data bhara hua hai to dikh kyu nahi rha"_.
+
+**Jad: `EnquiryForm` me `page` variant ke liye heading/description ki branch thi hi nahi.** Wahan
+sirf do shartein thin — `isHero` aur `isCta`. D-103 me `PopupForm` ye dono props bhejta tha, schema
+me the, admin me the, `toPublicPopup()` payload me bhi bhej raha tha — par render pe wo **chup-chaap
+gir** jaate the.
+
+⚠️ **Ye D-89 wali shakl teesri-chauthi baar hai** — "bana hua par juda nahi", jiska lakshan hamesha
+ek hi hota hai: **koi error nahi, bas kuch na hona**. Aur is baar wo **meri hi** chain me thi:
+D-103 likhte waqt maine prop bhej diya aur ye maan liya ki component use padhta hoga. Live chalate
+waqt popup kabhi bhara hua nahi dekha gaya tha (§8/§9 me layout dekha ja raha tha, content nahi).
+
+Ab `isPage` ki apni branch hai, `.bkg__h` aur `.bkg__lead` ke saath, aur CSS `.bkg--page` pe hai
+(`.pmod__body` pe nahi) — taaki contact page ke din wo dobara na likhni pade.
+
+⚠️ **Heading yahan HTML ki tarah chhapti hai, `isCta` ki tarah text ki tarah nahi — aur ye farak
+jaan-boojh kar hai:**
+
+| Variant | Heading kahan se | Type | Render |
+| --- | --- | --- | --- |
+| `cta` | sidebar widget (D-88 §10) | `z.string()` — saada text | `{heading}` |
+| `page` | popup (`formHeading`, D-103) | `inlineHtmlSchema` — HtmlEditor ka HTML | `dangerouslySetInnerHTML` |
+
+Ek hi prop, do alag source. Text ki tarah chhapne se client ko `<p>Get Free Quotes</p>` dikhta;
+HTML ki tarah chhapna safe hai kyunki safai **write pe** ho chuki hoti hai (`sanitizePopupSettings`,
+R20). Dono ka bartaav ek hi test me bandha gaya hai taaki koi ise "ek jaisa" karne na chale.
+
+⚠️ Contact page ka `enquiryForm` block ye dono props bhejta hi nahi (`Blocks.jsx`), isliye wahan is
+branch se aaj kuch nahi badalta.
+
+3 naye test (ab 14).

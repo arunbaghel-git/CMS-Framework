@@ -455,6 +455,31 @@ export default function EnquiryForm({
         {isCta && description ? <div dangerouslySetInnerHTML={{ __html: description }} /> : null}
 
         {/*
+         * ⚠️ **`page` variant pe heading/description 22 Sep tak render hote hi nahi the** — client ne
+         * pakda: _"Heading above the form me data bhara hua hai to dikh kyu nahi rha"_.
+         *
+         * D-103 me `PopupForm` ye dono props bhejta tha, payload me wo aa bhi rahe the, par yahan
+         * sirf `isHero` aur `isCta` ki branch thi — to wo **chup-chaap gir** jaate the. Koi error
+         * nahi, bas kuch na hona. Theek wahi shakl jo D-89 ke 13 me se zyada tar farak ki thi.
+         *
+         * ⚠️ **Heading yahan HTML ki tarah chhapti hai, `isCta` ki tarah text ki tarah nahi** — aur
+         * ye farak jaan-boojh kar hai, galti nahi:
+         *   - `cta` ka heading sidebar widget se aata hai → `z.string()`, saada text
+         *   - `page` ka heading popup se aata hai → `inlineHtmlSchema`, HtmlEditor ka likha HTML
+         * Use text ki tarah chhapne se client ko `<p>Get Free Quotes</p>` jaisa dikhta. Safai write
+         * pe ho chuki hai (`sanitizePopupSettings`, R20).
+         *
+         * Contact page ka `enquiryForm` block ye dono props bhejta hi nahi (`Blocks.jsx`), isliye
+         * wahan is branch se kuch nahi badalta.
+         */}
+        {isPage && heading ? (
+          <h3 className="bkg__h" dangerouslySetInnerHTML={{ __html: heading }} />
+        ) : null}
+        {isPage && description ? (
+          <div className="bkg__lead" dangerouslySetInnerHTML={{ __html: description }} />
+        ) : null}
+
+        {/*
          * Close sirf sheet wali haalat me — sidebar me widget band karne jaisi koi cheez hai
          * hi nahi, wo wahan hamesha khula rehta hai.
          */}

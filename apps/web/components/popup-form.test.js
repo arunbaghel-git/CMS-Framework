@@ -228,3 +228,43 @@ describe('Phone pe popup — poori image-patti nahi (client, 22 Sep)', () => {
     expect(tag.slice(0, tag.indexOf('/>'))).not.toContain('eager')
   })
 })
+
+describe('Form ke upar ka heading aur line (client, 22 Sep)', () => {
+  const form = read('./package/EnquiryForm.jsx')
+
+  /**
+   * ⚠️ **Ye guard ek asli "bana hua par juda nahi" se aaya hai.**
+   *
+   * D-103 me `PopupForm` `heading`/`description` bhejta tha, schema me the, admin me the, payload
+   * me bhi aa rahe the — par `EnquiryForm` me sirf `isHero` aur `isCta` ki branch thi, to `page`
+   * variant pe wo **chup-chaap gir** jaate the. Client ne pakda: _"Heading above the form me data
+   * bhara hua hai to dikh kyu nahi rha"_. Koi error nahi tha, bas kuch na hona — D-89 wali shakl.
+   */
+  it('page variant heading aur description dono render karta hai', () => {
+    expect(form).toMatch(/isPage && heading/)
+    expect(form).toMatch(/isPage && description/)
+  })
+
+  /**
+   * ⚠️ **Heading HTML ki tarah chhapni chahiye, text ki tarah nahi.**
+   *
+   * `page` ka heading popup se aata hai aur wo `inlineHtmlSchema` hai (HtmlEditor ka likha). Use
+   * `{heading}` ki tarah chhapne se client ko `<p>Get Free Quotes</p>` jaisa dikhta.
+   *
+   * ⚠️ `isCta` wala heading jaan-boojh kar text hi rehta hai — wo sidebar widget se aata hai aur
+   * `z.string()` hai. Do alag source, do alag bartaav; isliye dono ki jaanch yahan saath hai.
+   */
+  it('page ka heading HTML hai, cta ka text — dono waise hi rahein', () => {
+    const pageLine = form.slice(form.indexOf('isPage && heading'))
+    expect(pageLine.slice(0, pageLine.indexOf('null'))).toContain('dangerouslySetInnerHTML')
+
+    const ctaLine = form.slice(form.indexOf('isCta && heading'))
+    expect(ctaLine.slice(0, ctaLine.indexOf('null'))).not.toContain('dangerouslySetInnerHTML')
+  })
+
+  /** Look CSS me hona chahiye, inline style me nahi — warna contact page pe wo dobara likhna padta. */
+  it('heading aur line ka look CSS me hai', () => {
+    expect(css).toContain('.bkg--page .bkg__h')
+    expect(css).toContain('.bkg--page .bkg__lead')
+  })
+})

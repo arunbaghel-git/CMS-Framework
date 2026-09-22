@@ -3791,6 +3791,29 @@ a.mega__gl:hover {
   box-shadow: none;
 }
 
+/*
+ * Form ke upar ka heading aur line — dono admin ke field hain (`formHeading`, `description`).
+ *
+ * ⚠️ Ye `.bkg--page` pe hain, `.pmod__body` pe nahi, kyunki markup `EnquiryForm` ka hai aur wahi
+ * `page` variant contact page pe bhi chalta hai. Aaj wahan ye dono khaali aate hain (contact ka
+ * block inhe bhejta hi nahi), par jis din bheje, look pehle se maujood hoga — do jagah CSS likhne
+ * se bachne ka wahi tark jo `PackageCard` pe tha.
+ */
+.bkg--page .bkg__h {
+  margin: 0 0 6px;
+}
+
+.bkg--page .bkg__lead {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+
+/** Heading ke theek neeche form ho to uska apna upar ka gap nahi chahiye. */
+.bkg--page .bkg__h + form,
+.bkg--page .bkg__lead + form {
+  margin-top: 0;
+}
+
 @media (max-width: 760px) {
   /*
    * ⚠️ **Phone pe poori image-patti nahi — image aur uske upar wala heading dono** (client,

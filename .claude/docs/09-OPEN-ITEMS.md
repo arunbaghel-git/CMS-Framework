@@ -598,6 +598,28 @@ pehle naap lo ki kitna KB bacha, phir haath lagao.
 
 ---
 
+### A-41 · Admin ka field payload tak aata hai par theme use padhta hi nahi — poora milaan (22 Sep, D-103 §9.5 se nikla)
+
+**Deadline:** koi sakht nahi · **aaj kuch toota nahi** — par har baar client hi pakadta hai
+
+`Heading above the form` ka data admin me bhara tha, schema me tha, payload me bhi aa raha tha — aur
+theme me use padhne wali branch thi hi nahi (`EnquiryForm` me sirf `isHero`/`isCta` ki shart thi).
+Client ne poochha _"dikh kyu nahi rha"_.
+
+⚠️ **Ye is repo ka sabse baar-baar aane wala bug hai, aur uska lakshan hamesha ek hi hai — "kuch na
+hona".** Gini hui jagah: D-82 (`seoSchema` teen din chala hi nahi), D-89 (13 me se zyada tar farak —
+trust badges, `entry.url`, `StickySide`, chaar icon), D-90 (rating ka panel, `statRail[].highlight`,
+`defaults.rating`), D-102 (`.float`), aur ab D-103 §9.5.
+
+**Karne wala kaam:** ek script jo har public payload ki key le aur `apps/web` me uska padhne wala
+dhoondhe. Jo key kahin na padhi jaaye wo ya to bug hai ya dead field. A-35 (reference ki class ka
+milaan) isi ka doosra sira hai — wo design se milaata hai, ye payload se.
+
+⚠️ **Sirf grep se kaam nahi chalega** — key spread ho kar (`{...props}`) ya doosre naam se aage ja
+sakti hai. Par pehla pass bhi bahut kuch nikaal dega.
+
+---
+
 ### A-35 · Reference ke saath poora milaan — aur kya chhoot gaya hai? (21 Sep, D-102 se nikla)
 
 **Deadline:** koi sakht nahi · **aaj kuch toota nahi**
