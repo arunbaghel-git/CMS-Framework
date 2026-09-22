@@ -84,7 +84,16 @@ export async function getSettings() {
   const data = await getJson('/public/settings', ['settings'])
   if (!data?.settings) return null
 
-  const { popup: _popup, ...rest } = data.settings
+  /**
+   * ⚠️ `popup` aur `integrations` yahan se **nikale jaate hain** — dono har page ke HTML me
+   * bemaani bhaar hain.
+   *
+   * `MobileNav` (header, har page pe) poora `settings` object prop me leta hai, aur client
+   * component ke props RSC flight data me serialize hote hain. `popup` pe ye bug **live chalane
+   * pe** pakda gaya tha (D-103 §7); `integrations` pe wahi galti dobara na ho, isliye wo pehle
+   * din se yahan hai (A-36).
+   */
+  const { popup: _popup, integrations: _integrations, ...rest } = data.settings
   return rest
 }
 
@@ -98,6 +107,18 @@ export async function getPopup() {
   const data = await getJson('/public/settings', ['settings'])
 
   return data?.settings?.popup ?? null
+}
+
+/**
+ * Sirf Integrations — `Settings ▸ Integrations` (D-106).
+ *
+ * Wahi cached fetch jo `getSettings()` padhti hai, isliye koi naya round trip nahi aur koi naya
+ * cache tag nahi — `getPopup()` wala hi tark.
+ */
+export async function getIntegrations() {
+  const data = await getJson('/public/settings', ['settings'])
+
+  return data?.settings?.integrations ?? null
 }
 
 /** @param {string} location theme ki declared location — `header`, `footerColumn1`… */

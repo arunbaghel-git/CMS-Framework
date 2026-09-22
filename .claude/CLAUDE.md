@@ -811,6 +811,20 @@ Enquiry Forms` me unhe khud khaali na kare.
 ⚠️ Naya open item **A-41** — "admin ka field payload tak aata hai par theme padhta hi nahi" ka poora
 milaan. Ye is repo ka sabse baar-baar aane wala bug hai (D-82 · D-89 · D-90 · D-102 · D-103 §9.5).
 
+**22 Sep — Settings ▸ Integrations (D-106), koi migration nahi.** Teen khaane (header · body · footer),
+poori site pe, client ke shabd: _"view source me dikhega across the website, not on frontend"_.
+⚠️ **Ye poore system me ekmatra jagah hai jahan HTML sanitize NAHI hoti** — R20 ka jaan-boojh kar liya
+gaya apwaad, kyunki field ka kaam hi `<script>` chalana hai (GA · Pixel · GTM). Suraksha safai se nahi,
+**do pehron** se: route pe `settings.scripts.update` (spec 001 se reserved, sirf admin) **aur**
+`updateSettingsSchema` me se field ka hata hona. Doosra kam zaroori nahi — bina uske pehla bemaani.
+⚠️ **`<head>` me raw HTML `<head>` par khud `dangerouslySetInnerHTML` se jaata hai** — uske andar
+`<div>` rakhne pe **browser `<head>` band kar deta hai** aur hamari CSS `<body>` me chali jaati (naap
+kar dekha). Isliye `ThemeColors`/`CustomCss` ab string builder hain.
+⚠️ **`getSettings()` `integrations` nikal deti hai, `getIntegrations()` alag** — warna wo code har page
+ke HTML me do baar jaata (A-36, D-103 §7 wala hi bug).
+⚠️ **Permission aur nav dono pehle se rakhe hue the** — teesri baar (`.float` D-102, `.sidetab` A-34).
+**Naya kaam shuru karne se pehle dhoondho ki wo pehle se rakha to nahi hai.**
+
 ⏭️ **Agla kaam: A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn't come on
 frontend"_). Uske baad **A-33 / A-40 / A-32** — teeno client ke jawab pe ruke hain. Phir baaki pages
 PageSpeed pe (A-17). `project-state.md` ka pehla section padho.

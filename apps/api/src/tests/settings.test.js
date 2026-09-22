@@ -775,3 +775,126 @@ describe('Enquiries ▸ Popup — popupSettings (21 Sep)', () => {
     expect(res.status).toBe(403)
   })
 })
+
+/**
+ * `Settings ▸ Integrations` — teesre tools ka code (D-106, client 22 Sep).
+ *
+ * ⚠️ **Yahan ke aadhe test suraksha ke hain, feature ke nahi.** Ye poore system me ekmatra jagah hai
+ * jahan admin ki HTML bina safai ke DB me jaati hai, aur uska poora pehra do cheezon pe khada hai:
+ * alag route + alag permission, aur `updateSettingsSchema` me se field ka **hata hona**. Dono me se
+ * ek bhi khisak jaaye to editor `<script>` inject kar sakta hai — role escalation.
+ */
+describe('PATCH /api/settings/integrations (D-106)', () => {
+  const GTM = '<script>window.dataLayer=[];</script>'
+
+  it('admin teenon khaane likh sakta hai', async () => {
+    const res = await authed('patch', '/api/settings/integrations', adminJar).send({
+      header: GTM,
+      body: '<noscript><iframe src="https://x"></iframe></noscript>',
+      footer: '<script src="https://chat.example/w.js" defer></script>',
+    })
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.settings.integrations.header).toBe(GTM)
+
+    // ⚠️ Response nahi, **DB** — wahi sabak jo whitelist wale jaal pe mila tha
+    const stored = await Settings.findOne({}).lean()
+    expect(stored.integrations.header).toBe(GTM)
+    expect(stored.integrations.footer).toContain('chat.example')
+  })
+
+  /** ⚠️ Ye field ka **poora matlab** hai — safai lagi to GA/Pixel/GTM kuch bhi kaam nahi karega. */
+  it('script tag bacha rehta hai — yahan sanitize NAHI hota (R20 ka jaan-boojh kar apwaad)', async () => {
+    await authed('patch', '/api/settings/integrations', adminJar).send({
+      header: '<script>alert(1)</script><meta name="google-site-verification" content="abc" />',
+    })
+
+    const stored = await Settings.findOne({}).lean()
+    expect(stored.integrations.header).toContain('<script>')
+    expect(stored.integrations.header).toContain('google-site-verification')
+  })
+
+  /**
+   * ⚠️ Sirf ek khaana bhejne se baaki **ud-te nahi**. `$set` me dotted key jaati hai
+   * (`integrations.footer`), poora object nahi — wahi jaal jo 10 Sep ko `blogSettings` pe pakda gaya
+   * tha, jahan ek field patch karne se teen field gayab ho gaye the.
+   */
+  it('adhoora PATCH baaki khaane nahi udata', async () => {
+    await authed('patch', '/api/settings/integrations', adminJar).send({ header: GTM })
+    await authed('patch', '/api/settings/integrations', adminJar).send({ footer: '<b>f</b>' })
+
+    const stored = await Settings.findOne({}).lean()
+    expect(stored.integrations.header).toBe(GTM)
+    expect(stored.integrations.footer).toBe('<b>f</b>')
+  })
+
+  /** Anjaan key chup-chaap girti nahi — `head` likhne wala 200 + "kuch na hona" na dekhe (D-103 ka sabak). */
+  it('anjaan khaana 400 deta hai, chup-chaap girta nahi', async () => {
+    const res = await authed('patch', '/api/settings/integrations', adminJar).send({ head: 'x' })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('hadd se lambi value 400 deti hai', async () => {
+    const res = await authed('patch', '/api/settings/integrations', adminJar).send({
+      header: 'x'.repeat(20001),
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  // ── suraksha ────────────────────────────────────────────────────────────────
+
+  it('editor ise chhoo bhi nahi sakta — 403', async () => {
+    const res = await authed('patch', '/api/settings/integrations', editorJar).send({
+      header: GTM,
+    })
+
+    expect(res.status).toBe(403)
+  })
+
+  it('author bhi nahi — 403', async () => {
+    expect(
+      (await authed('patch', '/api/settings/integrations', authorJar).send({ header: GTM })).status,
+    ).toBe(403)
+  })
+
+  /**
+   * ⚠️ **Ye is poore feature ka sabse zaroori test hai — aur isne mera ek galat comment pakda.**
+   *
+   * Pehle yahan likha tha ki "editor `PATCH /api/settings` chala sakta hai", aur test usse 200 ki
+   * ummeed kar raha tha. Wo **galat** tha: `settings.update` bhi aaj **sirf admin** ke paas hai
+   * (editor settings sirf padh sakta hai — spec 001). Test ne 403 de kar wo jhooth pakad liya, aur
+   * usi wajah se `routes.js`, `service.js`, schema aur screen — chaaron ke comments theek karne pade.
+   *
+   * Asli baat phir bhi wahi hai: agar `integrations` aam route ke schema me hota, to
+   * `settings.update` wala **koi bhi** role use likh deta aur permission ka pehra bemaani ho jaata.
+   * Zod anjaan key girati hai, isliye request 200 laut-ti hai par DB me kuch nahi jaata.
+   */
+  it('aam settings route se integrations likha hi nahi ja sakta — admin bhi nahi', async () => {
+    /** ⚠️ Document abhi bana bhi nahi ho sakta — `beforeEach` use mita deta hai aur wo pehle write pe banta hai. */
+    const before = (await Settings.findOne({}).lean())?.integrations?.header ?? ''
+
+    const asAdmin = await authed('patch', '/api/settings', adminJar).send({
+      integrations: { header: '<script>evil()</script>' },
+    })
+
+    expect(asAdmin.status).toBe(200)
+
+    const stored = await Settings.findOne({}).lean()
+    expect(stored.integrations?.header ?? '').toBe(before)
+    expect(stored.integrations?.header ?? '').not.toContain('evil')
+  })
+
+  it('bina login ke 401', async () => {
+    expect((await request(app).patch('/api/settings/integrations').send({})).status).toBe(401)
+  })
+
+  /** Khaali chhodna poori tarah theek hai — theme us jagah kuch bhi nahi likhti (D-30). */
+  it('khaali string likhi ja sakti hai — "hata do" ka matlab', async () => {
+    await authed('patch', '/api/settings/integrations', adminJar).send({ header: GTM })
+    await authed('patch', '/api/settings/integrations', adminJar).send({ header: '' })
+
+    expect((await Settings.findOne({}).lean()).integrations.header).toBe('')
+  })
+})

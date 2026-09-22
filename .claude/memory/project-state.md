@@ -1,8 +1,8 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 22 Sep 2026 — **popup client ke saath settle ho gaya** (D-103 §9–§9.7, chaar
-> round, koi migration nahi). Client ne khud chala kar har baar bataya, aur aakhir me mera raasta
+> **Last updated:** 22 Sep 2026 — do kaam: **popup client ke saath settle** (D-103 §9–§9.7, chaar
+> round) aur **Settings ▸ Integrations ban gaya** (D-106 — A-40 band). Dono me koi migration nahi. Client ne khud chala kar har baar bataya, aur aakhir me mera raasta
 > **palta**: scroll theek karne ke liye main content chhota kar raha tha, unhone `label` optional
 > karwaya. **Suite 1311/1312** — fail sirf `theme-fonts.test.js` (`.hf-stat span`, client ka apna
 > CSS edit, chhua nahi). Poora hisaab neeche ke **22 Sep** wale section me. ⚠️ **Push baaki hai**
@@ -38,6 +38,51 @@
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 > ✅ `.claude/` ab git me **track hai** (commit `75beb7f`) — 18 Sep wala _"git se bahar hai"_ ab purana hai.
+
+---
+
+## ✅ 22 Sep (baad me) — Settings ▸ Integrations (D-106), **A-40 band**
+
+Client ne 21 Sep wali ambiguity khud saaf kar di: _"view source me dikhega **across the website, not
+on frontend**"_ — yaani code page ke HTML me jaata hai aur **chalta** hai, par content ki tarah
+chhapta nahi. Samjhaane ke baad: **_"bana do, admin only wala option A rakho."_**
+
+**Bana:** `settings.integrations{header, body, footer}` · screen `/settings/integrations` · apna
+route `PATCH /api/settings/integrations` (`settings.scripts.update`) · layout me teen jagah inject ·
+`getIntegrations()`. **13 naye test. Koi migration nahi.**
+
+### Chhe baatein jo yaad rehni chahiye
+
+1. ⚠️ **Do cheezein pehle se rakhi hui thin.** Permission `settings.scripts.update` **spec 001
+   (19 Aug)** me theek isi din ke liye reserve thi aur teen mahine kahin use nahi hui; aur sidebar ki
+   `Integrations` entry **design se pehle se thi** (`NotBuiltYet` pe girti thi). Maine nayi entry jod
+   kar **duplicate** bana diya tha. **Ye teesri baar hai** (`.float` D-102, `.sidetab` A-34) —
+   **naya kaam shuru karne se pehle dhoondho ki wo pehle se rakha to nahi hai**
+2. ⚠️ **Ye poore system me ekmatra jagah hai jahan HTML saaf nahi hoti** (R20 ka jaan-boojh kar
+   apwaad) — field ka kaam hi `<script>` chalana hai. Suraksha **do pehron** pe khadi hai: route ki
+   permission, **aur** `updateSettingsSchema` me se field ka hata hona. Doosra kam zaroori nahi —
+   bina uske pehla bemaani ho jaata
+3. ⚠️ **Ek galat baat test ne pakdi** — maine chaar jagah likha tha ki "`settings.update` editor ke
+   paas bhi hai". Wo aaj hai hi nahi (dono admin-only). Chaaron comment theek karne pade. Alag rakhne
+   ki asli wajah **Phase 7 ka custom-role builder** hai, aaj ka koi role nahi
+4. ⚠️ **`<head>` me raw HTML — do koshish, dono naap kar.** `<div>` head me SSR pe chhapta hai par
+   **browser wahin `<head>` band kar deta hai** (HTML spec) aur hamari CSS `<body>` me chali jaati.
+   Chala: `<head>` par **khud** `dangerouslySetInnerHTML` — aur Next ki metadata phir bhi head me
+   aati hai (ye bhi naap kar dekha). Keemat: `ThemeColors`/`CustomCss` ab string builder hain
+5. ⚠️ **A-36 pehle din se band hai** — `getSettings()` `integrations` nikal deti hai. Bina iske wo
+   code har page ke HTML me **do baar** jaata (D-103 §7 wala bug, jo tab live chalane pe pakda tha)
+6. **Kram:** theme ke rang → client ki CSS → **integrations sabse aakhir**. Wo ekmatra hissa hai
+   jiski HTML hum saaf nahi karte; usme adhoora tag ho to uske **baad** ka sab tootta hai
+
+### Live check (asli DB, chalta hua dev server)
+
+Teen probe value likh kar page padha: `header` ✅ `</head>` se pehle · `body` ✅ site ke `<header>`
+se pehle · `footer` ✅ sabse aakhir. Theme CSS aur Next ki metadata dono `<head>` me bachi. Teenon
+khaane khaali karne pe page se **sab gayab** (D-30). **Probe hata di gayi hai — teenon khaane abhi
+khaali hain.**
+
+⚠️ **Client ko browser me dekhna baaki** — admin ka `Settings ▸ Integrations` tab, aur save ke baad
+site pe view-source.
 
 ---
 

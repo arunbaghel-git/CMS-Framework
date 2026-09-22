@@ -39,6 +39,7 @@ import TourList from './screens/pages/TourList.jsx'
 import Colours from './screens/settings/Colours.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import CustomCss from './screens/settings/CustomCss.jsx'
+import Integrations from './screens/settings/Integrations.jsx'
 import Fonts from './screens/settings/Fonts.jsx'
 import General from './screens/settings/General.jsx'
 import Layout from './screens/settings/Layout.jsx'
@@ -285,6 +286,7 @@ const APP_ROUTES = [
   { path: '/settings/layout', element: <Layout /> },
   { path: '/settings/cta', element: <CtaSection /> },
   { path: '/settings/custom-css', element: <CustomCss /> },
+  { path: '/settings/integrations', element: <Integrations /> },
   { path: '/settings/redirects', element: <Redirects /> },
   /**
    * Blog settings — author · TOC · post ki sidebar (spec 008). 11 Sep ko menu me Posts ke neeche

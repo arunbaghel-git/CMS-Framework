@@ -14,9 +14,11 @@ import * as controller from './controller.js'
  * bina wo date format ya site title jaise cheezein dekh hi nahi paata) par badal nahi
  * sakta (spec 001).
  *
- * `settings.scripts.update` yahan **nahi** hai — wo alag permission hai kyunki
- * `<script>` inject karna role escalation hai, settings field nahi. Wo Scripts screen
- * ke saath aayegi (Phase 4).
+ * `settings.scripts.update` **is route pe nahi hai** — wo alag permission hai kyunki
+ * `<script>` inject karna role escalation hai, settings field nahi.
+ *
+ * ✅ **22 Sep — wo screen ab ban gayi** (`Settings ▸ Integrations`, D-106) aur uska apna route
+ * neeche hai. Ye line pehle "Wo Scripts screen ke saath aayegi (Phase 4)" kehti thi.
  */
 export const settingsRoutes = Router()
 
@@ -28,6 +30,28 @@ settingsRoutes.patch(
   requireAuth,
   requirePermission(PERMISSION.SETTINGS_UPDATE),
   controller.update,
+)
+
+/**
+ * Settings ▸ Integrations — teesre tools ka code (D-106, client 22 Sep).
+ *
+ * ⚠️ **Alag route hone ki wajah permission hai, suvidha nahi.** `PATCH /` `settings.update`
+ * maangta hai, ye `settings.scripts.update` — spec 001 me wo ek **privilege boundary** hai.
+ *
+ * ⚠️ **Aaj ye rok kuch nahi badalti, aur wo baat saaf likhi honi chahiye:** `settings.update` bhi
+ * abhi **sirf admin** ke paas hai (editor settings padh sakta hai, badal nahi sakta — spec 001).
+ * Alag rakhne ki wajah **aage** hai: Phase 7 ka custom-role builder kisi ko "settings sambhalo" dega,
+ * aur us din `<script>` inject karna usme **apne aap** nahi aana chahiye. Spec 001 (19 Aug) ne ise
+ * isiliye `privilege boundary` likha tha, "settings field" nahi.
+ *
+ * Doosra taala schema me hai — `updateSettingsSchema` me se `integrations` hata hua hai, isliye
+ * upar wale route se wo likha hi nahi ja sakta.
+ */
+settingsRoutes.patch(
+  '/integrations',
+  requireAuth,
+  requirePermission(PERMISSION.SETTINGS_SCRIPTS_UPDATE),
+  controller.updateIntegrations,
 )
 
 /**

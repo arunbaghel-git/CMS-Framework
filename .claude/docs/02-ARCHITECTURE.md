@@ -138,6 +138,19 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  frontPageType, homepageEntryId, postsPageEntryId, postsPerPage,
                  searchEngineVisible
                  customCss (D-96 §25) — client ki apni CSS, HAR page ke <head> me
+                 integrations{header,body,footer} (D-106, 22 Sep) — teesre tools
+                 ka code (GA, Pixel, GTM), HAR page pe. Teen jagah: </head> se
+                 pehle · <body> khulte hi · </body> se pehle
+                 ⚠️ POORE SYSTEM ME EKMATRA JAGAH JAHAN HTML SANITIZE NAHI HOTI
+                 (R20 ka jaan-boojh kar apwaad — field ka kaam hi <script>
+                 chalana hai). Suraksha safai se nahi, permission se:
+                 settings.scripts.update (spec 001 se reserved, sirf admin) —
+                 apna route PATCH /api/settings/integrations, aur
+                 updateSettingsSchema me se ye field HATA hua hai (dono pehre
+                 zaroori hain)
+                 ⚠️ getSettings() ise NIKAAL deti hai, getIntegrations() alag —
+                 warna MobileNav ke props se har page ke HTML me DO baar jaata
+                 (A-36, D-103 §7 wala hi bug)
                  (Custom editor block ke liye; block me <style> likha hi nahi ja sakta)
                  ⚠️ `</style` Zod me hi reject — wahi value <style> ke andar jaati hai
                  PLANNED: defaultSeo, titleTemplates, privacyPolicyEntryId,

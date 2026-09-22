@@ -9874,3 +9874,128 @@ do"_ wala shortcut rokna hai. **Guard ko irade pe bandho, value pe nahi.**
 percentage aksar `auto` ban jaata hai. Nateeja shayad wahi ho jo wo chahte hain (image apni poori
 ooonchai le), par `object-fit: cover` ke saath teen alag naap ki image ki patti **ooncha-neecha** ho
 sakti hai — wahi wajah jiske liye fixed height pehle lagayi gayi thi.
+
+---
+
+## D-106
+
+**Settings ▸ Integrations — teesre tools ka code, poori site pe** (client, 22 Sep 2026)
+
+**Status:** ✅ ban gaya · koi migration nahi
+
+### §1 — Client ka ask do din me poora hua
+
+**21 Sep:** _"in settings submenu Integrations — there will be 3 input field header, footer, body …
+ask if any question"_, aur poochhne par: _"abhi main confirm nahi hu, ise bhi mat banao, abhi sirf
+doc me update kar lo"_ (**A-40**).
+
+**22 Sep:** _"integration submenu in settings · **view source me dikhega across the website, not on
+frontend** · input fields for header, footer and body"_, aur _"can you tell why we use these script
+tag in view source, mujhe thoda clear karo."_ Samjhane ke baad: **_"bana do, admin only wala option
+A rakho."_**
+
+⚠️ **Us ek line ne wo ambiguity khatam ki jispe kaam ruka tha.** 21 Sep ko uske **teen** matlab
+nikal rahe the — (a) khaali ho to kuch na jaaye, (b) site se jodna hi nahi, (c) code chale par text
+ki tarah na chhape. **Teesra sahi tha.** Doosra maan liya hota to sirf ek admin screen banti aur
+theme chhui hi nahi jaati — yaani feature bana hua hota aur chalta hi nahi (D-82 wali shakl).
+
+### §2 — Do cheezein pehle se rakhi hui thin, aur dono ne kaam aadha kar diya
+
+**1. Permission.** `settings.scripts.update` **spec 001 (19 Aug)** me theek isi din ke liye reserve
+ki gayi thi aur aaj tak **kahin use nahi hui thi**. Uske upar ka comment aaj bhi waisa ka waisa lagta
+hai: _"`<script>` inject karne wala user admin ke browser me code chala sakta hai — matlab role
+escalation. Ye settings field nahi, **security boundary** hai."_ Client ka "option A" aur spec ka
+faisla ek hi nikla.
+
+**2. Nav ki entry.** `Settings ▸ Integrations` **sidebar me pehle se thi** (design se), aur
+`NotBuiltYet` pe girti thi. Maine nayi entry jod kar ek **duplicate** bana diya tha, phir hata diya.
+
+⚠️ **Teesri baar yahi hua hai** — `.float` (D-102) aur `.sidetab` (A-34) bhi reference me pehle se
+the aur bane nahi the. **Is repo me naya kaam shuru karne se pehle dhoondhna chahiye ki wo pehle se
+rakha to nahi hai.**
+
+### §3 — Ye poore system me ekmatra jagah hai jahan HTML saaf nahi hoti
+
+R20 kehta hai: admin ki likhi har HTML **write pe** sanitize ho. Yahan wo **jaan-boojh kar nahi
+hoti**, kyunki is field ka poora kaam hi `<script>` chalana hai — aur sanitizer use girata hai.
+Safai lagana yaani feature banana aur uska kaam na karna.
+
+**Iski suraksha safai se nahi, permission se aati hai** — aur wo pehra **do** jagah khada hai:
+
+| Pehra | Kahan |
+| --- | --- |
+| Route pe permission | `PATCH /api/settings/integrations` → `settings.scripts.update` |
+| Schema me se field ka **hata hona** | `updateSettingsSchema` me `integrations` hai hi nahi |
+
+⚠️ **Doosra pehra pehle se kam zaroori nahi hai.** Bina uske `settings.update` wala koi bhi role
+`PATCH /api/settings` se wahi field likh deta, aur pehla pehra bemaani ho jaata. Uska apna test hai.
+
+⚠️ **`customCss` se alag khatra hai, aur wo farak halka nahi hai.** `customCss` ke apne comment me
+likha hai: _"CSS me JavaScript nahi chalti, isliye is ek rok (`</style`) ke baad yahan XSS ka raasta
+nahi bachta."_ Yahan wo baat **sach nahi** hai.
+
+⚠️ **`</style` wali rok yahan nahi lagti** — wahan value ek `<style>` ke **andar** jaati hai, isliye
+wo do akshar tag jaldi band kar dete. Yahan value seedha HTML ki tarah jaati hai.
+
+### §4 — Ek galat baat test ne pakdi
+
+Comments me maine chaar jagah likha tha ki _"`settings.update` editor ke paas bhi hai"_. **Wo galat
+tha** — `settings.update` bhi aaj sirf admin ke paas hai (editor settings sirf **padh** sakta hai,
+spec 001). Test editor se 200 ki ummeed kar raha tha, 403 mila, aur chaaron comment theek karne pade.
+
+**Isliye alag rakhne ki asli wajah aage hai, aaj nahi:** Phase 7 ka custom-role builder kisi ko
+"settings sambhalo" dega, aur us din `<script>` inject karna usme **apne aap** nahi aana chahiye.
+
+### §5 — `<head>` me raw HTML — do koshish, dono naap kar
+
+React ek **string** ko element nahi bana sakta; use `dangerouslySetInnerHTML` chahiye, jo kisi
+**element** pe lagta hai. `<head>` ke andar wo element kya ho?
+
+**Pehli koshish — `<div>` head ke andar.** SSR ke HTML me wo head ke andar chhapta **hai** (naap kar
+dekha). Par **browser ka parser** wahin `<head>` band kar deta hai — HTML spec: head me anjaan tag
+milte hi "after head" mode. Uske baad ki hamari CSS `<body>` me chali jaati. ❌
+
+**Doosri koshish — `<head>` par khud `dangerouslySetInnerHTML`.** Ye chalta hai, aur **ye bhi naap
+kar dekha gaya**: Next apni metadata (title, favicon, preload) phir bhi isi `<head>` me daalti hai —
+dono saath rehte hain. ✅
+
+Iski keemat ye thi ki `ThemeColors` aur `CustomCss` components **string builder** ban gaye
+(`styleTag()`), kyunki ek hi element pe children aur `dangerouslySetInnerHTML` dono nahi ho sakte.
+
+⚠️ **`<body>` me wrapper `<div>` chalta hai** (`display: contents`) — farak HTML parser ka hai,
+hamara nahi.
+
+⚠️ **Kram maayne rakhta hai:** theme ke rang → client ki CSS → **integrations sabse aakhir me**. Wo
+ekmatra hissa hai jiski HTML hum saaf nahi karte: usme ek adhoora tag ho to uske **baad** ka sab
+tootta hai — aur uske baad hamara kuch nahi hai.
+
+### §6 — A-36 pehle din se band hai
+
+`MobileNav` (header, **har page pe**) poora `settings` object prop me leta hai, aur client component
+ke props RSC flight data me serialize hote hain. Bina batware ke integrations ka code har page ke
+HTML me **do baar** jaata — ek baar chalne ke liye, ek baar bilkul bemaani.
+
+D-103 §7 me theek yahi popup ke saath hua tha aur **live chalane pe** pakda gaya. Yahan wo pehle din
+se band hai: `getSettings()` `integrations` nikal deti hai, aur `getIntegrations()` alag hai — wahi
+cached fetch, koi naya round trip nahi.
+
+### §7 — Live check (asli DB, chalta hua dev server)
+
+Teen probe value DB me likh kar page padha gaya:
+
+| Khaana | Mila |
+| --- | --- |
+| `header` | ✅ `</head>` se pehle |
+| `body` | ✅ `<body>` ke shuru me, site ke `<header>` se pehle |
+| `footer` | ✅ sabse aakhir, `</footer>` ke baad |
+
+Saath me: theme ki CSS `<head>` me bachi hui, aur Next ki apni metadata bhi `<head>` me. Teenon
+khaane khaali karne pe page se **sab kuch gayab** — khaali `<div>` tak nahi (D-30).
+
+### §8 — Kya nahi banaya
+
+- **Per-page ya per-type gating** — client ne _"across the website"_ kaha
+- **On/off toggle** — khaali khaana hi "band" hai; alag toggle "band" ke **do** matlab bana deta
+  (wahi faisla jo D-102 pe liya gaya tha)
+- **Safai ka koi vikalp** — "sanitize karke daalo" wala mode banane ka matlab hota GA/Pixel/GTM ka
+  kaam na karna

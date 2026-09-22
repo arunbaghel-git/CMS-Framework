@@ -357,6 +357,21 @@ export const NAV = [
       { label: '301 Redirects', to: '/settings/redirects', permission: PERMISSION.REDIRECT_READ },
       { label: 'SEO & Schema', to: '/settings/seo', permission: PERMISSION.SETTINGS_READ },
       { label: 'Email / SMTP', to: '/settings/email', permission: PERMISSION.SETTINGS_READ },
+      /**
+       * Teesre tools ka code — analytics, ads, chat (client, 22 Sep, D-106).
+       *
+       * ⚠️ **Ye entry design ke saath pehle din se yahan thi aur 22 Sep tak `NotBuiltYet` pe girti
+       * thi** — screen aaj bani. Nayi entry jodne ki koshish me ek **duplicate** ban gaya tha; wahi
+       * "pehle dekho, phir banao" wala sabak jo `.float` (D-102) aur `settings.scripts.update`
+       * pe bhi laga: is repo me aksar cheez pehle se rakhi hoti hai, sirf judi nahi hoti.
+       *
+       * ⚠️ **Permission `settings.read` hai, `settings.scripts.update` nahi** — aur wo jaan-boojh
+       * kar. Yahi saancha baaki saari settings screens ka hai: andar aane do, aur **badalne** ki rok
+       * screen ke form pe (wahan `settings.scripts.update` chahiye, jo sirf admin ke paas hai).
+       *
+       * Padhne pe rok ka koi faayda bhi nahi tha — ye code har visitor ke page source me dikhta hai.
+       * Asli pehra **server pe** hai: `PATCH /api/settings/integrations`.
+       */
       {
         label: 'Integrations',
         to: '/settings/integrations',
@@ -481,6 +496,7 @@ export const ROUTE_GUARDS = Object.freeze({
   '/settings/colours': PERMISSION.SETTINGS_READ,
   '/settings/layout': PERMISSION.SETTINGS_READ,
   '/settings/custom-css': PERMISSION.SETTINGS_READ,
+  '/settings/integrations': PERMISSION.SETTINGS_READ,
   '/settings/redirects': PERMISSION.REDIRECT_READ,
   /**
    * ⚠️ Menu me ye ab **Tour** ke neeche hai (client, 8 Sep), par guard `settings.read` hi rahi —

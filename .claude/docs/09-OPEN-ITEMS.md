@@ -404,7 +404,25 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ---
 
-### A-40 · Settings ▸ Integrations — teen khaane (21 Sep, client ka naya ask, **koi code nahi**)
+### ✅ A-40 · Settings ▸ Integrations — **ban gaya** (22 Sep, D-106)
+
+> Client ne 22 Sep ko wo line saaf kar di jispe kaam ruka tha (_"view source me dikhega across the
+> website, not on frontend"_), samjhaane ke baad **_"bana do, admin only wala option A rakho"_** kaha,
+> aur screen usi din ban gayi. Poora hisaab **D-106** me. **13 naye test.**
+>
+> ⚠️ **Do cheezein pehle se rakhi hui thin** — permission `settings.scripts.update` (spec 001,
+> 19 Aug se reserved, kabhi use nahi hui) aur sidebar ki `Integrations` entry (design se, `NotBuiltYet`
+> pe girti thi). Nayi entry jodne ki koshish me ek **duplicate** ban gaya tha. Ye **teesri baar** hua
+> hai (`.float` D-102, `.sidetab` A-34) — **naya kaam shuru karne se pehle dhoondho ki wo pehle se
+> rakha to nahi hai.**
+>
+> ⚠️ **Ek galat baat test ne pakdi** — maine chaar jagah likha tha ki "`settings.update` editor ke
+> paas bhi hai". Wo aaj hai hi nahi (dono admin-only). Chaaron comment theek karne pade; alag rakhne
+> ki asli wajah **Phase 7 ka custom-role builder** hai, aaj ka koi role nahi.
+
+<details><summary>Purana record (21 Sep — jab ye ruka hua tha)</summary>
+
+### A-40 (itihaas) · Settings ▸ Integrations — teen khaane (21 Sep, client ka naya ask)
 
 **Deadline:** client ke confirm pe · **abhi kuch nahi bana**
 **Client, 21 Sep:** _"in settings submenu Integrations — there will be 3 input field header, footer,
@@ -467,6 +485,10 @@ HTML me jaayega — ek baar `<head>`/`<body>` me chalne ke liye, ek baar flight 
 **D-103 §7 me theek yahi popup ke saath hua tha** aur ilaaj wahan likha hai: `getSettings()` use nikaal
 deti hai aur `getPopup()` alag hai (wahi cached fetch, koi naya round trip nahi). Integrations pe bhi
 pehle din se wahi batwara chahiye — baad me jodna A-36 ko aur bada karta hai.
+
+---
+
+</details>
 
 ---
 

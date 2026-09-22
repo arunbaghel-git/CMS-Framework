@@ -264,6 +264,23 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
     customCss: settings.customCss ?? '',
 
     /**
+     * Settings ▸ Integrations — teen khaane, poori site pe (D-106, client 22 Sep).
+     *
+     * ⚠️ **Ye payload me hai, par `getSettings()` ise NIKAAL deti hai** (`apps/web/lib/cms.js`) —
+     * bilkul wahi batwara jo D-103 §7 me `popup` pe karna pada tha. Wajah: `MobileNav` (header,
+     * **har page pe**) poora `settings` object prop me leta hai, aur client component ke props RSC
+     * flight data me serialize hote hain. Bina is batware ke har page ke HTML me ye code **do baar**
+     * jaata — ek baar chalne ke liye, ek baar bilkul bemaani.
+     *
+     * Wahan wo bug live chalane pe pakda gaya tha; yahan wo pehle din se band hai (A-36).
+     */
+    integrations: {
+      header: settings.integrations?.header ?? '',
+      body: settings.integrations?.body ?? '',
+      footer: settings.integrations?.footer ?? '',
+    },
+
+    /**
      * Settings ▸ Colours + Layout ka CSS — `html:root{--x:…}`, **sirf badle hue** token
      * (`theme-colors.js`, `theme-layout.js`).
      * Server pe banta hai, theme me nahi (D-65 wala tark). Khaali string = theme ke apne rang.

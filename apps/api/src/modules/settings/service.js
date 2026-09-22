@@ -182,6 +182,48 @@ async function resolveFontFaces(themeFonts, siteId) {
   return out
 }
 
+/**
+ * Sirf `Settings ▸ Integrations` (D-106) — apna function, apna route, apni permission.
+ *
+ * ## Ye `updateSettings()` me kyun nahi hai
+ *
+ * Wo function `settings.update` ke peeche hai; ye `settings.scripts.update` maangta hai — spec 001
+ * (19 Aug) me wo permission theek isi din ke liye reserve ki gayi thi, aur aaj tak kahin use nahi
+ * hui thi.
+ *
+ * ⚠️ **Aaj ye rok kuch nahi badalti, aur wo baat saaf likhi honi chahiye:** `settings.update` bhi
+ * abhi **sirf admin** ke paas hai (editor settings padh sakta hai, badal nahi sakta — spec 001).
+ * Alag rakhne ki wajah **aage** hai: Phase 7 ka custom-role builder kisi ko "settings sambhalo" dega,
+ * aur us din `<script>` inject karna usme **apne aap** nahi aana chahiye. Spec 001 (19 Aug) ne ise
+ * isiliye `privilege boundary` likha tha, "settings field" nahi.
+ *
+ * Pehra do jagah hai aur dono zaroori hain: route pe permission, aur `updateSettingsSchema` me se
+ * `integrations` ka **hata hona** (warna aam route se bhi likha ja sakta).
+ *
+ * ## ⚠️ Yahan koi sanitize nahi hota, aur wo galti nahi hai
+ *
+ * Poore system me ye ekmatra jagah hai jahan admin ki HTML bina safai ke DB me jaati hai (R20 ka
+ * jaan-boojh kar liya gaya apwaad). Wajah: is field ka kaam hi `<script>` chalana hai, aur
+ * sanitizer use girata hai — safai lagana yaani feature banana aur uska kaam na karna.
+ *
+ * ⚠️ **Merge nahi, replace — par sirf bheje hue khaane ka.** `$set` me `integrations.header`
+ * jaisi dotted key jaati hai, isliye sirf `footer` bhejne se `header` ud-ta nahi. Wahi jaal jo
+ * 10 Sep ko `blogSettings` pe pakda gaya tha (poora object `$set` karne se baaki field gayab).
+ */
+export async function updateIntegrations(input, siteId = DEFAULT_SITE_ID) {
+  await ensureSettings(siteId)
+
+  const $set = {}
+  for (const [key, value] of Object.entries(input)) $set[`integrations.${key}`] = value
+
+  const updated = await Settings.findOneAndUpdate({ siteId }, { $set }, { new: true })
+
+  /** Har page pe jaata hai, isliye wahi `settings` tag (D-14). */
+  await revalidateTags(['settings'])
+
+  return toPublicSettings(updated)
+}
+
 export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
   /**
    * `Enquiries ▸ Popup` ki HTML **write pe** saaf — R20 (D-103).

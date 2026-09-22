@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import FloatingContact from '../components/FloatingContact.jsx'
 import SiteFooter from '../components/SiteFooter.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
-import { getSettings } from '../lib/cms.js'
+import { getIntegrations, getSettings } from '../lib/cms.js'
 import './globals.css'
 
 /**
@@ -70,33 +70,68 @@ export async function generateMetadata() {
  * hua `</style` poore page ka HTML tod deta (A-27 wali baat). CSS me JS chalti nahi, isliye is rok ke
  * baad yahan XSS ka raasta nahi bachta.
  */
-function CustomCss({ css }) {
-  if (!css) return null
+function styleTag(css) {
+  if (!css) return ''
 
-  return <style dangerouslySetInnerHTML={{ __html: String(css).replace(/<\/style/gi, '') }} />
+  return `<style>${String(css).replace(/<\/style/gi, '')}</style>`
 }
 
 /**
- * Settings ▸ Colours (client, 17 Sep) — server se bana `html:root{…}`, sirf hex values (`theme-colors.js`).
+ * `<head>` ka wo poora hissa jo **hum** likhte hain — ek hi string me.
  *
- * ⚠️ **CustomCss se pehle** — client ki apni CSS rangon ko bhi override kar sake.
+ * ## ⚠️ Ye ek string kyun hai, do components kyun nahi
+ *
+ * 22 Sep tak yahan do alag components the (`ThemeColors`, `CustomCss`) aur wo theek chal rahe the.
+ * Integrations (D-106) ke saath wo raasta band ho gaya: us field me client ka **kachcha HTML** aata
+ * hai (`<script>`, `<meta>`, `<noscript>`), aur React ek string ko element nahi bana sakta — use
+ * `dangerouslySetInnerHTML` chahiye, jo kisi **element** pe lagta hai.
+ *
+ * Us element ko `<head>` ke andar rakhna galat nikla, **aur ye naap kar dekha gaya**: SSR ke HTML me
+ * `<div>` head ke andar chhapta to hai, par **browser ka parser wahin `<head>` band kar deta hai**
+ * (HTML spec: head me anjaan tag milte hi "after head" mode). Uske baad ki hamari CSS `<body>` me
+ * chali jaati.
+ *
+ * Isliye ab `<head>` par **khud** `dangerouslySetInnerHTML` lagta hai aur teenon cheezein string ki
+ * tarah judti hain. Ye bhi naap kar dekha gaya: Next apni metadata (title, favicon, preload) phir
+ * bhi isi `<head>` me daalti hai — dono saath rehte hain.
+ *
+ * ⚠️ **Kram maayne rakhta hai:** theme ke rang → client ki CSS → integrations.
+ * - CSS pehle, taaki client ki apni CSS rangon ko override kar sake (17 Sep se yahi hai)
+ * - **Integrations sabse aakhir me**, kyunki wo ekmatra hissa hai jiski HTML hum saaf nahi karte:
+ *   usme ek adhoora tag bhi ho to uske **baad** ka sab tootta hai — aur uske baad hamara kuch nahi
  */
-function ThemeColors({ css }) {
-  if (!css) return null
+function headHtml(settings, integrations) {
+  return styleTag(settings?.themeCss) + styleTag(settings?.customCss) + (integrations?.header ?? '')
+}
 
-  return <style dangerouslySetInnerHTML={{ __html: String(css).replace(/<\/style/gi, '') }} />
+/**
+ * `<body>` ke andar ka integration code — `body` (sabse upar) aur `footer` (sabse neeche).
+ *
+ * ⚠️ **Yahan wrapper `<div>` chalta hai aur head me nahi chalta** — farak HTML parser ka hai, hamara
+ * nahi: `<body>` me `<div>` bilkul saadharan hai. `display: contents` isliye ki wo layout me apni koi
+ * jagah na le — GTM ka `<noscript>` aur `<script>` waise bhi kuch dikhate nahi, par kal koi dikhne
+ * wala tag paste kare to wo hamare grid/flex ko na hilaye.
+ */
+function RawHtml({ html }) {
+  if (!html) return null
+
+  return <div style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: html }} />
 }
 
 export default async function RootLayout({ children }) {
-  const settings = await getSettings()
+  /**
+   * Do call, **ek hi cached fetch** — `getIntegrations()` wahi `/public/settings` padhti hai jo
+   * `getSettings()` padhti hai. Alag isliye ki integrations ka code `settings` object ke saath
+   * `MobileNav` tak pahunch kar har page ke HTML me **dobara** na jaaye (A-36, D-103 §7 wala bug).
+   */
+  const [settings, integrations] = await Promise.all([getSettings(), getIntegrations()])
 
   return (
     <html lang="en" className={inter.variable}>
-      <head>
-        <ThemeColors css={settings?.themeCss} />
-        <CustomCss css={settings?.customCss} />
-      </head>
+      <head dangerouslySetInnerHTML={{ __html: headHtml(settings, integrations) }} />
       <body>
+        {/* Integrations ▸ Body — `<body>` khulte hi; GTM ka `<noscript>` yahin kaam karta hai */}
+        <RawHtml html={integrations?.body} />
         <SiteHeader />
         {children}
         <SiteFooter />
@@ -107,6 +142,12 @@ export default async function RootLayout({ children }) {
           theek yahi ho chuka hai — tour aur blog listing pe wo aaj bhi nahi hai).
         */}
         <FloatingContact settings={settings} />
+        {/*
+          Integrations ▸ Footer — sabse aakhir, `</body>` se theek pehle. Chat widget aur heatmap
+          yahan isliye jaate hain ki wo zaroori nahi hain: upar rakhne se page der se khulta hai
+          (wahi soch jo D-101 ki speed wali thi).
+        */}
+        <RawHtml html={integrations?.footer} />
       </body>
     </html>
   )

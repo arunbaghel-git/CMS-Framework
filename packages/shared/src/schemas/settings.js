@@ -728,6 +728,36 @@ export const footerColumnSchema = z
   })
   .strict()
 
+/**
+ * Teen khaane ka naap — `Settings ▸ Integrations` (D-106).
+ *
+ * 20,000 akshar har khaane pe: GTM ka poora snippet ~1 KB ka hota hai, aur paanch-chhe tools ek
+ * saath rakhne ki jagah bachi rehni chahiye. Hadd sirf isliye hai ki ek galti se paste hua poora
+ * page settings document ko na bhaari kar de — wo document har page ke saath padha jaata hai.
+ */
+export const INTEGRATIONS_LIMIT = 20000
+
+export const integrationsSchema = z
+  .object({
+    /** `</head>` se theek pehle — analytics, verification meta tags. */
+    header: z.string().max(INTEGRATIONS_LIMIT).default(''),
+    /** `<body>` khulte hi — GTM ka `<noscript>` yahin kaam karta hai. */
+    body: z.string().max(INTEGRATIONS_LIMIT).default(''),
+    /** `</body>` se pehle — chat widget, heatmap; page pehle khul jaata hai. */
+    footer: z.string().max(INTEGRATIONS_LIMIT).default(''),
+  })
+  /**
+   * ⚠️ `.strict()` — anjaan key chup-chaap girti nahi.
+   *
+   * Wahi jaal jo D-103 me `showOn` pe pakda gaya tha: bina iske ek galat likhi hui key (jaise
+   * `head` bajaye `header`) 200 laut-ti hai, admin "Saved." dikhata hai, aur site pe kuch nahi
+   * aata — yaani feature "kuch na hona" jaisa lagta hai.
+   */
+  .strict()
+
+/** Khaali object bhi theek hai — teenon khaane apne aap `''` ho jaate hain. */
+export const emptyIntegrations = () => integrationsSchema.parse({})
+
 export const settingsSchema = z.object({
   siteId: z.string().default(DEFAULT_SITE_ID),
 
@@ -953,6 +983,51 @@ export const settingsSchema = z.object({
     .refine((v) => !/<\/style/i.test(v), 'CSS cannot contain "</style"')
     .default(''),
 
+  /**
+   * **Settings ▸ Integrations** — teesre tools ka code, poori site pe (client, 22 Sep, D-106).
+   *
+   * Client ke shabd: _"view source me dikhega across the website, not on frontend"_ — yaani ye
+   * content nahi hai. Google Analytics, Meta Pixel, GTM, Search Console ka verify — sab yahin
+   * jaate hain.
+   *
+   * ## ⚠️ Ye poore system me ekmatra jagah hai jahan HTML **saaf nahi hoti**
+   *
+   * R20 kehta hai ki admin ki likhi har HTML write pe sanitize ho. Yahan wo **jaan-boojh kar nahi
+   * hoti**, kyunki is field ka poora kaam hi `<script>` chalana hai — aur sanitizer use girata
+   * hai. Safai lagane ka matlab hota feature banana aur uska kaam na karna (wahi shakl jo D-82 ke
+   * `seoSchema` ki thi: bana hua par teen din chala hi nahi).
+   *
+   * **Isliye iski suraksha safai se nahi, permission se aati hai** — `settings.scripts.update`,
+   * jo **sirf admin** ke paas hai. Wo permission spec 001 (19 Aug) me theek isi din ke liye reserve
+   * ki gayi thi aur aaj tak kahin use nahi hui thi. Uske upar wala comment aaj bhi sahi hai:
+   * "`<script>` inject karne wala user admin ke browser me code chala sakta hai — matlab role
+   * escalation. Ye settings field nahi, **security boundary** hai."
+   *
+   * ⚠️ **Aaj ye rok kuch nahi badalti, aur wo baat saaf likhi honi chahiye:** `settings.update` bhi
+   * abhi **sirf admin** ke paas hai (editor settings padh sakta hai, badal nahi sakta — spec 001).
+   * Alag rakhne ki wajah **aage** hai: Phase 7 ka custom-role builder kisi ko "settings sambhalo" dega,
+   * aur us din `<script>` inject karna usme **apne aap** nahi aana chahiye. Spec 001 (19 Aug) ne ise
+   * isiliye `privilege boundary` likha tha, "settings field" nahi.
+   *
+   * ⚠️ Isi wajah se ye `updateSettingsSchema` me **nahi** hai — uska apna route hai
+   * (`PATCH /api/settings/integrations`). `settings.update` wala editor ise chhoo bhi nahi sakta.
+   *
+   * ## Teen khaane kyun, ek nahi
+   *
+   * Page upar se neeche load hota hai aur har tool ko apni jagah chahiye:
+   *
+   * | Khaana | Kahan | Kiske liye |
+   * | --- | --- | --- |
+   * | `header` | `</head>` se pehle | Analytics — baad me chale to jaldi chhodne wale visitor gine hi nahi jaate |
+   * | `body` | `<body>` khulte hi | GTM ka `<noscript>` **sirf** yahan kaam karta hai |
+   * | `footer` | `</body>` se pehle | Chat/heatmap — inhe upar rakhne se page der se khulta hai |
+   *
+   * ⚠️ **`</style` wali rok yahan NAHI lagti** (jo `customCss` pe hai) — wahan value ek
+   * `<style>` ke **andar** jaati hai, isliye wo do akshar tag jaldi band kar dete. Yahan value
+   * seedha HTML ki tarah jaati hai, yaani uske apne closing tags **zaroori** hain.
+   */
+  integrations: integrationsSchema.default({}),
+
   /** Site ke rang — Settings ▸ Colours (client, 17 Sep). Admin hamesha poora object bhejta hai. */
   themeColors: themeColorsSchema.default({}),
 
@@ -970,8 +1045,30 @@ export const settingsSchema = z.object({
  * `.pick()`/`.omit()` se list banane ka fayda yahi hai: kal koi naya field jodega to wo
  * apne aap editable nahi ho jaayega.
  */
+/**
+ * Admin jo aam settings screen se badal sakta hai.
+ *
+ * ⚠️ **`integrations` yahan se JAAN-BOOJH KAR hata hua hai** (D-106). Us field ko badalne ke liye
+ * `settings.scripts.update` chahiye; `PATCH /api/settings` sirf `settings.update` maangta hai.
+ * Dono ek hi schema me hone ka matlab hota ki permission wala pehra **bemaani** ho jaaye — jis din
+ * kisi role ko `settings.update` mila, use `<script>` inject karna bhi mil jaata.
+ *
+ * Uska apna route hai: `PATCH /api/settings/integrations` → `updateIntegrationsSchema`.
+ *
+ * ⚠️ Zod anjaan key chup-chaap **gira** deti hai, isliye is route pe `integrations` bhejne wala
+ * 403 nahi, **kuch nahi** dekhega. Wo yahan theek hai: admin ka apna form kabhi ye key is route pe
+ * bhejta hi nahi, aur jo bhejta hai wo koshish kar raha hai — use rok ki shakl batana zaroori nahi.
+ */
+/**
+ * Sirf Integrations — apna route, apni permission (D-106).
+ *
+ * `.partial()` isliye ki admin ek waqt me ek khaana bhej sake. `.strict()` `integrationsSchema`
+ * se hi aa jaata hai.
+ */
+export const updateIntegrationsSchema = integrationsSchema.partial()
+
 export const updateSettingsSchema = settingsSchema
-  .omit({ siteId: true })
+  .omit({ siteId: true, integrations: true })
   .partial()
   // `.partial()` sirf upar wale level pe lagti hai — nested `social` ko alag se batana padta hai
   .extend({

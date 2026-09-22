@@ -1,7 +1,7 @@
 import { env } from '../../core/env.js'
 import { saveCustomFontFile } from './fonts.js'
 import * as settingsService from './service.js'
-import { updateSettingsSchema } from './validation.js'
+import { updateIntegrationsSchema, updateSettingsSchema } from './validation.js'
 
 /**
  * Patla controller — validate → service → response (R1).
@@ -25,6 +25,23 @@ export async function update(req, res, next) {
   try {
     const input = updateSettingsSchema.parse(req.body)
     const settings = await settingsService.updateSettings(input)
+
+    res.json({ data: { settings: withReadOnly(settings) } })
+  } catch (err) {
+    next(err)
+  }
+}
+
+/**
+ * Settings ▸ Integrations (D-106) — alag handler, kyunki uski permission alag hai.
+ *
+ * ⚠️ Response poori settings deta hai (wahi shakl jo `update` ki hai), taaki admin ki screen ko
+ * doosra GET na karna pade.
+ */
+export async function updateIntegrations(req, res, next) {
+  try {
+    const input = updateIntegrationsSchema.parse(req.body)
+    const settings = await settingsService.updateIntegrations(input)
 
     res.json({ data: { settings: withReadOnly(settings) } })
   } catch (err) {

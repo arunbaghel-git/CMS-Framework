@@ -169,6 +169,20 @@ const settingsSchema = new mongoose.Schema(
     customCss: { type: String, default: '' },
 
     /**
+     * Settings ▸ Integrations — teesre tools ka code (D-106).
+     *
+     * ⚠️ **Yahan aane wali HTML sanitize NAHI hoti** — poora tark
+     * `packages/shared/src/schemas/settings.js` me `integrations` ke upar likha hai. Chhota roop:
+     * is field ka kaam hi `<script>` chalana hai, aur uski suraksha safai se nahi
+     * `settings.scripts.update` permission se aati hai (sirf admin).
+     */
+    integrations: {
+      header: { type: String, default: '' },
+      body: { type: String, default: '' },
+      footer: { type: String, default: '' },
+    },
+
+    /**
      * Site ke rang — Settings ▸ Colours (client, 17 Sep). Shape `themeColorsSchema` (R8).
      * Khaali `{}` = theme ke apne rang — is site pe koi CSS variable nahi jaata.
      */

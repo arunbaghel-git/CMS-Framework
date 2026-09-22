@@ -126,6 +126,8 @@ submission.read · submission.delete · submission.export
 settings.read
 settings.update
 settings.scripts.update      ← ADMIN-ONLY, privilege boundary (D — CSP section)
+                               ✅ 22 Sep se ZINDA — Settings ▸ Integrations (D-106).
+                               19 Aug se reserved thi aur teen mahine kahin use nahi hui.
 ```
 
 > `settings.scripts.update` alag isliye hai ki `<script>` inject karne wala user admin
