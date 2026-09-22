@@ -3793,39 +3793,28 @@ a.mega__gl:hover {
 
 @media (max-width: 760px) {
   /*
-   * ⚠️ **Phone pe image bilkul nahi** (client, 22 Sep: _"phone par popup se image hata do jisse
-   * poora popup thik se dikhe, scroll na ho"_).
+   * ⚠️ **Phone pe poori image-patti nahi — image aur uske upar wala heading dono** (client,
+   * 22 Sep: pehle _"phone par popup se image hata do jisse poora popup thik se dikhe, scroll na
+   * ho"_, phir _"image ke sath wala text bhi hatega"_).
    *
-   * Pehle yahan teen image ko do column me laaya jaata tha (taaki patli patti na banein). Wo rule
-   * ab hata diya gaya hai — jab image dikhti hi nahi to uska column ka hisaab ek **jhootha
-   * ishaara** hai, aur is repo me purane rule ka padha jaana kai baar bug ban chuka hai.
+   * ⚠️ **Ye "content chup-chaap gayab" wala bug NAHI hai — ye client ka saaf faisla hai.**
+   * Ye farak likhna zaroori hai: `.pmod__h` client ka likha content hai, aur use chhupana aam
+   * taur pe theek wahi galti hoti jo D-86 / D-89 / D-102 me pakdi gayi thi. Pehle yahan sirf
+   * image chhupti thi aur heading saade roop me bachayi gayi thi; client ne use bhi hatane ko
+   * kaha. **Isliye ise "theek" karne se pehle client se poochho.**
    *
-   * Phone pe jagah form ki zyada zaroori hai: image `clamp(130px, 20vh, 220px)` leti thi, aur uske
-   * jaane se popup aam phone pe bina scroll ke samaa jaata hai.
-   */
-  .pmod__pic {
-    display: none;
-  }
-
-  /*
-   * ⚠️ **Heading phir bhi rehti hai, aur ye is badlaav ka sabse zaroori hissa hai.**
+   * `.pmod__h` markup me `.pmod__pics` ke **andar** hai, isliye patti chhupane se wo bhi chali
+   * jaati hai — yahan wahi chahiye.
    *
-   * `.pmod__h` markup me `.pmod__pics` ke **andar** hai (wo images ke upar chhapti hai). Seedha
-   * `.pmod__pics { display: none }` likhne se client ka likha heading (`Special Offers`) bhi
-   * **chup-chaap gayab** ho jaata — theek wo shakl jo is repo me baar-baar pakdi gayi hai (D-86,
-   * D-89, D-102). Isliye sirf image chhupti hai, aur heading wahi saada roop le leti hai jo
-   * `.pmod__h--plain` ka hai (bina image wale popup pe wo pehle se chal raha hai).
+   * ⚠️ **`.pmod__h--plain` isse bach jaata hai, aur wo sahi hai.** Wo bina image wale popup ka
+   * heading hai aur `.pmod__pics` ke bahar rehta hai. Client ne "image ke saath wala text" hatane
+   * ko kaha tha — jahan image hai hi nahi, wahan wo popup ka ekmatra title hai.
+   *
+   * Pehle yahan teen image ko do column me laane wala rule bhi tha. Wo hat gaya — jab patti
+   * dikhti hi nahi to uska column ka hisaab ek **jhootha ishaara** hai.
    */
   .pmod__pics {
-    display: block;
-  }
-
-  .pmod__h {
-    position: static;
-    color: var(--ink);
-    text-shadow: none;
-    /* ⚠️ Baayein-daayein `14px` — neeche `.pmod__body` ki padding ke saath line milni chahiye */
-    padding: 18px 14px 0;
+    display: none;
   }
 
   .pmod__body {

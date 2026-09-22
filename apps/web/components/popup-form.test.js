@@ -163,7 +163,7 @@ describe('Popup ka close button aur andar ka card (D-103 §9, client ne 22 Sep k
   })
 })
 
-describe('Phone pe popup — image nahi, heading haan (client, 22 Sep)', () => {
+describe('Phone pe popup — poori image-patti nahi (client, 22 Sep)', () => {
   /** `@media (max-width: 760px) { … }` ka wo block jisme popup ke rules hain. */
   const phoneBlock = (() => {
     const re = /@media \(max-width: 760px\)/g
@@ -182,25 +182,41 @@ describe('Phone pe popup — image nahi, heading haan (client, 22 Sep)', () => {
   })()
 
   /**
-   * ⚠️ Client: _"phone par popup se image hata do jisse poora popup thik se dikhe, scroll na ho"_.
-   * Image `clamp(130px, 20vh, 220px)` leti thi — phone pe wo jagah form ki zyada zaroori hai.
+   * ⚠️ Client ne do kadam me kaha: pehle _"phone par popup se image hata do jisse poora popup thik
+   * se dikhe, scroll na ho"_, phir _"image ke sath wala text bhi hatega"_. Patti
+   * `clamp(130px, 20vh, 220px)` leti thi — phone pe wo jagah form ki zyada zaroori hai.
    */
-  it('phone pe image chhup jaati hai', () => {
+  it('phone pe poori image-patti chhup jaati hai', () => {
     expect(phoneBlock, 'popup ka phone block mila hi nahi').not.toBe('')
-    expect(phoneBlock).toMatch(/\.pmod__pic\s*\{\s*display:\s*none/)
+    expect(phoneBlock).toMatch(/\.pmod__pics\s*\{\s*display:\s*none/)
   })
 
   /**
-   * ⚠️ **Ye is badlaav ka sabse zaroori guard hai.**
+   * ⚠️ **Ye test isliye hai ki koi ise "bug" samajh kar palat na de.**
    *
-   * `.pmod__h` markup me `.pmod__pics` ke **andar** hai. Seedha `.pmod__pics { display: none }`
-   * likhna aasan tha — par usse client ka likha heading (`Special Offers`) bhi chup-chaap gayab ho
-   * jaata. Wahi shakl jo D-86 / D-89 / D-102 me pakdi gayi thi: koi error nahi, bas kuch na hona.
+   * `.pmod__h` (image ke upar wala heading) client ka likha content hai, aur use chhupana aam taur
+   * pe theek wahi galti hoti jo D-86 / D-89 / D-102 me pakdi gayi thi — "koi error nahi, bas kuch
+   * na hona". 22 Sep ko pehle wo bachaya bhi gaya tha (sirf image chhupti thi).
+   *
+   * Par client ne **saaf kaha** ki wo bhi hate. Isliye yahan wo chhupna **chaha hua** hai —
+   * `.pmod__pics` ke andar hone ki wajah se wo patti ke saath hi jaata hai.
+   *
+   * **Ise badalne se pehle client se poochho.**
    */
-  it('heading phone pe gayab nahi hoti — pics chhupti nahi, sirf image chhupti hai', () => {
-    expect(phoneBlock).not.toMatch(/\.pmod__pics\s*\{\s*display:\s*none/)
-    /** Heading saada roop le leti hai (`--plain` jaisa) — image ke bina wo overlay nahi ho sakti */
-    expect(phoneBlock).toMatch(/\.pmod__h\s*\{[^}]*position:\s*static/)
+  it('image ka heading bhi jaata hai — aur ye chaha hua hai, bug nahi', () => {
+    /** Alag se bachane wala koi rule nahi hona chahiye */
+    expect(phoneBlock).not.toMatch(/\.pmod__h\s*\{/)
+  })
+
+  /**
+   * ⚠️ **Bina image wale popup ka heading (`--plain`) bachta hai, aur wo sahi hai.**
+   *
+   * Wo `.pmod__pics` ke **bahar** hai. Client ne "image ke saath wala text" hatane ko kaha tha —
+   * jahan image hai hi nahi, wahan wo popup ka ekmatra title hai. Use bhi chhupa dene ka matlab
+   * hota phone pe ek bina naam ka form.
+   */
+  it('bina image wale popup ka heading phone pe bhi rehta hai', () => {
+    expect(phoneBlock).not.toContain('.pmod__h--plain')
   })
 
   /**

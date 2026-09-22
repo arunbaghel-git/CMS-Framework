@@ -9680,20 +9680,29 @@ karta tha, aur `.bkg--page form {` **`.pmod__body .bkg--page form {` ke andar** 
 yaani base rule maangne pe scoped override milta tha. Ab wo `\n` se line ke shuru pe anchored hai.
 Theek wahi "rule mila hi nahi" wali chup galti jiski chetavni us file me pehle se likhi thi.
 
-### §9.4 — Phone pe image bilkul nahi (client, 22 Sep)
+### §9.4 — Phone pe poori image-patti nahi (client, 22 Sep — do kadam me)
 
-Client: _"phone par popup se image hata do jisse poora popup thik se dikhe, scroll na ho"_.
+Client ne do message me kaha: pehle _"phone par popup se image hata do jisse poora popup thik se
+dikhe, scroll na ho"_, phir _"image ke sath wala text bhi hatega"_.
 
-`@media (max-width: 760px)` me `.pmod__pic { display: none }`. Image `clamp(130px, 20vh, 220px)`
-leti thi; phone pe wo jagah form ki zyada zaroori hai. §9.2 wale ~50px ke saath milaa kar popup ab
+`@media (max-width: 760px)` me `.pmod__pics { display: none }` — yaani image **aur** uske upar wala
+heading dono. Patti `clamp(130px, 20vh, 220px)` leti thi; §9.2 wale ~50px ke saath milaa kar popup ab
 aam phone pe bina scroll ke samaa jaata hai.
 
-⚠️ **Heading phir bhi rehti hai, aur ye is badlaav ka sabse zaroori hissa hai.** `.pmod__h` markup
-me `.pmod__pics` ke **andar** hai (wo images ke upar chhapti hai). Seedha `.pmod__pics { display:
-none }` likhna aasan tha — par usse client ka likha heading (`Special Offers`) bhi **chup-chaap
-gayab** ho jaata: koi error nahi, bas kuch na hona. Wahi shakl jo D-86, D-89 aur D-102 me pakdi gayi
-thi. Isliye sirf image chhupti hai, aur heading wahi saada roop le leti hai jo `.pmod__h--plain` ka
-hai (bina image wale popup pe wo pehle se chalta hai).
+⚠️ **Beech me ek kadam galat andaaza tha, aur wo likhne laayak hai.** Pehle message par sirf
+`.pmod__pic` chhupayi gayi thi aur heading jaan-boojh kar **bachayi** gayi thi — is soch se ki client
+ka likha content chup-chaap gayab karna theek wahi galti hoti hai jo D-86 / D-89 / D-102 me pakdi gayi.
+Client ne agle hi message me wo bhi hatane ko kaha.
+
+**Sabak:** wo soch galat nahi thi — client ko **poochhna** sahi tha, aur poochha bhi gaya tha
+("kaho to heading bhi hata dun"). Galti sirf ye hoti ki bina bataye maan liya jaata. Ab CSS aur test
+dono me saaf likha hai ki **ye chhupna chaha hua hai, bug nahi** — warna agla padhne wala D-86 wala
+sabak padh kar ise "theek" kar dega.
+
+⚠️ **`.pmod__h--plain` isse bach jaata hai, aur wo sahi hai.** Wo bina image wale popup ka heading hai
+aur `.pmod__pics` ke **bahar** rehta hai. Client ne "image ke saath wala text" hatane ko kaha tha —
+jahan image hai hi nahi, wahan wo popup ka ekmatra title hai; use bhi chhupane ka matlab hota phone pe
+ek **bina naam ka form**.
 
 ⚠️ **`eager` hata diya gaya — `display: none` wali image phir bhi download hoti hai.** Browser use
 tabhi chhodta hai jab wo `lazy` ho. Yaani chhupi hui image theek us jagah bandwidth kha rahi thi
@@ -9705,7 +9714,23 @@ page ke saath render hota — par wo usi D-103 me badal chuka tha (popup sirf kh
 **comment purana reh gaya tha**. Theek wahi jaal jiski chetavni `popup-form.test.js` ke sar pe likhi
 hai: is repo ke comments me aksar hatayi hui value likhi hoti hai.
 
-⚠️ **Teen image ko do column me laane wala phone rule hata diya gaya** — jab image dikhti hi nahi to
+⚠️ **Teen image ko do column me laane wala phone rule hata diya gaya** — jab patti dikhti hi nahi to
 uska column ka hisaab ek jhootha ishaara hai.
 
-3 naye test (ab 10): image phone pe chhupti hai · heading **nahi** chhupti · image `lazy` hai.
+4 naye test (ab 11): poori patti phone pe chhupti hai · uska heading bhi jaata hai (**aur ye chaha
+hua hai — test me hi likha hai ki badalne se pehle client se poochho**) · `--plain` wala heading
+bachta hai · image `lazy` hai.
+
+#### ⚠️ Chhote phone pe scroll phir bhi rahega, aur uski wajah image nahi hai
+
+Mota hisaab (form ek column me — 7 khaane + message + submit ≈ 740px):
+
+| Phone | Patti ke saath | Patti ke bina |
+| --- | --- | --- |
+| iPhone 12 (844px) | scroll | **samaa jaata hai** |
+| Pixel 7 (915px) | scroll | **samaa jaata hai** |
+| iPhone SE (667px) | scroll | **scroll** |
+
+667px wali screen pe form khud itna lamba hai ki wo samaa hi nahi sakta. Do raaste, dono client ke
+faisle hain: popup wale form me **kam khaane** rakhna, ya popup ke andar field ka gap kasna. Abhi
+koi nahi liya gaya.
