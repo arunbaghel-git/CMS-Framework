@@ -128,7 +128,32 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en" className={inter.variable}>
-      <head dangerouslySetInnerHTML={{ __html: headHtml(settings, integrations) }} />
+      {/*
+        ⚠️ **`suppressHydrationWarning` zaroori hai — aur uski asli wajah wo nahi hai jo maine pehle
+        yahan likhi thi.**
+
+        Client ne 22 Sep ko console ka screenshot bheja aur maine wajah likh di: "Next ki metadata
+        is `<head>` me extra DOM banati hai." **Wo galat tha.** Phir client ne poora stack trace
+        bheja, aur usme React ne saaf dikhaya ki mismatch `__html` ki **value** me hai — `+` aur `-`
+        dono isi element ke `dangerouslySetInnerHTML` pe the, kisi extra node pe nahi.
+
+        Yaani server ne jo string bheji aur client ke paas jo aayi, wo alag thin. Aur wo **hoga hi**:
+        ye string `settings` ke cached fetch se banti hai, aur SSR ka HTML aur RSC payload ek hi pal
+        ke nahi hote. Beech me settings save ho jaaye — jo Integrations test karte waqt theek yahi
+        hua — to dono alag ho jaate hain.
+
+        ⚠️ **React use sudhaarta nahi, aur wo yahan sahi hai.** Wo khud kehta hai _"this won't be
+        patched up"_: `dangerouslySetInnerHTML` wale element ka DOM waisa hi bacha rehta hai jaisa
+        server ne bheja. Yaani head hamesha **server ka sach** dikhata hai — aur wahi chahiye.
+
+        ⚠️ Isliye ye attribute React ko ek **sach** batata hai ("is element ka content server se aata
+        hai, mera uspe dava nahi"), warning chhupata nahi. Iske bina A-21 ka naapa hua "hydration
+        errors 0" toota rehta, aur ek laal line agli **asli** galti ko chhupa deti.
+      */}
+      <head
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: headHtml(settings, integrations) }}
+      />
       <body>
         {/* Integrations ▸ Body — `<body>` khulte hi; GTM ka `<noscript>` yahin kaam karta hai */}
         <RawHtml html={integrations?.body} />

@@ -9969,6 +9969,28 @@ hamara nahi.
 ekmatra hissa hai jiski HTML hum saaf nahi karte: usme ek adhoora tag ho to uske **baad** ka sab
 tootta hai — aur uske baad hamara kuch nahi hai.
 
+### §5.1 — Ek hydration error, aur uski wajah maine pehle galat batayi
+
+Client ne usi din console ka screenshot bheja: _"what is this error"_ — **hydration mismatch**, jo
+D-106 se pehle nahi tha (A-21 me "hydration errors 0" naapa gaya tha).
+
+⚠️ **Maine wajah likh di ki "Next ki metadata is `<head>` me extra DOM banati hai" — wo galat thi.**
+Client ne poora stack trace bheja aur usme React saaf dikha raha tha ki mismatch `__html` ki **value**
+me hai: `+` aur `-` dono isi element ke `dangerouslySetInnerHTML` pe the, kisi extra node pe nahi.
+
+**Asli wajah:** ye string `settings` ke cached fetch se banti hai, aur SSR ka HTML aur RSC payload ek
+hi pal ke nahi hote. Beech me settings save ho jaaye — jo Integrations test karte waqt theek yahi hua —
+to dono alag ho jaati hain.
+
+**Ilaaj:** `<head>` pe `suppressHydrationWarning`. Ye chhupana nahi hai: React ko ek **sach** bataya ja
+raha hai ki is element ka content server se aata hai aur client ka uspe dava nahi. React use waise bhi
+sudhaarta nahi (_"this won't be patched up"_) — yaani head hamesha **server ka sach** dikhata hai, jo
+theek wahi hai jo chahiye.
+
+⚠️ **Sabak:** error ki wajah **stack trace se** padhi jaati hai, screenshot ki pehli line se andaza
+laga kar nahi. Pehla jawab do minute me galat sabit ho gaya, aur wo galat wajah code ke comment me
+likhi ja chuki thi.
+
 ### §6 — A-36 pehle din se band hai
 
 `MobileNav` (header, **har page pe**) poora `settings` object prop me leta hai, aur client component
