@@ -1,7 +1,10 @@
 # 09 — Open Items
 
-**Last updated:** 22 Sep 2026 — **popup client ke saath settle ho gaya** (D-103 §9–§9.7, chaar round,
-koi migration nahi) aur naya **A-41** khula. Usse pehle 21 Sep: D-102 (floating contact) · D-103 (popup)
+**Last updated:** 22 Sep 2026 — **popup settle** (D-103 §9–§9.7), **Settings ▸ Integrations ban gaya**
+(D-106 — **A-40 band**), aur naya **A-41** khula. Dono me koi migration nahi.
+⏭️ **Agla kaam client ne khud chuna: A-33 (SEO ka bulk export + import)** — chaar sawaal neeche khule hain.
+⚠️ Client ka dummy test code abhi `integrations.header` me pada hai aur **site pe live** hai — hataane se
+pehle unse poochho. Usse pehle 21 Sep: D-102 (floating contact) · D-103 (popup)
 + §8 (uski naap) · D-104 (itinerary ke do khaane + naya Notes section, **migration 027**) · D-105
 (master list ka khaali-value bug).
 ✅ **`:3000` theek ho chuka** — 21 Sep wali "toota hua chhoda gaya hai" wali line **purani** hai; 22 Sep

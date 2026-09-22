@@ -2,7 +2,8 @@
 
 > Har session ke shuru me padho, aur session ke end me update karo.
 > **Last updated:** 22 Sep 2026 — do kaam: **popup client ke saath settle** (D-103 §9–§9.7, chaar
-> round) aur **Settings ▸ Integrations ban gaya** (D-106 — A-40 band). Dono me koi migration nahi. Client ne khud chala kar har baar bataya, aur aakhir me mera raasta
+> round) aur **Settings ▸ Integrations ban gaya** (D-106 — A-40 band, hydration wala sudhaar §5.1).
+> Dono me koi migration nahi. **Agla kaam: A-33 — SEO ka bulk export + import** (client ne khud chuna). Client ne khud chala kar har baar bataya, aur aakhir me mera raasta
 > **palta**: scroll theek karne ke liye main content chhota kar raha tha, unhone `label` optional
 > karwaya. **Suite 1311/1312** — fail sirf `theme-fonts.test.js` (`.hf-stat span`, client ka apna
 > CSS edit, chhua nahi). Poora hisaab neeche ke **22 Sep** wale section me. ⚠️ **Push baaki hai**
@@ -38,6 +39,21 @@
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 > ✅ `.claude/` ab git me **track hai** (commit `75beb7f`) — 18 Sep wala _"git se bahar hai"_ ab purana hai.
+
+---
+
+## 📍 22 Sep ke aakhir me — agla kaam **A-33 (SEO ka bulk export + import)**
+
+Client ne session band karte waqt khud kaha: _"can we close this session so i can start new session
+for seo bulk import and export"_. Yaani **agli session ka kaam A-33 hai** — uske chaar khule sawaal
+aur poori jaanch `09-OPEN-ITEMS.md` me hai.
+
+⚠️ **Do cheezein jo agli session ko turant pata honi chahiye:**
+
+1. **Client ka dummy test code abhi `integrations.header` me pada hai** (`<meta name="test-integration">`
+   - ek `console.log` wala script) — wo **site pe live** hai. Nuksaan koi nahi, par client ko
+     `Settings ▸ Integrations` se khaali karna hai. Isse pehle poochh lena ki hataana hai ya nahi.
+2. **Push baaki hai** — `git log --oneline origin/main..HEAD`.
 
 ---
 
