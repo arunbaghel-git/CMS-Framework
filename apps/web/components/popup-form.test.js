@@ -31,8 +31,18 @@ const jsx = read('./PopupForm.jsx')
  * ⚠️ Regex nahi — selector me `.` hota hai aur use har baar escape karna ek aisi galti hai jo
  * chup-chaap "rule mila hi nahi" bankar aati hai. Seedha string dhoondhna yahan kaafi hai.
  */
+/**
+ * ⚠️ **Line ke shuru pe anchor (`\n`) — aur wo ek asli bug se aaya hai (22 Sep).**
+ *
+ * Bina anchor ke `indexOf('.bkg--page form {')` ne **`.pmod__body .bkg--page form {`** ko match kar
+ * liya, kyunki wo string uske andar poori maujood hai — aur wo scoped override file me pehle aata
+ * hai. Nateeja: test base rule padh hi nahi raha tha aur galat cheez pe fail hua.
+ *
+ * Yahi wo "rule mila hi nahi" wali chup galti hai jiski chetavni upar pehle se likhi hai; ab wo
+ * descendant selectors pe bhi nahi lagegi.
+ */
 const ruleOf = (selector) => {
-  const at = css.indexOf(selector + ' {')
+  const at = css.indexOf('\n' + selector + ' {')
 
   expect(at, selector + ' CSS me hai hi nahi').toBeGreaterThan(-1)
 
@@ -98,5 +108,57 @@ describe('Enquiry popup ka layout (D-103, client ne 21 Sep ko theek karwaya)', (
 
     expect(pad, '.pmod pe padding likhi hi nahi hai').not.toBeNull()
     expect(Number(pad[1])).toBeGreaterThanOrEqual(44)
+  })
+})
+
+describe('Popup ka close button aur andar ka card (D-103 §9, client ne 22 Sep ko pakda)', () => {
+  /**
+   * ⚠️ **Close button ka background THOS hona chahiye, transparent nahi.**
+   *
+   * `.vmod__x` (video popup) pe `color-mix(… var(--on-dark) 16%, transparent)` chalta hai, kyunki
+   * wahan parde ke peeche poora video/kaala hota hai. `.pmod__x` **site ke header ke upar** baithta
+   * hai — wahan 16% safed lagbhag gayab tha, aur client ne wahi bheja:
+   * _"close button does not look good, give it a background"_.
+   *
+   * Ye guard isliye hai ki agli baar koi `.vmod__x` se copy kar ke wapas transparent na laga de.
+   */
+  it('close button ka background thos hai — transparent color-mix nahi', () => {
+    const rule = ruleOf('.pmod__x')
+
+    expect(rule).toContain('background: var(--surface)')
+    expect(rule).not.toContain('transparent')
+  })
+
+  /**
+   * ⚠️ **`line-height` yahan nahi honi chahiye.** Is rule me `font-size: var(--fs-small)` hai, aur
+   * `theme-fonts` ka niyam kehta hai ki aise rule me `line-height` us level ke variable ke peeche
+   * ho. Button ko uski zaroorat hai hi nahi — `place-items: center` ✕ ko beech me rakhta hai.
+   *
+   * D-103 me `line-height: 1` galti se likha gaya tha aur `theme-fonts.test.js` use pakad rahi thi.
+   */
+  it('close button pe line-height nahi hai — theme-fonts ka niyam', () => {
+    expect(ruleOf('.pmod__x')).not.toContain('line-height')
+  })
+
+  /**
+   * ⚠️ **Popup ke andar form ka apna card nahi banta — aur yahi scroller ki badi wajah thi.**
+   *
+   * Form `variant="page"` pe chalta hai, aur `.bkg--page form` apna border + shadow +
+   * `clamp(18px, 2.4vw, 26px)` padding lagata hai. Contact page pe wo sahi hai; popup **khud ek
+   * safed card hai**, to wahan wo dabbe ke andar dabba banata tha aur padding do baar lagti thi.
+   *
+   * ⚠️ Override `.pmod__body` ke **andar** scoped hona chahiye — bina scope ke contact page ka
+   * card bhi chala jaata.
+   */
+  it('popup ke andar form ka card hata hai, par contact page ka bacha hai', () => {
+    const inside = ruleOf('.pmod__body .bkg--page form')
+
+    expect(inside).toContain('padding: 0')
+    expect(inside).toContain('border: 0')
+    expect(inside).toContain('box-shadow: none')
+
+    /** Base rule zinda rehna chahiye — wo contact page ka card hai */
+    const base = ruleOf('.bkg--page form')
+    expect(base).toContain('border: 1px solid var(--line)')
   })
 })

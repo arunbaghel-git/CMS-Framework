@@ -9,7 +9,8 @@
 > client ne use **rok diya** — sirf doc likhi gayi, koi code nahi. Kram ke liye neeche ka 📍 block padho.
 > Usse pehle usi din SEO ka bulk export+import ka scope aur jaanch (**A-33 — koi code nahi**, client:
 > _"when i would have full details i will share"_), aur 18 Sep raat home ki speed (D-101), D-100
-> (Spacing), D-99 (Fonts). Push baaki — `git log --oneline origin/main..HEAD` dekho.
+> (Spacing), D-99 (Fonts). ✅ **21 Sep ka sab kuch push ho chuka** (`origin/main == HEAD`, reflog me
+> `update by push`) — ye line pehle "push baaki" kehti thi, 22 Sep ko verify karke badli gayi.
 > **Din ke aakhir me suite: 51 files, 1292/1293 pass** — **ek hi fail**, aur wo purana hai:
 > `theme-fonts.test.js` (`.hf-stat span`, client ka apna CSS edit — chhua nahi).
 > `media.test.js` is run me pass hui (A-11 ka race aata-jaata rehta hai).
@@ -46,14 +47,16 @@ Aaj **teen alag dhaage** chale, isliye neeche ek se zyada "agla kaam" likha dikh
 | 3   | **A-40 · Settings ▸ Integrations**          | 🔒 **Client ne rok diya** — _"abhi main confirm nahi hu, ise bhi mat banao, abhi sirf doc me update kar lo"_. **Koi code nahi**; chaar sawaal khule | `09-OPEN-ITEMS.md`    |
 | 4   | **A-33 · SEO ka bulk export + import**      | Client ke _"full details"_ ka intezaar — **chaar sawaal khule**                                                                                     | neeche aakhri section |
 
-## 🔴 SABSE PEHLE — `:3000` toota hua chhoda gaya hai
+## ✅ (band) `:3000` toota hua tha — 22 Sep ko theek mil gaya
 
-⚠️ **Web ka dev server 500 de raha hai, aur code me kuch nahi toota.** 21 Sep ki shaam maine dev
-chalte hue `pnpm --filter @cms/web build` chala diya; dono ek hi `.next` use karte hain, build ne
-uske vendor chunks kaat diye. **Ye D-89 me pehle se likhi hui chetavni hai aur phir bhi lagi.**
+21 Sep ki shaam dev chalte hue `pnpm --filter @cms/web build` chala diya gaya tha; dono ek hi `.next`
+use karte hain, build ne uske vendor chunks kaat diye aur `:3000` **500** dene laga. **Code me kuch
+nahi toota tha.**
 
-**Ilaaj:** jis cmd window me web chal raha hai wahan `Ctrl+C`, phir `pnpm dev:web`. `.next` apne aap
-dobara ban jaayega. API `:4000` aur admin `:5173` theek hain — unhe haath nahi laga.
+✅ **22 Sep ko verify:** `:3000` **200** deta hai aur `pnpm dev:web` pe hai (CSS `layout.css?v=…` se
+aati hai, yaani dev server). Naye code pe bhi hai — `Transfer duration` chip (D-104 §5) aur
+`.float--left` (D-102) dono live. API `:4000` bhi naye code pe (`resolve` me `notes` key, din se
+`note` gaya, `meals` array).
 
 **Seedha niyam, aage ke liye:** `next build` chalane se **pehle** `netstat -ano | grep ":3000"` se
 dekho ki port khaali hai ya nahi.

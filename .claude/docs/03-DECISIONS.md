@@ -9619,3 +9619,63 @@ Code me kuch nahi toota tha — sirf chalta hua process. Ilaaj: dev server resta
 
 **Ye chetavni D-89 me pehle se likhi hai**, aur usi din client ko bhi batayi gayi thi. Phir bhi lagi.
 Seedha niyam: **`next build` chalane se pehle `netstat` se dekho ki `:3000` khaali hai ya nahi.**
+
+---
+
+## D-103 §9 — Close button ka background, aur andar ka dabba (client, 22 Sep 2026, live dekh kar)
+
+Client ne popup ka screenshot bheja: _"the close button does not look good, give it a background,
+and also why there is scroller"_. **Do shikayat, par jad ek hi jagah nahi thi** — ek shakl ki thi,
+doosri layout ki.
+
+### §9.1 — Close button ab **thos** background pe hai
+
+`.pmod__x` ka background `color-mix(in srgb, var(--on-dark) 16%, transparent)` tha — wo
+`.vmod__x` (video popup) se aaya tha.
+
+⚠️ **Wahan wo chalta hai, yahan nahi.** `.vmod` ke peeche poora video/kaala hota hai, to 16% safed
+ka gola saaf dikh jaata hai. Enquiry popup ka button **site ke header ke upar** baithta hai (dabbe
+ke bahar, `top: -44px`), jahan parde ke peeche se page ka halka rang aa raha hota hai — screenshot
+me wo nav ke `Destinations` ke upar lagbhag gayab tha.
+
+Ab `background: var(--surface)` + `color: var(--ink)` + `box-shadow: var(--sh-3)` — dabbe jaisa hi
+safed gola, kisi bhi backdrop pe padha jaata hai. Hover pe ✕ accent rang ka.
+
+⚠️ **`.vmod__x` jaan-boojh kar nahi badla** — wahan purana look sahi kaam karta hai. Ye wahi
+`.pgl--sideleft` wali lakeer hai: ek jagah ka look doosri jagah se udhaar mat lo jab backdrop alag ho.
+
+### §9.2 — Scroller ki asli wajah: **dabbe ke andar dabba**
+
+Form popup me `variant="page"` pe chalta hai (D-103 §3 — doosra form component nahi banaya), aur
+`.bkg--page form` apna card banata hai: `border` + `box-shadow` + `padding: clamp(18px, 2.4vw, 26px)`.
+
+Contact page pe wo bilkul sahi hai — wahan form article ke beech me baithta hai aur use apna dabba
+chahiye. Par popup **khud ek safed card hai**, to wahan wo do cheezein kar raha tha:
+
+1. **dikhne me** dabbe ke andar dabba (client ke screenshot me andar ka border saaf dikhta hai)
+2. **padding do baar** — `.pmod__body` ki apni (18/20/22) **aur** form ki (26 tak), yaani ~50px
+   bekaar ooonchai. Yahi scroller aane ki sabse badi wajah thi
+
+Ab `.pmod__body .bkg--page form` me wo card hata diya gaya. ⚠️ Override **`.pmod__body` ke andar
+scoped** hai — bina scope ke contact page ka card bhi chala jaata.
+
+⚠️ **Scroll poori tarah hata nahi, aur nahi hatna chahiye.** Chhoti screen ya lambe form pe wo
+chahiye hi — bina uske Submit tak pahunchne ka koi raasta nahi bachta (D-103 §8 me yahi tay hua
+tha). Ab wo **kam** aata hai, aur jab aata hai to `scrollbar-width: thin` + halka thumb ke saath —
+Windows ka native bar (upar-neeche teer wala) nahi, wahi patla bar jo `.vrl` pe pehle se chal raha hai.
+
+### §9.3 — Do chhoti safai jo isi kaam me nikli
+
+⚠️ **`.pmod__x` pe `line-height: 1` D-103 me galti se likha gaya tha.** Us rule me
+`font-size: var(--fs-small)` hai, aur `theme-fonts.test.js` ka niyam kehta hai ki aise rule me
+`line-height` us level ke variable ke peeche ho. Button ko uski zaroorat hai hi nahi —
+`place-items: center` ✕ ko beech me rakhta hai, aur `.vmod__x` pe wo kabhi thi bhi nahi.
+
+**Wo test 21 Sep se do cheezein pakad rahi thi, aur dono ek jaisi dikhti thi.** Ek client ka apna
+`.hf-stat span` edit tha (chhua nahi jaata), doosri meri. Ginti ek hi thi (`1 failed`), isliye
+lagta tha ki purani wali hi hai — HEAD se milaa kar hi pata chala ki **do** hain.
+
+⚠️ **`popup-form.test.js` ka `ruleOf()` galat rule padh raha tha.** Wo `indexOf(selector + ' {')`
+karta tha, aur `.bkg--page form {` **`.pmod__body .bkg--page form {` ke andar** poora maujood hai —
+yaani base rule maangne pe scoped override milta tha. Ab wo `\n` se line ke shuru pe anchored hai.
+Theek wahi "rule mila hi nahi" wali chup galti jiski chetavni us file me pehle se likhi thi.

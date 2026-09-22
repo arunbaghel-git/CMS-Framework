@@ -465,7 +465,7 @@ Doc ka format bhi client ne screenshot se confirm karwa liya — sahi tha, koi c
 | # | Kya | Kyun |
 | --- | --- | --- |
 | 1 | **Admin ka hard refresh** (Ctrl+Shift+R) ke baad Add Ons pe khaali karke Update — D-105 ka fix browser me tab aayega | Vite ka purana bundle |
-| 1.5 | ⚠️ **`pnpm dev:web` restart karna hoga** — 21 Sep ki shaam dev chalte hue `next build` chala diya gaya aur `:3000` **500** dene laga (D-89 wala `.next` jaal, D-103 §8 ke aakhir me). Code me kuch nahi toota | Dono ek hi `.next` use karte hain |
+| ~~1.5~~ | ✅ **`:3000` theek ho chuka (22 Sep verify)** — dev server pe hai, 200 deta hai, aur naye code pe (`Transfer duration` chip + `.float--left`). API `:4000` bhi naye code pe (`notes` key, din se `note` gaya) | — |
 | 2 | Bulk Upload — `Notes Heading`/`Notes Content` **`Day wise Itinerary` se pehle**; din ke purane `Notes` pe row me note dikhe | D-104 §6 |
 
 ⚠️ **Client ko doc ka template batana hai** — do naye label, aur din ke neeche ka purana `Notes :`
@@ -547,6 +547,15 @@ value ke baad **maloom label** hi aaye.
 > Client ne popup browser me khul_te hue dekha aur teen cheezein batayin: width/height, scroller, aur
 > close icon ki jagah. **Teenon theek ho gayin** — poora hisaab **D-103 §8** me, 4 naye CSS-invariant
 > test ke saath. Neeche wali check-list itihaas hai.
+>
+> ⚠️ **22 Sep — client ne dobara dekha aur do cheezein aur nikali**: close button ka background
+> (wo `.vmod__x` se udhaar liya gaya tha aur site ke header ke upar lagbhag gayab tha) aur scroller
+> phir bhi aana. Scroller ki asli jad §8 me pakdi hi nahi gayi thi — form apna card bana raha tha
+> (`.bkg--page form`), yaani **dabbe ke andar dabba** aur padding do baar. Dono theek —
+> **D-103 §9**, 3 naye test.
+>
+> **Sabak:** "client ne live dekh liya" ka matlab "ab isme kuch nahi" nahi hota. Ye popup **do**
+> round me settle hua, aur doosre round ki jad pehle round me chhoot gayi thi.
 
 ### A-37 (itihaas) · Popup — aankh se dekhna baaki
 

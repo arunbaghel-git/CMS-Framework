@@ -3645,6 +3645,25 @@ a.mega__gl:hover {
    */
   max-height: calc(100dvh - 88px);
   overflow-y: auto;
+  /*
+   * ⚠️ Scroll **kabhi-kabhi** aayega hi — chhoti screen ya lamba form pe. Par jab aaye to wo
+   * Windows ka native bar (upar-neeche teer ke saath) na lage. Wahi patla-halka bar jo `.vrl`
+   * (video rail) pe pehle se chal raha hai.
+   */
+  scrollbar-width: thin;
+}
+
+.pmod__box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pmod__box::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pmod__box::-webkit-scrollbar-thumb {
+  background: var(--faint);
+  border-radius: var(--rf);
 }
 
 .pmod__x {
@@ -3660,10 +3679,34 @@ a.mega__gl:hover {
   display: grid;
   place-items: center;
   cursor: pointer;
-  color: var(--on-dark);
-  background: color-mix(in srgb, var(--on-dark) 16%, transparent);
+  /*
+   * ⚠️ **Yahan `.vmod__x` wala halka background nahi chalta** (client, 22 Sep: _"close button
+   * does not look good, give it a background"_).
+   *
+   * `.vmod` (video popup) ka parda poora kaala hota hai, to wahan 16% safed ka gola saaf dikh
+   * jaata hai. Enquiry popup ka button **site ke header ke upar** baithta hai, jahan parde ke
+   * peeche se halka rang aa raha hota hai — us par 16% safed lagbhag gayab tha (screenshot me
+   * nav ke "Destinations" ke upar).
+   *
+   * Isliye yahan **thos** background hai, dabbe jaisa hi safed. Ab wo kisi bhi backdrop pe
+   * padha jaata hai, aur popup ke card ka hi hissa lagta hai.
+   *
+   * ⚠️ `.vmod__x` **jaan-boojh kar nahi badla** — wahan purana look sahi kaam karta hai.
+   */
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: var(--sh-3);
+  /*
+   * ⚠️ Yahan `line-height` **nahi** hai, aur wo jaan-boojh kar hai. D-103 me maine `line-height: 1`
+   * likha tha — wo `theme-fonts` test ka niyam todta hai (jis rule me `--fs-<level>` ho, usme
+   * line-height us level ke variable ke peeche honi chahiye), aur zaroorat bhi nahi thi:
+   * `place-items: center` pehle se ✕ ko beech me rakhta hai. `.vmod__x` pe bhi kabhi nahi thi.
+   */
   font-size: var(--fs-small);
-  line-height: 1;
+}
+
+.pmod__x:hover {
+  color: var(--orange-500);
 }
 
 /*
@@ -3723,6 +3766,29 @@ a.mega__gl:hover {
 
 .pmod__body {
   padding: 18px 20px 22px;
+}
+
+/*
+ * ⚠️ **Popup ke andar form ka apna card nahi banta** (client, 22 Sep: _"why is there a scroller"_).
+ *
+ * Form `variant="page"` pe chalta hai (D-103 §3 — doosra form component nahi banaya), aur
+ * `.bkg--page form` apna border + shadow + `clamp(18px, 2.4vw, 26px)` padding lagata hai. Contact
+ * page pe wo bilkul sahi hai: wahan form article ke beech me baithta hai aur use apna dabba chahiye.
+ *
+ * Popup **khud ek safed card hai**, isliye wahan wo do cheezein karta tha:
+ *   1. **dabbe ke andar dabba** dikhta tha (screenshot me andar ka border saaf dikh raha hai)
+ *   2. ~52px padding **do baar** lagti thi (`.pmod__body` ki apni + form ki) — yaani scroller
+ *      aane ki sabse badi wajah yahi thi
+ *
+ * Isliye popup ke andar wo card hata diya gaya. Ye override `.pmod__body` ke **andar** scoped hai,
+ * to contact page waisa ka waisa rehta hai.
+ */
+.pmod__body .bkg--page form {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 
 @media (max-width: 760px) {
