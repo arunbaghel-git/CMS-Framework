@@ -13,6 +13,9 @@
 > **A-42 band.** Usi chalane se **ek asli bug nikla aur theek hua**: `hasPassword` (**D-108 §9**).
 > ⚠️ **Client ne `Enquiry Notifications` panel mana kar diya** (D-108 §10) — nayi enquiry pe
 > **email nahi jaayegi**, aur SMTP ka aaj koi asli grahak nahi hai (sirf `Send Test Email`).
+> ⏭️ **Kal ka pehla sawaal — A-43:** client ne khud pakda ki `form.emailTo` ("Email enquiries to")
+> pehle se hai par **bhejta nahi**. Do vikalp doc me likhe hain; mashwara **(a) jod do** hai.
+> **Client ka jawab aane tak code mat chhuo.**
 > ⚠️ **Push baaki hai** (`git log --oneline origin/main..HEAD`).
 >
 > **Usse pehle — 21 Sep:** din me **teen feature bane** (**D-102** floating WhatsApp + phone

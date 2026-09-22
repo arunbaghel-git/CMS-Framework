@@ -451,6 +451,38 @@ chal raha hai, par uska koi asli grahak nahi. Ye likha hona chahiye, warna ek di
 **Agla grahak:** `forgot` / `reset` auth routes — Phase 0 se deferred the, **ab unblocked** hain.
 Kaam: token collection + 2 route + login screen ka dead link zinda karna. Client ne maanga nahi hai.
 
+#### ⚠️ A-43 · `form.emailTo` ab bhi bhejta nahi hai — client ka faisla chahiye (22 Sep)
+
+Panel wale sawaal ka jawab dete waqt **client ne khud ye pakda**: _"in forms we already have Email
+enquiries to in enquiry form"_ — aur wo **sach hai**.
+
+`emailTo` har form pe **pehle se hai** (`packages/shared/src/schemas/form.js:195`, D-72 / 1 Sep),
+comma se ek se zyada pata leta hai, aur `FormBuilder` me uska khaana **"Email enquiries to"**
+kehlata hai. Bekaar bhi nahi pada — sidebar ke `Talk to a planner` card ka contact email wahi deta
+hai (client, 2 Sep; sirf **pehla** pata bahar jaata hai).
+
+⚠️ **Par usse mail aaj bhi nahi jaati.** Wo SMTP blocked hone ki wajah se kabhi juda hi nahi, aur
+uske schema me wajah likhi hai: _"wo pata client ke paas aaj hai aur us din dobara nahi poochhna
+padega."_ Aaj wo din aa gaya hai.
+
+⚠️ **Isiliye `FormBuilder` pe ek hint lagi hui hai** jo client ko saaf batati hai ki mail nahi
+jaati. Us hint ke comment me hi khatra likha hai: _"Box ka naam padh kar client ye maanega ki mail
+jaane lagi — aur mail abhi jaati hi nahi. Us bharose pe wo **asli enquiries miss kar dega**."_
+
+**Do me se ek chunna hai:**
+
+| | Kya hoga | Keemat |
+| --- | --- | --- |
+| **(a) Jod do** _(mashwara)_ | `submitEnquiry()` ke baad `sendMail(form.emailTo)`. Field wahi karne lagega jo uska naam kehta hai; **hint hat jaayegi** | Chhota — `forms/service.js` me chaar-paanch line + tests. ⚠️ `sendMail()` fail-soft hai, yaani mail girne se enquiry **kabhi nahi** girni chahiye (D-108 §4) |
+| **(b) Waisa hi rehne do** | Enquiries sirf inbox me | **Hint hamesha ke liye rehni padegi**, aur `"Email enquiries to"` ek aisa label reh jaayega jo apna kaam nahi karta |
+
+⚠️ **(b) ka asli khatra:** koi naya banda box dekhega, pata bharega, aur maan lega ki alert aa rahe
+hain. Ye **A-41** wala hi pattern hai — lakshan hamesha "kuch na hona".
+
+⚠️ **Ye reference wala `Enquiry Notifications` panel NAHI hai** (wo client ne rad kar diya, §10).
+Ye uska chhota aur behtar roop hai: pata **per-form** rehta hai (package form → sales, contact form
+→ info), global ek hi pate ki jagah. Auto-reply aur digest isme phir bhi nahi hain.
+
 ---
 
 ### Chhoti bachi hui safai (band items se nikli)

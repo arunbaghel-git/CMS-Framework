@@ -885,7 +885,9 @@ niyam ab `toMailUpdate()` me (`packages/shared`), `handleSubmit()` ke andar nahi
 
 ⏭️ **Agla kaam: A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn’t come on frontend"_).
 Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed pe (A-17).
-⚠️ **Enquiry notification mat banao — client ne 22 Sep ko mana kar diya** (upar D-108 §10).
+⚠️ **Enquiry notification ka PANEL mat banao — client ne 22 Sep ko mana kar diya** (upar D-108 §10).
+⏭️ Par ek chhota sawaal khula hai — **A-43**: `form.emailTo` ("Email enquiries to") **pehle se hai
+par bhejta nahi**; client ne khud ye pakda. Jodna chhota kaam hai, par **client ke jawab pe ruka hai**.
 `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
