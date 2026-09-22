@@ -304,7 +304,13 @@ describe('Popup ki ooonchai — scroller ki katauti (client, 22 Sep: "still scro
    * Ye test isliye hai ki agli baar koi scroll dekh kar phir se yahi shortcut na le.
    */
   it('image aur textarea apne poore naap pe hain — content chhota karke scroll nahi thika jaata', () => {
-    expect(ruleOf('.pmod__pic')).toContain('clamp(130px, 20vh, 220px)')
+    /**
+     * ⚠️ **Yahan exact value nahi bandhi jaati, sirf wo naap roki jaati hai jo maine galti se lagayi
+     * thi.** Client is value ko khud tune karta hai (22 Sep ko unhone ise `clamp(100%, 20vh, 220px)`
+     * kiya) — test ka kaam unki tuning rokna nahi hai, wo _"scroll aa raha hai to image chhoti kar
+     * do"_ wale shortcut ko rokna hai.
+     */
+    expect(ruleOf('.pmod__pic')).not.toContain('clamp(110px, 14vh, 160px)')
 
     /**
      * ⚠️ Yahan `ruleOf()` nahi — `.fld textarea` **do jagah** hai, aur ek multi-line selector

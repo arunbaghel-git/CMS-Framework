@@ -1,7 +1,14 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 21 Sep 2026 — din me **teen feature bane** (**D-102** floating WhatsApp + phone
+> **Last updated:** 22 Sep 2026 — **popup client ke saath settle ho gaya** (D-103 §9–§9.7, chaar
+> round, koi migration nahi). Client ne khud chala kar har baar bataya, aur aakhir me mera raasta
+> **palta**: scroll theek karne ke liye main content chhota kar raha tha, unhone `label` optional
+> karwaya. **Suite 1311/1312** — fail sirf `theme-fonts.test.js` (`.hf-stat span`, client ka apna
+> CSS edit, chhua nahi). Poora hisaab neeche ke **22 Sep** wale section me. ⚠️ **Push baaki hai**
+> (`git log --oneline origin/main..HEAD`).
+>
+> **Usse pehle — 21 Sep:** din me **teen feature bane** (**D-102** floating WhatsApp + phone
 > button, **D-103** Enquiries ▸ Popup + uski naap (§8), **D-104** itinerary ke do khaane + naya Notes
 > section, **D-105** master list ka khaali-value bug —
 > **migration 027**) aur **do jaanch hui bina code badle** (**A-33** SEO ka bulk export+import,
@@ -31,6 +38,51 @@
 > ⚠️ Kitne commit push hone baaki hain ye **`git log --oneline origin/main..HEAD`** batata hai —
 > yahan likha number handoff ke waqt ka hai aur har commit ke saath purana ho jaata hai.
 > ✅ `.claude/` ab git me **track hai** (commit `75beb7f`) — 18 Sep wala _"git se bahar hai"_ ab purana hai.
+
+---
+
+## ✅ 22 Sep — popup client ke saath settle ho gaya (D-103 §9–§9.7)
+
+Poora din ek hi cheez pe: client screenshot bhejte rahe, main theek karta gaya. **Chaar round**, koi
+migration nahi. **Suite 1311/1312** (fail sirf `theme-fonts` — client ka apna `.hf-stat span` edit).
+
+| Round     | Client ne kya kaha                                                                           | Jad                                                                                                         |
+| --------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| §9.1      | _"close button does not look good, give it a background"_                                    | `.vmod__x` se udhaar liya 16% safed — video popup ke kaale parde pe chalta hai, site ke header pe gayab tha |
+| §9.2      | _"why there is scroller"_                                                                    | Form `variant="page"` pe apna card banata tha — **dabbe ke andar dabba**, padding do baar (~52px)           |
+| §9.4      | _"phone par image hata do"_, phir _"image ke sath wala text bhi hatega"_                     | —                                                                                                           |
+| §9.5      | _"Heading above the form me data bhara hua hai to dikh kyu nahi rha"_                        | `EnquiryForm` me `page` variant ki branch thi hi nahi — prop aata tha, render pe girta tha                  |
+| §9.6→§9.7 | _"still scroller coming"_, phir **_"why you are making images height small to fix scroll"_** | **Asli jad: form ke labels** (4 × ~29px)                                                                    |
+
+### ⚠️ Sabse bada sabak — §9.7
+
+Scroll theek karne ke liye maine **content chhota kiya** — image ki chhat 220→160, textarea 115→56 —
+**do baar**. Client ne roka aur khud browser me label hata kar jad batayi. Ab
+**`formFieldSchema.label` optional hai** (`min(1)` gaya): khaali = site pe naam dikhta nahi, khaana
+chalta rehta hai. 4 label = ~116px — utni hi bachat, aur design ka koi hissa chhota nahi hota. Image
+aur textarea wapas poore naap pe.
+
+**Sochne ka tareeka:** jab kuch "samaata nahi", pehle poochho ki **kya cheez jagah le rahi hai jiska
+kaam nahi hai** — na ki kya cheez chhoti ki ja sakti hai.
+
+⚠️ **Wo code ka badlaav hai, content ka nahi** — labels tab tak dikhenge jab tak client
+`Enquiries ▸ Enquiry Forms` me unhe khud khaali na kare. Unka likha content script se nahi mitaya gaya.
+
+⚠️ **"Label chhupa do" ka matlab sirf dikhne ka hai** — theme wahan `aria-label` lagati hai
+(placeholder → key). Bina uske khaana screen reader pe "Edit text, blank" ban jaata. **Checkbox
+apwaad hai** — uske paas placeholder hota hi nahi.
+
+### Naap (andaaze se nahi)
+
+21 Sep ke screenshot me scrollbar ke **thumb ke anupaat** (675/750) se content **~838px** nikla.
+Uske baad: card −52, heading +27, gap −16, padding −10, **4 label −116** → **~671px**, yaani ~760px
+viewport tak bina scroll. 760px se chhoti window pe scroll phir bhi aayega aur uski wajah **form khud**
+hai (7 khaane) — do raaste client ke paas hain (kam khaane, ya field ki ooonchai poore site pe).
+
+### Naya open item
+
+**A-41** — "admin ka field payload tak aata hai par theme padhta hi nahi" ka poora milaan. §9.5 wahi
+tha, aur ye is repo ka **sabse baar-baar aane wala bug** hai: D-82, D-89, D-90, D-102, ab §9.5.
 
 ---
 

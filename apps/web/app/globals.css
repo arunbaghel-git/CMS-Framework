@@ -3751,7 +3751,7 @@ a.mega__gl:hover {
    * ki asli jad form ke **labels** the, image nahi; content chhota karna lakshan dabaana tha,
    * ilaaj nahi.
    */
-  height: clamp(130px, 20vh, 220px);
+  height: clamp(100%, 20vh, 220px);
   object-fit: cover;
 }
 

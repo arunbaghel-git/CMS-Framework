@@ -9858,3 +9858,19 @@ pahunchaya tha, **par image aur textarea poore naap pe**.
 7 naye test: 4 API (`forms.test.js` — khaali label DB tak, public payload me, default khaali, `max`
 ab bhi 400) aur 3 theme (`<label>` banta hi nahi · `aria-label` lagta hai · checkbox apwaad hai).
 Saath me §9.6 wale do test palte — ab wo ye dekhte hain ki image/textarea **poore naap pe** hain.
+
+#### ⚠️ Client ne image ki height khud tune ki — `clamp(100%, 20vh, 220px)`
+
+Usi din client ne `globals.css` me `.pmod__pic` ki height haath se badal di (`130px` → `100%`).
+**Wo chhua nahi gaya** — client ke hand-tuned CSS values kabhi palte nahi jaate.
+
+⚠️ **Mera test us edit pe gir raha tha**, kyunki wo exact string (`clamp(130px, 20vh, 220px)`) pe
+bandha tha. Ab wo sirf **wo naap rokta hai jo maine galti se lagayi thi** (`clamp(110px, 14vh,
+160px)`) — yaani test ka kaam client ki tuning rokna nahi, _"scroll aa raha hai to image chhoti kar
+do"_ wala shortcut rokna hai. **Guard ko irade pe bandho, value pe nahi.**
+
+⚠️ **Ek baat client ko batayi gayi hai:** `clamp()` me pehla hissa **MIN** hota hai, aur `height` pe
+`100%` maa-baap ki ooonchai se naapa jaata hai — `.pmod__pics` ek auto-height grid row hai, to wo
+percentage aksar `auto` ban jaata hai. Nateeja shayad wahi ho jo wo chahte hain (image apni poori
+ooonchai le), par `object-fit: cover` ke saath teen alag naap ki image ki patti **ooncha-neecha** ho
+sakti hai — wahi wajah jiske liye fixed height pehle lagayi gayi thi.

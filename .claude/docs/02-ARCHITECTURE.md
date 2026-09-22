@@ -405,6 +405,11 @@ forms          * siteId, name, emailTo, afterSubmit{mode,value}, placement,
                  options[],source}]                              ← D-72, migration 017
                  field ki `key` STORED DATA hai — enquiries ke values usi naam se
                  baithte hain (R4). Label badalta hai, key nahi
+                 `label` OPTIONAL hai (22 Sep, D-103 §9.7) — khaali = site pe
+                 wo naam dikhta nahi, khaana chalta rehta hai. Theme wahan
+                 `aria-label` lagati hai (placeholder → key), warna khaana
+                 screen reader pe bina naam ka milta. Checkbox apwaad hai
+                 (uske paas placeholder hota hi nahi)
                  placement ke aaj do hi vikalp hain (packages | none); design ke
                  baaki teen (Contact page · Popup · Sticky bar) ko page builder
                  chahiye (Phase 5)

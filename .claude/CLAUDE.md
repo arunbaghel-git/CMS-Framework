@@ -794,9 +794,26 @@ nahi hu, ise bhi mat banao, abhi sirf doc me update kar lo"_. Jaanch aur chaar k
 ⚠️ **`next build` chalane se pehle `netstat` se `:3000` dekho** — dev chalte hue build chala diya gaya
 aur dev server 500 dene laga (D-89 ka jaal, dobara). Code me kuch nahi toota tha.
 
-⏭️ **Agla kaam: A-33 ke chaar sawaal ka jawab** (`09-OPEN-ITEMS.md`), phir code. Saath me popup ko
-aankh se dekhna (A-37). Uske baad baaki pages PageSpeed pe (A-17). `project-state.md` ka pehla section
-padho.
+**22 Sep — popup client ke saath settle hua (D-103 §9–§9.7), koi migration nahi.** Client ne screenshot
+bhej kar chaar round karwaye: close button ka background (`.vmod__x` se udhaar liya gaya 16% safed site
+ke header pe gayab tha), **scroller** (jad: form `variant="page"` pe apna card banata tha — dabbe ke
+andar dabba, padding do baar), phone pe **poori image-patti** hatana (image + uska heading dono), aur
+`Heading above the form` ka chhapna (`EnquiryForm` me `page` ki branch thi hi nahi).
+⚠️ **Sabse bada sabak — §9.7:** scroll theek karne ke liye maine **content chhota kiya** (image
+220→160, textarea 115→56), do baar. Client ne roka: _"why you are making images height small to fix
+scroll"_ — aur khud browser me label hata kar jad batayi. Ab **`formFieldSchema.label` optional hai**
+(`min(1)` gaya): khaali = site pe naam dikhta nahi, khaana chalta rehta hai. 4 label = ~116px, utni hi
+bachat, aur design ka koi hissa chhota nahi hota. Image aur textarea wapas poore naap pe.
+⚠️ **"Label chhupa do" ka matlab sirf dikhne ka hai** — theme wahan `aria-label` lagati hai
+(placeholder → key), warna khaana screen reader pe bina naam ka milta. Checkbox apwaad hai.
+⚠️ **Wo code ka badlaav hai, content ka nahi** — labels tab tak dikhenge jab tak client `Enquiries ▸
+Enquiry Forms` me unhe khud khaali na kare.
+⚠️ Naya open item **A-41** — "admin ka field payload tak aata hai par theme padhta hi nahi" ka poora
+milaan. Ye is repo ka sabse baar-baar aane wala bug hai (D-82 · D-89 · D-90 · D-102 · D-103 §9.5).
+
+⏭️ **Agla kaam: A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn't come on
+frontend"_). Uske baad **A-33 / A-40 / A-32** — teeno client ke jawab pe ruke hain. Phir baaki pages
+PageSpeed pe (A-17). `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 

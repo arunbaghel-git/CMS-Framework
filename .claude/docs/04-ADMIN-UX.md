@@ -872,3 +872,21 @@ aisa number jo chup-chaap kuch nahi karta, aur client uspe bharosa kar baithta.
 (pre-existing; `pnpm lint` isi pe error deta hai). Baaki har screen (`SidebarWidgets`,
 `BookingPanel`) label bahar `.field` me likhti hai; yahan bhi wahi. Prop bhej dene se label
 chup-chaap gayab hota.
+
+### Enquiries ▸ Enquiry Form ▸ Fields — naam ab optional (22 Sep, D-103 §9.7)
+
+Fields ki table ke upar ek hint juda:
+
+> _Clear a field's name to hide it on the site — the box still works, and the placeholder tells
+> people what to type. Handy where space is tight, like the popup._
+
+Client ka faisla, aur wajah unki apni thi: popup me scroll isliye aa raha tha ki har khaane ke upar
+ek label ki line thi (4 khaane ≈ 116px). Unhone khud browser me label hata kar dekha aur kaha ki
+content (image/textarea) chhota karne ke bajaye **ye** theek kiya jaaye.
+
+⚠️ **Naya field banate waqt naam ab bhi zaroori hai** — field ki `key` usi se banti hai (ek baar),
+aur key stored data hai (R4). Khaali sirf **baad me** kiya ja sakta hai.
+
+⚠️ **Hint ke bina khaali label ek galti jaisa lagta.** Wahi soch jo `quoteUrl` (D-30) aur
+`floatingContactSide` (D-102) ki hints pe hai: jahan "khaali" ka apna matlab ho, wahan wo likha
+hona chahiye.
