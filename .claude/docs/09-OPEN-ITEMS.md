@@ -1,19 +1,22 @@
 # 09 — Open Items
 
-**Last updated:** 21 Sep 2026 raat — D-103 §8 (popup ki naap + close button, **A-37 band**), D-104
-(itinerary ke do khaane + naya Notes section, migration 027) aur D-105 (master list ka khaali-value
-bug). Usse pehle usi din D-102 (floating contact) aur D-103 (popup).
-⚠️ **`:3000` toota hua chhoda gaya hai** — `pnpm dev:web` restart chahiye, poora hisaab A-39 aur
-`project-state.md` ke sabse upar.
+**Last updated:** 22 Sep 2026 — **popup client ke saath settle ho gaya** (D-103 §9–§9.7, chaar round,
+koi migration nahi) aur naya **A-41** khula. Usse pehle 21 Sep: D-102 (floating contact) · D-103 (popup)
++ §8 (uski naap) · D-104 (itinerary ke do khaane + naya Notes section, **migration 027**) · D-105
+(master list ka khaali-value bug).
+✅ **`:3000` theek ho chuka** — 21 Sep wali "toota hua chhoda gaya hai" wali line **purani** hai; 22 Sep
+ko verify hua ki wo dev server pe hai aur 200 deta hai. Poora hisaab A-39 me.
 
 **Status:** Phase 0 · Slice 0 · Phase 1 (Packages) · Phase 2 (Media) poore. Uske upar client ke kehne pe
 page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87–D-90) · Sidebar (D-88) ·
 Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
 `.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Tests:** 21 Sep (din ke aakhir me) — **51 files, 1292/1293 pass**; **ek hi fail** aur wo purana hai
-(`theme-fonts.test.js` = client ka apna CSS edit). `media.test.js` is run me pass hui — A-11 ka race
-aata-jaata rehta hai. Usse pehle 17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
+**Tests:** 22 Sep — **51 files, 1311/1312 pass**. **Asli fail ek hi hai** aur wo purana hai
+(`theme-fonts.test.js` = `.hf-stat span`, client ka apna CSS edit — chhua nahi).
+⚠️ Vitest _"2 failed"_ files dikha sakti hai jabki test sirf ek gira ho — doosri file `media.test.js`
+thi, jo **hook** me giri (A-11 ka race), aur akele chalane pe 20/20 pass hui. **Ginti dekhte waqt isi
+se dhoka hota hai.** Usse pehle 21 Sep: 51 files, 1292/1293. 17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
 16 Sep ko isi wajah se vitest `ENOSPC` de rahi thi. Jagah kam ho to suite phir "no tests"/load error degi —
 wo code ka bug nahi hai.
 
@@ -411,6 +414,21 @@ abhi sirf doc me update kar lo"_**
 Wahi niyam jo **A-32** (Fonts ka "Text Elements") aur **A-33** (SEO ka bulk export) pe chal raha hai —
 client ke confirm se pehle code nahi chhua jaata.
 
+#### ✅ 22 Sep — client ne sawaal #1 ka jawab de diya (par **"bana do" abhi bhi nahi kaha**)
+
+**Client, 22 Sep:** _"integration submenu in settings · **view source me dikhega across the website,
+not on frontend** · input fields for header, footer and body"_ — aur saath me: _"can you tell why we
+use these script tag in view source, mujhe thoda clear karo."_
+
+⚠️ **Isse sawaal #1 band ho gaya.** Meri teen padhne ki koshishon me se **teesri** sahi thi: code
+**page ke HTML me jaata hai aur chalta hai**, par page pe **likha hua dikhta nahi**. Yaani "frontend
+par nahi dikhna" ka matlab "site se jodna hi nahi" **nahi** tha — matlab tha "wo content ki tarah na
+chhape". **Ye poochh kar hi pata chala; maan liya hota to kaam ulta ban jaata.**
+
+⚠️ **Phir bhi ye "bana do" nahi hai** — client ne pehle samajhna maanga hai (_"clear karo"_), aur
+21 Sep wala _"abhi main confirm nahi hu"_ abhi palta nahi. Baaki **teen sawaal** (neeche) waise hi
+khule hain, aur unme sabse bada `<script>` wala hai.
+
 #### Jo jaanch ho chuki hai (agli session ye dobara na kare)
 
 **Saancha pehle se maujood hai — `Settings ▸ Custom CSS` (D-96 §25) bilkul yahi shakl hai:**
@@ -423,7 +441,7 @@ migration nahi (field defaulted hoga).
 
 | # | Sawaal | Kyun kaam ruka hai |
 | --- | --- | --- |
-| 1 | **_"inka content frontend par nahi show hona chahiye jab content bhar de tab"_ ka matlab** — (a) khaali ho to site pe kuch na jaaye, (b) abhi site se jodna hi nahi (sirf admin + save), ya (c) code chale par text ki tarah na chhape? | Teenon ka kaam alag hai. (b) me theme chhui hi nahi jaati; (a) aur (c) me poora raasta judta hai |
+| ~~1~~ | ✅ **band (22 Sep)** — (c) sahi nikla: code HTML me jaata hai aur chalta hai, par page pe likha hua dikhta nahi. Client: _"view source me dikhega across the website, not on frontend"_ | — |
 | 2 | **`<script>` chalega ya nahi** | Ye is feature ka sabse bada faisla hai — neeche apna hissa |
 | 3 | **Kaun badal sake** — sirf `admin`, ya `editor` bhi (aaj baaki saari settings editor bhi badal sakta hai) | #2 se seedha juda hai |
 | 4 | **Teen khaane lagte kahan hain** — standard (header → `</head>` se pehle · body → `<body>` khulte hi · footer → `</body>` se pehle), ya kuch aur | GTM ka `noscript` `<body>` ke turant baad hi kaam karta hai |
