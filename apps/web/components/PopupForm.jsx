@@ -139,11 +139,19 @@ export default function PopupForm({ popup, sourcePath }) {
                   alt=""
                   className="pmod__pic"
                   /*
-                  `eager` — popup khulne ke baad hi mount hota hai, yaani ye kabhi pehli screen
-                  ka hissa nahi hota. `lazy` yahan ulta kaam karta: image tab utarti jab popup
-                  pehle se saamne hota, aur client ko khaali dabba dikhta.
+                  ⚠️ **`eager` 22 Sep ko hata diya gaya — phone pe image ab dikhti hi nahi** (client
+                  ka faisla), par `eager` use phir bhi **download** karwa deta: `display: none` wali
+                  image browser chhodta nahi jab tak wo `lazy` na ho. Yaani theek us jagah bandwidth
+                  jaati jahan wo sabse mehngi hai.
+
+                  `lazy` yahan kuch kho nahi raha: component **khulne pe hi mount** hota hai, to
+                  desktop pe image us waqt viewport me hoti hai aur turant utarti hai — wahi lamha
+                  jo `eager` deta tha. Phone pe wo viewport me aati hi nahi, isliye utarti bhi nahi.
+
+                  ⚠️ Purana comment kehta tha ki `lazy` se "khaali dabba" dikhega — wo tab sach hota
+                  jab popup page ke saath render hota. Wo D-103 me hi badal chuka tha (popup sirf
+                  khulne pe banta hai), par comment purana reh gaya tha.
                 */
-                  eager
                 />
               ))}
 

@@ -162,3 +162,53 @@ describe('Popup ka close button aur andar ka card (D-103 §9, client ne 22 Sep k
     expect(base).toContain('border: 1px solid var(--line)')
   })
 })
+
+describe('Phone pe popup — image nahi, heading haan (client, 22 Sep)', () => {
+  /** `@media (max-width: 760px) { … }` ka wo block jisme popup ke rules hain. */
+  const phoneBlock = (() => {
+    const re = /@media \(max-width: 760px\)/g
+    for (let m; (m = re.exec(css)); ) {
+      let depth = 0
+      for (let i = css.indexOf('{', m.index); i < css.length; i++) {
+        if (css[i] === '{') depth++
+        else if (css[i] === '}' && --depth === 0) {
+          const block = css.slice(m.index, i + 1)
+          if (block.includes('.pmod__')) return block
+          break
+        }
+      }
+    }
+    return ''
+  })()
+
+  /**
+   * ⚠️ Client: _"phone par popup se image hata do jisse poora popup thik se dikhe, scroll na ho"_.
+   * Image `clamp(130px, 20vh, 220px)` leti thi — phone pe wo jagah form ki zyada zaroori hai.
+   */
+  it('phone pe image chhup jaati hai', () => {
+    expect(phoneBlock, 'popup ka phone block mila hi nahi').not.toBe('')
+    expect(phoneBlock).toMatch(/\.pmod__pic\s*\{\s*display:\s*none/)
+  })
+
+  /**
+   * ⚠️ **Ye is badlaav ka sabse zaroori guard hai.**
+   *
+   * `.pmod__h` markup me `.pmod__pics` ke **andar** hai. Seedha `.pmod__pics { display: none }`
+   * likhna aasan tha — par usse client ka likha heading (`Special Offers`) bhi chup-chaap gayab ho
+   * jaata. Wahi shakl jo D-86 / D-89 / D-102 me pakdi gayi thi: koi error nahi, bas kuch na hona.
+   */
+  it('heading phone pe gayab nahi hoti — pics chhupti nahi, sirf image chhupti hai', () => {
+    expect(phoneBlock).not.toMatch(/\.pmod__pics\s*\{\s*display:\s*none/)
+    /** Heading saada roop le leti hai (`--plain` jaisa) — image ke bina wo overlay nahi ho sakti */
+    expect(phoneBlock).toMatch(/\.pmod__h\s*\{[^}]*position:\s*static/)
+  })
+
+  /**
+   * ⚠️ Image `display: none` ho par `eager` rahe to browser use **phir bhi** utarta hai — yaani
+   * theek phone pe bandwidth jaati. `lazy` par wo viewport me aati hi nahi, isliye utarti bhi nahi.
+   */
+  it('image lazy hai — chhupi hui image download nahi honi chahiye', () => {
+    const tag = jsx.slice(jsx.indexOf('className="pmod__pic"'))
+    expect(tag.slice(0, tag.indexOf('/>'))).not.toContain('eager')
+  })
+})

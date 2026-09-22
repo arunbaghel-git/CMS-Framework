@@ -9679,3 +9679,33 @@ lagta tha ki purani wali hi hai — HEAD se milaa kar hi pata chala ki **do** ha
 karta tha, aur `.bkg--page form {` **`.pmod__body .bkg--page form {` ke andar** poora maujood hai —
 yaani base rule maangne pe scoped override milta tha. Ab wo `\n` se line ke shuru pe anchored hai.
 Theek wahi "rule mila hi nahi" wali chup galti jiski chetavni us file me pehle se likhi thi.
+
+### §9.4 — Phone pe image bilkul nahi (client, 22 Sep)
+
+Client: _"phone par popup se image hata do jisse poora popup thik se dikhe, scroll na ho"_.
+
+`@media (max-width: 760px)` me `.pmod__pic { display: none }`. Image `clamp(130px, 20vh, 220px)`
+leti thi; phone pe wo jagah form ki zyada zaroori hai. §9.2 wale ~50px ke saath milaa kar popup ab
+aam phone pe bina scroll ke samaa jaata hai.
+
+⚠️ **Heading phir bhi rehti hai, aur ye is badlaav ka sabse zaroori hissa hai.** `.pmod__h` markup
+me `.pmod__pics` ke **andar** hai (wo images ke upar chhapti hai). Seedha `.pmod__pics { display:
+none }` likhna aasan tha — par usse client ka likha heading (`Special Offers`) bhi **chup-chaap
+gayab** ho jaata: koi error nahi, bas kuch na hona. Wahi shakl jo D-86, D-89 aur D-102 me pakdi gayi
+thi. Isliye sirf image chhupti hai, aur heading wahi saada roop le leti hai jo `.pmod__h--plain` ka
+hai (bina image wale popup pe wo pehle se chalta hai).
+
+⚠️ **`eager` hata diya gaya — `display: none` wali image phir bhi download hoti hai.** Browser use
+tabhi chhodta hai jab wo `lazy` ho. Yaani chhupi hui image theek us jagah bandwidth kha rahi thi
+jahan wo sabse mehngi hai. `lazy` par kuch khota nahi: popup **khulne pe hi mount** hota hai, to
+desktop pe image us waqt viewport me hoti hai aur turant utarti hai — wahi lamha jo `eager` deta tha.
+
+⚠️ D-103 ka purana comment kehta tha ki `lazy` se "khaali dabba" dikhega. Wo tab sach hota jab popup
+page ke saath render hota — par wo usi D-103 me badal chuka tha (popup sirf khulne pe banta hai) aur
+**comment purana reh gaya tha**. Theek wahi jaal jiski chetavni `popup-form.test.js` ke sar pe likhi
+hai: is repo ke comments me aksar hatayi hui value likhi hoti hai.
+
+⚠️ **Teen image ko do column me laane wala phone rule hata diya gaya** — jab image dikhti hi nahi to
+uska column ka hisaab ek jhootha ishaara hai.
+
+3 naye test (ab 10): image phone pe chhupti hai · heading **nahi** chhupti · image `lazy` hai.

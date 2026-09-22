@@ -3793,15 +3793,39 @@ a.mega__gl:hover {
 
 @media (max-width: 760px) {
   /*
-   * Phone pe teen image ek-ek 33% ki patli patti ban jaati hain jisme kuch dikhta hi nahi.
-   * Do column pe laane se teesri neeche chali jaati hai — ginti wahi, shakl padhne laayak.
+   * ⚠️ **Phone pe image bilkul nahi** (client, 22 Sep: _"phone par popup se image hata do jisse
+   * poora popup thik se dikhe, scroll na ho"_).
+   *
+   * Pehle yahan teen image ko do column me laaya jaata tha (taaki patli patti na banein). Wo rule
+   * ab hata diya gaya hai — jab image dikhti hi nahi to uska column ka hisaab ek **jhootha
+   * ishaara** hai, aur is repo me purane rule ka padha jaana kai baar bug ban chuka hai.
+   *
+   * Phone pe jagah form ki zyada zaroori hai: image `clamp(130px, 20vh, 220px)` leti thi, aur uske
+   * jaane se popup aam phone pe bina scroll ke samaa jaata hai.
    */
-  .pmod__pics--3 {
-    grid-template-columns: 1fr 1fr;
+  .pmod__pic {
+    display: none;
   }
 
-  .pmod__pics--3 .pmod__pic:first-child {
-    grid-column: span 2;
+  /*
+   * ⚠️ **Heading phir bhi rehti hai, aur ye is badlaav ka sabse zaroori hissa hai.**
+   *
+   * `.pmod__h` markup me `.pmod__pics` ke **andar** hai (wo images ke upar chhapti hai). Seedha
+   * `.pmod__pics { display: none }` likhne se client ka likha heading (`Special Offers`) bhi
+   * **chup-chaap gayab** ho jaata — theek wo shakl jo is repo me baar-baar pakdi gayi hai (D-86,
+   * D-89, D-102). Isliye sirf image chhupti hai, aur heading wahi saada roop le leti hai jo
+   * `.pmod__h--plain` ka hai (bina image wale popup pe wo pehle se chal raha hai).
+   */
+  .pmod__pics {
+    display: block;
+  }
+
+  .pmod__h {
+    position: static;
+    color: var(--ink);
+    text-shadow: none;
+    /* ⚠️ Baayein-daayein `14px` — neeche `.pmod__body` ki padding ke saath line milni chahiye */
+    padding: 18px 14px 0;
   }
 
   .pmod__body {
