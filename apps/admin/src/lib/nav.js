@@ -496,6 +496,12 @@ export const ROUTE_GUARDS = Object.freeze({
   '/settings/colours': PERMISSION.SETTINGS_READ,
   '/settings/layout': PERMISSION.SETTINGS_READ,
   '/settings/custom-css': PERMISSION.SETTINGS_READ,
+  /**
+   * ⚠️ `settings.read`, `settings.update` nahi — wahi saancha jo baaki sab pe hai (andar aane
+   * do, badalne ki rok form pe). Password padhne me jaata hi nahi (`getMailSettings()` sirf
+   * `hasPassword` deta hai), isliye editor ka is screen ko kholna kuch nahi kholta. D-108.
+   */
+  '/settings/email': PERMISSION.SETTINGS_READ,
   '/settings/integrations': PERMISSION.SETTINGS_READ,
   '/settings/redirects': PERMISSION.REDIRECT_READ,
   /**

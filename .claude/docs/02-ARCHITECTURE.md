@@ -138,6 +138,22 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  frontPageType, homepageEntryId, postsPageEntryId, postsPerPage,
                  searchEngineVisible
                  customCss (D-96 §25) — client ki apni CSS, HAR page ke <head> me
+                 mail{host,port,user,passwordEnc,fromName,fromEmail} (D-108,
+                 22 Sep) — Settings ▸ Email / SMTP. Site ka mail account
+                 ⚠️ YE FIELD Zod ke settingsSchema ME HAI HI NAHI — sirf Mongoose
+                 model me. toPublicSettings() settingsSchema.parse() chalata hai
+                 aur Zod anjaan keys STRIP kar deti hai, isliye mail kisi bhi aam
+                 settings response me JA HI NAHI SAKTA. Ye structural rok hai,
+                 yaad rakhne pe nirbhar nahi — aur uska apna test hai
+                 ⚠️ settings.read EDITOR ke paas bhi hai (spec 001). Bina is rok
+                 ke SMTP ka password har Settings kholne wale ko mil jaata
+                 padhne ka raasta: getMailSettings() — password ki jagah sirf
+                 hasPassword: true. Mailer ke liye alag: getMailConfig()
+                 passwordEnc: AES-256-GCM (core/secrets.js), key
+                 JWT_ACCESS_SECRET se HKDF-derive. Plaintext kabhi store nahi
+                 config har bhejne pe DB se padhi jaati hai (boot pe cache nahi)
+                 — client Save dabaye to agla mail naye account se, bina restart
+                 DB khaali ho to env ke SMTP_* pe girta hai, KHAANA-DAR-KHAANA
                  integrations{header,body,footer} (D-106, 22 Sep) — teesre tools
                  ka code (GA, Pixel, GTM), HAR page pe. Teen jagah: </head> se
                  pehle · <body> khulte hi · </body> se pehle

@@ -39,6 +39,7 @@ import TourList from './screens/pages/TourList.jsx'
 import Colours from './screens/settings/Colours.jsx'
 import CtaSection from './screens/settings/CtaSection.jsx'
 import CustomCss from './screens/settings/CustomCss.jsx'
+import EmailSmtp from './screens/settings/EmailSmtp.jsx'
 import Integrations from './screens/settings/Integrations.jsx'
 import Fonts from './screens/settings/Fonts.jsx'
 import General from './screens/settings/General.jsx'
@@ -286,6 +287,8 @@ const APP_ROUTES = [
   { path: '/settings/layout', element: <Layout /> },
   { path: '/settings/cta', element: <CtaSection /> },
   { path: '/settings/custom-css', element: <CustomCss /> },
+  /** Settings ▸ Email / SMTP — D-108. Nav entry aur tab dono pehle se the, sirf route nahi tha. */
+  { path: '/settings/email', element: <EmailSmtp /> },
   { path: '/settings/integrations', element: <Integrations /> },
   { path: '/settings/redirects', element: <Redirects /> },
   /**
@@ -331,7 +334,12 @@ const PENDING_ROUTES = [
   { path: '/appearance/*', title: 'Appearance', phase: 'Phase 5' },
   /**
    * `/settings` khud ab bana hua hai (upar `APP_ROUTES` me). Ye splat sirf uske andar
-   * ke baaki screens ke liye hai — SEO, Email/SMTP, Integrations.
+   * ke baaki screens ke liye hai — ab **sirf SEO & Schema** bachi hai.
+   *
+   * ⚠️ Ye line D-106 (Integrations) ke baad update honi chahiye thi aur nahi hui — 22 Sep se
+   * "Integrations abhi nahi bana" kehti aa rahi thi jabki wo us din ban gaya tha. D-108 me
+   * Email/SMTP bhi ban gaya. **Splat me se screen nikalte waqt ye comment bhi badalna hai**,
+   * warna wo agle banane wale ko ulta raasta dikhata hai.
    *
    * React Router exact match ko splat se **upar** rakhta hai, isliye `/settings`
    * General pe hi jaata hai.

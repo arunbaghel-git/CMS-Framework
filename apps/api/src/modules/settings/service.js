@@ -5,9 +5,11 @@ import {
   toPublicSettings,
 } from '@cms/shared'
 
-import { badRequest } from '../../core/errors.js'
+import { badRequest, unprocessable } from '../../core/errors.js'
+import { resolveMailConfig, sendTestEmail } from '../../core/mailer.js'
 import { revalidateTags } from '../../core/revalidate.js'
 import { sanitizePopupSettings } from '../../core/sanitize-html.js'
+import { decryptSecret, encryptSecret } from '../../core/secrets.js'
 import { mediaExists } from '../media/service.js'
 import { menuExists } from '../menus/service.js'
 import { syncPostUrlPattern } from '../entries/service.js'
@@ -222,6 +224,135 @@ export async function updateIntegrations(input, siteId = DEFAULT_SITE_ID) {
   await revalidateTags(['settings'])
 
   return toPublicSettings(updated)
+}
+
+// ── Email / SMTP (D-108) ─────────────────────────────────────────────────────
+
+/**
+ * Mail bhejne ke liye poori config — **password ke saath, decrypted**.
+ *
+ * ⚠️ **Ye kabhi kisi route se nahi nikalti.** Iska ekmatra grahak `core/mailer.js` hai.
+ * Admin ke liye `getMailSettings()` hai, jo password ki jagah `hasPassword` deta hai.
+ * Dono ka naam jaan-boojh kar alag hai — `getMailSettings()` galti se yahan point kar
+ * de to wo galti ek password leak hoti, aur aise naam do baar padhne pe hi pakde jaate hain.
+ *
+ * @returns {Promise<{host: string, port: number, user: string, password: string, fromName: string, fromEmail: string}>}
+ */
+export async function getMailConfig(siteId = DEFAULT_SITE_ID) {
+  const { mail = {} } = await ensureSettings(siteId)
+
+  return {
+    host: mail.host ?? '',
+    port: mail.port ?? 587,
+    user: mail.user ?? '',
+    /** Na khul paaye to `''` — `resolveMailConfig()` tab env ke `SMTP_PASS` pe gir jaata hai. */
+    password: decryptSecret(mail.passwordEnc) ?? '',
+    fromName: mail.fromName ?? '',
+    fromEmail: mail.fromEmail ?? '',
+  }
+}
+
+/**
+ * Admin ki screen ke liye — **password ke bina**.
+ *
+ * ⚠️ `hasPassword` ek boolean hai, aur wo poora jawab hai. Password ki lambai ya uske
+ * kuch akshar bhejne ka koi faayda nahi hai aur nuksaan asli hai: dono se guess karna
+ * aasan hota hai. Screen ko sirf itna jaanna hai ki placeholder `••••••••` dikhana hai
+ * ya "no password set".
+ *
+ * ⚠️ **`passwordEnc` bhi nahi jaata.** Wo encrypted hai, par encrypted ciphertext bhejna
+ * offline attack ka maal de dena hai. Jo chahiye nahi, wo bheja hi na jaaye.
+ */
+export async function getMailSettings(siteId = DEFAULT_SITE_ID) {
+  const { mail = {} } = await ensureSettings(siteId)
+
+  return {
+    host: mail.host ?? '',
+    port: mail.port ?? 587,
+    user: mail.user ?? '',
+    fromName: mail.fromName ?? '',
+    fromEmail: mail.fromEmail ?? '',
+    hasPassword: Boolean(mail.passwordEnc),
+  }
+}
+
+/**
+ * Email / SMTP ki settings badlo.
+ *
+ * ⚠️ **Khaali `password` ka matlab "purana rehne do" hai, "mita do" nahi.** Screen password
+ * kabhi wapas nahi padhti (upar dekho), yaani form me wo khaana **hamesha khaali khulta
+ * hai**. Use "mita do" maanne ka matlab hota ki client From Name badal kar Save dabaye aur
+ * mail chup-chaap band ho jaaye — bina kisi error ke. **Theek wahi shakl jo D-105 me thi**,
+ * jahan `submit()` ki ek line har khaali value gira deti thi.
+ *
+ * ⚠️ **Dotted `$set`** — wahi jo `updateIntegrations()` me hai. Poora `mail` object `$set`
+ * karne se sirf `host` bhejne pe baaki paanch khaane ud jaate (10 Sep ka `blogSettings` bug).
+ *
+ * ⚠️ **`revalidateTags` yahan NAHI hai, aur wo galti nahi hai.** Mail config public site pe
+ * kahin nahi jaati — na `toPublicSettings()` me, na public projection me. Jo cache me hai
+ * hi nahi, use saaf karne ka koi matlab nahi (aur ek jhootha ishaara zaroor banta hai ki ye
+ * field kahin render hoti hai).
+ */
+export async function updateMailSettings(input, siteId = DEFAULT_SITE_ID) {
+  await ensureSettings(siteId)
+
+  const $set = {}
+
+  for (const [key, value] of Object.entries(input)) {
+    if (key === 'password') {
+      /** Khaali = haath mat lagao. Badalna ho to nayi value, mitane ka raasta `clearPassword`. */
+      if (value) $set['mail.passwordEnc'] = encryptSecret(value)
+      continue
+    }
+
+    $set[`mail.${key}`] = value
+  }
+
+  /**
+   * Mitane ka apna, saaf nishaan — `password: ''` se alag.
+   *
+   * Do alag iraadon ke do alag naam hone chahiye. Ek hi khaali value se dono matlab
+   * nikalne ki koshish wahi jaal hai jo D-86 pe laga tha ("ek hi cheez ke do naam do jagah
+   * mat banao" ka ulta roop).
+   */
+  if (input.clearPassword) $set['mail.passwordEnc'] = ''
+
+  if (Object.keys($set).length > 0) {
+    await Settings.findOneAndUpdate({ siteId }, { $set })
+  }
+
+  return getMailSettings(siteId)
+}
+
+/**
+ * `Send Test Email` — poora raasta ek baar chala kar dekho.
+ *
+ * ⚠️ **Ye function throw karta hai aur wahi iska kaam hai.** `sendMail()` fail soft hai
+ * kyunki wahan mail ek side-effect hoti hai; yahan mail **hi** nateeja hai. Chup-chaap
+ * `{ ok: false }` lauta dena is button ko bilkul bekaar bana deta — client ko "kuch nahi
+ * hua" dikhta, jo is repo ka sabse baar-baar aane wala lakshan hai (A-41).
+ *
+ * `unprocessable` (422) isliye, 500 nahi: galat host ya password **client ki bhari hui
+ * value** ki dikkat hai, server ka crash nahi. 500 dene ka matlab hota ki ye line error
+ * tracking me shor machaye jabki karne wala kaam admin screen pe hai.
+ */
+export async function sendTestMail(to, siteId = DEFAULT_SITE_ID) {
+  const mail = await getMailConfig(siteId)
+
+  if (!resolveMailConfig(mail).configured) {
+    throw unprocessable('Add an SMTP host and save before sending a test email')
+  }
+
+  try {
+    return await sendTestEmail({ to, mail })
+  } catch (err) {
+    /**
+     * Nodemailer ka message seedha aage jaata hai — wo aksar asli jawab hota hai
+     * (`Invalid login`, `Sender address rejected`, `ECONNREFUSED`). Use apne shabdon me
+     * badalne se wo ek kaam ki cheez kho jaati hai; hum sirf uske aage sandarbh jodte hain.
+     */
+    throw unprocessable(`Test email failed: ${err.message}`)
+  }
 }
 
 export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {

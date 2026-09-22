@@ -159,7 +159,11 @@ CDN_BASE_URL
 REVALIDATE_SECRET        webhook ke liye shared secret
 NEXT_PUBLIC_SITE_URL
 
-# Mail
+# Mail — ⚠️ ab ye sirf FALLBACK hain (D-108, 22 Sep)
+# Asli jagah admin panel hai: Settings ▸ Email / SMTP (settings.mail).
+# DB me value ho to wahi chalti hai; khaali khaane hi env se bharte hain,
+# aur wo KHAANA-DAR-KHAANA hota hai (host DB se aur user env se aa sakta hai).
+# Naye instance pe inhe set karna ZAROORI NAHI — client screen se bhar dega.
 SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS
 MAIL_FROM
 
@@ -223,6 +227,33 @@ aur dono chup-chaap hote hain:
 Dono ka lakshan ek hi hai — _"publish kiya par site update nahi hui"_ — aur koi error
 screen pe nahi aata. API ke logs me `Revalidate request rejected/failed` warning milegi;
 wahi pehli jagah hai jahan dekhna chahiye.
+
+### 4.2 Dev me mail — MailDev, koi asli account nahi (D-108, 22 Sep)
+
+Mail ka kaam karte waqt **asli SMTP account ki zaroorat nahi hai**. `docker-compose.yml` me
+Mongo ke saath **MailDev** hai:
+
+```bash
+docker compose up -d maildev     # SMTP :1025, web inbox :1080
+```
+
+Phir `Settings ▸ Email / SMTP` me: Host `localhost` · Port `1025` · Username/Password **khaali**
+· From Email `cms@test.local` → **Save** → **Send Test Email**. Mail `http://localhost:1080` pe
+dikhegi.
+
+| Kyun MailDev, asli account nahi |
+| --- |
+| Koi signup nahi — Gmail ke App Password ya Brevo ke domain verify ka jhanjhat nahi |
+| Internet ke bina chalta hai, aur **ISP ka port 587 block** wala sawaal hi nahi uthta |
+| Galti se kisi **asli** address pe mail jaana namumkin hai |
+
+⚠️ **MailDev sirf ye sabit karta hai ki hamara code sahi hai.** Wo ye **nahi** batata ki mail
+Gmail ke inbox me jaayegi ya spam me — wo SPF/DKIM/domain reputation ka mamla hai aur sirf asli
+provider + asli domain se pata chalta hai.
+
+⚠️ **Test suite MailDev ka istemaal nahi karti** — wahan nodemailer ka `jsonTransport` chalta hai
+(`isTest`, wahi rok jo `revalidateTags()` pe hai). Yaani asli SMTP ka raasta **tests se guzarta hi
+nahi**; use alag se chala kar dekhna padta hai. D-92 §11 wala hi sabak.
 
 ---
 

@@ -758,6 +758,85 @@ export const integrationsSchema = z
 /** Khaali object bhi theek hai — teenon khaane apne aap `''` ho jaate hain. */
 export const emptyIntegrations = () => integrationsSchema.parse({})
 
+/**
+ * **Settings ▸ Email / SMTP** — site ka mail bhejne wala account (D-108).
+ *
+ * Chhe khaane, aur bilkul wahi chhe jo reference me hain (`admin-design-v2.html:1436`, aur
+ * v1/v3/v4 + `travel-cms-admin_v2` me **hu-ba-hu same**). Koi saatvan "Encryption" dropdown
+ * nahi — `secure` **port se derive** hota hai (465 = SSL, baaki STARTTLS), poora tark
+ * `apps/api/src/core/mailer.js` ke `resolveMailConfig()` me hai. R15: design jeeta.
+ *
+ * ## ⚠️ Ye `settingsSchema` me JAAN-BOOJH KAR nahi hai — aur ye is poori file ka sabse
+ * ## zaroori comment hai
+ *
+ * `toPublicSettings()` (is file ke neeche) `settingsSchema.parse()` chalata hai aur uska
+ * nateeja `GET /api/settings` ka poora jawab ban-ta hai. `settings.read` **editor ke paas
+ * bhi hai** (spec 001). Yaani agar `mail` yahan hota, to SMTP ka password har us user ke
+ * browser me pahunch jaata jo Settings khol sakta hai.
+ *
+ * ✅ Isse bachne ka raasta **yaad rakhne pe nirbhar nahi hai** — Zod anjaan keys apne aap
+ * **strip** karti hai. `mail` sirf Mongoose model me hai, is schema me nahi, isliye
+ * `toPublicSettings()` use **chup-chaap gira deti hai**. Koi aur ise galti se bhi leak
+ * nahi kar sakta, kyunki leak karne ka raasta hi maujood nahi.
+ *
+ * Padhne ka apna raasta hai — `getMailSettings()`, jo password ki jagah sirf `hasPassword`
+ * deta hai. Ye wahi batwara hai jo `getPopup()` (D-103 §7) aur `getIntegrations()` (D-106)
+ * pe hai, ek kadam aage le jaaya gaya.
+ *
+ * ⚠️ **`password` is schema me sirf INPUT ke liye hai.** DB me wo kabhi plaintext nahi
+ * jaata — `settings.mail.passwordEnc` me encrypted jaata hai (`core/secrets.js`), aur
+ * wapas kabhi nahi aata.
+ */
+export const mailSettingsSchema = z
+  .object({
+    /** `smtp.gmail.com`, `smtp-relay.brevo.com`, dev me `localhost`. */
+    host: optionalText(200),
+    /**
+     * 587 (STARTTLS) sabse aam hai, isliye wahi default. 465 SSL hai, 1025 dev ka MailDev.
+     *
+     * ⚠️ `0` allow nahi — wo "khaali" jaisa dikhta hai par `resolveMailConfig()` me
+     * falsy ho kar chup-chaap env pe gir jaata. Khaali chhodna ho to field bhejo hi mat.
+     */
+    port: z.coerce.number().int().min(1).max(65535).default(587),
+    user: optionalText(200),
+    /**
+     * ⚠️ **Sirf likhne ke liye.** Khaali bhejna = "purana rehne do", mitana nahi — wahi
+     * niyam jo har password field pe hota hai. Mitane ka raasta `Clear` hai, khaali Save
+     * nahi: warna client koi doosra khaana badal kar Save dabata aur password chup-chaap
+     * ud jaata (D-105 wali hi shakl, jahan ek line ne har optional khaana gira diya tha).
+     */
+    password: z.string().max(200).default(''),
+    fromName: optionalText(120),
+    /**
+     * Mail kis address se dikhe.
+     *
+     * ⚠️ Kai provider is address ka domain **verify** maangte hain aur na hone pe bhejne
+     * se mana kar dete hain (Brevo/SendGrid), aur Gmail ise apne account ke address se
+     * badal deta hai. Ye hamare code ka mamla nahi hai, isliye yahan koi rok nahi — par
+     * `sendTestEmail()` isi wajah se `verify()` ke **baad** ek asli mail bhejta hai, taaki
+     * ye galti test button pe dikhe, mahine baad kisi enquiry pe nahi.
+     */
+    fromEmail: z.union([z.literal(''), emailSchema]).default(''),
+  })
+  /** `.strict()` — wahi wajah jo `integrationsSchema` pe likhi hai (D-103 ka `showOn`). */
+  .strict()
+
+/**
+ * Admin jo bhej sakta hai. `.partial()` taaki ek waqt me ek khaana bhi chal jaaye —
+ * `updateMailSettings()` dotted `$set` karti hai, isliye adhoora patch baaki khaane nahi udaata.
+ *
+ * ⚠️ **`clearPassword` ek action hai, field nahi** — isiliye wo `mailSettingsSchema` me nahi,
+ * sirf yahan hai (wo DB me kabhi store nahi hota).
+ *
+ * Password mitane ka apna saaf nishaan zaroori tha. Khaali `password: ''` ka matlab pehle se
+ * **"purana rehne do"** hai, kyunki screen password kabhi padhti hi nahi aur wo khaana hamesha
+ * khaali khulta hai. Ek hi khaali value se dono matlab nikaalne ki koshish wahi galti hoti jo
+ * D-105 pe pakdi gayi thi — wahan ek line ne har optional khaane ko "mita do" samajh liya tha.
+ */
+export const updateMailSchema = mailSettingsSchema
+  .partial()
+  .extend({ clearPassword: z.boolean().optional() })
+
 export const settingsSchema = z.object({
   siteId: z.string().default(DEFAULT_SITE_ID),
 

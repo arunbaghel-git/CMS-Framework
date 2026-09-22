@@ -1,12 +1,14 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 22 Sep 2026 — **SEO ka bulk export + import ban gaya (D-107, A-33 band)**. Usse
-> pehle usi din: popup client ke saath settle (D-103 §9–§9.7) aur **Settings ▸ Integrations**
-> (D-106, A-40 band). Teenon me **koi migration nahi**.
-> **Suite: 52 files, 1365/1366 pass** — akela fail wahi purana `theme-fonts.test.js`
-> (`.hf-stat span`, client ka apna CSS edit — chhua nahi). SEO ke **41 naye test**.
+> **Last updated:** 22 Sep 2026 — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
+> **repo ka sabse purana blocker khul gaya** (SMTP, Phase 0 / 19 Aug se). Usse pehle usi din:
+> SEO ka bulk export + import (D-107, A-33 band), popup settle (D-103 §9–§9.7), aur
+> **Settings ▸ Integrations** (D-106, A-40 band). **Chaaron me koi migration nahi.** > **Suite: 53 files, 1394/1395 pass** — akela fail wahi purana `theme-fonts.test.js`
+> (`.hf-stat span`, client ka apna CSS edit — chhua nahi). Mail ke **29 naye test**.
 > ⚠️ **Push baaki hai** (`git log --oneline origin/main..HEAD`).
+> ⚠️ **Email screen aankh se dekhi nahi gayi — A-42.** Asli SMTP raasta MailDev pe verify ho chuka
+> hai (mail inbox me pahunchi), par browser me screen kholi nahi gayi.
 >
 > **Usse pehle — 21 Sep:** din me **teen feature bane** (**D-102** floating WhatsApp + phone
 > button, **D-103** Enquiries ▸ Popup + uski naap (§8), **D-104** itinerary ke do khaane + naya Notes
@@ -26,19 +28,61 @@
 
 ---
 
-## 📍 22 Sep ke aakhir me — **A-33 band, agla kaam client batayega**
+## 📍 22 Sep ke aakhir me — **SMTP khul gaya (D-108)**
 
-Client ne session ke beech me hi poori jaankari de di aur kaam usi din poora ho gaya. Ab **koi
-ruka hua kaam client ke jawab pe nahi hai sivaay A-32 (Fonts) aur A-38 ke.**
+⚠️ **Paanch cheezein jo agli session ko turant pata honi chahiye:**
 
-⚠️ **Teen cheezein jo agli session ko turant pata honi chahiye:**
-
-1. **Client ka dummy test code abhi `integrations.header` me pada hai**
+1. **Email / SMTP screen browser me dekhi nahi gayi — A-42.** Wahan saat point ki list hai, aur
+   **#7 (panel-foot me teen bachche) sabse zyada shak wali** hai. Jo ho chuka hai wo bhi wahin
+   likha hai — dobara mat karna.
+2. **Dev me mail ke liye asli account ki zaroorat nahi** — `docker compose up -d maildev`, phir
+   screen me Host `localhost` · Port `1025`. Inbox `http://localhost:1080`. (`06-OPERATIONS.md` §4.2)
+3. **Client ka dummy test code abhi `integrations.header` me pada hai**
    (`<meta name="test-integration">` + ek `console.log` wala script) — wo **site pe live** hai.
    Nuksaan koi nahi, par client ko `Settings ▸ Integrations` se khaali karna hai.
-2. **Push baaki hai** — `git log --oneline origin/main..HEAD`.
-3. **Deploy pe kuch nahi chahiye** — D-107 me na migration hai, na naya content type. Sirf naya
-   code. (`pnpm seed` ya `pnpm cms migrate` **nahi**.)
+4. **Push baaki hai** — `git log --oneline origin/main..HEAD`.
+5. **Deploy pe kuch nahi chahiye** — D-108 me na migration hai, na naya content type, na naya
+   required env var. Sirf naya code + **`pnpm install`** (nodemailer juda hai) aur API restart.
+   (`pnpm seed` ya `pnpm cms migrate` **nahi**.)
+
+## ✅ 22 Sep (aakhir me) — Settings ▸ Email / SMTP (D-108)
+
+**SMTP is repo ka sabse purana blocker tha** — Phase 0 (19 Aug) se. Uske peeche chaar kaam ruke
+the aur ab **chaaron ban sakte hain** (par **koi apne aap nahi bana** — har ek apna kaam hai):
+
+| Ab ho sakta hai                   | Kahan likha tha                          |
+| --------------------------------- | ---------------------------------------- |
+| Enquiry notification + auto-reply | D-75/D-76, aur reference ka doosra panel |
+| `forgot` / `reset` auth routes    | Phase 0 ka deferred backlog              |
+| Enquiries ▸ Send Quotation        | D-30                                     |
+| User ka email badalna             | Users ka bacha hua kaam                  |
+
+**Bana:** `core/secrets.js` · `core/mailer.js` · `settings.mail` · teen route
+(`GET`/`PATCH /api/settings/mail`, `POST /api/settings/mail/test`) · `EmailSmtp.jsx` ·
+docker-compose me **MailDev**. **29 naye test. Koi migration nahi.**
+
+### ⚠️ Teen baatein jo yaad rehni chahiye
+
+1. **`mail` Zod ke `settingsSchema` me hai hi nahi — sirf Mongoose model me.** Ye galti nahi,
+   **pehra** hai: `toPublicSettings()` us schema se parse karta hai aur Zod anjaan keys strip kar
+   deti hai, isliye password kisi aam settings response me **ja hi nahi sakta**. `settings.read`
+   **editor ke paas bhi hai**, to bina is rok ke wo har Settings kholne wale ko mil jaata.
+   **Uska apna structural test hai** — wo us din phatega jis din koi `mail` ko schema me jodega.
+2. **Khaali password = "purana rehne do", "mita do" nahi.** Screen password kabhi padhti nahi, to
+   wo khaana hamesha khaali khulta hai. Mitane ka apna nishaan hai (`clearPassword`). Ye **D-105
+   wali hi galti** hai, pehle se rok di gayi.
+3. **Asli SMTP ka raasta tests se guzarta hi nahi** — test me `jsonTransport` chalta hai. Isliye
+   MailDev pe alag se chala kar dekha gaya aur mail **pahunchi**. D-92 §11 wala sabak: jo sirf
+   asli chalane pe chalta hai, use alag se chala kar dekhna padta hai.
+
+⚠️ **Feature poora pehle se rakha hua tha** — screen design (paanchon reference me hu-ba-hu same),
+nav entry, tab, `SMTP_*` env vars, aur `SMTP_PASS` ka redact list me hona. Sirf route nahi tha.
+Ye **paanchvi baar** hai (`.float` D-102, `.sidetab` A-34, `settings.scripts.update` D-106,
+`tools.export` D-107). D-106 me yahi likha gaya tha, aur wo phir sach nikla.
+
+⚠️ **Reference ka doosra panel (`Enquiry Notifications`) jaan-boojh kar nahi bana** — R15 ka
+deviation, `04-ADMIN-UX.md` me likha hai, **client ko batana hai**. Uske do checkbox ke peeche to
+infra hi nahi hai (na PDF generator, na scheduler).
 
 ---
 

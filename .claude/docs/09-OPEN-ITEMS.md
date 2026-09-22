@@ -1,8 +1,16 @@
 # 09 — Open Items
 
-**Last updated:** 22 Sep 2026 — **popup settle** (D-103 §9–§9.7), **Settings ▸ Integrations ban gaya**
-(D-106 — **A-40 band**), aur naya **A-41** khula. Dono me koi migration nahi.
-⏭️ **Agla kaam client ne khud chuna: A-33 (SEO ka bulk export + import)** — chaar sawaal neeche khule hain.
+**Last updated:** 22 Sep 2026 — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
+**SMTP ka sabse purana blocker khul gaya** (Phase 0, 19 Aug se). Naya **A-42** (screen aankh se
+dekhna baaki). Koi migration nahi.
+✅ **SMTP ab admin panel se configure hota hai**, `.env` se nahi — `settings.mail`. Uske peeche ruke
+chaar kaam ab **ban sakte hain**: enquiry notification + auto-reply (D-75/76), `forgot`/`reset`
+auth routes, Enquiries ▸ Send Quotation, aur user ka email badalna. **Koi apne aap nahi bana** —
+har ek apna kaam hai.
+⚠️ Dev me mail ke liye **asli account ki zaroorat nahi** — `docker compose up -d maildev`, phir
+screen me `localhost:1025`. Poora tareeka `06-OPERATIONS.md` §4.2 me.
+Usse pehle usi din: **popup settle** (D-103 §9–§9.7), **Settings ▸ Integrations** (D-106 — **A-40
+band**), **SEO ka bulk export + import** (D-107 — **A-33 band**), aur naya **A-41**.
 ⚠️ Client ka dummy test code abhi `integrations.header` me pada hai aur **site pe live** hai — hataane se
 pehle unse poochho. Usse pehle 21 Sep: D-102 (floating contact) · D-103 (popup)
 + §8 (uski naap) · D-104 (itinerary ke do khaane + naya Notes section, **migration 027**) · D-105
@@ -15,11 +23,12 @@ page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87
 Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
 `.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Tests:** 22 Sep — **51 files, 1311/1312 pass**. **Asli fail ek hi hai** aur wo purana hai
-(`theme-fonts.test.js` = `.hf-stat span`, client ka apna CSS edit — chhua nahi).
+**Tests:** 22 Sep (D-108 ke baad) — **53 files, 1394/1395 pass**. **Asli fail ek hi hai** aur wo
+purana hai (`theme-fonts.test.js` = `.hf-stat span`, client ka apna CSS edit — chhua nahi).
 ⚠️ Vitest _"2 failed"_ files dikha sakti hai jabki test sirf ek gira ho — doosri file `media.test.js`
-thi, jo **hook** me giri (A-11 ka race), aur akele chalane pe 20/20 pass hui. **Ginti dekhte waqt isi
-se dhoka hota hai.** Usse pehle 21 Sep: 51 files, 1292/1293. 17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
+hoti hai, jo **hook** me girti hai (A-11 ka race), aur akele chalane pe 20/20 pass hoti hai. **Ginti
+dekhte waqt isi se dhoka hota hai** — usi din ek run me wo giri aur agle me pass ho gayi.
+Usse pehle 22 Sep: 52 files, 1364/1366. 21 Sep: 51 files, 1292/1293. 17 Sep: 42 files, 1160/1160. ⚠️ C: drive pe sirf ~0.9 GB bachi hai;
 16 Sep ko isi wajah se vitest `ENOSPC` de rahi thi. Jagah kam ho to suite phir "no tests"/load error degi —
 wo code ka bug nahi hai.
 
@@ -394,6 +403,39 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 ---
 
 ## 🔴 Ab bhi baaki
+
+### A-42 · Email / SMTP ka screen aankh se dekha nahi gaya (22 Sep, D-108)
+
+**Deadline:** agli session ka pehla kaam · **kuch toota hua nahi** — 29 naye test, admin build,
+aur asli SMTP raasta MailDev pe chala kar verify
+
+Jo **ho chuka** hai (dobara mat karo):
+
+- **29 test pass** — permission, password ka kahin leak na hona, khaali-password wala niyam,
+  `clearPassword`, dotted `$set`, encrypt/decrypt, `secure` ka port se derive hona
+- **Asli SMTP** — `core/mailer.js` se MailDev pe mail bheji gayi aur wo inbox me **pahunchi**
+  (From name/address/subject/body sab sahi). Ye raasta tests se guzarta hi nahi (`jsonTransport`)
+- **API dev server ne naya code utha liya** — `GET /api/settings/mail` `:4000` pe 401 deta hai
+  (route hai), jabki `/api/settings/nonexistent` 404
+- **`pnpm --filter @cms/admin build` pass** — JSX/import ki galti pakdi jaati
+
+Jo **baaki** hai — browser me:
+
+| # | Kya dekhna hai | Kyun |
+| --- | --- | --- |
+| 1 | `docker compose up -d maildev` → Admin ▸ Settings ▸ **Email / SMTP** asli screen khule, `NotBuiltYet` nahi | Route naya hai; splat (`/settings/*`) se specificity ka mamla |
+| 2 | Host `localhost` · Port `1025` · From `cms@test.local` → Save → **Send Test Email** → `localhost:1080` pe mail dikhe | Poora raasta, screen se |
+| 3 | Password bhar ke Save → reload → khaana **khaali** khule par hint kahe "A password is saved" | `hasPassword` |
+| 4 | Phir sirf From Name badal kar Save → mail **phir bhi jaaye** | Khaali password = "purana rehne do" (D-105 wali galti) |
+| 5 | `Remove saved password` → hint wapas "Gmail needs an App Password" pe aaye | `clearPassword` |
+| 6 | Galat host daal kar test → screen pe **saaf error**, 500 nahi | `verify()` ka message |
+| 7 | `panel-foot` me teen cheezein ek line me theek dikhein (test button · "Sends to you at …" · Save) | `space-between` + `flex-wrap`, teen bachche — reference me do the |
+
+⚠️ **#7 sabse zyada shak wali hai** — `.panel-foot` `justify-content: space-between` hai aur
+reference me uske **do** bachche the; maine teesra (muted span) beech me joda hai. Wo `General.jsx`
+me pehle se chalta hai, par wahan span aur button hi hain, teen cheezein nahi.
+
+---
 
 ### Chhoti bachi hui safai (band items se nikli)
 
@@ -1682,7 +1724,7 @@ nahi.
 | --- | --- |
 | Docker compose me `api` + `admin` service | Chhota kaam — abhi `pnpm dev` se chalta hai |
 | CSP policy (nonce-based) | Phase 4-5 — asli matlab page builder aur `settings.scripts` ke saath hai |
-| `forgot` / `reset` auth routes | **SMTP pe block** — SMTP work ke saath |
+| `forgot` / `reset` auth routes | ✅ **SMTP ka block 22 Sep ko hat gaya (D-108)** — ab ye apna kaam hai: token collection + 2 route + login ka dead link zinda karna |
 
 **Phase 0 me kya ho chuka:** monorepo + workspaces, docker-compose, ESLint/Prettier,
 CI, Express boilerplate, Zod contract, migration runner, CSS architecture,

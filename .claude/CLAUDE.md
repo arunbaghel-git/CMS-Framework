@@ -843,8 +843,35 @@ yahi galti thi.** ⚠️ `csvCell()` ab `packages/shared` me hai (`forms` ki cop
 ⚠️ Live check ne ek test ki kami pakdi — _"pehli row chali, doosri giri"_ wala raasta kisi test se guzarta
 hi nahi tha. Aur: alag se script chalao to yaad rakho ki `:4000` ka server **apna** worker tick karta hai.
 
-⏭️ **Agla kaam: A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn't come on
-frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka). Phir baaki pages PageSpeed pe (A-17).
+**22 Sep — Settings ▸ Email / SMTP (D-108), koi migration nahi.** **Repo ka sabse purana blocker khul
+gaya** — SMTP Phase 0 (19 Aug) se ruka tha. Ab site ka mail account **admin panel se** set hota hai
+(`settings.mail`), `.env` se nahi — kyunki non-technical client `.env` kabhi nahi kholega. Chhe khaane,
+bilkul reference ke (`admin-design-v2.html:1436`, paanchon reference me hu-ba-hu same); koi Encryption
+dropdown nahi — `secure` **port se derive** (465 = SSL). Naya `core/mailer.js` (`revalidate.js` ka
+"fail soft, par chup nahi" saancha) aur `core/secrets.js` (AES-256-GCM, key `JWT_ACCESS_SECRET` se
+HKDF — naya required env var nahi, warna purane deploy boot pe hi mar jaate).
+⚠️ **`mail` Zod ke `settingsSchema` me hai hi nahi — sirf Mongoose model me, aur wo pehra hai.**
+`toPublicSettings()` us schema se parse karta hai aur Zod anjaan keys **strip** kar deti hai, isliye
+password kisi aam settings response me **ja hi nahi sakta**. `settings.read` **editor ke paas bhi hai**
+(spec 001) — bina is rok ke SMTP ka password har Settings kholne wale ko milta. Uska **structural test**
+hai; wo us din phatega jis din koi `mail` ko schema me jodega.
+⚠️ **Khaali password = "purana rehne do", "mita do" nahi** — screen password kabhi padhti nahi, to wo
+khaana hamesha khaali khulta hai. Mitane ka apna nishaan (`clearPassword`). **D-105 wali hi galti**,
+pehle se rok di gayi.
+⚠️ **Test mail hamesha logged-in user ke apne email pe** — route body leta hi nahi, warna `settings.update`
+wala har user site ke naam pe mail bhej sakta (mail relay). Uska apna rate limiter bhi hai.
+⚠️ **Asli SMTP ka raasta tests se guzarta hi nahi** (test me `jsonTransport`) — isliye **MailDev** se
+alag se chala kar dekha gaya aur mail pahunchi. Dev me asli account chahiye hi nahi:
+`docker compose up -d maildev` → Host `localhost`, Port `1025`, inbox `:1080` (`06-OPERATIONS.md` §4.2).
+⚠️ **Feature poora pehle se rakha hua tha** — design, nav entry, tab, `SMTP_*` env vars, `SMTP_PASS` ka
+redact hona. Sirf route nahi tha. **Paanchvi baar** (`.float` · `.sidetab` · `settings.scripts.update` ·
+`tools.export`). ⚠️ Reference ka `Enquiry Notifications` panel jaan-boojh kar nahi bana (R15 deviation,
+client ko batana hai). ⚠️ Screen aankh se dekhni baaki — **A-42**. Deploy pe **`pnpm install`** chahiye.
+
+⏭️ **Agla kaam: A-42** (Email screen browser me dekhna — 5 minute ka kaam, list `09-OPEN-ITEMS.md` me).
+Phir **A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn't come on frontend"_).
+Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed pe (A-17).
+SMTP khulne ke baad **enquiry notification (D-75/76)** bhi ab ban sakta hai — client se poochho.
 `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)

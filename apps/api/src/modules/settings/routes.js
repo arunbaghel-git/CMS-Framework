@@ -2,7 +2,9 @@ import { Router } from 'express'
 import { PERMISSION } from '@cms/shared'
 
 import multer from 'multer'
+import rateLimit from 'express-rate-limit'
 
+import { isProd } from '../../core/env.js'
 import { badRequest } from '../../core/errors.js'
 import { requireAuth, requirePermission } from '../../middleware/auth.js'
 import * as controller from './controller.js'
@@ -52,6 +54,71 @@ settingsRoutes.patch(
   requireAuth,
   requirePermission(PERMISSION.SETTINGS_SCRIPTS_UPDATE),
   controller.updateIntegrations,
+)
+
+/**
+ * Settings ▸ Email / SMTP — site ka mail account (D-108).
+ *
+ * ⚠️ **Read `settings.read` pe hai, write `settings.update` pe** — wahi saancha jo baaki saari
+ * settings screens ka hai (andar aane do, badalne ki rok alag). Padhne me password jaata hi nahi
+ * (`getMailSettings()` sirf `hasPassword` deta hai), isliye editor ka is screen ko dekh lena kisi
+ * credential ko nahi kholta.
+ *
+ * ⚠️ **Yahan `integrations` jaisi alag permission (`settings.scripts.update`) jaan-boojh kar NAHI
+ * hai.** Wo ek privilege boundary isliye hai ki `<script>` **visitor ke browser me chalta hai** —
+ * yaani us field se admin ka session churaya ja sakta hai. SMTP creds wo nahi karte; unse site ke
+ * naam pe mail bheja ja sakta hai, jo bura hai par ek alag aur chhota darja hai. Naya permission
+ * banane ka matlab hota spec 001 badalna aur roles sync karna — bina kisi asli faayde ke.
+ */
+settingsRoutes.get(
+  '/mail',
+  requireAuth,
+  requirePermission(PERMISSION.SETTINGS_READ),
+  controller.getMail,
+)
+
+settingsRoutes.patch(
+  '/mail',
+  requireAuth,
+  requirePermission(PERMISSION.SETTINGS_UPDATE),
+  controller.updateMail,
+)
+
+/**
+ * `Send Test Email` ka apna limiter — **ye poore system ka ekmatra route hai jo bahar kuch
+ * bhejta hai**, aur wahi use baaki settings routes se alag banata hai.
+ *
+ * Bina iske ek loop is button ko dabata rahe to do cheezein hoti hain: provider ka daily quota
+ * khatam (aur uske baad **asli** enquiry notification girna shuru), ya us provider pe account
+ * spam ke liye suspend. Dono ka lakshan wahi hai jo is repo me baar-baar aata hai — "mail aana
+ * band ho gaya", bina kisi error ke.
+ *
+ * ⚠️ Global limiter is jagah kaam nahi aata: wo test me band hai (`isTest`, D-87) aur 1000/min pe
+ * hai, jo mail ke liye bahut dheela hai. Wahi tark jo `loginLimiter` pe hai.
+ *
+ * Key sirf IP se — ye button ek hi logged-in admin dabata hai, `loginLimiter` wali email-wali
+ * jodi ki zaroorat nahi.
+ */
+const testMailLimiter = rateLimit({
+  windowMs: 10 * 60_000,
+  limit: isProd ? 5 : 50,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    error: {
+      code: 'RATE_LIMITED',
+      message: 'Too many test emails. Try again in a few minutes.',
+    },
+  },
+})
+
+/** POST hai, GET nahi — ye bahar mail bhejta hai, yaani state-changing (R13). */
+settingsRoutes.post(
+  '/mail/test',
+  requireAuth,
+  requirePermission(PERMISSION.SETTINGS_UPDATE),
+  testMailLimiter,
+  controller.sendTestMail,
 )
 
 /**

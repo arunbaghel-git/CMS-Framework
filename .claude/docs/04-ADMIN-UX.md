@@ -916,3 +916,39 @@ aur key stored data hai (R4). Khaali sirf **baad me** kiya ja sakta hai.
 ⚠️ **Hint ke bina khaali label ek galti jaisa lagta.** Wahi soch jo `quoteUrl` (D-30) aur
 `floatingContactSide` (D-102) ki hints pe hai: jahan "khaali" ka apna matlab ho, wahan wo likha
 hona chahiye.
+
+### Settings ▸ Email / SMTP — site ka mail account (22 Sep, D-108)
+
+Reference: `admin-design-v2.html:1436` — wahi panel v1/v3/v4 aur `travel-cms-admin_v2` me
+**hu-ba-hu same** hai.
+
+| Panel | Kya |
+| --- | --- |
+| **SMTP** | Chhe khaane `.panel-body row2` me — Host · Port · Username · Password · From Name · From Email. `panel-foot` me `Send Test Email` (`btn btn-sm`) + `Save Changes` |
+
+⚠️ **Screen, sidebar entry aur tab teenon pehle se the — sirf route nahi tha.** `lib/nav.js` me
+`Email / SMTP → /settings/email` pehle din se pada tha aur `NotBuiltYet` pe girta tha. Isliye is
+kaam me `nav.js` me kuch **joda nahi gaya**. Ye paanchvi baar hai (`.float` D-102, `.sidetab`
+A-34, `settings.scripts.update` D-106, `tools.export` D-107).
+
+⚠️ **Password ka khaana hamesha khaali khulta hai** — server use kabhi wapas nahi bhejta (sirf
+`hasPassword`). Isliye khaali Save karne ka matlab **"purana rehne do"** hai, "mita do" nahi;
+mitane ka apna button hai (`Remove saved password`). Do alag iraadon ke do alag raaste — ek hi
+khaali value se dono matlab nikalna wahi galti hai jo D-105 pe pakdi gayi thi.
+
+⚠️ **`Send Test Email` logged-in user ke apne email pe jaata hai**, aur wo address button ke paas
+likha hai. Kisi aur address ka khaana jaan-boojh kar nahi hai: wo `settings.update` wale har user
+ko site ke naam pe mail bhejne ka raasta de deta.
+
+### ⚠️ Design se do farak — dono jaan-boojh kar (D-108 §7)
+
+| Design me hai | Abhi nahi bana | Kyun |
+| --- | --- | --- |
+| `Enquiry Notifications` panel (notify addresses · auto-reply · template) | Poora panel | SMTP pehle chalta hua verify ho. Ye alag kaam hai |
+| `Attach package PDF to auto-reply` | Checkbox | PDF generator hai hi nahi |
+| `Send daily enquiry digest at 9:00 AM` | Checkbox | Scheduler nahi hai (R8 — DB-based, `setTimeout` kabhi nahi) |
+
+**Ye R15 ka deviation hai aur client ko batana hai.** Wajah D-30 wali hi hai — _khaali panel
+dikhane se behtar hai wo panel na dikhna_ — aur uske upar A-41: is repo ka sabse baar-baar aane
+wala bug yahi hai ki cheez ban jaati hai aur koi use padhta hi nahi. Ek checkbox jo kuch na kare
+usse bura hai ki wo hai hi nahi, kyunki client uspe bharosa kar baithta hai.

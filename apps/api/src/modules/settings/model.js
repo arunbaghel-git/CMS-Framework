@@ -183,6 +183,28 @@ const settingsSchema = new mongoose.Schema(
     },
 
     /**
+     * Settings ▸ Email / SMTP — site ka mail account (D-108).
+     *
+     * ⚠️ **Ye field `settingsSchema` (Zod) me jaan-boojh kar NAHI hai**, sirf yahan hai.
+     * `toPublicSettings()` us schema se parse karta hai aur Zod anjaan keys strip kar deti
+     * hai — yaani `mail` kisi bhi aam settings response me **ja hi nahi sakta**. Poora
+     * tark `packages/shared/src/schemas/settings.js` me `mailSettingsSchema` ke upar hai.
+     *
+     * ⚠️ **`passwordEnc` — naam me `Enc` isliye hai ki wo padhne wale ko rok de.** Isme
+     * plaintext kabhi nahi jaata; `core/secrets.js` ka `encryptSecret()` `v1:…` blob banata
+     * hai. Koi seedha `mail.password` likhne ki koshish kare to wo field yahan hai hi nahi,
+     * aur Mongoose use chup-chaap gira dega — wahi structural rok, ek aur jagah.
+     */
+    mail: {
+      host: { type: String, default: '' },
+      port: { type: Number, default: 587 },
+      user: { type: String, default: '' },
+      passwordEnc: { type: String, default: '' },
+      fromName: { type: String, default: '' },
+      fromEmail: { type: String, default: '' },
+    },
+
+    /**
      * Site ke rang — Settings ▸ Colours (client, 17 Sep). Shape `themeColorsSchema` (R8).
      * Khaali `{}` = theme ke apne rang — is site pe koi CSS variable nahi jaata.
      */

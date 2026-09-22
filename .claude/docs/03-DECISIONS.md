@@ -10244,3 +10244,180 @@ test**, aur pehla wala purane code pe sach me girta hai.
 
 ⚠️ **`reclaimStuckRows()` hata nahi** — wo ab bhi zaroori hai. Ye dono fix us haalat ke liye hain
 jahan process **zinda** rehta hai; wo us haalat ke liye hai jahan process hi mar jaaye.
+
+---
+
+## D-108
+
+**Settings ▸ Email / SMTP — site ka apna mail account, admin panel se (22 Sep 2026)**
+
+### Sandarbh
+
+SMTP is repo ka **sabse purana blocker** hai — Phase 0 (19 Aug) se. `09-OPEN-ITEMS.md` me wo
+teen jagah likha hai (`forgot`/`reset` auth routes, Enquiries ▸ Send Quotation, user ka email
+badalna) aur D-75/D-76 me chauthi baar (enquiry notification + auto-reply).
+
+Aaj tak SMTP ke liye **sirf env vars** the (spec 003, 19 Aug): `SMTP_HOST` · `SMTP_PORT` ·
+`SMTP_USER` · `SMTP_PASS` · `MAIL_FROM`. Wo paanchon `core/env.js` me defined the, `SMTP_PASS`
+`REDACTED_KEYS` me tha — par **kisi ne unhe kabhi padha hi nahi**, kyunki mail bhejne wala koi
+code tha hi nahi.
+
+⚠️ Asli dikkat env hone me thi: **non-technical client `.env` kabhi nahi kholega.** CLAUDE.md ki
+pehli line yahi kehti hai — _"non-technical client, jo admin panel se poori website chalaye"_.
+`11-REFERENCE-ADMIN.md:225` me wo baat 3 Sep ko hi likhi ja chuki thi: _"Humne SMTP env me rakha
+tha. Client ko UI chahiye."_
+
+### ⚠️ Ye feature **pehle se rakha hua tha** — paanchvi baar
+
+| Cheez | Kahan | Haalat |
+| --- | --- | --- |
+| Poora screen design (2 panel) | `reference/admin-design-v2.html:1436` | Bana hua — aur v1/v3/v4 + `travel-cms-admin_v2` me **hu-ba-hu same** |
+| Nav entry `Email / SMTP → /settings/email` | `apps/admin/src/lib/nav.js` | Bana hua, route nahi tha → `NotBuiltYet` pe girta tha |
+| Tab bar me entry | `SETTINGS_TABS` (`NAV` se derive) | Apne aap maujood |
+| `SMTP_*` env vars | `core/env.js` | Defined, optional, khaali |
+| `SMTP_PASS` redact list me | `core/env.js` | Bana hua |
+
+Ye **paanchvi baar** hai — `.float` (D-102), `.sidetab` (A-34), `settings.scripts.update`
+(D-106), `tools.export` (D-107), ab ye. **Naya kaam shuru karne se pehle dhoondho ki wo pehle se
+rakha to nahi hai** (D-106 me likha gaya tha, aur wo phir sach nikla).
+
+### §1 — ⚠️ Ek asli khatra jaanch me pakda gaya, aur uska ilaaj **structural** hai
+
+`toPublicSettings()` `settingsSchema.parse()` chalata hai aur uska nateeja `GET /api/settings`
+ka poora jawab ban-ta hai. `settings.read` **editor ke paas bhi hai** (spec 001). Yaani agar
+`mail` saade tareeke se `settingsSchema` me daal diya jaata — jaise `integrations` hai — to SMTP
+ka **password har us user ke browser me pahunch jaata** jo Settings khol sakta hai.
+
+✅ Public endpoint bacha hua tha: `public/service.js` ek **allowlist projection** hai (field-by-
+field), denylist nahi. Naya field apne aap public nahi hota. **Ye allowlist aaj kaam aa gayi.**
+
+**Ilaaj:** `mail` `settingsSchema` me daala hi **nahi** gaya — sirf Mongoose model me hai. Zod
+anjaan keys apne aap **strip** karti hai, isliye `toPublicSettings()` use chup-chaap gira deti
+hai. Yaani leak karne ka raasta **maujood hi nahi hai**; ye yaad rakhne pe nirbhar nahi.
+
+Padhne ka apna raasta hai — `getMailSettings()`, jo password ki jagah sirf `hasPassword: true`
+deta hai. Ye wahi batwara hai jo `getPopup()` (D-103 §7) aur `getIntegrations()` (D-106) pe hai,
+ek kadam aage le jaaya gaya: wahan field schema me thi aur nikaali jaati thi, yahan wo schema me
+hai hi nahi.
+
+⚠️ Uska test likha hua hai aur wo **jaan-boojh kar structural** hai — `toPublicSettings(doc).mail`
+`undefined` hona chahiye jabki `doc.mail.passwordEnc` bhara ho. Wo test us din phatega jis din koi
+`mail` ko `settingsSchema` me jodega, aur wahi din hai jab password leak hoga.
+
+### §2 — Chaar parat, kyunki encryption akela kaafi nahi hai
+
+| Parat | Kahan |
+| --- | --- |
+| Response me password jaata hi nahi | `getMailSettings()` — sirf `hasPassword` |
+| `settingsSchema` me field hai hi nahi | Zod strip — upar §1 |
+| DB me encrypted | `core/secrets.js` — AES-256-GCM |
+| Log me kabhi nahi | `SMTP_PASS` pehle se `REDACTED_KEYS` me; mailer ka catch sirf `err.message` logta hai |
+
+⚠️ **Hashing (bcrypt) yahan kaam hi nahi karti** aur wo baat samajh leni chahiye: password ko
+**wapas plaintext chahiye hi**, kyunki wahi SMTP server ko bhejna hota hai. Hashing ek taraf ka
+raasta hai; yahan do taraf ka chahiye. Isliye encryption, aur isiliye baaki teen parat.
+
+**Key `JWT_ACCESS_SECRET` se HKDF-derive hoti hai** (`info: 'cms:secrets:v1'`), seedha use nahi
+hoti. Naya required env var jaan-boojh kar nahi banaya — spec 003 ke hisaab se har naya required
+var boot pe `process.exit(1)` deta hai, yaani **purane deploy naye code pe chalna band kar dete**.
+Alag `info` se key JWT wale kaam se kisi tarah nahi judti (key-reuse ka aam jaal).
+
+⚠️ `JWT_ACCESS_SECRET` rotate hua to purane password **khul nahi paayenge**. `decryptSecret()`
+uske liye taiyaar hai: wo `null` deta hai, throw nahi. Throw karne ka matlab hota ki admin ka
+poora Email screen 500 de — yaani **wahi jagah band ho jaati jahan se client password theek kar
+sakta tha**.
+
+### §3 — Chaar faisle
+
+| # | Faisla | Wajah |
+| --- | --- | --- |
+| 1 | **Chhe khaane hi**, koi Encryption dropdown nahi | Reference me chhe hain (R15). `secure` **port se derive**: 465 = SSL, baaki STARTTLS. 465 IANA pe `smtps` hai — ye andaaza nahi, convention hai. Ek khaana bachta hai aur client ko aisa sawaal nahi milta jiska jawab use pata hi nahi |
+| 2 | **DB jeete, env fallback** — aur har khaana **alag se** girta hai | Client ko UI, aur CI/dev/purane deploy `SMTP_*` pe khade hain. Kram palatna mana hai: env jeetne ka matlab client value badle, "Saved." dekhe, aur mail purane account se jaaye — wahi **"kuch na hona"** (A-41) |
+| 3 | **Config har bhejne pe DB se padhi jaaye**, boot pe cache nahi | Client Save dabaye aur agla mail naye account se jaaye. **API restart nahi chahiye** — non-technical client ke liye yahi sahi hai |
+| 4 | **Permission `settings.update`**, naya boundary nahi | `settings.scripts.update` isliye alag hai ki `<script>` **visitor ke browser me chalta hai** (session chori). SMTP creds wo nahi karte — bura hai, par alag aur chhota darja. Naya permission = spec 001 + roles sync, bina faayde ke |
+
+### §4 — `core/mailer.js` — fail soft, par chup nahi
+
+Wahi saancha jo `core/revalidate.js` ka hai, aur usi wajah se: iska koi apna collection nahi aur
+ise **kai module** bulaayenge (aaj `settings`, kal `forms` aur `auth`). Ek module me rakhne ka
+matlab hota ki `auth` ko `forms` import karna pade.
+
+`sendMail()` **kabhi throw nahi karta**. Sabse saaf misaal aage aayegi: enquiry submit hone pe
+mail jaayegi, aur SMTP band hone se **client ki enquiry kho jaana** kabhi theek nahi hai.
+
+⚠️ **`sendTestEmail()` isme apwaad hai aur wo jaan-boojh kar** — wahan fail hona hi jawab hai. Us
+button ka poora kaam hi ye batana hai ki config chalti hai ya nahi. Chup-chaap `{ ok: false }`
+lauta dena use bilkul bekaar bana deta.
+
+⚠️ **`verify()` `sendMail()` se pehle chalta hai**, aur wo do galtiyaan **alag** dikhata hai jo
+warna ek jaisi lagti: "host/password galat hai" (verify pe fail) aur "login ho gaya par ye From
+address bhejne nahi deta" (send pe fail — Brevo/SendGrid ka sabse aam reject). Dono ka ilaaj alag
+hai, isliye dono ka message alag hona chahiye.
+
+⚠️ **Config na hone pe `logger.info`, `warn` nahi.** SMTP aaj tak kabhi configure hua hi nahi,
+yaani "configured nahi hai" ek **aam haalat** hai, galti nahi. `warn` banane ka matlab hota har
+enquiry pe ek jhoothi chetavni, aur kuch hi din me wo line padhi jaani band ho jaati.
+
+⚠️ **Error me sirf `err.message` logta hai, poora `err` nahi** — nodemailer ki kai errors me poora
+SMTP conversation hota hai, aur usme `AUTH PLAIN` wali line **password ke saath** hoti hai.
+`REDACTED_KEYS` is raaste pe kuch nahi karta, kyunki wahan wo env var nahi, error ka text hota hai.
+
+### §5 — Do chhote faisle jinme se dono ek purane bug se aaye
+
+**Khaali `password` = "purana rehne do", "mita do" nahi.** Screen password kabhi padhti nahi, yaani
+wo khaana **hamesha khaali khulta hai**. Khaali ko "mita do" maanne ka matlab hota ki client From
+Name badal kar Save dabaye aur mail chup-chaap band ho jaaye, bina error ke — **theek wahi shakl jo
+D-105 me thi**, jahan `submit()` ki ek line har khaali value gira deti thi. Mitane ka apna nishaan
+hai: `clearPassword: true`.
+
+**Test mail hamesha logged-in user ke apne email pe** — route body leta hi nahi. Body se address
+lene ka matlab hota ki `settings.update` wala koi bhi user kisi bhi address pe mail bhej sake,
+yaani site ke naam pe ek chhota **mail relay**. Uska apna rate limiter bhi hai (5/10min prod me):
+ye poore system ka ekmatra route hai jo **bahar kuch bhejta hai**, aur quota khatam hone ka lakshan
+wahi hota hai — "mail aana band ho gaya", bina kisi error ke.
+
+### §6 — Dev ka nakli SMTP: MailDev
+
+`docker-compose.yml` me Mongo ke saath **MailDev** juda — SMTP `:1025`, web inbox `:1080`. Wo asli
+SMTP protocol bolta hai par mail kahin deliver nahi karta.
+
+Teen wajah se ye asli account se behtar hai: koi signup nahi, internet ke bina chalta hai, aur
+galti se kisi asli address pe mail jaana namumkin hai.
+
+⚠️ **Ye sirf hamara code sahi hone ka saboot hai.** Ye nahi batata ki mail Gmail ke inbox me
+jaayega ya spam me — wo SPF/DKIM/domain reputation ka mamla hai aur sirf asli provider + asli
+domain se pata chalta hai. Is repo me "live check" ka matlab hamesha yahi raha hai.
+
+### §7 — Kya jaan-boojh kar **nahi** bana
+
+| Kya | Kyun |
+| --- | --- |
+| **`Enquiry Notifications` panel** (reference ka doosra panel) | Alag kaam — pehle pipe chalta hua verify ho. SMTP me hi provider-level dikkat nikal sakti hai (port block, App Password, From-domain verify), aur tab notification aadha pada reh jaata |
+| `Attach package PDF to auto-reply` | PDF generator hai hi nahi |
+| `Send daily enquiry digest at 9:00 AM` | Scheduler nahi hai — R8: scheduled kaam DB-based ho, `setTimeout` kabhi nahi |
+| `forgot` / `reset` auth routes | Ab **unblocked** hai, par apna kaam hai: token collection + 2 route + login ka dead link |
+
+⚠️ Upar ke do checkbox **reference me hain**, yaani inhe na banana **R15 ka deviation hai** —
+`04-ADMIN-UX.md` ke table me likha hai. Dead checkbox banana is repo ka sabse baar-baar aane wala
+bug hai (A-41): data bhara jaata hai, payload tak aata hai, aur koi padhta hi nahi.
+
+### §8 — Verify kaise hua
+
+**29 naye test** (`apps/api/src/tests/mail.test.js` — apni file me, kyunki `settings.test.js` ka
+`beforeEach` teen login karta hai aur D-87 me theek isi wajah se `entries.test.js` **rate limit**
+kha rahi thi).
+
+⚠️ **Test me koi asli SMTP connection nahi banta** — `core/mailer.js` test me nodemailer ka
+`jsonTransport` use karta hai (wahi rok jo `revalidateTags()` pe `NODE_ENV === 'test'` ki hai).
+Isliye test ye sabit karte hain ki **kya bheja ja raha tha**, ye nahi ki wo pahuncha.
+
+✅ **Asli SMTP raasta alag se chala kar dekha gaya** — MailDev ke against, `core/mailer.js` se,
+aur mail inbox me From name/address/subject/body sab sahi ke saath **pahunchi**. Wo raasta tests se
+guzarta hi nahi (`jsonTransport` uski jagah le leta hai), isliye use alag se dekhna zaroori tha —
+D-92 §11 wala hi sabak.
+
+**Suite: 53 files, 1394/1395 pass.** Akela fail wahi purana `theme-fonts.test.js` (client ka apna
+CSS edit — chhua nahi). Koi migration nahi.
+
+⚠️ **Screen aankh se dekhi nahi gayi** — admin build pass hai (JSX/import ki galti pakdi jaati),
+par browser me kholi nahi gayi. **A-42.**

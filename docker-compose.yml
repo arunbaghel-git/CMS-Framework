@@ -15,5 +15,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # Dev ka nakli SMTP server — Settings ▸ Email / SMTP (D-108).
+  #
+  # Ye asli SMTP protocol bolta hai, par mail kahin **deliver nahi** karta — sab kuch
+  # `localhost:1080` ke inbox me ruk jaata hai. Teen wajah se ye asli account se behtar hai:
+  # koi signup nahi, internet ke bina chalta hai, aur galti se kisi asli address pe mail
+  # jaana namumkin hai.
+  #
+  # ⚠️ Ye sirf **hamara code** sahi hone ka saboot hai — ye nahi batata ki mail Gmail ke
+  # inbox me jaayega ya spam me. Wo sirf asli provider + asli domain se pata chalta hai.
+  maildev:
+    image: maildev/maildev:2.1.0
+    container_name: merncms-maildev
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP — admin screen me yahi Port daalna hai
+      - '1080:1080' # Web inbox — browser me kholo
+    environment:
+      MAILDEV_INCOMING_USER: ''
+      MAILDEV_INCOMING_PASS: ''
+
 volumes:
   mongo-data:
