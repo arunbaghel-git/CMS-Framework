@@ -376,7 +376,7 @@ export default function BulkUpload() {
               </td>
               <td className="nowrap">
                 <button type="button" className="btn btn-sm" onClick={() => fillFrom(run)}>
-                  Retry again
+                  Retry
                 </button>
               </td>
             </tr>

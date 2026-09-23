@@ -3359,6 +3359,16 @@ a.mega__gl:hover {
 }
 
 /*
+ * **Table ke neeche bhi jagah** (client, 23 Sep: _"doc me agar space nahi hai table ke bad to public
+ * site par bhi chipak rha hai"_). Pehle sirf `margin-top` tha — table ke theek baad ka paragraph
+ * border se chipak jaata. `:not(:last-child)` isliye ki section ke aakhir wali table (package ke hotels)
+ * ke neeche bina wajah gap na bane. Doc ki khaali line pe nirbhar nahi — A-19 wala sawaal.
+ */
+.tblw:not(:last-child) {
+  margin-bottom: 14px;
+}
+
+/*
  * Import wali table ko bhi yahi class milti hai — `normalizeTable()` (`lib/article-html.js`)
  * render pe `class="tbl"`, `<thead><th>` aur `<tbody>` bana deta hai, aur cell ke andar ke
  * `<p>` khol deta hai (client, 11 Sep). Isliye yahan koi doosra selector nahi — CSS wahi hai
@@ -7125,6 +7135,11 @@ a.mega__gl:hover {
 }
 .art .tblw {
   margin-top: 18px;
+}
+
+/* Article me upar jitni hi neeche — table ke baad ka text chipke nahi (23 Sep) */
+.art .tblw:not(:last-child) {
+  margin-bottom: 18px;
 }
 .art hr {
   border: 0;

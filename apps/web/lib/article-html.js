@@ -23,11 +23,21 @@ const ROW_RE = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi
  * (client, 11 Sep): `.art p` ka font-size aur margin cell ke andar bhi lag jaata, to `.tbl td`
  * ka 13px/`line-height` haar jaata. Reference ke cell me koi `<p>` nahi hai — seedha text.
  */
+/*
+ * ⚠️ **Cell ke kinaare ke `<br>` bhi hat-te hain** (client, 23 Sep: _"why table rows taking doc space
+ * like br tag coming inside td"_). Client ke doc me har cell `<p><br>What<br></p>` tha — Google ki soft
+ * line break, doc se hi. Pehle sirf aakhir ka `<br>` hat-ta tha aur wo bhi sirf `<br>` shakl me; DB me
+ * sanitizer `<br />` likhta hai, to dono bache rehte aur har row do line oonchi hoti. Beech ke lagataar
+ * `<br>` ek ho jaate hain — cell me khaali line ka koi matlab nahi.
+ */
 const unwrapCellParagraphs = (inner) =>
   String(inner ?? '')
     .replace(/<p\b[^>]*>/gi, '')
     .replace(/<\/p>\s*/gi, '<br>')
-    .replace(/(?:\s*<br>\s*)+$/i, '')
+    .replace(/<br\s*\/?>/gi, '<br>')
+    .replace(/^(?:\s|<br>|&nbsp;)+/i, '')
+    .replace(/(?:\s|<br>|&nbsp;)+$/i, '')
+    .replace(/(?:\s*<br>\s*){2,}/gi, '<br>')
     .trim()
 
 /** `colspan`/`rowspan` sirf tab jab 1 se zyada ho — Google **har** cell pe `="1"` likhta hai. */

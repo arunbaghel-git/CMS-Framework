@@ -11095,3 +11095,16 @@ date alag ho (warna publish dobara nahi — D-81).
 - Asli Google Doc pe live nahi chalaya — **A-52**
 - Tests: shared 112, bulk mappers 74, inline-images 39, `bulk-imports.test.js` 98 (9 purane "draft" wale palte,
   8 naye D-116)
+
+### §7 — Table: cell ke `<br>` aur neeche ki jagah (client, 23 Sep, usi shaam)
+
+- _"why table rows taking doc space like br tag coming inside td"_ — asli doc (`/blogs/port-blair-to-baratang`)
+  ka **har cell** `<p><br>What<br></p>` tha: Google ki soft line break, **client ke doc se** (hamara cleaner
+  nahi). `unwrapCellParagraphs()` (`apps/web/lib/article-html.js`) sirf aakhir ka `<br>` hataata tha aur wo bhi
+  sirf `<br>` shakl me — DB me sanitizer `<br />` likhta hai. Ab dono kinaare ke (`<br>`, `<br />`, `&nbsp;`)
+  hat-te hain aur beech ke lagataar ek ho jaate hain. **Render pe**, isliye purane post bina re-import theek
+- _"table ke niche space do"_ — `.tblw` pe sirf `margin-top` tha. Ab `.tblw:not(:last-child)` pe 14px, `.art`
+  me 18px (upar jitna). `:not(:last-child)` — section ke aakhir ki table ke neeche bina wajah gap nahi
+- ⚠️ **`Published 10 Sept 2026` bug nahi hai** — wo post 10 Sep ko pehli baar bana aur publish hua tha; aaj ke
+  teeno import `Existing` mode me the aur doc me `Published Date` nahi thi, to asli publish date bani rahi (§5).
+  Date badalni ho to doc me `Published Date` likho

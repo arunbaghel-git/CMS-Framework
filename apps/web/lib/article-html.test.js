@@ -407,3 +407,27 @@ describe('lazyImages — client ki likhi img (18 Sep, speed check)', () => {
     expect(out.match(/loading="lazy"/g)).toHaveLength(2)
   })
 })
+
+/**
+ * Client, 23 Sep: _"why table rows taking doc space like br tag coming inside td"_. Asli doc (Port Blair
+ * to Baratang) ka har cell `<p><br />What<br /></p>` tha — Google ki soft line break. Pehle sirf aakhir
+ * ka `<br>` (aur wo bhi `<br />` nahi) hat-ta tha.
+ */
+describe('normalizeTable — cell ke kinaare ke <br> (23 Sep)', () => {
+  const table =
+    '<table><tr><td colspan="1" rowspan="1"><p><br />What<br /></p></td><td><p><br />Cost<br /></p></td></tr>' +
+    '<tr><td><p><br />Shared tour<br /></p></td><td><p>Rs 1,500<br /><br /><br />per person</p></td></tr></table>'
+
+  const out = normalizeTable(table)
+
+  it('shuru aur aakhir ka <br> hat-ta hai — <br /> shakl bhi', () => {
+    expect(out).toContain('<th>What</th>')
+    expect(out).toContain('<td>Shared tour</td>')
+    expect(out).not.toMatch(/<t[dh][^>]*>\s*<br/i)
+    expect(out).not.toMatch(/<br\s*\/?>\s*<\/t[dh]>/i)
+  })
+
+  it('beech ke lagataar <br> ek ho jaate hain', () => {
+    expect(out).toContain('<td>Rs 1,500<br>per person</td>')
+  })
+})

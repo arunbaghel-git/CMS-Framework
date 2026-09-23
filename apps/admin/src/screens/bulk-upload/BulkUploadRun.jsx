@@ -82,7 +82,7 @@ export default function BulkUploadRun() {
               })
             }
           >
-            Retry again
+            Retry
           </button>
         )}
       </div>
