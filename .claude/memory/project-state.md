@@ -1,6 +1,21 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
+>
+> ## ⏭️ Agli session — yahan se shuru karo (23 Sep raat ka handoff)
+>
+> 1. **Push baaki hai — 6 commit** (D-109 · D-110 · Gallery D-111 · Video D-112 · Mark New · 404 D-113).
+>    Sirf client ki ijaazat pe. Ginti `git log --oneline origin/main..HEAD` se lo.
+> 2. **Agla kaam: A-38** — Kerala package ka import (_"content doesn't come on frontend"_). Jaanch 21 Sep ko ho
+>    chuki hai (`09-OPEN-ITEMS.md`), kami zyada tar admin ke data me hai; parser warning wala sawaal client ka.
+> 3. **Client se do chhote sawaal (code nahi rukta):** Gallery ka gap reference ka 9px chahiye ya Cards gap (14px,
+>    abhi ye hai)? Enquiry **Detail** ke Status dropdown se bhi `New` hatana hai ya nahi (sirf bulk se hata hai)?
+> 4. `:3000` ka **production server band** hai (client ke kehne pe) — client `pnpm dev` chala raha hai.
+>    `next build` se pehle `netstat` se `:3000` dekho (D-89 ka jaal).
+> 5. Integrations (D-113) asli GA/Pixel code ke saath live nahi dekhe — client jab code daale, view-source me
+>    `<head>` ke andar dikhna chahiye.
+> 6. Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed (A-17).
+>
 > **Last updated:** 23 Sep 2026 raat — **404 pe CSS nahi lag rahi thi (D-113).** Jad D-106 ka `<head>` pe
 > `dangerouslySetInnerHTML`; ab head asli elements (`lib/head-html.js`). Headless Chrome se naapa, link 0 → 1.
 > Usi raat Enquiries bulk dropdown se `Mark New` hata (`3bba322`). **1475/1476 test.**
