@@ -199,6 +199,11 @@ export default function TextPage({ entry, settings }) {
               className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
             >
               <div className="pgl__main">
+                {/* 1024px tak TOC yahan band patti me (client, 23 Sep) — sidebar wali tab chhupti hai. */}
+                {hasSidebar && toc.length > 0 && (
+                  <Toc items={toc} label="On this page" variant="bar" />
+                )}
+
                 {/*
                  * ⚠️ `art--page` — `.art` ka safed card aur article typography, par **bina hover
                  * ke** aur `<h2>` ke upar reference wali line ke saath (`.rte h2`). Blog ka `.art`

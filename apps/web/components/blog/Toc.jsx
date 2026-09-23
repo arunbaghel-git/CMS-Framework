@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * `On this post` / `On this page` — reference ka `.toc` (spec 008, D-95).
@@ -30,7 +30,7 @@ import { useEffect, useState } from 'react'
  * ⚠️ Isi wajah se ye component **client** hai. List ka markup waisa hi hai jo server banata tha, to
  * JS aane se pehle bhi links chalte hain — sirf rang JS ke baad lagta hai.
  */
-export default function Toc({ items = [], label = 'On this post' }) {
+export default function Toc({ items = [], label = 'On this post', variant = 'side' }) {
   const [active, setActive] = useState(null)
 
   useEffect(() => {
@@ -53,34 +53,73 @@ export default function Toc({ items = [], label = 'On this post' }) {
     return () => observer.disconnect()
   }, [items])
 
+  const barRef = useRef(null)
+
   if (!items.length) return null
 
+  const icon = (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
+    >
+      <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
+    </svg>
+  )
+
+  const list = (
+    <ul className="toc">
+      {items.map((item) => (
+        <li key={item.id}>
+          <a
+            href={`#${item.id}`}
+            className={active === item.id ? 'on' : undefined}
+            /* Patti me link chunne pe wo band ho jaaye — warna poori list heading ke upar khuli rehti hai. */
+            onClick={variant === 'bar' ? () => barRef.current?.removeAttribute('open') : undefined}
+          >
+            {item.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+
+  /**
+   * ## `bar` — 1024px tak, hero ke theek baad, **band** (client, 23 Sep)
+   *
+   * _"side tab mobile par sabse upar with default close so user can click and scroll"_. 1024px se
+   * neeche sidebar article ke **neeche** chali jaati hai, yaani TOC wahan pahunchti thi jahan uski
+   * zaroorat khatam ho chuki hoti. Ab wahan article ke upar ek band patti hai; sidebar wala TOC us
+   * width pe CSS se chhupta hai (`.wdg--toc`).
+   *
+   * ⚠️ **Native `<details>`** — khulna/band hona bina JS ke chalta hai, keyboard aur screen reader
+   * dono ke saath. JS sirf link chunne pe band karne ke liye hai.
+   *
+   * ⚠️ Do copy DOM me hain (ek patti, ek sidebar) — CSS ek hi dikhati hai. Isse chhota koi raasta
+   * nahi: sidebar grid ka alag column hai aur `order` se wo article ke upar nahi aa sakta.
+   */
+  if (variant === 'bar') {
+    return (
+      <details className="tocm" ref={barRef}>
+        <summary className="tocm__h">
+          {icon}
+          {label}
+        </summary>
+        <div className="tocm__b">{list}</div>
+      </details>
+    )
+  }
+
   return (
-    <div className="wdg">
+    <div className="wdg wdg--toc">
       <div className="wdg__h">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-        >
-          <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
-        </svg>
+        {icon}
         {label}
       </div>
-      <div className="wdg__b">
-        <ul className="toc">
-          {items.map((item) => (
-            <li key={item.id}>
-              <a href={`#${item.id}`} className={active === item.id ? 'on' : undefined}>
-                {item.text}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <div className="wdg__b">{list}</div>
     </div>
   )
 }

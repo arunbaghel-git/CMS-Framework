@@ -424,6 +424,18 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
+#### A-50 · D-114 — TOC ki band patti (1024px tak) — **aankh se dekhna baaki** (23 Sep)
+
+**Deadline:** client ke dekhne pe · web tests pass, `next build` nahi chalaya (client `pnpm dev` pe hai)
+
+| # | Kya dekhna | Kahan |
+| --- | --- | --- |
+| 1 | Hero ke baad `On this post` ki **band** patti; tap pe khule, link pe us section tak jaaye aur patti band | blog post, phone |
+| 2 | Wahi `On this page` ke saath | saada Page (Default template), phone |
+| 3 | Sidebar me TOC **dobara nahi** dikhta; baaki widget neeche waise hi | phone + tablet |
+| 4 | Sidebar me sirf TOC ho to neeche **khaali jagah nahi** | aisa page/post |
+| 5 | Desktop (1025px+) pe sab pehle jaisa — TOC sidebar me, patti nahi | desktop |
+
 #### A-49 · D-103 §10 — Popup: ek image · 720px · form teen column — **aankh se dekhna baaki** (23 Sep)
 
 **Deadline:** client ke dekhne pe · **kuch toota nahi** — CSS + settings tests pass, migration 029 dev DB pe lagi

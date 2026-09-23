@@ -7263,6 +7263,83 @@ a.mega__gl:hover {
   border-left-color: var(--orange-500);
 }
 
+/*
+ * `On this post` / `On this page` — **1024px tak article ke upar, band** (client, 23 Sep: _"side tab
+ * mobile par sabse upar with default close"_). `Toc variant="bar"` — native `<details>`.
+ *
+ * 1024px se neeche `.pgl` ek column ho jaata hai aur sidebar article ke **neeche** — TOC wahan tab
+ * milta jab padhna khatam ho chuka hota. Isliye us width pe sidebar wala (`.wdg--toc`) chhupta hai aur
+ * ye patti dikhti hai. Desktop pe ulta. Breakpoint wahi 1024 jahan `.pgl` girta hai — dono ek saath
+ * badlein, warna ek beech ki width pe TOC do jagah ya kahin nahi.
+ *
+ * Look `.wdg` + `.wdg__h` ka hi hai (card, uppercase chhota heading) — sidebar wale TOC jaisa, bas
+ * khulne-band hone ka teer juda hai.
+ */
+.tocm {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .tocm {
+    display: block;
+    margin-bottom: 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--r3);
+    box-shadow: var(--sh-1);
+    overflow: hidden;
+  }
+
+  .tocm__h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 15px;
+    font-size: var(--fs-small);
+    font-weight: var(--small-w, var(--fw-black));
+    letter-spacing: var(--small-ls, 0.1em);
+    line-height: var(--small-lh, 1.5);
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  /* Safari ka apna teer */
+  .tocm__h::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Khulne-band hone ka teer — daayein, khulne pe ulta. */
+  .tocm__h::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    margin-left: auto;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform 0.2s;
+  }
+
+  .tocm[open] .tocm__h::after {
+    transform: translateY(2px) rotate(-135deg);
+  }
+
+  .tocm[open] .tocm__h {
+    border-bottom: 1px solid var(--slate-200);
+  }
+
+  .tocm__b {
+    padding: 6px 15px 12px;
+  }
+
+  .pgl__side .wdg--toc,
+  .pgl__side--toconly {
+    display: none;
+  }
+}
+
 @media (max-width: 860px) {
   .authorbox {
     flex-direction: column;

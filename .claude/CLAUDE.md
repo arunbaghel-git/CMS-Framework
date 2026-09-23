@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-113               |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-114               |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -922,6 +922,7 @@ deta tha. Ab head **asli elements** hain (`lib/head-html.js`, 8 test). Headless 
 **23 Sep raat — popup: ek image, 720px, form teen column (D-103 §10), migration 029.** Image ki chhat 3 → **1**
 (`POPUP_MAX_IMAGES`; 029 pehli image rakhti hai — bina uske `toPublicSettings()` ka parse `/settings` tod deta).
 Teen column **sirf CSS**, sirf `.pmod__body` me aur 761px se upar — baaki forms nahi chhue. Aankh se dekhna — **A-49**.
+**D-114:** blog post + Page ka `On this…` TOC 1024px tak article ke upar **band patti** (`<details>`), sidebar wala us width pe chhupta — A-50.
 Phir §11: phone pe **har form** ek column (§11.4); popup se `Text above the form` gaya; image ka `clamp(100%, …)` MIN → `200px` (client) — `100%` pe chhat kabhi lagti hi nahi thi (scroller).
 
 ⏭️ **Agla kaam: A-38** — Kerala package ka import

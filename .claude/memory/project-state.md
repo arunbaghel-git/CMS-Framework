@@ -16,7 +16,11 @@
 >    `<head>` ke andar dikhna chahiye.
 > 6. Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed (A-17).
 >
-> **Last updated:** 23 Sep 2026 raat (aakhir me) — **popup: ek image, 720px, form teen column (D-103 §10),
+> **Last updated:** 23 Sep 2026 raat (sabse aakhir) — **D-114:** blog post + Page ka `On this…` TOC 1024px
+> tak article ke upar band patti; phone pe har form ka har khaana apni row (D-103 §11.4). ⏭️ A-49 + A-50 client
+> ka aankh se dekhna.
+>
+> **Usse pehle:** **popup: ek image, 720px, form teen column (D-103 §10),
 > migration 029** (dev DB pe lag chuki). Teen column sirf CSS, sirf popup, 761px se upar. ⏭️ **A-49** — client
 > ka aankh se dekhna. Deploy pe `pnpm cms migrate` + API restart.
 > Uske baad (D-103 §11): popup se `Text above the form` gaya, aur image ka MIN `100%` → `130px` → `200px` (client; `100%` hi scroller tha).

@@ -10937,3 +10937,43 @@ Aam pages pe ye nahi dikha kyunki wahan link **server ke HTML** me hi hota hai.
   bane (404 dev), wahan integration scripts nahi chalengi — wahi haal jo innerHTML ke saath tha.
 - Live data ke saath integrations nahi dekhe — client ne dummy code pehle hi hata diya tha (`header: ""`).
   Agli baar koi GA/Pixel code paste ho to view-source me `<head>` ke andar dikhna chahiye.
+
+---
+
+## D-114
+
+**`On this post` / `On this page` — 1024px tak article ke upar band patti** (client, 23 Sep 2026)
+
+**Status:** ✅ ban gaya · koi migration nahi · koi naya field nahi
+
+Client: _"(on this post) side tab mobile par sabse upar with default close so user can click and scroll on
+mobile from top to bottom, hero section ke bad"_. Chaar sawaal poochhe gaye, jawab:
+
+| Sawaal | Jawab |
+| --- | --- |
+| Kya upar aaye | **sirf TOC** — sidebar ke baaki widget neeche hi |
+| Scroll pe | **hero ke baad ek jagah**, sticky nahi |
+| Kin pages pe | _"jis page par bhi ho"_ — aaj `Toc` do jagah hai: blog post + saada Page |
+| Tablet | **haan, 1024px tak** — wahi jahan `.pgl` ek column hota hai |
+
+### §1 — Dhaancha
+
+- `Toc` ka naya `variant="bar"` — native `<details className="tocm">`, **band** khulta hai; link chunne pe
+  JS se band. `.pgl__main` ke sabse upar (`PostPage` · `TextPage`), usi shart pe jis pe sidebar wala TOC.
+- Sidebar wala TOC ab `.wdg--toc`. `@media (max-width: 1024px)`: `.tocm` dikhta, `.pgl__side .wdg--toc`
+  chhupta. Desktop pe ulta. **Breakpoint `.pgl` ke girne wala hi** — alag hota to beech ki width pe TOC do
+  jagah ya kahin nahi.
+- ⚠️ Sidebar me **sirf TOC** ho (koi widget nahi) to `<aside>` pe `pgl__side--toconly` lagta hai aur wo bhi
+  1024px tak chhupta hai — warna grid me khaali column. Iske liye `StickySide` aur `PinnedSide` ne
+  `className` lena seekha (default khaali, package page par koi asar nahi).
+- ⚠️ **Do copy DOM me** (patti + sidebar), CSS ek dikhati hai. Sidebar alag grid column hai; `order` use
+  article ke upar nahi la sakta. Dono ka apna `IntersectionObserver` — `.on` dono pe sahi lagta hai.
+- Look `.wdg`/`.wdg__h` ka hi (card, chhota uppercase heading) + daayein teer jo khulne pe palat-ta hai.
+  Anchor ka offset pehle se `scroll-padding-top` se hai — kuch naya nahi.
+
+### §2 — Jo nahi hai
+
+- ⚠️ Ye reference ki **`.sidetab` NAHI hai** (A-34 — vertical patti, abhi bhi nahi bani). Client ne
+  "side tab" kaha, par `(on this post)` se saaf tha ki matlab TOC ka hai.
+- Reference me mobile TOC ka koi bartaav nahi — ye naya hai, client ka maanga hua.
+- ⚠️ Aankh se dekhna baaki — **A-50**. Test: `apps/web/components/blog/toc-bar.test.js` (5).

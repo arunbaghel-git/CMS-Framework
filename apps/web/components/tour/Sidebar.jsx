@@ -73,8 +73,8 @@ function HtmlWidget({ props }) {
  * `StickySide` (scroll ki disha ke saath `top` khiskana) baaki pages pe waisa hi chalta hai —
  * package aur tour page pe client ne wahi maanga tha (8 Sep).
  */
-function PinnedSide({ children }) {
-  return <aside className="pgl__side">{children}</aside>
+function PinnedSide({ children, className = '' }) {
+  return <aside className={`pgl__side ${className}`.trim()}>{children}</aside>
 }
 
 /**
@@ -108,6 +108,12 @@ export default function Sidebar({
 
   const Wrap = pinBefore && before ? PinnedSide : StickySide
 
+  /**
+   * Sirf TOC, koi widget nahi — 1024px tak TOC article ke upar patti me chala jaata hai (`Toc`
+   * `variant="bar"`), to wahan ye `<aside>` khaali bachta aur grid me bina wajah jagah leta.
+   */
+  const className = !widgets.length && before ? 'pgl__side--toconly' : ''
+
   return (
     /*
      * ⚠️ **`StickySide`, saada `<aside>` nahi** — client, 8 Sep: sidebar content ke saath scroll
@@ -121,7 +127,7 @@ export default function Sidebar({
      * Wo khud `<aside className="pgl__side">` deta hai, isliye yahan apna wrapper nahi hai.
      * 1024px se neeche wo `top` ko haath bhi nahi lagata (wahan CSS use `static` kar deti hai).
      */
-    <Wrap>
+    <Wrap className={className}>
       {before}
       {widgets.map((widget) => {
         switch (widget.type) {

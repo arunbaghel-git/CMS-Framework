@@ -274,6 +274,9 @@ export default function PostPage({ entry, settings }) {
               className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
             >
               <div className="pgl__main">
+                {/* 1024px tak TOC yahan band patti me (client, 23 Sep) — sidebar wali tab chhupti hai. */}
+                {hasSidebar && <Toc items={entry.toc} variant="bar" />}
+
                 <article className="art">
                   {/*
                    * ⚠️ **Blocks `tour/Blocks.jsx` se** — post ke dono block (`richText`, `faqs`)

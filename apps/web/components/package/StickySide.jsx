@@ -60,7 +60,7 @@ function readTop(side) {
  */
 const STICKY_FROM = 1024
 
-export default function StickySide({ children }) {
+export default function StickySide({ children, className = '' }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -140,7 +140,7 @@ export default function StickySide({ children }) {
   }, [])
 
   return (
-    <aside className="pgl__side" ref={ref}>
+    <aside className={`pgl__side ${className}`.trim()} ref={ref}>
       {children}
     </aside>
   )
