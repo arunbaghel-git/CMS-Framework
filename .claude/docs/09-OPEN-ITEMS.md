@@ -41,8 +41,10 @@ page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87
 Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
 `.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Tests:** 23 Sep (D-110 ke baad) — **56 files, 1452/1453 pass**. 22 Sep (D-108 §9 ke baad) — 54 files, 1402/1403. **Asli fail ek hi hai** aur wo
-purana hai (`theme-fonts.test.js` = `.hf-stat span`, client ka apna CSS edit — chhua nahi).
+**Tests:** 23 Sep raat (D-113 ke baad) — **57 files, 1475/1476 pass**. 23 Sep (D-110 ke baad) — 56 files, 1452/1453. 22 Sep (D-108 §9 ke baad) — 54 files, 1402/1403. **Asli fail ek hi hai** aur wo
+purana hai (`theme-fonts.test.js` = `.hf-stat span`, client ka apna CSS edit — chhua nahi). ⚠️ 23 Sep raat ko assertion ka
+text `var(--xsmall-w, var(--fw-semi))` dikhata hai — wo value `.ofcc--top .ofcc__sub` (`globals.css:8812`) pe bhi hai, to pehla
+toota selector ab shayad alag hai; test wahi aur ginti wahi (1). Jaancha nahi — client ke CSS wale area me hai.
 ⚠️ Vitest _"2 failed"_ files dikha sakti hai jabki test sirf ek gira ho — doosri file `media.test.js`
 hoti hai, jo **hook** me girti hai (A-11 ka race), aur akele chalane pe 20/20 pass hoti hai. **Ginti
 dekhte waqt isi se dhoka hota hai** — usi din ek run me wo giri aur agle me pass ho gayi.
@@ -581,7 +583,7 @@ Subject wale faisle ke saath hi tay hoga. → Tay hua: **client haath se badlega
 
 <details><summary>A-43 (itihaas) — 22 Sep ka sawaal</summary>
 
-#### ⚠️ A-43 · `form.emailTo` ab bhi bhejta nahi hai — client ka faisla chahiye (22 Sep)
+#### A-43 (itihaas — ✅ band 23 Sep, D-109) · `form.emailTo` ab bhi bhejta nahi hai — client ka faisla chahiye tha (22 Sep)
 
 Panel wale sawaal ka jawab dete waqt **client ne khud ye pakda**: _"in forms we already have Email
 enquiries to in enquiry form"_ — aur wo **sach hai**.

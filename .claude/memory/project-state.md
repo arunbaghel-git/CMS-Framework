@@ -4,7 +4,7 @@
 >
 > ## ⏭️ Agli session — yahan se shuru karo (23 Sep raat ka handoff)
 >
-> 1. **Push baaki hai — 6 commit** (D-109 · D-110 · Gallery D-111 · Video D-112 · Mark New · 404 D-113).
+> 1. **Push baaki hai** — D-109 · D-110 · Gallery D-111 · Video D-112 · Mark New · 404 D-113 + handoff/docs ke commit.
 >    Sirf client ki ijaazat pe. Ginti `git log --oneline origin/main..HEAD` se lo.
 > 2. **Agla kaam: A-38** — Kerala package ka import (_"content doesn't come on frontend"_). Jaanch 21 Sep ko ho
 >    chuki hai (`09-OPEN-ITEMS.md`), kami zyada tar admin ke data me hai; parser warning wala sawaal client ka.
