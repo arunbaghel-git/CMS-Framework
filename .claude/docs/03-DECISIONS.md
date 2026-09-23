@@ -9945,6 +9945,16 @@ poori ooonchai leti thi, aur wahi scroller tha. `130px` 21 Sep (D-103 §8) wala 
 `220px` client ke hi hain. **Image chhoti nahi ki gayi** (§9.7 ka niyam) — chhat wahi hai.
 **Usi shaam client ne MIN `130px` → `200px` karwaya** — patti ab lagbhag hamesha 200–220px.
 
+### §11.3 — Phone pe popup: har khaana apni row, Submit beech me aur patla (client, 23 Sep)
+
+_"on mobile 1 field in 1 row also submit button center karo aur width bhi kam karo"_ — sab `@media (max-width:
+760px)` ke andar, sirf `.pmod__body`:
+
+- `.pmod__body .bkg__two` → `grid-template-columns: 1fr` (`half` wali jodi bhi alag row), gap 9px (baaki khaano jaisa)
+- `.pmod__body .bkg__b .btn` → `display: flex; width: fit-content; min-width: 60%; margin-inline: auto`.
+  `min-width` isliye ki chhota label bahut chhota button na bane; `fit-content` lamba label poora dikhata hai
+- Desktop ka Submit poori row ka hi hai (§10.3) — client ne "on mobile" kaha tha. Baaki forms nahi chhue
+
 Test ab **percentage wala MIN** rokta hai, exact value nahi (§9.7 wala hi tark: irade pe bandho, value pe
 nahi). §10 me `.pmod__pics` ke `display: grid` ke liye jo "100% grid pe resolve hota hai" wali wajah
 likhi thi, wo ab lagu nahi — grid phir bhi rakha hai (look wahi).

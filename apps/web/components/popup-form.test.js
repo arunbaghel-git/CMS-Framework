@@ -419,3 +419,39 @@ describe('Popup — text above the form gaya, image ka MIN (client, 23 Sep)', ()
     expect(ruleOf('.pmod__pic')).toMatch(/height:\s*clamp\(\d+px,/)
   })
 })
+
+describe('Phone pe popup — har khaana apni row, Submit beech me (client, 23 Sep)', () => {
+  /** Popup ke rules wala `@media (max-width: 760px)` block — upar wale describe jaisa hi. */
+  const phoneBlock = (() => {
+    const re = /@media \(max-width: 760px\)/g
+    for (let m; (m = re.exec(css)); ) {
+      let depth = 0
+      for (let i = css.indexOf('{', m.index); i < css.length; i++) {
+        if (css[i] === '{') depth++
+        else if (css[i] === '}' && --depth === 0) {
+          const block = css.slice(m.index, i + 1)
+          if (block.includes('.pmod__')) return block
+          break
+        }
+      }
+    }
+    return ''
+  })()
+
+  it('half wali jodi bhi phone pe ek column', () => {
+    expect(phoneBlock).toMatch(/\.pmod__body \.bkg__two \{\s*grid-template-columns: 1fr;/)
+  })
+
+  it('Submit beech me aur poori chaudai ka nahi', () => {
+    const at = phoneBlock.indexOf('.pmod__body .bkg__b .btn {')
+    expect(at, 'popup ke Submit ka phone rule nahi mila').toBeGreaterThan(-1)
+    const rule = phoneBlock.slice(at, phoneBlock.indexOf('}', at))
+    expect(rule).toContain('width: fit-content')
+    expect(rule).toContain('margin-inline: auto')
+  })
+
+  /** Baaki forms ka Submit poori chaudai ka hi rehta hai — ye sirf popup ka hai. */
+  it('base Submit poori chaudai ka hi hai', () => {
+    expect(ruleOf('.bkg__b .btn')).toContain('width: 100%')
+  })
+})

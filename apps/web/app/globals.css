@@ -3926,6 +3926,28 @@ a.mega__gl:hover {
   .pmod__body {
     padding: 14px 14px 18px;
   }
+
+  /*
+   * Phone pe popup me **har khaana apni row me** (client, 23 Sep: _"on mobile 1 field in 1 row"_) —
+   * `half` wali jodi (`.bkg__two`) bhi. Sirf popup; baaki forms ki jodi phone pe waisi hi hai.
+   */
+  .pmod__body .bkg__two {
+    grid-template-columns: 1fr;
+    /* Upar-neeche ka gap baaki khaano jaisa (`.pmod__body .fld` ka 9px), jodi wala 10px nahi. */
+    gap: 9px;
+  }
+
+  /*
+   * Submit **beech me aur patla** (client, 23 Sep). Base `.bkg__b .btn` poori chaudai hai;
+   * `fit-content` + `min-width: 60%` — chhota label bhi bahut chhota button na bane, lamba label
+   * poora dikhe (`.btn` `nowrap` hai).
+   */
+  .pmod__body .bkg__b .btn {
+    display: flex;
+    width: fit-content;
+    min-width: 60%;
+    margin-inline: auto;
+  }
 }
 
 /* ---------- desktop ke do floating button ----------
