@@ -10976,4 +10976,6 @@ mobile from top to bottom, hero section ke bad"_. Chaar sawaal poochhe gaye, jaw
 - ⚠️ Ye reference ki **`.sidetab` NAHI hai** (A-34 — vertical patti, abhi bhi nahi bani). Client ne
   "side tab" kaha, par `(on this post)` se saaf tha ki matlab TOC ka hai.
 - Reference me mobile TOC ka koi bartaav nahi — ye naya hai, client ka maanga hua.
+- ⚠️ **Patti me bullet aa gaye the** (client ne pakda) — `.toc` ka reset sirf `.wdg__b ul` se aata tha. Ab `.toc` ka
+  apna `list-style: none` (A-19 wali soch: look list pe tike, dabbe pe nahi).
 - ⚠️ Aankh se dekhna baaki — **A-50**. Test: `apps/web/components/blog/toc-bar.test.js` (5).

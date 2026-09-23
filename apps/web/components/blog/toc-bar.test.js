@@ -68,3 +68,10 @@ describe('TOC ki patti — 1024px tak article ke upar, band (client, 23 Sep)', (
     }
   })
 })
+
+describe('TOC ki list ke bullet (client, 23 Sep)', () => {
+  /** Reset sirf `.wdg__b ul` pe tha — patti (`.tocm__b`) me bullet aa gaye the. Ab `.toc` pe khud. */
+  it('.toc apna list-style reset rakhta hai, kisi dabbe pe nirbhar nahi', () => {
+    expect(css).toMatch(/\n\.toc \{\s*list-style: none;/)
+  })
+})

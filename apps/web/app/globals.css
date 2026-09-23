@@ -7245,6 +7245,17 @@ a.mega__gl:hover {
 }
 
 /* --- sidebar table of contents --- */
+/*
+ * ⚠️ **`.toc` ka apna reset** (client, 23 Sep: _"ul li ke marker kyu aa rhe hai"_). Reset pehle sirf
+ * `.wdg__b ul` se aata tha — yaani `.toc` tabhi saaf dikhta jab wo sidebar ke card me ho. D-114 ki patti
+ * (`.tocm__b`) me wo nahi tha, aur browser ke bullet aa gaye. Look dabbe pe nahi, list pe tike (A-19).
+ */
+.toc {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .toc li a {
   display: block;
   padding: 8px 0 8px 13px;
