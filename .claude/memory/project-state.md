@@ -1,7 +1,11 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 23 Sep 2026 shaam (aakhir me) — **Pages ka `Video` block (D-112)**, Gallery (D-111) ke baad.
+> **Last updated:** 23 Sep 2026 raat — **404 pe CSS nahi lag rahi thi (D-113).** Jad D-106 ka `<head>` pe
+> `dangerouslySetInnerHTML`; ab head asli elements (`lib/head-html.js`). Headless Chrome se naapa, link 0 → 1.
+> Usi raat Enquiries bulk dropdown se `Mark New` hata (`3bba322`). **1475/1476 test.**
+>
+> **23 Sep shaam (aakhir me)** — **Pages ka `Video` block (D-112)**, Gallery (D-111) ke baad.
 > YouTube link → thumbnail + play, iframe click pe. **1467/1468 test.** ✅ **A-48** — client ne live dekh liya. ⏭️ Agla: **A-38**. Gallery
 > client ne live dekh li (commit `96233a7`). `:3000` ka production server **band kar diya** (client ke kehne pe);
 > client ab `pnpm dev` pe test kar raha hai.

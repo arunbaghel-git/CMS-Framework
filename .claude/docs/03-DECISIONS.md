@@ -9883,6 +9883,8 @@ sakti hai — wahi wajah jiske liye fixed height pehle lagayi gayi thi.
 
 **Status:** ✅ ban gaya · koi migration nahi
 
+> ⚠️ **Head wala hissa Superseded by D-113 (23 Sep)** — `<head>` pe `dangerouslySetInnerHTML` ne 404 pe poori CSS mita di thi. Ab head asli elements se banta hai (`splitHeadHtml()`). Baaki D-106 (do pehre, R20 ka apwaad) waisa hi hai.
+
 ### §1 — Client ka ask do din me poora hua
 
 **21 Sep:** _"in settings submenu Integrations — there will be 3 input field header, footer, body …
@@ -10789,3 +10791,49 @@ video reviews, D-96 §13).
 - Thumbnail `i.ytimg.com` se aata hai (bahar ka origin). CSP (Phase 4-5) banate waqt `img-src` me
   `i.ytimg.com` aur `frame-src` me `youtube-nocookie.com` + `player.vimeo.com` chahiye honge.
 - Vimeo pe thumbnail nahi (API maangta hai) — cover image do, warna saada neela box + play.
+
+---
+
+## D-113
+
+**404 pe CSS nahi lag rahi thi — `<head>` ab asli elements se, `dangerouslySetInnerHTML` nahi (23 Sep 2026)**
+
+D-106 §5 ka ek hissa palat-ta hai — **Superseded:** "`<head>` par khud `dangerouslySetInnerHTML`".
+
+### Sandarbh
+
+Client: _"404 page ki css kyu nahi lag rahi, only html aa raha hai without style"_. `not-found.jsx` (D-96 §32)
+theek tha, `.nf` ki CSS `globals.css` me thi.
+
+### Jad — naap ke saath
+
+1. 404 ka server HTML `<html id="__next_error__">` wala **error shell** tha (Next 15 dev, `[[...slug]]` ka
+   `notFound()`): na header, na CSS `<link>`. Page browser me RSC payload se banta hai.
+2. RSC payload me `layout.css` ka link `precedence` ke saath **tha** — React use `<head>` me daalta hai.
+3. Par layout ka `<head>` `dangerouslySetInnerHTML` pe tha (D-106): browser me head banate hi uska
+   `innerHTML` hamari string se badalta, aur **React ka daala link mit jaata**.
+4. Headless Chrome (`--dump-dom`) se: innerHTML ke saath head me `layout.css` link **0**, bina uske **1**.
+   Pehla shak (error shell khud) galat nikla — innerHTML hatane pe bhi shell wahi tha, par CSS aa gayi.
+
+Aam pages pe ye nahi dikha kyunki wahan link **server ke HTML** me hi hota hai.
+
+### Kya bana
+
+- `apps/web/lib/head-html.js` — `splitHeadHtml()`: Integrations ▸ Header ka kachcha HTML → head ke tags
+  (`meta · link · base · script · style · noscript · template · title`); head me na chalne wali pehli cheez se
+  aage sab `rest` → `<body>` ke shuru me (browser ka hi niyam). Attribute → React prop (`class`, `charset`,
+  `http-equiv`, `crossorigin`…), entity decode. **8 test** — GA, Pixel, verification meta, adhoora script.
+- `layout.jsx` — `<head>` ke children: theme CSS aur Custom CSS `<style>` elements, phir integration tags.
+  Kram wahi (rang → Custom CSS → integrations). `suppressHydrationWarning` har `__html` wale element pe.
+- **Koi migration nahi.** Integrations ka koi data nahi badla.
+
+### ⚠️ Yaad rehna chahiye
+
+- **`<head>` (ya `<html>`/`<body>`) pe `dangerouslySetInnerHTML` kabhi nahi** — React/Next jo cheezein
+  wahan khud daalte hain (CSS link, metadata), wo mit jaati hain, aur sirf un raaston pe jahan page browser
+  me banta hai (404, error). Lakshan wahi "kuch na hona" — koi error nahi.
+- **Saafai nahi hoti** — Integrations R20 ka apwaad hi hai (D-106). `splitHeadHtml()` sirf shakl badalta hai.
+- Inline `<script>` sirf **server ke HTML** se chalta hai (pehle bhi yahi tha). Jis page ka HTML browser me
+  bane (404 dev), wahan integration scripts nahi chalengi — wahi haal jo innerHTML ke saath tha.
+- Live data ke saath integrations nahi dekhe — client ne dummy code pehle hi hata diya tha (`header: ""`).
+  Agli baar koi GA/Pixel code paste ho to view-source me `<head>` ke andar dikhna chahiye.

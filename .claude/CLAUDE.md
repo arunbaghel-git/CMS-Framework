@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-112               |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-113               |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -817,9 +817,9 @@ poori site pe, client ke shabd: _"view source me dikhega across the website, not
 gaya apwaad, kyunki field ka kaam hi `<script>` chalana hai (GA · Pixel · GTM). Suraksha safai se nahi,
 **do pehron** se: route pe `settings.scripts.update` (spec 001 se reserved, sirf admin) **aur**
 `updateSettingsSchema` me se field ka hata hona. Doosra kam zaroori nahi — bina uske pehla bemaani.
-⚠️ **`<head>` me raw HTML `<head>` par khud `dangerouslySetInnerHTML` se jaata hai** — uske andar
-`<div>` rakhne pe **browser `<head>` band kar deta hai** aur hamari CSS `<body>` me chali jaati (naap
-kar dekha). Isliye `ThemeColors`/`CustomCss` ab string builder hain.
+~~⚠️ **`<head>` me raw HTML `<head>` par khud `dangerouslySetInnerHTML` se jaata hai**~~ — **Superseded by D-113
+(23 Sep):** usi se **404 pe poori CSS gayab** thi. Ab head asli elements se banta hai, Integrations ka HTML
+server pe `splitHeadHtml()` se tootta hai. `<div>` wala sabak (head band ho jaana) ab bhi sach hai.
 ⚠️ **`getSettings()` `integrations` nikal deti hai, `getIntegrations()` alag** — warna wo code har page
 ke HTML me do baar jaata (A-36, D-103 §7 wala hi bug).
 ⚠️ **Permission aur nav dono pehle se rakhe hue the** — teesri baar (`.float` D-102, `.sidetab` A-34).
@@ -915,7 +915,10 @@ images Media Library se **ek baar me kai** (`MediaPicker multiple`). Reference `
 pehle se tha — **chhathi baar**. Client ne live dekh liya (Lightbox ko portal chahiye tha — `.blk` ka `contain`).
 **23 Sep — Pages ka `Video` block (D-112), koi migration nahi.** YouTube link, thumbnail (YouTube ka ya admin
 ki cover image) + play, **iframe sirf click pe** (speed). Reference ka `.embed` bhi pehle se tha. ✅ Client ne live dekh liya (A-48 band).
-**1467/1468 test** (akela fail purana `theme-fonts`).
+**23 Sep — 404 pe CSS nahi lag rahi thi (D-113), koi migration nahi.** Jad D-106: `<head>` pe `dangerouslySetInnerHTML`.
+404 pe Next page browser me banata hai, React `layout.css` ka link head me daalta hai aur hamara `innerHTML` use mita
+deta tha. Ab head **asli elements** hain (`lib/head-html.js`, 8 test). Headless Chrome se naapa: link 0 → 1.
+**1475/1476 test** (akela fail purana `theme-fonts`).
 ⏭️ **Agla kaam: A-38** — Kerala package ka import
 (_"content doesn’t come on frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki
 pages PageSpeed pe (A-17).

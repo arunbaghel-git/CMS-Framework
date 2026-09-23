@@ -4,6 +4,7 @@ import FloatingContact from '../components/FloatingContact.jsx'
 import SiteFooter from '../components/SiteFooter.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
 import { getIntegrations, getSettings } from '../lib/cms.js'
+import { splitHeadHtml } from '../lib/head-html.js'
 import './globals.css'
 
 /**
@@ -70,38 +71,64 @@ export async function generateMetadata() {
  * hua `</style` poore page ka HTML tod deta (A-27 wali baat). CSS me JS chalti nahi, isliye is rok ke
  * baad yahan XSS ka raasta nahi bachta.
  */
-function styleTag(css) {
-  if (!css) return ''
-
-  return `<style>${String(css).replace(/<\/style/gi, '')}</style>`
+function styleCss(css) {
+  return css ? String(css).replace(/<\/style/gi, '') : ''
 }
 
 /**
- * `<head>` ka wo poora hissa jo **hum** likhte hain — ek hi string me.
+ * `<head>` ka wo hissa jo **hum** likhte hain — ab **asli elements**, ek string nahi (23 Sep).
  *
- * ## ⚠️ Ye ek string kyun hai, do components kyun nahi
+ * ## ⚠️ `<head>` pe `dangerouslySetInnerHTML` wapas mat lagana
  *
- * 22 Sep tak yahan do alag components the (`ThemeColors`, `CustomCss`) aur wo theek chal rahe the.
- * Integrations (D-106) ke saath wo raasta band ho gaya: us field me client ka **kachcha HTML** aata
- * hai (`<script>`, `<meta>`, `<noscript>`), aur React ek string ko element nahi bana sakta — use
- * `dangerouslySetInnerHTML` chahiye, jo kisi **element** pe lagta hai.
+ * 22 Sep (D-106) se yahan teenon cheezein ek string ban kar `<head>` ke `innerHTML` me jaati thin. Aam pages
+ * pe chalta tha, par **404 pe poori site ki CSS gayab** ho gayi: `notFound()` pe Next page browser me shuru se
+ * banata hai, React `layout.css` ka `<link>` head me daalta hai, aur phir hamara `innerHTML` usse **mita**
+ * deta hai. Headless Chrome se naapa: innerHTML ke saath head me link **0**, bina uske **1**.
  *
- * Us element ko `<head>` ke andar rakhna galat nikla, **aur ye naap kar dekha gaya**: SSR ke HTML me
- * `<div>` head ke andar chhapta to hai, par **browser ka parser wahin `<head>` band kar deta hai**
- * (HTML spec: head me anjaan tag milte hi "after head" mode). Uske baad ki hamari CSS `<body>` me
- * chali jaati.
+ * D-106 ki wajah bhi sach thi — head ke andar `<div>` wrapper browser ka parser head band kar deta hai. Isliye
+ * Integrations ka HTML ab **server pe tootta hai** (`splitHeadHtml()`, apne test ke saath): head ke tags head
+ * me, aur jo head me chal hi nahi sakta wo `<body>` ke shuru me — wahi jo browser khud karta.
  *
- * Isliye ab `<head>` par **khud** `dangerouslySetInnerHTML` lagta hai aur teenon cheezein string ki
- * tarah judti hain. Ye bhi naap kar dekha gaya: Next apni metadata (title, favicon, preload) phir
- * bhi isi `<head>` me daalti hai — dono saath rehte hain.
- *
- * ⚠️ **Kram maayne rakhta hai:** theme ke rang → client ki CSS → integrations.
- * - CSS pehle, taaki client ki apni CSS rangon ko override kar sake (17 Sep se yahi hai)
- * - **Integrations sabse aakhir me**, kyunki wo ekmatra hissa hai jiski HTML hum saaf nahi karte:
- *   usme ek adhoora tag bhi ho to uske **baad** ka sab tootta hai — aur uske baad hamara kuch nahi
+ * ⚠️ **Kram maayne rakhta hai:** theme ke rang → client ki CSS → integrations (17 Sep se yahi; integrations
+ * aakhir me kyunki wahi ekmatra bina-safai wala hissa hai).
  */
-function headHtml(settings, integrations) {
-  return styleTag(settings?.themeCss) + styleTag(settings?.customCss) + (integrations?.header ?? '')
+function HeadTags({ settings, head }) {
+  const css = [styleCss(settings?.themeCss), styleCss(settings?.customCss)].filter(Boolean)
+
+  return (
+    <>
+      {css.map((text, i) => (
+        <style
+          key={`css-${i}`}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: text }}
+        />
+      ))}
+      {head.map(({ tag, props, html }, i) => {
+        const Tag = tag
+        const key = `int-${i}`
+
+        /** `<title>` ke andar sirf text — React wahan `dangerouslySetInnerHTML` nahi maanta. */
+        if (tag === 'title') {
+          return (
+            <Tag key={key} {...props}>
+              {html}
+            </Tag>
+          )
+        }
+        if (html === undefined) return <Tag key={key} {...props} />
+
+        return (
+          <Tag
+            key={key}
+            {...props}
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
+        )
+      })}
+    </>
+  )
 }
 
 /**
@@ -125,36 +152,23 @@ export default async function RootLayout({ children }) {
    * `MobileNav` tak pahunch kar har page ke HTML me **dobara** na jaaye (A-36, D-103 §7 wala bug).
    */
   const [settings, integrations] = await Promise.all([getSettings(), getIntegrations()])
+  const header = splitHeadHtml(integrations?.header)
 
   return (
     <html lang="en" className={inter.variable}>
       {/*
-        ⚠️ **`suppressHydrationWarning` zaroori hai — aur uski asli wajah wo nahi hai jo maine pehle
-        yahan likhi thi.**
-
-        Client ne 22 Sep ko console ka screenshot bheja aur maine wajah likh di: "Next ki metadata
-        is `<head>` me extra DOM banati hai." **Wo galat tha.** Phir client ne poora stack trace
-        bheja, aur usme React ne saaf dikhaya ki mismatch `__html` ki **value** me hai — `+` aur `-`
-        dono isi element ke `dangerouslySetInnerHTML` pe the, kisi extra node pe nahi.
-
-        Yaani server ne jo string bheji aur client ke paas jo aayi, wo alag thin. Aur wo **hoga hi**:
-        ye string `settings` ke cached fetch se banti hai, aur SSR ka HTML aur RSC payload ek hi pal
-        ke nahi hote. Beech me settings save ho jaaye — jo Integrations test karte waqt theek yahi
-        hua — to dono alag ho jaate hain.
-
-        ⚠️ **React use sudhaarta nahi, aur wo yahan sahi hai.** Wo khud kehta hai _"this won't be
-        patched up"_: `dangerouslySetInnerHTML` wale element ka DOM waisa hi bacha rehta hai jaisa
-        server ne bheja. Yaani head hamesha **server ka sach** dikhata hai — aur wahi chahiye.
-
-        ⚠️ Isliye ye attribute React ko ek **sach** batata hai ("is element ka content server se aata
-        hai, mera uspe dava nahi"), warning chhupata nahi. Iske bina A-21 ka naapa hua "hydration
-        errors 0" toota rehta, aur ek laal line agli **asli** galti ko chhupa deti.
+        ⚠️ `suppressHydrationWarning` — head ki `<style>`/integration tags ka maal `settings` ke cached fetch
+        se banta hai, aur SSR ka HTML aur RSC payload ek hi pal ke nahi hote (22 Sep, client ka stack trace —
+        D-106 §5.1). React `dangerouslySetInnerHTML` wale element ko waisa hi chhodta hai jaisa server ne
+        bheja, jo yahan sahi hai. Ab ye attribute har aise element pe bhi hai, kyunki head ab ek string nahi
+        (23 Sep).
       */}
-      <head
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: headHtml(settings, integrations) }}
-      />
+      <head suppressHydrationWarning>
+        <HeadTags settings={settings} head={header.head} />
+      </head>
       <body>
+        {/* Integrations ▸ Header ka wo hissa jo head me chal hi nahi sakta — browser bhi use yahin rakhta */}
+        <RawHtml html={header.rest} />
         {/* Integrations ▸ Body — `<body>` khulte hi; GTM ka `<noscript>` yahin kaam karta hai */}
         <RawHtml html={integrations?.body} />
         <SiteHeader />
