@@ -2,21 +2,31 @@
 
 > Har session ke shuru me padho, aur session ke end me update karo.
 >
-> ## ⏭️ Agli session — yahan se shuru karo (23 Sep raat ka handoff)
+> ## ⏭️ Agli session — yahan se shuru karo (23 Sep, session "23-sep updates and fixes(bulk,design)" ka handoff)
 >
-> 1. **Push baaki hai** — D-109 · D-110 · Gallery D-111 · Video D-112 · Mark New · 404 D-113 + handoff/docs ke commit.
->    Sirf client ki ijaazat pe. Ginti `git log --oneline origin/main..HEAD` se lo.
-> 2. **Agla kaam: A-38** — Kerala package ka import (_"content doesn't come on frontend"_). Jaanch 21 Sep ko ho
->    chuki hai (`09-OPEN-ITEMS.md`), kami zyada tar admin ke data me hai; parser warning wala sawaal client ka.
-> 3. **Client se do chhote sawaal (code nahi rukta):** Gallery ka gap reference ka 9px chahiye ya Cards gap (14px,
->    abhi ye hai)? Enquiry **Detail** ke Status dropdown se bhi `New` hatana hai ya nahi (sirf bulk se hata hai)?
-> 4. `:3000` ka **production server band** hai (client ke kehne pe) — client `pnpm dev` chala raha hai.
->    `next build` se pehle `netstat` se `:3000` dekho (D-89 ka jaal).
-> 5. Integrations (D-113) asli GA/Pixel code ke saath live nahi dekhe — client jab code daale, view-source me
->    `<head>` ke andar dikhna chahiye.
-> 6. Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed (A-17).
+> 1. **Push baaki hai — 19 commit** (D-109 se D-117 tak). Sirf client ki ijaazat pe. Ginti
+>    `git log --oneline origin/main..HEAD` se lo (ye number handoff ke waqt ka hai).
+> 2. **Deploy pe:** `pnpm cms migrate` (**028** password reset + **029** popup ek image) · `pnpm seed` zaroori
+>    nahi · API restart · web aur admin build. Dev DB pe dono migration lag chuki hain.
+> 3. **Client ka aankh se dekhna baaki (koi code nahi rukta)** — checklist `09-OPEN-ITEMS.md` me:
+>    - **A-52** Bulk Upload (D-116): asli Google Doc pe — `Featured Image` URL/daali image, article me alag line ka
+>      image URL, `Published Date`, h2/h3 FAQ, Failed row pe koi draft nahi, `Retry again`
+>    - **A-51** form heading `<p>` + phone pe date me `Select date` (asli iPhone + Android)
+>    - **A-50** `On this post/page` ki band patti (≤1024px)
+>    - **A-49** popup: ek image, 720px, desktop pe 3 column, phone pe sab ek column, Submit beech me
+> 4. **Client ka kaam (code se bahar):** Google Docs ki guide/template me naye label — `Featured Image`,
+>    `Published Date`, FAQ ka h2 + h3 tareeka (D-116 §6).
+> 5. **Agla code kaam: A-38** — Kerala package ka import. Uske baad **A-32** (Fonts — client ke jawab pe ruka),
+>    phir baaki pages PageSpeed (A-17).
+> 6. **Client se chhote sawaal (code nahi rukta):** Gallery ka gap reference ka 9px ya Cards gap 14px? Enquiry
+>    **Detail** ke Status dropdown se bhi `New` hatana hai? Admin ke form me `Half width` ke neeche hint chahiye
+>    ki phone pe sab ek column hai (D-103 §11.4)?
+> 7. `:3000` pe client ka **dev** server chal raha hai — `next build` se pehle `netstat` se `:3000` dekho (D-89 ka
+>    jaal). Mobile layout naapna ho to Chrome headless + CDP ka tareeka D-117 me likha hai (`node
+--experimental-websocket`, puppeteer nahi hai).
+> 8. Test suite: **1559/1560** + baad ke naye tests; akela fail purana `theme-fonts` (client ka CSS area, chhua nahi).
 >
-> **Last updated:** 23 Sep 2026 raat (sabse aakhir) — **D-116:** Bulk Upload me draft khatam (Published/Failed), Retry again, Featured Image, h2/h3 FAQ, Published Date (A-52). **D-115:** form heading `<p class="fhead">`, phone pe date me `Select date` (A-51). **D-114:** blog post + Page ka `On this…` TOC 1024px
+> **Last updated:** 23 Sep 2026 raat (sabse aakhir) — **D-117:** contact page mobile pe screen se bahar (`.blk` ka `contain-intrinsic-size` chaudai bhi deta tha, 758 → 375). **D-116 §7:** article table ke cell ke `<br>` aur table ke neeche jagah. **D-116:** Bulk Upload me draft khatam (Published/Failed), Retry again, Featured Image, h2/h3 FAQ, Published Date (A-52). **D-115:** form heading `<p class="fhead">`, phone pe date me `Select date` (A-51). **D-114:** blog post + Page ka `On this…` TOC 1024px
 > tak article ke upar band patti; phone pe har form ka har khaana apni row (D-103 §11.4). ⏭️ A-49 + A-50 client
 > ka aankh se dekhna.
 >
