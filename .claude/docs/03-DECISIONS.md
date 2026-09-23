@@ -9943,6 +9943,7 @@ padhta nahi. `EnquiryForm` ka `description` prop **bacha hai** — wo `page` var
 image ki **asli** ooonchai jitna ban jaata tha — yaani `220px` ki chhat kabhi lagti hi nahi thi, image
 poori ooonchai leti thi, aur wahi scroller tha. `130px` 21 Sep (D-103 §8) wala MIN hai; `20vh` aur
 `220px` client ke hi hain. **Image chhoti nahi ki gayi** (§9.7 ka niyam) — chhat wahi hai.
+**Usi shaam client ne MIN `130px` → `200px` karwaya** — patti ab lagbhag hamesha 200–220px.
 
 Test ab **percentage wala MIN** rokta hai, exact value nahi (§9.7 wala hi tark: irade pe bandho, value pe
 nahi). §10 me `.pmod__pics` ke `display: grid` ke liye jo "100% grid pe resolve hota hai" wali wajah

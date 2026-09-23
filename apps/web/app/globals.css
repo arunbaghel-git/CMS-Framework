@@ -3754,10 +3754,10 @@ a.mega__gl:hover {
    * ⚠️ **MIN `100%` → `130px`** (client, 23 Sep: _"image ki height jo mene 100% ki thi uski bajah
    * se scroller aa rha hai thik karo"_). `clamp()` ka pehla hissa MIN hai, aur `100%` grid item pe
    * apne area se naapa jaata tha — area image ki **asli** ooonchai jitna, to 220px ki chhat kabhi
-   * lagti hi nahi thi aur image poori ooonchai le leti thi. `130px` 21 Sep (D-103 §8) wala MIN hai;
-   * beech aur chhat client ke hi hain. Image chhoti nahi ki gayi — 220px tak ab bhi jaati hai.
+   * lagti hi nahi thi aur image poori ooonchai le leti thi. Pehle `130px` (21 Sep, D-103 §8 wala) kiya,
+   * phir client ne **`200px`** karwaya — yaani patti ab lagbhag hamesha 200–220px. Chhat `220px` client ki.
    */
-  height: clamp(130px, 20vh, 220px);
+  height: clamp(200px, 20vh, 220px);
   object-fit: cover;
 }
 

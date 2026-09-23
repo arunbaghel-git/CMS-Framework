@@ -922,7 +922,7 @@ deta tha. Ab head **asli elements** hain (`lib/head-html.js`, 8 test). Headless 
 **23 Sep raat — popup: ek image, 720px, form teen column (D-103 §10), migration 029.** Image ki chhat 3 → **1**
 (`POPUP_MAX_IMAGES`; 029 pehli image rakhti hai — bina uske `toPublicSettings()` ka parse `/settings` tod deta).
 Teen column **sirf CSS**, sirf `.pmod__body` me aur 761px se upar — baaki forms nahi chhue. Aankh se dekhna — **A-49**.
-Phir §11: popup se `Text above the form` gaya; image ka `clamp(100%, …)` MIN → `130px` — `100%` pe chhat kabhi lagti hi nahi thi (scroller).
+Phir §11: popup se `Text above the form` gaya; image ka `clamp(100%, …)` MIN → `200px` (client) — `100%` pe chhat kabhi lagti hi nahi thi (scroller).
 
 ⏭️ **Agla kaam: A-38** — Kerala package ka import
 (_"content doesn’t come on frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki
