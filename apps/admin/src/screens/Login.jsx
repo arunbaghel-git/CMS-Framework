@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate, Navigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { loginSchema } from '@cms/shared'
 
 import { errorMessage } from '../lib/api.js'
@@ -25,6 +25,8 @@ export default function Login() {
 
   // Login ke baad wahin wapas bhejo jahan user jaana chahta tha
   const from = location.state?.from ?? '/'
+  /** Reset screen se aaye to — "Password changed. Sign in with your new password." (D-110) */
+  const notice = location.state?.notice ?? null
 
   if (loading) return null
   if (user) return <Navigate to={from} replace />
@@ -61,6 +63,11 @@ export default function Login() {
       <div className="login-brand">CMS</div>
 
       <form className="login-card" onSubmit={handleSubmit} noValidate>
+        {notice && !error && (
+          <div className="login-ok" role="status">
+            {notice}
+          </div>
+        )}
         {error && (
           <div className="login-error" role="alert">
             {error}
@@ -108,11 +115,14 @@ export default function Login() {
           </button>
         </div>
 
+        {/*
+         * 23 Sep se chalu (D-110) — 19 Aug se ye jaan-boojh kar band tha, kyunki SMTP nahi tha (D-30).
+         * ⚠️ Mail **sirf administrator** ko jaati hai; baaki users ka password admin Users ▸ Edit User
+         * se badalta hai. Link sabko dikhta hai, kyunki login screen ko ye pata hi nahi ki kaun aa raha
+         * hai — aur agli screen ka jawab sabke liye ek jaisa hai.
+         */}
         <div className="login-links">
-          {/* SMTP Phase 2 me aayega — tab tak ye link jaan-boojh kar dead hai (D-30) */}
-          <span className="disabled" title="Email setup comes in Phase 2">
-            Lost your password?
-          </span>
+          <Link to="/forgot-password">Lost your password?</Link>
         </div>
       </form>
 

@@ -36,8 +36,8 @@ Client columns ki **ginti** chunta hai (0–4), har column me **menu, text, ya d
 heading aur width. Footer ka **apna logo** (drawer bhi wahi use karta hai). Theme locations
 me sirf `header` bacha; social links ki duplicate UI Footer screen se hat gayi. Migration 008.
 
-Teen item jaan-boojh kar deferred hain: docker compose me `api`+`admin`, CSP policy
-(Phase 4-5), aur forgot/reset (SMTP pe block).
+Do item jaan-boojh kar deferred hain: docker compose me `api`+`admin`, aur CSP policy
+(Phase 4-5). (Teesra — forgot/reset — 23 Sep ko ban gaya, sirf administrator ke liye: D-110.)
 
 **26 Aug — Slice 1 (Content Core ka engine):** `entries` + `contentTypes` module,
 migration 009, aur `resolvePath()`/`slugify()` `packages/shared` me. Path cascade, trash,
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-109               |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-110               |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -896,7 +896,19 @@ bhari value **escape**, subject me **newline nahi**, Reply-To sirf asli pate pe.
 ⚠️ Asli submit → asli inbox abhi nahi dekha — **A-44** (asli DB ka SMTP client ka account hai).
 **1430/1431 test.**
 
-⏭️ **Agla kaam: A-44** (client ke saath live check), phir **A-38** — Kerala package ka import
+**23 Sep shaam — administrator ka password reset (D-110), migration 028.** Login ka `Lost your
+password?` ab chalta hai (19 Aug se band tha). Client ka niyam: **mail sirf administrator ko** — baaki
+users ka password admin `Users ▸ Edit User` se badalta hai; kami sirf tab thi jab admin khud bhoole.
+30 minute ka ek-baar ka link, DB me sirf token ka hash, link `ADMIN_URL` se (header se kabhi nahi),
+token `#` ke baad. Jawab **har email pe ek jaisa** (kaun admin hai, ye bahar na jaaye). Reset pe saare
+session band + "password changed" mail. Aakhri raasta: **`pnpm cms reset-password <email>`** (server pe).
+⚠️ **`ADMIN_URL` ek ORIGIN hai** (CORS), admin ka path `/admin` code me pakka — link = origin + `/admin`
+(`adminUrl()`). Pehli live koshish pe link `/admin` ke bina bana aur **19 test pass rahe**, kyunki wo link
+ko `adminUrl()` se hi milaate the (D-110 §12). **Jo test apne hi code se expected value banata hai, wo us
+code ki galti nahi pakad sakta.** Live check → **A-46**.
+Deploy pe **`pnpm cms migrate`** + API restart.
+
+⏭️ **Agla kaam: A-46** (password reset live check), phir **A-38** — Kerala package ka import
 (_"content doesn’t come on frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki
 pages PageSpeed pe (A-17).
 ⚠️ **Global `Enquiry Notifications` PANEL mat banao — client ne 22 Sep ko mana kiya** (D-108 §10). Per-form

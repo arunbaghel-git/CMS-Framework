@@ -35,7 +35,50 @@ const loginLimiter = rateLimit({
   },
 })
 
+/**
+ * `Lost your password?` ki rok — D-110. **IP + email** pe, ghante me 5 (dev/test me 50).
+ *
+ * Link ka token 256 bit ka hai, use guess karna waise hi namumkin hai — ye rok us cheez ke liye hai
+ * jo guess se sasti hai: kisi admin ke inbox pe reset mails ki baarish, aur hamare SMTP account ka
+ * spam ke liye istemaal (provider account band kar deta hai, aur tab enquiry ki mail bhi rukti).
+ *
+ * `skipSuccessfulRequests` jaan-boojh kar **nahi** — yahan har request "successful" hai (hamesha
+ * 200), to wo rok ko bekaar kar deta.
+ */
+const forgotLimiter = rateLimit({
+  windowMs: 60 * 60_000,
+  limit: isProd ? 5 : 50,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) =>
+    `${req.ip}:${String(req.body?.email ?? '')
+      .trim()
+      .toLowerCase()}`,
+  message: {
+    error: {
+      code: 'RATE_LIMITED',
+      message: 'Too many reset requests. Try again in an hour.',
+    },
+  },
+})
+
+/** Naya password rakhne ki rok — sirf IP pe (token guess karne ki koshish ke liye doosra pehra). */
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60_000,
+  limit: isProd ? 10 : 100,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    error: {
+      code: 'RATE_LIMITED',
+      message: 'Too many attempts. Try again in 15 minutes.',
+    },
+  },
+})
+
 authRoutes.post('/login', loginLimiter, controller.login)
+authRoutes.post('/forgot-password', forgotLimiter, controller.forgotPassword)
+authRoutes.post('/reset-password', resetLimiter, controller.resetPassword)
 authRoutes.post('/refresh', controller.refresh)
 authRoutes.post('/logout', controller.logout)
 authRoutes.post('/change-password', requireAuth, controller.changePassword)

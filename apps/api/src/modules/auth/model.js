@@ -43,3 +43,32 @@ const refreshTokenSchema = new mongoose.Schema(
 )
 
 export const RefreshToken = mongoose.model('RefreshToken', refreshTokenSchema)
+
+/**
+ * Password reset ka ek link — D-110 (sirf administrator ke liye).
+ *
+ * ⚠️ **Token khud kabhi store nahi hota, sirf uska SHA-256.** DB ka backup ya dump leak ho jaaye to
+ * bhi usse koi password reset nahi kar sakta — wahi soch jo password ke hash pe hai. bcrypt yahan
+ * zaroori nahi: token 32 random byte ka hai, use guess karna waise hi namumkin hai; hash sirf
+ * "DB padhne wale ke haath me kaam ki cheez na ho" ke liye hai. SHA-256 ka faayda ye ki lookup
+ * seedha index pe hota hai.
+ *
+ * `usedAt` — link **ek hi baar** chalta hai. Atomic `findOneAndUpdate` se lagta hai, taaki do tab
+ * me ek saath khola gaya link do baar na chale.
+ *
+ * Purane record TTL index (`expiresAt`) se apne aap mitte hain — migration 028. Indexes wahin hain,
+ * yahan nahi: production `autoIndex: false` pe chalti hai.
+ */
+const passwordResetSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    tokenHash: { type: String, required: true },
+    expiresAt: { type: Date, required: true },
+    usedAt: { type: Date, default: null },
+    /** Kis IP se maanga gaya — "changed" wali mail aur jaanch ke liye. */
+    ip: { type: String, default: null },
+  },
+  { timestamps: true, collection: 'passwordResets' },
+)
+
+export const PasswordReset = mongoose.model('PasswordReset', passwordResetSchema)

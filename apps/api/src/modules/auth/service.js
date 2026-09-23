@@ -1,8 +1,18 @@
-import bcrypt from 'bcryptjs'
-import { USER_STATUS, toPublicUser } from '@cms/shared'
+import { createHash, randomBytes } from 'node:crypto'
 
+import bcrypt from 'bcryptjs'
+import {
+  PASSWORD_RESET_TTL_MINUTES,
+  ROLE,
+  USER_STATUS,
+  escapeHtml,
+  toPublicUser,
+} from '@cms/shared'
+
+import { adminUrl } from '../../core/env.js'
 import { logger } from '../../core/logger.js'
-import { unauthorized, unprocessable } from '../../core/errors.js'
+import { sendMail } from '../../core/mailer.js'
+import { notFound, unauthorized, unprocessable } from '../../core/errors.js'
 import {
   REFRESH_TTL_MS,
   newCsrfToken,
@@ -13,7 +23,8 @@ import {
 } from '../../core/tokens.js'
 import { User } from '../users/model.js'
 import { getRolePermissions } from '../roles/service.js'
-import { RefreshToken } from './model.js'
+import { ensureSettings, getMailConfig } from '../settings/service.js'
+import { PasswordReset, RefreshToken } from './model.js'
 
 /**
  * Auth ka saara business logic — R1. Controller sirf req/res karta hai.
@@ -290,6 +301,225 @@ export async function changePassword(userId, { currentPassword, newPassword }, o
   const permissions = await getRolePermissions(user.role)
 
   return { user: toPublicUser(user, permissions), tokens }
+}
+
+// ── password reset — sirf administrator (D-110) ─────────────────────────────
+
+/**
+ * Link ke token ka hash — DB me sirf yahi jaata hai (`PasswordReset` ka comment).
+ *
+ * @param {string} token
+ */
+const hashResetToken = (token) => createHash('sha256').update(String(token)).digest('hex')
+
+/** Galat, expire ya istemaal ho chuka link — teeno ka ek hi message, koi farq batane ki zaroorat nahi. */
+const invalidResetLink = () =>
+  unprocessable('This reset link has expired or was already used. Ask for a new one.')
+
+/** Mail ke upar site ka naam — `Settings ▸ General ▸ Site title`. */
+async function siteName() {
+  const settings = await ensureSettings()
+  return settings?.siteName || 'your website'
+}
+
+/**
+ * `Lost your password?` — **kabhi batata nahi ki email kiska hai.**
+ *
+ * Teen haalat hain aur teeno ka jawab **bilkul ek** hai (controller hamesha 200 + wahi message):
+ * email kisi ka nahi · kisi Editor/Author ka hai · kisi active administrator ka hai. Sirf aakhri pe
+ * mail jaati hai.
+ *
+ * Kyun ek jaisa: warna koi bhi ek-ek email daal kar pata laga leta ki **kaun administrator hai** —
+ * aur wahi account kisi bhi hamle ka pehla nishana hota hai. Login ka `loginFailed()` bhi isi soch pe
+ * hai.
+ *
+ * ⚠️ **Mail ka intezaar nahi kiya jaata** — SMTP 1–10 second leta hai. Intezaar hota to jawab ka
+ * **time** hi bata deta ki mail gayi (admin) ya nahi (koi aur) — wahi leak jo `login()` dummy bcrypt
+ * se rokta hai. Wahi saancha jo `notifyEnquiry()` pe hai (D-109).
+ *
+ * ⚠️ **Sirf administrator kyun** (client, 23 Sep): baaki har user ka password admin `Users ▸ Edit
+ * User` se badal deta hai. Kami sirf tab thi jab admin khud bhool jaaye — tab uska password badalne
+ * wala koi bacha hi nahi tha.
+ *
+ * @param {{ email: string }} input `forgotPasswordSchema` se guzra hua (lowercase, trimmed)
+ * @param {any} [req]
+ * @returns {Promise<{ sent: boolean }>} `sent` sirf tests ke liye — controller use kabhi nahi bhejta
+ */
+export async function requestPasswordReset({ email }, req) {
+  const user = await User.findOne({ email }).lean()
+
+  if (!user || user.role !== ROLE.ADMIN || user.status === USER_STATUS.INACTIVE) {
+    logger.info({ email }, 'Password reset asked for a non-admin or unknown email — nothing sent')
+    return { sent: false }
+  }
+
+  const token = randomBytes(32).toString('base64url')
+
+  /** Naya link maangte hi purane sab band — inbox me pade purane link ab kisi kaam ke nahi. */
+  await PasswordReset.deleteMany({ userId: user._id })
+  await PasswordReset.create({
+    userId: user._id,
+    tokenHash: hashResetToken(token),
+    expiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MINUTES * 60_000),
+    ip: req?.ip ?? null,
+  })
+
+  /**
+   * Token **`#` ke baad** — query (`?token=`) me nahi. Fragment browser se bahar kabhi nahi jaata:
+   * na server ke access log me, na `Referer` header me, na kisi analytics script ke paas. Query me hota
+   * to wo har us jagah likha jaata aur 30 minute tak kisi ke bhi haath me chalne wali chaabi hota.
+   */
+  const link = `${adminUrl()}/reset-password#token=${token}`
+
+  void sendResetMail(user, link)
+
+  return { sent: true }
+}
+
+async function sendResetMail(user, link) {
+  try {
+    const name = await siteName()
+    const result = await sendMail({
+      to: user.email,
+      subject: `Reset your password — ${name}`,
+      text:
+        `Hi ${user.name || user.username},\n\n` +
+        `Someone asked to reset the password for your administrator account on ${name}.\n\n` +
+        `Open this link to choose a new password:\n${link}\n\n` +
+        `The link works once and expires in ${PASSWORD_RESET_TTL_MINUTES} minutes.\n\n` +
+        `If you did not ask for this, you can ignore this email — your password will not change.`,
+      html:
+        `<p>Hi ${escapeHtml(user.name || user.username)},</p>` +
+        `<p>Someone asked to reset the password for your administrator account on <strong>${escapeHtml(name)}</strong>.</p>` +
+        `<p><a href="${escapeHtml(link)}" style="display:inline-block;padding:10px 18px;background:#2271b1;color:#fff;text-decoration:none;border-radius:4px">Choose a new password</a></p>` +
+        `<p style="color:#646970;font-size:13px">The link works once and expires in ${PASSWORD_RESET_TTL_MINUTES} minutes. ` +
+        `If the button does not work, copy this into your browser:<br>${escapeHtml(link)}</p>` +
+        `<p style="color:#646970;font-size:13px">If you did not ask for this, you can ignore this email — your password will not change.</p>`,
+      mail: await getMailConfig(),
+    })
+
+    if (!result.ok) {
+      logger.warn(
+        { userId: String(user._id), skipped: result.skipped },
+        'Password reset email not sent',
+      )
+    }
+  } catch (err) {
+    logger.warn({ err: err.message }, 'Password reset email failed')
+  }
+}
+
+/**
+ * Mail ke link se naya password.
+ *
+ * Kram jaan-boojh kar aisa hai:
+ *
+ * 1. Link ko **atomic** tareeke se "used" karo — `usedAt: null` ki shart ke saath. Do tab me ek saath
+ *    khula link ek hi baar chalta hai; doosre ko `null` milta hai
+ * 2. User **abhi bhi** active administrator hai? Link maangne ke baad role badal gaya ya account band
+ *    hua to link bekaar
+ * 3. Password badlo, `mustChangePassword` utaaro, **saare session band** — kisi aur ke haath me pada
+ *    session (jiski wajah se shayad reset hua) wahin khatam
+ * 4. "Password changed" ki mail — kisi aur ne badla ho to asli admin ko turant pata chale
+ *
+ * ⚠️ Yahan **login nahi karwaya jaata** — user ko login screen pe bheja jaata hai. Reset ke saath
+ * session dena matlab mail ka link = poora session; ek kadam zyada sasta hai.
+ *
+ * @param {{ token: string, newPassword: string }} input
+ * @param {any} [req]
+ */
+export async function resetPassword({ token, newPassword }, req) {
+  const record = await PasswordReset.findOneAndUpdate(
+    { tokenHash: hashResetToken(token), usedAt: null, expiresAt: { $gt: new Date() } },
+    { $set: { usedAt: new Date() } },
+    { new: true },
+  )
+  if (!record) throw invalidResetLink()
+
+  const user = await User.findById(record.userId).select('+passwordHash')
+  if (!user || user.role !== ROLE.ADMIN || user.status === USER_STATUS.INACTIVE) {
+    throw invalidResetLink()
+  }
+
+  user.passwordHash = await hashPassword(newPassword)
+  user.mustChangePassword = false
+  await user.save()
+
+  await revokeAllSessions(user._id)
+  /** Us user ke baaki link bhi — ek naya password aa gaya, purane raaste band. */
+  await PasswordReset.deleteMany({ userId: user._id, _id: { $ne: record._id } })
+
+  void sendPasswordChangedMail(user, req?.ip)
+
+  return { ok: true }
+}
+
+async function sendPasswordChangedMail(user, ip) {
+  try {
+    const name = await siteName()
+    const when = new Date().toUTCString()
+
+    await sendMail({
+      to: user.email,
+      subject: `Your password was changed — ${name}`,
+      text:
+        `Hi ${user.name || user.username},\n\n` +
+        `The password for your administrator account on ${name} was just changed using a reset link ` +
+        `(${when}${ip ? `, from ${ip}` : ''}). You have been signed out everywhere.\n\n` +
+        `If this was you, there is nothing else to do.\n\n` +
+        `If it was NOT you, ask for a new reset link from the login page right away, and check who ` +
+        `can read this mailbox.\n\n${adminUrl()}/login`,
+      html:
+        `<p>Hi ${escapeHtml(user.name || user.username)},</p>` +
+        `<p>The password for your administrator account on <strong>${escapeHtml(name)}</strong> was just changed using a reset link ` +
+        `(${escapeHtml(when)}${ip ? `, from ${escapeHtml(ip)}` : ''}). You have been signed out everywhere.</p>` +
+        `<p>If this was you, there is nothing else to do.</p>` +
+        `<p><strong>If it was not you</strong>, ask for a new reset link from the <a href="${escapeHtml(adminUrl())}/login">login page</a> right away, and check who can read this mailbox.</p>`,
+      mail: await getMailConfig(),
+    })
+  } catch (err) {
+    logger.warn({ err: err.message }, 'Password changed email failed')
+  }
+}
+
+/**
+ * Server pe chalne wala aakhri raasta — `pnpm cms reset-password <email>` (D-110 §5).
+ *
+ * Mail wala reset tab kaam nahi karta jab SMTP hi toot jaaye (App Password badla, account band) ya
+ * admin ka mailbox na rahe. Tab bhi koi andar aa sake — par **sirf wahi jiske paas server ka access
+ * hai**. Isiliye ye koi route nahi, sirf CLI hai.
+ *
+ * Temporary password deta hai aur `mustChangePassword: true` lagata hai — agle login pe admin ko
+ * naya password rakhna hi padta hai (`ChangePassword forced`, seed wala hi gate). Terminal ki history
+ * me pada password isliye der tak kaam ka nahi rehta.
+ *
+ * Kisi bhi role pe chalta hai — server wala banda waise bhi sab kuch kar sakta hai; yahan role ki rok
+ * sirf ek jhootha pehra hoti.
+ *
+ * @param {string} email
+ * @returns {Promise<{ email: string, role: string, password: string }>}
+ */
+export async function issueTemporaryPassword(email) {
+  const user = await User.findOne({
+    email: String(email ?? '')
+      .trim()
+      .toLowerCase(),
+  }).select('+passwordHash')
+  if (!user) throw notFound(`No user with the email ${email}`)
+
+  /** 18 akshar base64url ≈ 108 bit — `passwordSchema` (10+) se lamba, aur type karne layak. */
+  const password = randomBytes(14).toString('base64url').slice(0, 18)
+
+  user.passwordHash = await hashPassword(password)
+  user.mustChangePassword = true
+  /** Band account pe temporary password bekaar hota — login `disabled` pe rukta. Server wala chalu karta hai. */
+  user.status = USER_STATUS.ACTIVE
+  await user.save()
+
+  await revokeAllSessions(user._id)
+  await PasswordReset.deleteMany({ userId: user._id })
+
+  return { email: user.email, role: user.role, password }
 }
 
 /** Expire ho chuke records hatana. TTL index bhi yahi karta hai — ye manual backup hai. */

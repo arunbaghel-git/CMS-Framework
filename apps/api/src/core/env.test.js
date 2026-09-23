@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { loadEnv } from './env.js'
+import { adminUrl, loadEnv } from './env.js'
 
 /**
  * Env parsing ke wo hisse jo chup-chaap galat ho sakte hain.
@@ -86,5 +86,31 @@ describe('SEED_ADMIN_*', () => {
   it('diye jaayein to email validate hota hai', () => {
     const env = loadEnv(baseEnv({ SEED_ADMIN_EMAIL: 'admin@site.com' }))
     expect(env.SEED_ADMIN_EMAIL).toBe('admin@site.com')
+  })
+})
+
+/**
+ * Password reset mail ka link isi se banta hai (D-110).
+ *
+ * ⚠️ **23 Sep ko live pakda gaya bug:** dev me `ADMIN_URL=http://localhost:5173` (sirf origin — CORS
+ * ke liye yahi chahiye) aur admin `/admin/` pe chalta hai. Link `/admin` ke bina bana aur reset screen
+ * tak `#token` pahuncha hi nahi. Password-reset ke 19 test pass the, kyunki wo link ko `adminUrl()` se
+ * hi milate the — isliye niyam ka apna test yahan hai, asli shaklon ke saath.
+ */
+describe('adminUrl', () => {
+  it('ADMIN_URL sirf origin ho (dev ki asli shakl) — /admin judta hai', () => {
+    expect(
+      adminUrl({ ADMIN_URL: 'http://localhost:5173', SITE_URL: 'http://localhost:3000' }),
+    ).toBe('http://localhost:5173/admin')
+  })
+
+  it('ADMIN_URL me /admin pehle se ho to do baar nahi', () => {
+    expect(adminUrl({ ADMIN_URL: 'https://site.com/admin/', SITE_URL: 'https://site.com' })).toBe(
+      'https://site.com/admin',
+    )
+  })
+
+  it('ADMIN_URL na ho to SITE_URL ka origin + /admin (06-OPERATIONS §4 ka default)', () => {
+    expect(adminUrl({ SITE_URL: 'https://site.com/' })).toBe('https://site.com/admin')
   })
 })

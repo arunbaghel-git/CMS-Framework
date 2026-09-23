@@ -92,6 +92,11 @@ query usse filter nahi karti — ye sirf future multi-site ke liye reserve hai (
 users            _id, name, email, passwordHash, role, status, avatarId, lastLoginAt
 roles            _id, key(admin|editor|author|contributor), permissions[]
 refreshTokens    userId, jti, familyId, expiresAt, usedAt, revokedAt, ua, ip
+passwordResets   userId, tokenHash, expiresAt, usedAt, ip      ← D-110, migration 028
+                 SIRF ADMINISTRATOR ke liye. Token kabhi store nahi — sirf SHA-256.
+                 30 minute (PASSWORD_RESET_TTL_MINUTES), ek baar (usedAt atomic),
+                 naya maangte hi purane delete. Link = ADMIN_URL + /reset-password
+                 #token=… (fragment — server log/Referer me nahi jaata)
 migrations       name, appliedAt, checksum
 
 settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
@@ -598,6 +603,7 @@ sidebars:      { siteId: 1, locale: 1, deletedAt: 1, updatedAt: -1 }  ← migrat
 contentTypes:  { siteId: 1, key: 1 }                       unique   ← migration 009
 revisions: { entryId: 1, createdAt: -1 }                              ← migration 009
 refreshTokens: { jti: 1 } unique · { userId: 1 } · { expiresAt: 1 } TTL
+passwordResets: { tokenHash: 1 } unique · { userId: 1 } · { expiresAt: 1 } TTL  ← migration 028
 ```
 
 > **Text index ka trap:** MongoDB ek collection pe sirf **ek** text index allow karta
@@ -1019,7 +1025,8 @@ kar khud logout ho jaata.
 apps/api/src/core/tokens.js          JWT sign/verify + cookie flags + safeEqual
 apps/api/src/middleware/auth.js      attachUser · requireAuth · requirePermission
 apps/api/src/middleware/csrf.js      double-submit check
-apps/api/src/modules/auth/           RefreshToken model · login/refresh/logout/password
+apps/api/src/modules/auth/           RefreshToken + PasswordReset · login/refresh/logout/password
+                                     · forgot-password/reset-password (sirf admin, D-110)
 apps/api/src/modules/users/          User model · /api/me · /api/users (CRUD + delete)
 apps/api/src/modules/roles/          Role model · permissions cache · seed · GET /api/roles
 migrations/002-auth-indexes.js       users · roles · refreshTokens (TTL ke saath)

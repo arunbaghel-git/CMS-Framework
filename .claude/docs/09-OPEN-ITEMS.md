@@ -1,6 +1,10 @@
 # 09 — Open Items
 
-**Last updated:** 23 Sep 2026 — **nayi enquiry ki mail ab team ko jaati hai (D-109, A-43 band)** —
+**Last updated:** 23 Sep 2026 (shaam) — **administrator ka password reset (D-110), migration 028.**
+Login ka `Lost your password?` ab chalta hai — mail **sirf admin** ko, 30 minute ka ek-baar ka link.
+Saath me `pnpm cms reset-password <email>` (server wala aakhri raasta). Naya **A-46**: live check.
+
+**23 Sep (dopahar)** — **nayi enquiry ki mail ab team ko jaati hai (D-109, A-43 band)** —
 `Email enquiries to` pe, har form ka apna subject + message (`Enquiry Form ▸ Notification email`),
 Reply-To customer ka. Koi migration nahi. Naya **A-44**: asli submit → asli inbox abhi nahi dekha.
 ⚠️ Neeche 22 Sep wali "nayi enquiry pe **email nahi jaayegi**" wali line ab **purani** hai.
@@ -453,7 +457,10 @@ aati rahegi (D-75/76) aur wahin se dekhni padegi. Ye wahi soch hai jo D-76 me th
 chal raha hai, par uska koi asli grahak nahi. Ye likha hona chahiye, warna ek din koi poochhega ki
 "mail bhejne wala code kis kaam ka hai".
 
-**Agla grahak:** `forgot` / `reset` auth routes — Phase 0 se deferred the, **ab unblocked** hain.
+✅ **23 Sep — ab SMTP ke do asli grahak hain:** enquiry ki mail team ko (D-109) aur administrator ka
+password reset (D-110).
+
+~~**Agla grahak:** `forgot` / `reset` auth routes — Phase 0 se deferred the, **ab unblocked** hain.~~
 Kaam: token collection + 2 route + login screen ka dead link zinda karna. Client ne maanga nahi hai.
 
 #### ✅ A-43 · `form.emailTo` — **band** (23 Sep, D-109)
@@ -482,6 +489,27 @@ se test hai. Par **asli DB ka SMTP client ka Google Workspace hai**, use maine n
 ✅ **23 Sep dopahar — client ne asli submit kiya, mail Gmail ke Inbox me aayi** (apne SMTP account se).
 Table me form ke apne labels, form ka kram, page ka poora URL — sab sahi. Baaki: Reply ka "To" aur
 Detail ki `Emailed to …` line (chhote, client chahe to dekhe).
+
+#### ✅ A-46 · D-110 — administrator ka password reset — **client ne live chala liya** (23 Sep)
+
+Mail · link · naya password · link ka dobara na chalna · Editor pe mail na jaana — sab client ne asli
+SMTP se dekha. Pehli koshish pe link `/admin` ke bina bana tha (D-110 §12), theek hone ke baad poora
+raasta chala. "Your password was changed" wali mail bhi aayi (client). **Sirf #8 (CLI) live nahi dekha** —
+client: _"kabhi use hoga to karke bata dunga"_. Uska test hai (`password-reset.test.js`).
+
+**Deadline:** koi sakht nahi · **kuch toota nahi** — 19 naye test, migration 028 dev DB pe lag chuki
+(`down` + dobara `up` bhi chala kar dekha)
+
+| # | Kya dekhna hai |
+| --- | --- |
+| 1 | **API restart** (naya code) — aur admin ka hard refresh |
+| 2 | ✅ ~~`ADMIN_URL`~~ — pehli koshish pe link `/admin` ke bina bana (D-110 §12), theek ho gaya. Ab link = origin + `/admin` |
+| 3 | ✅ Login ▸ `Lost your password?` ▸ admin ka email → mail aayi, link `…/admin/reset-password#token=…` |
+| 4 | ✅ Link kholo → naya password → naye password se login (client: _"password reset done"_) |
+| 5 | ✅ Wahi link dobara → expired (client: _"link was expired after reset"_) |
+| 6 | ✅ "Your password was changed" wali doosri mail aayi (client) |
+| 7 | ✅ Kisi Editor ka email daalo → **wahi** message, par mail na aaye (client ne 23 Sep ko dekha) |
+| 8 | `pnpm cms reset-password <email>` → temporary password se login, turant naya password maange |
 
 #### ✅ A-45 · Har enquiry ka subject ek jaisa — **band, koi code nahi** (23 Sep)
 
@@ -1840,7 +1868,7 @@ nahi.
 | --- | --- |
 | Docker compose me `api` + `admin` service | Chhota kaam — abhi `pnpm dev` se chalta hai |
 | CSP policy (nonce-based) | Phase 4-5 — asli matlab page builder aur `settings.scripts` ke saath hai |
-| `forgot` / `reset` auth routes | ✅ **SMTP ka block 22 Sep ko hat gaya (D-108)** — ab ye apna kaam hai: token collection + 2 route + login ka dead link zinda karna |
+| `forgot` / `reset` auth routes | ✅ **Ban gaya — 23 Sep, D-110.** Sirf administrator ke liye (client). Saath me `pnpm cms reset-password <email>` |
 
 **Phase 0 me kya ho chuka:** monorepo + workspaces, docker-compose, ESLint/Prettier,
 CI, Express boilerplate, Zod contract, migration runner, CSS architecture,

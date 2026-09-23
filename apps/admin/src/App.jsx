@@ -7,10 +7,12 @@ import { useAuth } from './lib/auth.jsx'
 import { permissionForRoute } from './lib/nav.js'
 import ChangePassword from './screens/ChangePassword.jsx'
 import Dashboard from './screens/Dashboard.jsx'
+import ForgotPassword from './screens/ForgotPassword.jsx'
 import Login from './screens/Login.jsx'
 import NoAccess from './screens/NoAccess.jsx'
 import NotBuiltYet from './screens/NotBuiltYet.jsx'
 import Profile from './screens/Profile.jsx'
+import ResetPassword from './screens/ResetPassword.jsx'
 import AppearanceFooter from './screens/appearance/Footer.jsx'
 import Menus from './screens/appearance/Menus.jsx'
 import SidebarEdit from './screens/appearance/SidebarEdit.jsx'
@@ -351,6 +353,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      {/* Login se pehle ke do screen — password reset, sirf administrator (D-110). */}
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route
         path="/"

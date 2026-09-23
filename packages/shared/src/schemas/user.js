@@ -159,6 +159,29 @@ export const changePasswordSchema = z
     message: 'New password must be different from the current one',
   })
 
+/**
+ * Password reset ka link kitni der chalta hai — D-110 (client, 23 Sep: _"30 minute rakho"_).
+ *
+ * Ek hi jagah, kyunki teen jagah chahiye: token ki expiry (API), mail ka text ("expires in 30
+ * minutes") aur admin ki screen. Do jagah alag number hota to mail ek baat kehti aur link doosri.
+ */
+export const PASSWORD_RESET_TTL_MINUTES = 30
+
+/** `Lost your password?` — sirf email. Jawab hamesha ek jaisa (D-110 §2). */
+export const forgotPasswordSchema = z.object({ email: emailSchema })
+
+/**
+ * Mail wale link se naya password.
+ *
+ * `token` ki lambai ka koi matlab nahi (hum 32 byte base64url bhejte hain = 43 akshar), par
+ * `max` isliye hai ki koi 1 MB ki string bhej kar hash karwane ka kaam na de. `newPassword` pe
+ * wahi `passwordSchema` jo Profile pe hai — do policy nahi.
+ */
+export const resetPasswordSchema = z.object({
+  token: z.string().min(20, 'This reset link is not valid').max(200),
+  newPassword: passwordSchema,
+})
+
 export const updateMeSchema = userSchema.pick({ name: true, avatarMediaId: true }).partial()
 
 /**

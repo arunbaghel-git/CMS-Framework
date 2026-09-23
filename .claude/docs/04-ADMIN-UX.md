@@ -990,3 +990,19 @@ se jaati hai. Mail band karne ka ekmatra raasta `Email enquiries to` khaali karn
 **Enquiry Detail** pe form/source wali line ke neeche ek aur line: `Emailed to sales@… · <time>`,
 ya _"Not emailed — Email / SMTP is not set up"_, ya _"Email to … failed — <wajah>"_. Jis form pe
 `emailTo` khaali tha uski enquiry pe ye line **aati hi nahi**.
+
+### Login ▸ Lost your password? — sirf administrator (23 Sep, D-110)
+
+Client ke paas login ka design nahi tha (D-31), isliye dono nayi screen **Login ka hi dhaancha** hain
+(`Login.css`).
+
+| Screen | Kya |
+| --- | --- |
+| `/forgot-password` | Line: _"For administrators: enter your email and we will send you a link… Other users — ask your administrator to reset it."_ · Email · **Send reset link** · ← Back to log in |
+| Bhejne ke baad | Hara dabba, server ka apna text: _"If an administrator account exists for this email, a reset link has been sent."_ — **har email pe yahi** |
+| `/reset-password#token=…` | New password · Confirm · **Save new password** · "Link expired? Ask for a new one" |
+| Token hi nahi | Form nahi — _"This reset link is not complete…"_ + naya link maangne ka raasta (D-30) |
+| Save ke baad | Login screen pe hara: _"Password changed. Sign in with your new password."_ |
+
+⚠️ Link **sabko** dikhta hai — login screen ko nahi pata ki kaun aa raha hai. Screen ki pehli line
+batati hai ki ye sirf admin ke liye hai, taaki Editor mail ka intezaar na kare.

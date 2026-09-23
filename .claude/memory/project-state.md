@@ -1,7 +1,14 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 23 Sep 2026 — **nayi enquiry ki mail team ko (D-109, A-43 band).** Client ne
+> **Last updated:** 23 Sep 2026 shaam — **administrator ka password reset (D-110), migration 028.**
+> Login ka `Lost your password?` chalu — mail **sirf admin** ko (client ka niyam), 30 minute ka
+> ek-baar ka link, jawab har email pe ek jaisa. Backup: `pnpm cms reset-password <email>`.
+> 028 dev DB pe lag chuki. ⏭️ **A-46** — API restart, `ADMIN_URL` dekho (dev me `:5173`), asli mail
+> se poora raasta. ⚠️ `:3000` pe abhi **production** server chal raha hai (client ne speed test ke
+> liye kaha tha) — dev chahiye to pehle use band karo.
+>
+> **23 Sep (dopahar)** — **nayi enquiry ki mail team ko (D-109, A-43 band).** Client ne
 > saaf kiya ki mail **bharne wale ko nahi**, `Email enquiries to` wale pate(on) pe jaaye — aur
 > subject aur message admin har form pe likhe (`Enquiry Form ▸ Notification email`, rich editor, `{{fullName}}`
 > jaise variables, `{{all_fields}}` ki table). Reply-To customer ka. Enquiry Detail pe

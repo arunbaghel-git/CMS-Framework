@@ -10607,3 +10607,86 @@ Aur: `emailTo` ke galat pate **girte** hain, poori mail nahi rukti (`parseEmailL
 
 Koi migration nahi — purane forms me `notifyEmail` nahi hai, aur khaali = default template.
 Deploy pe sirf naya code + API restart.
+
+---
+
+## D-110
+
+**Administrator ka password reset — login ke `Lost your password?` se, SMTP pe (23 Sep 2026)**
+
+### Sandarbh
+
+Login pe `Lost your password?` 19 Aug se jaan-boojh kar band tha (D-30) — SMTP nahi tha. D-108 ne SMTP
+khola. 23 Sep ko client ne jaanch karwayi ki password badalne ke kaunse raaste hain, aur khud kami
+pakdi:
+
+> _"password bhoolen par administrator agar login nahi ho paya to others ka password kaise change
+> karege … agar user password bhool gaye to administrator to new password badal hi sakta hai, to main
+> hame administrator ke liye jo login popup par password reset hai smtp bala feature dalna hai"_
+
+Yaani baaki users ke liye raasta pehle se hai (`Users ▸ Edit User ▸ New password`, sirf admin ke paas
+`user.update`). **Kami sirf tab thi jab admin khud bhool jaaye** — tab badalne wala koi bacha hi nahi.
+
+### Faisla
+
+| # | Kya | Kyun |
+| --- | --- | --- |
+| 1 | Mail **sirf `role: admin` + active** user ko | Client ka niyam. Baaki users ka raasta admin hai |
+| 2 | **Jawab har email pe ek jaisa** — 200 + _"If an administrator account exists…"_ | Warna ek-ek email daal kar pata chal jaata ki kaun admin hai — hamle ka pehla nishana |
+| 3 | Link **30 minute** (client), **ek baar**, naya maangte hi purana band | `PASSWORD_RESET_TTL_MINUTES` shared me — API, mail ka text aur screen ek hi number padhte hain |
+| 4 | DB me **sirf token ka SHA-256** | DB leak ho to bhi usse reset nahi hota |
+| 5 | Link **`ADMIN_URL` se** (`adminUrl()`), request ke header se kabhi nahi | Password-reset poisoning — header badal kar link apne domain pe banwana |
+| 6 | Token **`#` ke baad**, screen khulte hi address bar se hata | Fragment server log aur `Referer` me nahi jaata; `replaceState` ke baad history me bhi nahi |
+| 7 | Mail ka **intezaar nahi** | Warna jawab ka time bata deta ki mail gayi (admin) ya nahi |
+| 8 | Reset ke baad **saare session band**, login **nahi** karwaya jaata | Mail ka link = poora session nahi; ek kadam zyada sasta |
+| 9 | **"Your password was changed"** ki mail | Kisi aur ne badla to asli admin ko turant pata chale |
+| 10 | Rate limit: forgot **5/ghanta** (IP + email), reset **10/15 min** (IP) | Inbox pe mail ki baarish aur SMTP account ka spam me istemaal (provider account band karta, aur enquiry mail bhi rukti) |
+| 11 | **`pnpm cms reset-password <email>`** — temporary password + `mustChangePassword` | Mail wala raasta tab fail hota hai jab SMTP ya mailbox hi na rahe. Ye sirf server pe, koi route nahi |
+
+### `ADMIN_URL` ka default — 19 Aug se likha tha, bana hi nahi tha
+
+`06-OPERATIONS.md` §4: _"`ADMIN_URL` default `${SITE_URL}/admin`"_. Code me wo default **kabhi tha hi
+nahi** — ab tak kisi ko admin ka pata chahiye hi nahi tha. `adminUrl()` (`core/env.js`) wahi likha hua
+niyam hai. ⚠️ Dev me admin `:5173` pe hai; `ADMIN_URL` set na ho to link `:3000/admin` pe banta hai.
+
+### Kya NAHI bana
+
+- Baaki roles ke liye reset — client ka niyam; admin unka raasta hai
+- Reset ke saath auto-login — jaan-boojh kar (#8)
+- Reset mail ka template admin se — do system mail hain, unka text code me (English, R17)
+
+### ⚠️ Chhota bacha hua farak
+
+Admin ke email pe service do DB kaam karti hai (purane link mitana + naya likhna), anjaan email pe koi
+nahi — yaani jawab me ~millisecond ka farak. Mail wala bada farak (#7) band hai; ye itna chhota hai ki
+network ke shor me dab jaata hai. Kabhi zaroori lage to anjaan email pe bhi ek dummy write.
+
+### Verify
+
+- 19 API test (`password-reset.test.js`) — ek jaisa jawab, sirf admin ko mail, Host header se link na
+  badalna, hash, 30 min, ek baar, purana link band, role badalne pe link bekaar, session band, CLI
+- Migration 028 dev DB pe `up` → `down` → `up`
+- ⚠️ Asli SMTP se poora raasta abhi nahi dekha — **A-46**
+
+Deploy pe: **`pnpm cms migrate`** (028) aur API restart. `ADMIN_URL` sahi ho, ye dekh lo.
+
+### D-110 §12 — link `/admin` ke bina ban raha tha (23 Sep, client ne live pakda)
+
+Client ne pehli baar chalaya: mail aayi, link `http://localhost:5173/reset-password#token=…` — aur
+Vite ne _"public base URL of /admin/ — did you mean /admin/reset-password?"_ dikhaya. Us suggestion
+wale link me `#token` nahi hota, to reset screen pe _"This reset link is not complete"_ aaya.
+
+**Jad:** `ADMIN_URL` ek **origin** hai (CORS allowlist ke liye — browser ka `Origin` header path nahi
+bhejta), aur admin ka path `/admin` **code me pakka** hai (`vite.config.js` ka `base`, `main.jsx` ka
+`basename`). Maine `adminUrl()` me `ADMIN_URL` jaisa ka taisa le liya tha.
+
+**Ilaaj:** `adminUrl()` = `new URL(ADMIN_URL || SITE_URL).origin + ADMIN_BASE_PATH`. `ADMIN_URL` me
+`/admin` pehle se likha ho to bhi do baar nahi judta.
+
+⚠️ **19 test pass the, aur yahi sabse kaam ka sabak hai:** test link ko `adminUrl()` se hi milaate the —
+function galat tha to test bhi usi galti pe raazi the. Ab `env.test.js` me `adminUrl()` ka apna test hai
+**asli shaklon** ke saath (dev ka sirf-origin `ADMIN_URL`), aur reset test seedha `/admin/reset-password`
+dhoondhta hai. **Jo cheez test apne hi code se banata hai, uska test us code ki galti pakad hi nahi
+sakta.**
+
+Editor wala raasta client ne usi baar dekha — _"editor ka email dala to mail nahi gayi which is fine"_.

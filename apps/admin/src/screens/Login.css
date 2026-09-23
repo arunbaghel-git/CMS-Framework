@@ -92,11 +92,26 @@
   font-size: 13px;
 }
 
-/* Forgot password Phase 2 me chalu hoga (SMTP tab aayega) — abhi disabled dikhta hai,
-   chhupaya nahi. Khaali cheez khaali dikhni chahiye, tooti hui nahi (D-30). */
-.login-links .disabled {
+/* Forgot / Reset password ki success line (D-110) — `.login-error` jaisa hi dabba, hara. */
+.login-ok {
+  border-left: 4px solid var(--success);
+  background: #edfaef;
+  color: #1a5e20;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* Form ke upar ki ek chhoti samjhaane wali line — Forgot/Reset screens. */
+.login-intro {
+  font-size: 13px;
   color: var(--text-muted);
-  cursor: not-allowed;
+  margin: 0 0 16px;
+}
+
+.login-card .login-actions--single {
+  justify-content: flex-end;
 }
 
 .login-foot {

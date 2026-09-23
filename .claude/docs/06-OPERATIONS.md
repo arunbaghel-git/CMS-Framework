@@ -94,6 +94,23 @@ migrations/
 
 Command: `pnpm cms migrate` · status: `pnpm cms migrate:status`
 
+### 3.1a Admin bahar reh gaya — `pnpm cms reset-password <email>` (D-110, 23 Sep)
+
+Login ka `Lost your password?` administrator ko mail bhejta hai. Wo kaam **nahi** karta jab SMTP
+toota ho (App Password badla, account band) ya admin ka mailbox hi na rahe. Tab server pe:
+
+```bash
+pnpm cms reset-password admin@site.com
+```
+
+- Ek **temporary password** terminal pe chhapta hai; login karte hi admin panel naya password maangta
+  hai (`mustChangePassword`)
+- Us user ke saare session band, aur account `inactive` tha to `active`
+- **Kisi bhi role** pe chalta hai — server ka access waise bhi sab kuch hai
+- Koi route nahi hai, jaan-boojh kar — sirf wahi chala sakta hai jiske paas hosting ka access hai
+
+⚠️ Terminal ki history me temporary password bachta hai — isliye wo pehle login pe hi badalna padta hai.
+
 ### 3.2 Block-tree migrations
 
 Ye alag isliye hain ki **ek page ka `content.version` v1 pe ho sakta hai jab site v4 pe
@@ -137,7 +154,11 @@ missing var pe app start hi na ho, runtime pe fail na kare.
 NODE_ENV                 development | production
 PORT
 SITE_URL                 https://acme-dental.com    (canonical, redirects ke liye)
-ADMIN_URL                default ${SITE_URL}/admin
+ADMIN_URL                ORIGIN hai (path nahi) — CORS allowlist me jaata hai. Dev me
+                         http://localhost:5173. Na ho to SITE_URL ka origin. Admin ka
+                         path hamesha /admin (code me pakka — vite base + router
+                         basename). Password reset ka link = origin + /admin (D-110)
+
 EXTRA_CORS_ORIGINS       optional, comma se alag — CORS allowlist me aur origins
 
 # Database

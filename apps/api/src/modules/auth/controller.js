@@ -1,7 +1,12 @@
 import { clearAuthCookies, COOKIE, setAuthCookies } from '../../core/tokens.js'
 import { unauthorized } from '../../core/errors.js'
 import * as authService from './service.js'
-import { changePasswordSchema, loginSchema } from './validation.js'
+import {
+  changePasswordSchema,
+  forgotPasswordSchema,
+  loginSchema,
+  resetPasswordSchema,
+} from './validation.js'
 
 /**
  * Patla controller — validate → service → response (R1).
@@ -74,6 +79,42 @@ export async function changePassword(req, res, next) {
     setAuthCookies(res, tokens)
 
     res.json({ data: { user, csrfToken: tokens.csrfToken } })
+  } catch (err) {
+    next(err)
+  }
+}
+
+/**
+ * `Lost your password?` — D-110.
+ *
+ * ⚠️ **Jawab hamesha ek hi** — 200 aur wahi message, chahe email kisi ka ho ya na ho, admin ka ho ya
+ * kisi Editor ka. Service ka `sent` yahan se **kabhi bahar nahi jaata**; wahi ek boolean batata ki
+ * kaun administrator hai.
+ */
+export async function forgotPassword(req, res, next) {
+  try {
+    const input = forgotPasswordSchema.parse(req.body)
+    await authService.requestPasswordReset(input, req)
+
+    res.json({
+      data: {
+        ok: true,
+        message:
+          'If an administrator account exists for this email, a reset link has been sent. Check your inbox.',
+      },
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
+/** Mail ke link se naya password — login **nahi** karwata, admin login screen pe jaata hai. */
+export async function resetPassword(req, res, next) {
+  try {
+    const input = resetPasswordSchema.parse(req.body)
+    await authService.resetPassword(input, req)
+
+    res.json({ data: { ok: true } })
   } catch (err) {
     next(err)
   }

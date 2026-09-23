@@ -220,3 +220,36 @@ export const OWN_ORIGINS = [
     .map((o) => o.trim())
     .filter(Boolean),
 ].filter(Boolean)
+
+/**
+ * Admin app ka path — **code me pakka**, config nahi: `apps/admin/vite.config.js` ka `base: '/admin/'`
+ * aur `main.jsx` ka `<BrowserRouter basename="/admin">`. Teeno ek saath badlenge.
+ */
+export const ADMIN_BASE_PATH = '/admin'
+
+/**
+ * Admin panel ka pata — mail ke links ke liye (D-110, password reset).
+ *
+ * **`ADMIN_URL` ka sirf origin liya jaata hai, path hamesha `ADMIN_BASE_PATH`.** `ADMIN_URL` asal me
+ * ek **origin** hai — CORS allowlist me jaata hai (`OWN_ORIGINS`), aur browser ka `Origin` header
+ * kabhi path nahi bhejta. Dev me wo `http://localhost:5173` hai aur admin `…:5173/admin/` pe chalta hai.
+ *
+ * ⚠️ **23 Sep ka bug, client ne live pakda:** pehle yahan `ADMIN_URL` jaisa ka taisa liya jaata tha, to
+ * link `…:5173/reset-password#token=…` bana — `/admin` ke bina. Vite ne "did you mean /admin/…" wala page
+ * dikhaya, aur uska link `#token` chhod deta hai; reset screen pe "link not complete" aaya. 19 tests
+ * pass the, kyunki test bhi link `adminUrl()` se hi milate the — function galat tha to test bhi usi
+ * galti pe raazi the.
+ *
+ * `ADMIN_URL` na ho to `SITE_URL` ka origin (`06-OPERATIONS.md` §4 — _"default `${SITE_URL}/admin`"_,
+ * jo 19 Aug se likha tha par code me kabhi bana nahi tha). `ADMIN_URL` me koi `/admin` pehle se likh
+ * de to bhi do baar nahi judta — origin hi liya jaata hai.
+ *
+ * ⚠️ **Link hamesha isi se banta hai, request ke `Host`/`Origin` header se kabhi nahi.** Header
+ * bhejne wala badal sakta hai — wo reset maang kar link **apne** domain pe banwa leta, aur admin ke
+ * click karte hi token uske paas pahunch jaata (password-reset poisoning).
+ *
+ * @param {{ ADMIN_URL?: string, SITE_URL: string }} [source] tests ke liye — default asli `env`
+ */
+export function adminUrl(source = env) {
+  return `${new URL(source.ADMIN_URL || source.SITE_URL).origin}${ADMIN_BASE_PATH}`
+}

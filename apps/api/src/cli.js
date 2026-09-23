@@ -12,6 +12,7 @@ const COMMANDS = {
   migrate: 'Saari pending migrations chalao',
   'migrate:status': 'Kaunsi applied hai, kaunsi pending',
   'migrate:down': 'Aakhri migration rollback karo (ek baar me ek)',
+  'reset-password': '<email> — temporary password; agle login pe badalna zaroori (D-110)',
 }
 
 function usage() {
@@ -68,6 +69,24 @@ try {
     printStatus(await status())
   } else if (command === 'migrate:down') {
     await rollback({ log: console.log })
+  } else if (command === 'reset-password') {
+    /**
+     * Aakhri raasta — jab mail wala reset kaam na kare (SMTP toota, mailbox gaya). Sirf server pe
+     * chalta hai, yaani wahi chala sakta hai jiske paas hosting ka access hai (D-110 §5).
+     *
+     * Import yahin, upar nahi — baaki commands (migrate) ko poora auth/settings module load karne
+     * ki zaroorat nahi, aur migrate boot se pehle chalta hai.
+     */
+    const email = process.argv[3]
+    if (!email) throw new Error('Usage: pnpm cms reset-password <email>')
+
+    const { issueTemporaryPassword } = await import('./modules/auth/service.js')
+    const result = await issueTemporaryPassword(email)
+
+    console.log(`\n  ✓ ${result.email} (${result.role})`)
+    console.log(`\n    Temporary password:  ${result.password}\n`)
+    console.log('    Sign in with it — the admin panel will ask for a new password straight away.')
+    console.log('    All other sessions of this user have been signed out.\n')
   }
 } catch (err) {
   console.error(`\n  ✗ ${err.message}\n`)
