@@ -886,8 +886,8 @@ Paanch panel:
 | Panel | Kya |
 | --- | --- |
 | **The popup** | `Show this popup on the site` checkbox · `Enquiry form` dropdown (sirf active forms) |
-| **What it says** | Heading (image ke upar) · Heading above the form · Text above the form — teeno `HtmlEditor` |
-| **Images** | 0–3 `MediaDrop` slot. Ek chuno to agla slot apne aap khul jaata hai |
+| **What it says** | Heading (image ke upar) · Heading above the form — dono `HtmlEditor` (`Text above the form` 23 Sep ko hata — D-103 §11) |
+| **Image** | Ek `MediaDrop` (23 Sep — pehle 0–3 slot the, D-103 §10). Khaali = popup sirf form |
 | **When it appears** | `Show after` (second) · `Show again` dropdown · `Days` (sirf tab jab dropdown `days` pe ho) |
 | **Where it appears** | 6 checkbox — Home page · Packages · Tour pages · Blog posts · Blog listing · Pages. Save isi panel ke `panel-foot` me |
 

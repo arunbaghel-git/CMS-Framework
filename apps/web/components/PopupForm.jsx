@@ -177,7 +177,6 @@ export default function PopupForm({ popup, sourcePath }) {
               form={popup.form}
               variant="page"
               heading={popup.formHeading}
-              description={popup.description}
               sourcePath={sourcePath}
             />
           </div>

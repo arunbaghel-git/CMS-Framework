@@ -9923,6 +9923,33 @@ hai, aur client ne _"popup only"_ kaha. `@media (min-width: 761px)` ke andar
 
 ---
 
+## D-103 §11 — `Text above the form` gaya, image ka MIN theek (client, 23 Sep 2026)
+
+**Status:** ✅ ban gaya · koi migration nahi
+
+Client: _"Text above the form popup se hatao aur image ki height jo mene 100% ki thi uski bajah se
+scroller aa rha hai thik karo `height: clamp(100%, 20vh, 220px);`"_
+
+### §11.1 — `description` popup se poori tarah gaya
+
+Schema (`popupSettingsSchema`) · admin ka khaana · sanitizer (`sanitizePopupSettings`) · public payload
+(`toPublicPopup`) · `PopupForm` ka prop — paanchon jagah se. **Koi migration nahi**: purane doc me pada
+value Zod read pe strip kar deti hai, aur `MERGED_KEYS` ka merge use DB me rehne deta hai jahan koi
+padhta nahi. `EnquiryForm` ka `description` prop **bacha hai** — wo `page` variant ka hai, popup ka nahi.
+
+### §11.2 — Image ka MIN `100%` → `130px`
+
+`clamp()` ka **pehla hissa MIN** hai. `100%` grid item pe apne area se naapa jaata tha, aur wo area
+image ki **asli** ooonchai jitna ban jaata tha — yaani `220px` ki chhat kabhi lagti hi nahi thi, image
+poori ooonchai leti thi, aur wahi scroller tha. `130px` 21 Sep (D-103 §8) wala MIN hai; `20vh` aur
+`220px` client ke hi hain. **Image chhoti nahi ki gayi** (§9.7 ka niyam) — chhat wahi hai.
+
+Test ab **percentage wala MIN** rokta hai, exact value nahi (§9.7 wala hi tark: irade pe bandho, value pe
+nahi). §10 me `.pmod__pics` ke `display: grid` ke liye jo "100% grid pe resolve hota hai" wali wajah
+likhi thi, wo ab lagu nahi — grid phir bhi rakha hai (look wahi).
+
+---
+
 ## D-106
 
 **Settings ▸ Integrations — teesre tools ka code, poori site pe** (client, 22 Sep 2026)

@@ -32,7 +32,6 @@ const EMPTY = {
   formId: '',
   heading: '',
   formHeading: '',
-  description: '',
   imageIds: [],
   delaySeconds: 5,
   frequency: 'session',
@@ -274,16 +273,9 @@ export default function PopupSettings() {
                 />
               </div>
 
-              <div className="field">
-                <label>Text above the form</label>
-                <HtmlEditor
-                  value={popup.description}
-                  onChange={(v) => set('description', v)}
-                  disabled={!canEdit}
-                  height={160}
-                />
-                <div className="hint">Optional. Leave it empty and the line is not shown.</div>
-              </div>
+              {/*
+                `Text above the form` 23 Sep ko hata (client: _"popup se hatao"_) — D-103 §11.
+              */}
             </div>
           </div>
 

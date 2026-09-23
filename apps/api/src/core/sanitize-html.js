@@ -694,7 +694,6 @@ export function sanitizePopupSettings(popup) {
 
   if ('heading' in out) out.heading = sanitizeInlineHtml(out.heading)
   if ('formHeading' in out) out.formHeading = sanitizeInlineHtml(out.formHeading)
-  if ('description' in out) out.description = sanitizeBlockHtml(out.description)
 
   return out
 }

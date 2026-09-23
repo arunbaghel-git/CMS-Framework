@@ -437,6 +437,7 @@ Client `pnpm dev` pe (popup `Show again` = `Every time the page opens` rakh ke) 
 | 3 | Form ke khaane **teen column** me; Message, checkbox aur Submit poori row | desktop |
 | 4 | Scroller aaya ya gaya (form chhota hua to aana nahi chahiye) | desktop, ~768px ooncha laptop |
 | 5 | Phone pe form pehle jaisa — ek column, image nahi | ≤760px |
+| 6 | `Text above the form` popup me nahi; image 220px tak, poori ooonchai nahi (D-103 §11) | desktop |
 
 ⚠️ Admin ka `Half width` checkbox popup me ab kuch nahi karta (teen column me har khaana ek cell) —
 client ko batana hai. Deploy pe **`pnpm cms migrate`** (029) + API restart + web/admin build.

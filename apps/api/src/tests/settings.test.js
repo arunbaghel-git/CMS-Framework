@@ -694,6 +694,8 @@ describe('Enquiries ▸ Popup — popupSettings (21 Sep)', () => {
     /** ⚠️ Kachcha `formId`/`imageIds` payload me **kabhi nahi** — allowlist ka poora tark yahi hai. */
     expect(popup.formId).toBeUndefined()
     expect(popup.imageIds).toBeUndefined()
+    /** `Text above the form` 23 Sep ko popup se hata (client) — payload me bhi nahi. */
+    expect(popup.description).toBeUndefined()
   })
 
   it('enabled off — payload me popup null', async () => {

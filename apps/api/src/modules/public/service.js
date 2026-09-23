@@ -222,7 +222,6 @@ async function toPublicPopup(popup, siteId) {
     images,
     heading: popup.heading ?? '',
     formHeading: popup.formHeading ?? '',
-    description: popup.description ?? '',
     delaySeconds: popup.delaySeconds ?? 5,
     frequency: popup.frequency ?? 'session',
     frequencyDays: popup.frequencyDays ?? 7,

@@ -103,7 +103,7 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  faviconMediaId, timezone, dateFormat, currency,
                  phone, whatsapp, address, social{facebook,instagram,youtube,x},
                  popupSettings{ enabled, formId, heading, formHeading,      ← D-103
-                                description, imageIds[] max 1 (D-103 §10), delaySeconds,
+                                imageIds[] max 1 (D-103 §10), delaySeconds,
                                 frequency(session|once|days|always),
                                 frequencyDays,
                                 showOn{ homePage, package, tourPage,

@@ -403,3 +403,19 @@ describe('Popup — ek image, chaudai 720, form teen column me (client, 23 Sep)'
     expect(css).not.toMatch(/\n\.bkg__b form \{[^}]*display:\s*grid/)
   })
 })
+
+describe('Popup — text above the form gaya, image ka MIN (client, 23 Sep)', () => {
+  /** Client: _"Text above the form popup se hatao"_ — popup ab description bhejta hi nahi. */
+  it('popup form ko description nahi bhejta', () => {
+    expect(jsx).not.toContain('description=')
+  })
+
+  /**
+   * ⚠️ `clamp(100%, …)` ne scroller banaya tha: MIN `100%` grid area se naapa jaata hai, jo image ki
+   * asli ooonchai jitna hai — chhat kabhi lagti hi nahi. MIN **px** me hona chahiye. Exact value
+   * nahi bandhi (client tune karta hai), sirf percentage wala MIN roka gaya hai.
+   */
+  it('image ki height ka MIN percentage nahi hai', () => {
+    expect(ruleOf('.pmod__pic')).toMatch(/height:\s*clamp\(\d+px,/)
+  })
+})

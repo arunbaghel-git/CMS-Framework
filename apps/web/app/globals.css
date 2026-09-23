@@ -3718,9 +3718,8 @@ a.mega__gl:hover {
  * Popup me ab **ek hi** image (client, 23 Sep). 21 Sep ke `.pmod__pics--2/--3` (1–3 image ka
  * grid) hat gaye — schema ki chhat 1 hai, to wo class kabhi banti hi nahi.
  *
- * ⚠️ `display: grid` **ek image pe bhi rakha hai** — client ki tune ki hui `.pmod__pic` height
- * (`clamp(100%, …)`) ka `100%` grid item pe apne area se naapa jaata hai; block pe wo `auto` ban
- * sakta tha, yaani image ki ooonchai chup-chaap badal jaati.
+ * `display: grid` ek image pe bhi rakha hai — `<img>` ke neeche inline wali khaali line nahi aati,
+ * aur `.pmod__h` (absolute) ke saath patti ka naap wahi rehta hai jo 21 Sep se hai.
  */
 .pmod__pics {
   position: relative;
@@ -3751,7 +3750,14 @@ a.mega__gl:hover {
    * ki asli jad form ke **labels** the, image nahi; content chhota karna lakshan dabaana tha,
    * ilaaj nahi.
    */
-  height: clamp(100%, 20vh, 220px);
+  /*
+   * ⚠️ **MIN `100%` → `130px`** (client, 23 Sep: _"image ki height jo mene 100% ki thi uski bajah
+   * se scroller aa rha hai thik karo"_). `clamp()` ka pehla hissa MIN hai, aur `100%` grid item pe
+   * apne area se naapa jaata tha — area image ki **asli** ooonchai jitna, to 220px ki chhat kabhi
+   * lagti hi nahi thi aur image poori ooonchai le leti thi. `130px` 21 Sep (D-103 §8) wala MIN hai;
+   * beech aur chhat client ke hi hain. Image chhoti nahi ki gayi — 220px tak ab bhi jaati hai.
+   */
+  height: clamp(130px, 20vh, 220px);
   object-fit: cover;
 }
 

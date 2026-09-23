@@ -10,7 +10,7 @@ import { BUTTON_VARIANTS, LINK_TARGETS, classNameSchema, menuUrlSchema } from '.
  * ki ek din unke enum alag ho jaayein — wahi jaal jo `menu.location` pe pakda gaya tha.
  */
 import { heroButtonSchema, sidebarIdSchema, sidebarPositionSchema } from './page.js'
-import { htmlSchema, inlineHtmlSchema } from './rich-html.js'
+import { inlineHtmlSchema } from './rich-html.js'
 import { emailSchema } from './user.js'
 import {
   HEX_COLOR_RE,
@@ -470,7 +470,11 @@ export const popupSettingsSchema = z.object({
 
   /** Form ke upar ki chhoti line — `Get Free Quotes`. */
   formHeading: inlineHtmlSchema.pipe(z.string().max(200)).default(''),
-  description: htmlSchema.pipe(z.string().max(1000)).default(''),
+
+  /*
+   * ⚠️ `description` (`Text above the form`) **23 Sep ko hata** (client: _"Text above the form
+   * popup se hatao"_). Purane doc me pada value Zod read pe strip kar deti hai — koi migration nahi.
+   */
 
   /**
    * Popup ki image — **sirf ek** (client, 23 Sep: _"form popup only 1 image, no other images
