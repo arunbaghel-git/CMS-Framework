@@ -278,9 +278,143 @@ export const FAQ_LABELS = Object.freeze({
 export const FAQ_SECTION_LABELS = Object.freeze({
   faqs: 'faqStart',
   faq: 'faqStart',
+  "faq's": 'faqStart',
   questions: 'faqStart',
   'frequently asked questions': 'faqStart',
+  /* Client ke shabd (23 Sep): _"frequently asked question, faq, frequently asked questions"_ */
+  'frequently asked question': 'faqStart',
+  'frequently asked questions (faqs)': 'faqStart',
+  'frequently asked questions (faq)': 'faqStart',
 })
+
+/**
+ * Block agar heading hai to uska level (`<h2>` → 2), warna `null`.
+ *
+ * `cleanGoogleHtml()` pehle hi `h1` → `h2` aur `h5`/`h6` → `h4` kar chuka hota hai, to yahan
+ * asal me 2–4 hi aate hain.
+ */
+export const headingLevel = (block) => {
+  const match = /^\s*<h([1-6])\b/i.exec(String(block ?? ''))
+
+  return match ? Number(match[1]) : null
+}
+
+/**
+ * FAQ section ke andar ek heading ka matlab — **headings se FAQ** (client, 23 Sep, D-116).
+ *
+ * _"h2 heading aur h3 question, h3 ke baad answer, if again h3 then question"_. Yaani doc me
+ * `Question`/`Answer` likhne ki zaroorat nahi:
+ *
+ * ```
+ * <h2>Frequently asked questions</h2>   ← marker (markerLevel 2)
+ * <h3>Is Havelock worth it?</h3>         ← sawaal
+ * <p>Yes…</p>                            ← jawab
+ * <h3>When to go?</h3>                   ← agla sawaal
+ * ```
+ *
+ * | Heading | Matlab |
+ * | --- | --- |
+ * | marker se **chhoti** (h2 marker → h3/h4) | naya sawaal |
+ * | marker ke **barabar ya badi** (h2) | FAQ khatam — `Conclusion` jaisi heading sawaal na bane |
+ *
+ * ⚠️ Marker khud heading na ho (purana `Faq:` paragraph) to `markerLevel` 2 maana jaata hai —
+ * tab bhi `<h3>` sawaal hai. Purana `Question`/`Answer` label wala tareeka iske saath chalta rehta
+ * hai; wo paragraph hote hain, heading nahi.
+ *
+ * @returns {'question' | 'end' | null}
+ */
+export function faqHeadingRole(block, markerLevel) {
+  const level = headingLevel(block)
+  if (!level) return null
+
+  return level > (markerLevel ?? 2) ? 'question' : 'end'
+}
+
+const MONTHS = [
+  'january',
+  'february',
+  'march',
+  'april',
+  'may',
+  'june',
+  'july',
+  'august',
+  'september',
+  'october',
+  'november',
+  'december',
+]
+
+/**
+ * `Sept` · `Sep` · `September` → 8. Naam poore mahine ka **shuruaati hissa** hona chahiye (kam se kam
+ * teen akshar) — `Sepx` jaisi typo mahina nahi hai, wo `null` deti hai aur row Failed.
+ */
+const monthOf = (word) => {
+  const key = String(word ?? '')
+    .toLowerCase()
+    .replace(/\.$/, '')
+
+  return key.length >= 3 ? MONTHS.findIndex((month) => month.startsWith(key)) : -1
+}
+
+const dateOf = (year, month, day) => {
+  const date = new Date(Date.UTC(year, month, day, 6, 30))
+
+  /* `31 Feb` jaisi date JS aage khiska deta hai (3 Mar) — wo galat date hai, sahi nahi */
+  return date.getUTCMonth() === month && date.getUTCDate() === day ? date : null
+}
+
+/**
+ * `Published Date` — `9 Sept 2026` jaisa (client, 23 Sep, D-116).
+ *
+ * Chalne wale roop: `9 Sept 2026` · `9 Sep 2026` · `9 September 2026` · `Sept 9, 2026` ·
+ * `2026-09-09` · `09/09/2026` (**DD/MM**, Indian — `MM/DD` nahi). Kuch aur ho to `null`, aur mapper
+ * use Failed banata hai — galat date chup-chaap aaj ki date se badal dena wahi "kuch na hona" hota.
+ *
+ * ⚠️ Waqt **dopahar 12 baje IST** (06:30 UTC) rakha jaata hai. Aadhi raat UTC pe rakhne se India me
+ * wo **pichhle din** ki shaam ban jaati aur page pe ek din pehle ki date chhapti.
+ *
+ * @returns {Date | null}
+ */
+export function parseDocDate(text) {
+  const raw = String(text ?? '')
+    .replace(/,/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (!raw) return null
+
+  let m = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/)
+  if (m) return dateOf(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+
+  m = raw.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/)
+  if (m) return dateOf(Number(m[3]), Number(m[2]) - 1, Number(m[1]))
+
+  m = raw.match(/^(\d{1,2})(?:st|nd|rd|th)? ([A-Za-z.]+) (\d{4})$/)
+  if (m && monthOf(m[2]) >= 0) return dateOf(Number(m[3]), monthOf(m[2]), Number(m[1]))
+
+  m = raw.match(/^([A-Za-z.]+) (\d{1,2})(?:st|nd|rd|th)? (\d{4})$/)
+  if (m && monthOf(m[1]) >= 0) return dateOf(Number(m[3]), monthOf(m[1]), Number(m[2]))
+
+  return null
+}
+
+/**
+ * Ek khaane ki value se image ka pata — **text me likha URL, ya doc me daali hui image** (client,
+ * 23 Sep, D-116: _"doc me image url bhi honge / upload from file bhi"_).
+ *
+ * Daali hui image ka `src` tab tak hamara apna Media URL ban chuka hota hai — `importInlineImages()`
+ * parse se **pehle** chalti hai. Text pehle dekha jaata hai: dono hon to likha hua URL client ka
+ * saaf irada hai.
+ */
+export function imageUrlOf(value) {
+  const text = String(value?.text ?? '').trim()
+  if (text) return text
+
+  const src = String(value?.html ?? '').match(/<img\b[^>]*?\ssrc\s*=\s*("([^"]*)"|'([^']*)')/i)
+
+  return (src?.[2] ?? src?.[3] ?? '').trim()
+}
 
 /* ── ek-ek khaane ko padhna ───────────────────────────────────────────────── */
 

@@ -1,8 +1,10 @@
 import {
   byLongestFirst,
   emptyValue,
+  faqHeadingRole,
   FAQ_LABELS,
   FAQ_SECTION_LABELS,
+  headingLevel,
   isEmptyBlock,
   matchLabel,
   parseNameList,
@@ -174,6 +176,9 @@ export function parsePackageDoc(html) {
   let currentKey = null
   let matchedAny = false
   let sawItinerary = false
+  /** FAQ marker ka heading level, aur FAQ se pehle ka hissa/khaana (D-116). */
+  let markerLevel = null
+  let beforeFaq = { section: 'top', key: null }
 
   /** Abhi ke hisse ka khaana kahan jaa raha hai. */
   const bucketOf = () =>
@@ -183,6 +188,31 @@ export function parsePackageDoc(html) {
     const plain = textOf(block)
 
     if (isEmptyBlock(block)) continue
+
+    /**
+     * **Headings se FAQ** (client, 23 Sep, D-116) — marker (`<h2>FAQs</h2>`) ke neeche har `<h3>`
+     * ek sawaal, uske neeche ka sab jawab; marker ke barabar ki heading pe FAQ khatam aur pichhla
+     * hissa wapas. Poora niyam `faqHeadingRole()` me. Purane `Question`/`Answer` label chalte rehte
+     * hain — wo paragraph hote hain, heading nahi.
+     */
+    if (section === 'faqs') {
+      const role = faqHeadingRole(block, markerLevel)
+
+      if (role === 'question') {
+        matchedAny = true
+        currentFaq = {}
+        faqs.push(currentFaq)
+        pushValue(currentFaq, 'question', { text: plain, html: block })
+        currentKey = 'answer'
+        continue
+      }
+
+      if (role === 'end') {
+        section = beforeFaq.section
+        currentKey = beforeFaq.key
+        markerLevel = null
+      }
+    }
 
     /** Din ka naya block — iske baad ke labels usi din ke hain. */
     const dayNumber = section === 'itinerary' && plain.match(DAY_NUMBER_RE)
@@ -211,6 +241,10 @@ export function parsePackageDoc(html) {
       matchedAny = true
 
       if (hit.key === 'itineraryStart' || hit.key === 'faqStart') {
+        if (hit.key === 'faqStart') {
+          beforeFaq = { section, key: currentKey }
+          markerLevel = headingLevel(block)
+        }
         section = hit.key === 'faqStart' ? 'faqs' : 'itinerary'
         if (section === 'itinerary') sawItinerary = true
         currentKey = null

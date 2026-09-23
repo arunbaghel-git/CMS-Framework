@@ -19,7 +19,6 @@ import { notFound, unprocessable } from '../../core/errors.js'
 import {
   docIdFromUrl,
   fetchDocHtml,
-  fetchImage,
   fetchSheetCsv,
   sheetIdFromUrl,
 } from '../../core/google-fetch.js'
@@ -31,13 +30,19 @@ import {
   createEntry,
   findEntryByPath,
   findEntryBySlug,
+  previewEntryAddress,
   publishEntry,
   updateEntry,
 } from '../entries/service.js'
-import { createMediaFromUpload, mediaExists } from '../media/service.js'
+import { mediaExists } from '../media/service.js'
 import { getRolePermissions } from '../roles/service.js'
 import { User } from '../users/model.js'
-import { importInlineImages, mediaIdFromUrl } from './inline-images.js'
+import {
+  bareImageUrlsToImg,
+  importImage,
+  importInlineImages,
+  mediaIdFromUrl,
+} from './inline-images.js'
 import { hasBlocker } from './mapper.js'
 import { ImportRun } from './model.js'
 import { toSeoUpdate } from './seo-mapper.js'
@@ -295,22 +300,45 @@ async function actorFor(userId) {
   return { user, permissions: await getRolePermissions(user.role) }
 }
 
-/** Banner image laa kar media me daalo — **fail ho to sirf image fail ho, package nahi**. */
-async function importBanner(url, actor, siteId, deps) {
-  const { bytes, mime, filename } = await fetchImage(url, deps)
+/**
+ * Banner / Featured Image ke label — inki value ka URL article ki image **nahi** banta
+ * (`bareImageUrlsToImg()`), use banner ka raasta sambhalta hai. `normalizeLabel()` ki shakl me.
+ */
+const BANNER_LABELS = Object.freeze([
+  'featured image',
+  'featured image url',
+  'banner image',
+  'banner image url',
+])
 
-  const media = await createMediaFromUpload(
-    {
-      filename,
-      declaredMime: mime,
-      size: bytes.length,
-      bytes,
-      uploadedBy: actor.user._id,
-    },
-    { siteId },
-  )
+/**
+ * Row **Failed — kuch save nahi hua** (client, 23 Sep, D-116: _"bulk me sirf 2 cheezein, failed aur
+ * published"_).
+ *
+ * Pehle blocker pe entry **draft** banti thi. Client ne use hataya: import se aaya draft na site pe
+ * dikhta hai na import ki list me kaam aata hai. Ab blocker = Failed, aur **pehle se live page ko
+ * haath bhi nahi lagta** — pehle blocker ke saath bhi uska content update ho jaata tha (bina hotel ke,
+ * bina category ke), bas publish rukta tha.
+ *
+ * `issues` poore jaate hain (screen pe list); `error` ek line ka saar hai — Past imports ke hover aur
+ * badge ke liye.
+ */
+function failedRow(issues, { title = '', path = '' } = {}) {
+  const blockers = issues.filter((issue) => issue.level === 'blocker')
+  const first = blockers[0]
 
-  return media.id
+  return {
+    status: IMPORT_ROW_STATUS.FAILED,
+    action: null,
+    entryId: null,
+    title,
+    path,
+    issues,
+    error:
+      blockers.length === 1
+        ? `${first.label}: ${first.message}`.slice(0, 500)
+        : `${blockers.length} problems in the document — nothing was imported. Fix them, then press Retry again.`,
+  }
 }
 
 /**
@@ -367,17 +395,23 @@ async function importSeoRow(run, row, actor) {
   )
 
   /**
-   * Row ka status page ki **apni** haalat batata hai, import ke nateeje ki nahi.
+   * Row **Published** — SEO lag gaya (client, 23 Sep, D-116: bulk me sirf Published / Failed).
    *
-   * Yahan "published" ka matlab hai _"ye badlaav abhi live hai"_, aur "draft" ka _"page abhi
-   * live nahi hai, isliye ye SEO bhi kisi ko nahi dikhega"_. Doosra hissa client ke liye
-   * zaroori hai — warna wo ek draft page ka SEO bhar kar Google me dhoondhta rehta.
+   * Pehle yahan page ki apni haalat chhapti thi (draft page = Draft row). Wo baat ab ek **note** hai:
+   * client ko pata rahe ki is page ka naya SEO tab dikhega jab page khud live hoga — warna wo draft
+   * page ka SEO bhar kar Google me dhoondhta rehta.
    */
+  if (entry.status !== ENTRY_STATUS.PUBLISHED) {
+    issues.push({
+      level: 'note',
+      label: 'Page',
+      value: entry.path ?? path,
+      message: 'This page is not published yet, so the new SEO shows once it goes live.',
+    })
+  }
+
   return {
-    status:
-      entry.status === ENTRY_STATUS.PUBLISHED
-        ? IMPORT_ROW_STATUS.PUBLISHED
-        : IMPORT_ROW_STATUS.DRAFT,
+    status: IMPORT_ROW_STATUS.PUBLISHED,
     action: 'updated',
     entryId: entry.id ?? entry._id,
     title: entry.title ?? existing.title ?? '',
@@ -442,6 +476,13 @@ async function importRow(run, row, refs, actor, deps) {
   const imageIssues = []
 
   if (target.allowImages) {
+    /**
+     * Alag line me likha image URL (`https://…/x.webp`) pehle `<img>` banta hai (D-116), taaki neeche
+     * wali line use bhi baaki images ki tarah Media me utaare. Banner/Featured Image ki value chhodi
+     * jaati hai — wo banner wale raaste pe jaati hai.
+     */
+    html = bareImageUrlsToImg(html, { skipAfter: BANNER_LABELS })
+
     const result = await importInlineImages(html, { actor, siteId, deps })
 
     html = result.html
@@ -450,7 +491,7 @@ async function importRow(run, row, refs, actor, deps) {
 
   const parsed = target.parse(html)
   const mapped = target.map(parsed, refs)
-  const { input, issues, slug, bannerUrl } = mapped
+  const { input, issues, slug, bannerUrl, publishAt = null } = mapped
 
   issues.push(...imageIssues)
 
@@ -518,7 +559,49 @@ async function importRow(run, row, refs, actor, deps) {
    */
   if (target.prepare) issues.push(...target.prepare(input, existing, mapped))
 
-  /** Blocker ho to publish nahi hoga — banner ke bina bhi package ban jaana chahiye. */
+  /**
+   * ⚠️ **Blocker = Failed, aur kuch save nahi** (client, 23 Sep, D-116). Ye jaanch banner download
+   * aur create/update se **pehle** hai — row girni hi hai to na image ka record bane, na page chhua
+   * jaaye. Pehle blocker pe entry draft banti thi (aur live page ka content bina hotel/category ke
+   * update ho jaata tha).
+   */
+  const failed = () => failedRow(issues, { title: input.title, path: existing?.path ?? '' })
+
+  if (hasBlocker(issues)) return failed()
+
+  /**
+   * **Address ki jaanch bhi save se pehle** — D-86 ka guard, naye niyam ke saath.
+   *
+   * `resolveSlugAndPath()` takrav pe chup-chaap `-2` laga deta hai. Import me wo hamesha ek galti
+   * hai (ya to purana update hona tha, ya sach me naya). Pehle ye save ke **baad** pakda jaata tha aur
+   * entry draft reh jaati thi; ab koi draft nahi banta, to `previewEntryAddress()` wahi niyam pehle
+   * chala kar batata hai — aur row Failed, bina kuch save kiye.
+   */
+  const address = await previewEntryAddress(
+    { type: target.entryType, slug: input.slug, title: input.title, parentId: input.parentId },
+    existing,
+    siteId,
+  )
+
+  if (lookupSlug && address.slug !== lookupSlug) {
+    issues.push({
+      level: 'blocker',
+      label: target.slugLabel,
+      value: lookupSlug,
+      message: `Another page already uses the address "${lookupSlug}". Set a different ${target.slugLabel}, or run this again in "Existing ${target.labelPlural}" mode to update the original.`,
+    })
+
+    return failed()
+  }
+
+  /**
+   * Banner / Featured Image — hamari apni image ho to seedha, warna **download → Media** (D-116:
+   * _"any image from another url should download and convert in media"_). `importImage()` URL ke hash
+   * se pehchanta hai, to dobara import pe dobara download nahi, aur doc me URL badla to image bhi badli.
+   *
+   * ⚠️ Na aa paaye to row **Failed** — pehle ye blocker ke saath draft tha. Doc me image likhi hai aur
+   * page bina uske live ho jaaye, wo wahi "kuch na hona" hai.
+   */
   if (bannerUrl) {
     try {
       const ownMediaId = mediaIdFromUrl(bannerUrl)
@@ -531,19 +614,17 @@ async function importRow(run, row, refs, actor, deps) {
 
         target.setImage(input, ownMediaId)
       } else {
-        /** Pehle se banner ho to dobara download nahi — warna har run naye media bana deta hai. */
-        target.setImage(
-          input,
-          target.getImage(existing) ?? (await importBanner(bannerUrl, actor, siteId, deps)),
-        )
+        target.setImage(input, await importImage(bannerUrl, { actor, siteId, deps }))
       }
     } catch (err) {
       issues.push({
         level: 'blocker',
-        label: 'Banner Image URL',
-        value: bannerUrl,
+        label: target.bannerLabel ?? 'Banner Image URL',
+        value: bannerUrl.slice(0, 300),
         message: err.message,
       })
+
+      return failed()
     }
   }
 
@@ -565,53 +646,28 @@ async function importRow(run, row, refs, actor, deps) {
   }
 
   /**
-   * **Import me suffix lagna hamesha ek galti ka nishaan hai** — D-86.
+   * **Hamesha Published** (D-116) — blocker upar hi row gira chuka hai.
    *
-   * `resolveSlugAndPath()` slug ka takrav dekh kar chup-chaap `-2` laga deta hai. Admin me
-   * haath se page banate waqt wo behaviour theek hai (do page ka naam sach me ek jaisa ho
-   * sakta hai), par import me kabhi nahi: yahan ya to purana package update hona tha, ya sach
-   * me naya banna tha. Beech ka `…-7` kisi ne nahi maanga hota.
-   *
-   * Asli data me yahi hua tha — ek hi doc `…-2` se `…-7` tak saat live page bana chuka tha,
-   * aur har run "Published" bolta raha. Upar wale lookup ka fix us ek wajah ko band karta hai;
-   * ye guard un wajahon ke liye hai **jo abhi hume dikhi hi nahi** — jaise kisi doosre type ke
-   * page ka wahi `path` ghere baithna.
-   *
-   * Blocker hai, `throw` nahi: package ban chuka hai aur uska content bacha rehna chahiye —
-   * wahi niyam jo baaki har blocker pe hai.
-   */
-  if (entry.slug && lookupSlug && entry.slug !== lookupSlug) {
-    issues.push({
-      level: 'blocker',
-      label: target.slugLabel,
-      value: lookupSlug,
-      message: `Another ${target.label} already uses the address "${lookupSlug}", so this one was saved as "${entry.slug}". Set a different ${target.slugLabel}, or run this again in "Existing ${target.labelPlural}" mode to update the original.`,
-    })
-  }
-
-  const blocked = hasBlocker(issues)
-
-  /**
-   * Publish ke do niyam:
-   *
-   * 1. Blocker ho to publish **nahi** — client ka faisla ("rok do publish mat karo").
-   * 2. Pehle se published ho to **dobara publish nahi** — wo `version` phir badha deta, ek aur
-   *    revision likhta, aur `publishAt` ko aaj ki tareekh pe reset kar deta. Yaani bees
-   *    package ki "Published on" har import pe badal jaati.
-   *
-   * ⚠️ Aur ek baat: pehle se live page ko blocker ki wajah se **neeche nahi laaya jaata**. Ek
-   * hotel ke naam ki typo bees live page utaar de — wo aapdaa hoti.
+   * - Naya ya abhi live nahi → publish. Doc ki `Published Date` ho (sirf blog) to **wahi date**, aage
+   *   ki bhi — `asPublished` use scheduled nahi banne deta (client: _"100% uthao"_)
+   * - Pehle se live → **dobara publish nahi** (wo `version` badhata, revision likhta aur "Published on"
+   *   aaj pe le aata). Sirf tab jab doc ki date purani date se alag ho
    */
   const alreadyLive = existing?.status === ENTRY_STATUS.PUBLISHED
+  const dateChanged =
+    publishAt && (!existing?.publishAt || +new Date(existing.publishAt) !== +publishAt)
 
-  if (!blocked && !alreadyLive) {
-    entry = await publishEntry(String(entry.id ?? entry._id), {}, actor, siteId)
+  if (!alreadyLive || dateChanged) {
+    entry = await publishEntry(
+      String(entry.id ?? entry._id),
+      { ...(publishAt ? { publishAt } : {}), asPublished: true },
+      actor,
+      siteId,
+    )
   }
 
-  const published = alreadyLive || (!blocked && entry.status === ENTRY_STATUS.PUBLISHED)
-
   return {
-    status: published ? IMPORT_ROW_STATUS.PUBLISHED : IMPORT_ROW_STATUS.DRAFT,
+    status: IMPORT_ROW_STATUS.PUBLISHED,
     action,
     entryId: entry.id ?? entry._id,
     title: input.title,

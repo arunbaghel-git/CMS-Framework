@@ -11016,3 +11016,82 @@ Chrome `dd-mm-yyyy` dikhata hai). Live DB ke paanchon date khaano ka placeholder
   `min-height: 1.5em` + `text-align: left`
 - `month` pehle bhi `type="text"` pe girta tha (type map me tha hi nahi) — waisa hi chhoda, sirf `date` alag hua
 - ⚠️ Aankh se dekhna baaki — **A-51** (asli iPhone + Android). Test: `package/enquiry-form.test.js` (6)
+
+---
+
+## D-116
+
+**Bulk Upload — sirf Published / Failed, Retry again, Featured Image, doc ki images, h2/h3 FAQ, Published Date** (client, 23 Sep 2026)
+
+**Status:** ✅ ban gaya · koi migration nahi · D-81/D-86/D-92 ka "blocker = draft" **palta**
+
+Client ki list (unke shabd, short): _"Banner Image URL replace with Featured image"_ · _"retry option ho
+jisse sheet url bar bar dalna na pade"_ · _"remove draft … only failed or published"_ · _"image url / upload
+from file dono chalne chahiye (png, webp…)"_ · _"faq h2, h3 ke base par"_ · _"published date label"_ ·
+_"any image from another url should download and convert in media"_.
+
+### §1 — Draft khatam: blocker = **Failed, kuch save nahi**
+
+- Pehle blocker pe entry **draft** banti thi (D-81 _"rok do publish mat karo … draft ban jayega"_). Client:
+  _"draft only means when admin make a page manually … in bulk there are only 2 things failed and
+  published"_. Ab koi blocker ho to row Failed, aur entry **na banti hai na badalti hai**
+- ⚠️ **Iska ek chhupa faayda:** pehle live package pe blocker aane par bhi uska content update ho jaata tha
+  (bina hotel / category ke), sirf publish rukta tha. Ab live page ko haath hi nahi lagta
+- Jaanch ab **save se pehle**, teen jagah: mapper ke blocker → `previewEntryAddress()` (URL pe `-2` lagna,
+  D-86 ka guard; `entries/service.js` me, wahi `resolveSlugAndPath()`) → banner/Featured Image ka download.
+  Teeno me se kuch bhi → `failedRow()`: `issues` poore (screen pe list), `error` ek line ka saar (hover)
+- SEO (Meta upload) ki row bhi hamesha Published; page khud draft ho to **note**
+- `IMPORT_ROW_STATUS.DRAFT` enum me **bacha hai** — sirf purane run ki rows ke liye. Admin se Draft ka column
+  aur tab gaye; purani draft rows `All` me badge ke saath dikhti hain
+- Blocker ke messages ab "… then press Retry again" kehte hain, "publish rukta hai" nahi
+
+### §2 — Retry again
+
+Har past import pe (Failed ho ya Published — client ne dono kaha) aur Import result screen pe. **Form bharta
+hai, import khud nahi chalata**: sheet URL, type aur **mode** usi run ka. Mode isliye ki Failed row me kuch
+bana hi nahi — agli koshish bhi usi mode (aam taur pe New) me honi chahiye. Result screen se `navigate(…, {
+state: { retry } })`, Bulk Upload use `useLocation` se padh kar state saaf karti hai.
+
+### §3 — Blog ka `Featured Image`, aur images ka ek hi raasta
+
+- Blog doc ka label **`Featured Image`** (`featured image url` bhi). Purana `Banner Image URL` alias bacha
+  hai — hata dene pe wo line `Content` me chipak jaati (A-38 wala jaal). Fixture (`post-template.html`) ka
+  label badla, URL ab **bahar ka**, aur `Published Date` juda
+- Value me URL likho **ya** doc me image daalo — dono chalte hain: `imageUrlOf()` pehle text, phir `<img src>`
+  (daali hui image parse se pehle hi Media me utar chuki hoti hai)
+- ⚠️ `importBanner()` **hata**, uski jagah `importImage()` (`inline-images.js`) — wahi `importOne()` jo
+  article ki images pe hai: URL ke hash se pehchan, yaani **dobara download nahi**, aur doc me URL badla to
+  image bhi badli. Pehle `getImage(existing)` wala shortcut badla hua URL chup-chaap nazarandaz karta tha
+- **Alag line me likha image URL** (`https://…/x.webp`) article me `<img>` banta hai (`bareImageUrlsToImg()`)
+  aur Media me utarta hai. Teen shart: paragraph me **sirf** URL, extension `jpg/jpeg/png/webp`, aur pichhla
+  block banner ka label **nahi** (wo banner wale raaste pe jaata hai, Failed ke saath). Sentence ke beech ka
+  URL aur bina extension ka URL link hi rehte hain
+- Sirf blog + page pe (`allowImages`). Package pe images ab bhi band — sirf banner (URL), jo ab dedupe ke saath
+
+### §4 — FAQ, headings se (blog · page · package)
+
+_"h2 heading aur h3 question, h3 ke baad answer, if again h3 then question"_. `faqHeadingRole()` +
+`headingLevel()` (`doc-parse.js`): marker se chhoti heading = sawaal, barabar/badi = FAQ khatam aur pichhla
+khaana (article) wapas. Marker heading ho to wahi FAQ block ka heading. Marker ke naye roop: `faq's`,
+`frequently asked question`, `… (faqs)`. Purana `Question`/`Answer` label wala tareeka chalta rehta hai.
+⚠️ Article ke beech likhi FAQ page pe phir bhi article ke **baad** chhapti hai (block ka kram).
+⚠️ Asli export wale fixture ka FAQ nahi badla (uska comment: haath ka HTML fixture me nahi) — h2/h3 ke test
+Google jaisi markup se alag likhe.
+
+### §5 — Blog ki `Published Date`
+
+`Published Date : 9 Sept 2026` (`publish date`, `date published` bhi). `parseDocDate()`: `9 Sept 2026` · `9 Sep` ·
+`9 September` · `Sept 9, 2026` · `2026-09-09` · `09/09/2026` (**DD/MM**). Waqt dopahar IST — aadhi raat UTC
+India me pichhla din hota. Padhi na jaaye → blocker (Failed). Na likhi ho → publish ke din ki date.
+⚠️ **Aage ki date bhi "100%"** (client) — post abhi live, date wahi: `publishEntry(…, { asPublished: true })`,
+jo sirf andar ka raasta hai (HTTP route ka schema `.strict()`, wahan 400). Blog listing `publishAt` se chhant-ti
+hai, to aage ki date wala post sabse upar dikhega. Pehle se live post pe date sirf tab badalti hai jab doc ki
+date alag ho (warna publish dobara nahi — D-81).
+
+### §6 — Jo nahi badla / baaki
+
+- Client ki Google Docs wali **guide/template** (A-22 ka v2) me `Featured Image`, `Published Date` aur h2/h3
+  FAQ likhna **client ka kaam** — code se bahar
+- Asli Google Doc pe live nahi chalaya — **A-52**
+- Tests: shared 112, bulk mappers 74, inline-images 39, `bulk-imports.test.js` 98 (9 purane "draft" wale palte,
+  8 naye D-116)

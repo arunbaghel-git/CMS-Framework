@@ -424,6 +424,22 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
+#### A-52 · D-116 — Bulk Upload ka naya niyam — **asli Google Doc pe chalana baaki** (23 Sep)
+
+**Deadline:** client ke chalane pe · tests pass, asli doc pe nahi chalaya · deploy pe sirf API restart + admin build
+
+| # | Kya dekhna | Kahan |
+| --- | --- | --- |
+| 1 | Blog doc me `Featured Image` ke neeche **URL** — post ki featured image Media me aayi | Bulk Upload ▸ Blog posts |
+| 2 | Wahi, par doc me image **daali hui** (Insert → Image) | Blog posts |
+| 3 | Article me alag line me `https://…/x.webp` — page pe image, Media me record, bahar ka link nahi | Blog/Page |
+| 4 | `Published Date : 9 Sept 2026` — post pe wahi date; na likho to aaj ki | Blog posts |
+| 5 | FAQ: h2 `Frequently Asked Questions`, uske neeche h3 sawaal + paragraph jawab | Blog/Page/Package |
+| 6 | Koi galti (galat category) — row **Failed**, All Posts me **koi draft nahi** | koi bhi |
+| 7 | Past imports ▸ `Retry again` — form bhar jaaye (sheet, type, mode), Import dabane pe chale | Bulk Upload |
+
+⚠️ Client ki **Google Docs guide/template** me naye label likhne hain — code se bahar.
+
 #### A-51 · D-115 — form heading `<p>` + phone pe date ka placeholder — **aankh se dekhna baaki** (23 Sep)
 
 **Deadline:** client ke dekhne pe · web tests pass, `next build` nahi chalaya

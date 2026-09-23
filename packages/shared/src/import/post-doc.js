@@ -1,8 +1,10 @@
 import {
   byLongestFirst,
   emptyValue,
+  faqHeadingRole,
   FAQ_LABELS,
   FAQ_SECTION_LABELS,
+  headingLevel,
   isEmptyBlock,
   matchLabel,
   pushValue,
@@ -63,8 +65,25 @@ export const POST_DOC_LABELS = Object.freeze({
   'short description': 'excerpt',
   category: 'category',
   categories: 'category',
+  /**
+   * **`Featured Image`** — blog ka label (client, 23 Sep, D-116: _"label badal do, jaruri hai blog
+   * me"_). Value me image ka URL likha ho **ya** doc me image daali ho — dono chalte hain
+   * (`imageUrlOf()`).
+   *
+   * ⚠️ Purane `Banner Image URL`/`Banner Image` **jaan-boojh kar bache hain** — purane doc bina
+   * badle chalte rahein. Hata dene pe wo line `Content` me **chipak** jaati (A-38 wala jaal).
+   */
+  'featured image url': 'bannerImage',
+  'featured image': 'bannerImage',
   'banner image url': 'bannerImage',
   'banner image': 'bannerImage',
+  /**
+   * `Published Date : 9 Sept 2026` (client, 23 Sep). Doc me ho to wahi date **100%** (aage ki bhi);
+   * na ho to jis din post publish hua. Padhna `parseDocDate()` me.
+   */
+  'published date': 'publishedDate',
+  'publish date': 'publishedDate',
+  'date published': 'publishedDate',
   content: 'content',
   article: 'content',
   body: 'content',
@@ -122,11 +141,46 @@ export function parsePostDoc(html) {
   let currentKey = null
   let matchedAny = false
   let faqHeading = ''
+  /** FAQ marker ka heading level, aur FAQ se pehle kaunsa khaana chal raha tha (D-116). */
+  let markerLevel = null
+  let keyBeforeFaq = null
 
   for (const block of blocks) {
     const plain = textOf(block)
 
     if (isEmptyBlock(block)) continue
+
+    /**
+     * **Headings se FAQ** (client, 23 Sep, D-116) — `faqHeadingRole()` me poora niyam.
+     *
+     * ⚠️ Label se **pehle** dekha jaata hai: `<h3>` ka sawaal kabhi kisi label jaisa ho (`Content of
+     * the tour?`) to bhi wo sawaal hi rahe. Purane `Question`/`Answer` paragraph hote hain, heading
+     * nahi — un pe iska koi asar nahi.
+     */
+    /* Purane `Heading` label ki value khud `<h2>` ho sakti hai — wo heading hi hai, FAQ ka ant nahi */
+    if (section === 'faqs' && currentKey !== 'faqHeading') {
+      const role = faqHeadingRole(block, markerLevel)
+
+      if (role === 'question') {
+        matchedAny = true
+        currentFaq = {}
+        faqs.push(currentFaq)
+        pushValue(currentFaq, 'question', { text: plain, html: block })
+        currentKey = 'answer'
+        continue
+      }
+
+      /**
+       * Marker ke barabar ki heading = FAQ khatam. Article wahin se aage chalta hai — wahi khaana
+       * jo FAQ se pehle chal raha tha (`Content`). ⚠️ FAQ **block** phir bhi article ke baad hi
+       * chhapta hai (`post-mapper`), to beech me likhi FAQ page pe neeche jaati hai.
+       */
+      if (role === 'end') {
+        section = 'top'
+        currentKey = keyBeforeFaq
+        markerLevel = null
+      }
+    }
 
     const [order, map] =
       section === 'faqs' ? [FAQ_LABEL_ORDER, POST_FAQ_LABELS] : [TOP_LABEL_ORDER, POST_DOC_LABELS]
@@ -156,7 +210,11 @@ export function parsePostDoc(html) {
 
       if (hit.key === 'faqStart') {
         section = 'faqs'
+        keyBeforeFaq = currentKey
         currentKey = null
+        markerLevel = headingLevel(block)
+        /* Marker khud heading ho (`<h2>Frequently asked questions</h2>`) to wahi FAQ ka heading */
+        if (markerLevel && !faqHeading) faqHeading = plain
         continue
       }
 

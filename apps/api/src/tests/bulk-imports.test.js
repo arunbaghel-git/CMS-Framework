@@ -198,8 +198,16 @@ async function drain(deps) {
   throw new Error('Worker 50 baar chalne ke baad bhi khatam nahi hua')
 }
 
-async function runImport(docs, ids = Object.keys(docs), mode = undefined, target = undefined) {
-  const deps = { fetchImpl: fakeFetch(docs, csvOf(ids)) }
+async function runImport(
+  docs,
+  ids = Object.keys(docs),
+  mode = undefined,
+  target = undefined,
+  extraDeps = {},
+) {
+  /** `extraDeps` — D-116 ke image tests: naqli `mediaPort` aur image ka fetch. */
+  const deps = { fetchImpl: fakeFetch(docs, csvOf(ids)), ...extraDeps }
+  if (extraDeps.wrapFetch) deps.fetchImpl = extraDeps.wrapFetch(deps.fetchImpl)
 
   /**
    * `startImport()` ko service se seedha bulaya jaata hai kyunki HTTP route ke paas
@@ -325,19 +333,42 @@ describe('import chalana', () => {
     expect(entry.fields.itinerary[0].meals).toEqual(['Breakfast', 'Dinner'])
   })
 
-  it('naam match na kare to draft rehta hai — content phir bhi aata hai', async () => {
+  /**
+   * ⚠️ D-116 (client, 23 Sep): import me **sirf Published ya Failed** — pehle yahan package draft
+   * banta tha. Ab blocker = Failed, aur kuch save nahi hota.
+   */
+  it('naam match na kare to row Failed — package banta hi nahi', async () => {
     const run = await runImport({ B: typoDoc })
 
-    expect(run.rows[0].status).toBe('draft')
-    expect(run.rows[0].entryId).toBeTruthy()
+    expect(run.rows[0].status).toBe('failed')
+    expect(run.rows[0].entryId).toBeNull()
 
     const blocker = run.rows[0].issues.find((issue) => issue.level === 'blocker')
 
     expect(blocker.value).toBe('Havelok')
     expect(blocker.message).toContain('Destinations list')
+    /** Ek hi blocker — to wahi `error` bhi hai (Past imports ka hover) */
+    expect(run.rows[0].error).toContain('Destinations list')
+    expect(await Entry.countDocuments()).toBe(0)
+  })
 
-    const entry = await Entry.findById(run.rows[0].entryId).lean()
-    expect(entry.status).toBe(ENTRY_STATUS.DRAFT)
+  /** Pehle blocker ke saath bhi live package ka content update ho jaata tha (bina hotel ke). */
+  it('live package pe blocker aaye to use haath nahi lagta', async () => {
+    const first = await runImport({ A: goodDoc('Live One', 'live-one') })
+    const before = await Entry.findById(first.rows[0].entryId).lean()
+
+    const broken = goodDoc('Live One CHANGED', 'live-one').replace(
+      'Port Blair, Havelock',
+      'Havelok',
+    )
+    const second = await runImport({ A: broken }, ['A'], 'existing')
+
+    expect(second.rows[0].status).toBe('failed')
+
+    const after = await Entry.findById(before._id).lean()
+    expect(after.title).toBe('Live One')
+    expect(after.version).toBe(before.version)
+    expect(after.status).toBe(ENTRY_STATUS.PUBLISHED)
   })
 
   it('naam hi na ho to row failed hai — package banta hi nahi', async () => {
@@ -450,7 +481,7 @@ describe('banner image', () => {
     expect(run.rows[0].status).toBe('published')
   })
 
-  it('media library me wo image na ho to saaf blocker deta hai', async () => {
+  it('media library me wo image na ho to row Failed, saaf wajah ke saath', async () => {
     const withBanner = doc(
       [
         p('Package Name'),
@@ -468,7 +499,8 @@ describe('banner image', () => {
 
     const banner = run.rows[0].issues.find((issue) => issue.label === 'Banner Image URL')
 
-    expect(run.rows[0].status).toBe('draft')
+    expect(run.rows[0].status).toBe('failed')
+    expect(await Entry.countDocuments()).toBe(0)
     expect(banner.level).toBe('blocker')
     expect(banner.message).toContain('no longer in the Media library')
   })
@@ -514,32 +546,25 @@ describe('slug ki pehchaan (D-86)', () => {
     expect(await Entry.countDocuments()).toBe(1)
   })
 
-  it('Package URL na ho to package banta hai par draft rukta hai', async () => {
+  /** D-116: pehle yahan package draft banta tha (address naam se). Ab Failed, kuch nahi banta. */
+  it('Package URL na ho to row Failed — package banta hi nahi', async () => {
     const { rows } = await runImport({ A: noUrlDoc })
 
-    expect(rows[0].status).toBe('draft')
-    expect(rows[0].action).toBe('created')
-    /** Address naam se bana — kaam khota nahi, sirf publish rukta hai. */
-    expect(rows[0].path).toBe('/packages/andaman-tour')
+    expect(rows[0].status).toBe('failed')
+    expect(rows[0].action).toBeNull()
     expect(rows[0].issues.some((i) => i.label === 'Package URL' && i.level === 'blocker')).toBe(
       true,
     )
+    expect(await Entry.countDocuments()).toBe(0)
   })
 
-  it('Package URL na ho to bhi dobara chalane pe duplicate nahi banta', async () => {
+  it('Package URL na ho to har run Failed — kabhi duplicate nahi', async () => {
     const docs = { A: noUrlDoc }
 
     await runImport(docs)
-    expect(await Entry.countDocuments()).toBe(1)
+    await runImport(docs)
 
-    /**
-     * Lookup ab naam se bane slug pe hota hai — wahi jo `resolveSlugAndPath()` banata hai.
-     * Pehle yahan lookup hota hi nahi tha (`slug ? … : null`) aur har run naya page banata tha.
-     */
-    const second = await runImport(docs, undefined, 'existing')
-
-    expect(await Entry.countDocuments()).toBe(1)
-    expect(second.rows[0].action).toBe('updated')
+    expect(await Entry.countDocuments()).toBe(0)
   })
 
   it('Trash me pada package ab sach me pakda jaata hai', async () => {
@@ -558,7 +583,7 @@ describe('slug ki pehchaan (D-86)', () => {
     expect(second.rows[0].error).toMatch(/Trash/i)
   })
 
-  it('slug pe suffix lagna pade to publish rukta hai', async () => {
+  it('slug pe suffix lagna pade to row Failed — kuch save nahi', async () => {
     /**
      * `uploads` ek **reserved slug** hai (`RESERVED_SLUGS`), isliye `resolveSlugAndPath()`
      * use chhod kar `uploads-2` pe chala jaata hai.
@@ -571,9 +596,10 @@ describe('slug ki pehchaan (D-86)', () => {
       A: doc([p('Package Name'), p('Trip One'), p('Package URL'), p('uploads')].join('')),
     })
 
-    expect(rows[0].path).toBe('/packages/uploads-2')
-    expect(rows[0].status).toBe('draft')
+    /** D-116: jaanch save se **pehle** (`previewEntryAddress()`) — `uploads-2` kabhi banta hi nahi */
+    expect(rows[0].status).toBe('failed')
     expect(rows[0].issues.some((i) => /already uses the address/i.test(i.message))).toBe(true)
+    expect(await Entry.countDocuments()).toBe(0)
   })
 })
 
@@ -609,17 +635,21 @@ describe('dobara chalana', () => {
     expect(after.publishAt.getTime()).toBe(before.publishAt.getTime())
   })
 
-  it('draft theek ho jaane pe agla run use publish kar deta hai', async () => {
+  /**
+   * D-116: Failed row me kuch bana hi nahi, to agla run **wahi mode** (New) me chalta hai — Past
+   * imports ka `Retry again` isi liye pichhla mode bhi bharta hai.
+   */
+  it('Failed row theek hone pe agla run (New) use publish kar deta hai', async () => {
     const first = await runImport({ B: typoDoc })
-    expect(first.rows[0].status).toBe('draft')
+    expect(first.rows[0].status).toBe('failed')
 
     /** Client master list me naam theek karta hai — spelling ab milti hai */
     await Taxonomy.create({ type: 'destination', name: 'Havelok', slug: 'havelok' })
 
-    const second = await runImport({ B: typoDoc }, undefined, 'existing')
+    const second = await runImport({ B: typoDoc })
 
     expect(second.rows[0].status).toBe('published')
-    expect(second.rows[0].action).toBe('updated')
+    expect(second.rows[0].action).toBe('created')
     expect(await Entry.countDocuments()).toBe(1)
   })
 
@@ -1132,7 +1162,7 @@ describe('blog post ka import (spec 008)', () => {
     expect(entry.content.blocks[1].props.items).toHaveLength(1)
   })
 
-  it('category na mile to post banta hai par draft rukta hai', async () => {
+  it('category na mile to row Failed — post banta hi nahi (D-116)', async () => {
     const bad = postDoc([
       'Blog title',
       'Ferry guide',
@@ -1146,12 +1176,9 @@ describe('blog post ka import (spec 008)', () => {
 
     const run = await runImport({ d1: bad }, ['d1'], undefined, 'post')
 
-    expect(run.rows[0].status).toBe('draft')
+    expect(run.rows[0].status).toBe('failed')
     expect(run.rows[0].issues[0].value).toBe('Trip Planing')
-
-    /** ⚠️ Content phir bhi jaata hai — sirf publish rukta hai. */
-    const entry = await Entry.findById(run.rows[0].entryId).lean()
-    expect(entry.content.blocks[0].props.html).toMatch(/Body text here/)
+    expect(await Entry.countDocuments({ type: 'post' })).toBe(0)
   })
 
   it('Blog title na ho to post ban hi nahi sakta — aur message post wala hota hai', async () => {
@@ -1352,7 +1379,7 @@ describe('page ka import (D-95, client 14 Sep)', () => {
     expect(html).toContain('Caption: The coral shelf sits close to the surface')
   })
 
-  it('Parent page na mile to page banta hai par draft — root pe publish nahi hota', async () => {
+  it('Parent page na mile to row Failed — page root pe nahi banta (D-116)', async () => {
     const run = await runImport(
       { P1: pageDoc.replace('Andaman Beaches', 'Andaman Beeches') },
       ['P1'],
@@ -1360,10 +1387,11 @@ describe('page ka import (D-95, client 14 Sep)', () => {
       'page',
     )
 
-    expect(run.rows[0].status).toBe('draft')
+    expect(run.rows[0].status).toBe('failed')
     expect(run.rows[0].issues.filter((issue) => issue.level === 'blocker')).toEqual([
       expect.objectContaining({ level: 'blocker', label: 'Parent page' }),
     ])
+    expect(run.rows[0].entryId).toBeNull()
   })
 
   it('new mode me wahi doc dobara chalane pe saaf rukta hai', async () => {
@@ -1550,12 +1578,14 @@ describe('SEO ka bulk upload (D-107)', () => {
     expect(run.rows[0].error).toBe('This row has no page address')
   })
 
-  it('draft page ka SEO lagta hai par row Draft rehti hai — wo live nahi hai', async () => {
+  /** D-116: bulk me sirf Published / Failed — draft page ki baat ab ek note hai. */
+  it('draft page ka SEO lagta hai, row Published, aur note ki page live nahi hai', async () => {
     const page = await makeEntry({ status: ENTRY_STATUS.DRAFT })
 
     const run = await runSeoImport(seoCsv(['/about-us,Page,Draft title,']))
 
-    expect(run.rows[0].status).toBe('draft')
+    expect(run.rows[0].status).toBe('published')
+    expect(run.rows[0].issues.some((i) => /not published yet/.test(i.message))).toBe(true)
     expect((await Entry.findById(page._id).lean()).seo.title).toBe('Draft title')
   })
 
@@ -1816,5 +1846,200 @@ describe('worker — row ka claim aur release (22 Sep)', () => {
     expect(run.rows[0].error).toMatch(/could not be started/)
     /** Run band ho jaana chahiye — warna admin me "Importing…" anant tak chalta. */
     expect(run.status).toBe('done')
+  })
+})
+
+/**
+ * D-116 (client, 23 Sep) — blog ki **Featured Image** aur doc ki images Media me, aur **Published Date**.
+ *
+ * ⚠️ Media ka naqli ghar (`mediaPort`) — asli disk pe likhne se `media.test.js` ki safai ke saath race
+ * hoti (A-11). Wahi convention jo `inline-images.test.js` me hai.
+ */
+describe('blog — Featured Image, doc ki images, Published Date (D-116)', () => {
+  const REMOTE_FEATURED = 'https://lh7-rt.googleusercontent.com/docsz/featured-ferry.jpg'
+  const REMOTE_INLINE = 'https://lh7-rt.googleusercontent.com/docsz/inline-map.webp'
+  const PNG = Buffer.from('89504e470d0a1a0a', 'hex')
+
+  function mediaPort() {
+    const rows = []
+
+    return {
+      rows,
+      async findByFilenames(filenames) {
+        return rows.find((row) => filenames.includes(row.filename)) ?? null
+      },
+      async create(input) {
+        const id = String(rows.length + 1).padStart(24, 'a')
+        const row = {
+          id,
+          filename: `${input.filename}.png`,
+          variants: [
+            {
+              key: 'large',
+              url: `/uploads/sites/default/media/2026/09/${id}/large.webp`,
+              w: 800,
+              h: 600,
+            },
+          ],
+        }
+        rows.push(row)
+        return row
+      },
+    }
+  }
+
+  /** Image ke URL pe PNG, baaki sab asli naqli Google pe. */
+  const wrapFetch =
+    (inner) =>
+    async (url, ...rest) =>
+      url.includes('googleusercontent.com')
+        ? {
+            ok: true,
+            status: 200,
+            url,
+            headers: new Map([['content-type', 'image/png']]),
+            arrayBuffer: async () => PNG,
+          }
+        : inner(url, ...rest)
+
+  const postDoc = (rows) => doc(rows.map(p).join(''))
+
+  const rows = (extra = []) => [
+    'Blog title',
+    'Ferry guide',
+    'Blog URL',
+    'ferry-guide',
+    'Category',
+    'Trip planning',
+    'Featured Image',
+    REMOTE_FEATURED,
+    ...extra,
+    'Content',
+    'Intro.',
+    REMOTE_INLINE,
+    'More text.',
+  ]
+
+  it('bahar ki Featured Image download hokar Media me — post pe wahi id', async () => {
+    const port = mediaPort()
+    const run = await runImport({ d1: postDoc(rows()) }, ['d1'], undefined, 'post', {
+      mediaPort: port,
+      wrapFetch,
+    })
+
+    expect(run.rows[0].status).toBe('published')
+
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+    const featured = port.rows.find((row) => entry.featuredImageId === row.id)
+
+    expect(featured).toBeTruthy()
+  })
+
+  it('article me alag line ka image URL bhi Media me — hamara URL lagta hai', async () => {
+    const port = mediaPort()
+    const run = await runImport({ d1: postDoc(rows()) }, ['d1'], undefined, 'post', {
+      mediaPort: port,
+      wrapFetch,
+    })
+
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+    const html = entry.content.blocks[0].props.html
+
+    expect(html).toMatch(/<img[^>]+src="\/uploads\/sites\/default\/media\//)
+    expect(html).not.toContain('googleusercontent')
+    /** Featured Image article me nahi aati — wo apni jagah (banner) hai */
+    expect(port.rows).toHaveLength(2)
+  })
+
+  it('Published Date doc se — 9 Sept 2026', async () => {
+    const run = await runImport(
+      { d1: postDoc(rows(['Published Date', '9 Sept 2026'])) },
+      ['d1'],
+      undefined,
+      'post',
+      { mediaPort: mediaPort(), wrapFetch },
+    )
+
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(entry.status).toBe(ENTRY_STATUS.PUBLISHED)
+    expect(entry.publishAt.toISOString().slice(0, 10)).toBe('2026-09-09')
+  })
+
+  /** Client: _"jo doc me ho use to 100% uthao"_ — aage ki date pe bhi post abhi live, scheduled nahi. */
+  it('aage ki Published Date — post phir bhi Published, date wahi', async () => {
+    const run = await runImport(
+      { d1: postDoc(rows(['Published Date', '9 Sept 2030'])) },
+      ['d1'],
+      undefined,
+      'post',
+      { mediaPort: mediaPort(), wrapFetch },
+    )
+
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(run.rows[0].status).toBe('published')
+    expect(entry.status).toBe(ENTRY_STATUS.PUBLISHED)
+    expect(entry.publishAt.toISOString().slice(0, 10)).toBe('2030-09-09')
+  })
+
+  it('Published Date na ho to publish ke din ki date', async () => {
+    const before = Date.now()
+    const run = await runImport({ d1: postDoc(rows()) }, ['d1'], undefined, 'post', {
+      mediaPort: mediaPort(),
+      wrapFetch,
+    })
+
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(entry.publishAt.getTime()).toBeGreaterThanOrEqual(before - 1000)
+  })
+
+  it('padhi na ja sake aisi date — row Failed, post nahi banta', async () => {
+    const run = await runImport(
+      { d1: postDoc(rows(['Published Date', 'next week'])) },
+      ['d1'],
+      undefined,
+      'post',
+      { mediaPort: mediaPort(), wrapFetch },
+    )
+
+    expect(run.rows[0].status).toBe('failed')
+    expect(run.rows[0].error).toContain('Published Date')
+    expect(await Entry.countDocuments({ type: 'post' })).toBe(0)
+  })
+
+  it('Featured Image download na ho to row Failed — post nahi banta', async () => {
+    const run = await runImport({ d1: postDoc(rows()) }, ['d1'], undefined, 'post', {
+      mediaPort: mediaPort(),
+      wrapFetch:
+        (inner) =>
+        async (url, ...rest) =>
+          url.includes('featured-ferry')
+            ? {
+                ok: false,
+                status: 404,
+                url,
+                headers: new Map(),
+                arrayBuffer: async () => Buffer.alloc(0),
+              }
+            : wrapFetch(inner)(url, ...rest),
+    })
+
+    expect(run.rows[0].status).toBe('failed')
+    expect(run.rows[0].issues.some((i) => i.label === 'Featured Image')).toBe(true)
+    expect(await Entry.countDocuments({ type: 'post' })).toBe(0)
+  })
+
+  /** Pura doc import ho jaane ke baad koi draft na bache — client: _"koi bhi draft page nahi banega"_. */
+  it('bulk upload se kabhi draft entry nahi banti', async () => {
+    await runImport({ d1: postDoc(rows()) }, ['d1'], undefined, 'post', {
+      mediaPort: mediaPort(),
+      wrapFetch,
+    })
+    await runImport({ B: typoDoc })
+    await runImport({ C: namelessDoc })
+
+    expect(await Entry.countDocuments({ status: ENTRY_STATUS.DRAFT })).toBe(0)
   })
 })

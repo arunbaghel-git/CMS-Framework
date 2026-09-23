@@ -2,7 +2,12 @@ import { DEFAULT_SITE_ID } from '@cms/shared'
 import mongoose from 'mongoose'
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { importInlineImages } from '../modules/bulk-imports/inline-images.js'
+import {
+  bareImageUrlsToImg,
+  importImage,
+  importInlineImages,
+  isImageUrl,
+} from '../modules/bulk-imports/inline-images.js'
 
 /**
  * Article ke andar ki images ka import — spec 008.
@@ -361,5 +366,97 @@ describe('data: URI — jaisa Google sach me bhejta hai', () => {
     await run(`<p><img src="${DATA_URI}"></p><p><img src="${DATA_URI_2}"></p>`, deadFetch)
 
     expect(port.rows).toHaveLength(2)
+  })
+})
+
+/* ── D-116 — alag line me likha image URL, aur banner/Featured Image ── */
+
+describe('isImageUrl — sirf jpg / jpeg / png / webp (client, 23 Sep)', () => {
+  it.each([
+    'https://a.com/x.jpg',
+    'https://a.com/x.JPEG',
+    'http://a.com/p/x.png?w=800',
+    'https://a.com/x.webp#top',
+  ])('%s', (url) => expect(isImageUrl(url)).toBe(true))
+
+  it.each([
+    'https://a.com/x.gif',
+    'https://a.com/photo?id=1',
+    'https://a.com/',
+    'x.jpg',
+    'ftp://a.com/x.jpg',
+  ])('%s nahi', (url) => expect(isImageUrl(url)).toBe(false))
+})
+
+describe('bareImageUrlsToImg', () => {
+  it('sirf-URL wala paragraph image banta hai — link ho ya saada text', () => {
+    const out = bareImageUrlsToImg(
+      '<p>Intro.</p><p><a href="https://a.com/x.jpg">https://a.com/x.jpg</a></p><p>https://a.com/y.png</p>',
+    )
+
+    expect(out).toContain('<p><img src="https://a.com/x.jpg" alt=""></p>')
+    expect(out).toContain('<p><img src="https://a.com/y.png" alt=""></p>')
+    expect(out).toContain('<p>Intro.</p>')
+  })
+
+  it('sentence ke beech ka URL link hi rehta hai', () => {
+    const html = '<p>See https://a.com/x.jpg for the map.</p>'
+    expect(bareImageUrlsToImg(html)).toBe(html)
+  })
+
+  it('bina image extension wala URL link hi rehta hai', () => {
+    const html = '<p>https://a.com/about</p>'
+    expect(bareImageUrlsToImg(html)).toBe(html)
+  })
+
+  /** Featured Image ki value banner ke raaste pe jaati hai — article ki image nahi banti. */
+  it('Featured Image label ke theek baad wala URL nahi chhua jaata', () => {
+    const html =
+      '<p>Featured Image</p><p>https://a.com/x.jpg</p><p>Content</p><p>https://a.com/y.jpg</p>'
+    const out = bareImageUrlsToImg(html, { skipAfter: ['featured image'] })
+
+    expect(out).toContain('<p>https://a.com/x.jpg</p>')
+    expect(out).toContain('<img src="https://a.com/y.jpg"')
+  })
+
+  it('& URL me escape hota hai', () => {
+    expect(bareImageUrlsToImg('<p>https://a.com/x.jpg?a=1&amp;b=2</p>')).toContain(
+      'src="https://a.com/x.jpg?a=1&amp;b=2"',
+    )
+  })
+})
+
+describe('importImage — banner / Featured Image Media me (D-116)', () => {
+  const importOf = (url) =>
+    importImage(url, {
+      actor,
+      siteId: DEFAULT_SITE_ID,
+      deps: { fetchImpl: okFetch, mediaPort: port },
+    })
+
+  it('bahar ka URL download hokar Media ki id deta hai', async () => {
+    const id = await importOf('https://lh7-rt.googleusercontent.com/docsz/banner1.jpg')
+
+    expect(id).toBe(port.rows[0].id)
+    expect(port.created).toHaveLength(1)
+  })
+
+  /** Pehle `importBanner()` har naye run pe dobara download karta tha. */
+  it('wahi URL dobara → wahi media, dobara download nahi', async () => {
+    const first = await importOf('https://lh7-rt.googleusercontent.com/docsz/banner1.jpg')
+    const second = await importOf('https://lh7-rt.googleusercontent.com/docsz/banner1.jpg')
+
+    expect(second).toBe(first)
+    expect(port.created).toHaveLength(1)
+  })
+
+  it('download na ho to error — service use Failed banati hai', async () => {
+    await expect(
+      importImage('https://lh7-rt.googleusercontent.com/docsz/gone.jpg', {
+        actor,
+        siteId: DEFAULT_SITE_ID,
+        deps: { fetchImpl: deadFetch, mediaPort: port },
+      }),
+    ).rejects.toThrow()
   })
 })

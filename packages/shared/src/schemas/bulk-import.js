@@ -22,14 +22,13 @@ export const IMPORT_RUN_STATUSES = Object.freeze(Object.values(IMPORT_RUN_STATUS
 /**
  * Ek row ki haalat — yaani ek doc, yaani ek package.
  *
- * ⚠️ **`draft` aur `failed` alag cheezein hain**, aur ye farak client ka apna hai:
+ * ⚠️ **23 Sep se import ka nateeja sirf `published` ya `failed` hai** (client, D-116: _"in bulk there
+ * are only 2 things failed and published"_). Koi bhi blocker = `failed`, aur us row ka **kuch save
+ * nahi hota** — client doc theek karke Past imports ka `Retry again` dabata hai.
  *
- * - `draft` — package **ban gaya**, par kuch reference nahi mila, isliye publish nahi hua.
- *   Client doc ya master list theek karke dobara import chalata hai.
- * - `failed` — package ban hi **nahi saka** (naam hi nahi tha, doc nahi khuli).
- *
- * Client ne kaha tha: _"rok do publish mat karo, aur status me dikhta jayega ki kya choota hai
- * aur draft ban jayega"_. Yaani content chala jaana chahiye, sirf publish rukna chahiye.
+ * ~~`draft` — package ban gaya par publish nahi hua (4 Sep: _"rok do publish mat karo … draft ban
+ * jayega"_)~~ — **Superseded by D-116**. `DRAFT` enum me **bacha hai** sirf purane run ki rows ke liye
+ * (DB me pade hain, screen unhe badge ke saath dikhati hai). Naya code ise kabhi nahi likhta.
  */
 export const IMPORT_ROW_STATUS = Object.freeze({
   PENDING: 'pending',

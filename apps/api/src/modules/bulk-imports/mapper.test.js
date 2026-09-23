@@ -202,7 +202,7 @@ describe('toEntryInput — jab naam match na kare', () => {
     const found = issues.find((issue) => issue.label === 'Package URL')
 
     expect(found.level).toBe('blocker')
-    expect(found.message).toContain('renaming the package later will create a second page')
+    expect(found.message).toContain('renaming the package later does not create a second page')
   })
 })
 

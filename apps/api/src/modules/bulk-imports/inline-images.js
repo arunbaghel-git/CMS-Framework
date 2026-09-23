@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 
-import { DEFAULT_SITE_ID } from '@cms/shared'
+import { DEFAULT_SITE_ID, normalizeLabel, splitBlocks, textOf } from '@cms/shared'
 
 import { fetchImage } from '../../core/google-fetch.js'
 import { logger } from '../../core/logger.js'
@@ -171,12 +171,17 @@ function decodeDataUri(src) {
   return { bytes: Buffer.from(match[2], 'base64'), mime: match[1].toLowerCase() }
 }
 
-/** Ek image utaar kar Media me daalo — `data:` URI se ya bahar ke URL se. `{ url, w, h }` lautta hai. */
+/**
+ * Ek image utaar kar Media me daalo — `data:` URI se ya bahar ke URL se.
+ *
+ * `{ id, url, w, h }` lautta hai (`url`/`w`/`h` `large` variant ke), ya `null` jab koi variant na
+ * bana ho.
+ */
 async function importOne(url, actor, siteId, deps) {
   const port = deps.mediaPort ?? mongoMediaPort
 
   const existing = await findImportedMedia(url, siteId, port)
-  if (existing) return largeOf(existing)
+  if (existing) return withId(existing)
 
   /**
    * ⚠️ `data:` pe **koi fetch nahi hoti** — bytes doc me hi hain.
@@ -199,7 +204,106 @@ async function importOne(url, actor, siteId, deps) {
     { siteId },
   )
 
-  return largeOf(media)
+  return withId(media)
+}
+
+const withId = (media) => {
+  const large = largeOf(media)
+
+  return large ? { id: String(media.id ?? media._id), ...large } : null
+}
+
+/**
+ * Ek image ka pata → hamari Media ki **id** — banner / Featured Image ke liye (D-116).
+ *
+ * ⚠️ **Wahi `importOne()` jo article ki images pe hai**, `service.js` ka alag `importBanner()`
+ * nahi (wo hat gaya). Do farak jo iske saath aaye:
+ *
+ * 1. **Dobara download nahi** — URL ke hash se pehchan (`stemFor()`), har run pe naya record nahi
+ * 2. **Doc me URL badla to image bhi badli** — pehle "banner pehle se hai to wahi rakho" wala
+ *    shortcut tha, jo badla hua URL chup-chaap nazarandaz karta tha
+ *
+ * Hamari apni image (`mediaIdFromUrl`) ko service pehle hi pakad leti hai — yahan tak nahi aati.
+ *
+ * @returns {Promise<string>} media id
+ */
+export async function importImage(url, { actor, siteId = DEFAULT_SITE_ID, deps = {} } = {}) {
+  const image = await importOne(url, actor, siteId, deps)
+
+  if (!image) throw new Error('The image was saved but no usable size was produced')
+
+  return image.id
+}
+
+/** Wo extension jinhe "image ka URL" maana jaata hai — client, 23 Sep (D-116). */
+export const IMAGE_URL_EXTENSIONS = Object.freeze(['jpg', 'jpeg', 'png', 'webp'])
+
+/** URL ka path in extension pe khatam hota hai? Query/hash nahi gine jaate. */
+export function isImageUrl(value) {
+  let url
+
+  try {
+    url = new URL(String(value ?? '').trim())
+  } catch {
+    return false
+  }
+
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') return false
+
+  const ext = url.pathname.split('.').pop()?.toLowerCase() ?? ''
+
+  return url.pathname.includes('.') && IMAGE_URL_EXTENSIONS.includes(ext)
+}
+
+const escapeAttr = (value) =>
+  String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+
+/**
+ * **Alag line me likha image URL → image** (client, 23 Sep, D-116: _"doc me image url bhi honge"_).
+ *
+ * Doc me client image ka pata ek alag paragraph me likh deta hai (`https://…/havelock.webp`) —
+ * bina iske wo article me ek **link** ban kar reh jaata. Yahan wo `<img>` banta hai, aur
+ * `importInlineImages()` use baaki images ki tarah Media me utaar kar hamara URL laga deti hai.
+ *
+ * Kab badalta hai — teeno shart ek saath:
+ *
+ * - paragraph me **sirf ek URL** hai (link ho ya saada text) — sentence ke beech ka URL link hi
+ *   rehta hai, warna har jagah ke link image ban jaate
+ * - URL ka extension `jpg` / `jpeg` / `png` / `webp` hai (`IMAGE_URL_EXTENSIONS`) — bina extension
+ *   wale CDN URL pehchane nahi ja sakte, wo link hi rehte hain
+ * - ⚠️ pichhla block `skipAfter` wala label **nahi** hai — `Featured Image` / `Banner Image URL`
+ *   ki value service ka banner wala raasta sambhalta hai (Failed ke saath, agar download na ho).
+ *   Wahan bhi `<img>` bana dene se wo article image ki tarah **note** ke saath chup-chaap girti.
+ *
+ * @param {string} html `cleanGoogleHtml()` ke baad ki HTML
+ * @param {{ skipAfter?: string[] }} [options] normalize kiye hue label (`featured image`)
+ */
+export function bareImageUrlsToImg(html, { skipAfter = [] } = {}) {
+  const source = String(html ?? '')
+  const skip = new Set(skipAfter)
+  let out = ''
+  let cursor = 0
+  let previous = ''
+
+  for (const block of splitBlocks(source)) {
+    const at = source.indexOf(block, cursor)
+    if (at < 0) continue
+
+    const plain = textOf(block)
+    let replacement = block
+
+    if (/^<p\b/i.test(block) && !/<img\b/i.test(block) && isImageUrl(plain)) {
+      if (!skip.has(normalizeLabel(previous))) {
+        replacement = `<p><img src="${escapeAttr(plain)}" alt=""></p>`
+      }
+    }
+
+    out += source.slice(cursor, at) + replacement
+    cursor = at + block.length
+    if (plain) previous = plain
+  }
+
+  return out + source.slice(cursor)
 }
 
 /**

@@ -319,3 +319,30 @@ describe('FAQs — Question / Answer ki jodi (client, 4 Sep)', () => {
     expect(warned.join(' ')).toContain('before any "Question"')
   })
 })
+
+/** Headings se FAQ — client, 23 Sep (D-116). Post jaisa hi niyam, `faqHeadingRole()` se. */
+describe('FAQ — h2 heading, h3 sawaal', () => {
+  const h = (level, text) => `<h${level} class="c9"><span class="c2">${text}</span></h${level}>`
+  const para = (text) => `<p class="c1"><span class="c2">${text}</span></p>`
+
+  it('h3 sawaal, neeche ka sab jawab; agli h2 pe FAQ khatam aur itinerary chalti hai', () => {
+    const parsed = parsePackageDoc(
+      para('Package Name') +
+        para('Kerala') +
+        h(2, 'Frequently Asked Questions') +
+        h(3, 'Is it safe?') +
+        para('Yes.') +
+        h(3, 'Best time?') +
+        para('Oct to Mar.') +
+        h(2, 'Day wise Itinerary') +
+        para('Day 1') +
+        para('Day Title') +
+        para('Arrive'),
+    )
+
+    expect(parsed.faqs.map((faq) => faq.question.text)).toEqual(['Is it safe?', 'Best time?'])
+    expect(parsed.faqs[1].answer.text).toBe('Oct to Mar.')
+    expect(parsed.days).toHaveLength(1)
+    expect(parsed.days[0].fields.title.text).toBe('Arrive')
+  })
+})

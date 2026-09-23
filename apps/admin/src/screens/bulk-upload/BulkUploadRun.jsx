@@ -1,6 +1,6 @@
 import { IMPORT_ROW_STATUS, IMPORT_TARGET, IMPORT_TARGET_LABEL } from '@cms/shared'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { RunBadge } from './BulkUpload.jsx'
 import './BulkUpload.css'
@@ -16,10 +16,13 @@ import { useImportRun } from './useBulkImports.js'
  * list bani rehti hai, aur har package ka URL seedha clickable hota hai.
  */
 
+/**
+ * ⚠️ **Draft ka tab nahi** (client, 23 Sep, D-116) — import me ab sirf Published ya Failed hota hai.
+ * 23 Sep se pehle ke run ki Draft rows `All` me apne badge ke saath dikhti rehti hain.
+ */
 const TABS = [
   { key: 'all', label: 'All' },
   { key: IMPORT_ROW_STATUS.PUBLISHED, label: 'Published' },
-  { key: IMPORT_ROW_STATUS.DRAFT, label: 'Draft' },
   { key: IMPORT_ROW_STATUS.FAILED, label: 'Failed' },
 ]
 
@@ -27,6 +30,7 @@ export default function BulkUploadRun() {
   const { id } = useParams()
   const { run, loading, error } = useImportRun(id)
   const [tab, setTab] = useState('all')
+  const navigate = useNavigate()
 
   if (loading && !run) return <p className="subtitle">Loading…</p>
 
@@ -64,6 +68,23 @@ export default function BulkUploadRun() {
         <Link className="btn page-title-action" to="/bulk-upload">
           Back to Bulk Upload
         </Link>
+        {/*
+          Retry again — Bulk Upload ka form isi run ke sheet URL, type aur mode se bhar jaata hai
+          (D-116). Chalta hua run dobara nahi bhara jaata — wo abhi khatam hi nahi hua.
+        */}
+        {!running && (
+          <button
+            type="button"
+            className="btn page-title-action"
+            onClick={() =>
+              navigate('/bulk-upload', {
+                state: { retry: { sheetUrl: run.sheetUrl, target: run.target, mode: run.mode } },
+              })
+            }
+          >
+            Retry again
+          </button>
+        )}
       </div>
       <p className="subtitle">
         {new Date(run.createdAt).toLocaleString()} · <RunBadge status={run.status} />
@@ -215,8 +236,17 @@ function RowBadge({ row }) {
  * client ko wo line 20 doc me dhoondhni padti; `value` se wo seedha Ctrl-F kar leta hai.
  */
 function Issues({ row }) {
-  if (row.error) return <span className="bu-blocker">{row.error}</span>
-  if (row.issues.length === 0) return <span className="muted">—</span>
+  /**
+   * D-116: Failed row ke saath ab uske **poore issues** bhi aate hain (kaunsa khaana, kya likha tha) —
+   * `error` sirf ek line ka saar hai. List ho to wahi dikhe; na ho (doc khula hi nahi) to `error`.
+   */
+  if (row.issues.length === 0) {
+    return row.error ? (
+      <span className="bu-blocker">{row.error}</span>
+    ) : (
+      <span className="muted">—</span>
+    )
+  }
 
   return (
     <ul className="bu-issues">

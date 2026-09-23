@@ -1,4 +1,13 @@
-import { clamp, FAQ_LIMITS, normalizeName, parseNameList, parseSlug, slugify } from '@cms/shared'
+import {
+  clamp,
+  FAQ_LIMITS,
+  imageUrlOf,
+  normalizeName,
+  parseDocDate,
+  parseNameList,
+  parseSlug,
+  slugify,
+} from '@cms/shared'
 
 /**
  * Blog doc ka kaccha data → `createEntry()` ka payload (spec 008).
@@ -109,7 +118,7 @@ function buildCategories(map, values, issues) {
       blocker(
         'Category',
         '',
-        'No Category was given. A post without a topic never appears under any filter on the blog, so it was not published.',
+        'No Category was given. A post without a topic never appears under any filter on the blog. Add a Category, then press Retry again.',
       ),
     )
 
@@ -215,11 +224,8 @@ export function toPostEntryInput(parsed, refs) {
   const slug = slugify(parseSlug(textOf(values, 'slug')))
 
   /**
-   * **`Blog URL` ke bina post publish nahi hoga** — D-86 ka hi niyam.
-   *
-   * `Blog title` ke bina kuch ban hi nahi sakta, isliye wo `Failed` hai. `Blog URL` ke bina
-   * post **ban jaata hai**, bas publish rukta hai — wahi soch jo poore importer me hai:
-   * *content chala jaaye, sirf publish ruke*.
+   * **`Blog URL` zaroori hai** — D-86 ka hi niyam. 23 Sep se (D-116) uske bina row **Failed**, post
+   * nahi banta (pehle draft banta tha).
    *
    * ⚠️ Wajah sirf "khaali khaana" nahi hai. `Blog URL` hi wo **ek cheez** hai jo doc ko uske
    * post se baandhti hai. Uske bina address `Blog title` se banta hai — aur jis din client
@@ -232,7 +238,7 @@ export function toPostEntryInput(parsed, refs) {
       blocker(
         'Blog URL',
         '',
-        'No Blog URL was given, so the address was made from the title. Add a Blog URL — otherwise renaming the post later will create a second page.',
+        'No Blog URL was given. Add one — it is what links this document to its post, so renaming the post later does not create a second page.',
       ),
     )
   }
@@ -319,6 +325,26 @@ export function toPostEntryInput(parsed, refs) {
     )
   }
 
+  /**
+   * `Published Date` (client, 23 Sep, D-116) — doc me ho to **wahi date, 100%** (aage ki bhi); na
+   * ho to `null`, aur service publish ke din ki date lagati hai.
+   *
+   * ⚠️ Likhi hai par padhi nahi ja saki = **blocker** (row Failed). Galat date ko chup-chaap aaj ki
+   * date se badal dena wahi "kuch na hona" hota — client ko lagta date lag gayi.
+   */
+  const rawDate = textOf(values, 'publishedDate')
+  const publishAt = rawDate ? parseDocDate(rawDate) : null
+
+  if (rawDate && !publishAt) {
+    issues.push(
+      blocker(
+        'Published Date',
+        rawDate,
+        'This date could not be read. Write it like "9 Sept 2026", then press Retry again.',
+      ),
+    )
+  }
+
   for (const warning of warnings) issues.push(note('Document', '', warning))
 
   const input = {
@@ -343,6 +369,8 @@ export function toPostEntryInput(parsed, refs) {
     input,
     issues: issues.slice(0, 50),
     slug,
-    bannerUrl: textOf(values, 'bannerImage'),
+    /** `Featured Image` — likha URL, ya doc me daali image (tab tak Media me utar chuki) — D-116 */
+    bannerUrl: imageUrlOf(values.bannerImage),
+    publishAt,
   }
 }

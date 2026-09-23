@@ -136,6 +136,7 @@ export const TARGET_CONFIG = Object.freeze({
     buildRefs: packageRefs,
     allowImages: false,
     slugLabel: 'Package URL',
+    bannerLabel: 'Banner Image URL',
     missingTitle: 'This document has no "Package Name", so no package could be created',
     setImage: (input, mediaId) => {
       input.fields.bannerImage = mediaId
@@ -152,6 +153,7 @@ export const TARGET_CONFIG = Object.freeze({
     buildRefs: postRefs,
     allowImages: true,
     slugLabel: 'Blog URL',
+    bannerLabel: 'Featured Image',
     missingTitle: 'This document has no "Blog title", so no post could be created',
     setImage: (input, mediaId) => {
       input.featuredImageId = mediaId

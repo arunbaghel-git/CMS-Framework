@@ -57,11 +57,94 @@ describe('parsePostDoc — asli template', () => {
     expect(text('slug')).toBe('andaman-ferry-booking')
   })
 
-  it('banner ka URL hamari apni media ka hai — download nahi hoga', () => {
-    /** D-81 ka `mediaIdFromUrl()` isi shakl ko pehchanta hai. */
-    expect(text('bannerImage')).toMatch(
-      /\/uploads\/sites\/default\/media\/\d{4}\/\d{2}\/[a-f0-9]{24}\//,
+  /**
+   * Client, 23 Sep (D-116): blog ka label **`Featured Image`** hai (`Banner Image URL` nahi), aur usme
+   * **bahar ka** URL — importer use download karke Media me daalta hai (API ka test ye jaanchta hai).
+   */
+  it('Featured Image label ka URL bannerImage me aata hai', () => {
+    expect(text('bannerImage')).toBe('https://images.example.com/andaman/havelock-ferry.jpg')
+  })
+
+  it('Published Date padhi jaati hai', () => {
+    expect(text('publishedDate')).toBe('9 Sept 2026')
+  })
+
+  /** Purane doc bina badle chalte rahein — label hata dene pe wo line Content me chipak jaati. */
+  it('purana Banner Image URL label bhi chalta hai', () => {
+    const old = parsePostDoc(
+      '<p>Blog title</p><p>X</p><p>Banner Image URL</p><p>https://a.com/b.png</p>',
     )
+    expect(old.values.bannerImage.text).toBe('https://a.com/b.png')
+  })
+})
+
+/**
+ * **Headings se FAQ** (client, 23 Sep, D-116): _"h2 heading aur h3 question, h3 ke baad answer, if
+ * again h3 then question"_. Markup Google ke export jaisi hai — heading ke andar `<span class>`.
+ */
+describe('FAQ — h2 heading, h3 sawaal', () => {
+  const h = (level, text) => `<h${level} class="c9"><span class="c2">${text}</span></h${level}>`
+  const para = (text) => `<p class="c1"><span class="c2">${text}</span></p>`
+
+  const docWith = (faq, after = '') =>
+    parsePostDoc(
+      para('Blog title') +
+        para('Ferries') +
+        para('Content') +
+        para('Intro paragraph.') +
+        faq +
+        after,
+    )
+
+  it('h2 marker ke neeche har h3 ek sawaal, uske neeche ka sab jawab', () => {
+    const parsed = docWith(
+      h(2, 'Frequently Asked Questions') +
+        h(3, 'Can I book on arrival?') +
+        para('Only the government ferry.') +
+        para('And only if seats are left.') +
+        h(3, 'What if it is cancelled?') +
+        '<ul><li>Refund</li><li>Next sailing</li></ul>',
+    )
+
+    expect(parsed.faqs).toHaveLength(2)
+    expect(parsed.faqs[0].question.text).toBe('Can I book on arrival?')
+    expect(parsed.faqs[0].answer.text).toBe(
+      'Only the government ferry.\nAnd only if seats are left.',
+    )
+    expect(parsed.faqs[1].answer.html).toContain('<ul>')
+    /** Marker khud heading hai — wahi FAQ block ka heading */
+    expect(parsed.faqHeading).toBe('Frequently Asked Questions')
+    /** Article me FAQ nahi ghusta */
+    expect(parsed.values.content.text).toBe('Intro paragraph.')
+  })
+
+  it.each(['FAQ', 'FAQs', 'Frequently asked question', 'Frequently asked questions (FAQs)'])(
+    '"%s" bhi FAQ ka marker hai',
+    (marker) => {
+      const parsed = docWith(h(2, marker) + h(3, 'Q?') + para('A.'))
+      expect(parsed.faqs).toHaveLength(1)
+    },
+  )
+
+  it('marker ke barabar ki h2 pe FAQ khatam — aage ka text article me wapas', () => {
+    const parsed = docWith(
+      h(2, 'FAQs') + h(3, 'Q?') + para('A.'),
+      h(2, 'Conclusion') + para('Book early.'),
+    )
+
+    expect(parsed.faqs).toHaveLength(1)
+    expect(parsed.faqs[0].answer.text).toBe('A.')
+    expect(parsed.values.content.text).toContain('Conclusion')
+    expect(parsed.values.content.text).toContain('Book early.')
+  })
+
+  it('purana Question / answer wala tareeka bhi chalta hai', () => {
+    const parsed = docWith(
+      para('Faq:') + para('Question') + para('Q1?') + para('answer') + para('A1.'),
+    )
+
+    expect(parsed.faqs).toHaveLength(1)
+    expect(parsed.faqs[0].question.text).toBe('Q1?')
   })
 })
 

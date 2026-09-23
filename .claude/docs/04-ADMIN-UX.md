@@ -646,6 +646,16 @@ chahiye ho to wo client se aayega (R15).
 | `Google Sheet link` | sheet me `Doc File` column, har row me ek doc ka link |
 | `What is in this sheet?` | radio — `New packages` / `Existing packages` (ya `… posts`) |
 
+### Nateeja sirf Published ya Failed, aur `Retry again` (D-116, client 23 Sep)
+
+| Kya | Kaise |
+| --- | --- |
+| Row ki haalat | **Published** ya **Failed** — Draft ab kabhi nahi. Blocker ho to row Failed aur **kuch save nahi** (live page ko bhi haath nahi) |
+| Past imports ka table | `Draft` ka column **gaya**; aakhri column me har run pe **`Retry again`** |
+| Import result screen | `Draft` ka tab **gaya** (purane run ki draft rows `All` me badge ke saath); page-head pe **`Retry again`** (chalte run pe nahi) |
+| `Retry again` | upar ka form bhar deta hai — **sheet URL, type aur mode** usi run ka. Import khud nahi chalta; client dekh kar `Import` dabata hai |
+| Failed row ka `What's missing` | poori list (khaana · likha hua · kya karna hai), blocker laal. `error` sirf ek line ka saar — Past imports ke hover ke liye |
+
 ### `Meta upload` — SEO ka bulk upload (D-107, client 21 Sep)
 
 Dropdown ka naam **client ke apne shabd** hain (_"dropdown name: meta upload"_). Ye target teen

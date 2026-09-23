@@ -1,4 +1,4 @@
-import { clamp, FAQ_LIMITS, normalizeName, parseSlug, slugify } from '@cms/shared'
+import { clamp, FAQ_LIMITS, imageUrlOf, normalizeName, parseSlug, slugify } from '@cms/shared'
 
 /**
  * Page doc ka kaccha data → `createEntry()` ka payload (D-95, client 14 Sep).
@@ -185,14 +185,14 @@ export function toPageEntryInput(parsed, refs) {
       blocker(
         'Page URL',
         '',
-        'No Page URL was given, so the address was made from the title. Add a Page URL — otherwise renaming the page later will create a second page.',
+        'No Page URL was given. Add one — it is what links this document to its page, so renaming the page later does not create a second page.',
       ),
     )
   }
 
   /**
    * `Parent page` — title se. **Na mile to blocker**: page galat jagah (root pe) publish hota, aur
-   * baad me parent lagane pe uska URL badal jaata. Content phir bhi aata hai, sirf publish rukta hai.
+   * baad me parent lagane pe uska URL badal jaata. 23 Sep se (D-116) row Failed, page nahi banta.
    *
    * ⚠️ Khaali chhodo to `parentId` **bheja hi nahi jaata** — naya page root pe banta hai, aur
    * purane page ka admin me chuna hua parent waisa ka waisa rehta hai.
@@ -247,7 +247,7 @@ export function toPageEntryInput(parsed, refs) {
       blocker(
         'Sub heading',
         `${rawSubheading.length} characters`,
-        `The Sub heading is longer than ${LIMITS.subheading} characters, so it was left out. Shorten it to one or two sentences.`,
+        `The Sub heading is longer than ${LIMITS.subheading} characters. Shorten it to one or two sentences, then press Retry again.`,
       ),
     )
   }
@@ -355,7 +355,8 @@ export function toPageEntryInput(parsed, refs) {
     input,
     issues: issues.slice(0, 50),
     slug,
-    bannerUrl: textOf(values, 'bannerImage'),
+    /** Likha URL, ya doc me daali image (tab tak Media me utar chuki) — D-116 */
+    bannerUrl: imageUrlOf(values.bannerImage),
     newOnlyFields,
     newOnlyIssues: sidebarIssue ? [sidebarIssue] : [],
   }

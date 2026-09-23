@@ -425,12 +425,8 @@ export function toEntryInput(parsed, refs) {
   const slug = slugify(parseSlug(textOf(values, 'packageUrl')))
 
   /**
-   * **`Package URL` ke bina page publish nahi hoga** — client ka faisla (D-86).
-   *
-   * `Package Name` ke bina kuch ban hi nahi sakta, isliye wo `Failed` hai. `Package URL` ke
-   * bina package **ban jaata hai**, bas publish rukta hai — wahi soch jo poore importer me hai:
-   * *content chala jaaye, sirf publish ruke*. Client URL likh kar Existing mode me dobara chala
-   * de, page live ho jaata hai; uska likha hua kuch nahi khota.
+   * **`Package URL` zaroori hai** — D-86, aur 23 Sep se (D-116) uske bina row **Failed** hai, kuch
+   * nahi banta. (Pehle package draft banta tha; client ne import se draft hi hata diya.)
    *
    * ⚠️ Wajah sirf "khaali khaana" nahi hai. `Package URL` hi wo **ek cheez** hai jo doc ko uske
    * package se baandhti hai. Uske bina address `Package Name` se banta hai — aur jis din client
@@ -443,7 +439,7 @@ export function toEntryInput(parsed, refs) {
       blocker(
         'Package URL',
         '',
-        'No Package URL was given, so the address was made from the package name. Add a Package URL — otherwise renaming the package later will create a second page.',
+        'No Package URL was given. Add one — it is what links this document to its package, so renaming the package later does not create a second page.',
       ),
     )
   }
@@ -533,5 +529,5 @@ export function toEntryInput(parsed, refs) {
   }
 }
 
-/** Kya is row ko publish hona chahiye — ya draft rukna chahiye. */
+/** Koi blocker hai? To row Failed aur kuch save nahi (D-116) — service ye save se pehle dekhti hai. */
 export const hasBlocker = (issues) => issues.some((issue) => issue.level === 'blocker')

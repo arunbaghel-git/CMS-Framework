@@ -1,8 +1,10 @@
 import {
   byLongestFirst,
   emptyValue,
+  faqHeadingRole,
   FAQ_LABELS,
   FAQ_SECTION_LABELS,
+  headingLevel,
   isEmptyBlock,
   matchLabel,
   pushValue,
@@ -120,11 +122,37 @@ export function parsePageDoc(html) {
   let currentFaq = null
   let faqHeading = ''
   let matchedAny = false
+  /** FAQ marker ka heading level, aur FAQ se pehle ka hissa/khaana (D-116). */
+  let markerLevel = null
+  let beforeFaq = { section: 'top', key: null }
 
   for (const block of blocks) {
     if (isEmptyBlock(block)) continue
 
     const plain = textOf(block)
+
+    /**
+     * **Headings se FAQ** (client, 23 Sep, D-116) — post jaisa hi (`post-doc.js`), niyam
+     * `faqHeadingRole()` me. Purane `Heading` label ki value `<h2>` ho to wo heading hi rahe.
+     */
+    if (section === 'faqs' && currentKey !== 'faqHeading') {
+      const role = faqHeadingRole(block, markerLevel)
+
+      if (role === 'question') {
+        matchedAny = true
+        currentFaq = {}
+        faqs.push(currentFaq)
+        pushValue(currentFaq, 'question', { text: plain, html: block })
+        currentKey = 'answer'
+        continue
+      }
+
+      if (role === 'end') {
+        section = beforeFaq.section
+        currentKey = beforeFaq.key
+        markerLevel = null
+      }
+    }
 
     /**
      * Label dhoondhne ka kram hisse pe tay hota hai:
@@ -154,8 +182,12 @@ export function parsePageDoc(html) {
       matchedAny = true
 
       if (hit.key === 'faqStart') {
+        beforeFaq = { section, key: currentKey }
         section = 'faqs'
         currentKey = null
+        markerLevel = headingLevel(block)
+        /* Marker khud heading ho to wahi FAQ ka heading (D-116) */
+        if (markerLevel && !faqHeading) faqHeading = plain
         continue
       }
 

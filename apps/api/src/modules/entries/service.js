@@ -1565,7 +1565,13 @@ export async function publishEntry(
   }
 
   const publishAt = input.publishAt ? new Date(input.publishAt) : null
-  const isFuture = publishAt && publishAt.getTime() > Date.now()
+  /**
+   * ⚠️ `asPublished` sirf **andar ka** raasta hai — Bulk Upload (D-116, client 23 Sep: doc ki
+   * `Published Date` _"100% uthao"_, aur import me sirf Published/Failed). Aage ki date pe bhi
+   * post **abhi live** hota hai, bas date wahi jo doc me hai. HTTP se ye nahi aa sakta — publish
+   * route ka Zod schema `.strict()` hai, wahan ye key 400 deti hai.
+   */
+  const isFuture = !input.asPublished && publishAt && publishAt.getTime() > Date.now()
 
   /**
    * `private` = published, par sirf logged-in user ko dikhta hai (02-ARCHITECTURE §5).
@@ -2090,4 +2096,44 @@ export async function findEntryBySlug(
   if (!slug) return null
 
   return Entry.findOne({ ...scope(siteId, locale), type, slug }).lean()
+}
+
+/**
+ * Save **se pehle** batao ki is entry ko kaunsa slug/path milega — Bulk Upload ke liye (D-116).
+ *
+ * Import me ab sirf Published ya Failed hai, Draft nahi (client, 23 Sep). Pehle `-2` wala takrav
+ * save ke **baad** pakda jaata tha aur entry draft reh jaati thi; ab wo row Failed hai aur kuch
+ * save hi nahi hona chahiye — isliye jaanch pehle.
+ *
+ * ⚠️ `resolveSlugAndPath()` hi chalta hai, apni copy nahi — dono ka niyam alag hua to jaanch
+ * "saaf" kahegi aur save `-2` laga dega (D-86 wali khaayi). Parent bhi `createEntry()`/`updateEntry()`
+ * jaisa hi: post ka server se, baaki ka input se, na ho to purane entry ka.
+ *
+ * @param {{ type: string, slug?: string, title: string, parentId?: string|null }} input
+ * @param {object|null} existing update ho raha ho to purana entry
+ * @returns {Promise<{ slug: string, path: string }>}
+ */
+export async function previewEntryAddress(
+  input,
+  existing = null,
+  siteId = DEFAULT_SITE_ID,
+  locale = DEFAULT_LOCALE,
+) {
+  const type = existing?.type ?? input.type
+  const contentType = await requireContentType(type, siteId)
+  const parentId =
+    type === 'post'
+      ? await postParentFor(siteId, locale)
+      : (input.parentId ?? existing?.parentId ?? null)
+
+  return resolveSlugAndPath({
+    slug: input.slug ?? existing?.slug,
+    title: input.title,
+    type,
+    parentId,
+    excludeId: existing?._id ?? null,
+    contentType,
+    siteId,
+    locale,
+  })
 }

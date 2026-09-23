@@ -129,3 +129,29 @@ describe('parsePageDoc — optional aur galat shakl', () => {
     expect(parsePageDoc(doc('Just some text')).warnings[0]).toMatch(/No known labels/)
   })
 })
+
+/** Headings se FAQ — client, 23 Sep (D-116). */
+describe('FAQ — h2 heading, h3 sawaal', () => {
+  const h = (level, text) => `<h${level}><span>${text}</span></h${level}>`
+  const para = (text) => `<p><span>${text}</span></p>`
+
+  it('marker heading FAQ ka heading, h3 sawaal, agli h2 wapas Content me', () => {
+    const parsed = parsePageDoc(
+      para('Page title') +
+        para('Beaches') +
+        para('Content') +
+        para('Intro.') +
+        h(2, 'FAQs') +
+        h(3, 'Which beach?') +
+        para('Radhanagar.') +
+        h(2, 'Getting there') +
+        para('By ferry.'),
+    )
+
+    expect(parsed.faqHeading).toBe('FAQs')
+    expect(parsed.faqs).toHaveLength(1)
+    expect(parsed.faqs[0].answer.text).toBe('Radhanagar.')
+    expect(parsed.values.content.text).toContain('Getting there')
+    expect(parsed.values.content.text).not.toContain('Radhanagar')
+  })
+})

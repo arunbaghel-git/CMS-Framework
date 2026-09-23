@@ -82,8 +82,8 @@ describe('toPostEntryInput — asli doc', () => {
     expect(input.seo.description).toMatch(/Neil — plus when to book/)
   })
 
-  it('banner ka URL alag lautta hai — service use resolve karti hai', () => {
-    expect(bannerUrl).toMatch(/\/uploads\/sites\/default\/media\//)
+  it('Featured Image ka URL alag lautta hai — service use download karke Media me daalti hai', () => {
+    expect(bannerUrl).toBe('https://images.example.com/andaman/havelock-ferry.jpg')
     /** Post pe ab `fields` hi nahi jaata (D-93) — banner kisi field me ghusa na ho, bas yahi dekhna hai. */
     expect(input.fields?.bannerImage).toBeUndefined()
     expect(input).not.toHaveProperty('featuredImageId')
@@ -122,7 +122,7 @@ describe('blocks', () => {
   })
 })
 
-describe('blockers — publish rukta hai, content nahi', () => {
+describe('blockers — row Failed hoti hai (D-116)', () => {
   const base =
     '<p>Blog title</p><p>Ferries</p><p>Content</p><p>Some body</p><p>Category</p><p>Trip planning</p>'
 
@@ -130,7 +130,6 @@ describe('blockers — publish rukta hai, content nahi', () => {
     const { issues, input } = run(base)
 
     expect(blockers(issues).map((i) => i.label)).toContain('Blog URL')
-    /** ⚠️ Content phir bhi jaata hai — sirf publish rukta hai. */
     expect(input.content.blocks[0].props.html).toMatch(/Some body/)
   })
 
@@ -218,5 +217,41 @@ describe('FAQs', () => {
     expect(faqs.props.items).toHaveLength(1)
     expect(faqs.props.items[0].question).toBe('Real one?')
     expect(issues.some((i) => i.message.includes('no answer under it'))).toBe(true)
+  })
+})
+
+/** `Published Date` — client, 23 Sep (D-116). */
+describe('Published Date', () => {
+  const base =
+    '<p>Blog title</p><p>Ferries</p><p>Blog URL</p><p>ferries</p><p>Category</p><p>Trip planning</p><p>Content</p><p>Body</p>'
+
+  it('asli doc ki date — 9 Sept 2026', () => {
+    const { publishAt } = run(TEMPLATE)
+
+    expect(publishAt.toISOString().slice(0, 10)).toBe('2026-09-09')
+  })
+
+  it('doc me date na ho to null — service publish ke din ki date lagati hai', () => {
+    expect(run(base).publishAt).toBeNull()
+  })
+
+  it('padhi na ja sake to blocker, saaf message ke saath', () => {
+    const { issues, publishAt } = run(`<p>Published Date</p><p>next week</p>${base}`)
+
+    expect(publishAt).toBeNull()
+    expect(blockers(issues).map((i) => i.label)).toContain('Published Date')
+  })
+})
+
+/** Featured Image — doc me image daali ho (URL nahi), to uska `src` (D-116). */
+describe('Featured Image — doc me daali hui image', () => {
+  it('value me <img> ho to uska src', () => {
+    const { bannerUrl } = run(
+      '<p>Blog title</p><p>X</p><p>Featured Image</p><p><img alt="" src="/uploads/sites/default/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa/large.webp"></p>',
+    )
+
+    expect(bannerUrl).toBe(
+      '/uploads/sites/default/media/2026/09/aaaaaaaaaaaaaaaaaaaaaaaa/large.webp',
+    )
   })
 })

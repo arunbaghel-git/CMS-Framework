@@ -1,6 +1,6 @@
 import { IMPORT_TARGET, IMPORT_TARGET_LABEL, IMPORT_TARGETS } from '@cms/shared'
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
@@ -52,6 +52,36 @@ export default function BulkUpload() {
   const [target, setTarget] = useState(IMPORT_TARGET.PACKAGE)
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState(null)
+  const sheetRef = useRef(null)
+  const location = useLocation()
+
+  /**
+   * **Retry again** (client, 23 Sep, D-116: _"sheet url baar baar dalna na pade"_ · _"last state se
+   * field bhar jaye"_) — pichhle import ka **sheet URL, type aur mode** upar ke form me bhar do.
+   *
+   * ⚠️ Import khud shuru **nahi** hota — form bhar kar Import button tak le jaata hai. Mode bhi usi run
+   * ka aata hai: pehla run "New" tha aur uski Failed rows me kuch bana hi nahi (D-116), to agli koshish
+   * bhi "New" hi honi chahiye. Client dekh kar badal sakta hai.
+   *
+   * Har run pe hai — Failed wale pe bhi aur Published wale pe bhi (client ne dono kaha).
+   */
+  function fillFrom(run) {
+    setSheetUrl(run.sheetUrl ?? '')
+    setTarget(run.target ?? IMPORT_TARGET.PACKAGE)
+    setMode(run.mode ?? 'new')
+    setActionError(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    sheetRef.current?.focus({ preventScroll: true })
+  }
+
+  /** Import result ki screen se `Retry again` — wahi run `state` me aata hai. */
+  useEffect(() => {
+    const retry = location.state?.retry
+    if (!retry) return
+
+    fillFrom(retry)
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location.state])
 
   const { can } = useAuth()
 
@@ -142,6 +172,7 @@ export default function BulkUpload() {
             <div className="field">
               <label htmlFor="sheetUrl">Google Sheet link</label>
               <input
+                ref={sheetRef}
                 id="sheetUrl"
                 className="inp"
                 type="text"
@@ -227,8 +258,9 @@ export default function BulkUpload() {
             ) : (
               <>
                 The sheet and every document must be shared as <b>Anyone with the link — Viewer</b>.
-                The {words.many} are published automatically; any row with a problem is left as a
-                draft with the reason shown.
+                The {words.many} are published automatically. A row with a problem is marked Failed
+                with the reason, and nothing is saved for it — fix the document, then use{' '}
+                <b>Retry again</b>.
               </>
             )}
           </p>
@@ -302,9 +334,9 @@ export default function BulkUpload() {
             <th className="nowrap">New</th>
             <th className="nowrap">Existing</th>
             <th className="nowrap">Published</th>
-            <th className="nowrap">Draft</th>
             <th className="nowrap">Failed</th>
             <th>Status</th>
+            <th />
           </tr>
         </thead>
         <tbody>
@@ -336,12 +368,16 @@ export default function BulkUpload() {
               <td>{run.counts.created}</td>
               <td>{run.counts.updated}</td>
               <td>{run.counts.published}</td>
-              <td>{run.counts.draft}</td>
               <td>
                 <FailedCount run={run} />
               </td>
               <td>
                 <RunBadge status={run.status} />
+              </td>
+              <td className="nowrap">
+                <button type="button" className="btn btn-sm" onClick={() => fillFrom(run)}>
+                  Retry again
+                </button>
               </td>
             </tr>
           ))}
