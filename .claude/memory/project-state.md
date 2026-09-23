@@ -4,8 +4,8 @@
 >
 > ## ⏭️ Agli session — yahan se shuru karo (23 Sep, session "23-sep updates and fixes(bulk,design)" ka handoff)
 >
-> 1. **Push baaki hai — 19 commit** (D-109 se D-117 tak). Sirf client ki ijaazat pe. Ginti
->    `git log --oneline origin/main..HEAD` se lo (ye number handoff ke waqt ka hai).
+> 1. ✅ **Sab push ho chuka** (23 Sep, client ki ijaazat se — `0ecc314..063f1df`, D-109 se D-117). Aage ke push
+>    bhi sirf ijaazat pe; ginti `git log --oneline origin/main..HEAD` se.
 > 2. **Deploy pe:** `pnpm cms migrate` (**028** password reset + **029** popup ek image) · `pnpm seed` zaroori
 >    nahi · API restart · web aur admin build. Dev DB pe dono migration lag chuki hain.
 > 3. **Client ka aankh se dekhna baaki (koi code nahi rukta)** — checklist `09-OPEN-ITEMS.md` me:
