@@ -11108,3 +11108,26 @@ date alag ho (warna publish dobara nahi — D-81).
 - ⚠️ **`Published 10 Sept 2026` bug nahi hai** — wo post 10 Sep ko pehli baar bana aur publish hua tha; aaj ke
   teeno import `Existing` mode me the aur doc me `Published Date` nahi thi, to asli publish date bani rahi (§5).
   Date badalni ho to doc me `Published Date` likho
+
+---
+
+## D-117
+
+**Contact page mobile pe screen se bahar — `contain-intrinsic-size` chaudai bhi deta tha** (client, 23 Sep 2026)
+
+**Status:** ✅ theek · koi migration nahi · sirf CSS
+
+- Lakshan: 375px pe `/contact-us` ka `scrollWidth` **758** — poora page side me scroll. Headless Chrome (CDP) se
+  bisection: har block **akela** bhi page chauda karta tha, sirf-text wala bhi; `.contact-methods` (jispe
+  `content-visibility: visible`) nahi. Yaani chaudai content ki nahi thi
+- **Jad:** `.blk { content-visibility: auto; contain-intrinsic-size: auto 700px }` (D-85). **Ek value dono axis**
+  pe lagti hai — render na hua block **700px chauda** maana jaata. `.secpg` (D-96 §31, Section layout) ek implicit
+  grid hai, uska `auto` column wahi 700 + padding = 738 le leta. Tour page pe ye kabhi nahi dikha kyunki
+  `.pgl__main > * { min-width: 0 }` pehle se tha
+- Ilaaj: chaaron jagah (`.ft` 900 · `.blk` 700 · 520 wala · `.home > section` 640) **`contain-intrinsic-block-size`**
+  — andaza sirf ooonchai ka, speed ka faayda wahi. Saath me `.secpg > * { min-width: 0 }` ka pehra
+- Naapa (375px): contact 758 → **375**; home, package, tour, page, blog listing, blog post sab 375
+- ⚠️ Pehle maine Video block (`.pvid`) pe shak kiya tha — `width: min-content` wala naap percentage bachchon ki
+  wajah se dhokha de gaya. Trial (`min-width`, `width`, `contain`, `aspect-ratio` hata kar) ne use kaata; asli
+  jawab bisection se aaya. **Sabak:** layout ke shak pe pehle "kya hatane se theek hota hai" naapo
+- Test: `apps/web/lib/css-overflow.test.js`

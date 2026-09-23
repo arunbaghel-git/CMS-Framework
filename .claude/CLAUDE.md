@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-116               |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-117               |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -922,6 +922,7 @@ deta tha. Ab head **asli elements** hain (`lib/head-html.js`, 8 test). Headless 
 **23 Sep raat — popup: ek image, 720px, form teen column (D-103 §10), migration 029.** Image ki chhat 3 → **1**
 (`POPUP_MAX_IMAGES`; 029 pehli image rakhti hai — bina uske `toPublicSettings()` ka parse `/settings` tod deta).
 Teen column **sirf CSS**, sirf `.pmod__body` me aur 761px se upar — baaki forms nahi chhue. Aankh se dekhna — **A-49**.
+**D-117:** contact page mobile pe screen se bahar tha — `.blk` ka `contain-intrinsic-size: auto 700px` **chaudai bhi** deta tha (ek value dono axis); ab `contain-intrinsic-block-size` + `.secpg > * { min-width: 0 }`. 758 → 375.
 **D-116:** Bulk Upload — sirf **Published/Failed** (blocker pe kuch save nahi, draft khatam), `Retry again`, blog ka `Featured Image`, doc ki images Media me, h2/h3 FAQ, `Published Date` — A-52. **1559/1560 test** (akela fail purana `theme-fonts`).
 **D-115:** form ka heading `<h3>` → `<p class="fhead">` (look wahi, H3 tokens); phone pe khaali date me `Select date` — A-51.
 **D-114:** blog post + Page ka `On this…` TOC 1024px tak article ke upar **band patti** (`<details>`), sidebar wala us width pe chhupta — A-50.

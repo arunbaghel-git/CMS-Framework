@@ -1225,7 +1225,7 @@ a.mega__gl:hover {
    * paint se pehle karna bekaar kaam hai (D-85). `.blk` sections pe yahi cheez lagi hai.
    */
   content-visibility: auto;
-  contain-intrinsic-size: auto 900px;
+  contain-intrinsic-block-size: auto 900px;
 
   /* Client ka tune (1 Sep) — reference me 64px hai. Us gap ke saath footer page se kat-ta
      hua lagta tha. Reference se "match" karne ke naam pe wapas mat badalna (R15). */
@@ -2057,7 +2057,15 @@ a.mega__gl:hover {
    * `.blk` ke andar kabhi tooltip ya popover daalo to ye baat yaad rakhni hogi.
    */
   content-visibility: auto;
-  contain-intrinsic-size: auto 700px;
+  /*
+   * ⚠️ **`-block-size`, sirf ooonchai — `contain-intrinsic-size` nahi** (client, 23 Sep: contact page
+   * mobile pe screen se bahar). `contain-intrinsic-size: auto 700px` me **ek value dono axis** pe lagti
+   * hai — yaani screen se door (abhi render na hua) har `.blk` **700px chauda** maana jaata tha. Grid ke
+   * `auto` column (`.secpg`) ne wahi naqli chaudai (+ padding = 738px) apna li aur 375px ke phone pe
+   * poora page side me scroll hone laga. Irada hamesha sirf ooonchai ka andaza tha. Headless Chrome se
+   * naapa: `scrollWidth` 758 → 375. Baaki teen jagah (`.ft`, `.home > section`, …) bhi isi wajah se badli.
+   */
+  contain-intrinsic-block-size: auto 700px;
 }
 
 /*
@@ -5422,7 +5430,7 @@ a.mega__gl:hover {
    * paint se pehle karna bekaar kaam hai (D-85). `.blk` sections pe yahi cheez lagi hai.
    */
   content-visibility: auto;
-  contain-intrinsic-size: auto 520px;
+  contain-intrinsic-block-size: auto 520px;
 }
 
 /*
@@ -8251,7 +8259,7 @@ a.mega__gl:hover {
  */
 .home > section:not(:first-child) {
   content-visibility: auto;
-  contain-intrinsic-size: auto 640px;
+  contain-intrinsic-block-size: auto 640px;
 }
 
 /*
@@ -10280,6 +10288,16 @@ a.txv__box:hover .txv__p {
 .secpg {
   display: grid;
   gap: var(--space-block);
+}
+
+/*
+ * ⚠️ Grid ke bachche apni min-content se chhote nahi hote (`min-width: auto`) — koi block kabhi chauda
+ * maange (lamba URL, badi table) to poora column aur page usi ke saath phail jaata hai. `.pgl__main > *`
+ * pe yahi pehra pehle se hai; `.secpg` (16 Sep) me chhoot gaya tha, aur 23 Sep ko contact page mobile pe
+ * screen se bahar nikla (asli wajah upar `.blk` ka `contain-intrinsic-*`).
+ */
+.secpg > * {
+  min-width: 0;
 }
 
 /* ---- `Enquiry form` block ka look — reference ka `.cform` (D-96 §30, client 16 Sep) ---- */
