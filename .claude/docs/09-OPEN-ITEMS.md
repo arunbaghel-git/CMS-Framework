@@ -424,6 +424,23 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
+#### A-49 · D-103 §10 — Popup: ek image · 720px · form teen column — **aankh se dekhna baaki** (23 Sep)
+
+**Deadline:** client ke dekhne pe · **kuch toota nahi** — CSS + settings tests pass, migration 029 dev DB pe lagi
+
+Client `pnpm dev` pe (popup `Show again` = `Every time the page opens` rakh ke) dekhe:
+
+| # | Kya dekhna | Kahan |
+| --- | --- | --- |
+| 1 | `Enquiries ▸ Popup` me ab **ek hi** image ka khaana; purani teen me se **pehli** bachi hai | admin |
+| 2 | Popup pehle se chauda (720px), image ek hi patti | desktop |
+| 3 | Form ke khaane **teen column** me; Message, checkbox aur Submit poori row | desktop |
+| 4 | Scroller aaya ya gaya (form chhota hua to aana nahi chahiye) | desktop, ~768px ooncha laptop |
+| 5 | Phone pe form pehle jaisa — ek column, image nahi | ≤760px |
+
+⚠️ Admin ka `Half width` checkbox popup me ab kuch nahi karta (teen column me har khaana ek cell) —
+client ko batana hai. Deploy pe **`pnpm cms migrate`** (029) + API restart + web/admin build.
+
 #### ✅ A-48 · D-112 — Pages ka Video block — **client ne live dekh liya** (23 Sep)
 
 Client: _"dono thik hai"_ (Gallery + Video). Neeche ki list itihaas hai.

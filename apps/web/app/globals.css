@@ -3620,7 +3620,12 @@ a.mega__gl:hover {
  */
 .pmod__shell {
   position: relative;
-  width: min(560px, 100%);
+  /*
+   * 560 → **720** (client, 23 Sep: _"width thodi increase karo"_). Saath me form 3 column me gaya
+   * (neeche), to chaudai badhne se ooonchai **ghat-ti** hai — 21 Sep wala 840px ka scroller
+   * `aspect-ratio` wali image se tha, jo ab `vh` se bandhi hai.
+   */
+  width: min(720px, 100%);
 }
 
 .pmod__box {
@@ -3710,21 +3715,16 @@ a.mega__gl:hover {
 }
 
 /*
- * Images ki ginti **client chunta hai** (1–3) — layout us ginti se banta hai, isliye
- * `grid-template-columns` class me hai, inline style me nahi.
+ * Popup me ab **ek hi** image (client, 23 Sep). 21 Sep ke `.pmod__pics--2/--3` (1–3 image ka
+ * grid) hat gaye — schema ki chhat 1 hai, to wo class kabhi banti hi nahi.
+ *
+ * ⚠️ `display: grid` **ek image pe bhi rakha hai** — client ki tune ki hui `.pmod__pic` height
+ * (`clamp(100%, …)`) ka `100%` grid item pe apne area se naapa jaata hai; block pe wo `auto` ban
+ * sakta tha, yaani image ki ooonchai chup-chaap badal jaati.
  */
 .pmod__pics {
   position: relative;
   display: grid;
-  gap: 2px;
-}
-
-.pmod__pics--2 {
-  grid-template-columns: 1fr 1fr;
-}
-
-.pmod__pics--3 {
-  grid-template-columns: repeat(3, 1fr);
 }
 
 .pmod__pic {
@@ -3818,6 +3818,48 @@ a.mega__gl:hover {
 
 .pmod__body .bkg__two {
   margin-bottom: 9px;
+}
+
+/*
+ * ⚠️ **Popup me form ke khaane teen column me** (client, 23 Sep: _"3 column in a row of form field
+ * in popup only"_) — sirf desktop/tablet pe, 761px se upar. Phone pe form pehle jaisa hai.
+ *
+ * Ye **sirf CSS** hai, markup nahi badla: wahi `EnquiryForm` package sidebar, tour, home hero aur
+ * contact page pe bhi chalta hai, aur unka layout chhua nahi jaana chahiye (client ne _"popup only"_
+ * kaha).
+ *
+ *   - `.bkg__two` (do lagataar `half` field) `display: contents` — uske dono khaane seedhe grid ke
+ *     cell bante hain, warna wo ek hi cell me do khaane thoos deta
+ *   - **Poori row** sirf un par jo ek cell me samaa nahi sakte: textarea (Message), checkbox ki
+ *     lambi line, error, aur Submit button
+ *   - `.hp` (honeypot) `position: absolute` hai, to wo grid ka koi cell nahi leta
+ *
+ * ⚠️ Admin ka `Half width` checkbox yahan kuch nahi badalta — teen column me har aam khaana ek cell
+ * hai. Wo checkbox baaki jagah (sidebar, contact) waise hi kaam karta hai.
+ */
+@media (min-width: 761px) {
+  .pmod__body .bkg--page form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* Rows ka gap grid deta hai, khaano ka `margin-bottom` nahi — `.bkg__two` wale khaano pe wo 0
+       hota hai aur baaki pe 9px, yaani `contents` ke baad rows ooncha-neecha baithtin. */
+    gap: 9px 10px;
+  }
+
+  .pmod__body .bkg--page form .bkg__two {
+    display: contents;
+  }
+
+  .pmod__body .bkg--page form .fld {
+    margin-bottom: 0;
+  }
+
+  .pmod__body .bkg--page form > .fld:has(textarea),
+  .pmod__body .bkg--page form > .fld--check,
+  .pmod__body .bkg--page form > .bkg__err,
+  .pmod__body .bkg--page form > .btn {
+    grid-column: 1 / -1;
+  }
 }
 
 /*

@@ -753,8 +753,8 @@ describe('Enquiries ▸ Popup — popupSettings (21 Sep)', () => {
     expect((await save({ delaySeconds: 5000 })).status).toBe(400)
     expect((await save({ delaySeconds: -1 })).status).toBe(400)
     expect((await save({ frequencyDays: 0 })).status).toBe(400)
-    /** Teen se zyada image — rok schema me hai, admin ki hint me nahi. */
-    expect((await save({ imageIds: ['a', 'b', 'c', 'd'] })).status).toBe(400)
+    /** Ek se zyada image (client, 23 Sep — pehle chhat 3 thi) — rok schema me hai, admin me nahi. */
+    expect((await save({ imageIds: ['a', 'b'] })).status).toBe(400)
     expect((await save({ showOn: { nosuchtype: true } })).status).toBe(400)
   })
 

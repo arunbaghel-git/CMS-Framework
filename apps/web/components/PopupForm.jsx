@@ -128,10 +128,10 @@ export default function PopupForm({ popup, sourcePath }) {
         <div className="pmod__box">
           {images.length > 0 && (
             /*
-            Ginti class me jaati hai (`pmod__pics--2`), inline style me nahi — client ne ginti
-            khud chunni thi, aur layout CSS me rehna chahiye taaki mobile pe wo badal sake.
+            Ab sirf **ek** image aati hai (client, 23 Sep — schema ki chhat 1). `images` phir bhi
+            array hai kyunki contract wahi hai; 21 Sep ka `pmod__pics--2/--3` hat gaya.
           */
-            <div className={`pmod__pics pmod__pics--${images.length}`}>
+            <div className="pmod__pics">
               {images.map((image, index) => (
                 <Img
                   key={image.url ?? index}

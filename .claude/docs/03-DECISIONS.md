@@ -9877,6 +9877,52 @@ sakti hai — wahi wajah jiske liye fixed height pehle lagayi gayi thi.
 
 ---
 
+## D-103 §10 — Ek image, chaudai 720, form teen column me (client, 23 Sep 2026)
+
+**Status:** ✅ ban gaya · **migration 029**
+
+Client: _"form popup only 1 image no other images choose option and width thodi increase karo popup
+ki if possible can we make 3 column in a row of form field in popup only"_.
+
+### §10.1 — Sirf ek image (21 Sep ka "0–3, ginti client chunta hai" palta)
+
+- **Schema:** `imageIds` ki chhat `POPUP_MAX_IMAGES = 1` (`packages/shared`). Shape **array hi** hai
+  (`[id]` / `[]`) — string me rename karne se API · admin · theme · tests sab badalte, faayda kuch nahi.
+- **Admin:** `Images` panel ab `Image` — ek hi `MediaDrop`, "up to 3" wali hint gayi.
+- **Theme:** `.pmod__pics--2/--3` JSX aur CSS dono se gaye. `.pmod__pics` pe `display: grid` **bacha
+  hai** — client ki tune ki hui `.pmod__pic` height `clamp(100%, …)` ka `100%` grid item pe hi resolve
+  hota hai; block pe wo `auto` ban kar image ki ooonchai chup-chaap badal deta.
+- ⚠️ **Migration 029 zaroori thi, optional nahi.** `toPublicSettings()` har read pe poora `settings`
+  schema se parse karta hai — DB me 2–3 image padi hoti to `GET /settings` (aur uske saath admin ki
+  Settings screens aur site ka header/footer) phat jaata. 029 **pehli image rakhti hai**, baaki ki id
+  hat-ti hai (file Media Library me rehti hai). `down()` khaali hai — rollback `mongodump` se.
+  Dev DB pe lag chuki (`imageIds` ab 1, parse ok).
+
+### §10.2 — Chaudai 560 → 720
+
+"Thodi" — aur 3 column ke liye kaafi (har khaana ~220px). 21 Sep ka 840px wala scroller **image ke
+`aspect-ratio`** se tha, chaudai se nahi; image ab `vh` se bandhi hai, to chaudai badhne se ooonchai
+badhti nahi — form 3 column me jaane se wo **ghat-ti** hai.
+
+### §10.3 — Form teen column me — sirf popup, sirf 761px se upar
+
+**Sirf CSS**, markup nahi badla: wahi `EnquiryForm` package sidebar · tour · home hero · contact pe bhi
+hai, aur client ne _"popup only"_ kaha. `@media (min-width: 761px)` ke andar
+`.pmod__body .bkg--page form` grid (`repeat(3, minmax(0, 1fr))`):
+
+- `.bkg__two` → `display: contents` (warna do `half` khaane ek hi cell me thus jaate)
+- Poori row: textarea wala `.fld`, `.fld--check`, `.bkg__err`, Submit `.btn`
+- Row ka gap grid ka `gap: 9px 10px`; `.fld` ka `margin-bottom` grid ke andar 0 (`.bkg__two` wale khaano
+  pe wo pehle se 0 tha — bina iske rows ooncha-neecha baithtin)
+- ⚠️ Admin ka **`Half width`** checkbox popup me kuch nahi badalta — teen column me har aam khaana ek
+  cell hai. Baaki forms pe wo waise hi chalta hai.
+- Phone (≤760px) pe form pehle jaisa — ek column.
+
+⚠️ **Aankh se dekhna baaki** — client `pnpm dev` pe dekhega (A-49). 6 naye CSS test
+(`popup-form.test.js`), settings ka 400 wala test ab 2 image pe.
+
+---
+
 ## D-106
 
 **Settings ▸ Integrations — teesre tools ka code, poori site pe** (client, 22 Sep 2026)

@@ -407,6 +407,9 @@ export const tourSettingsSchema = z.object({
  */
 export const POPUP_FREQUENCIES = Object.freeze(['session', 'once', 'days', 'always'])
 
+/** Popup ki image ki chhat — schema aur admin dono yahin se (client, 23 Sep: sirf ek). */
+export const POPUP_MAX_IMAGES = 1
+
 /**
  * Kin page types pe popup aaye — client ne **type ke checkbox** chune, per-page list nahi.
  *
@@ -470,17 +473,21 @@ export const popupSettingsSchema = z.object({
   description: htmlSchema.pipe(z.string().max(1000)).default(''),
 
   /**
-   * Kitni image — **client khud chunta hai** (unke shabd: _"if i choose 2 then 2, i choose 1 then
-   * one"_). Theme ginti dekh kar layout banati hai: 1 poori chaudai, 2 aadhi-aadhi, 3 teen hisse.
+   * Popup ki image — **sirf ek** (client, 23 Sep: _"form popup only 1 image, no other images
+   * choose option"_).
    *
-   * ⚠️ Chhat **3** pe hai. Screenshot me teen thin, aur teen se zyada phone pe itni patli ho jaati
-   * hain ki unme kuch dikhta hi nahi — ye rok admin me hint se nahi, schema se lagti hai.
+   * ~~21 Sep: 0–3 image, ginti client chunta tha~~ — **23 Sep ko palta**. Chhat ab **1** hai, aur
+   * wo rok admin ki hint se nahi, schema se lagti hai. DB me pehle se padi 2–3 image migration
+   * 029 ne pehli par kaat di (warna `toPublicSettings()` ka parse `/settings` hi tod deta).
+   *
+   * ⚠️ Shape **array hi rakha** gaya (`[id]` ya `[]`), string nahi — contract ka rename karne se
+   * API, admin, theme aur tests sab badalte, aur faayda kuch nahi. Khaali = popup sirf form.
    *
    * ⚠️ Media ki id write pe **check nahi** hoti — wahi precedent jo `tourSettings.bannerMediaId`
    * aur `pageSettings` pe hai. Guard D-42 §2 hai: resolve na ho to payload me `null` jaata hai,
    * isliye toota `<img>` banta hi nahi.
    */
-  imageIds: z.array(z.string().trim().max(60)).max(3).default([]),
+  imageIds: z.array(z.string().trim().max(60)).max(POPUP_MAX_IMAGES).default([]),
 
   /**
    * Page khulne ke kitne second baad popup aaye — client: _"admin can handle by enter time"_.

@@ -16,7 +16,11 @@
 >    `<head>` ke andar dikhna chahiye.
 > 6. Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed (A-17).
 >
-> **Last updated:** 23 Sep 2026 raat — **404 pe CSS nahi lag rahi thi (D-113).** Jad D-106 ka `<head>` pe
+> **Last updated:** 23 Sep 2026 raat (aakhir me) — **popup: ek image, 720px, form teen column (D-103 §10),
+> migration 029** (dev DB pe lag chuki). Teen column sirf CSS, sirf popup, 761px se upar. ⏭️ **A-49** — client
+> ka aankh se dekhna. Deploy pe `pnpm cms migrate` + API restart.
+>
+> **Usse pehle usi raat** — **404 pe CSS nahi lag rahi thi (D-113).** Jad D-106 ka `<head>` pe
 > `dangerouslySetInnerHTML`; ab head asli elements (`lib/head-html.js`). Headless Chrome se naapa, link 0 → 1.
 > Usi raat Enquiries bulk dropdown se `Mark New` hata (`3bba322`). **1475/1476 test.**
 >

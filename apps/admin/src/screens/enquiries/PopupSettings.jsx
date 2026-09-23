@@ -57,9 +57,6 @@ const FREQUENCY_LABELS = {
   always: 'Every time the page opens',
 }
 
-/** Chhat schema se hi aati hai — do jagah ginti likhne ka matlab ek din do alag hadd. */
-const MAX_IMAGES = 3
-
 export default function PopupSettings() {
   const { can } = useAuth()
   const canEdit = can('settings.update')
@@ -115,20 +112,10 @@ export default function PopupSettings() {
     setPopup((p) => ({ ...p, showOn: { ...p.showOn, [type]: value } }))
 
   /**
-   * Image ka ek khaana badalna.
-   *
-   * ⚠️ Slot khaali karne pe wo list se **nikal** jaata hai, `null` ban kar baithta nahi —
-   * client ne ginti khud chunni thi (_"if i choose 2 then 2"_), aur beech me ek `null` chhodne
-   * ka matlab hota theme pe ek khaali dabba.
+   * Popup ki **ek** image (client, 23 Sep — pehle 0–3 thi). Contract abhi bhi array hai
+   * (`POPUP_MAX_IMAGES` = 1), isliye yahan `[id]` ya `[]`. Khaali = popup sirf form.
    */
-  function setImage(index, id) {
-    setPopup((p) => {
-      const next = [...(p.imageIds ?? [])]
-      if (id) next[index] = id
-      else next.splice(index, 1)
-      return { ...p, imageIds: next.filter(Boolean) }
-    })
-  }
+  const setImage = (id) => set('imageIds', id ? [id] : [])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -178,9 +165,7 @@ export default function PopupSettings() {
   }
 
   const chosenPages = POPUP_PAGE_TYPES.filter((t) => popup.showOn[t])
-  /** Slots: chuni hui images + ek khaali (chhat tak) — "kitni chahiye" client chunta hai. */
-  const slots = [...popup.imageIds]
-  if (slots.length < MAX_IMAGES) slots.push('')
+  const imageId = popup.imageIds[0] ?? ''
 
   return (
     <>
@@ -276,7 +261,7 @@ export default function PopupSettings() {
                   disabled={!canEdit}
                   height={120}
                 />
-                <div className="hint">Sits over the images, e.g. “Special Offers”.</div>
+                <div className="hint">Sits over the image, e.g. “Special Offers”.</div>
               </div>
 
               <div className="field">
@@ -304,29 +289,23 @@ export default function PopupSettings() {
 
           <div className="panel">
             <div className="panel-head">
-              <h2>Images</h2>
-            </div>
-
-            <div className="panel-body row2">
-              {slots.map((id, index) => (
-                <MediaDrop
-                  key={`${id || 'empty'}-${index}`}
-                  label={`Image ${index + 1}`}
-                  hint={index === 0 ? '1200×800 · PNG, JPG or WebP' : 'Optional'}
-                  media={media[id]}
-                  onSelect={(chosen) => {
-                    setImage(index, chosen.id)
-                    setMedia((cur) => ({ ...cur, [chosen.id]: chosen }))
-                  }}
-                  onClear={() => setImage(index, null)}
-                />
-              ))}
+              <h2>Image</h2>
             </div>
 
             <div className="panel-body">
+              <MediaDrop
+                label="Image"
+                hint="1200×800 · PNG, JPG or WebP"
+                media={media[imageId]}
+                onSelect={(chosen) => {
+                  setImage(chosen.id)
+                  setMedia((cur) => ({ ...cur, [chosen.id]: chosen }))
+                }}
+                onClear={() => setImage(null)}
+              />
               <div className="hint">
-                Choose as many as you want, up to {MAX_IMAGES}. One image fills the width, two sit
-                side by side, three share the row. Add none and the popup is just the form.
+                One image across the top of the popup. Leave it empty and the popup is just the
+                form.
               </div>
             </div>
           </div>

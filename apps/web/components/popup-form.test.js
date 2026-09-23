@@ -358,3 +358,48 @@ describe('Form ka label optional (client, 22 Sep) — scroll ka asli ilaaj', () 
     expect(block.slice(0, end > 0 ? end : 900)).toContain('<span>{field.label}</span>')
   })
 })
+
+describe('Popup — ek image, chaudai 720, form teen column me (client, 23 Sep)', () => {
+  /** `@media (min-width: 761px) { … }` ka wo block jisme popup ka grid hai. */
+  const desktopBlock = (() => {
+    const at = css.indexOf('@media (min-width: 761px)')
+    expect(at, 'popup ka desktop grid CSS me hai hi nahi').toBeGreaterThan(-1)
+    return css.slice(at, css.indexOf('\n}', at))
+  })()
+
+  it('popup 720px tak chauda hai', () => {
+    expect(ruleOf('.pmod__shell')).toContain('width: min(720px, 100%)')
+  })
+
+  /** 1–3 image ka grid 23 Sep ko gaya — ginti wali class ab na JSX me hai na CSS me. */
+  it('image ki ginti wali class kahin nahi bachi', () => {
+    expect(jsx).not.toContain('pmod__pics--')
+    expect(css).not.toContain('.pmod__pics--')
+  })
+
+  it('desktop pe form teen column ka grid hai — sirf popup ke andar', () => {
+    expect(desktopBlock).toContain('.pmod__body .bkg--page form {')
+    expect(desktopBlock).toContain('grid-template-columns: repeat(3, minmax(0, 1fr))')
+  })
+
+  /**
+   * ⚠️ Bina `contents` ke do `half` khaane (`.bkg__two`) ek hi cell me thus jaate — teen column ke
+   * grid me wo ek column me do khaane ban kar dikhte.
+   */
+  it('half khaano ki jodi grid me khul jaati hai', () => {
+    expect(desktopBlock).toMatch(/\.bkg__two\s*\{\s*display:\s*contents/)
+  })
+
+  it('message, checkbox, error aur Submit poori row lete hain', () => {
+    for (const sel of ['> .fld:has(textarea)', '> .fld--check', '> .bkg__err', '> .btn']) {
+      expect(desktopBlock).toContain(`.pmod__body .bkg--page form ${sel}`)
+    }
+    expect(desktopBlock).toContain('grid-column: 1 / -1')
+  })
+
+  /** Package sidebar, tour, home hero aur contact page ka form grid nahi bana (client: "popup only"). */
+  it('baaki forms pe grid nahi hai', () => {
+    expect(css).not.toMatch(/\n\.bkg--page form \{[^}]*display:\s*grid/)
+    expect(css).not.toMatch(/\n\.bkg__b form \{[^}]*display:\s*grid/)
+  })
+})

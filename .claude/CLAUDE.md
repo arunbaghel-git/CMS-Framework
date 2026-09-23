@@ -741,8 +741,8 @@ cheezein ek din me milna ittefaq nahi — poora class-level milaan **A-35** me.
 **21 Sep — Enquiries ▸ Popup (D-103), koi migration nahi.** Poori site ka **ek** popup enquiry form
 (client: _"single popup only and single setting for all pages"_). Screen `Enquiries` ke submenu me
 (client ne jagah khud chuni), **data `settings.popupSettings` me** — wahi batwara jo `tourSettings`
-(8 Sep) aur `blogSettings` (D-93) pe hai. Admin se: form ka chunav · heading/text · **0–3 image
-(ginti client chunta hai)** · `Show after` second · `Show again` (session/once/N days/always) ·
+(8 Sep) aur `blogSettings` (D-93) pe hai. Admin se: form ka chunav · heading/text · ~~0–3 image~~
+**ek image** (23 Sep, D-103 §10) · `Show after` second · `Show again` (session/once/N days/always) ·
 aur **page type ke 6 checkbox**.
 ⚠️ **Popup ke apne fields nahi hain** — form `Enquiry Forms` se chuna jaata hai (D-86 wala sabak).
 Theme me bhi doosra form component nahi — `EnquiryForm variant="page"`.
@@ -919,6 +919,9 @@ ki cover image) + play, **iframe sirf click pe** (speed). Reference ka `.embed` 
 404 pe Next page browser me banata hai, React `layout.css` ka link head me daalta hai aur hamara `innerHTML` use mita
 deta tha. Ab head **asli elements** hain (`lib/head-html.js`, 8 test). Headless Chrome se naapa: link 0 → 1.
 **1475/1476 test** (akela fail purana `theme-fonts`).
+**23 Sep raat — popup: ek image, 720px, form teen column (D-103 §10), migration 029.** Image ki chhat 3 → **1**
+(`POPUP_MAX_IMAGES`; 029 pehli image rakhti hai — bina uske `toPublicSettings()` ka parse `/settings` tod deta).
+Teen column **sirf CSS**, sirf `.pmod__body` me aur 761px se upar — baaki forms nahi chhue. Aankh se dekhna — **A-49**.
 ⏭️ **Agla kaam: A-38** — Kerala package ka import
 (_"content doesn’t come on frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki
 pages PageSpeed pe (A-17).
