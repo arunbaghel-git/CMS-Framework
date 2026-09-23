@@ -10979,3 +10979,40 @@ mobile from top to bottom, hero section ke bad"_. Chaar sawaal poochhe gaye, jaw
 - ⚠️ **Patti me bullet aa gaye the** (client ne pakda) — `.toc` ka reset sirf `.wdg__b ul` se aata tha. Ab `.toc` ka
   apna `list-style: none` (A-19 wali soch: look list pe tike, dabbe pe nahi).
 - ⚠️ Aankh se dekhna baaki — **A-50**. Test: `apps/web/components/blog/toc-bar.test.js` (5).
+
+---
+
+## D-115
+
+**Enquiry form: heading `<h3>` se `<p>`, aur phone pe date ka khaana khaali na dikhe** (client, 23 Sep 2026)
+
+**Status:** ✅ ban gaya · koi migration nahi · sirf theme (`EnquiryForm.jsx` + CSS)
+
+### §1 — Form ka heading `<p className="fhead">`
+
+Client: _"make heading of form a p or a span or other it is disturbing html structure in home form"_. Home ke
+hero me form `<h1>` ke theek baad aata hai — outline `h1 → h3` (h2 chhoot kar), aur har page pe "Plan my trip"
+jaisa ek heading jo content ka hissa hi nahi.
+
+- **Teeno variant** (home hero · sidebar `cta` · `page`/popup) — sab ek hi `EnquiryForm` hain, to ek saath.
+  Package ka `book` variant pe heading tha hi nahi
+- Look nahi badla: `.fhead` global `h3` rule ki **wahi tokens** leta hai (`--font-heading`, `--h3-c/-w/-lh/-ls`)
+  — Settings ▸ Fonts ka H3 ab bhi isko chalata hai. Purane selector (`.wdg--cta h3` · `.hf-card__head h3` ·
+  `.wdg--cta.is-open > h3`) `.fhead` pe
+- ⚠️ `.wdg--cta p` (0,1,1) chhoti `line-height` lagata — heading ab `<p>` hai, to `.wdg--cta .fhead` me h3 ki
+  line-height wapas. Popup ka `.bkg__h` browser ke h3 default (`1.17em`) pe tha — wahi likha, look na badle
+
+### §2 — Date ka khaana phone pe
+
+Client: _"Date input field mobile par blank dikhti hai but click karne par datepicker open hota hai"_.
+`<input type="date">` `placeholder` maanta hi nahi, aur iPhone Safari khaali pe **kuch nahi** dikhata (desktop
+Chrome `dd-mm-yyyy` dikhata hai). Live DB ke paanchon date khaano ka placeholder bhi khaali tha.
+
+- Naya `DateInput` (EnquiryForm) — khaali haalat me `<span class="fld__ph" aria-hidden>` input ke upar: admin ka
+  placeholder, na ho to **`Select date`**. `pointer-events: none` — tap seedha input pe, picker khulta hai
+- ⚠️ Span **sirf touch pe** (`@media (hover: none)`) — desktop pe browser ka apna format hai, dono chhapte. Touch
+  pe Android ka apna `mm/dd/yyyy` (`::-webkit-datetime-edit`) khaali haalat me chhupta hai
+- `::-webkit-date-and-time-value` — iOS khaali date input ko patla karta aur chuni date beech me chhapta; ab
+  `min-height: 1.5em` + `text-align: left`
+- `month` pehle bhi `type="text"` pe girta tha (type map me tha hi nahi) — waisa hi chhoda, sirf `date` alag hua
+- ⚠️ Aankh se dekhna baaki — **A-51** (asli iPhone + Android). Test: `package/enquiry-form.test.js` (6)

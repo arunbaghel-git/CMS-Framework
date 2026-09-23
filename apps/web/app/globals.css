@@ -493,6 +493,21 @@ h3 {
   line-height: var(--h3-lh, 1.25);
   letter-spacing: var(--h3-ls, -0.02em);
 }
+/*
+ * **Form ka heading — dikhe `h3` jaisa, par `h3` nahi** (client, 23 Sep, D-115). `EnquiryForm` ke teeno
+ * variant (home hero · sidebar cta · page/popup) ka heading `<p className="fhead">` hai — page ke outline
+ * me form ka "Plan my trip" heading nahi hona chahiye. Look upar ke `h1, … h6` + `h3` rule jaisa hi, wahi
+ * tokens, to Settings ▸ Fonts ka H3 isko bhi chalata hai. Size har variant apna deta hai.
+ */
+.fhead {
+  margin: 0;
+  font-family: var(--font-heading);
+  color: var(--h3-c, var(--ink));
+  font-weight: var(--h3-w, var(--fw-heading));
+  line-height: var(--h3-lh, 1.25);
+  letter-spacing: var(--h3-ls, -0.02em);
+}
+
 h4 {
   color: var(--h4-c, var(--ink));
   /* Settings ▸ Fonts ▸ Text Sizes ▸ H4 — token tabhi aata hai jab step badla ho */
@@ -3884,6 +3899,8 @@ a.mega__gl:hover {
  */
 .bkg--page .bkg__h {
   margin: 0 0 6px;
+  /* `<h3>` tha aur uska naap browser ka default (1.17em) tha — `<p>` pe wahi rakha, look na badle */
+  font-size: 1.17em;
 }
 
 .bkg--page .bkg__lead {
@@ -4193,7 +4210,7 @@ a.mega__gl:hover {
    * heading scroll me upar chali jaati hai aur user ko pata hi nahi chalta ki wo kya bhar raha
    * hai.
    */
-  .wdg--cta.is-open > h3,
+  .wdg--cta.is-open > .fhead,
   .wdg--cta.is-open > div:not(.bkg__b) {
     flex: none;
   }
@@ -4371,6 +4388,45 @@ a.mega__gl:hover {
 .fld textarea::placeholder {
   color: var(--faint);
   font-weight: var(--fw-med);
+}
+
+/*
+ * **Date ka khaana phone pe khaali na dikhe** (client, 23 Sep, D-115). `<input type="date">` placeholder
+ * nahi maanta, aur iPhone Safari khaali pe kuch nahi dikhata. `DateInput` (EnquiryForm) khaali haalat me
+ * `.fld__ph` rakhta hai — wo sirf touch pe dikhta hai; desktop pe browser ka apna `dd-mm-yyyy` hai.
+ *
+ * ⚠️ `::-webkit-date-and-time-value` — iOS khaali date input ko **patla** kar deta hai (andar koi text
+ * nahi, to line ki ooonchai bhi nahi) aur chuni hui date **beech me** chhapta hai. Dono baaki khaano jaise.
+ */
+.fld__date {
+  position: relative;
+}
+
+.fld input[type='date']::-webkit-date-and-time-value {
+  min-height: 1.5em;
+  text-align: left;
+}
+
+.fld__ph {
+  display: none;
+}
+
+@media (hover: none) {
+  .fld__ph {
+    display: block;
+    position: absolute;
+    left: 14.5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--faint);
+    font-weight: var(--fw-med);
+    pointer-events: none;
+  }
+
+  /* Android ka apna `mm/dd/yyyy` — `.fld__ph` ke saath dono na chhapein */
+  .fld__date.is-empty input::-webkit-datetime-edit {
+    color: transparent;
+  }
 }
 
 .fld textarea {
@@ -6250,9 +6306,11 @@ a.mega__gl:hover {
   color: color-mix(in srgb, var(--on-dark) 78%, transparent);
 }
 
-.wdg--cta h3 {
+.wdg--cta .fhead {
   color: var(--on-dark);
   font-size: var(--fs-h3);
+  /* `.wdg--cta p` (0,1,1) apni chhoti line-height lagata — heading `<p>` hai, isliye yahan wapas */
+  line-height: var(--h3-lh, 1.25);
   margin-bottom: 6px;
 }
 
@@ -7821,7 +7879,7 @@ a.mega__gl:hover {
 }
 
 /* Design ka `.quote__head` — sidebar ke card (`.wdg--cta`) ka naap nahi. */
-.hf-card__head h3 {
+.hf-card__head .fhead {
   font-size: var(--fs-h3-lg);
   font-weight: var(--fw-black);
   color: var(--ink);

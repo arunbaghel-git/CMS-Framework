@@ -424,6 +424,18 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
+#### A-51 · D-115 — form heading `<p>` + phone pe date ka placeholder — **aankh se dekhna baaki** (23 Sep)
+
+**Deadline:** client ke dekhne pe · web tests pass, `next build` nahi chalaya
+
+| # | Kya dekhna | Kahan |
+| --- | --- | --- |
+| 1 | Date ke khaane me `Select date` (halka); tap pe picker, date chunne pe line gayab | asli **iPhone** + Android |
+| 2 | Chuni hui date baayein, aur khaana baaki khaano jitna ooncha | iPhone |
+| 3 | Desktop pe browser ka `dd-mm-yyyy` hi — `Select date` **nahi** | desktop |
+| 4 | Form ke heading ka look pehle jaisa (home hero · tour sidebar · popup) | sab |
+| 5 | View source: form heading `<p class="fhead">`, `<h3>` nahi | home |
+
 #### A-50 · D-114 — TOC ki band patti (1024px tak) — **aankh se dekhna baaki** (23 Sep)
 
 **Deadline:** client ke dekhne pe · web tests pass, `next build` nahi chalaya (client `pnpm dev` pe hai)

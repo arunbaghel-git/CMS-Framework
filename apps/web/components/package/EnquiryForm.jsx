@@ -187,23 +187,59 @@ function Field({ field, value, onChange, packages, categories }) {
         </select>
       )}
 
-      {!['textarea', 'select'].includes(field.type) && (
-        <input
-          {...common}
-          type={
-            { email: 'email', phone: 'tel', number: 'number', date: 'date' }[field.type] ?? 'text'
-          }
-          placeholder={field.placeholder || undefined}
-          /* Date/month pe poora box click karne laayak — dekho `openPicker`. */
-          onClick={['date', 'month'].includes(field.type) ? openPicker : undefined}
-          /** Browser ka autofill — sabse bada single UX faayda, aur muft hai. */
-          autoComplete={
-            { email: 'email', phone: 'tel', text: field.key === 'fullName' ? 'name' : 'off' }[
-              field.type
-            ] ?? 'off'
-          }
-        />
-      )}
+      {!['textarea', 'select'].includes(field.type) &&
+        (field.type === 'date' ? (
+          <DateInput field={field} common={common} />
+        ) : (
+          <input
+            {...common}
+            type={{ email: 'email', phone: 'tel', number: 'number' }[field.type] ?? 'text'}
+            placeholder={field.placeholder || undefined}
+            /* Month pe poora box click karne laayak — dekho `openPicker`. */
+            onClick={field.type === 'month' ? openPicker : undefined}
+            /** Browser ka autofill — sabse bada single UX faayda, aur muft hai. */
+            autoComplete={
+              { email: 'email', phone: 'tel', text: field.key === 'fullName' ? 'name' : 'off' }[
+                field.type
+              ] ?? 'off'
+            }
+          />
+        ))}
+    </div>
+  )
+}
+
+/**
+ * Date ka khaana — **phone pe khaali box na dikhe** (client, 23 Sep: _"Date input field mobile par
+ * blank dikhti hai but click karne par datepicker open hota hai"_).
+ *
+ * `<input type="date">` `placeholder` maanta hi nahi. Desktop Chrome khaali pe `dd-mm-yyyy` dikhata
+ * hai, par iPhone Safari **kuch nahi** — user ko pata hi nahi chalta ki ye date ka khaana hai. Isliye
+ * khaali haalat me ek `<span>` input ke upar baithta hai: admin ka placeholder, na ho to `Select date`.
+ *
+ * ⚠️ Wo sirf **touch** pe dikhta hai (CSS: `hover: none`) — desktop pe browser ka apna `dd-mm-yyyy`
+ * hai, dono ek saath chhapte. Touch pe browser ka apna format-text (Android) chhupa diya jaata hai.
+ *
+ * ⚠️ `aria-hidden` — screen reader ko naam `label`/`aria-label` se milta hai (upar ka `common`).
+ * `pointer-events: none` taaki tap seedha input pe jaaye aur picker khule.
+ */
+function DateInput({ field, common }) {
+  const empty = !common.value
+
+  return (
+    <div className={`fld__date${empty ? ' is-empty' : ''}`}>
+      <input
+        {...common}
+        type="date"
+        /* Poora box click karne laayak — dekho `openPicker` (R19). */
+        onClick={openPicker}
+        autoComplete="off"
+      />
+      {empty ? (
+        <span className="fld__ph" aria-hidden="true">
+          {field.placeholder || 'Select date'}
+        </span>
+      ) : null}
     </div>
   )
 }
@@ -472,13 +508,20 @@ export default function EnquiryForm({
          * `.wdg--cta` ka heading aur uske neeche ki line — dono admin se aati hain (D-88 §10).
          * Theme me likhne ka matlab hota Q-9 wala hi kaanta dobara.
          */}
+        {/*
+         * ⚠️ **Form ka heading `<p className="fhead">` hai, `<h3>` nahi** (client, 23 Sep: _"it is
+         * disturbing html structure in home form"_). Home ke hero me form `<h1>` ke theek baad aata tha,
+         * yaani outline me `h1 → h3` (h2 chhoot kar) — aur har page pe ek "Plan my trip" jaisa heading jo
+         * content ka hissa hi nahi. Teeno variant (hero · cta · page) pe ek saath; look `.fhead` me h3
+         * jaisa hi (wahi Fonts ke h3 tokens), to dikhne me kuch nahi badla.
+         */}
         {isHero && (heading || description) ? (
           <div className="hf-card__head">
-            {heading ? <h3>{heading}</h3> : null}
+            {heading ? <p className="fhead">{heading}</p> : null}
             {description ? <div dangerouslySetInnerHTML={{ __html: description }} /> : null}
           </div>
         ) : null}
-        {isCta && heading ? <h3>{heading}</h3> : null}
+        {isCta && heading ? <p className="fhead">{heading}</p> : null}
         {isCta && description ? <div dangerouslySetInnerHTML={{ __html: description }} /> : null}
 
         {/*
@@ -500,7 +543,7 @@ export default function EnquiryForm({
          * wahan is branch se kuch nahi badalta.
          */}
         {isPage && heading ? (
-          <h3 className="bkg__h" dangerouslySetInnerHTML={{ __html: heading }} />
+          <p className="fhead bkg__h" dangerouslySetInnerHTML={{ __html: heading }} />
         ) : null}
         {isPage && description ? (
           <div className="bkg__lead" dangerouslySetInnerHTML={{ __html: description }} />

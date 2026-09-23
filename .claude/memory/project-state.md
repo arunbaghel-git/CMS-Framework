@@ -16,7 +16,7 @@
 >    `<head>` ke andar dikhna chahiye.
 > 6. Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed (A-17).
 >
-> **Last updated:** 23 Sep 2026 raat (sabse aakhir) — **D-114:** blog post + Page ka `On this…` TOC 1024px
+> **Last updated:** 23 Sep 2026 raat (sabse aakhir) — **D-115:** form heading `<p class="fhead">`, phone pe date me `Select date` (A-51). **D-114:** blog post + Page ka `On this…` TOC 1024px
 > tak article ke upar band patti; phone pe har form ka har khaana apni row (D-103 §11.4). ⏭️ A-49 + A-50 client
 > ka aankh se dekhna.
 >
