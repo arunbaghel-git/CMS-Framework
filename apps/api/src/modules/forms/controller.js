@@ -1,6 +1,5 @@
 import { PERMISSION } from '@cms/shared'
 
-import { env } from '../../core/env.js'
 import { forbidden } from '../../core/errors.js'
 import * as formService from './service.js'
 import {
@@ -83,7 +82,8 @@ export const formController = {
  * `/packages/discover-andaman` ko **admin ka** pata samajh leta hai. Detail screen pe wo ek aisa
  * text hai jise copy karke koi khol hi nahi sakta.
  *
- * `env.SITE_URL` se banta hai, kisi setting se nahi — wahi pattern jo `entries/controller.js`
+ * `env.SITE_URL` se banta hai (`toSourceUrl()`, service me — team wali mail ka `{{page_url}}` bhi
+ * wahi use karti hai, D-109), kisi setting se nahi — wahi pattern jo `entries/controller.js`
  * aur `settings/controller.js` pe hai. Settings se lene ka matlab hota `settings.read` ke peeche
  * chala jaana, jo `salesAgent` ke paas hai hi nahi — aur usi ke liye ye screen bani hai (D-29).
  *
@@ -92,7 +92,7 @@ export const formController = {
  */
 const withSourceUrl = (enquiry) =>
   enquiry?.sourcePath
-    ? { ...enquiry, sourceUrl: `${env.SITE_URL.replace(/\/$/, '')}${enquiry.sourcePath}` }
+    ? { ...enquiry, sourceUrl: formService.toSourceUrl(enquiry.sourcePath) }
     : enquiry
 
 /**

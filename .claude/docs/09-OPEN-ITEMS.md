@@ -1,6 +1,11 @@
 # 09 — Open Items
 
-**Last updated:** 22 Sep 2026 — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
+**Last updated:** 23 Sep 2026 — **nayi enquiry ki mail ab team ko jaati hai (D-109, A-43 band)** —
+`Email enquiries to` pe, har form ka apna subject + message (`Enquiry Form ▸ Notification email`),
+Reply-To customer ka. Koi migration nahi. Naya **A-44**: asli submit → asli inbox abhi nahi dekha.
+⚠️ Neeche 22 Sep wali "nayi enquiry pe **email nahi jaayegi**" wali line ab **purani** hai.
+
+**22 Sep 2026** — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
 **SMTP ka sabse purana blocker khul gaya** (Phase 0, 19 Aug se). Koi migration nahi.
 ✅ **Client ne poora raasta do baar chala kar dekha — MailDev pe, aur apne asli Google Workspace
 account se.** Mail `progryss@gmail.com` ke **Inbox me aayi, Spam me nahi**. **A-42 band.**
@@ -451,6 +456,67 @@ chal raha hai, par uska koi asli grahak nahi. Ye likha hona chahiye, warna ek di
 **Agla grahak:** `forgot` / `reset` auth routes — Phase 0 se deferred the, **ab unblocked** hain.
 Kaam: token collection + 2 route + login screen ka dead link zinda karna. Client ne maanga nahi hai.
 
+#### ✅ A-43 · `form.emailTo` — **band** (23 Sep, D-109)
+
+Client ne vikalp **(a)** chuna, aur usse aage bhi: mail `Email enquiries to` wale pate(on) pe jaati
+hai (team ko, bharne wale ko nahi), aur uska **subject + message har form pe admin likhta hai** —
+`{{fullName}}` jaise variables aur `{{all_fields}}` ki table ke saath. Reply-To = customer ka email.
+`FormBuilder` ki "mail nahi jaati" wali hint hat gayi. Poora hisaab **D-109**.
+
+#### A-44 · D-109 — asli submit se asli inbox tak abhi nahi dekha (23 Sep)
+
+**Deadline:** koi sakht nahi · **kuch toota nahi** — 1430/1431 test (akela fail purana `theme-fonts`)
+
+MailDev pe `renderEnquiryMail()` ki banayi mail sahi pahunchi, aur API ka poora raasta `jsonTransport`
+se test hai. Par **asli DB ka SMTP client ka Google Workspace hai**, use maine nahi chhua — isliye
+"site pe form bharo → team ke inbox me mail" wala poora raasta abhi kisi ne nahi chalaya.
+
+| # | Kya dekhna hai |
+| --- | --- |
+| 1 | **API restart** (naya code) |
+| 2 | Kisi form pe `Email enquiries to` bharo, `Notification email` me subject/message dekho, Save |
+| 3 | Site pe wahi form bharo → inbox me mail, Reply dabane pe customer ka pata |
+| 4 | Enquiry Detail pe `Emailed to …` ki line |
+| 5 | Chips ka copy (http pe LAN IP se khola ho to `prompt()` aana chahiye) |
+
+✅ **23 Sep dopahar — client ne asli submit kiya, mail Gmail ke Inbox me aayi** (apne SMTP account se).
+Table me form ke apne labels, form ka kram, page ka poora URL — sab sahi. Baaki: Reply ka "To" aur
+Detail ki `Emailed to …` line (chhote, client chahe to dekhe).
+
+#### ✅ A-45 · Har enquiry ka subject ek jaisa — **band, koi code nahi** (23 Sep)
+
+**Client:** _"since admin can edit mail subject+body then i can manage and also i have tested so its
+fine"_ — subject har form pe admin se badla jaata hai, isliye naye variables ya naya default **nahi**
+banenge. Mashwara diya gaya: `New enquiry: {{name}} · {{travelDate}} · {{guests}}` (naam pehle = har mail
+alag thread; sirf **required** khaane, warna khaali hisse `·  ·` bachte; variables **chips se** copy,
+kyunki galat key chup-chaap khaali aati hai). Neeche ka prastav itihaas hai.
+
+<details><summary>Prastav jo nahi bana</summary>
+
+**Client (pehle):** _"subject ka me discuss karke batata hu"_
+
+Default subject `New enquiry — {{form_name}}` hai, yaani ek form ki **har** enquiry ka subject same.
+Gmail ek hi sender + same subject wali mails ko **ek conversation** me jodta hai — 10 enquiry ek thread
+me "(10)" ke saath, aur nayi enquiry alag se dikhti hi nahi.
+
+**Mera prastav:** teen naye system variable — `{{visitor_name}}` · `{{visitor_email}}` ·
+`{{visitor_phone}}` — jo `deriveEnquiryColumns()` se khaana dhoondhein (wahi niyam jo inbox ke column
+aur Reply-To pe chalta hai), kyunki har form me naam ki key alag ho sakti hai. Default subject
+`New enquiry from {{visitor_name}} — {{form_name}}`.
+
+✅ **Pehle se aayi enquiries waisi hi rahengi** — client: _"pahle se jo save hai hone do kyuki local par
+hai"_, aur phir saaf kiya: _"jo enquiries db me save ho gayi bo"_. (Unki mail ja chuki hai; subject ka
+badlaav un pe waise bhi asar nahi karta.)
+
+⚠️ **Khula: pehle se save hue FORMS ka subject.** Admin default se bhara khulta hai aur Save pe wo text
+DB me chala jaata hai — yaani naya default aaya to purane forms purane subject pe hi rahenge. Do raaste:
+client haath se badle, ya jin forms ka subject **hu-ba-hu purana default** hai unhe update kiya jaaye.
+Subject wale faisle ke saath hi tay hoga. → Tay hua: **client haath se badlega.**
+
+</details>
+
+<details><summary>A-43 (itihaas) — 22 Sep ka sawaal</summary>
+
 #### ⚠️ A-43 · `form.emailTo` ab bhi bhejta nahi hai — client ka faisla chahiye (22 Sep)
 
 Panel wale sawaal ka jawab dete waqt **client ne khud ye pakda**: _"in forms we already have Email
@@ -482,6 +548,8 @@ hain. Ye **A-41** wala hi pattern hai — lakshan hamesha "kuch na hona".
 ⚠️ **Ye reference wala `Enquiry Notifications` panel NAHI hai** (wo client ne rad kar diya, §10).
 Ye uska chhota aur behtar roop hai: pata **per-form** rehta hai (package form → sales, contact form
 → info), global ek hi pate ki jagah. Auto-reply aur digest isme phir bhi nahi hain.
+
+</details>
 
 ---
 

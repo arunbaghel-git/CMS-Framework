@@ -20,8 +20,19 @@ const formSchema = new mongoose.Schema(
 
     name: { type: String, required: true },
 
-    /** ⚠️ Abhi sirf store hota hai — SMTP Phase 0 se blocked hai. */
+    /** Nayi enquiry ki mail inhi pate(on) pe (D-109). Khaali = mail nahi jaati. */
     emailTo: { type: String, default: '' },
+
+    /**
+     * Us mail ka template (D-109). ⚠️ Model me na ho to Mongoose `strict` ise **chup-chaap** gira
+     * deta — wahi jaal jo `submitLabel` pe likha hai. Default yahan jaan-boojh kar `''` hai: 23 Sep
+     * se pehle ke forms me ye field hai hi nahi, aur khaali ka matlab "default template" hai
+     * (`renderEnquiryMail()`), to dono haalat ek hi tarah chalti hain.
+     */
+    notifyEmail: {
+      subject: { type: String, default: '' },
+      body: { type: String, default: '' },
+    },
 
     afterSubmit: {
       mode: { type: String, default: 'message' },
@@ -108,6 +119,25 @@ const enquirySchema = new mongoose.Schema(
      * Farak ye hai ki wahan wo **apply ho chuki migration** ka hissa tha aur data me baith
      * chuka tha; yahan notes kabhi kisi ne likhe hi nahi the.
      */
+
+    /**
+     * Team ko mail gayi ya nahi (D-109) — Enquiry Detail pe dikhta hai.
+     *
+     * `sent` · `failed` · `skipped` (SMTP configure nahi). Form pe `emailTo` khaali ho to ye
+     * **likha hi nahi jaata** (`null`) — us form pe mail bhejna kabhi tay hi nahi tha, aur use
+     * "skipped" kehna ek jhoothi chetavni hoti.
+     *
+     * ⚠️ Mail fail hone se enquiry **kabhi** nahi girti — ye sirf ek note hai (D-108 §4).
+     */
+    notification: {
+      type: {
+        status: { type: String, enum: ['sent', 'failed', 'skipped'] },
+        to: { type: [String], default: undefined },
+        at: Date,
+        error: String,
+      },
+      default: null,
+    },
 
     /** Delete = trash (R12). Permanent delete ka koi raasta abhi nahi hai. */
     deletedAt: { type: Date, default: null },

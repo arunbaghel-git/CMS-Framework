@@ -10533,3 +10533,77 @@ nahi hai. Agla grahak `forgot`/`reset` auth routes honge (Phase 0 se deferred, a
 
 ✅ **A-42 band** — screen, save, asli SMTP, deliverability aur password wale teenon flow, sab
 client ne chala kar dekh liye.
+
+---
+
+## D-109
+
+**Nayi enquiry ki mail team ko — har form ka apna subject aur message (23 Sep 2026)**
+
+### Sandarbh
+
+A-43 (22 Sep): client ne khud pakda ki `Email enquiries to` form pe **1 Sep se hai** (D-72), par
+mail kabhi nahi bhejta — SMTP Phase 0 se blocked tha. D-108 ne SMTP khol diya, aur usi din client
+ne reference ka global `Enquiry Notifications` panel mana kar diya (D-108 §10).
+
+23 Sep ko client ne ye maanga. Pehle maine ise **auto-reply** (bharne wale ko mail) samjha aur plan
+bhi usi ka banaya — client ne saaf kiya: _"mail will not go to user who fill the form, it will go
+to the Email enquiries to who is handling the enquiry in Enquiry Form"_. Saath me: subject aur
+message admin tay kare, bhare hue khaanon ke saath. Editor: **rich** (client).
+
+### Faisla
+
+| # | Kya | Kyun |
+| --- | --- | --- |
+| 1 | Mail **`form.emailTo`** pe — har form ka apna pata | A-43 ka vikalp (a). Package form → sales, contact form → info; global ek pata nahi |
+| 2 | Naya `form.notifyEmail{subject, body}` | Template bhi per-form, kyunki variables us form ke **apne** fields hain |
+| 3 | **Koi on/off toggle nahi** — `emailTo` khaali = mail nahi | "Band" ke do matlab ek din alag ho jaate (D-102 wala tark) |
+| 4 | Khaali subject/message = **default template** | Bina subject ya message ki mail ka koi matlab nahi. Admin ka form default se **bhara** khulta hai (D-65) |
+| 5 | Variables: `{{fieldKey}}` + `all_fields · form_name · page_url · enquiry_id` | System wale `snake_case` — field ki key me `_` aa hi nahi sakta, takraav namumkin |
+| 6 | **Reply-To = bharne wale ka email** | Team "Reply" dabaye to jawab seedha customer ko. Khaana `deriveEnquiryColumns()` se — client ke form me `email` ka type `text` hai (3 Sep) |
+| 7 | Submit mail ka **intezaar nahi** karta | SMTP timeout 10–20s; button atakta to visitor dobara dabata aur do enquiry bantin |
+| 8 | Nateeja enquiry pe — `notification{status,to,at,error}` | Detail pe "Emailed to … / not sent — wajah". Bina iske fail hona "kuch na hona" jaisa dikhta (A-41) |
+| 9 | Chips **copy** karte hain, editor me nahi daalte | `HtmlEditor` me bahar se daalne ka API nahi, aur wo client ke hand-edit wala component hai |
+
+### Suraksha — teen niyam, teenon ke test
+
+1. **Bharne wale ki har value HTML-escape** — template admin ka hai (write pe sanitize, R20), par
+   values bahar se aati hain. Warna naam ki jagah `<a href>` team ke inbox me chalta hua link banta,
+   hamare domain se.
+2. **Subject me newline nahi** — header injection. Nodemailer bhi rokta hai; ye doosra pehra hai.
+3. **Reply-To sirf tab jab bhari value sach me pata dikhe** — `x@y.com\r\nBcc: …` pe Reply-To lagta
+   hi nahi.
+
+Aur: `emailTo` ke galat pate **girte** hain, poori mail nahi rukti (`parseEmailList()`), aur template
+**public payload me kabhi nahi** jaata (`toPublicForm()` projection hai — test hai).
+
+### Kahan kya
+
+- `packages/shared/src/enquiry-mail.js` — `renderEnquiryMail()` · `parseEmailList()` ·
+  `enquiryMailVariables()` · defaults. **Pure functions, apne test ke saath** — D-105 aur D-108 §9
+  dono me niyam `submit()` ke andar tha aur wahi galti chhupi rahi
+- `forms/service.js` — `notifyEnquiry()`, `toSourceUrl()` (controller ka `sourceUrl` bhi ab yahi —
+  relative path wala bug teen baar aa chuka hai), write pe `sanitizeBlockHtml()`
+- `core/mailer.js` — `sendMail()` ab `replyTo` leta hai
+- Admin: `FormBuilder` ka naya **Notification email** panel, Basics ki hint badli; `EnquiryDetail` pe
+  mail ki line
+
+### Kya NAHI bana
+
+- **Auto-reply** (bharne wale ko mail) — client ne maanga hi nahi. ⚠️ Kabhi bane to wo ek **mail
+  relay** khatra laata hai: koi bhi kisi ka pata daal kar hamare domain se mail bhijwa sakta hai.
+  Rate limit aur template ki sakhti pehle
+- Global `Enquiry Notifications` panel — D-108 §10 ka faisla khada hai
+- `Send test` button — `Send Test Email` (D-108) SMTP pehle se jaanch leta hai
+
+### Verify
+
+- 18 shared test + 10 API test (`jsonTransport` — mail kise, subject, Reply-To, escape, poora URL;
+  save ka test **DB padhta hai**, response nahi)
+- **MailDev pe asli mail** — script `renderEnquiryMail()` se bana kar `localhost:1025` pe bheji (asli
+  DB ka SMTP config chhua nahi, wo client ka Google Workspace hai). Dono pate, Reply-To, table, text
+  roop, aur `<b>` escape — sab sahi
+- ⚠️ **Asli submit → asli inbox abhi nahi dekha gaya** — wo client ke SMTP account se hoga (A-44)
+
+Koi migration nahi — purane forms me `notifyEmail` nahi hai, aur khaali = default template.
+Deploy pe sirf naya code + API restart.

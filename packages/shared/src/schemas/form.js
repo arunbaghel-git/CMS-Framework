@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
 import { DEFAULT_SITE_ID } from '../constants/index.js'
+import { DEFAULT_ENQUIRY_MAIL_BODY, DEFAULT_ENQUIRY_MAIL_SUBJECT } from '../enquiry-mail.js'
+import { htmlSchema } from './rich-html.js'
 
 /**
  * Enquiry forms — `admin-design-v2.html` ke `#s-enquiry-forms` aur `#s-form-builder` se
@@ -14,9 +16,8 @@ import { DEFAULT_SITE_ID } from '../constants/index.js'
  * ## Yahan kya NAHI hai
  *
  * - **All Enquiries ki screen, Enquiry Detail, Export CSV** — client ne "only" kaha
- * - **Email bhejna** — SMTP Phase 0 se blocked hai (`09-OPEN-ITEMS.md`). `emailTo` field
- *   abhi bhi hai aur save hota hai, kyunki wo pata client ke paas aaj hai aur us din
- *   dobara nahi poochhna padega
+ * - ~~**Email bhejna**~~ — 1 Sep ko SMTP blocked tha. ✅ **23 Sep se mail jaati hai** (D-109):
+ *   `emailTo` pe, `notifyEmail` ke template se
  * - **Shortcode se kisi bhi page pe lagana** — uske liye page builder chahiye (Phase 5)
  *
  * ⚠️ Submissions **DB me jaati hain** (`enquiries`), bhale unhe dekhne ki screen abhi na
@@ -185,14 +186,33 @@ export const formSchema = z.object({
   name: z.string().trim().min(1, 'Give the form a name').max(200),
 
   /**
-   * `sales@…` — **abhi sirf store hota hai, bheja kuch nahi jaata** (SMTP blocked).
+   * `sales@…` — har nayi enquiry ki mail **inhi pate(on) pe jaati hai** (D-109, 23 Sep). Khaali =
+   * mail nahi jaati; alag on/off toggle jaan-boojh kar nahi hai, warna "band" ke do matlab hote
+   * (wahi tark jo D-102 me `.float` pe tha).
    *
    * Comma se ek se zyada. Yahan poora email validation jaan-boojh kar nahi hai: client
    * `sales@x.com, ops@x.com` likhta hai aur beech me space chhodta hai, aur us din is field
-   * pe atak jaana form banane se rok deta. Jis din mail sach me jaayegi, us din bhejne se
-   * pehle parse hoga.
+   * pe atak jaana form banane se rok deta. Parse **bhejne se pehle** hota hai —
+   * `parseEmailList()` (`enquiry-mail.js`), jo email jaisa na dikhne wala pata gira deta hai.
    */
   emailTo: z.string().trim().max(500).default(''),
+
+  /**
+   * Us mail ka subject aur message — admin ka likha, `{{fullName}}` jaise variables ke saath
+   * (D-109). Render `renderEnquiryMail()` me hota hai.
+   *
+   * ⚠️ **Khaali = default template, "mail band" nahi.** Bina subject ya message ki mail ka koi
+   * matlab nahi; mail band karne ka ekmatra raasta `emailTo` khaali karna hai.
+   *
+   * `body` HTML hai (editor wahi `HtmlEditor`), isliye **write pe sanitize** hoti hai (R20,
+   * `forms/service.js`). Subject saada text hai — header me HTML ka koi matlab nahi.
+   */
+  notifyEmail: z
+    .object({
+      subject: z.string().trim().max(200).default(DEFAULT_ENQUIRY_MAIL_SUBJECT),
+      body: htmlSchema.default(DEFAULT_ENQUIRY_MAIL_BODY),
+    })
+    .default({ subject: DEFAULT_ENQUIRY_MAIL_SUBJECT, body: DEFAULT_ENQUIRY_MAIL_BODY }),
 
   afterSubmit: z
     .object({
@@ -362,6 +382,7 @@ export function emptyForm() {
   return {
     name: '',
     emailTo: '',
+    notifyEmail: { subject: DEFAULT_ENQUIRY_MAIL_SUBJECT, body: DEFAULT_ENQUIRY_MAIL_BODY },
     afterSubmit: { mode: 'message', value: 'Thank you — we will get back to you shortly.' },
     /** Reference ki apni line — client kaat sakta hai, par ek chalti hui shuruaat milti hai. */
     footnote: 'No advance to see the plan. Answered by a planner, usually within 4 working hours.',

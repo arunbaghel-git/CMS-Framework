@@ -1,19 +1,43 @@
 import {
+  DEFAULT_ENQUIRY_MAIL_BODY,
+  DEFAULT_ENQUIRY_MAIL_SUBJECT,
   FORM_FIELD_TYPE_LABEL,
   FORM_PLACEMENTS,
   FORM_PLACEMENT_LABEL,
   emptyForm,
+  enquiryMailVariables,
+  isEmptyHtml,
 } from '@cms/shared'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import Panel from '../../components/admin/Panel.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { confirmRemove } from '../../lib/confirm.js'
 import { useListDrag } from '../../lib/drag-list.js'
+import HtmlEditor from '../packages/HtmlEditor.jsx'
 import { useForm } from './useForms.js'
 import './Forms.css'
+
+/**
+ * Mail ka template — **bhara hua** khulta hai, placeholder se nahi (D-65 ka sabak).
+ *
+ * 23 Sep se pehle ke forms me `notifyEmail` hai hi nahi (model ka default `''`), aur server pe khaali
+ * ka matlab waise bhi default template hai (`renderEnquiryMail()`). Yahan wahi default **dikhaya**
+ * jaata hai taaki client dekh sake ki mail me asal me kya jaayega — khaali box ye nahi batata.
+ */
+function withMailDefaults(form) {
+  const mail = form.notifyEmail ?? {}
+
+  return {
+    ...form,
+    notifyEmail: {
+      subject: mail.subject?.trim() ? mail.subject : DEFAULT_ENQUIRY_MAIL_SUBJECT,
+      body: isEmptyHtml(mail.body) ? DEFAULT_ENQUIRY_MAIL_BODY : mail.body,
+    },
+  }
+}
 
 /**
  * Add New / Edit Form — `admin-design-v2.html` ke `#s-form-builder` se (client, 1 Sep).
@@ -119,6 +143,8 @@ export default function FormBuilder() {
   const [error, setError] = useState(null)
   const [notice, setNotice] = useState(null)
   const [newField, setNewField] = useState({ label: '', type: 'text' })
+  /** Kaunsa variable abhi copy hua — chip pe ek pal "Copied" dikhane ke liye. */
+  const [copied, setCopied] = useState(null)
 
   const canWrite = can(id ? 'form.update' : 'form.create')
   const readOnly = !canWrite
@@ -146,12 +172,12 @@ export default function FormBuilder() {
 
   useEffect(() => {
     if (id) {
-      if (loaded) setForm(loaded)
+      if (loaded) setForm(withMailDefaults(loaded))
       return
     }
 
     /** Naya form design ke das default fields ke saath khulta hai — wahi shape jo API deti hai. */
-    setForm(emptyForm())
+    setForm(withMailDefaults(emptyForm()))
   }, [id, loaded])
 
   if (loading) return <p className="muted">Loading…</p>
@@ -215,6 +241,28 @@ export default function FormBuilder() {
     setNewField({ label: '', type: 'text' })
   }
 
+  const setMail = (patch) => setForm((f) => ({ ...f, notifyEmail: { ...f.notifyEmail, ...patch } }))
+
+  /**
+   * Variable ka chip dabao → `{{fullName}}` clipboard pe, phir editor me paste.
+   *
+   * ⚠️ Seedha editor me daalne ka raasta nahi hai — `HtmlEditor` bahar se cursor pe kuch daalne ka
+   * API deta hi nahi, aur wo client ke hand-edit wala component hai (unused `label` wali lint bhi
+   * wahin hai). Copy ek kadam zyada hai, par ek shared component me naya API jodne se sasta aur
+   * subject/message dono pe ek jaisa chalta hai.
+   */
+  async function copyToken(token) {
+    const text = `{{${token}}}`
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(token)
+      setTimeout(() => setCopied((current) => (current === token ? null : current)), 1500)
+    } catch {
+      /** Clipboard band ho (http pe LAN IP) to kam se kam likha hua dikhe — haath se likh lein. */
+      window.prompt('Copy this and paste it into the subject or message:', text)
+    }
+  }
+
   function removeField(index) {
     const field = form.fields[index]
     if (!confirmRemove(field.label || field.key)) return
@@ -231,6 +279,7 @@ export default function FormBuilder() {
     const payload = {
       name: form.name,
       emailTo: form.emailTo,
+      notifyEmail: form.notifyEmail,
       afterSubmit: form.afterSubmit,
       footnote: form.footnote,
       submitLabel: form.submitLabel ?? '',
@@ -261,9 +310,10 @@ export default function FormBuilder() {
         <h1>{id ? 'Enquiry Form' : 'Add New Form'}</h1>
       </div>
 
+      {/* Design ki apni line — 23 Sep se sach hai (D-109), isliye wapas reference ke shabd. */}
       <p className="subtitle">
-        Name it, tick the fields you want, say where it goes. Submissions are stored against this
-        form.
+        Name it, tick the fields you want, say where it goes. Submissions land in{' '}
+        <Link to="/enquiries">Enquiries</Link> and are emailed to your team.
       </p>
 
       {error && (
@@ -304,15 +354,15 @@ export default function FormBuilder() {
               </div>
 
               {/*
-               * ⚠️ Ye hint zaroori hai, sajawat nahi. Box ka naam padh kar client ye maanega
-               * ki mail jaane lagi — aur mail abhi jaati hi nahi (SMTP Phase 0 se blocked
-               * hai). Us bharose pe wo asli enquiries miss kar dega. Pata abhi bhi bhar kar
-               * rakhna theek hai: jis din SMTP aayegi, dobara nahi poochhna padega.
+               * 22 Sep tak yahan "Email is not being sent yet" likha tha — mail sach me nahi jaati
+               * thi (A-43). 23 Sep se jaati hai (D-109), to hint ab ye batati hai ki **khaali = mail
+               * nahi**, aur ki mail ke liye SMTP chahiye. Doosri baat zaroori hai: bina SMTP ke
+               * enquiry pe "not sent" dikhta hai aur client ko wajah yahin milni chahiye.
                */}
               <div className="hint">
-                Comma-separate the addresses for more than one. <b>Email is not being sent yet</b> —
-                mail delivery is still being set up. Every enquiry is stored against this form in
-                the meantime.
+                Comma-separate the addresses for more than one. Every new enquiry is emailed here —
+                leave it empty to send no email. Needs{' '}
+                <Link to="/settings/email">Settings ▸ Email / SMTP</Link>.
               </div>
 
               <div className="field">
@@ -563,6 +613,70 @@ export default function FormBuilder() {
                 </div>
               )}
               <span className="muted">{form.fields.length} fields</span>
+            </div>
+          </Panel>
+
+          {/*
+           * Team wali mail ka template — D-109 (client, 23 Sep). Ye reference ka rad kiya hua
+           * `Enquiry Notifications` panel **nahi** hai (D-108 §10): wahan ek global pata aur
+           * auto-reply the; yahan har form ka apna pata (`Email enquiries to`) aur apna message.
+           *
+           * Fields ke **neeche** jaan-boojh kar — variables inhi fields se bante hain, aur field
+           * jodte hi uska chip yahan aa jaata hai.
+           */}
+          <Panel title="Notification email">
+            <div className="panel-body">
+              {!form.emailTo?.trim() && (
+                <div className="hint" style={{ marginBottom: 12 }}>
+                  <b>No email is sent for this form</b> — add an address in &ldquo;Email enquiries
+                  to&rdquo; above. You can still set the message up now.
+                </div>
+              )}
+
+              <div className="field">
+                <label>Subject</label>
+                <input
+                  className="inp"
+                  value={form.notifyEmail.subject}
+                  onChange={(e) => setMail({ subject: e.target.value })}
+                  maxLength={200}
+                  disabled={readOnly}
+                />
+              </div>
+
+              {/* Label bahar `.field` me — `HtmlEditor` ka `label` prop render nahi hota (PopupSettings). */}
+              <div className="field">
+                <label>Message</label>
+                <HtmlEditor
+                  value={form.notifyEmail.body}
+                  onChange={(v) => setMail({ body: v })}
+                  disabled={readOnly}
+                  height={240}
+                />
+              </div>
+
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label>Variables</label>
+                <div className="chips var-chips">
+                  {enquiryMailVariables(form).map(({ token, label }) => (
+                    <button
+                      key={token}
+                      type="button"
+                      className="chip var-chip"
+                      title={label}
+                      onClick={() => copyToken(token)}
+                    >
+                      {copied === token ? 'Copied' : `{{${token}}}`}
+                    </button>
+                  ))}
+                </div>
+                <div className="hint">
+                  Click one to copy it, then paste it into the subject or message — it is replaced
+                  with what the visitor filled in. <code>{'{{all_fields}}'}</code> puts everything
+                  they entered in a table. Replying to the email goes straight to the visitor. Leave
+                  the subject or message empty to use the default.
+                </div>
+              </div>
             </div>
           </Panel>
         </div>

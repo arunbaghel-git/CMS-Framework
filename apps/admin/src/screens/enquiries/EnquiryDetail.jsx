@@ -169,6 +169,36 @@ export default function EnquiryDetail() {
                   ''
                 )}
               </p>
+
+              {/*
+               * Team ko mail gayi ya nahi (D-109) — reference ke activity feed ki "Auto-reply sent"
+               * wali line ka chhota roop. `null` = us form pe mail tay hi nahi thi, to kuch nahi.
+               *
+               * ⚠️ "Not sent" ki **wajah** likhi hai, sirf haalat nahi — bina uske client ko pata
+               * nahi chalta ki kahan theek karna hai, aur lakshan wahi "kuch na hona" hota (A-41).
+               */}
+              {enquiry.notification && (
+                <p className="enq-meta muted">
+                  {enquiry.notification.status === 'sent' && (
+                    <>
+                      Emailed to {enquiry.notification.to?.join(', ')}
+                      {enquiry.notification.at &&
+                        ` · ${new Date(enquiry.notification.at).toLocaleString()}`}
+                    </>
+                  )}
+                  {enquiry.notification.status === 'skipped' && (
+                    <>
+                      Not emailed — <Link to="/settings/email">Email / SMTP</Link> is not set up.
+                    </>
+                  )}
+                  {enquiry.notification.status === 'failed' && (
+                    <>
+                      Email to {enquiry.notification.to?.join(', ')} failed
+                      {enquiry.notification.error ? ` — ${enquiry.notification.error}` : ''}.
+                    </>
+                  )}
+                </p>
+              )}
             </div>
           </section>
         </div>

@@ -113,10 +113,12 @@ function createTransport(config) {
  * @param {string} args.subject
  * @param {string} [args.text]
  * @param {string} [args.html]
+ * @param {string} [args.replyTo] enquiry ki mail pe bharne wale ka pata — team "Reply" dabaye to
+ *   jawab seedha customer ko jaaye, site ke apne From pate pe nahi (D-109)
  * @param {object} [args.mail] `settings.mail` — na ho to sirf env se kaam chalega
  * @returns {Promise<{ok: boolean, skipped?: boolean, messageId?: string, message?: string}>}
  */
-export async function sendMail({ to, subject, text, html, mail }) {
+export async function sendMail({ to, subject, text, html, replyTo, mail }) {
   const config = resolveMailConfig(mail)
 
   /**
@@ -137,6 +139,7 @@ export async function sendMail({ to, subject, text, html, mail }) {
       subject,
       text,
       html,
+      ...(replyTo ? { replyTo } : {}),
     })
 
     return { ok: true, messageId: info.messageId, message: info.message }

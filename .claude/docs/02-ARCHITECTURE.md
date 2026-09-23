@@ -444,6 +444,14 @@ forms          * siteId, name, emailTo, afterSubmit{mode,value}, placement,
                  chahiye (Phase 5)
                  footnote · submitLabel (D-96, 15 Sep — button ka text, khaali
                  pe theme ka "Get this itinerary")
+                 notifyEmail{subject,body}  ← D-109, 23 Sep, koi migration nahi
+                 nayi enquiry ki mail emailTo ke pate(on) pe — TEAM ko, bharne
+                 wale ko nahi. emailTo khaali = mail nahi (alag toggle nahi).
+                 subject/body khaali = default template, "mail band" nahi.
+                 body HTML hai → write pe sanitize (R20). Variables {{fieldKey}}
+                 + {{all_fields}} {{form_name}} {{page_url}} {{enquiry_id}};
+                 render packages/shared ka renderEnquiryMail(). PUBLIC PAYLOAD
+                 me kabhi nahi jaata (toPublicForm projection hai)
 videoReviews   * siteId, imageId, videoUrl(https), name, packageName    ← D-96 §13, migration 025
                  reviews se ALAG collection (text reviews package page pe bina
                  filter jaati hain). Permission wahi review.*. Home ke
@@ -462,6 +470,10 @@ enquiries      * siteId, formId, formName, sourcePath, values{}, status,
                  status ab ENUM hai (ENQUIRY_STATUSES) — new · contacted · quoted
                  · negotiating · converted · lost
                  notes[] internal hain, grahak ko kabhi nahi dikhte
+                 notification{status(sent|failed|skipped),to[],at,error}|null
+                 ← D-109: team ko mail gayi ya nahi, Detail pe dikhta hai. null =
+                 us form pe emailTo khaali tha. Submit mail ka INTEZAAR nahi karta;
+                 mail fail hone se enquiry kabhi nahi girti
                  deletedAt — delete = trash (R12), permanent delete ka raasta NAHI
                  searchText values ka text ek jagah; iske bina search ka matlab
                  hota Mixed `values` pe regex — wahi R9 wali khatarnaak jagah

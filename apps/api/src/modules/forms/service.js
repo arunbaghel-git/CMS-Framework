@@ -6,11 +6,18 @@ import {
   deriveEnquiryColumns,
   emptyForm,
   ENQUIRY_STATUSES,
+  isEmailLike,
+  parseEmailList,
+  renderEnquiryMail,
 } from '@cms/shared'
 
+import { env } from '../../core/env.js'
 import { notFound, unprocessable } from '../../core/errors.js'
 import { logger } from '../../core/logger.js'
+import { sendMail } from '../../core/mailer.js'
 import { revalidateTags } from '../../core/revalidate.js'
+import { sanitizeBlockHtml } from '../../core/sanitize-html.js'
+import { getMailConfig } from '../settings/service.js'
 /**
  * ⚠️ Circular nahi hai — `entries/service.js` forms ko import nahi karti. Sirf ek query chahiye:
  * kaunse pages ke sections is form ko use karte hain (D-96).
@@ -30,6 +37,36 @@ import { Enquiry, Form } from './model.js'
 const scope = (siteId = DEFAULT_SITE_ID) => ({ siteId })
 
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/**
+ * Enquiry kis page se aayi — **poora URL** (`env.SITE_URL` + `sourcePath`).
+ *
+ * Do grahak hain: Enquiry Detail (`controller.js`) aur team wali mail ka `{{page_url}}` (D-109).
+ * ⚠️ Ek hi jagah jaan-boojh kar — relative path ka bug is repo me teen baar aa chuka hai (`entries`
+ * ka `withUrl`, Bulk Upload ka result D-81, aur `sourceUrl` khud D-90). Mail me relative path to
+ * aur bhi bekaar hota: wahan koi origin hota hi nahi jiske saath browser use jod le.
+ *
+ * @param {string} [sourcePath]
+ * @returns {string} khaali agar path hi nahi
+ */
+export function toSourceUrl(sourcePath) {
+  return sourcePath ? `${env.SITE_URL.replace(/\/$/, '')}${sourcePath}` : ''
+}
+
+/**
+ * Form ka input write se pehle — mail ka message HTML hai, isliye **write pe** saaf (R20).
+ *
+ * ⚠️ Ye mail team ke inbox me khulti hai, site pe nahi — par "sirf admin likhta hai" safai chhodne
+ * ki wajah nahi hai: R20 me koi apwaad nahi, aur `form.update` wala har role ye khaana bhar sakta hai.
+ */
+function sanitizeFormInput(input) {
+  if (!input?.notifyEmail) return input
+
+  return {
+    ...input,
+    notifyEmail: { ...input.notifyEmail, body: sanitizeBlockHtml(input.notifyEmail.body) },
+  }
+}
 
 function toApi(doc) {
   if (!doc) return null
@@ -102,7 +139,8 @@ export async function countEnquiriesForForm(formId, siteId = DEFAULT_SITE_ID) {
  * Khaali table dekh kar client ko pehle ye sochna padta ki ek enquiry form me hota kya hai.
  * Wahi wajah jo Section Headings ke bhare hue form pe likhi hai (D-65).
  */
-export async function createForm(input, siteId = DEFAULT_SITE_ID) {
+export async function createForm(rawInput, siteId = DEFAULT_SITE_ID) {
+  const input = sanitizeFormInput(rawInput)
   const base = emptyForm()
   const doc = await Form.create({
     ...base,
@@ -117,10 +155,11 @@ export async function createForm(input, siteId = DEFAULT_SITE_ID) {
   return toApi(doc)
 }
 
-export async function updateForm(id, input, siteId = DEFAULT_SITE_ID) {
+export async function updateForm(id, rawInput, siteId = DEFAULT_SITE_ID) {
   const current = await Form.findOne({ _id: id, ...scope(siteId) }).lean()
   if (!current) throw notFound('Form not found')
 
+  const input = sanitizeFormInput(rawInput)
   const updated = await Form.findOneAndUpdate({ _id: id }, { $set: input }, { new: true })
 
   /**
@@ -332,7 +371,90 @@ export async function submitEnquiry(input, siteId = DEFAULT_SITE_ID) {
     logger.info({ form: form.name, path: doc.sourcePath, values }, 'Nayi enquiry')
   }
 
+  /**
+   * Team ko mail — **intezaar nahi kiya jaata** (D-109).
+   *
+   * SMTP ke timeout 10–20 second tak hain (`core/mailer.js`); visitor ka Submit button utni der
+   * ghoomta rehta to wo dobara dabata aur **do** enquiry ban jaatin. Enquiry DB me pehle hi ja
+   * chuki hai — yahi is function ka asli kaam tha. `notifyEnquiry()` kabhi throw nahi karta, aur
+   * uska nateeja enquiry pe `notification` me likha jaata hai.
+   *
+   * ⚠️ Ye R2 (`setTimeout` kabhi nahi) ka ulanghan nahi hai — wo **scheduled** kaam ke liye hai jo
+   * restart pe kho jaaye. Yahan kuch schedule nahi hota; server beech me gire to sirf ek mail
+   * jaati nahi, aur enquiry pe `notification` khaali reh kar wahi batata hai.
+   */
+  void notifyEnquiry(form, doc.toObject(), siteId)
+
   return { ok: true, id: String(doc._id) }
+}
+
+/**
+ * Nayi enquiry ki mail `Email enquiries to` wale pate(on) pe (D-109, A-43 band). **Kabhi throw
+ * nahi karta.**
+ *
+ * - `emailTo` me koi theek pata nahi → kuch nahi, aur enquiry pe kuch **likha bhi nahi** jaata
+ *   (us form pe mail kabhi tay hi nahi thi)
+ * - Mail ka **Reply-To bharne wale ka email** — team "Reply" dabaye to jawab customer ko jaaye.
+ *   Email ka khaana `deriveEnquiryColumns()` se milta hai, type se nahi: client ke asli form me
+ *   `email` ka type `text` hai (3 Sep). Wahi niyam jo inbox ke column pe chalta hai — do niyam hote
+ *   to ek din alag ho jaate
+ *
+ * @param {object} form lean form document
+ * @param {object} enquiry lean enquiry document
+ * @returns {Promise<{status: 'sent'|'failed'|'skipped', to: string[], subject?: string, html?: string, text?: string, replyTo?: string, message?: string} | null>}
+ *   `null` jab mail tay hi nahi thi. Baaki sab tests ke liye — `submitEnquiry()` ise padhta nahi.
+ */
+export async function notifyEnquiry(form, enquiry, siteId = DEFAULT_SITE_ID) {
+  const to = parseEmailList(form?.emailTo)
+  if (!to.length) return null
+
+  try {
+    const emailKey = deriveEnquiryColumns(form).email?.key
+    const candidate = emailKey ? String(enquiry.values?.[emailKey] ?? '').trim() : ''
+    /** Bahar ka maal header me — sirf tab jab wo sach me ek pata dikhe. */
+    const replyTo = isEmailLike(candidate) ? candidate : undefined
+
+    const { subject, html, text } = renderEnquiryMail(form.notifyEmail, {
+      form,
+      values: enquiry.values,
+      pageUrl: toSourceUrl(enquiry.sourcePath),
+      enquiryId: String(enquiry._id),
+    })
+
+    const result = await sendMail({
+      to: to.join(', '),
+      subject,
+      html,
+      text,
+      replyTo,
+      mail: await getMailConfig(siteId),
+    })
+
+    const status = result.ok ? 'sent' : result.skipped ? 'skipped' : 'failed'
+
+    await Enquiry.updateOne(
+      { _id: enquiry._id },
+      {
+        $set: {
+          notification: {
+            status,
+            to,
+            at: new Date(),
+            ...(status === 'failed' ? { error: String(result.message ?? '').slice(0, 300) } : {}),
+          },
+        },
+      },
+    )
+
+    return { status, to, subject, html, text, replyTo, message: result.message }
+  } catch (err) {
+    /**
+     * `sendMail()` khud throw nahi karta — ye pehra baaki ke liye hai (settings padhna, DB likhna).
+     * Yahan se nikli error kisi ke `await` me nahi pahunchti, yaani unhandled rejection banti.
+     */
+    logger.warn({ err: err.message, enquiryId: String(enquiry?._id) }, 'Enquiry mail failed')
+    return { status: 'failed', to, message: err.message }
+  }
 }
 
 // ── enquiries inbox ──────────────────────────────────────────────────────────

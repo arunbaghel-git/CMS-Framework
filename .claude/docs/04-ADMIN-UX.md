@@ -946,7 +946,7 @@ ko site ke naam pe mail bhejne ka raasta de deta.
 
 | Design me hai | Banega? | Kyun |
 | --- | --- | --- |
-| `Enquiry Notifications` panel (notify addresses · auto-reply · template) | ❌ **Nahi** | **Client ne mana kiya** (22 Sep), SMTP live chal jaane ke baad |
+| `Enquiry Notifications` panel (notify addresses · auto-reply · template) | ❌ **Nahi** | **Client ne mana kiya** (22 Sep), SMTP live chal jaane ke baad. ⚠️ **23 Sep: team wali mail aur uska template ab har form pe hai** — `Enquiry Form ▸ Notification email` (D-109). Global panel phir bhi nahi, aur **auto-reply (bharne wale ko mail) nahi** |
 | `Attach package PDF to auto-reply` | ❌ Nahi | Upar wale panel ka hissa. PDF generator hai bhi nahi |
 | `Send daily enquiry digest at 9:00 AM` | ❌ Nahi | Wahi panel. Scheduler bhi nahi hai (R8 — DB-based, `setTimeout` kabhi nahi) |
 
@@ -954,10 +954,39 @@ ko site ke naam pe mail bhejne ka raasta de deta.
 bacha hua kaam nahi. Pehle ye "SMTP verify hone ke baad dekhenge" likha tha; 22 Sep ko client ne
 chala kar dekhne ke baad faisla de diya.
 
-⚠️ **Seedha natija:** nayi enquiry pe **kisi ko email nahi jaayegi** — wo `Enquiries` inbox me
-aayegi aur wahin se dekhni padegi (D-75/76 wali hi soch).
+~~⚠️ **Seedha natija:** nayi enquiry pe **kisi ko email nahi jaayegi** — wo `Enquiries` inbox me
+aayegi aur wahin se dekhni padegi (D-75/76 wali hi soch).~~ ✅ **23 Sep se palat gaya (D-109)** —
+mail har form ke `Email enquiries to` pe jaati hai, template form ke `Notification email` panel me.
+Neeche wala section padho.
 
 Do checkbox waise bhi na bante, aur wo wajah rehni chahiye: D-30 — _khaali panel dikhane se behtar
 hai wo panel na dikhna_ — aur uske upar A-41, ki is repo ka sabse baar-baar aane wala bug yahi hai
 ki cheez ban jaati hai aur koi use padhta hi nahi. Ek checkbox jo kuch na kare usse bura hai ki wo
 hai hi nahi, kyunki client uspe bharosa kar baithta hai.
+
+### Enquiries ▸ Enquiry Form ▸ Notification email (23 Sep, D-109)
+
+Fields ke **neeche** naya panel — variables inhi fields se bante hain, to field jodte hi uska chip
+yahan aa jaata hai.
+
+| Khaana | Kya |
+| --- | --- |
+| Hint (sirf jab `Email enquiries to` khaali ho) | _No email is sent for this form — add an address in "Email enquiries to" above._ |
+| **Subject** | Saada text, `{{…}}` ke saath. Default `New enquiry — {{form_name}}` |
+| **Message** | Wahi `HtmlEditor` (D-90 — editor poore admin me ek jaisa). Default: ek line + `{{all_fields}}` ki table + page ka URL |
+| **Variables** | Chips — form ke dikhne wale fields, phir `all_fields · form_name · page_url · enquiry_id`. Click = copy |
+
+Basics ki hint badli: _"Every new enquiry is emailed here — leave it empty to send no email. Needs
+Settings ▸ Email / SMTP."_ (22 Sep tak wahan _"Email is not being sent yet"_ tha — A-43.) Subtitle
+wapas reference ke shabdon pe: _"Submissions land in Enquiries and are emailed to your team."_
+
+⚠️ **Chip copy karta hai, editor me daalta nahi** — `HtmlEditor` bahar se cursor pe kuch daalne ka
+API nahi deta, aur wo client ke hand-edit wala component hai. Clipboard band ho (http pe LAN IP)
+to `prompt()` me text dikhta hai.
+
+⚠️ **Form pe khaali = default, "band" nahi.** Subject ya message mita do to mail default template
+se jaati hai. Mail band karne ka ekmatra raasta `Email enquiries to` khaali karna hai.
+
+**Enquiry Detail** pe form/source wali line ke neeche ek aur line: `Emailed to sales@… · <time>`,
+ya _"Not emailed — Email / SMTP is not set up"_, ya _"Email to … failed — <wajah>"_. Jis form pe
+`emailTo` khaali tha uski enquiry pe ye line **aati hi nahi**.

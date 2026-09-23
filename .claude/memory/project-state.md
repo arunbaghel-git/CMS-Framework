@@ -1,7 +1,20 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 22 Sep 2026 — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
+> **Last updated:** 23 Sep 2026 — **nayi enquiry ki mail team ko (D-109, A-43 band).** Client ne
+> saaf kiya ki mail **bharne wale ko nahi**, `Email enquiries to` wale pate(on) pe jaaye — aur
+> subject aur message admin har form pe likhe (`Enquiry Form ▸ Notification email`, rich editor, `{{fullName}}`
+> jaise variables, `{{all_fields}}` ki table). Reply-To customer ka. Enquiry Detail pe
+> `Emailed to …` / not sent ki wajah. **Koi migration nahi**, deploy pe sirf API restart.
+> **Suite: 55 files, 1430/1431 pass** (28 naye — 18 shared + 10 API; akela fail wahi purana
+> `theme-fonts`). MailDev pe asli mail dekhi (script se — asli DB ka SMTP client ka hai, chhua nahi).
+> ⏭️ **A-44** — asli submit → asli inbox client ke account se dekhna baaki. Uske baad **A-38**.
+> ⚠️ **Auto-reply (customer ko mail) NAHI bana** — client ne maanga hi nahi. Kabhi bane to wo mail
+> relay ka khatra laata hai (D-109 "Kya NAHI bana").
+> ✅ 22 Sep ka sab kuch **push ho chuka** (23 Sep subah `origin/main == HEAD`). Neeche ki "push
+> baaki hai" wali lines purani hain.
+>
+> **22 Sep 2026** — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
 > **repo ka sabse purana blocker khul gaya** (SMTP, Phase 0 / 19 Aug se). Usse pehle usi din:
 > SEO ka bulk export + import (D-107, A-33 band), popup settle (D-103 §9–§9.7), aur
 > **Settings ▸ Integrations** (D-106, A-40 band). **Chaaron me koi migration nahi.**

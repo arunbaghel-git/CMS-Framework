@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**1176 tests**, 17 Sep). Public package page ke **saare** section live hain.
+hain** (**1431 tests**, 23 Sep). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-101               |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-109               |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -883,11 +883,24 @@ wapas server ko bhejna" wale raaste pe koi test tha hi nahi. **Ye D-105 wali sha
 niyam ab `toMailUpdate()` me (`packages/shared`), `handleSubmit()` ke andar nahi, **8 naye test** ke saath.
 **Sabak dobara:** jo niyam `submit()` ke andar likha hai, uska test likha hi nahi ja sakta.
 
-⏭️ **Agla kaam: A-38** — client ka zinda sawaal (Kerala package ka import, _"content doesn’t come on frontend"_).
-Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki pages PageSpeed pe (A-17).
-⚠️ **Enquiry notification ka PANEL mat banao — client ne 22 Sep ko mana kar diya** (upar D-108 §10).
-⏭️ Par ek chhota sawaal khula hai — **A-43**: `form.emailTo` ("Email enquiries to") **pehle se hai
-par bhejta nahi**; client ne khud ye pakda. Jodna chhota kaam hai, par **client ke jawab pe ruka hai**.
+**23 Sep — nayi enquiry ki mail team ko (D-109, A-43 band), koi migration nahi.** Mail `Email
+enquiries to` wale pate(on) pe — **team ko, bharne wale ko nahi** (client ne ye saaf kiya; maine pehle
+auto-reply samjha tha). Subject + message **har form pe** (`Enquiry Form ▸ Notification email`, rich
+editor), variables form ke apne fields se (`{{fullName}}`) + `{{all_fields}}` ki table. Reply-To =
+customer. Enquiry Detail pe `Emailed to …` ya not-sent ki wajah (`enquiry.notification`).
+⚠️ **Koi toggle nahi** — `emailTo` khaali = mail nahi. **Khaali subject/message = default template**, band nahi.
+⚠️ Niyam `packages/shared/src/enquiry-mail.js` me, pure functions + tests (D-105/D-108 §9 ka sabak):
+bhari value **escape**, subject me **newline nahi**, Reply-To sirf asli pate pe.
+⚠️ Submit mail ka **intezaar nahi** karta. `sourceUrl` ab `toSourceUrl()` (service) — ek hi jagah.
+⚠️ **Auto-reply NAHI bana** — client ne maanga nahi, aur wo mail relay ka khatra laata hai.
+⚠️ Asli submit → asli inbox abhi nahi dekha — **A-44** (asli DB ka SMTP client ka account hai).
+**1430/1431 test.**
+
+⏭️ **Agla kaam: A-44** (client ke saath live check), phir **A-38** — Kerala package ka import
+(_"content doesn’t come on frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki
+pages PageSpeed pe (A-17).
+⚠️ **Global `Enquiry Notifications` PANEL mat banao — client ne 22 Sep ko mana kiya** (D-108 §10). Per-form
+mail D-109 me hai.
 `project-state.md` ka pehla section padho.
 
 Poori list → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)

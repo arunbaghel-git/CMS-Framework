@@ -119,3 +119,22 @@
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/*
+ * Notification email ke variable chips (D-109) — `.chip` primitives se, bas `<button>` hai.
+ * Button apna font aur rang le aata hai; bina reset ke chip baaki admin ke chip se alag dikhta.
+ */
+.var-chips {
+  margin-top: 0;
+}
+
+.var-chip {
+  cursor: pointer;
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  line-height: 1.6;
+}
+
+.var-chip:hover {
+  border-color: var(--primary);
+}

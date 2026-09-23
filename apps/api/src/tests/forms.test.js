@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
 
 import { emptyForm } from '@cms/shared'
@@ -9,7 +9,9 @@ import { COOKIE } from '../core/tokens.js'
 import { CSRF_HEADER } from '../middleware/csrf.js'
 import { RefreshToken } from '../modules/auth/model.js'
 import { Enquiry, Form } from '../modules/forms/model.js'
+import { notifyEnquiry } from '../modules/forms/service.js'
 import { Role } from '../modules/roles/model.js'
+import { Settings } from '../modules/settings/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
 import { User } from '../modules/users/model.js'
 import { createUser } from '../modules/users/service.js'
@@ -783,5 +785,196 @@ describe('Form field ka label optional hai (22 Sep)', () => {
     })
 
     expect(res.status).toBe(400)
+  })
+})
+
+// ── team ko mail (D-109) ─────────────────────────────────────────────────────
+
+/**
+ * Nayi enquiry ki mail `Email enquiries to` wale pate(on) pe — D-109, A-43 band.
+ *
+ * Test me SMTP `jsonTransport` hai (`core/mailer.js`) — mail banti poori hai par jaati kahin nahi,
+ * aur `message` me wahi JSON laut-ta hai jo bheja ja raha tha. Isliye ye dekha ja sakta hai ki
+ * **kise, kis subject aur Reply-To ke saath** gayi.
+ *
+ * ⚠️ Submit mail ka intezaar **nahi** karta (visitor ka button atakta). Isliye submit wale test
+ * enquiry pe `notification` ke likhe jaane tak rukte hain — `waitForNotification()`.
+ */
+describe('nayi enquiry ki mail — Email enquiries to (D-109)', () => {
+  const filled = {
+    fullName: 'Ananya <b>Rao</b>',
+    email: 'ananya@example.com',
+    phone: '9810000000',
+    consent: true,
+  }
+
+  async function configureSmtp() {
+    await authed('patch', '/api/settings/mail', adminJar).send({
+      host: 'localhost',
+      port: 1025,
+      fromEmail: 'cms@test.local',
+      fromName: 'CMS',
+    })
+  }
+
+  async function waitForNotification(id) {
+    for (let i = 0; i < 60; i++) {
+      const doc = await Enquiry.findById(id).lean()
+      if (doc?.notification) return doc.notification
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+    return null
+  }
+
+  afterEach(async () => {
+    await Settings.updateMany({}, { $unset: { mail: 1 } })
+  })
+
+  it('submit ke baad mail jaati hai aur enquiry pe "sent" likha jaata hai', async () => {
+    await configureSmtp()
+    const form = await makeForm({ emailTo: 'sales@x.com, ops@x.com' })
+
+    const res = await submit({ formId: form.id, values: filled, sourcePath: '/packages/x' })
+    expect(res.status).toBe(201)
+
+    const notification = await waitForNotification(res.body.data.id)
+
+    expect(notification.status).toBe('sent')
+    expect(notification.to).toEqual(['sales@x.com', 'ops@x.com'])
+  })
+
+  it('mail ka poora maal — kise, subject, Reply-To, escape, poora URL', async () => {
+    await configureSmtp()
+    const form = await makeForm({
+      emailTo: 'sales@x.com; bekaar-pata',
+      notifyEmail: {
+        subject: 'Lead: {{fullName}}',
+        body: '<p>From {{page_url}}</p><p>{{all_fields}}</p>',
+      },
+    })
+
+    const doc = await Form.findById(form.id).lean()
+    const enquiry = await Enquiry.create({
+      formId: form.id,
+      formName: doc.name,
+      sourcePath: '/packages/x',
+      values: filled,
+    })
+
+    const out = await notifyEnquiry(doc, enquiry.toObject())
+    const sent = JSON.parse(out.message)
+
+    /** Galat pata gira, sahi wala gaya — ek typo poori team ki mail nahi rokta. */
+    expect(sent.to.map((a) => a.address)).toEqual(['sales@x.com'])
+    /** Team "Reply" dabaye to jawab customer ko jaaye. */
+    expect(sent.replyTo[0].address).toBe('ananya@example.com')
+    expect(sent.from.address).toBe('cms@test.local')
+    expect(sent.subject).toBe('Lead: Ananya <b>Rao</b>')
+    /** Bahar ka maal body me escape — team ke inbox me chalta hua HTML nahi. */
+    expect(sent.html).toContain('Ananya &lt;b&gt;Rao&lt;/b&gt;')
+    expect(sent.html).not.toContain('<b>Rao</b>')
+    /** Poora URL, relative path nahi (D-90 wala bug). */
+    expect(sent.html).toMatch(/From https?:\/\/[^<]+\/packages\/x/)
+    /** Text roop me label form ka apna (`Full Name`), aur value wahi jo bhari — escape sirf HTML me. */
+    expect(sent.text).toContain('Full Name: Ananya <b>Rao</b>')
+  })
+
+  it('email ka khaana type "text" ho tab bhi Reply-To milta hai — client ka asli form', async () => {
+    /** 3 Sep: client ke form me `email` ka type `text` hai. Type dekhne wala niyam yahan chup rehta. */
+    await configureSmtp()
+    const form = await makeForm({ emailTo: 'sales@x.com' })
+    const doc = await Form.findById(form.id).lean()
+    const typed = {
+      ...doc,
+      fields: doc.fields.map((f) => (f.key === 'email' ? { ...f, type: 'text' } : f)),
+    }
+    const enquiry = await Enquiry.create({ formId: form.id, values: filled })
+
+    const out = await notifyEnquiry(typed, enquiry.toObject())
+
+    expect(out.replyTo).toBe('ananya@example.com')
+  })
+
+  it('bhara hua email pata jaisa na ho to Reply-To lagta hi nahi', async () => {
+    await configureSmtp()
+    const form = await makeForm({ emailTo: 'sales@x.com' })
+    const doc = await Form.findById(form.id).lean()
+    const enquiry = await Enquiry.create({
+      formId: form.id,
+      values: { ...filled, email: 'x@y.com\r\nBcc: victim@z.com' },
+    })
+
+    const out = await notifyEnquiry(doc, enquiry.toObject())
+
+    expect(out.replyTo).toBeUndefined()
+    expect(JSON.parse(out.message).replyTo).toBeUndefined()
+  })
+
+  it('Email enquiries to khaali — mail nahi, aur enquiry pe kuch likha bhi nahi jaata', async () => {
+    await configureSmtp()
+    const form = await makeForm({ emailTo: '' })
+    const doc = await Form.findById(form.id).lean()
+    const enquiry = await Enquiry.create({ formId: form.id, values: filled })
+
+    expect(await notifyEnquiry(doc, enquiry.toObject())).toBeNull()
+    expect((await Enquiry.findById(enquiry._id).lean()).notification).toBeNull()
+  })
+
+  it('SMTP configure hi nahi — enquiry phir bhi banti hai, aur "skipped"', async () => {
+    const form = await makeForm({ emailTo: 'sales@x.com' })
+
+    const res = await submit({ formId: form.id, values: filled })
+    expect(res.status).toBe(201)
+
+    expect((await waitForNotification(res.body.data.id)).status).toBe('skipped')
+  })
+
+  it('template Save hota hai — response nahi, DB padha jaata hai', async () => {
+    /** `updatePackageDefaults` wala jaal: model me field na ho to API 200, DB me kuch nahi. */
+    const form = await makeForm()
+
+    const res = await authed('patch', `/api/forms/${form.id}`, adminJar).send({
+      notifyEmail: { subject: 'Hello {{fullName}}', body: '<p>Body {{email}}</p>' },
+    })
+    expect(res.status).toBe(200)
+
+    const saved = await Form.findById(form.id).lean()
+    expect(saved.notifyEmail).toEqual({
+      subject: 'Hello {{fullName}}',
+      body: '<p>Body {{email}}</p>',
+    })
+  })
+
+  it('message ki HTML write pe saaf hoti hai (R20)', async () => {
+    const form = await makeForm()
+
+    await authed('patch', `/api/forms/${form.id}`, adminJar).send({
+      notifyEmail: {
+        subject: 'x',
+        body: '<p onclick="x()">Hi {{fullName}}</p><script>alert(1)</script>',
+      },
+    })
+
+    const saved = await Form.findById(form.id).lean()
+    expect(saved.notifyEmail.body).not.toContain('<script')
+    expect(saved.notifyEmail.body).not.toContain('onclick')
+    expect(saved.notifyEmail.body).toContain('Hi {{fullName}}')
+  })
+
+  it('naya form default template ke saath banta hai', async () => {
+    const res = await authed('post', '/api/forms', adminJar).send({ name: 'Bina template' })
+
+    const saved = await Form.findById(res.body.data.form.id).lean()
+    expect(saved.notifyEmail.subject).toBe('New enquiry — {{form_name}}')
+    expect(saved.notifyEmail.body).toContain('{{all_fields}}')
+  })
+
+  it('template public payload me nahi jaata', async () => {
+    await makeForm({ emailTo: 'sales@x.com' })
+
+    const res = await request(app).get('/api/public/package-defaults')
+
+    expect(JSON.stringify(res.body)).not.toContain('notifyEmail')
+    expect(JSON.stringify(res.body)).not.toContain('{{all_fields}}')
   })
 })
