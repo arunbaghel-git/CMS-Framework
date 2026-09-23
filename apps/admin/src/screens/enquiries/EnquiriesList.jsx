@@ -241,8 +241,12 @@ export default function EnquiriesList() {
               aria-label="Bulk actions"
             >
               <option value="">Bulk actions</option>
+              {/*
+               * `Mark New` jaan-boojh kar nahi (client, 23 Sep) — enquiry wapas "new" karne ka koi kaam nahi.
+               * Sirf dropdown se hata; tab aur status `new` waise hi hain, API bhi use abhi bhi maanti hai.
+               */}
               {canEdit &&
-                ENQUIRY_TABS.map((status) => (
+                ENQUIRY_TABS.filter((status) => status !== 'new').map((status) => (
                   <option key={status} value={status}>
                     Mark {ENQUIRY_STATUS_LABEL[status]}
                   </option>
