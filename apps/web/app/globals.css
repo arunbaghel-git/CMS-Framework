@@ -3928,13 +3928,11 @@ a.mega__gl:hover {
   }
 
   /*
-   * Phone pe popup me **har khaana apni row me** (client, 23 Sep: _"on mobile 1 field in 1 row"_) —
-   * `half` wali jodi (`.bkg__two`) bhi. Sirf popup; baaki forms ki jodi phone pe waisi hi hai.
+   * Phone pe har khaana apni row me — ab **har form** pe (base `.bkg__two` ka phone rule). Yahan sirf
+   * popup ka gap: baaki popup khaano jaisa 9px (`.pmod__body .fld`).
    */
   .pmod__body .bkg__two {
-    grid-template-columns: 1fr;
-    /* Upar-neeche ka gap baaki khaano jaisa (`.pmod__body .fld` ka 9px), jodi wala 10px nahi. */
-    gap: 9px;
+    row-gap: 9px;
   }
 
   /*
@@ -4288,6 +4286,29 @@ a.mega__gl:hover {
 /* Row ka apna margin hai, isliye andar wale fields ka margin hat jaata hai. */
 .bkg__two .fld {
   margin-bottom: 0;
+}
+
+/*
+ * ⚠️ **Phone pe har form ka har khaana apni row me** (client, 23 Sep: _"sare single row me kar do"_)
+ * — `half` wali jodi bhi, dropdown ho ya input. Package sidebar · tour · home hero · contact · popup,
+ * sab ek saath (sab `EnquiryForm` ka `.bkg__two` hain).
+ *
+ * Reference bhi yahi karta hai (`itinerary-v3.html` — `@media (max-width:860px) { .bkg__two {
+ * grid-template-columns: 1fr } }`); theme me ye kabhi bana hi nahi tha. Breakpoint site ka 760 hai.
+ *
+ * Upar-neeche ka gap baaki khaano jaisa (13px) — jodi ka 10px `column-gap` tha, row ka nahi. Home hero
+ * (`.hf-card .bkg__two`, 11px) aur popup (`.pmod__body .bkg__two`, 9px) apna gap khud rakhte hain.
+ */
+@media (max-width: 760px) {
+  .bkg__two {
+    grid-template-columns: 1fr;
+    row-gap: 13px;
+  }
+
+  /* Tour sidebar ke form me khaano ka gap 9px hai (`.wdg--cta .fld`). */
+  .wdg--cta .bkg__two {
+    row-gap: 9px;
+  }
 }
 
 /*

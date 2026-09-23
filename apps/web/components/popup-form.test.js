@@ -438,8 +438,17 @@ describe('Phone pe popup — har khaana apni row, Submit beech me (client, 23 Se
     return ''
   })()
 
-  it('half wali jodi bhi phone pe ek column', () => {
-    expect(phoneBlock).toMatch(/\.pmod__body \.bkg__two \{\s*grid-template-columns: 1fr;/)
+  /**
+   * ⚠️ 23 Sep ko ye niyam **har form** pe gaya (client: _"sare single row me kar do"_) — ab wo base
+   * `.bkg__two` ke phone rule me hai, popup ke block me nahi. Popup ke block me sirf uska gap.
+   */
+  it('phone pe har form ki half wali jodi ek column — popup samet', () => {
+    expect(css).toMatch(
+      /@media \(max-width: 760px\) \{\s*\.bkg__two \{\s*grid-template-columns: 1fr;/,
+    )
+    /** Scoped override jodi ko wapas do column na kar de */
+    expect(css).not.toMatch(/\.\S+ \.bkg__two \{[^}]*grid-template-columns: 1fr 1fr/)
+    expect(phoneBlock).toMatch(/\.pmod__body \.bkg__two \{\s*row-gap: 9px;/)
   })
 
   it('Submit beech me aur poori chaudai ka nahi', () => {

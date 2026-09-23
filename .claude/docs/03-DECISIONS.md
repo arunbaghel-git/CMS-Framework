@@ -9955,6 +9955,22 @@ _"on mobile 1 field in 1 row also submit button center karo aur width bhi kam ka
   `min-width` isliye ki chhota label bahut chhota button na bane; `fit-content` lamba label poora dikhata hai
 - Desktop ka Submit poori row ka hi hai (§10.3) — client ne "on mobile" kaha tha. Baaki forms nahi chhue
 
+### §11.4 — Phone pe **har form** ka har khaana apni row (client, 23 Sep)
+
+Pehle client ne poochha tha ki half wale **dropdown** half hi rahein aur baaki single row — do round ki
+jaanch me teen kaante nikle (mixed jodi `date + dropdown`, Contact Form me teen lagataar dropdown jinme ek
+full aur do half dikhte, aur 145px me `9+ (group / corporate)` jaise option ka katna). Client ka faisla:
+_"sare single row me kar do"_.
+
+- Base `.bkg__two` pe `@media (max-width: 760px) { grid-template-columns: 1fr; row-gap: 13px }` — package
+  sidebar · tour · home hero · contact · popup, sab ek saath. Desktop/tablet par koi farak nahi
+- **Reference me ye pehle se tha** (`itinerary-v3.html` — 860px pe `.bkg__two{grid-template-columns:1fr}`),
+  theme me kabhi bana hi nahi — **saatvi baar** "rakha hua par bana nahi". Breakpoint site ka 760
+- Row gap har jagah us form ke khaano jaisa: base 13 · tour `.wdg--cta` 9 · home `.hf-card` 11 (uska `gap`
+  specificity se jeet-ta hai) · popup 9. §11.3 ka popup-only `1fr` ab base me chala gaya
+- ⚠️ Admin ka `Half width` ab **sirf desktop/tablet** ka hai. Checkbox ke neeche hint nahi joda — admin
+  design frozen (R15); client chahe to ek line jud sakti hai
+
 Test ab **percentage wala MIN** rokta hai, exact value nahi (§9.7 wala hi tark: irade pe bandho, value pe
 nahi). §10 me `.pmod__pics` ke `display: grid` ke liye jo "100% grid pe resolve hota hai" wali wajah
 likhi thi, wo ab lagu nahi — grid phir bhi rakha hai (look wahi).
