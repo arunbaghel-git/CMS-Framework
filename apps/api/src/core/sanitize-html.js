@@ -401,6 +401,7 @@ export function sanitizeInlineHtml(html) {
  * | `customHtml` | `props.html` — client ka apna markup (`<style>`/`<script>` yahin girte hain) |
  * | `testimonials` | `props.description` (review ka text plain hai, reviews collection me) |
  * | `gallery` | **kuch nahi** — heading plain text, baaki ids aur number (D-111) |
+ * | `video` | **kuch nahi** — heading plain text, link Zod me YouTube/Vimeo tak bandha (D-112) |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
  * ki content gir jaayega — wo bilkul theek save hoga, **bina safai ke**, aur page pe

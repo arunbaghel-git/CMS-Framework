@@ -25,6 +25,7 @@ import {
   themeFontCss,
   themeLayoutCss,
   videoEmbedUrl,
+  videoPosterUrl,
   withHeadingIds,
 } from '@cms/shared'
 import mongoose from 'mongoose'
@@ -1566,6 +1567,22 @@ async function resolvePageBlocks(blocks, siteId, locale, defaults) {
         const images = await Promise.all(imageIds.map((id) => toDisplayImage(id, 'large', siteId)))
 
         return { ...block, props, data: { images: images.filter(Boolean) } }
+      }
+
+      /**
+       * `Video` (client, 23 Sep, D-112) — embed URL aur thumbnail **server pe**, `videoUrl`/`imageId` bahar
+       * nahi. Admin ki image jeet-ti hai, warna YouTube ka apna (`videoPosterUrl`), Vimeo pe `null` (theme
+       * saada box + play dikhati hai). Link na chale to `embedUrl: null` aur theme poora block chhod deti hai.
+       */
+      if (block?.type === 'video') {
+        const { videoUrl = '', imageId = null, ...props } = block.props ?? {}
+        const image = await toDisplayImage(imageId, 'large', siteId)
+
+        return {
+          ...block,
+          props,
+          data: { embedUrl: videoEmbedUrl(videoUrl), poster: image ?? videoPosterUrl(videoUrl) },
+        }
       }
 
       if (block?.type !== 'packageList') return block

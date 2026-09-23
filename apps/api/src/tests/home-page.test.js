@@ -1280,3 +1280,76 @@ describe('Gallery block — sirf Pages pe (client, 23 Sep, D-111)', () => {
     expect(res.status).toBe(400)
   })
 })
+
+describe('Video block — sirf Pages pe (client, 23 Sep, D-112)', () => {
+  const createPage = (props, fields = {}) =>
+    authed('post', '/api/entries', adminJar).send({
+      type: 'page',
+      title: `Video ${Math.random().toString(36).slice(2, 7)}`,
+      fields,
+      content: { version: 1, blocks: [{ type: 'video', props }] },
+    })
+
+  async function resolveFirst(entry) {
+    await authed('post', `/api/entries/${entry.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: entry.path })
+    return res.body.data.entry.blocks[0]
+  }
+
+  it('embed + YouTube thumbnail server pe; videoUrl/imageId payload me nahi', async () => {
+    const created = (
+      await createPage({ heading: 'See the islands', videoUrl: 'https://youtu.be/dQw4w9WgXcQ' })
+    ).body.data.entry
+    const block = await resolveFirst(created)
+
+    expect(block.props).toEqual({ heading: 'See the islands' })
+    expect(block.data.embedUrl).toBe(
+      'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0',
+    )
+    expect(block.data.poster).toEqual({
+      url: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+      width: 480,
+      height: 360,
+    })
+  })
+
+  it('admin ki image YouTube ke thumbnail pe jeet-ti hai; Section layout pe bhi', async () => {
+    const uploader = await User.findOne({ email: 'admin@test.com' }).lean()
+    const cover = await Media.create({
+      filename: 'cover.png',
+      mime: 'image/png',
+      size: 4096,
+      width: 1600,
+      height: 900,
+      variants: [{ key: 'large', url: '/uploads/cover/large.webp', w: 1600, h: 900 }],
+      uploadedBy: uploader._id,
+    })
+
+    const created = (
+      await createPage(
+        { videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', imageId: String(cover._id) },
+        { template: 'sections' },
+      )
+    ).body.data.entry
+    const block = await resolveFirst(created)
+
+    expect(block.data.poster.url).toBe('/uploads/cover/large.webp')
+    await Media.deleteMany({ _id: cover._id })
+  })
+
+  it('Vimeo pe thumbnail null (theme saada box dikhati hai), khaali link pe embedUrl null', async () => {
+    const vimeo = await resolveFirst(
+      (await createPage({ videoUrl: 'https://vimeo.com/123456789' })).body.data.entry,
+    )
+    expect(vimeo.data.embedUrl).toBe('https://player.vimeo.com/video/123456789?autoplay=1')
+    expect(vimeo.data.poster).toBeNull()
+
+    const empty = await resolveFirst((await createPage({ heading: 'Soon' })).body.data.entry)
+    expect(empty.data).toEqual({ embedUrl: null, poster: null })
+  })
+
+  it('na chalne wala link — 400, save hi nahi hota', async () => {
+    const res = await createPage({ videoUrl: 'https://www.instagram.com/reel/abc' })
+    expect(res.status).toBe(400)
+  })
+})

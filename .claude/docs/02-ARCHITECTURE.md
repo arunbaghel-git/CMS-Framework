@@ -265,6 +265,9 @@ entries        * siteId, locale, type, title, slug, path, status, publishAt,
                          columns(2–6, def 4) · mobileColumns(1–3, def 2) ·
                          imageIds[]≤60 (dedupe) — tablet derive min(columns,3);
                          payload me imageIds nahi, data.images[] (large + srcset)
+                         video (D-112, SIRF page — dono template): heading ·
+                         videoUrl(''|YouTube/Vimeo — baaki 400) · imageId(cover,
+                         optional) — payload me sirf data{ embedUrl, poster }
                          (reviews collection ki ids — naam reviewIds se ALAG, cache query ke liye)
                          faqs pe home ke liye background + align
                  fields  { ...customFields },            contentType ke fields

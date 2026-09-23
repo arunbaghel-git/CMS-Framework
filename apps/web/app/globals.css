@@ -10287,3 +10287,64 @@ a.txv__box:hover .txv__p {
     grid-template-columns: repeat(var(--gcols-m, 2), minmax(0, 1fr));
   }
 }
+
+/* ---- `Video` block — sirf Pages pe (client, 23 Sep, D-112), reference `page-template.html` ka `.embed` ---- */
+
+.pvid {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r3);
+  overflow: hidden;
+  background: var(--blue-900);
+  border: 1px solid var(--line);
+  margin-top: 16px;
+}
+
+.pvid:first-child {
+  margin-top: 0;
+}
+
+.pvid button,
+.pvid iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.pvid button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+/*
+ * ⚠️ Doosra selector zaroori hai — Default template me `.art .blk :not(.artfig) > img` (0,3,1) `height: auto`
+ * deta hai aur thumbnail box nahi bharta (Gallery pe yahi pakda gaya tha, D-111).
+ */
+.pvid img,
+.art .blk .pvid img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  background: none;
+}
+
+/* Thumbnail pe bhi play dikhe — halki parchhai, reference ka safed icon */
+.pvid svg {
+  position: relative;
+  opacity: 0.9;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+  transition: transform 0.2s;
+}
+
+.pvid button:hover svg {
+  transform: scale(1.08);
+}

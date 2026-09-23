@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { ICONS } from '../constants/icons.js'
 import { faqSchema } from './faq.js'
+import { videoEmbedUrl } from './master-lists.js'
 import { htmlSchema, inlineHtmlSchema } from './rich-html.js'
 
 /**
@@ -97,12 +98,19 @@ export const SECTION_PAGE_BLOCK_TYPES = Object.freeze([
   'faqs',
   'customHtml',
   'enquiryForm',
-  /** Sirf Pages pe — dono template (client, 23 Sep, D-111). */
+  /** Sirf Pages pe — dono template (client, 23 Sep, D-111, D-112). */
   'gallery',
+  'video',
 ])
 
 /** `default` template ka dropdown — Enquiry form yahan **nahi** (client, 16 Sep). */
-export const PAGE_DEFAULT_BLOCK_TYPES = Object.freeze(['richText', 'faqs', 'customHtml', 'gallery'])
+export const PAGE_DEFAULT_BLOCK_TYPES = Object.freeze([
+  'richText',
+  'faqs',
+  'customHtml',
+  'gallery',
+  'video',
+])
 
 /**
  * Kis content type pe dropdown me kaunse blocks — **spec 008** (Blog).
@@ -648,6 +656,32 @@ export const galleryPropsSchema = z.object({
     .max(GALLERY_MAX)
     .default([])
     .transform((ids) => [...new Set(ids)]),
+})
+
+/**
+ * `Video` — sirf Pages pe, dono template (client, 23 Sep, D-112). Reference: `page-template.html` ka
+ * `.embed` (16:9, gol kone, neela box + play).
+ *
+ * Client ke faisle: **thumbnail + play, click pe hi YouTube load** (page tez rahe — iframe ka JS sirf click
+ * pe) · thumbnail **YouTube ka apna**, admin chahe to apni image (`imageId`) jo jeet-ti hai · upar optional
+ * heading · ek block = ek video.
+ *
+ * ⚠️ `videoUrl` khaali ho sakta hai (block abhi bana, link baad me) — par **bhara ho to chalna chahiye**:
+ * YouTube/Vimeo ke alawa kuch bhi 400. Home ke `optionalVideoUrl` se sakht, kyunki yahan "naye tab me
+ * link" wala fallback hai hi nahi — na chalne wala link page pe ek mara hua box banata.
+ */
+export const videoPropsSchema = z.object({
+  heading: z.string().trim().max(200).default(''),
+  videoUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .refine(
+      (v) => v === '' || Boolean(videoEmbedUrl(v)),
+      'Paste a YouTube or Vimeo link, e.g. https://youtu.be/…',
+    )
+    .default(''),
+  imageId: z.string().trim().max(60).nullable().default(null),
 })
 
 /** Home ke Package grid me ek waqt me kitne card — reference me solah (client, 15 Sep, D-96 §19). */
@@ -1212,6 +1246,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   customHtml: customHtmlPropsSchema,
   enquiryForm: enquiryFormBlockPropsSchema,
   gallery: galleryPropsSchema,
+  video: videoPropsSchema,
 })
 
 /**

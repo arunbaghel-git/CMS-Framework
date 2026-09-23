@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-111               |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-112               |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -912,7 +912,10 @@ Deploy pe **`pnpm cms migrate`** + API restart.
 **23 Sep — Pages ka `Gallery` block (D-111), koi migration nahi.** Sirf `page` pe, dono template. Row me kitni
 image **desktop (2–6) aur mobile (1–3) alag dropdown**, tablet apne aap (max 3), square tiles, click pe Lightbox,
 images Media Library se **ek baar me kai** (`MediaPicker multiple`). Reference `page-template.html` ka `.gal4`
-pehle se tha — **chhathi baar**. Render aankh se nahi dekha → **A-47**. **1460/1461 test** (akela fail purana `theme-fonts`).
+pehle se tha — **chhathi baar**. Client ne live dekh liya (Lightbox ko portal chahiye tha — `.blk` ka `contain`).
+**23 Sep — Pages ka `Video` block (D-112), koi migration nahi.** YouTube link, thumbnail (YouTube ka ya admin
+ki cover image) + play, **iframe sirf click pe** (speed). Reference ka `.embed` bhi pehle se tha. ✅ Client ne live dekh liya (A-48 band).
+**1467/1468 test** (akela fail purana `theme-fonts`).
 ⏭️ **Agla kaam: A-38** — Kerala package ka import
 (_"content doesn’t come on frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki
 pages PageSpeed pe (A-17).

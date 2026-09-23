@@ -10745,3 +10745,47 @@ aur theme me kabhi bana nahi tha. **Chhathi baar** koi cheez pehle se rakhi mili
 - Image ka `alt` badalne pe page ka cache saaf nahi hota — `logoGrid` jaisa hi (purana haal, naya nahi).
 - **Render aankh se nahi dekha** — `:3000` pe production server chal raha tha, `next build` nahi chalaya
   (D-89 ka jaal). → **A-47**.
+
+---
+
+## D-112
+
+**Pages ka `Video` block — YouTube link, thumbnail pehle, player click pe (23 Sep 2026)**
+
+### Sandarbh
+
+Client: _"add a video embed block too where admin can give youtube url"_ — Gallery (D-111) ke turant baad.
+Reference me ye bhi **pehle se tha**: `page-template.html` ka _Video embed_ (`.embed`: 16:9, `--r3` kone,
+`--blue-900` box, beech me safed play icon). Link padhne wala `videoEmbedUrl()` bhi pehle se tha (home ke
+video reviews, D-96 §13).
+
+### Faisle (client ke, 23 Sep)
+
+| # | Sawaal | Jawab |
+| --- | --- | --- |
+| 1 | Kahan | **Sirf `page`**, dono template — Gallery jaisa |
+| 2 | Chalna | **Thumbnail + play, click pe wahi box player ban jaata hai** — page khulte hi iframe nahi |
+| 3 | Thumbnail | **YouTube ka apna**; admin ki optional cover image jeet-ti hai |
+| 4 | Extras | Sirf optional **Heading**. Caption nahi, ek block = ek video |
+
+### Kya bana
+
+- `videoPropsSchema` — `videoUrl` **khaali ya chalne wala** (YouTube/Vimeo); baaki sab 400. Home ke
+  `optionalVideoUrl` se sakht, kyunki yahan "naye tab me link" wala fallback nahi — na chalne wala link page
+  pe mara hua box banata.
+- `videoPosterUrl()` (`packages/shared/src/schemas/master-lists.js`, `videoEmbedUrl()` ke saath) — id wahi se,
+  **ek hi niyam** (D-86). `hqdefault` (480×360) kyunki wo har video pe hota hai; `maxresdefault` 404 de sakta.
+- `resolvePageBlocks()` → `data{ embedUrl, poster }`; `videoUrl`/`imageId` payload me nahi.
+- Admin `VideoBlock` — link type karte hi wahi `videoEmbedUrl()` chalti hai jo server pe, to "✓" wala link
+  save pe 400 nahi dega. YouTube thumbnail ka preview.
+- Theme `components/tour/VideoBlock.jsx` + `.pvid`. Portal **nahi** chahiye — popup nahi, box ke andar chalta hai.
+- **Koi migration nahi.**
+
+### ⚠️ Jo yaad rehna chahiye
+
+- **iframe sirf click pe** — YouTube ka player ~500 KB JS laata hai; page khulte hi lagana A-17 (speed) ko
+  seedha nuksaan. `embedUrl` me `autoplay=1` pehle se hai, to doosra click nahi lagta.
+- `.art .blk .pvid img` wala doosra selector **hatana mat** — D-111 wala hi `.art` takraav.
+- Thumbnail `i.ytimg.com` se aata hai (bahar ka origin). CSP (Phase 4-5) banate waqt `img-src` me
+  `i.ytimg.com` aur `frame-src` me `youtube-nocookie.com` + `player.vimeo.com` chahiye honge.
+- Vimeo pe thumbnail nahi (API maangta hai) — cover image do, warna saada neela box + play.

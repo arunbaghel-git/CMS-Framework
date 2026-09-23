@@ -478,3 +478,14 @@
 .gal-edit__tile[data-dragover] {
   box-shadow: inset 3px 0 0 var(--primary);
 }
+
+/* `Video` (D-112) — YouTube ka thumbnail preview, taaki admin dekh le ki sahi video hai */
+.vid-edit__poster {
+  display: block;
+  width: 240px;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 3px;
+  margin: 0 0 12px;
+}

@@ -8,6 +8,7 @@ import PostListLead from '../blog/PostListLead.jsx'
 import { articleHtml, readMoreSplit, wrapTables } from '../../lib/article-html.js'
 import GalleryBlock from './GalleryBlock.jsx'
 import PackageList from './PackageList.jsx'
+import VideoBlock from './VideoBlock.jsx'
 
 /**
  * Page ke content blocks — D-87 §7 ka `content.blocks[]`, aur unka render (Slice D).
@@ -279,6 +280,8 @@ const BLOCKS = {
   enquiryForm: EnquiryFormBlock,
   /** Sirf Pages pe (D-111) — images server pe resolve, `data.images`. */
   gallery: GalleryBlock,
+  /** Sirf Pages pe (D-112) — thumbnail + play, iframe click pe. */
+  video: VideoBlock,
 }
 
 /**

@@ -14,6 +14,7 @@ import {
   findDuplicateBlockIds,
   heroFormPropsSchema,
   videoEmbedUrl,
+  videoPosterUrl,
   BLOG_PAGE_BLOCK_TYPES,
   PAGE_BLOCK_PROP_SCHEMAS,
   PAGE_BLOCK_TYPES,
@@ -662,5 +663,44 @@ describe('Gallery block — sirf Pages pe (client, 23 Sep, D-111)', () => {
   it(`${GALLERY_MAX} se zyada images nahi`, () => {
     const ids = Array.from({ length: GALLERY_MAX + 1 }, (_, i) => `m${i}`)
     expect(() => parseBlockProps('gallery', { imageIds: ids })).toThrow()
+  })
+})
+
+describe('Video block — sirf Pages pe (client, 23 Sep, D-112)', () => {
+  it('dono Page template ke dropdown me hai, aur kahin nahi', () => {
+    expect(PAGE_DEFAULT_BLOCK_TYPES).toContain('video')
+    expect(SECTION_PAGE_BLOCK_TYPES).toContain('video')
+    expect(POST_BLOCK_TYPES).not.toContain('video')
+    expect(HOME_PAGE_BLOCK_TYPES).not.toContain('video')
+    expect(PAGE_BLOCK_PROP_SCHEMAS.video).toBeDefined()
+  })
+
+  it('khaali link chalta hai (block abhi bana), bhara link YouTube/Vimeo hi', () => {
+    expect(parseBlockProps('video', {})).toEqual({ heading: '', videoUrl: '', imageId: null })
+    expect(parseBlockProps('video', { videoUrl: 'https://youtu.be/dQw4w9WgXcQ' }).videoUrl).toBe(
+      'https://youtu.be/dQw4w9WgXcQ',
+    )
+    expect(() => parseBlockProps('video', { videoUrl: 'https://instagram.com/reel/x' })).toThrow()
+    expect(() => parseBlockProps('video', { videoUrl: 'javascript:alert(1)' })).toThrow()
+    expect(() => parseBlockProps('video', { videoUrl: 'http://youtu.be/dQw4w9WgXcQ' })).toThrow()
+  })
+
+  it('videoPosterUrl — YouTube ke har link se wahi hqdefault, Vimeo aur kachre pe null', () => {
+    const poster = {
+      url: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+      width: 480,
+      height: 360,
+    }
+    for (const url of [
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10',
+      'https://youtu.be/dQw4w9WgXcQ',
+      'https://youtube.com/shorts/dQw4w9WgXcQ',
+      'https://m.youtube.com/watch?v=dQw4w9WgXcQ',
+    ]) {
+      expect(videoPosterUrl(url)).toEqual(poster)
+    }
+    expect(videoPosterUrl('https://vimeo.com/123456789')).toBeNull()
+    expect(videoPosterUrl('')).toBeNull()
+    expect(videoPosterUrl('not a url')).toBeNull()
   })
 })

@@ -1,7 +1,12 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 23 Sep 2026 shaam (baad me) — **Pages ka `Gallery` block (D-111), koi migration nahi.**
+> **Last updated:** 23 Sep 2026 shaam (aakhir me) — **Pages ka `Video` block (D-112)**, Gallery (D-111) ke baad.
+> YouTube link → thumbnail + play, iframe click pe. **1467/1468 test.** ✅ **A-48** — client ne live dekh liya. ⏭️ Agla: **A-38**. Gallery
+> client ne live dekh li (commit `96233a7`). `:3000` ka production server **band kar diya** (client ke kehne pe);
+> client ab `pnpm dev` pe test kar raha hai.
+>
+> **Pehle usi shaam — Pages ka `Gallery` block (D-111), koi migration nahi.**
 > Sirf `page` pe (Default + Section layout). Desktop 2–6 · mobile 1–3 alag dropdown, tablet apne aap (max 3),
 > square, Lightbox, picker me multi-select. **1460/1461 test.** ⏭️ **A-47** — API restart + render dekhna
 > (`:3000` production hai, `next build` nahi chalaya). Deploy pe sirf API restart + web/admin build.

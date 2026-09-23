@@ -422,6 +422,21 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
+#### ✅ A-48 · D-112 — Pages ka Video block — **client ne live dekh liya** (23 Sep)
+
+Client: _"dono thik hai"_ (Gallery + Video). Neeche ki list itihaas hai.
+
+**Deadline:** client ke dekhne pe · **kuch toota nahi** — 7 naye test, admin build pass
+
+| # | Kya dekhna hai |
+| --- | --- |
+| 1 | **API restart** + admin hard refresh (`pnpm dev` web pe apne aap) |
+| 2 | Pages ▸ Edit ▸ `＋ Add block` ▸ **Video** — YouTube link, `✓ Video found` + thumbnail preview; galat link pe laal hint |
+| 3 | Site pe thumbnail + play; click pe **usi box** me video chale (autoplay) |
+| 4 | Cover image lagao → thumbnail ki jagah wahi; Default template me box poora bhara ho (`.art` takraav) |
+| 5 | Network tab: page load pe `youtube` ki koi request nahi, sirf `i.ytimg.com` ki image |
+
+
 #### ✅ A-47 · D-111 — Pages ka Gallery block — **client ne live dekh liya** (23 Sep)
 
 Gallery dikhi; Lightbox pehle content column ke andar khula (`.blk` ka `contain`), portal ke baad poori screen pe (client). Neeche ki list itihaas hai.

@@ -17,6 +17,8 @@ import {
   TEXT_VIDEO_POINTS_MAX,
   THEME_COLORS,
   VIDEO_REVIEWS_MAX,
+  videoEmbedUrl,
+  videoPosterUrl,
   PAGE_BLOCK_TYPES,
   POST_LIST_MAX_FEATURED,
   POST_LIST_PER_PAGE_DEFAULT,
@@ -68,6 +70,7 @@ const BLOCK_LABEL = {
   customHtml: 'Custom editor',
   enquiryForm: 'Enquiry form',
   gallery: 'Gallery',
+  video: 'Video',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -91,6 +94,7 @@ const BLOCK_CLASS = {
   customHtml: 'text',
   enquiryForm: 'hero',
   gallery: 'image',
+  video: 'two',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -180,6 +184,7 @@ function emptyBlock(type) {
       showFilter: true,
     },
     gallery: { heading: '', columns: 4, mobileColumns: 2, imageIds: [] },
+    video: { heading: '', videoUrl: '', imageId: null },
     logoGrid: {
       background: '',
       heading: '',
@@ -278,6 +283,8 @@ function summarize(block) {
       return `${p.heading || 'Package grid'} — latest published packages`
     case 'logoGrid':
       return `${p.heading || 'Logo grid'} — ${(p.items ?? []).length} logo(s)`
+    case 'video':
+      return p.videoUrl ? `${p.heading || 'Video'} — ${p.videoUrl}` : 'No video link yet'
     case 'gallery':
       return `${p.heading || 'Gallery'} — ${(p.imageIds ?? []).length} image(s) · ${p.columns ?? 4} in a row`
     case 'testimonials':
@@ -3382,7 +3389,75 @@ function GalleryBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * `Video` — sirf Pages pe (client, 23 Sep, D-112). Reference `page-template.html` ka `.embed`.
+ *
+ * Link ki jaanch **type karte hi** dikhti hai — wahi `videoEmbedUrl()` jo server pe chalta hai, to jo
+ * yahan "✓" dikhe wo save pe 400 nahi dega. Thumbnail YouTube ka apna; image di to wahi jeet-ti hai.
+ */
+function VideoBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const url = props.videoUrl ?? ''
+  const works = url ? Boolean(videoEmbedUrl(url)) : null
+  const youtubePoster = videoPosterUrl(url)
+  const media = useMediaById([props.imageId].filter(Boolean))
+
+  return (
+    <>
+      <div className="field">
+        <label>Heading</label>
+        <input
+          className="inp"
+          placeholder="Optional — leave empty for no heading"
+          value={props.heading ?? ''}
+          onChange={(e) => set({ heading: e.target.value })}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="field">
+        <label>YouTube link</label>
+        <input
+          className="inp"
+          placeholder="https://www.youtube.com/watch?v=…"
+          value={url}
+          onChange={(e) => set({ videoUrl: e.target.value })}
+          disabled={disabled}
+        />
+        {works === false && (
+          <div className="hint" style={{ color: 'var(--danger, #d63638)' }}>
+            This link can&rsquo;t be played on the page. Paste a YouTube (or Vimeo) link, e.g.
+            https://youtu.be/…
+          </div>
+        )}
+        {works && (
+          <div className="hint">
+            ✓ Video found.
+            {youtubePoster ? ' The thumbnail comes from YouTube.' : ''}
+          </div>
+        )}
+      </div>
+
+      {youtubePoster && !props.imageId && (
+        <img className="vid-edit__poster" src={youtubePoster.url} alt="" />
+      )}
+
+      <MediaDrop
+        label="Cover image — optional"
+        media={media[props.imageId]}
+        onSelect={(chosen) => set({ imageId: chosen.id })}
+        onClear={() => set({ imageId: null })}
+      />
+      <div className="hint">
+        Shown before the video plays; leave empty to use the YouTube thumbnail. The video loads only
+        when a visitor clicks play, so the page stays fast.
+      </div>
+    </>
+  )
+}
+
 const EDITORS = {
+  video: VideoBlock,
   gallery: GalleryBlock,
   enquiryForm: EnquiryFormBlock,
   customHtml: CustomHtmlBlock,

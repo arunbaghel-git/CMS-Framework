@@ -310,6 +310,26 @@ export function videoEmbedUrl(url) {
 }
 
 /**
+ * YouTube video ka apna thumbnail — **ya `null`** (Pages ka Video block, client, 23 Sep, D-112).
+ *
+ * `videoEmbedUrl()` ki hi id — link padhne ka niyam ek hi jagah rahe (D-86 wala sabak). `hqdefault` (480×360)
+ * isliye ki wo **har** video pe hota hai; `maxresdefault` purane/chhote video pe 404 deta hai aur box
+ * toota dikhta. 4:3 hai (upar-neeche kaali patti) — theme `object-fit: cover` se 16:9 me kaat-ti hai.
+ *
+ * Vimeo pe `null` — uska thumbnail API call maangta hai. Wahan admin ki image, ya saada neela box.
+ *
+ * @param {string} url
+ * @returns {{ url: string, width: number, height: number } | null}
+ */
+export function videoPosterUrl(url) {
+  const embed = videoEmbedUrl(url)
+  const id = embed?.match(/youtube-nocookie\.com\/embed\/([\w-]+)/)?.[1]
+  if (!id) return null
+
+  return { url: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, width: 480, height: 360 }
+}
+
+/**
  * `★★★★☆` — review card ka rating.
  *
  * **Admin aur theme dono yahi bulate hain.** Do jagah likhne ka matlab hota ki ek din admin
