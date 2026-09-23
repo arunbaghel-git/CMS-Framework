@@ -6,6 +6,7 @@ import { BlogFilterProvider } from '../blog/BlogFilter.jsx'
 import PostList from '../blog/PostList.jsx'
 import PostListLead from '../blog/PostListLead.jsx'
 import { articleHtml, readMoreSplit, wrapTables } from '../../lib/article-html.js'
+import GalleryBlock from './GalleryBlock.jsx'
 import PackageList from './PackageList.jsx'
 
 /**
@@ -276,6 +277,8 @@ const BLOCKS = {
   /** Client ka apna HTML — home wala hi component, yahan `.blk` ke roop me (D-96 §25). */
   customHtml: CustomHtmlBlock,
   enquiryForm: EnquiryFormBlock,
+  /** Sirf Pages pe (D-111) — images server pe resolve, `data.images`. */
+  gallery: GalleryBlock,
 }
 
 /**

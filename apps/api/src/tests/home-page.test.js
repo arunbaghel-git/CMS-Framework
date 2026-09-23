@@ -17,6 +17,7 @@ import {
   pathTagsForVideoReview,
 } from '../modules/entries/service.js'
 import { Review, VideoReview } from '../modules/master-lists/model.js'
+import { Media } from '../modules/media/model.js'
 import { Taxonomy } from '../modules/taxonomies/model.js'
 import { Enquiry, Form } from '../modules/forms/model.js'
 import { Role } from '../modules/roles/model.js'
@@ -1180,5 +1181,102 @@ describe('Sidebar ke icon-only link ka `aria-label` (client, 16 Sep — contact 
     /** Bina iske sirf icon wala link screen reader ke liye khaali hota hai — aur wo galti chup hai. */
     expect(widget.props.html).toContain('aria-label="X"')
     expect(widget.props.html).not.toMatch(/onclick|alert/)
+  })
+})
+
+describe('Gallery block — sirf Pages pe (client, 23 Sep, D-111)', () => {
+  async function makeMedia(name) {
+    const uploader = await User.findOne({ email: 'admin@test.com' }).lean()
+
+    return Media.create({
+      filename: `${name}.png`,
+      mime: 'image/png',
+      size: 4096,
+      width: 1600,
+      height: 1200,
+      alt: name,
+      variants: [
+        { key: 'thumb', url: `/uploads/${name}/thumb.webp`, w: 300, h: 300 },
+        { key: 'medium', url: `/uploads/${name}/medium.webp`, w: 800, h: 600 },
+        { key: 'large', url: `/uploads/${name}/large.webp`, w: 1600, h: 1200 },
+      ],
+      uploadedBy: uploader._id,
+    })
+  }
+
+  it('images server pe kram se resolve, imageIds bahar nahi, delete hui image giri, columns jaate hain', async () => {
+    await Media.deleteMany({})
+    const [a, b, gone] = await Promise.all([makeMedia('a'), makeMedia('b'), makeMedia('gone')])
+
+    const created = (
+      await authed('post', '/api/entries', adminJar).send({
+        type: 'page',
+        title: 'Photo gallery',
+        content: {
+          version: 1,
+          blocks: [
+            {
+              type: 'gallery',
+              props: {
+                heading: 'Our trips',
+                columns: 5,
+                mobileColumns: 1,
+                imageIds: [String(b._id), String(gone._id), String(a._id), String(b._id)],
+              },
+            },
+          ],
+        },
+      })
+    ).body.data.entry
+
+    /** Ek hi image do baar — DB me ek. */
+    const stored = (await Entry.findById(created.id).lean()).content.blocks[0].props
+    expect(stored.imageIds).toEqual([String(b._id), String(gone._id), String(a._id)])
+
+    await Media.updateOne({ _id: gone._id }, { deletedAt: new Date() })
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: created.path })
+    const [block] = res.body.data.entry.blocks
+
+    expect(block.type).toBe('gallery')
+    expect(block.props).toEqual({ heading: 'Our trips', columns: 5, mobileColumns: 1 })
+    expect(block.props.imageIds).toBeUndefined()
+    /** Admin ka kram — b pehle; delete hui image chup-chaap giri (D-42 §2). */
+    expect(block.data.images.map((img) => img.url)).toEqual([
+      '/uploads/b/large.webp',
+      '/uploads/a/large.webp',
+    ])
+    expect(block.data.images[0]).toMatchObject({ alt: 'b', width: 1600, height: 1200 })
+    expect(block.data.images[0].srcset).toContain('300w')
+
+    await Media.deleteMany({})
+  })
+
+  it('Section layout template pe bhi chalta hai', async () => {
+    const created = (
+      await authed('post', '/api/entries', adminJar).send({
+        type: 'page',
+        title: 'Gallery sections',
+        fields: { template: 'sections' },
+        content: { version: 1, blocks: [{ type: 'gallery', props: { imageIds: [] } }] },
+      })
+    ).body.data.entry
+
+    await authed('post', `/api/entries/${created.id}/publish`, adminJar).send({})
+    const res = await request(app).get('/api/public/resolve').query({ path: created.path })
+    const [block] = res.body.data.entry.blocks
+
+    expect(block.props).toEqual({ heading: '', columns: 4, mobileColumns: 2 })
+    expect(block.data.images).toEqual([])
+  })
+
+  it('galat columns pe 400 (validation)', async () => {
+    const res = await authed('post', '/api/entries', adminJar).send({
+      type: 'page',
+      title: 'Bad gallery',
+      content: { version: 1, blocks: [{ type: 'gallery', props: { columns: 9 } }] },
+    })
+
+    expect(res.status).toBe(400)
   })
 })

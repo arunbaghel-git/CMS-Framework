@@ -796,6 +796,7 @@ Design v3 me home ki koi screen hai hi nahi — ye poori tarah client ke kehne p
 - **Text with video** section: Background · Text (Heading · Text editor) · Points (⠿ — Icon / own image · Title · Description), 6 tak · Button label + link · Image or video (Side Right/Left · Image · Video link · Caption title + text)
 - **Award badges** section: Background · Heading (position + link) · Badge colour · Badges (⠿ row — image · big text · small text), 24 tak
 - **Page settings ▸ Template** (D-96 §31): `Default` (poora content ek card me) ya `Section layout` (har block apna card, FAQ accordion, na Stat rail na Hero button; blocks me **Enquiry form** bhi)
+- **Gallery** block (**sirf Pages, dono template** — D-111): Heading (optional) · Images in a row — desktop (2–6) · Images in a row — mobile (1–3) · Images (`＋ Add images` → Media Library picker **multi-select**, tick ka kram = gallery ka kram; tiles drag se reorder, ✕ se hatao). Tablet ka dropdown nahi — apne aap (desktop, max 3)
 - **Enquiry form** block (**sirf Pages, Section layout template pe**): Form (sirf active) · Heading · Description — fields aur button form ki apni settings hain
 - **Custom editor** section (home **aur** Tour page): Background (sirf home) · CSS class · Content (wahi HTML editor). CSS iske andar nahi — **Settings ▸ Custom CSS**
 - **Settings ▸ Custom CSS**: ek monospace box, poori site pe lagti hai (client, 16 Sep)

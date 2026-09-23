@@ -1,11 +1,18 @@
 # Project State
 
 > Har session ke shuru me padho, aur session ke end me update karo.
-> **Last updated:** 23 Sep 2026 shaam — **administrator ka password reset (D-110), migration 028.**
+> **Last updated:** 23 Sep 2026 shaam (baad me) — **Pages ka `Gallery` block (D-111), koi migration nahi.**
+> Sirf `page` pe (Default + Section layout). Desktop 2–6 · mobile 1–3 alag dropdown, tablet apne aap (max 3),
+> square, Lightbox, picker me multi-select. **1460/1461 test.** ⏭️ **A-47** — API restart + render dekhna
+> (`:3000` production hai, `next build` nahi chalaya). Deploy pe sirf API restart + web/admin build.
+> Usi session me docs sync: A-46 + A-44 band likhe gaye (client ne live chala liye the).
+>
+> **23 Sep shaam** — **administrator ka password reset (D-110), migration 028.**
 > Login ka `Lost your password?` chalu — mail **sirf admin** ko (client ka niyam), 30 minute ka
 > ek-baar ka link, jawab har email pe ek jaisa. Backup: `pnpm cms reset-password <email>`.
-> 028 dev DB pe lag chuki. ⏭️ **A-46** — API restart, `ADMIN_URL` dekho (dev me `:5173`), asli mail
-> se poora raasta. ⚠️ `:3000` pe abhi **production** server chal raha hai (client ne speed test ke
+> 028 dev DB pe lag chuki. ✅ **A-46 band** — client ne asli SMTP se poora raasta chala liya (sirf CLI
+> `reset-password` live nahi dekha). ✅ **A-44 bhi** — asli submit ki mail Gmail Inbox me aayi.
+> **Suite: 56 files, 1452/1453 pass** (akela fail purana `theme-fonts`). ⏭️ **Agla kaam: A-38.** ⚠️ `:3000` pe abhi **production** server chal raha hai (client ne speed test ke
 > liye kaha tha) — dev chahiye to pehle use band karo.
 >
 > **23 Sep (dopahar)** — **nayi enquiry ki mail team ko (D-109, A-43 band).** Client ne
@@ -15,7 +22,7 @@
 > `Emailed to …` / not sent ki wajah. **Koi migration nahi**, deploy pe sirf API restart.
 > **Suite: 55 files, 1430/1431 pass** (28 naye — 18 shared + 10 API; akela fail wahi purana
 > `theme-fonts`). MailDev pe asli mail dekhi (script se — asli DB ka SMTP client ka hai, chhua nahi).
-> ⏭️ **A-44** — asli submit → asli inbox client ke account se dekhna baaki. Uske baad **A-38**.
+> ~~⏭️ A-44 — asli submit → asli inbox dekhna baaki~~ ✅ client ne dekh liya (23 Sep).
 > ⚠️ **Auto-reply (customer ko mail) NAHI bana** — client ne maanga hi nahi. Kabhi bane to wo mail
 > relay ka khatra laata hai (D-109 "Kya NAHI bana").
 > ✅ 22 Sep ka sab kuch **push ho chuka** (23 Sep subah `origin/main == HEAD`). Neeche ki "push

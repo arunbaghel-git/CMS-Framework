@@ -1,6 +1,9 @@
 import {
   AWARD_BADGES_MAX,
   ENTRY_LIST_MAX_LIMIT,
+  GALLERY_COLUMNS,
+  GALLERY_MAX,
+  GALLERY_MOBILE_COLUMNS,
   ICONS,
   ICON_LABELS,
   IMAGE_CARDS_MAX,
@@ -21,8 +24,10 @@ import {
 import { useEffect, useId, useMemo, useState } from 'react'
 
 import MediaDrop from '../../components/admin/MediaDrop.jsx'
+import MediaPicker from '../../components/admin/MediaPicker.jsx'
 import { useListDrag } from '../../lib/drag-list.js'
 import { api, errorMessage } from '../../lib/api.js'
+import { thumbOf } from '../../lib/media.js'
 import { useEntryList, useMediaById } from '../../lib/use-entries.js'
 import { useForms } from '../forms/useForms.js'
 import HtmlEditor from '../packages/HtmlEditor.jsx'
@@ -62,6 +67,7 @@ const BLOCK_LABEL = {
   awardBadges: 'Award badges',
   customHtml: 'Custom editor',
   enquiryForm: 'Enquiry form',
+  gallery: 'Gallery',
 }
 
 /** Har block ka apna rang — design se hi (`.blk--*`). */
@@ -84,6 +90,7 @@ const BLOCK_CLASS = {
   awardBadges: 'logos',
   customHtml: 'text',
   enquiryForm: 'hero',
+  gallery: 'image',
 }
 
 /** `id` client pe banti hai — server bhi bhar deta hai, par reorder ke liye abhi chahiye. */
@@ -172,6 +179,7 @@ function emptyBlock(type) {
       linkUrl: '',
       showFilter: true,
     },
+    gallery: { heading: '', columns: 4, mobileColumns: 2, imageIds: [] },
     logoGrid: {
       background: '',
       heading: '',
@@ -270,6 +278,8 @@ function summarize(block) {
       return `${p.heading || 'Package grid'} — latest published packages`
     case 'logoGrid':
       return `${p.heading || 'Logo grid'} — ${(p.items ?? []).length} logo(s)`
+    case 'gallery':
+      return `${p.heading || 'Gallery'} — ${(p.imageIds ?? []).length} image(s) · ${p.columns ?? 4} in a row`
     case 'testimonials':
       return `${p.heading || 'Testimonials'} — ${(p.testimonialIds ?? []).length} review(s)`
     case 'videoReviews':
@@ -3236,7 +3246,144 @@ function AwardBadgesBlock({ props, onChange, disabled }) {
   )
 }
 
+/**
+ * `Gallery` — sirf Pages pe (client, 23 Sep, D-111). Reference `page-template.html` ka `.gal4`.
+ *
+ * Images `MediaPicker` ke `multiple` mode se — ek baar me kai, tick ke kram me. Kram baad me grip se.
+ * Tablet ka dropdown jaan-boojh kar nahi hai — wo desktop ki value se apne aap banta hai (client).
+ */
+function GalleryBlock({ props, onChange, disabled }) {
+  const set = (patch) => onChange({ ...props, ...patch })
+  const ids = props.imageIds ?? []
+  const [picking, setPicking] = useState(false)
+
+  const fetched = useMediaById(ids)
+  /** Picker se aayi images turant dikhen — `useMediaById` ka jawab aane tak khaali dabba na rahe. */
+  const [added, setAdded] = useState({})
+  const media = { ...added, ...fetched }
+
+  const setIds = (next) => set({ imageIds: next })
+  const moveItem = (from, to) => {
+    if (to < 0 || to >= ids.length) return
+    const next = [...ids]
+    const [row] = next.splice(from, 1)
+    next.splice(to, 0, row)
+    setIds(next)
+  }
+  const { handleProps, rowProps } = useListDrag(moveItem, !disabled)
+
+  const room = GALLERY_MAX - ids.length
+
+  return (
+    <>
+      <div className="field">
+        <label>Heading</label>
+        <input
+          className="inp"
+          placeholder="Optional — leave empty for no heading"
+          value={props.heading ?? ''}
+          onChange={(e) => set({ heading: e.target.value })}
+          disabled={disabled}
+        />
+      </div>
+
+      <div className="row2">
+        <div className="field">
+          <label>Images in a row — desktop</label>
+          <select
+            className="inp"
+            value={props.columns ?? 4}
+            onChange={(e) => set({ columns: Number(e.target.value) })}
+            disabled={disabled}
+          >
+            {GALLERY_COLUMNS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label>Images in a row — mobile</label>
+          <select
+            className="inp"
+            value={props.mobileColumns ?? 2}
+            onChange={(e) => set({ mobileColumns: Number(e.target.value) })}
+            disabled={disabled}
+          >
+            {GALLERY_MOBILE_COLUMNS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <label className="blk-sublabel" style={{ marginTop: 14 }}>
+        Images
+      </label>
+      {ids.length > 0 ? (
+        <div className="gal-edit">
+          {ids.map((id, i) => {
+            const thumb = thumbOf(media[id])
+
+            return (
+              <div className="gal-edit__tile" key={id} {...rowProps(i)}>
+                {/* Poora tile hi grip hai — chhoti ⠿ image ke upar bekaar jagah leti */}
+                <div className="gal-edit__img" {...handleProps(i)}>
+                  {thumb ? <img src={thumb.url} alt={media[id]?.alt || ''} /> : null}
+                </div>
+                {!disabled && (
+                  <button
+                    className="gal-edit__x"
+                    type="button"
+                    title="Remove image"
+                    onClick={() => {
+                      if (!window.confirm('Remove this image from the gallery?')) return
+                      setIds(ids.filter((x) => x !== id))
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <p className="muted">No images yet.</p>
+      )}
+
+      {!disabled && room > 0 && (
+        <button className="btn btn-sm" type="button" onClick={() => setPicking(true)}>
+          ＋ Add images
+        </button>
+      )}
+      <div className="hint">
+        Pick several at once from the Media Library. Drag to change the order. Tiles are square;
+        tablets show up to three in a row. A click opens the image full size. Up to {GALLERY_MAX}{' '}
+        images.
+      </div>
+
+      {picking && (
+        <MediaPicker
+          multiple
+          onClose={() => setPicking(false)}
+          onSelectMany={(list) => {
+            const fresh = list.filter((m) => !ids.includes(m.id)).slice(0, room)
+            setAdded((prev) => ({ ...prev, ...Object.fromEntries(fresh.map((m) => [m.id, m])) }))
+            setIds([...ids, ...fresh.map((m) => m.id)])
+            setPicking(false)
+          }}
+        />
+      )}
+    </>
+  )
+}
+
 const EDITORS = {
+  gallery: GalleryBlock,
   enquiryForm: EnquiryFormBlock,
   customHtml: CustomHtmlBlock,
   textVideo: TextVideoBlock,

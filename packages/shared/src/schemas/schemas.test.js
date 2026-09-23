@@ -34,7 +34,14 @@ import {
   ROLES,
   THEME_COLORS,
 } from '../constants/index.js'
-import { awardBadgesPropsSchema, textVideoPropsSchema } from './page.js'
+import {
+  awardBadgesPropsSchema,
+  GALLERY_MAX,
+  HOME_PAGE_BLOCK_TYPES,
+  PAGE_DEFAULT_BLOCK_TYPES,
+  SECTION_PAGE_BLOCK_TYPES,
+  textVideoPropsSchema,
+} from './page.js'
 import { fieldTypesFor, isFieldTypeAllowed, isResponsive } from '../field-types.js'
 /** ⚠️ `toc.js` top-level index me hai, `schemas/index.js` me nahi — cycle se bachne ke liye. */
 import { withHeadingIds } from '../toc.js'
@@ -610,5 +617,50 @@ describe('Text with video + Award badges (D-96 §22–§23)', () => {
   it('badge ka rang sirf hex, khaali = theme ka sunehra', () => {
     expect(awardBadgesPropsSchema.parse({}).badgeColor).toBe('')
     expect(() => awardBadgesPropsSchema.parse({ badgeColor: 'red;x' })).toThrow()
+  })
+})
+
+describe('Gallery block — sirf Pages pe (client, 23 Sep, D-111)', () => {
+  it('dono Page template ke dropdown me hai, aur kahin nahi', () => {
+    expect(PAGE_DEFAULT_BLOCK_TYPES).toContain('gallery')
+    expect(SECTION_PAGE_BLOCK_TYPES).toContain('gallery')
+    expect(POST_BLOCK_TYPES).not.toContain('gallery')
+    expect(BLOG_PAGE_BLOCK_TYPES).not.toContain('gallery')
+    expect(HOME_PAGE_BLOCK_TYPES).not.toContain('gallery')
+    expect(PAGE_BLOCK_TYPES).not.toContain('gallery')
+    expect(PAGE_BLOCK_PROP_SCHEMAS.gallery).toBeDefined()
+  })
+
+  it('default — desktop 4, mobile 2 (reference ka `.gal4`), heading khaali', () => {
+    expect(parseBlockProps('gallery', {})).toEqual({
+      heading: '',
+      columns: 4,
+      mobileColumns: 2,
+      imageIds: [],
+    })
+  })
+
+  it('desktop 2–6 aur mobile 1–3 ke bahar ki value nahi chalti', () => {
+    expect(() => parseBlockProps('gallery', { columns: 1 })).toThrow()
+    expect(() => parseBlockProps('gallery', { columns: 7 })).toThrow()
+    expect(() => parseBlockProps('gallery', { mobileColumns: 0 })).toThrow()
+    expect(() => parseBlockProps('gallery', { mobileColumns: 4 })).toThrow()
+    expect(parseBlockProps('gallery', { columns: '6', mobileColumns: '1' })).toMatchObject({
+      columns: 6,
+      mobileColumns: 1,
+    })
+  })
+
+  it('ek image do baar — ek hi bachti hai, kram pehli baar wala', () => {
+    expect(parseBlockProps('gallery', { imageIds: ['a', 'b', 'a', 'c'] }).imageIds).toEqual([
+      'a',
+      'b',
+      'c',
+    ])
+  })
+
+  it(`${GALLERY_MAX} se zyada images nahi`, () => {
+    const ids = Array.from({ length: GALLERY_MAX + 1 }, (_, i) => `m${i}`)
+    expect(() => parseBlockProps('gallery', { imageIds: ids })).toThrow()
   })
 })

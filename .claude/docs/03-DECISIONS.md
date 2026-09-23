@@ -10690,3 +10690,58 @@ dhoondhta hai. **Jo cheez test apne hi code se banata hai, uska test us code ki 
 sakta.**
 
 Editor wala raasta client ne usi baar dekha — _"editor ka email dala to mail nahi gayi which is fine"_.
+
+
+---
+
+## D-111
+
+**Pages ka `Gallery` block — row me kitni image admin se, click pe Lightbox (23 Sep 2026)**
+
+### Sandarbh
+
+Client: _"in pages block i want to add new block only in pages … block name: gallery · dropdown for how
+many image in a row · then choose images from gallery"_. Reference me ye **pehle se tha** —
+`page-template.html:1761` ka _Gallery (4-up)_ (`.gal4`: square tiles, 4 column, 860px pe 2, har tile link) —
+aur theme me kabhi bana nahi tha. **Chhathi baar** koi cheez pehle se rakhi mili (D-106 wali soch).
+
+### Faisle (client ke, 23 Sep)
+
+| # | Sawaal | Jawab |
+| --- | --- | --- |
+| 1 | Kahan | **Sirf `page`**, dono template (`Default` + `Section layout`). Home/Tour/Blog/Post pe nahi |
+| 2 | Row me kitni | **Desktop aur mobile alag dropdown** — desktop 2–6 (def 4), mobile 1–3 (def 2) |
+| 3 | Tablet | **Apne aap** — `min(desktop, 3)`, theme me derive, field nahi |
+| 4 | Click | **Lightbox** — package ke hero wala hi (`package/Lightbox.jsx`), click pe load |
+| 5 | Shape | **Square crop** (reference jaisa) |
+| 6 | Chunna | Media Library picker me **ek baar me kai** — `MediaPicker` ka naya `multiple` mode |
+| 7 | Extras | Sirf optional **Heading**. Caption nahi (alt Media Library ka) |
+| 8 | Bahut images | **Saari dikhen** (30 ho to wrap ho kar rows), "Show more" nahi — lazy load |
+
+### Kya bana
+
+- `galleryPropsSchema` (`packages/shared/src/schemas/page.js`) — `imageIds` **saadi ids ki list**, `items[]`
+  nahi (har image ka apna koi khaana hai hi nahi). Duplicate id write pe gir jaati hai. `GALLERY_MAX = 60`.
+- `resolvePageBlocks()` — images server pe (`large` + `srcset`), **`imageIds` payload me nahi** (D-88 tark),
+  delete hui image chup-chaap giri (D-42 §2), kram admin ka.
+- Admin: `GalleryBlock` (`PageBlocks.jsx`) · `MediaPicker multiple` (tick ka number = kram; Upload tab bhi kai
+  file, har upload apne aap tick). Purana single raasta bilkul waisa hi.
+- Theme: `components/tour/GalleryBlock.jsx` (client component — sirf Lightbox ke state ke liye) + `.pgal` CSS.
+  Row ki ginti **teen CSS variable** se (`--gcols` · `--gcols-t` · `--gcols-m`) — breakpoint CSS me hi, JS me
+  `matchMedia` nahi.
+- **Koi migration nahi**, naya content type nahi — `pnpm seed` bhi nahi chahiye.
+
+### ⚠️ Jo yaad rehna chahiye
+
+- **Class `.pgal`, reference ka `.gal4` nahi** — hamari ginti fixed 4 nahi, aur `.gal` package hero ka hai.
+- **`.art .blk :not(.artfig) > img` (0,3,1)** Default template me image ko `height: auto` de deta aur square
+  toot jaata. `.pgal img` ke saath `.art .blk .pgal img` bhi likha hai — **hatana mat**.
+- **Gap Cards wala token** (`--gap-card-row/col`), reference ka 9px nahi — warna ye ekmatra grid hota jo
+  `Layout ▸ Spacing` se na badle (D-100). Client chahe to reference ka 9px wapas.
+- **Lightbox `<body>` me portal se** — pehli live koshish pe wo content column ke **andar** khula (client, 23 Sep).
+  Jad: `.blk` ka `contain: layout paint` (D-85) andar ke `position: fixed` ko usi box me band kar deta hai —
+  `VideoModal` pe 18 Sep ko theek yahi hua tha (D-101). **`.blk` ke andar koi bhi popup = portal.**
+- **Sanitizer me kuch nahi juda** — gallery me koi HTML khaana hi nahi (heading plain text). Table me likha hai.
+- Image ka `alt` badalne pe page ka cache saaf nahi hota — `logoGrid` jaisa hi (purana haal, naya nahi).
+- **Render aankh se nahi dekha** — `:3000` pe production server chal raha tha, `next build` nahi chalaya
+  (D-89 ka jaal). → **A-47**.

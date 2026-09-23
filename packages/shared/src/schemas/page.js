@@ -97,10 +97,12 @@ export const SECTION_PAGE_BLOCK_TYPES = Object.freeze([
   'faqs',
   'customHtml',
   'enquiryForm',
+  /** Sirf Pages pe — dono template (client, 23 Sep, D-111). */
+  'gallery',
 ])
 
 /** `default` template ka dropdown — Enquiry form yahan **nahi** (client, 16 Sep). */
-export const PAGE_DEFAULT_BLOCK_TYPES = Object.freeze(['richText', 'faqs', 'customHtml'])
+export const PAGE_DEFAULT_BLOCK_TYPES = Object.freeze(['richText', 'faqs', 'customHtml', 'gallery'])
 
 /**
  * Kis content type pe dropdown me kaunse blocks — **spec 008** (Blog).
@@ -615,6 +617,37 @@ export const enquiryFormBlockPropsSchema = z.object({
   formId: z.string().trim().max(60).default(''),
   heading: z.string().trim().max(200).default(''),
   description: htmlSchema.pipe(z.string().max(1000)).default(''),
+})
+
+/** Gallery me kitni images tak — client ne 30 ka udaaharan diya; 60 ki chhat payload ko bandh ke rakhti hai. */
+export const GALLERY_MAX = 60
+
+/** `Images in a row` — desktop ke options (client, 23 Sep). */
+export const GALLERY_COLUMNS = Object.freeze([2, 3, 4, 5, 6])
+
+/** `Images in a row` — mobile ke options, **alag dropdown** (client, 23 Sep). */
+export const GALLERY_MOBILE_COLUMNS = Object.freeze([1, 2, 3])
+
+/**
+ * `Gallery` — sirf Pages pe, dono template (client, 23 Sep, D-111). Reference: `page-template.html` ka
+ * `.gal4` (_Gallery (4-up)_) — square tiles, click pe Lightbox.
+ *
+ * Client ke faisle: row me kitni image **desktop aur mobile dono alag** dropdown se · tablet **apne aap**
+ * (desktop ki value, zyada se zyada 3 — theme me derive, field nahi) · saari images dikhen, "Show more"
+ * nahi · upar optional heading · caption nahi (alt Media Library wala).
+ *
+ * ⚠️ `imageIds` saadi ids ki list hai, `items[]` nahi — har image pe koi apna khaana hai hi nahi. Kram wahi
+ * jo admin ne drag se lagaya. Ek hi image do baar aaye to ek hi bachti hai (picker se dobara chunna aam hai).
+ */
+export const galleryPropsSchema = z.object({
+  heading: z.string().trim().max(200).default(''),
+  columns: z.coerce.number().int().min(2).max(6).default(4),
+  mobileColumns: z.coerce.number().int().min(1).max(3).default(2),
+  imageIds: z
+    .array(z.string().trim().min(1).max(60))
+    .max(GALLERY_MAX)
+    .default([])
+    .transform((ids) => [...new Set(ids)]),
 })
 
 /** Home ke Package grid me ek waqt me kitne card — reference me solah (client, 15 Sep, D-96 §19). */
@@ -1178,6 +1211,7 @@ export const PAGE_BLOCK_PROP_SCHEMAS = Object.freeze({
   awardBadges: awardBadgesPropsSchema,
   customHtml: customHtmlPropsSchema,
   enquiryForm: enquiryFormBlockPropsSchema,
+  gallery: galleryPropsSchema,
 })
 
 /**

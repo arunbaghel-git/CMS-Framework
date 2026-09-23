@@ -62,7 +62,7 @@ Pending kaam → [`docs/09-OPEN-ITEMS.md`](docs/09-OPEN-ITEMS.md)
 | Kaam                  | Pehle ye padho                                                          |
 | --------------------- | ----------------------------------------------------------------------- |
 | Koi bhi code likhna   | [`07-CONVENTIONS.md`](docs/07-CONVENTIONS.md) — 18 non-negotiable rules |
-| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-110               |
+| "Aisa kyun hai?"      | [`03-DECISIONS.md`](docs/03-DECISIONS.md) — D-01 se D-111               |
 | Naya module / feature | [`02-ARCHITECTURE.md`](docs/02-ARCHITECTURE.md)                         |
 | Admin ka UI           | [`04-ADMIN-UX.md`](docs/04-ADMIN-UX.md)                                 |
 | Phase shuru karna     | [`08-RISKS.md`](docs/08-RISKS.md) — pre-flight checklist                |
@@ -905,10 +905,15 @@ session band + "password changed" mail. Aakhri raasta: **`pnpm cms reset-passwor
 ⚠️ **`ADMIN_URL` ek ORIGIN hai** (CORS), admin ka path `/admin` code me pakka — link = origin + `/admin`
 (`adminUrl()`). Pehli live koshish pe link `/admin` ke bina bana aur **19 test pass rahe**, kyunki wo link
 ko `adminUrl()` se hi milaate the (D-110 §12). **Jo test apne hi code se expected value banata hai, wo us
-code ki galti nahi pakad sakta.** Live check → **A-46**.
+code ki galti nahi pakad sakta.** ✅ **A-46 band** — client ne asli SMTP se 1–7 chala liye; sirf CLI (#8) live nahi dekha.
 Deploy pe **`pnpm cms migrate`** + API restart.
 
-⏭️ **Agla kaam: A-46** (password reset live check), phir **A-38** — Kerala package ka import
+✅ **A-46 aur A-44 client ne live chala liye** (23 Sep).
+**23 Sep — Pages ka `Gallery` block (D-111), koi migration nahi.** Sirf `page` pe, dono template. Row me kitni
+image **desktop (2–6) aur mobile (1–3) alag dropdown**, tablet apne aap (max 3), square tiles, click pe Lightbox,
+images Media Library se **ek baar me kai** (`MediaPicker multiple`). Reference `page-template.html` ka `.gal4`
+pehle se tha — **chhathi baar**. Render aankh se nahi dekha → **A-47**. **1460/1461 test** (akela fail purana `theme-fonts`).
+⏭️ **Agla kaam: A-38** — Kerala package ka import
 (_"content doesn’t come on frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki
 pages PageSpeed pe (A-17).
 ⚠️ **Global `Enquiry Notifications` PANEL mat banao — client ne 22 Sep ko mana kiya** (D-108 §10). Per-form

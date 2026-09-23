@@ -1555,6 +1555,19 @@ async function resolvePageBlocks(blocks, siteId, locale, defaults) {
         return { ...block, data: await resolvePostListBlock(block.props, siteId, locale) }
       }
 
+      /**
+       * `Gallery` (client, 23 Sep, D-111) — images **server pe** resolve, `imageIds` bahar nahi (D-88 wala
+       * tark). Delete hui image chup-chaap giri (D-42 §2), kram wahi jo admin ne lagaya.
+       *
+       * `large` — wahi object Lightbox bhi leta hai; tile apna chhota variant `srcset` se khud chunta hai.
+       */
+      if (block?.type === 'gallery') {
+        const { imageIds = [], ...props } = block.props ?? {}
+        const images = await Promise.all(imageIds.map((id) => toDisplayImage(id, 'large', siteId)))
+
+        return { ...block, props, data: { images: images.filter(Boolean) } }
+      }
+
       if (block?.type !== 'packageList') return block
 
       /**

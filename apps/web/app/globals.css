@@ -10227,3 +10227,63 @@ a.txv__box:hover .txv__p {
   text-transform: uppercase;
   color: var(--faint);
 }
+
+/* ---- `Gallery` block — sirf Pages pe (client, 23 Sep, D-111), reference `page-template.html` ka `.gal4` ---- */
+
+/*
+ * Row me kitni image — `GalleryBlock.jsx` teen variable deta hai (desktop · tablet · mobile). Gap Cards
+ * wala token (`Layout ▸ Spacing ▸ Cards gap`), reference ka 9px nahi — warna ye ekmatra grid hota jo
+ * admin ke spacing se na badle (D-100).
+ */
+.pgal {
+  display: grid;
+  grid-template-columns: repeat(var(--gcols, 4), minmax(0, 1fr));
+  gap: var(--gap-card-row) var(--gap-card-col);
+  margin-top: 16px;
+}
+
+.pgal:first-child {
+  margin-top: 0;
+}
+
+.pgal button {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r2);
+  overflow: hidden;
+  background: var(--blue-100);
+  cursor: zoom-in;
+}
+
+/*
+ * ⚠️ Doosra selector zaroori hai — Default template me `.art .blk :not(.artfig) > img` (0,3,1) image ko
+ * `height: auto` de deta hai aur square tile toot jaata. Ye usse baad me hai aur utna hi bhaari.
+ */
+.pgal img,
+.art .blk .pgal img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  transition: transform 0.5s;
+}
+
+.pgal button:hover img {
+  transform: scale(1.06);
+}
+
+@media (max-width: 1024px) {
+  .pgal {
+    grid-template-columns: repeat(var(--gcols-t, 3), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .pgal {
+    grid-template-columns: repeat(var(--gcols-m, 2), minmax(0, 1fr));
+  }
+}

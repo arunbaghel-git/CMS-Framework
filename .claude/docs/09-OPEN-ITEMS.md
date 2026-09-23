@@ -1,12 +1,16 @@
 # 09 — Open Items
 
+**23 Sep (baad me) — Pages ka `Gallery` block (D-111)**, koi migration nahi. Naya **A-47** (render dekhna).
+**Tests: 56 files, 1460/1461.**
+
 **Last updated:** 23 Sep 2026 (shaam) — **administrator ka password reset (D-110), migration 028.**
 Login ka `Lost your password?` ab chalta hai — mail **sirf admin** ko, 30 minute ka ek-baar ka link.
-Saath me `pnpm cms reset-password <email>` (server wala aakhri raasta). Naya **A-46**: live check.
+Saath me `pnpm cms reset-password <email>` (server wala aakhri raasta). ✅ **A-46** client ne live chala liya
+(sirf CLI baaki), ✅ **A-44** bhi (asli mail Inbox me aayi). **Tests: 56 files, 1452/1453** (akela fail purana `theme-fonts`).
 
 **23 Sep (dopahar)** — **nayi enquiry ki mail ab team ko jaati hai (D-109, A-43 band)** —
 `Email enquiries to` pe, har form ka apna subject + message (`Enquiry Form ▸ Notification email`),
-Reply-To customer ka. Koi migration nahi. Naya **A-44**: asli submit → asli inbox abhi nahi dekha.
+Reply-To customer ka. Koi migration nahi. ✅ **A-44**: asli submit → asli inbox client ne dekh liya.
 ⚠️ Neeche 22 Sep wali "nayi enquiry pe **email nahi jaayegi**" wali line ab **purani** hai.
 
 **22 Sep 2026** — **Settings ▸ Email / SMTP ban gaya (D-108)**, aur uske saath
@@ -37,7 +41,7 @@ page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87
 Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
 `.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Tests:** 22 Sep (D-108 §9 ke baad) — **54 files, 1402/1403 pass**. **Asli fail ek hi hai** aur wo
+**Tests:** 23 Sep (D-110 ke baad) — **56 files, 1452/1453 pass**. 22 Sep (D-108 §9 ke baad) — 54 files, 1402/1403. **Asli fail ek hi hai** aur wo
 purana hai (`theme-fonts.test.js` = `.hf-stat span`, client ka apna CSS edit — chhua nahi).
 ⚠️ Vitest _"2 failed"_ files dikha sakti hai jabki test sirf ek gira ho — doosri file `media.test.js`
 hoti hai, jo **hook** me girti hai (A-11 ka race), aur akele chalane pe 20/20 pass hoti hai. **Ginti
@@ -418,6 +422,23 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
+#### ✅ A-47 · D-111 — Pages ka Gallery block — **client ne live dekh liya** (23 Sep)
+
+Gallery dikhi; Lightbox pehle content column ke andar khula (`.blk` ka `contain`), portal ke baad poori screen pe (client). Neeche ki list itihaas hai.
+
+**Deadline:** client ke dekhne pe · **kuch toota nahi** — schema + API tests (8 naye), admin build pass
+
+| # | Kya dekhna hai |
+| --- | --- |
+| 1 | **API restart** + admin hard refresh (`:4000` purana code chala raha hai) |
+| 2 | Pages ▸ Edit ▸ `＋ Add block` ▸ **Gallery** — dono template (Default · Section layout) me dikhe |
+| 3 | `＋ Add images` → picker me kai tick, number kram dikhaaye, `Add N images` |
+| 4 | Tiles drag se reorder, ✕ se hatao, Update |
+| 5 | Site pe: desktop 2–6, tablet max 3, mobile 1–3 — **square**, Default template me bhi (`.art` wala takraav) |
+| 6 | Tile click → Lightbox, next/prev saari images |
+| 7 | `:3000` production hai — naya theme dekhne ke liye rebuild (pehle `netstat`, dev band) |
+
+
 ### ✅ A-42 · Email / SMTP — **band** (22 Sep, D-108 §9–§10)
 
 > Client ne screen chala kar poora raasta dekh liya — **do baar**: pehle MailDev pe, phir apne
@@ -470,7 +491,7 @@ hai (team ko, bharne wale ko nahi), aur uska **subject + message har form pe adm
 `{{fullName}}` jaise variables aur `{{all_fields}}` ki table ke saath. Reply-To = customer ka email.
 `FormBuilder` ki "mail nahi jaati" wali hint hat gayi. Poora hisaab **D-109**.
 
-#### A-44 · D-109 — asli submit se asli inbox tak abhi nahi dekha (23 Sep)
+#### ✅ A-44 · D-109 — asli submit se asli inbox — **client ne dekh liya** (23 Sep; Reply-To + Detail line chhote, optional)
 
 **Deadline:** koi sakht nahi · **kuch toota nahi** — 1430/1431 test (akela fail purana `theme-fonts`)
 

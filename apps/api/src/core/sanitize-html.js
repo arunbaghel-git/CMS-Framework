@@ -400,6 +400,7 @@ export function sanitizeInlineHtml(html) {
  * | `enquiryForm` | `props.description` (fields form ke apne hain) |
  * | `customHtml` | `props.html` — client ka apna markup (`<style>`/`<script>` yahin girte hain) |
  * | `testimonials` | `props.description` (review ka text plain hai, reviews collection me) |
+ * | `gallery` | **kuch nahi** — heading plain text, baaki ids aur number (D-111) |
  *
  * ⚠️ **Naya block type jodte waqt ise bhi jodna hai.** Yahan chhoot jaane ka matlab ye nahi
  * ki content gir jaayega — wo bilkul theek save hoga, **bina safai ke**, aur page pe
