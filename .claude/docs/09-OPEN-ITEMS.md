@@ -1,5 +1,10 @@
 # 09 — Open Items
 
+**Last updated:** 24 Sep 2026 — status check. 23 Sep raat tak **D-111 se D-117** ban gaye (Gallery · Video block ·
+404 ki CSS · popup ek image/720px · TOC ki band patti · form heading `<p>` · Bulk Upload Published/Failed ·
+contact page mobile). Sab push ho chuka. **Tests: 61 files, 1563/1564** (akela fail purana `theme-fonts`).
+Client ka aankh se dekhna baaki: **A-49 · A-50 · A-51 · A-52**. ⏭️ Agla code kaam: **A-38**.
+
 **23 Sep (baad me) — Pages ka `Gallery` block (D-111)**, koi migration nahi. Naya **A-47** (render dekhna).
 **Tests: 56 files, 1460/1461.**
 
@@ -41,7 +46,7 @@ page-by-page: Enquiries (D-75/76) · Bulk Upload (D-81/92/95) · Tour page (D-87
 Blog (D-91/93) · saada Page (D-95) · Home + Contact (D-96). Har din ka poora hisaab `03-DECISIONS.md` aur
 `.claude/memory/project-state.md` me hai — yahan sirf **khule kaam**.
 
-**Tests:** 23 Sep raat (D-113 ke baad) — **57 files, 1475/1476 pass**. 23 Sep (D-110 ke baad) — 56 files, 1452/1453. 22 Sep (D-108 §9 ke baad) — 54 files, 1402/1403. **Asli fail ek hi hai** aur wo
+**Tests:** 24 Sep (D-117 ke baad) — **61 files, 1563/1564 pass**. 23 Sep raat (D-113 ke baad) — 57 files, 1475/1476. 23 Sep (D-110 ke baad) — 56 files, 1452/1453. 22 Sep (D-108 §9 ke baad) — 54 files, 1402/1403. **Asli fail ek hi hai** aur wo
 purana hai (`theme-fonts.test.js` = `.hf-stat span`, client ka apna CSS edit — chhua nahi). ⚠️ 23 Sep raat ko assertion ka
 text `var(--xsmall-w, var(--fw-semi))` dikhata hai — wo value `.ofcc--top .ofcc__sub` (`globals.css:8812`) pe bhi hai, to pehla
 toota selector ab shayad alag hai; test wahi aur ginti wahi (1). Jaancha nahi — client ke CSS wale area me hai.

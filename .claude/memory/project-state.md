@@ -24,7 +24,7 @@
 > 7. `:3000` pe client ka **dev** server chal raha hai — `next build` se pehle `netstat` se `:3000` dekho (D-89 ka
 >    jaal). Mobile layout naapna ho to Chrome headless + CDP ka tareeka D-117 me likha hai (`node
 --experimental-websocket`, puppeteer nahi hai).
-> 8. Test suite: **1559/1560** + baad ke naye tests; akela fail purana `theme-fonts` (client ka CSS area, chhua nahi).
+> 8. Test suite: **61 files, 1563/1564** (24 Sep ko chalaya); akela fail purana `theme-fonts` (client ka CSS area, chhua nahi).
 >
 > **Last updated:** 23 Sep 2026 raat (sabse aakhir) — **D-117:** contact page mobile pe screen se bahar (`.blk` ka `contain-intrinsic-size` chaudai bhi deta tha, 758 → 375). **D-116 §7:** article table ke cell ke `<br>` aur table ke neeche jagah. **D-116:** Bulk Upload me draft khatam (Published/Failed), Retry again, Featured Image, h2/h3 FAQ, Published Date (A-52). **D-115:** form heading `<p class="fhead">`, phone pe date me `Select date` (A-51). **D-114:** blog post + Page ka `On this…` TOC 1024px
 > tak article ke upar band patti; phone pe har form ka har khaana apni row (D-103 §11.4). ⏭️ A-49 + A-50 client
