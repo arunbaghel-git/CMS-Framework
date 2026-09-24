@@ -111,6 +111,16 @@ const NAMED_ENTITIES = Object.freeze({
   times: '×',
   deg: '°',
   apos: "'",
+  /**
+   * `→` — Google `31,999 → 24,999` ko `&rarr;` bana kar bhejta hai (24 Sep, template banate
+   * waqt pakda). Bina iske daam arrow pe tootta hi nahi tha aur `parseMoney()` dono ko jod kar
+   * **3,199,924,999** bana deta — package Failed. `larr` saath me, ulta likhne wale ke liye.
+   */
+  rarr: '→',
+  larr: '←',
+  /** `·` — page ki stat rail ke label me asli doc se (`Ticket &middot; qualifier`). */
+  middot: '·',
+  bull: '•',
 })
 
 const decodeEntities = (text) =>

@@ -368,3 +368,23 @@ describe('FAQ — h2 heading, h3 sawaal', () => {
     expect(parsed.days[0].fields.title.text).toBe('Arrive')
   })
 })
+
+/**
+ * Google ka export `→` ko `&rarr;` aur `·` ko `&middot;` bana kar bhejta hai (24 Sep, template
+ * banate waqt pakda). Bina decode ke daam arrow pe tootta nahi tha — dono number jud kar
+ * 3,199,924,999 ban jaate aur package Failed hota.
+ */
+describe('parsePackageDoc — Google ke export ki entities', () => {
+  const doc =
+    '<p><span>Standard Price</span></p><p><span>31,999 &rarr; 24,999</span></p>' +
+    '<p><span>Best For</span></p><p><span>Couples &middot; slow days</span></p>'
+  const { values } = parsePackageDoc(doc)
+
+  it('&rarr; asli arrow banta hai', () => {
+    expect(values.standardPrice.text).toBe('31,999 → 24,999')
+  })
+
+  it('&middot; asli bindu banta hai', () => {
+    expect(values.bestFor.text).toBe('Couples · slow days')
+  })
+})

@@ -878,6 +878,12 @@ strike-through ~69 lakh crore bana diya aur Zod (`max 100000000`) ne poora packa
 `Featured Image` / `Featured Image URL` ab package pe bhi `bannerImage` hain (`package-doc.js`). **Jad (anjaan
 label ka chipakna) abhi bhi zinda hai**, aur price parser ki koi upar ki hadd nahi — dono A-38 ke saath.
 
+⚠️ **24 Sep — usi din doosra:** Google `→` ko `&rarr;` bana kar export karta hai, aur `decodeEntities()` me `rarr`
+tha hi nahi. `31,999 → 24,999` padh kar **3,199,924,999** banta tha — yaani template me likha strike wala daam
+**har** asli Google Doc pe package Failed karta. Tests me `→` seedha likha tha, entity nahi, isliye kabhi nahi pakda.
+Ab `rarr` · `larr` · `middot` · `bull` decode hote hain. Bulk Upload ke templates (Drive: `Bulk Upload Templates
+(24 Sep 2026)`) Google ke asli export se jaanche gaye.
+
 ---
 
 ### ✅ A-37 · Popup — **band** (21 Sep, D-103 §8)
