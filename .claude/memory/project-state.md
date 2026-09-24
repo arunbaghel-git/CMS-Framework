@@ -4,6 +4,9 @@
 >
 > ## ⏭️ Agli session — yahan se shuru karo (24 Sep ka handoff) — **Topbar + Dashboard**
 >
+> 0. ✅ **Settings ▸ SEO & Schema (D-120, 24 Sep raat), migration 030** — title template (sirf SEO Title khaali pe), default
+>    description + OG image, `/robots.txt`, search engine checkbox. Dev DB pe 030 lag chuki. ⚠️ Deploy: migrate → restart →
+>    build → **admin me SEO & Schema pe ek baar Save** (cache). Suite **1617/1618**. ✅ Client ne dekh liya (24 Sep).
 > 1. ✅ **A-53 ka ✉ Enquiry badge** (`/api/enquiries/counts`, click → All Enquiries) aur ✅ **A-54 Dashboard** (client ne scope chhota kiya: 4 card + 7 din ke bars, bas) — dono 24 Sep shaam. **⟳ Cache baaki.** Suite **1594/1595**.
 >    **Kaam: A-53 (Topbar) aur A-54 (Dashboard)** — dono ki poori jaanch `09-OPEN-ITEMS.md` me hai (reference ki line,
 >    har hisse ke peeche data hai ya nahi, plan). **Dobara jaanch mat karo, wahan se padho.** Code abhi kuch nahi likha.

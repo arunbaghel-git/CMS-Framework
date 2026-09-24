@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import FloatingContact from '../components/FloatingContact.jsx'
 import SiteFooter from '../components/SiteFooter.jsx'
 import SiteHeader from '../components/SiteHeader.jsx'
-import { getIntegrations, getSettings } from '../lib/cms.js'
+import { getIntegrations, getSeoSettings, getSettings } from '../lib/cms.js'
 import { splitHeadHtml } from '../lib/head-html.js'
 import './globals.css'
 
@@ -49,11 +49,21 @@ const inter = Inter({
  * instance hamesha staging hota hai, aur wahan noindex default hona chahiye (spec 004 §3).
  */
 export async function generateMetadata() {
-  const settings = await getSettings()
+  const [settings, seo] = await Promise.all([getSettings(), getSeoSettings()])
+  const ogImage = seo?.seo?.defaultOgImage
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? settings?.siteUrl
 
   return {
+    /**
+     * OG image ke `/uploads/…` jaise relative URL isi se poore bante hain (24 Sep). Iske bina Next
+     * `localhost:3000` laga deta tha — yaani banner wali og:image production pe bhi kabhi sahi
+     * nahi thi. Wahi pata jo `TourSchema`/`Schema` padhte hain.
+     */
+    metadataBase: siteUrl ? new URL(siteUrl) : undefined,
     title: settings?.siteName ?? 'CMS',
-    description: settings?.tagline ?? '',
+    // Jin pages ka apna metadata nahi (404) — `Settings ▸ SEO & Schema` ka default, phir tagline
+    description: seo?.seo?.defaultDescription || settings?.tagline || '',
+    openGraph: ogImage?.url ? { images: [{ url: ogImage.url }] } : undefined,
     // Favicon resolve na ho to koi entry hi nahi — toota hua icon kabhi nahi (D-42 §2)
     icons: settings?.favicon ? { icon: settings.favicon.url } : undefined,
     robots: settings?.searchEngineVisible ? undefined : { index: false, follow: false },

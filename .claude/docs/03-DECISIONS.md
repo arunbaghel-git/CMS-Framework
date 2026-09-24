@@ -11192,3 +11192,34 @@ date alag ho (warna publish dobara nahi — D-81).
   bhar dega. Aaj ki screen hamesha poora object bhejti hai, isliye pool nahi udta; koi naya caller bane to yahi dekhna
 - Tests: `default-image.test.js` (7), `bulk-imports.test.js` (8), `master-lists.test.js` (2), `settings.test.js` (2).
   Suite 1588/1589 (akela fail purana `theme-fonts`). ⚠️ Admin screen aankh se nahi dekhi
+
+---
+
+## D-120
+
+**Settings ▸ SEO & Schema — Global SEO Defaults** (client, 24 Sep 2026)
+
+**Status:** ✅ bana · **migration 030** · reference `admin-design-v2.html:1414`
+
+- **Chaar khaane, `settings.seoSettings`:** `titleTemplate` (default `%title% | %sitename%` — aaj ka hi look) ·
+  `defaultDescription` · `defaultOgImageId` · `robotsTxt`. Nav entry aur tab pehle se the, sirf route nahi tha (**saatvi
+  baar** — `seo.read`/`seo.update` bhi reserved pade hain, par screen `PageSettings` ke saanche pe `settings.update` pe hai)
+- **Client ke faisle:** (1) Title Template **sirf jab SEO Title khaali** — SEO Title (editor / Meta upload) jaisa likha waisa;
+  (2) reference ka `Organization Schema` box **nahi**; (3) `sitemap.xml` **nahi** — isliye default robots.txt me `Sitemap:`
+  line nahi (bina file ke wo Google ko 404 pe bhejti); (4) `searchEngineVisible` ka checkbox isi screen pe, default ON
+- **`%title%` zaroori** (Zod refine) — uske bina har page ka ek hi title. Khaali template = sirf page title
+- **Fallback kram** (`apps/web/lib/seo.js`, 20 test): description — SEO → short description → excerpt → default;
+  OG image — page ki banner/featured → Default OG Image (server pe resolve, na mile to `null`, D-42 §2)
+- **`/robots.txt`** (`app/robots.txt/route.js`, pehle 404): textarea ka text waisa hi. Switch band = `Disallow: /` +
+  har page `noindex`. ⚠️ API na mile to **503**, `Disallow` nahi — Google robots.txt ~24 ghante cache karta hai
+- ⚠️ **Chup bug mila:** `searchEngineVisible` spec 004 se `false` pe tha, admin me uska switch hi nahi tha, aur page ka
+  `robots: undefined` layout ka `noindex` **mita deta tha** — yaani switch kisi entry page pe kabhi laga hi nahi, aur har site
+  `false` pe hote hue bhi Google me thi. Ab switch sach me chalta hai, isliye **migration 030** har chalu site pe `true`
+  likhti hai (aaj ka asli haal). Bina uske deploy hote hi live site index se nikal jaati. Naye instance ka default `false`
+  hi hai (spec 004 §3)
+- ⚠️ **Doosra chup bug:** `metadataBase` nahi tha — relative `/uploads/…` og:image ko Next `localhost:3000` ka bana deta
+  tha. Ab `NEXT_PUBLIC_SITE_URL ?? settings.siteUrl` (wahi jo `TourSchema` padhta hai)
+- `getSettings()` (web) `seo` nikaal deti hai, `getSeoSettings()` alag (A-36, D-103 §7 wala batwara)
+- ⚠️ **Deploy:** `pnpm cms migrate` → API restart → web/admin build → **admin me SEO & Schema pe ek baar Save** (migration DB
+  seedha badalti hai, web ka `settings` cache usse saaf nahi hota; Save `settings` tag saaf karta hai)
+- Tests: `settings.test.js` (8), `seo.test.js` (15). Suite 1617/1618 (akela fail purana `theme-fonts`)

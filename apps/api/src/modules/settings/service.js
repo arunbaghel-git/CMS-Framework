@@ -414,7 +414,7 @@ export async function updateSettings(input, siteId = DEFAULT_SITE_ID) {
    * hai, to wo theek hai. Par ek script se `{ enabled: false }` bhejte hi baaki sab ud jaata,
    * bilkul wahi jo 10 Sep ko `blogSettings` pe hua tha.
    */
-  const MERGED_KEYS = ['social', 'blogSettings', 'popupSettings']
+  const MERGED_KEYS = ['social', 'blogSettings', 'popupSettings', 'seoSettings']
 
   const $set = {}
   for (const [key, value] of Object.entries(input)) {

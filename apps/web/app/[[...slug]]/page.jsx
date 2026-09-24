@@ -6,8 +6,15 @@ import HomePage from '../../components/home/HomePage.jsx'
 import PackagePage from '../../components/package/PackagePage.jsx'
 import TextPage from '../../components/page/TextPage.jsx'
 import TourPage from '../../components/tour/TourPage.jsx'
-import { getPackageDefaults, getPopup, getSettings, resolvePath } from '../../lib/cms.js'
+import {
+  getPackageDefaults,
+  getPopup,
+  getSeoSettings,
+  getSettings,
+  resolvePath,
+} from '../../lib/cms.js'
 import { popupForType } from '../../lib/popup-visibility.js'
+import { pageDescription, pageOgImages, pageRobots, pageTitle } from '../../lib/seo.js'
 
 /**
  * **Poore public site ka ekmatra route** — D-09, R10.
@@ -30,32 +37,32 @@ export async function generateMetadata({ params }) {
   if (result?.kind !== 'entry') return {}
 
   const { entry } = result
-  const settings = await getSettings()
+  const settings = await getSeoSettings()
 
   /**
-   * Fallback chain — architecture §7.3: entry ka SEO → uska apna title/excerpt.
-   *
-   * `titleTemplates` aur `defaultSeo` abhi settings me nahi hain (D-40 me PLANNED hain),
-   * isliye wo do kadam abhi chhoote hue hain. Jab wo aayenge to yahi jagah badlegi.
+   * Fallback chain — architecture §7.3, ab `Settings ▸ SEO & Schema` ke saath (24 Sep). Niyam
+   * `lib/seo.js` me, apne test ke saath: SEO Title jaisa likha waisa, khaali pe Title Template;
+   * description aur OG image page ke apne ke baad site ke default pe.
    */
-  const title = entry.seo?.title || entry.title
-  const description = entry.seo?.description || entry.fields?.shortDescription || entry.excerpt
+  const title = pageTitle(entry, settings)
+  const description = pageDescription(entry, settings)
 
   return {
-    title: settings?.siteName ? `${title} | ${settings.siteName}` : title,
+    title,
     description,
     alternates: entry.seo?.canonical ? { canonical: entry.seo.canonical } : undefined,
     openGraph: {
       title: entry.seo?.ogTitle || title,
       description: entry.seo?.ogDescription || description,
-      images: entry.banner ? [{ url: entry.banner.url }] : undefined,
+      images: pageOgImages(entry, settings),
     },
     /**
-     * Entry ka apna `noindex` site ke kill-switch **ke upar** nahi jaata — layout pehle se
-     * `searchEngineVisible` dekh kar poori site ko noindex kar deta hai. Yahan sirf ek
-     * page ka apna faisla hai.
+     * Site ka switch (`Settings ▸ SEO & Schema`) pehle, phir page ka apna `noindex`.
+     *
+     * ⚠️ 24 Sep tak yahan sirf page ka faisla tha, aur `undefined` layout ka `noindex` **mita deta
+     * tha** — site ka switch kisi entry page pe kabhi laga hi nahi. Niyam ab `pageRobots()` me.
      */
-    robots: entry.seo?.noindex ? { index: false, follow: !entry.seo?.nofollow } : undefined,
+    robots: pageRobots(entry, settings),
   }
 }
 

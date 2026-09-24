@@ -106,6 +106,9 @@ const settingsSchema = new mongoose.Schema(
     /** `Pages ▸ Pages settings` — banner ka fallback + `On this page` (D-95 §12). Upar wali chetavni yahan bhi. */
     pageSettings: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 
+    /** `Settings ▸ SEO & Schema` — title template, default description/OG image, robots.txt (24 Sep). Upar wali chetavni yahan bhi. */
+    seoSettings: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+
     /** `Enquiries ▸ Popup` — poori site ka ek popup form (D-103). Upar wali chetavni yahan bhi. */
     popupSettings: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
 

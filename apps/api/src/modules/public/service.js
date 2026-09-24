@@ -308,6 +308,20 @@ export async function getPublicSettings(siteId = DEFAULT_SITE_ID) {
      * theme ke liye koi matlab nahi, aur allowlist ka poora tark yahi hai.
      */
     popup: await toPublicPopup(settings.popupSettings, siteId),
+
+    /**
+     * `Settings ▸ SEO & Schema` (client, 24 Sep) — `<title>`/description/OG image ke fallback aur
+     * `/robots.txt`. Image yahin resolve (D-42 §2: na mile to `null`), theme id nahi dekhti.
+     *
+     * ⚠️ `popup`/`integrations` ki tarah **`getSettings()` ise nikaal deti hai** (`apps/web/lib/cms.js`)
+     * — metadata server pe banta hai, `MobileNav` ke props me robots.txt ka koi kaam nahi (A-36).
+     */
+    seo: {
+      titleTemplate: settings.seoSettings.titleTemplate,
+      defaultDescription: settings.seoSettings.defaultDescription,
+      defaultOgImage: await toDisplayImage(settings.seoSettings.defaultOgImageId, 'large', siteId),
+      robotsTxt: settings.seoSettings.robotsTxt,
+    },
     address: settings.address,
     social: settings.social,
 

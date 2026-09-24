@@ -521,6 +521,58 @@ export const popupSettingsSchema = z.object({
   showOn: popupShowOnSchema.default({}),
 })
 
+/** Aaj site pe jo title chhapta hai (`Title | Site Name`), wahi default — save karte hi kuch na badle. */
+export const DEFAULT_TITLE_TEMPLATE = '%title% | %sitename%'
+
+/**
+ * Default robots.txt — sab kuch khula. ⚠️ **`Sitemap:` line jaan-boojh kar nahi** (client, 24 Sep):
+ * `sitemap.xml` abhi bana hi nahi, aur line us pate pe Google ko 404 dilwati.
+ */
+export const DEFAULT_ROBOTS_TXT = 'User-agent: *\nAllow: /'
+
+/**
+ * `Settings ▸ SEO & Schema` — `Global SEO Defaults` (client, 24 Sep; `admin-design-v2.html:1414`).
+ *
+ * Chaar khaane, jo page ka apna SEO khaali hone pe lagte hain. Reference ka `Organization Schema`
+ * box (4 checkbox) **nahi** bana — client ne sirf ye chaar maange.
+ */
+export const seoSettingsSchema = z.object({
+  /**
+   * `%title% | %sitename%` — **sirf tab** jab page ka apna SEO Title khaali ho (client, 24 Sep).
+   * SEO Title (editor ya Meta upload) jaisa likha hai waisa hi jaata hai — Yoast/Rank Math wala niyam.
+   *
+   * ⚠️ `%title%` zaroori hai — uske bina **har page ka ek hi title** ban jaata, jo SEO ke liye
+   * sabse buri galti hai aur dikhti bhi nahi. Khaali = sirf page ka title.
+   */
+  titleTemplate: z
+    .string()
+    .trim()
+    .max(200)
+    .refine((value) => value === '' || value.includes('%title%'), {
+      message: 'Title template must include %title%',
+    })
+    .default(DEFAULT_TITLE_TEMPLATE),
+
+  /** Page ka SEO description, short description aur excerpt — teeno khaali hon tab. */
+  defaultDescription: z.string().trim().max(500).default(''),
+
+  /**
+   * Share (WhatsApp/Facebook) ki image jab page ki apni banner/featured image na ho.
+   * Media ki id write pe check nahi hoti — `pageSettings.bannerMediaId` wala precedent (D-42 §2).
+   */
+  defaultOgImageId: z.string().nullable().default(null),
+
+  /**
+   * `/robots.txt` ka poora text — jaisa likha, waisa (`text/plain`, HTML nahi — sanitize ka sawaal
+   * nahi). ⚠️ `searchEngineVisible` band ho to theme **ise nahi**, `Disallow: /` bhejti hai.
+   */
+  robotsTxt: z
+    .string()
+    .max(5000)
+    .transform((value) => value.replace(/\r\n?/g, '\n'))
+    .default(DEFAULT_ROBOTS_TXT),
+})
+
 export const pageSettingsSchema = z.object({
   /** Featured image na ho to hero ka banner. Page ki apni Featured image jeet-ti hai. */
   bannerMediaId: z.string().nullable().default(null),
@@ -1004,6 +1056,13 @@ export const settingsSchema = z.object({
   pageSettings: pageSettingsSchema.default({}),
 
   /**
+   * `Settings ▸ SEO & Schema` (client, 24 Sep). ⚠️ Wahi teen jagah: **model** (`settings/model.js`),
+   * **`MERGED_KEYS`** aur `updateSettingsSchema` ka `.partial()` — warna ya to chup-chaap girta, ya
+   * ek adhoora PATCH baaki khaane uda deta.
+   */
+  seoSettings: seoSettingsSchema.default({}),
+
+  /**
    * `Enquiries ▸ Popup` — poori site ka ek popup form (client, 21 Sep).
    *
    * ⚠️ Wahi chetavni: **model me bhi** hona chahiye (`settings/model.js`), warna Mongoose `strict`
@@ -1211,6 +1270,9 @@ export const updateSettingsSchema = settingsSchema
      * bhi jodo.**
      */
     popupSettings: popupSettingsSchema.partial().optional(),
+
+    /** Wahi jaal — har khaane pe `.default()` hai. */
+    seoSettings: seoSettingsSchema.partial().optional(),
   })
 
 /** Naye instance ke defaults — seed aur test dono yahi use karte hain. */

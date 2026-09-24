@@ -1062,3 +1062,10 @@ dobara dabane pe chhupta hai. Component `components/admin/PasswordInput.jsx` —
 enter hoga wahan ho"_): Login · Reset · Change Password · Profile · Email / SMTP. ⚠️ Users ▸ Edit User ka
 khaana jaan-boojh kar **khula text** hai (`Generate` ke saath, admin user ko bhejta hai), wahan aankh nahi. Edge ki apni aankh (`::-ms-reveal`) chhupi hai, warna do dikhti. Login ka design reference me
 hai hi nahi (D-31), look `tokens.css` se.
+
+## 24 Sep — Settings ▸ SEO & Schema (D-120)
+
+Reference `admin-design-v2.html:1414` ka `Global SEO Defaults` panel: Title Template · Default Meta Description · Default
+OG Image · robots.txt. **Farak (client):** `Organization Schema` ke 4 checkbox **nahi**; robots.txt poori chaudai (reference me
+`row2` me schema box ke saath tha); neeche naya checkbox **Allow search engines to index this site** (band hone pe upar
+peela notice aur robots.txt ka textarea disabled); panel-foot ki `Last sitemap build` line nahi (sitemap bana hi nahi).

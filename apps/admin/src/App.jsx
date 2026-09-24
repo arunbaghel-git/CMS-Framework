@@ -47,6 +47,7 @@ import Fonts from './screens/settings/Fonts.jsx'
 import General from './screens/settings/General.jsx'
 import Layout from './screens/settings/Layout.jsx'
 import Redirects from './screens/settings/Redirects.jsx'
+import SeoSettings from './screens/settings/SeoSettings.jsx'
 import BlogSettings from './screens/settings/BlogSettings.jsx'
 import PageSettings from './screens/settings/PageSettings.jsx'
 import TourSettings from './screens/settings/TourSettings.jsx'
@@ -293,6 +294,8 @@ const APP_ROUTES = [
   { path: '/settings/email', element: <EmailSmtp /> },
   { path: '/settings/integrations', element: <Integrations /> },
   { path: '/settings/redirects', element: <Redirects /> },
+  /** Settings ▸ SEO & Schema (24 Sep) — nav entry aur tab pehle se the, sirf route nahi tha. */
+  { path: '/settings/seo', element: <SeoSettings /> },
   /**
    * Blog settings — author · TOC · post ki sidebar (spec 008). 11 Sep ko menu me Posts ke neeche
    * gaya, to URL bhi `/posts/settings` (D-93) — `Tour settings` ka `/tour/settings` jaisa.

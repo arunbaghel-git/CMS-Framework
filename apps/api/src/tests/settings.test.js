@@ -812,6 +812,95 @@ describe('Enquiries ▸ Popup — popupSettings (21 Sep)', () => {
 })
 
 /**
+ * `Settings ▸ SEO & Schema` — client, 24 Sep.
+ *
+ * ⚠️ Save ke test **DB padhte hain, response nahi** — model me field chhoot jaaye to Mongoose
+ * `strict` use chup-chaap gira deta aur response phir bhi sahi dikhta (CLAUDE.md, chaar baar laga).
+ */
+describe('Settings ▸ SEO & Schema — seoSettings (24 Sep)', () => {
+  const save = (body, jar = adminJar) =>
+    authed('patch', '/api/settings', jar).send({ seoSettings: body })
+
+  it('naye instance pe defaults — aaj ka title look, Sitemap line ke bina robots', async () => {
+    const res = await authed('get', '/api/settings', adminJar)
+
+    expect(res.body.data.settings.seoSettings).toEqual({
+      titleTemplate: '%title% | %sitename%',
+      defaultDescription: '',
+      defaultOgImageId: null,
+      robotsTxt: 'User-agent: *\nAllow: /',
+    })
+  })
+
+  it('chaaron khaane DB tak pahunchte hain', async () => {
+    const media = await makeMedia()
+    const res = await save({
+      titleTemplate: '%title% — %sitename%',
+      defaultDescription: 'Andaman holidays.',
+      defaultOgImageId: media.id,
+      robotsTxt: 'User-agent: *\r\nDisallow: /admin',
+    })
+    expect(res.status).toBe(200)
+
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.seoSettings).toEqual({
+      titleTemplate: '%title% — %sitename%',
+      defaultDescription: 'Andaman holidays.',
+      defaultOgImageId: media.id,
+      // Windows ka \r\n ek jaisa \n ban jaata hai
+      robotsTxt: 'User-agent: *\nDisallow: /admin',
+    })
+  })
+
+  it('adhoora PATCH baaki khaane nahi udaata', async () => {
+    await save({ titleTemplate: '%title% | X', defaultDescription: 'Pehle wali.' })
+    await save({ robotsTxt: 'User-agent: *\nAllow: /' })
+
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.seoSettings.titleTemplate).toBe('%title% | X')
+    expect(doc.seoSettings.defaultDescription).toBe('Pehle wali.')
+  })
+
+  it('%title% ke bina template 400 — warna har page ka ek hi title', async () => {
+    const res = await save({ titleTemplate: 'Andaman Tours' })
+    expect(res.status).toBe(400)
+    expect((await save({ titleTemplate: '' })).status).toBe(200)
+  })
+
+  it('search engine ka checkbox bhi DB tak', async () => {
+    await authed('patch', '/api/settings', adminJar).send({ searchEngineVisible: true })
+    expect((await Settings.findOne({}).lean()).searchEngineVisible).toBe(true)
+  })
+
+  it('public payload me seo — image resolve hoke, id nahi', async () => {
+    const media = await makeMedia()
+    await save({ defaultOgImageId: media.id, defaultDescription: 'Default.' })
+
+    const res = await request(app).get('/api/public/settings')
+    const { seo } = res.body.data.settings
+
+    expect(seo).toMatchObject({
+      titleTemplate: '%title% | %sitename%',
+      defaultDescription: 'Default.',
+      robotsTxt: 'User-agent: *\nAllow: /',
+    })
+    expect(seo.defaultOgImage.url).toMatch(/\/uploads\//)
+    expect(seo.defaultOgImageId).toBeUndefined()
+  })
+
+  it('image mit chuki ho to null — toota og:image kabhi nahi (D-42 §2)', async () => {
+    await save({ defaultOgImageId: '64b000000000000000000000' })
+
+    const res = await request(app).get('/api/public/settings')
+    expect(res.body.data.settings.seo.defaultOgImage).toBeNull()
+  })
+
+  it('author badal nahi sakta', async () => {
+    expect((await save({ defaultDescription: 'x' }, authorJar)).status).toBe(403)
+  })
+})
+
+/**
  * `Settings ▸ Integrations` — teesre tools ka code (D-106, client 22 Sep).
  *
  * ⚠️ **Yahan ke aadhe test suraksha ke hain, feature ke nahi.** Ye poore system me ekmatra jagah hai

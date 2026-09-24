@@ -85,7 +85,7 @@ export async function getSettings() {
   if (!data?.settings) return null
 
   /**
-   * ⚠️ `popup` aur `integrations` yahan se **nikale jaate hain** — dono har page ke HTML me
+   * ⚠️ `popup`, `integrations` aur `seo` yahan se **nikale jaate hain** — dono har page ke HTML me
    * bemaani bhaar hain.
    *
    * `MobileNav` (header, har page pe) poora `settings` object prop me leta hai, aur client
@@ -93,8 +93,21 @@ export async function getSettings() {
    * pe** pakda gaya tha (D-103 §7); `integrations` pe wahi galti dobara na ho, isliye wo pehle
    * din se yahan hai (A-36).
    */
-  const { popup: _popup, integrations: _integrations, ...rest } = data.settings
+  const { popup: _popup, integrations: _integrations, seo: _seo, ...rest } = data.settings
   return rest
+}
+
+/**
+ * SEO ke liye — `Settings ▸ SEO & Schema` (24 Sep) + jo title/robots ko chahiye. `getSettings()`
+ * `seo` nikaal deti hai (robots.txt ka text `MobileNav` ke props me bemaani hai, A-36); ye wahi
+ * cached fetch hai, koi naya round trip ya tag nahi (`getPopup()` wala tark).
+ */
+export async function getSeoSettings() {
+  const data = await getJson('/public/settings', ['settings'])
+  if (!data?.settings) return null
+
+  const { siteName, tagline, searchEngineVisible, seo } = data.settings
+  return { siteName, tagline, searchEngineVisible, seo: seo ?? null }
 }
 
 /**

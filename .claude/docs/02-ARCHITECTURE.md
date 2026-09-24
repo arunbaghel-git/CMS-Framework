@@ -133,6 +133,10 @@ settings       * siteId(unique), siteName, tagline, adminEmail, logoMediaId,
                  pageSettings{ bannerMediaId, showToc(default true) }       ← D-95 §12
                  `page` ka banner fallback + On this page — sab pages ke liye.
                  Screen `Pages ▸ Pages settings`. Model me bhi key (strict jaal)
+                 seoSettings{ titleTemplate, defaultDescription,            ← D-120
+                              defaultOgImageId, robotsTxt }
+                 Settings ▸ SEO & Schema. Title template sirf SEO Title khaali pe;
+                 robots.txt `/robots.txt` pe (searchEngineVisible band = Disallow)
                  ctaSection{ enabled, badge, heading, bullets[] max 6,       ← D-67
                              boxTitle, boxNote,
                              buttons[{label,url,target,variant,enabled}] max 2 }
