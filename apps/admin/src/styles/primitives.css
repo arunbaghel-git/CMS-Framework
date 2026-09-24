@@ -349,8 +349,16 @@ tr:hover .row-actions {
  * Naap client ka apna hai (360 → 622px → 750px se upar `50%`, taaki badi screen pe baaki fields
  * ke saath line me aaye; phir `max(50%, 300px)` taaki sidebar ka dropdown aadha na rahe) —
  * "design se match" ke naam pe mat badalna.
+ *
+ * `.card-body` 24 Sep ko juda — `Posts ▸ Blog settings` ke dabbe `card`/`card-body` pe hain, aur
+ * wahan ke teen akele dropdown poori chaudai le rahe the (client ne pakda). Block ke panel jaan-boojh
+ * kar abhi **nahi** (client, 24 Sep).
  */
-:is(.panel-body:not(.row2, .row3), .panel-body:not(.row2, .row3) > form)
+:is(
+    .panel-body:not(.row2, .row3),
+    .panel-body:not(.row2, .row3) > form,
+    .card-body:not(.row2, .row3)
+  )
   > .field
   > :is(select.inp, .sel) {
   @media (min-width: 750px) {
