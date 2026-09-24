@@ -11131,3 +11131,24 @@ date alag ho (warna publish dobara nahi — D-81).
   wajah se dhokha de gaya. Trial (`min-width`, `width`, `contain`, `aspect-ratio` hata kar) ne use kaata; asli
   jawab bisection se aaya. **Sabak:** layout ke shak pe pehle "kya hatane se theek hota hai" naapo
 - Test: `apps/web/lib/css-overflow.test.js`
+
+---
+
+## D-118
+
+**"No sidebar" pe content poori chaudai — Page · Blog post · Tour page** (client, 24 Sep 2026)
+
+**Status:** ✅ theek · koi migration nahi · CSS + teen JSX line
+
+- Lakshan: thank-you page (`/thank-you`) pe Sidebar `none` chuna, phir bhi content do hisson me — baayein content,
+  daayein ~322px khaali. Client ne pakda
+- **Jad:** `.pgl` ka grid hamesha `minmax(0,1fr) 322px` hai. `hasSidebar` false hone pe theme `<aside>` hata deti
+  thi, par grid ka doosra column rehta tha. Reference (`page-template-text.html`) me bina sidebar ka layout hai
+  hi nahi, isliye ye haalat kabhi design nahi hui
+- Ilaaj: naya modifier **`.pgl--solo`** (`grid-template-columns: minmax(0, 1fr)`), `!hasSidebar` pe teeno page
+  (`TextPage` · `PostPage` · `TourPage`) lagate hain. Sidebar ho to jo tha wahi — `pgl--sideleft` bhi waisa hi
+- ⚠️ Base `.pgl` nahi chhua — package page ka sidebar usi pe chalta hai (D-87 §11 ka kaanta)
+- ⚠️ Chaudai **poori** hai, beech me patli nahi — maine Default Page/Blog post ke liye ~800px ka mashwara diya tha,
+  client ne mana kiya: _"jo abhi hai wo to rahega, par agar sidebar na ho to full width le le"_
+- Tablet/phone pe koi farak nahi — 1024px ke neeche `.pgl` pehle se ek column hai
+- Dev server pe `/thank-you` ka HTML: `class="pgl pgl--tour pgl--solo"`. Aankh se dekhna client ka

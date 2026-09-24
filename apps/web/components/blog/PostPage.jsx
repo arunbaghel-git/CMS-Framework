@@ -271,7 +271,7 @@ export default function PostPage({ entry, settings }) {
              * (D-87 §11 ka maloom kaanta).
              */}
             <div
-              className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
+              className={`pgl pgl--tour${!hasSidebar ? ' pgl--solo' : sidebar === 'left' ? ' pgl--sideleft' : ''}`}
             >
               <div className="pgl__main">
                 {/* 1024px tak TOC yahan band patti me (client, 23 Sep) — sidebar wali tab chhupti hai. */}

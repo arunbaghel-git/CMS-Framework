@@ -263,7 +263,7 @@ export default function TourPage({ entry, settings }) {
                * `.mobar` hai hi nahi — wahan chhupane ka matlab hota poori sidebar gayab, form samet.
                */}
               <div
-                className={`pgl pgl--tour${sidebar === 'left' && hasSidebar ? ' pgl--sideleft' : ''}`}
+                className={`pgl pgl--tour${!hasSidebar ? ' pgl--solo' : sidebar === 'left' ? ' pgl--sideleft' : ''}`}
               >
                 <div className="pgl__main">
                   <Blocks blocks={entry.blocks ?? []} />

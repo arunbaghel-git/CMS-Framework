@@ -1130,7 +1130,7 @@ a.mega__gl:hover {
 
 .mnav__acc > summary::after {
   content: '▾';
-  font-size: var(--fs-xsmall);
+  font-size: var(--fs-glyph);
   opacity: 0.5;
 }
 
@@ -5946,6 +5946,15 @@ a.mega__gl:hover {
  */
 .pgl--tour {
   padding-block: 0;
+}
+
+/*
+ * Sidebar nahi — content poori chaudai (D-118, client 24 Sep). Pehle aside hat jaata tha par grid
+ * ka 322px column rehta, to content baayein simat jaata aur daayein khaali jagah bachti.
+ * Modifier hai, base `.pgl` nahi — package page ka sidebar usi pe chalta hai.
+ */
+.pgl--solo {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .pgl--sideleft {
