@@ -1488,6 +1488,10 @@ karo ya model me `collection: 'importRuns'` pin kar do. Khaali collection tab ha
 
 ### A-17 · Speed — naap ho chuki hai. Mobile **91**, desktop **98** (4 Sep)
 
+> ✅ **24 Sep — pages ab cache (ISR) se (D-122)**, package page chhod kar (hero shuffle, client). Home mobile local median
+> **93** (91–93). Home pe bacha: JS 159 KB (105 framework), DOM 2,217, ek 108 KB CSS. Client ke tunnel wale PageSpeed
+> (mobile 70–92) me noise tunnel + per-request render ka tha. ⏭️ Agla: home ka markup chhota (drawer/mega menu).
+
 > ✅ **18 Sep — saare pages naape gaye, phir home theek hua (D-101).** Production build, Lighthouse mobile 5 run /
 > desktop 3 run ka median (`benchmarkIndex` 1300–2150, bharosemand). Upar ke 4 Sep aur 11 Sep ke number ab purane hain.
 >

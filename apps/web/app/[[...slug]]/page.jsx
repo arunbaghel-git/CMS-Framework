@@ -30,6 +30,21 @@ import { pageDescription, pageOgImages, pageRobots, pageTitle } from '../../lib/
 /** `['packages', 'andaman']` → `/packages/andaman`. Root pe `/`. */
 const toPath = (slug) => `/${(slug ?? []).join('/')}`.replace(/\/+$/, '') || '/'
 
+/**
+ * **Pages cache se (ISR)** — client, 24 Sep: _"can serve page from cache"_ (A-17).
+ *
+ * Khaali list = build pe koi page nahi banta; har path **pehli request pe** banta hai, phir cache me
+ * baithta hai aur sabko wahi copy milti hai. Saaf hona wahi tags se jo fetches pe hain (`path:`,
+ * `settings`, `site:all`…) — admin ka Save ya topbar ka ⟳ Cache, aur `CACHE_SECONDS` (1 ghanta).
+ *
+ * ⚠️ Iske bina route `ƒ Dynamic` tha — data cache hota tha, **page har visitor ke liye dobara banta
+ * tha** (`Cache-Control: no-store`). Apwaad sirf package page hai — uska apna route
+ * `app/packages/[slug]` (hero har refresh pe badalna chahiye).
+ */
+export async function generateStaticParams() {
+  return []
+}
+
 export async function generateMetadata({ params }) {
   const { slug } = await params
   const result = await resolvePath(toPath(slug))

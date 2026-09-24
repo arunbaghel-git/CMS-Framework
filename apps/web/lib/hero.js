@@ -29,6 +29,9 @@
  * ke liye wo **pehle se hi** HTML me hota hai. Koi doosri download nahi, koi DOM badlaav
  * nahi.
  *
+ * ✅ **24 Sep: baaki site ISR pe gayi, package page nahi** — uska apna route `app/packages/[slug]`
+ * (`force-dynamic`, D-122) isi shuffle ko zinda rakhne ke liye hai (client).
+ *
  * ⚠️ **Jis din ye route static/ISR ban jaaye** (`generateStaticParams` ya `force-static`),
  * ye randomness wahin **jam jaayegi** — hero har visitor ko ek jaisa dikhega aur sirf cache
  * refresh pe badlega. Wo apne aap me galat nahi hai, par wo **client ka faisla** hai, isliye

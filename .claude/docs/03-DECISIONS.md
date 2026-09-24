@@ -11245,3 +11245,25 @@ date alag ho (warna publish dobara nahi — D-81).
 - ⚠️ Deploy se pehle cache me pade jawab bina `site:all` ke hain — pehla flush unhe shayad na pakde; wo `CACHE_SECONDS`
   (1 ghanta) me khud nikal jaate hain. Admin ko button dekhne ke liye page reload chahiye (permissions login pe aati hain)
 - Tests: `cache.test.js` (8), `apps/web/lib/cms.test.js` (1 — har fetch pe tag). Suite 1626/1627 (akela fail purana `theme-fonts`)
+
+---
+
+## D-122
+
+**Pages cache se (ISR) — package page ko chhod kar** (client, 24 Sep 2026, A-17 ka _"serve page from cache"_)
+
+**Status:** ✅ bana · koi migration nahi
+
+- **Pehle:** catch-all `ƒ Dynamic` tha — data cache hota tha (D-83), par **page har visitor ke liye dobara banta** tha
+  (`Cache-Control: private, no-store`, koi `x-nextjs-cache` nahi). Ek bhi page cache se nahi aata tha
+- **Ab:** `generateStaticParams() { return [] }` → route `● ISR`. Har path pehli request pe banta hai, phir `HIT` —
+  TTFB 50–230ms → **6–13ms** (local). Saaf wahi tags se: Save, topbar ⟳ Cache (D-121), `CACHE_SECONDS`. 404 bhi cache
+  hota hai; naya page publish hone pe `path:` tag use saaf karta hai (D-52)
+- **Package page apwaad (client):** hero har refresh pe badalna chahiye (`lib/hero.js`). Pehli koshish `connection()`
+  thi — Next 15.1 me ISR route ke andar wo **`DYNAMIC_SERVER_USAGE` 500** deta hai. Ab alag `app/packages/[slug]/page.jsx`
+  (`force-dynamic`), jo catch-all ka hi render aur `resolvePath()` chalata hai — R10 nahi tootta, sirf render ka
+  tareeka alag. Pattern badla to package catch-all pe girega (hero jamega, kuch tootega nahi)
+- ⚠️ Saaf hone ke baad **pehli** request purana page deti hai aur peeche naya banati hai — doosri se naya
+- Home mobile local 93 → 93 (median, ab 91–93 — pehle 77–94). Local TTFB pehle hi chhota tha; faayda live server/tunnel pe
+- ⚠️ **Local naap ki kami (Next 15.1.3, sirf Windows):** Inter kabhi preload nahi hota — font manifest plugin
+  `/next-font-loader/` forward slash se match karta hai. Linux build pe theek. Local number live se thode kharab
