@@ -6,7 +6,7 @@ domain, apna admin login), par **core code sab me same**, versioned `@cms/*` pac
 Target user: **non-technical client**, jo admin panel se poori website chalaye.
 
 **Status:** **Phase 0, Slice 0, Phase 1 ki Slice 1–7, aur Phase 2 (Media) — sab ban chuki
-hain** (**1563/1564 tests**, 24 Sep — akela fail purana `theme-fonts`). Public package page ke **saare** section live hain.
+hain** (**1588/1589 tests**, 24 Sep — akela fail purana `theme-fonts`). Public package page ke **saare** section live hain.
 Uske upar client ke maange hue teen bade kaam: **Enquiries inbox** (D-75/D-76),
 **TinyMCE + HTML content** (D-80), aur **Bulk Upload** — Google Sheet/Docs se package pages
 (D-81). Media ka scope D-79 pe band hua — `mediaRefs` client ne mana kiya.
@@ -928,9 +928,17 @@ Teen column **sirf CSS**, sirf `.pmod__body` me aur 761px se upar — baaki form
 **D-114:** blog post + Page ka `On this…` TOC 1024px tak article ke upar **band patti** (`<details>`), sidebar wala us width pe chhupta — A-50.
 Phir §11: phone pe **har form** ek column (§11.4); popup se `Text above the form` gaya; image ka `clamp(100%, …)` MIN → `200px` (client) — `100%` pe chhat kabhi lagti hi nahi thi (scroller).
 
-⏭️ **Agla kaam: A-38** — Kerala package ka import
-(_"content doesn’t come on frontend"_). Uske baad **A-32** (Fonts — client ke jawab pe ruka), phir baaki
-pages PageSpeed pe (A-17).
+**24 Sep, koi migration nahi — 1588/1589 test, 11 commit push baaki:**
+**D-119:** Bulk Upload — doc me image na ho to **default pool** se (`Itinerary Settings ▸ Default banner images` ·
+`Blog settings ▸ Default featured images`), import pe save, ghuma ke baant-ta hai (beej = run id). Saath me purana bug:
+Existing mode me package ka banner **udta** tha (`updateEntry()` `fields` poora badalta hai). Client ne live dekh liya.
+**D-118:** Sidebar `none` pe content **poori chaudai** (`.pgl--solo`) — Page · Post · Tour. Pehle 322px khaali bachta tha.
+Bulk Upload: `Featured Image` package doc pe bhi; Google ka `&rarr;`/`&middot;` decode — `31,999 → 24,999` har asli doc pe
+**3,199,924,999** banta tha. D-103 §12: popup Submit desktop pe beech me. Har password khaane pe aankh (`PasswordInput`).
+
+⏭️ **Agla kaam: Topbar (A-53) + Dashboard (A-54)** — jaanch ho chuki, `09-OPEN-ITEMS.md` se padho. Topbar me **sirf**
+✉ Enquiry + ⟳ Cache (client). Dashboard ke 4 faisle client se baaki. Uske baad **A-38** (anjaan heading ka chipakna —
+client ke jawab pe), **A-32** (Fonts), baaki pages PageSpeed (A-17).
 ⚠️ **Global `Enquiry Notifications` PANEL mat banao — client ne 22 Sep ko mana kiya** (D-108 §10). Per-form
 mail D-109 me hai.
 `project-state.md` ka pehla section padho.

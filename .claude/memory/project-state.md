@@ -2,7 +2,31 @@
 
 > Har session ke shuru me padho, aur session ke end me update karo.
 >
-> ## ⏭️ Agli session — yahan se shuru karo (23 Sep, session "23-sep updates and fixes(bulk,design)" ka handoff)
+> ## ⏭️ Agli session — yahan se shuru karo (24 Sep ka handoff) — **Topbar + Dashboard**
+>
+> 1. **Kaam: A-53 (Topbar) aur A-54 (Dashboard)** — dono ki poori jaanch `09-OPEN-ITEMS.md` me hai (reference ki line,
+>    har hisse ke peeche data hai ya nahi, plan). **Dobara jaanch mat karo, wahan se padho.** Code abhi kuch nahi likha.
+> 2. **Topbar me SIRF ✉ Enquiry badge aur ⟳ Cache** (client: _"only enquiry and cache not other"_). ＋ New, Howdy ▾, site
+>    ka naam ("CMS") aur Visit Site ka link **mat chhuo**. Khula sawaal: Cache button kaun daba sake (mashwara: sirf
+>    administrator, naya `cache.flush`). Cache ke liye `apps/web/lib/cms.js` `getJson()` me ek common tag chahiye.
+> 3. **Dashboard ke 4 faisle client se baaki** (A-54): teen bina-data hisse (Site health · Quoted value · Sessions), Top
+>    Packages bina views ke, `Hot` badge, Quick Draft. **Jawab ke bina bina-data wale hisse mat banao** (D-30).
+> 4. **Push baaki: 11 commit** (`0cce798..` handoff tak — sach `git log --oneline origin/main..HEAD` se) — sirf ijaazat pe. Deploy pe **koi migration nahi**; API restart +
+>    web/admin build. D-119 ke pool client ko admin me bharne hain (Itinerary Settings / Blog settings).
+> 5. **Aaj (24 Sep) bana:** D-118 (No sidebar = content poori chaudai — Page/Post/Tour, `.pgl--solo`) · D-119 (Bulk
+>    Upload: doc me image na ho to default pool se; Existing mode me package ka banner udne ka **purana bug** theek) ·
+>    D-103 §12 (popup Submit desktop pe beech me) · Bulk Upload: `Featured Image` package doc pe bhi, `&rarr;`/`&middot;`
+>    decode (strike wala daam har asli Google Doc pe Failed karta tha) · har password khaane pe aankh (`PasswordInput`).
+>    Client ne D-119 aur Featured Image live chala kar dekh liye.
+> 6. **Bulk Upload ke templates** Drive me: folder `Bulk Upload Templates (24 Sep 2026)` (progryss@gmail.com) — Package ·
+>    Blog · Page docs + Doc list sheet + Meta upload sheet. Page template me `On this page` **nahi** (D-95 §12 se setting).
+> 7. **Wayanad package** ke Hotels table me sirf Standard — data ki kami, code nahi: baaki teen hotel Hotels list me
+>    shayad Vythiri/Ambalavayal pe hain jabki itinerary ki raatein Wayanad me (D-58). Client ko bataya.
+> 8. **A-38 ka jad abhi zinda:** doc me anjaan heading (`Pricing`) upar wale khaane me chipak jaati hai, aur price parser ki
+>    koi upar ki hadd nahi. Client ko ilaaj bataya (group headings ki list + ek-line khaano pe note), jawab nahi aaya.
+> 9. Suite **1588/1589** (akela fail purana `theme-fonts`). `:3000` pe client ka dev server.
+>
+> ## (23 Sep ka handoff — purana)
 >
 > 1. ✅ **Sab push ho chuka** (23 Sep, client ki ijaazat se — `0ecc314..063f1df`, D-109 se D-117). Aage ke push
 >    bhi sirf ijaazat pe; ginti `git log --oneline origin/main..HEAD` se.

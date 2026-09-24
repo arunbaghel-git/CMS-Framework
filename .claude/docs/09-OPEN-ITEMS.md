@@ -1,6 +1,11 @@
 # 09 — Open Items
 
-**Last updated:** 24 Sep 2026 — status check. 23 Sep raat tak **D-111 se D-117** ban gaye (Gallery · Video block ·
+**Last updated:** 24 Sep 2026 (shaam) — ⏭️ **Agli session: Topbar (A-53) + Dashboard (A-54)** — dono ki jaanch ho chuki,
+code nahi, client ke kuch faisle baaki. Aaj bana: D-118 (No sidebar = poori chaudai) · D-119 (Bulk Upload default images
++ Existing mode me banner udne ka bug) · D-103 §12 (popup Submit) · Bulk Upload me `Featured Image` package pe + `&rarr;`
+decode · har password khaane pe aankh. **Tests: 62 files, 1588/1589.** ⚠️ **11 commit push baaki** (ijaazat pe).
+
+**24 Sep (subah)** — status check. 23 Sep raat tak **D-111 se D-117** ban gaye (Gallery · Video block ·
 404 ki CSS · popup ek image/720px · TOC ki band patti · form heading `<p>` · Bulk Upload Published/Failed ·
 contact page mobile). Sab push ho chuka. **Tests: 61 files, 1563/1564** (akela fail purana `theme-fonts`).
 Client ka aankh se dekhna baaki: **A-49 · A-50 · A-51 · A-52**. ⏭️ Agla code kaam: **A-38**.
@@ -428,6 +433,36 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 ---
 
 ## 🔴 Ab bhi baaki
+
+#### A-54 · Dashboard — reference ke hisaab se (24 Sep, jaanch hui, **code nahi**, client ke 4 faisle baaki)
+
+Aaj `screens/Dashboard.jsx` sirf placeholder hai (Welcome + email/role + permissions ki ginti). Reference ka Dashboard
+paanchon admin-design files (v1–v4, `travel-cms-admin_v2`) me **hu-ba-hu ek jaisa** hai; uski CSS (`.stats` · `.dash-grid`
+· `.bars` · `.feedlist`, `admin-design-v2.html:197`) admin me **nahi** hai. Markup `admin-design-v2.html:341`.
+
+| # | Reference | Data aaj? | Note |
+| --- | --- | --- | --- |
+| 1 | Notice _"Site healthy. Sitemap regenerated… 148 URLs indexed"_ | ❌ | `sitemap.xml` bana hi nahi; "indexed" Search Console ka data |
+| 2 | Packages `64 +4` | ✅ | ginti + 30 din me bane (`createdAt`) |
+| 3 | Blog Posts `212 +9` | ✅ | wahi |
+| 4 | New Enquiries `7 +7 today` | ✅ | `status: new` + aaj ki |
+| 5 | Quoted value `₹18.4L −6%` | ❌ | enquiry pe rakam ka khaana nahi; Send Quotation bana nahi |
+| 6 | Sessions (30d) | ❌ | koi analytics DB me nahi (GA sirf script, Integrations) |
+| 7 | Enquiries — last 7 days (bars) + Total | ✅ | `createdAt` se din-wise |
+| 8 | Recent Enquiries (naam · package · pax · travel date · kab · badge · `7 unread`) | ✅ zyada tar | default form keys `fullName` · `packageName` · `travellers` · `travelDate`. ⚠️ `Hot` status **nahi** hai (New · Contacted · Quoted · Negotiating · Converted · Lost); unread = `new` |
+| 9 | Quick Draft (Title + Content → Save Draft) | ✅ | post draft ka API pehle se |
+| 10 | Top Packages (30 days) — views + enq. | ⚠️ aadha | enquiries gin sakte hain (`sourcePath` / `packageName`), **views nahi** |
+
+**Bante waqt:** enquiry wale hisse sirf `submission.read` wale ko; ginti/chart **server pe ek endpoint** se (enquiries hazaron
+ho sakti hain — poori list admin me mat laao); bina data wala hissa `0`/naqli number se mat bharo (D-30). `04-ADMIN-UX.md` §8
+ka purana plan (Pages/Pending review/Site Health) reference ne badla — `11-REFERENCE-ADMIN.md:228`.
+
+⚠️ **Client ke 4 faisle (poochhe ja chuke, jawab nahi aaya):**
+1. Teen bina-data hisse (Site health · Quoted value · Sessions) — (a) mat banao (b) asli cheez se badlo (jaise "Converted
+   this month", "Pages published") (c) asli data ka intezaam (sitemap / quote rakam / GA API — har ek alag kaam)
+2. Top Packages sirf enquiries ki ginti ke saath (views ke bina)?
+3. `Hot` badge — naya status, ya hamare status hi dikhayein?
+4. Quick Draft blog post ka draft banaye — yahi chahiye?
 
 #### A-53 · Topbar — **sirf ✉ Enquiry aur ⟳ Cache** (24 Sep, jaanch hui, **code nahi**)
 
