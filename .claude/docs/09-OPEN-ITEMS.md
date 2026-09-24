@@ -429,6 +429,24 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
+#### A-53 · Topbar — **sirf ✉ Enquiry aur ⟳ Cache** (24 Sep, jaanch hui, **code nahi**)
+
+Client: _"in topbar i want only enquiry and cache not other"_. Reference (paanchon admin-design files me ek jaisa)
+ke baaki item — **＋ New**, **Howdy ▾ dropdown**, site ka naam (aaj hamesha "CMS") aur **Visit Site** ka link (aaj `/`,
+dev me admin ka hi root kholta hai) — **nahi banenge / nahi chhue jaayenge**. Aaj ka `Howdy` + alag `Log Out` waise hi.
+
+**✉ Enquiry badge** — backend pehle se hai: `enquiryCounts()` (`forms/service.js`) har status ki ginti deta hai, aaj sirf
+list ke saath (`GET /api/enquiries`). Plan: ginti-only chhota endpoint, badge = `new` ki ginti, sirf `submission.read`
+wale ko, `0` pe badge nahi. Click → inbox `New` filter. Update: route badalne pe + ~60s poll.
+
+**⟳ Cache** — "poori site ka cache abhi saaf karo" (A-26/A-29 jaise chhoote tag ka seedha ilaaj). Aaj **koi common tag
+nahi** hai (`apps/web/lib/cms.js` ka `getJson()` har fetch pe apne tag lagata hai), isliye "sab saaf" ka raasta hi nahi.
+Plan: (1) `getJson()` me har fetch pe ek common tag, (2) API route jo wo tag `revalidateTags()` se saaf kare, (3) button pe
+`Clearing…` → `Cache cleared` / saaf error. `REVALIDATE_SECRET` na ho to error, jhootha "Cleared" nahi. Koi migration nahi.
+
+⚠️ **Khula sawaal:** Cache button kaun daba sake — mashwara: sirf administrator (naya permission `cache.flush`).
+⚠️ `AdminBar.jsx:42` ka comment (_"Phase 7b aur Phase 3 pe depend"_) purana hai — dono ke peeche ka backend ab maujood hai.
+
 #### A-52 · D-116 — Bulk Upload ka naya niyam — **asli Google Doc pe chalana baaki** (23 Sep)
 
 **Deadline:** client ke chalane pe · tests pass, asli doc pe nahi chalaya · deploy pe sirf API restart + admin build
