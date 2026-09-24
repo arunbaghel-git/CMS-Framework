@@ -1030,3 +1030,10 @@ Client ke paas login ka design nahi tha (D-31), isliye dono nayi screen **Login 
 
 ⚠️ Link **sabko** dikhta hai — login screen ko nahi pata ki kaun aa raha hai. Screen ki pehli line
 batati hai ki ye sirf admin ke liye hai, taaki Editor mail ka intezaar na kare.
+
+## 24 Sep — Login pe password dikhane ki aankh
+
+`Login` ke Password khaane ke andar daayein aankh ka button (client ka ask) — dabane pe likha password dikhta hai,
+dobara dabane pe chhupta hai. Component `components/admin/PasswordInput.jsx` (Reset / Change Password pe abhi **nahi**
+laga — maanga nahi gaya). Edge ki apni aankh (`::-ms-reveal`) chhupi hai, warna do dikhti. Login ka design reference me
+hai hi nahi (D-31), look `tokens.css` se.

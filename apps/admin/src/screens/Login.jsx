@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { loginSchema } from '@cms/shared'
 
+import PasswordInput from '../components/admin/PasswordInput.jsx'
 import { errorMessage } from '../lib/api.js'
 import { useAuth } from '../lib/auth.jsx'
 import './Login.css'
@@ -90,10 +91,9 @@ export default function Login() {
 
         <div className="field">
           <label htmlFor="login-password">Password</label>
-          <input
+          {/* Aankh ka button — likha password dekh sakein (client, 24 Sep) */}
+          <PasswordInput
             id="login-password"
-            className="inp"
-            type="password"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
