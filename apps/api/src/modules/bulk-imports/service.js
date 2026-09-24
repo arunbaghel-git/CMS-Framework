@@ -37,6 +37,7 @@ import {
 import { mediaExists } from '../media/service.js'
 import { getRolePermissions } from '../roles/service.js'
 import { User } from '../users/model.js'
+import { pickDefaultImage } from './default-image.js'
 import {
   bareImageUrlsToImg,
   importImage,
@@ -625,6 +626,38 @@ async function importRow(run, row, refs, actor, deps) {
       })
 
       return failed()
+    }
+  } else if (target.getImage) {
+    /**
+     * **Doc me image nahi** (label hi nahi, ya label ke neeche khaali) — client, 24 Sep.
+     *
+     * 1. **Pehle se image hai to wahi rahe** (Existing mode). ⚠️ Ye sirf "chhodo mat" nahi hai —
+     *    `updateEntry()` `fields` ko **poora badalta** hai (`entries/service.js`), to package ka
+     *    purana `fields.bannerImage` bina is line ke har re-import pe chup-chaap **ud jaata** tha.
+     *    Isliye use `input` me wapas likhna padta hai.
+     * 2. Warna **default pool** se ek (`Itinerary Settings` / `Blog settings`), note ke saath — taaki
+     *    Past imports me dikhe ki image doc se nahi aayi. Pool khaali ho to pehle jaisa, bina image.
+     *
+     * ⚠️ Doc me URL ho aur download na ho to upar wala raasta **Failed** karta hai, pool se nahi
+     * bharta (client) — doc ne ek khaas image maangi thi.
+     */
+    const kept = existing ? target.getImage(existing) : null
+
+    if (kept) {
+      target.setImage(input, kept)
+    } else {
+      const rowIndex = (run.rows ?? []).findIndex((r) => String(r._id) === String(row._id))
+      const picked = pickDefaultImage(refs.defaultImages, { runId: String(run._id), rowIndex })
+
+      if (picked) {
+        target.setImage(input, picked)
+        issues.push({
+          level: 'note',
+          label: target.bannerLabel ?? 'Banner Image URL',
+          value: '',
+          message: `No image in the document, so one of the default images from ${target.defaultImagesFrom} was used.`,
+        })
+      }
     }
   }
 

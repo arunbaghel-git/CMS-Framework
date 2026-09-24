@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { DEFAULT_SITE_ID, POST_URL_MODES } from '../constants/index.js'
+import { DEFAULT_IMAGE_POOL_MAX, DEFAULT_SITE_ID, POST_URL_MODES } from '../constants/index.js'
 import { ICONS } from '../constants/icons.js'
 import { BUTTON_VARIANTS, LINK_TARGETS, classNameSchema, menuUrlSchema } from './menu.js'
 /**
@@ -611,6 +611,16 @@ export const blogSettingsSchema = z.object({
    * ka matlab hota ki koi purana instance seed chalate hi apne saare blog URL badal le.
    */
   postUrlMode: z.enum(POST_URL_MODES).default('nested'),
+
+  /**
+   * Bulk Upload ki **default featured** images (client, 24 Sep) — package ke
+   * `packageDefaults.defaultBannerImages` ka blog wala jodidaar.
+   *
+   * Doc me `Featured Image` na ho to import yahan se ek image chun kar post ka `featuredImageId`
+   * bana deta hai — import ke waqt, save hoti hai. Media ids, URL nahi (D-41). Write pe har id ki
+   * jaanch `settings/service.js` ke `assertMediaRefsExist()` me.
+   */
+  defaultFeaturedImages: z.array(z.string()).max(DEFAULT_IMAGE_POOL_MAX).default([]),
 })
 
 /**

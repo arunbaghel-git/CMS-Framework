@@ -412,6 +412,9 @@ reviews        * siteId, rating(1-5), month("YYYY-MM"), text, name, lastLine
 
 packageDefaults* siteId(unique), whatsIncluded{included[],excluded[]},
                  itineraryImages[], bookingSteps[{title,text}], cancellationText,
+                 defaultBannerImages[]  ← D-119 — Bulk Upload ka pool (media ids, max 20);
+                 doc me image na ho to import yahan se chunta hai. Payload me NAHI jaata.
+                 Blog ka jodidaar: settings.blogSettings.defaultFeaturedImages[]
                  rating{value,count},                            ← D-70
                  sectionLabels{<section>:{heading,description}}  ← D-65 (Q-9)
                  breadcrumbPageId  ← D-97 §6 — Tour page ki id; payload me

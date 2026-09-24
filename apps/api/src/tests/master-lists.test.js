@@ -633,6 +633,28 @@ describe('packageDefaults', () => {
     expect(saved.seoSchema).toBe(false)
   })
 
+  /** Bulk Upload ki default banner images (client, 24 Sep) — wahi whitelist, wahi DB wali jaanch. */
+  it('default banner images sach me DB tak pahunchti hain', async () => {
+    const media = await createMedia()
+
+    const res = await authed('patch', '/api/package-defaults', adminJar).send({
+      defaultBannerImages: [String(media._id)],
+    })
+
+    expect(res.status).toBe(200)
+    expect((await PackageDefaults.findOne({}).lean()).defaultBannerImages).toEqual([
+      String(media._id),
+    ])
+  })
+
+  it('default banner images me anjaan media id 422 — pool me mari hui id nahi baithti', async () => {
+    const res = await authed('patch', '/api/package-defaults', adminJar).send({
+      defaultBannerImages: ['aaaaaaaaaaaaaaaaaaaaaaaa'],
+    })
+
+    expect(res.status).toBe(422)
+  })
+
   it('dobara padhne pe bhi wahi value aati hai', async () => {
     await authed('patch', '/api/package-defaults', adminJar).send({
       similar: { total: 8, perPage: 2 },

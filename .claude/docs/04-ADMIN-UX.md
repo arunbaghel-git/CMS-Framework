@@ -849,6 +849,17 @@ Sabse upar naya panel — **Packages listing page** dropdown (None + saare Tour 
 ⚠️ **Packages ▸ Section Headings** se Breadcrumb label/link ke dono khaane **hat gaye** — wo tabs ke bahar the
 aur har tab pe dikhte the.
 
+## 24 Sep — Bulk Upload ki default images (D-119)
+
+Do jagah ek naya panel, dono ek hi component (`components/admin/ImagePool.jsx`):
+
+- **Packages ▸ Itinerary Settings ▸ Default banner images** — `Save` button ke saath save hota hai
+- **Posts ▸ Blog settings ▸ Default featured images** — `Save changes` ke saath
+
+Media Library se kai image ek saath (`MediaPicker multiple`), thumbnail pe ✕ se hatana (confirm ke saath),
+max 20. Drag nahi — kram ka koi matlab nahi, import khud baant-ta hai. Hint: _"Used by Bulk Upload only…"_.
+⚠️ Reference (admin-design v2–v4) me ye panel **nahi** hai — client ka naya ask (24 Sep).
+
 ## 17 Sep — Settings ▸ Fonts · Colours · Layout (D-98)
 
 Reference `reference/admin-design-v4.html`. Settings ke tab ab: **General · Fonts · Colours · Layout** · CTA Section ·

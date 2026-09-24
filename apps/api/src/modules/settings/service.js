@@ -76,6 +76,13 @@ async function assertMediaRefsExist(input, siteId) {
       throw badRequest(`The selected ${label} could not be found. Upload it again.`)
     }
   }
+
+  /** Blog settings ki default featured images — Bulk Upload ka pool (client, 24 Sep). Wahi D-42 §1. */
+  for (const id of input.blogSettings?.defaultFeaturedImages ?? []) {
+    if (!(await mediaExists(id, siteId))) {
+      throw badRequest('One of the default featured images could not be found. Pick it again.')
+    }
+  }
 }
 
 /**

@@ -635,6 +635,39 @@ describe('Settings ▸ General — floating buttons ka side (21 Sep)', () => {
  * ⚠️ Yahan sabse zyada keemat un teen test ki hai jo **"popup nahi dikhta"** dekhte hain. Unka
  * lakshan ek hi hai (kuch na hona), aur wahi is repo ki sabse aam bug ki shakl hai.
  */
+/** Bulk Upload ki default featured images — Blog settings (client, 24 Sep). */
+describe('Posts ▸ Blog settings — default featured images (24 Sep)', () => {
+  it('pool DB tak jaata hai, saath bheji baaki blog settings ke saath', async () => {
+    const image = await makeMedia({ filename: 'featured.png' })
+
+    await authed('patch', '/api/settings', adminJar).send({
+      blogSettings: { showToc: false, postUrlMode: 'nested' },
+    })
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      blogSettings: {
+        showToc: false,
+        postUrlMode: 'nested',
+        defaultFeaturedImages: [String(image._id)],
+      },
+    })
+
+    expect(res.status).toBe(200)
+
+    /** Response nahi, **DB** — `blogSettings` `Mixed` hai aur merge ek star gehra (`MERGED_KEYS`). */
+    const doc = await Settings.findOne({}).lean()
+    expect(doc.blogSettings.defaultFeaturedImages).toEqual([String(image._id)])
+    expect(doc.blogSettings.showToc).toBe(false)
+  })
+
+  it('anjaan media id 400 — pool me mari hui id nahi baithti', async () => {
+    const res = await authed('patch', '/api/settings', adminJar).send({
+      blogSettings: { defaultFeaturedImages: ['aaaaaaaaaaaaaaaaaaaaaaaa'] },
+    })
+
+    expect(res.status).toBe(400)
+  })
+})
+
 describe('Enquiries ▸ Popup — popupSettings (21 Sep)', () => {
   const save = (body) => authed('patch', '/api/settings', adminJar).send({ popupSettings: body })
 

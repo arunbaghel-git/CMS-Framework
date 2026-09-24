@@ -1,6 +1,7 @@
 import { ENTRY_LIST_MAX_LIMIT } from '@cms/shared'
 import { useEffect, useState } from 'react'
 
+import ImagePool from '../../components/admin/ImagePool.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { useEntryList } from '../../lib/use-entries.js'
@@ -42,6 +43,8 @@ export default function ItinerarySettings() {
   const [total, setTotal] = useState(12)
   const [perPage, setPerPage] = useState(3)
   const [breadcrumbPageId, setBreadcrumbPageId] = useState('')
+  /** Bulk Upload ki default banner images (client, 24 Sep). */
+  const [bannerPool, setBannerPool] = useState([])
 
   /** Sirf Tour pages — client (17 Sep). Draft bhi dikhte hain, par unka breadcrumb site pe nahi banta. */
   const tourPages = useEntryList('tourPage', { limit: ENTRY_LIST_MAX_LIMIT })
@@ -60,6 +63,7 @@ export default function ItinerarySettings() {
         setTotal(data.similar?.total ?? 12)
         setPerPage(data.similar?.perPage ?? 3)
         setBreadcrumbPageId(data.breadcrumbPageId ?? '')
+        setBannerPool(data.defaultBannerImages ?? [])
       })
       .catch((err) => setError(errorMessage(err)))
       .finally(() => setLoading(false))
@@ -76,6 +80,7 @@ export default function ItinerarySettings() {
         seoSchema,
         similar: { total, perPage },
         breadcrumbPageId,
+        defaultBannerImages: bannerPool,
       })
       setNotice('Saved.')
     } catch (err) {
@@ -204,6 +209,20 @@ export default function ItinerarySettings() {
                 {perPage > 0 && Math.ceil(total / perPage) === 1 ? '' : 's'} of pagination.
               </p>
             </div>
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head">
+            <h2>Default banner images</h2>
+          </div>
+          <div className="panel-body">
+            <ImagePool ids={bannerPool} onChange={setBannerPool} disabled={readOnly} />
+            <p className="hint">
+              Used by <b>Bulk Upload</b> only. When a package document has no Featured Image, one of
+              these is picked for it. A package that already has a banner keeps it. Changes are
+              saved with the Save button.
+            </p>
           </div>
         </div>
 

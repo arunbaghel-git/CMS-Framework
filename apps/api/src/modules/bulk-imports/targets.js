@@ -13,6 +13,9 @@ import {
 
 import { allEntryTitles } from '../entries/service.js'
 import { allItemNames } from '../master-lists/service.js'
+import { mediaExists } from '../media/service.js'
+import { getPackageDefaults } from '../package-defaults/service.js'
+import { getSettings } from '../settings/service.js'
 import { allSidebarNames } from '../sidebars/service.js'
 import { allTaxonomyNames } from '../taxonomies/service.js'
 import { toEntryInput } from './mapper.js'
@@ -46,6 +49,20 @@ import { toPostEntryInput } from './post-mapper.js'
  * Aise me chup-chaap pehla utha lena **galat hotel live page pe** daal deta hai. Array rakhne se
  * mapper wo haalat dekh kar blocker laga sakta hai.
  */
+/**
+ * Default images ka pool — sirf wo ids jo Media Library me **abhi bhi hain** (client, 24 Sep).
+ *
+ * Pool save hote waqt jaancha jaata hai, par baad me koi image Media se delete ho sakti hai (D-79 —
+ * delete pe koi rok nahi). Us id ko chunne ka matlab hota package pe ek mari hui banner id, aur card
+ * pe khaali jagah (D-42 §2). Ek baar poore run ke liye, har row pe nahi.
+ */
+async function livePool(ids, siteId) {
+  const unique = [...new Set((ids ?? []).filter(Boolean).map(String))]
+  const alive = await Promise.all(unique.map((id) => mediaExists(id, siteId).catch(() => false)))
+
+  return unique.filter((_, i) => alive[i])
+}
+
 const nameMap = (items) => {
   const map = new Map()
 
@@ -66,12 +83,13 @@ const nameMap = (items) => {
  * Ye **paanch** hain.
  */
 async function packageRefs(siteId, locale) {
-  const [destinations, packageTypes, hotels, addOns, transfers] = await Promise.all([
+  const [destinations, packageTypes, hotels, addOns, transfers, defaults] = await Promise.all([
     allTaxonomyNames(TAXONOMY_TYPE.DESTINATION, siteId, locale),
     allTaxonomyNames(TAXONOMY_TYPE.PACKAGE_TYPE, siteId, locale),
     allItemNames('hotel', siteId),
     allItemNames('addOn', siteId),
     allItemNames('transfer', siteId),
+    getPackageDefaults(siteId),
   ])
 
   return {
@@ -80,11 +98,13 @@ async function packageRefs(siteId, locale) {
     hotels: nameMap(hotels),
     addOns: nameMap(addOns),
     transfers: nameMap(transfers),
+    /** `Itinerary Settings ▸ Default banner images` — doc me image na ho to (client, 24 Sep). */
+    defaultImages: await livePool(defaults?.defaultBannerImages, siteId),
   }
 }
 
 /**
- * Post ko sirf **ek** list chahiye.
+ * Post ko sirf **ek** list chahiye — categories (aur default featured images ka pool, 24 Sep).
  *
  * ⚠️ Yahi wo faayda hai jo `buildRefMaps()` ko target-aware karne se mila: pehle wo hamesha
  * paanchon list uthati thi. Blog ka import hotels aur transfers ki poori list DB se laata —
@@ -92,7 +112,16 @@ async function packageRefs(siteId, locale) {
  * ek `page` resolve karne pe `resolveSimilarPackages()` ka poora daur chal jaata tha.
  */
 async function postRefs(siteId, locale) {
-  return { categories: nameMap(await allTaxonomyNames(TAXONOMY_TYPE.CATEGORY, siteId, locale)) }
+  const [categories, settings] = await Promise.all([
+    allTaxonomyNames(TAXONOMY_TYPE.CATEGORY, siteId, locale),
+    getSettings(siteId),
+  ])
+
+  return {
+    categories: nameMap(categories),
+    /** `Blog settings ▸ Default featured images` — doc me image na ho to (client, 24 Sep). */
+    defaultImages: await livePool(settings?.blogSettings?.defaultFeaturedImages, siteId),
+  }
 }
 
 /**
@@ -137,6 +166,8 @@ export const TARGET_CONFIG = Object.freeze({
     allowImages: false,
     slugLabel: 'Package URL',
     bannerLabel: 'Banner Image URL',
+    /** Row ke note me — doc me image na ho to pool kahan se aaya (client, 24 Sep). */
+    defaultImagesFrom: 'Packages ▸ Itinerary Settings',
     missingTitle: 'This document has no "Package Name", so no package could be created',
     setImage: (input, mediaId) => {
       input.fields.bannerImage = mediaId
@@ -154,6 +185,7 @@ export const TARGET_CONFIG = Object.freeze({
     allowImages: true,
     slugLabel: 'Blog URL',
     bannerLabel: 'Featured Image',
+    defaultImagesFrom: 'Posts ▸ Blog settings',
     missingTitle: 'This document has no "Blog title", so no post could be created',
     setImage: (input, mediaId) => {
       input.featuredImageId = mediaId

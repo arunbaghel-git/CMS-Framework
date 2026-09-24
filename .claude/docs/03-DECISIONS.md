@@ -11161,3 +11161,34 @@ date alag ho (warna publish dobara nahi — D-81).
   client ne mana kiya: _"jo abhi hai wo to rahega, par agar sidebar na ho to full width le le"_
 - Tablet/phone pe koi farak nahi — 1024px ke neeche `.pgl` pehle se ek column hai
 - Dev server pe `/thank-you` ka HTML: `class="pgl pgl--tour pgl--solo"`. Aankh se dekhna client ka
+
+---
+
+## D-119
+
+**Bulk Upload: doc me image na ho to default pool se** (client, 24 Sep 2026)
+
+**Status:** ✅ bana · koi migration nahi · package + blog (page nahi)
+
+- **Ask:** 20 doc me se 16 me `Featured Image` / `Banner Image URL` nahi — un 16 ko admin ke ek chhote pool (5–6 image)
+  me se image mile. Pool do jagah: **Packages ▸ Itinerary Settings ▸ Default banner images**
+  (`packageDefaults.defaultBannerImages[]`) aur **Posts ▸ Blog settings ▸ Default featured images**
+  (`blogSettings.defaultFeaturedImages[]`). Media ids, max 20 (`DEFAULT_IMAGE_POOL_MAX`)
+- **Import ke waqt chuni jaati hai aur save hoti hai** — page pe har refresh pe nahi badalti; admin me dikhti hai aur
+  badli ja sakti hai. Card aur share-image banner se aate hain, isliye faayda wahan hai (hero pehle se
+  `itineraryImages` se bhar jaata tha)
+- **Client ke teen faisle:** (1) package ka pool **naya**, `Itinerary Images` se alag; (2) Existing mode me pehle se image
+  ho to **wahi rahe**; (3) doc me URL ho par image na aaye to **Failed** — pool se nahi bharta, doc ne khaas image maangi thi
+- **Pure random nahi, ghuma ke baantna** (`bulk-imports/default-image.js`) — pool run ki id se ek baar shuffle, row apni
+  jagah se agli image leti hai (6 image, 16 row → har image 2–3 baar). ⚠️ Beej run id hai, memory ka counter nahi: rows
+  queue worker pe alag tick me chalti hain, restart ke baad bhi — wahi row hamesha wahi image
+- Pool ki mari hui ids (Media se delete, D-79) run shuru hone pe chhant di jaati hain (`livePool()`, `targets.js`)
+- Row pe **note**: _"No image in the document, so one of the default images from … was used."_ Pool khaali = pehle jaisa
+- ⚠️ **Ek purana chup bug saath me theek hua:** `updateEntry()` `fields` ko poora badalta hai, to Existing mode me bina image
+  wala doc package ka purana `fields.bannerImage` **uda deta** tha. `targets.js` ka `getImage()` bana hua tha par service use
+  kahin bulati hi nahi thi. Test ne pakka kiya: fix hata ke chalao to banner `undefined`
+- ⚠️ `updatePackageDefaults()` ki whitelist me field joda (chhathi baar wahi jaal); dono save ke tests **DB** padhte hain
+- ⚠️ `updateSettingsSchema` me `blogSettings` `.partial()` **nahi** hai — adhoora PATCH baaki blog settings ko defaults se
+  bhar dega. Aaj ki screen hamesha poora object bhejti hai, isliye pool nahi udta; koi naya caller bane to yahi dekhna
+- Tests: `default-image.test.js` (7), `bulk-imports.test.js` (8), `master-lists.test.js` (2), `settings.test.js` (2).
+  Suite 1588/1589 (akela fail purana `theme-fonts`). ⚠️ Admin screen aankh se nahi dekhi

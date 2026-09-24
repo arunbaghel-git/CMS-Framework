@@ -1,6 +1,7 @@
 import { updateSettingsSchema } from '@cms/shared'
 import { useEffect, useState } from 'react'
 
+import ImagePool from '../../components/admin/ImagePool.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import { useSidebars } from '../appearance/useSidebars.js'
@@ -32,6 +33,8 @@ const EMPTY = {
   postSidebar: 'none',
   postSidebarId: '',
   postUrlMode: 'nested',
+  /** Bulk Upload ki default featured images (client, 24 Sep). */
+  defaultFeaturedImages: [],
 }
 
 export default function BlogSettings() {
@@ -291,6 +294,23 @@ export default function BlogSettings() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-head">
+            <h3>Default featured images</h3>
+          </div>
+          <div className="card-body">
+            <ImagePool
+              ids={blog.defaultFeaturedImages}
+              onChange={(ids) => set('defaultFeaturedImages', ids)}
+              disabled={!canEdit}
+            />
+            <div className="hint">
+              Used by <b>Bulk Upload</b> only. When a blog document has no Featured Image, one of
+              these is picked for it. A post that already has a featured image keeps it.
+            </div>
           </div>
         </div>
 

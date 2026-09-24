@@ -1,6 +1,11 @@
 import { z } from 'zod'
 
-import { DEFAULT_SITE_ID, PACKAGE_SECTIONS, sectionHasDescription } from '../constants/index.js'
+import {
+  DEFAULT_IMAGE_POOL_MAX,
+  DEFAULT_SITE_ID,
+  PACKAGE_SECTIONS,
+  sectionHasDescription,
+} from '../constants/index.js'
 import { emptyHtml, htmlSchema, inlineHtmlSchema } from './rich-html.js'
 
 /**
@@ -180,6 +185,19 @@ export const packageDefaultsSchema = z.object({
    */
   itineraryImages: z.array(z.string()).max(200).default([]),
 
+  /**
+   * Bulk Upload ki **default banner** images — `Itinerary Settings` me (client, 24 Sep).
+   *
+   * Doc me `Featured Image` / `Banner Image URL` na ho to import yahan se ek image chun kar package
+   * ka `bannerImage` bana deta hai — **import ke waqt, save hoti hai**, page pe har refresh pe nahi
+   * badalti. Listing card aur share image banner se hi aate hain; hero ki gallery pehle se
+   * `itineraryImages` se bhar jaati thi, card nahi.
+   *
+   * ⚠️ `itineraryImages` se **alag** pool hai (client ka faisla) — gallery ki 20 image aur card ki
+   * banner image alag kaam hain.
+   */
+  defaultBannerImages: z.array(z.string()).max(DEFAULT_IMAGE_POOL_MAX).default([]),
+
   bookingSteps: z.array(bookingStepSchema).max(20).default([]),
 
   /*
@@ -324,6 +342,7 @@ export function emptyPackageDefaults() {
   return {
     whatsIncluded: { included: [], excluded: [] },
     itineraryImages: [],
+    defaultBannerImages: [],
     bookingSteps: [],
     cancellationText: '',
     /** Khaali — naye instance pe rating ki line dono jagah se gayab rehti hai. */

@@ -47,6 +47,9 @@ const packageDefaultsSchema = new mongoose.Schema(
      */
     itineraryImages: { type: [String], default: () => [] },
 
+    /** Bulk Upload ki default banner images — media ids (client, 24 Sep). Shape `packages/shared` se. */
+    defaultBannerImages: { type: [String], default: () => [] },
+
     /**
      * "How booking works" ke steps.
      *

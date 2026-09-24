@@ -156,6 +156,15 @@ export async function updatePackageDefaults(input, siteId = DEFAULT_SITE_ID) {
     $set.itineraryImages = input.itineraryImages
   }
 
+  /**
+   * Bulk Upload ki default banner images (client, 24 Sep). ⚠️ Upar wali whitelist chetavni isi ke
+   * liye hai — yahan na hota to Itinerary Settings "Saved." dikhati aur pool DB tak kabhi na jaata.
+   */
+  if (input.defaultBannerImages !== undefined) {
+    await assertMediaExists(input.defaultBannerImages, siteId)
+    $set.defaultBannerImages = input.defaultBannerImages
+  }
+
   const updated = await PackageDefaults.findOneAndUpdate({ siteId }, { $set }, { new: true })
 
   /**

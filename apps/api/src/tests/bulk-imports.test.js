@@ -16,6 +16,7 @@ import { processImportQueue } from '../modules/bulk-imports/service.js'
 import { Entry } from '../modules/entries/model.js'
 import { AddOn, Hotel, Transfer } from '../modules/master-lists/model.js'
 import { Media } from '../modules/media/model.js'
+import { PackageDefaults } from '../modules/package-defaults/model.js'
 import { Role } from '../modules/roles/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
 import { Settings } from '../modules/settings/model.js'
@@ -2041,5 +2042,173 @@ describe('blog — Featured Image, doc ki images, Published Date (D-116)', () =>
     await runImport({ C: namelessDoc })
 
     expect(await Entry.countDocuments({ status: ENTRY_STATUS.DRAFT })).toBe(0)
+  })
+})
+
+/**
+ * Client, 24 Sep — doc me image na ho to **default pool** se: package ke liye
+ * `Itinerary Settings ▸ Default banner images`, blog ke liye `Blog settings ▸ Default featured images`.
+ * Pehle se image ho to wahi rahe; doc me URL ho par na aaye to Failed (pool se nahi).
+ */
+describe('default images — doc me image na ho to pool se (client, 24 Sep)', () => {
+  async function makeMedia(name) {
+    const user = await User.findOne({ email: 'admin@test.com' }).lean()
+    const media = await Media.create({
+      filename: `${name}.webp`,
+      mime: 'image/webp',
+      size: 1234,
+      width: 1600,
+      height: 900,
+      uploadedBy: user._id,
+      variants: [],
+    })
+
+    return String(media._id)
+  }
+
+  /** Is file ka `beforeEach` `packageDefaults`/Settings saaf nahi karta — pool yahin set, yahin saaf. */
+  async function setPools({ banner = [], featured = [] } = {}) {
+    await PackageDefaults.updateOne(
+      { siteId: DEFAULT_SITE_ID },
+      { $set: { defaultBannerImages: banner } },
+      { upsert: true },
+    )
+    await Settings.updateOne(
+      { siteId: DEFAULT_SITE_ID },
+      { $set: { 'blogSettings.defaultFeaturedImages': featured } },
+      { upsert: true },
+    )
+  }
+
+  afterEach(async () => {
+    await setPools()
+  })
+
+  const bannerNote = (row) => row.issues.find((issue) => issue.message.includes('default images'))
+
+  it('package: bina image wale doc ko pool ki image, note ke saath', async () => {
+    const pool = [await makeMedia('p1'), await makeMedia('p2')]
+    await setPools({ banner: pool })
+
+    const run = await runImport({ A: goodDoc('Pool One', 'pool-one') })
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(run.rows[0].status).toBe('published')
+    expect(pool).toContain(entry.fields.bannerImage)
+    expect(bannerNote(run.rows[0]).level).toBe('note')
+    expect(bannerNote(run.rows[0]).message).toContain('Itinerary Settings')
+  })
+
+  it('package: kai doc — pool ki images ghoom kar baant-ti hain', async () => {
+    const pool = [await makeMedia('p1'), await makeMedia('p2'), await makeMedia('p3')]
+    await setPools({ banner: pool })
+
+    const docs = Object.fromEntries(
+      ['A', 'B', 'C'].map((id) => [id, goodDoc(`Pool ${id}`, `pool-${id.toLowerCase()}`)]),
+    )
+    await runImport(docs)
+
+    const banners = (await Entry.find({ type: 'package' }).lean()).map((e) => e.fields.bannerImage)
+    expect(banners).toHaveLength(3)
+    expect(new Set(banners).size).toBe(3)
+  })
+
+  it('package: pool khaali ho to pehle jaisa — bina image, koi note nahi', async () => {
+    const run = await runImport({ A: goodDoc('No Pool', 'no-pool') })
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(run.rows[0].status).toBe('published')
+    expect(entry.fields.bannerImage ?? null).toBeNull()
+    expect(bannerNote(run.rows[0])).toBeUndefined()
+  })
+
+  it('package: Media se hat chuki pool ki image kabhi nahi chuni jaati', async () => {
+    await setPools({ banner: ['aaaaaaaaaaaaaaaaaaaaaaaa'] })
+
+    const run = await runImport({ A: goodDoc('Dead Pool', 'dead-pool') })
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(entry.fields.bannerImage ?? null).toBeNull()
+  })
+
+  /**
+   * ⚠️ Ye test pool ke bina bhi ek asli bug pakadta hai: `updateEntry()` `fields` ko poora badalta
+   * hai, to Existing mode me bina image wala doc package ka purana banner **uda deta** tha.
+   */
+  it('package, Existing mode: pehle se banner ho to wahi rehta hai, pool se nahi badalta', async () => {
+    const own = await makeMedia('own')
+    await setPools({ banner: [await makeMedia('p1')] })
+
+    const first = await runImport({ A: goodDoc('Keep Me', 'keep-me') })
+    await Entry.updateOne({ _id: first.rows[0].entryId }, { $set: { 'fields.bannerImage': own } })
+
+    const again = await runImport({ A: goodDoc('Keep Me', 'keep-me') }, ['A'], 'existing')
+    const entry = await Entry.findById(first.rows[0].entryId).lean()
+
+    expect(again.rows[0].status).toBe('published')
+    expect(entry.fields.bannerImage).toBe(own)
+    expect(bannerNote(again.rows[0])).toBeUndefined()
+  })
+
+  it('package: doc me URL ho par image na mile to Failed — pool se nahi bharta', async () => {
+    await setPools({ banner: [await makeMedia('p1')] })
+
+    const withBanner = goodDoc('Broken Banner', 'broken-banner').replace(
+      p('Day wise Itinerary'),
+      `${p('Banner Image URL')}${p('http://localhost:5173/uploads/sites/default/media/2026/09/bbbbbbbbbbbbbbbbbbbbbbbb/large.webp')}${p('Day wise Itinerary')}`,
+    )
+    const run = await runImport({ A: withBanner })
+
+    expect(run.rows[0].status).toBe('failed')
+    expect(await Entry.countDocuments({ type: 'package' })).toBe(0)
+  })
+
+  it('blog: bina Featured Image wale post ko Blog settings ke pool se', async () => {
+    const pool = [await makeMedia('b1')]
+    await setPools({ featured: pool })
+
+    const postDoc = doc(
+      [
+        'Blog title',
+        'Pool Post',
+        'Blog URL',
+        'pool-post',
+        'Category',
+        'Trip planning',
+        'Content',
+        'Body.',
+      ]
+        .map(p)
+        .join(''),
+    )
+    const run = await runImport({ d1: postDoc }, ['d1'], undefined, 'post')
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(run.rows[0].status).toBe('published')
+    expect(String(entry.featuredImageId)).toBe(pool[0])
+    expect(bannerNote(run.rows[0]).message).toContain('Blog settings')
+  })
+
+  it('package ka pool blog pe nahi lagta (aur ulta)', async () => {
+    await setPools({ banner: [await makeMedia('p1')] })
+
+    const postDoc = doc(
+      [
+        'Blog title',
+        'Other Post',
+        'Blog URL',
+        'other-post',
+        'Category',
+        'Trip planning',
+        'Content',
+        'Body.',
+      ]
+        .map(p)
+        .join(''),
+    )
+    const run = await runImport({ d1: postDoc }, ['d1'], undefined, 'post')
+    const entry = await Entry.findById(run.rows[0].entryId).lean()
+
+    expect(entry.featuredImageId ?? null).toBeNull()
   })
 })

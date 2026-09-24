@@ -171,3 +171,11 @@ export const RESERVED_SLUGS = Object.freeze(['admin', 'api', '_next', 'media', '
 
 /** Responsive breakpoints — inhi teenon pe style store hoti hai. */
 export const BREAKPOINT = Object.freeze({ DESKTOP: 'desktop', TABLET: 'tablet', MOBILE: 'mobile' })
+
+/**
+ * Bulk Upload ki default images ka pool — package (`packageDefaults.defaultBannerImages`) aur blog
+ * (`blogSettings.defaultFeaturedImages`) dono ki hadd (client, 24 Sep). Doc me image na ho to
+ * import yahan se ek chunta hai. Client ne "5–6" kaha; 20 isliye ki pool badhane pe dobara code na
+ * chhoona pade, aur itni ids settings ke payload ko bhaari nahi karti.
+ */
+export const DEFAULT_IMAGE_POOL_MAX = 20
