@@ -872,6 +872,12 @@ na warning, na note. Ilaaj do me se ek (client ka faisla): (a) parser doc ke un 
 se match na karein, ya (b) template me hi likha ho ki sirf maloom heading likhni hain. Aaj ka bachav: doc me har
 value ke baad **maloom label** hi aaye.
 
+⚠️ **24 Sep — teesri baar yahi jaal:** package doc me `Featured Image` (blog ka label, D-116) likha gaya. Package
+parser use jaanta nahi tha, to URL `Luxury Price` me chipka; `parsePriceLine()` ne media id ke digit jod kar
+strike-through ~69 lakh crore bana diya aur Zod (`max 100000000`) ne poora package Failed kar diya. Ilaaj:
+`Featured Image` / `Featured Image URL` ab package pe bhi `bannerImage` hain (`package-doc.js`). **Jad (anjaan
+label ka chipakna) abhi bhi zinda hai**, aur price parser ki koi upar ki hadd nahi — dono A-38 ke saath.
+
 ---
 
 ### ✅ A-37 · Popup — **band** (21 Sep, D-103 §8)

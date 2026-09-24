@@ -188,6 +188,28 @@ describe('parsePackageDoc — bhara hua doc', () => {
   })
 })
 
+/**
+ * Client, 24 Sep — `Featured Image` package pe bhi. Pehle wo label nahi tha, aur `Luxury Price` ke
+ * neeche likhne pe URL daam me chipak gaya (media id ke digit → strike-through, package Failed).
+ */
+describe('parsePackageDoc — Featured Image', () => {
+  const url =
+    'http://localhost:5173/uploads/sites/default/media/2026/09/6aa91cb0c25f34cd91894da0/large.webp'
+  const doc = (label) =>
+    `<p>Package Name</p><p>X</p><p>Luxury Price</p><p>45,999 → 39,999</p><p>${label}</p><p>${url}</p>`
+
+  it.each(['Featured Image', 'Featured Image URL', 'Banner Image URL'])(
+    '"%s" ka URL bannerImage me jaata hai',
+    (label) => {
+      expect(parsePackageDoc(doc(label)).values.bannerImage.text).toBe(url)
+    },
+  )
+
+  it('upar wale Luxury Price me kuch nahi chipakta', () => {
+    expect(parsePackageDoc(doc('Featured Image')).values.luxuryPrice.text).toBe('45,999 → 39,999')
+  })
+})
+
 describe('parsePackageDoc — jab format hi galat ho', () => {
   it('ek bhi label na mile to saaf warning deta hai', () => {
     const { warnings } = parsePackageDoc('<p>Just some prose</p><p>and more</p>')

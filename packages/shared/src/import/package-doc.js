@@ -61,6 +61,15 @@ export const DOC_LABELS = Object.freeze({
   ferries: 'ferries',
   'banner image url': 'bannerImage',
   'banner image': 'bannerImage',
+  /**
+   * `Featured Image` — blog ke doc ka label (D-116), package pe bhi (client, 24 Sep).
+   *
+   * ⚠️ Pehle ye label yahan tha hi nahi, to wo **upar wale khaane me chipak** jaata tha (A-38
+   * wala jaal). `Luxury Price` ke neeche likha to image ka URL daam ban gaya — media id ke digit
+   * jud kar strike-through ~69 lakh crore, aur poora package Failed (Zod ki `max`).
+   */
+  'featured image url': 'bannerImage',
+  'featured image': 'bannerImage',
   'standard hotel': 'standardHotel',
   'deluxe hotel': 'deluxeHotel',
   'premium hotel': 'premiumHotel',
