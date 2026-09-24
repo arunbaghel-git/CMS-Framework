@@ -7,7 +7,7 @@
 > 00. ✅ **Pages cache (ISR) se — D-122, 24 Sep raat**, package page apne route `app/packages/[slug]` pe per-request (hero
 >    shuffle, client). ⏭️ **Home speed jaari** (93 mobile local) — agla: markup chhota (band drawer + mega menu, DOM
 >    2,217). `:3000` pe **koi server nahi** (production band kiya, 24 Sep raat) — naap ke liye `next build` + `next start`,
->    dev ke liye `pnpm dev`. **Push baaki: 16 commit** (sirf ijaazat pe).
+>    dev ke liye `pnpm dev`. ✅ **Sab push ho chuka** (24 Sep raat, client ki ijaazat se — `..72cb990`).
 > 0a. ✅ **Topbar ⟳ Cache (D-121, 24 Sep raat), migration 031** — `cache.flush` admin · editor · author, minute me ek baar,
 >    common tag `site:all` har public fetch pe. Dev DB pe 031 lag chuki. Deploy: migrate → API restart → web/admin build.
 >    Suite **1626/1627**. ✅ Client ne live chala liya (sidebar badla → site purani → ⟳ Cache → naya; API aur page dono verify).
