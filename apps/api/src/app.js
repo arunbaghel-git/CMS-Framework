@@ -36,6 +36,7 @@ import {
 } from './modules/master-lists/routes.js'
 import { packageDefaultsRoutes } from './modules/package-defaults/routes.js'
 import { redirectRoutes } from './modules/redirects/routes.js'
+import { cacheRoutes } from './modules/cache/routes.js'
 import { publicRoutes } from './modules/public/routes.js'
 import { getStorageDriver } from './modules/media/storage/index.js'
 
@@ -230,6 +231,8 @@ export function createApp() {
 
   // Slice 3 me sirf read + delete — auto-redirects apne aap bante hain, manager Phase 4 me
   app.use('/api/redirects', redirectRoutes)
+  /** Topbar ka ⟳ Cache (A-53) — poori public site ka cache ek click me. */
+  app.use('/api/cache', cacheRoutes)
 
   // Public — read-only, bina auth ke (02-ARCHITECTURE §10)
   app.use('/api/public', publicRoutes)

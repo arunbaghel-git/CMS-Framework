@@ -179,3 +179,10 @@ export const BREAKPOINT = Object.freeze({ DESKTOP: 'desktop', TABLET: 'tablet', 
  * chhoona pade, aur itni ids settings ke payload ko bhaari nahi karti.
  */
 export const DEFAULT_IMAGE_POOL_MAX = 20
+
+/**
+ * Har public fetch pe laga common cache tag — topbar ka ⟳ Cache isi ko saaf karta hai (client,
+ * 24 Sep, A-53). `apps/web/lib/cms.js` ka `getJson()` ise **har** fetch pe jodta hai, aur API ka
+ * `flushCache()` sirf yahi ek tag bhejta hai. Ek hi naam do jagah — isliye yahan, `packages/shared` me.
+ */
+export const CACHE_TAG_ALL = 'site:all'

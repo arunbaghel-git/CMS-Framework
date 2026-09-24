@@ -77,3 +77,8 @@
   opacity: 0.6;
   cursor: default;
 }
+
+/* Cache saaf na ho paaya (A-53) — laal, taaki "kuch nahi hua" jaisa na lage */
+.adminbar .ab-item--err {
+  color: #f86368;
+}

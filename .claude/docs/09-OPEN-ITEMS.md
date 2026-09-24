@@ -471,7 +471,10 @@ ka purana plan (Pages/Pending review/Site Health) reference ne badla — `11-REF
 3. `Hot` badge — naya status, ya hamare status hi dikhayein?
 4. Quick Draft blog post ka draft banaye — yahi chahiye?
 
-#### A-53 · Topbar — **sirf ✉ Enquiry aur ⟳ Cache** (24 Sep, jaanch hui, **code nahi**)
+#### ✅ A-53 · Topbar — **sirf ✉ Enquiry aur ⟳ Cache** — **dono ban gaye** (24 Sep; Cache = D-121, migration 031)
+
+**⟳ Cache ✅ (D-121):** `cache.flush` admin · editor · author ko (client — _jo publish kare wo dekh sake_), poori site pe minute me
+ek baar, fail pe laal. A-26/A-29 ka **ilaaj nahi**, par ab unka seedha raasta hai. (Neeche 24 Sep dopahar ka plan — itihaas.)
 
 Client: _"in topbar i want only enquiry and cache not other"_. Reference (paanchon admin-design files me ek jaisa)
 ke baaki item — **＋ New**, **Howdy ▾ dropdown**, site ka naam (aaj hamesha "CMS") aur **Visit Site** ka link (aaj `/`,

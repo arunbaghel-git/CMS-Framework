@@ -97,6 +97,7 @@ Command: `pnpm cms migrate` · status: `pnpm cms migrate:status`
 > ⚠️ **Jo migration `settings` seedha badalti hai, uske baad web ka cache purana rehta hai** — migration
 > revalidate webhook nahi chalati. **030** (D-120, `searchEngineVisible`) ke baad admin me **Settings ▸ SEO & Schema
 > pe ek baar Save** dabao; bina uske `/robots.txt` aur pages ka `noindex` purani value pe atke rehte hain.
+> 24 Sep se topbar ka **⟳ Cache** (D-121) yahi kaam seedha karta hai — migration ke baad ek click.
 
 ### 3.1a Admin bahar reh gaya — `pnpm cms reset-password <email>` (D-110, 23 Sep)
 

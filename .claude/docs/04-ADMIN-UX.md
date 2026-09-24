@@ -1069,3 +1069,10 @@ Reference `admin-design-v2.html:1414` ka `Global SEO Defaults` panel: Title Temp
 OG Image · robots.txt. **Farak (client):** `Organization Schema` ke 4 checkbox **nahi**; robots.txt poori chaudai (reference me
 `row2` me schema box ke saath tha); neeche naya checkbox **Allow search engines to index this site** (band hone pe upar
 peela notice aur robots.txt ka textarea disabled); panel-foot ki `Last sitemap build` line nahi (sitemap bana hi nahi).
+
+## 24 Sep — Topbar: ✉ Enquiry badge + ⟳ Cache (A-53, D-121)
+
+Reference ke topbar (`admin-design-v2.html:262`) me se sirf ye do (client: _"only enquiry and cache"_) — `＋ New`, `Howdy ▾`
+dropdown aur site ka naam **nahi** chhue. ✉ = `New` enquiries ki ginti, click → All Enquiries, sirf `submission.read` wale ko.
+⟳ Cache = `Clearing…` → `✓ Cache cleared` / `Cleared a moment ago` / laal `⚠ Cache not cleared` (poora message `title` me),
+sirf `cache.flush` wale (admin · editor · author) ko.

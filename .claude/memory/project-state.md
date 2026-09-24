@@ -4,6 +4,9 @@
 >
 > ## ⏭️ Agli session — yahan se shuru karo (24 Sep ka handoff) — **Topbar + Dashboard**
 >
+> 0a. ✅ **Topbar ⟳ Cache (D-121, 24 Sep raat), migration 031** — `cache.flush` admin · editor · author, minute me ek baar,
+>    common tag `site:all` har public fetch pe. Dev DB pe 031 lag chuki. Deploy: migrate → API restart → web/admin build.
+>    Suite **1626/1627**. ✅ Client ne live chala liya (sidebar badla → site purani → ⟳ Cache → naya; API aur page dono verify).
 > 0. ✅ **Settings ▸ SEO & Schema (D-120, 24 Sep raat), migration 030** — title template (sirf SEO Title khaali pe), default
 >    description + OG image, `/robots.txt`, search engine checkbox. Dev DB pe 030 lag chuki. ⚠️ Deploy: migrate → restart →
 >    build → **admin me SEO & Schema pe ek baar Save** (cache). Suite **1617/1618**. ✅ Client ne dekh liya (24 Sep).

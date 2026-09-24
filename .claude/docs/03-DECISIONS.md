@@ -11223,3 +11223,25 @@ date alag ho (warna publish dobara nahi — D-81).
 - ⚠️ **Deploy:** `pnpm cms migrate` → API restart → web/admin build → **admin me SEO & Schema pe ek baar Save** (migration DB
   seedha badalti hai, web ka `settings` cache usse saaf nahi hota; Save `settings` tag saaf karta hai)
 - Tests: `settings.test.js` (8), `seo.test.js` (15). Suite 1617/1618 (akela fail purana `theme-fonts`)
+
+---
+
+## D-121
+
+**Topbar ka ⟳ Cache — poori public site ka cache ek click me** (client, 24 Sep 2026, A-53 ka doosra hissa)
+
+**Status:** ✅ bana · **migration 031** (roles sync) · reference `admin-design-v2.html:268`
+
+- **Kaam:** har public fetch pe ek common tag `CACHE_TAG_ALL = 'site:all'` (`packages/shared`, `getJson()` me jodta hai);
+  `POST /api/cache/flush` sirf wahi ek tag bhejta hai. Aam Save apne tag khud saaf karta hai (D-14) — button tab ke liye
+  hai jab koi tag chhoot jaaye (A-26 sidebar, A-29 hotels) ya DB seedha badle (migration, jaise 030)
+- **Kaun (client):** naya `cache.flush` — **admin · editor · author**, yaani jo publish kar sakta hai, taaki apna badlaav
+  live dekh sake. Contributor publish nahi karta, sales agent kuch badalta nahi — dono ko nahi, button dikhta hi nahi
+- **Poori site pe ek minute me ek baar** (`FLUSH_COOLDOWN_MS`, memory me) — har flush ke baad har page ka pehla visitor
+  dheere khulta hai. Rok site ki hai, user ki nahi. Doosri baar pe 429 `CACHE_RECENTLY_CLEARED` → button `Cleared a moment ago`
+- ⚠️ **Fail pe jhootha "Cleared" nahi** — `revalidateTags()` baaki jagah fail-soft hai (Save nahi rukta), par yahan wahi
+  button ka ekmatra kaam hai: 502 `CACHE_FLUSH_FAILED`, button laal. Fail pe rok nahi lagti
+- **POST** (R13). Module `cache` me sirf `routes`/`controller`/`service` — `roles` jaisa apwaad (na collection, na body)
+- ⚠️ Deploy se pehle cache me pade jawab bina `site:all` ke hain — pehla flush unhe shayad na pakde; wo `CACHE_SECONDS`
+  (1 ghanta) me khud nikal jaate hain. Admin ko button dekhne ke liye page reload chahiye (permissions login pe aati hain)
+- Tests: `cache.test.js` (8), `apps/web/lib/cms.test.js` (1 — har fetch pe tag). Suite 1626/1627 (akela fail purana `theme-fonts`)

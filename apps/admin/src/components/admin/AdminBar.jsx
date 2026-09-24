@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../lib/auth.jsx'
+import CacheButton from './CacheButton.jsx'
 import EnquiryBadge from './EnquiryBadge.jsx'
 import './AdminBar.css'
 
@@ -41,8 +42,7 @@ export default function AdminBar({ siteName = 'CMS' }) {
       <div className="spacer" />
 
       <EnquiryBadge />
-
-      {/* Design me yahan "⟳ Cache" bhi hai — A-53 ka doosra hissa, abhi nahi bana. */}
+      <CacheButton />
 
       <span className="ab-item">
         <span className="ab-avatar">{initials(user?.name)}</span>

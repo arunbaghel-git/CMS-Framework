@@ -9,6 +9,8 @@
  * `/api` rewrite (`next.config.js`) sirf client ke liye hai.
  */
 
+import { CACHE_TAG_ALL } from '@cms/shared'
+
 const API_BASE = process.env.API_URL ?? 'http://localhost:4000'
 
 /**
@@ -48,7 +50,11 @@ async function getJson(path, tags) {
      * likha raha aur ek din bhi chala nahi.
      */
     const res = await fetch(`${API_BASE}/api${path}`, {
-      next: { tags, revalidate: CACHE_SECONDS },
+      /**
+       * `CACHE_TAG_ALL` **har** fetch pe — topbar ka ⟳ Cache ek tag se poori site saaf karta hai
+       * (A-53). Bina iske "sab saaf" ka matlab hota har tag ki list, jo kabhi poori nahi hoti.
+       */
+      next: { tags: [...tags, CACHE_TAG_ALL], revalidate: CACHE_SECONDS },
     })
     if (!res.ok) return null
 

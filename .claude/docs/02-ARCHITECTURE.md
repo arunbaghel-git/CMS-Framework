@@ -893,6 +893,10 @@ Isliye **tag-based invalidation**: har fetch pe tags (`entry:{id}`, `path:{path}
 `tax:{id}`, `menu:{location}`, `settings`), aur publish service ek explicit dependency
 map se `revalidateTag()` maare. Ye map Phase 3 me design hoga, Phase 8 me retrofit nahi.
 
+**Common tag `site:all` (D-121, 24 Sep)** — `getJson()` har fetch pe apne tags ke saath `CACHE_TAG_ALL`
+bhi jodta hai. Topbar ka ⟳ Cache (`POST /api/cache/flush`, `cache.flush`) sirf yahi tag saaf karta hai —
+map ka koi kona chhoot jaaye to haath ka raasta. Map ki jagah **nahi** leta: Save pe apne tag hi jaate hain.
+
 Revalidate webhook **shared secret se protected** — warna wo ek public cache-purge
 endpoint hai.
 

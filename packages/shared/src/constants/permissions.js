@@ -154,6 +154,13 @@ export const PERMISSION = Object.freeze({
   TOOLS_EXPORT: 'tools.export',
   TOOLS_IMPORT: 'tools.import',
   ACTIVITY_READ: 'activity.read',
+
+  /**
+   * Topbar ka ⟳ Cache — poori public site ka cache ek click me saaf (client, 24 Sep, A-53).
+   * Jo publish kar sakta hai use milta hai (admin · editor · author) — taaki apna badlaav live dekh
+   * sake. Contributor publish nahi karta, sales agent kuch badalta nahi — dono ko nahi.
+   */
+  CACHE_FLUSH: 'cache.flush',
 })
 
 export const PERMISSIONS = Object.freeze(Object.values(PERMISSION))
@@ -211,7 +218,7 @@ const CONTRIBUTOR = [
 ]
 
 /** Author = contributor + apna content publish kar sakta hai. */
-const AUTHOR = [...CONTRIBUTOR, P.ENTRY_PUBLISH_OWN, P.ENTRY_DUPLICATE]
+const AUTHOR = [...CONTRIBUTOR, P.ENTRY_PUBLISH_OWN, P.ENTRY_DUPLICATE, P.CACHE_FLUSH]
 
 const EDITOR = [
   ...AUTHOR,
