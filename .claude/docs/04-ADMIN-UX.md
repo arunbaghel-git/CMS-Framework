@@ -1034,6 +1034,7 @@ batati hai ki ye sirf admin ke liye hai, taaki Editor mail ka intezaar na kare.
 ## 24 Sep — Login pe password dikhane ki aankh
 
 `Login` ke Password khaane ke andar daayein aankh ka button (client ka ask) — dabane pe likha password dikhta hai,
-dobara dabane pe chhupta hai. Component `components/admin/PasswordInput.jsx` (Reset / Change Password pe abhi **nahi**
-laga — maanga nahi gaya). Edge ki apni aankh (`::-ms-reveal`) chhupi hai, warna do dikhti. Login ka design reference me
+dobara dabane pe chhupta hai. Component `components/admin/PasswordInput.jsx` — ab **har** password khaane pe (usi din, client: _"jahan password
+enter hoga wahan ho"_): Login · Reset · Change Password · Profile · Email / SMTP. ⚠️ Users ▸ Edit User ka
+khaana jaan-boojh kar **khula text** hai (`Generate` ke saath, admin user ko bhejta hai), wahan aankh nahi. Edge ki apni aankh (`::-ms-reveal`) chhupi hai, warna do dikhti. Login ka design reference me
 hai hi nahi (D-31), look `tokens.css` se.

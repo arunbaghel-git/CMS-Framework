@@ -1,6 +1,7 @@
 import { toMailUpdate, updateMailSchema } from '@cms/shared'
 import { useEffect, useState } from 'react'
 
+import PasswordInput from '../../components/admin/PasswordInput.jsx'
 import { api, errorMessage } from '../../lib/api.js'
 import { useAuth } from '../../lib/auth.jsx'
 import SettingsTabs from './SettingsTabs.jsx'
@@ -215,10 +216,8 @@ export default function EmailSmtp() {
 
             <div className="field">
               <label htmlFor="mail-password">Password</label>
-              <input
+              <PasswordInput
                 id="mail-password"
-                className="inp"
-                type="password"
                 value={form.password}
                 onChange={(e) => setField('password', e.target.value)}
                 disabled={!canEdit}

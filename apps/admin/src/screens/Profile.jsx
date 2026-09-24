@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { PERMISSION, ROLE_LABEL, changePasswordSchema, updateMeSchema } from '@cms/shared'
 
+import PasswordInput from '../components/admin/PasswordInput.jsx'
 import { api, errorMessage } from '../lib/api.js'
 import { useAuth } from '../lib/auth.jsx'
 import './Profile.css'
@@ -201,10 +202,8 @@ function PasswordPanel({ onSaved }) {
 
         <div className="field">
           <label htmlFor="p-current">Current password</label>
-          <input
+          <PasswordInput
             id="p-current"
-            className="inp"
-            type="password"
             autoComplete="current-password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
@@ -216,10 +215,8 @@ function PasswordPanel({ onSaved }) {
 
         <div className="field">
           <label htmlFor="p-new">New password</label>
-          <input
+          <PasswordInput
             id="p-new"
-            className="inp"
-            type="password"
             autoComplete="new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}

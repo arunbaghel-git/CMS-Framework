@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { resetPasswordSchema } from '@cms/shared'
 
+import PasswordInput from '../components/admin/PasswordInput.jsx'
 import { api, errorMessage } from '../lib/api.js'
 import './Login.css'
 
@@ -88,10 +89,8 @@ export default function ResetPassword() {
 
           <div className="field">
             <label htmlFor="reset-password">New password</label>
-            <input
+            <PasswordInput
               id="reset-password"
-              className="inp"
-              type="password"
               autoComplete="new-password"
               autoFocus
               value={password}
@@ -101,10 +100,8 @@ export default function ResetPassword() {
 
           <div className="field">
             <label htmlFor="reset-confirm">Confirm new password</label>
-            <input
+            <PasswordInput
               id="reset-confirm"
-              className="inp"
-              type="password"
               autoComplete="new-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { changePasswordSchema } from '@cms/shared'
 
+import PasswordInput from '../components/admin/PasswordInput.jsx'
 import { api, errorMessage } from '../lib/api.js'
 import { useAuth } from '../lib/auth.jsx'
 import './Login.css'
@@ -69,10 +70,8 @@ export default function ChangePassword({ forced = false }) {
 
         <div className="field">
           <label htmlFor="cp-current">Current password</label>
-          <input
+          <PasswordInput
             id="cp-current"
-            className="inp"
-            type="password"
             autoComplete="current-password"
             autoFocus
             value={currentPassword}
@@ -82,10 +81,8 @@ export default function ChangePassword({ forced = false }) {
 
         <div className="field">
           <label htmlFor="cp-new">New password</label>
-          <input
+          <PasswordInput
             id="cp-new"
-            className="inp"
-            type="password"
             autoComplete="new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
