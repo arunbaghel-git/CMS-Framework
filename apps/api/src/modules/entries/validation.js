@@ -54,6 +54,22 @@ export const entryCountsQuerySchema = z.object({
   type: z.string().min(1),
 })
 
+/**
+ * Dashboard ke cards (A-54) — `?types=package,post,tourPage`. Har naam saada camelCase
+ * shabd, warna 400 (R9) — `$ne` jaisa kuch query tak pahunch hi na sake.
+ */
+export const entryStatsQuerySchema = z.object({
+  types: z
+    .string()
+    .transform((value) => [...new Set(value.split(',').map((type) => type.trim()))])
+    .pipe(
+      z
+        .array(z.string().regex(/^[a-zA-Z]+$/))
+        .min(1)
+        .max(10),
+    ),
+})
+
 /** Har query param Zod se (R9) — `req.query` kabhi seedha Mongoose tak nahi jaata. */
 export const revisionListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

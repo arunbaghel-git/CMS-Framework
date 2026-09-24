@@ -56,6 +56,25 @@ enquiryRoutes.get(
   requirePermission(PERMISSION.SUBMISSION_READ),
   enquiryController.list,
 )
+/**
+ * Sirf ginti — topbar ka ✉ badge (A-53, 24 Sep). Poori list ka call har route badalne pe
+ * aur har minute chalana bekaar bojh hota.
+ *
+ * ⚠️ `/:id` se **pehle** — warna `counts` ek enquiry ki id samjha jaata.
+ */
+enquiryRoutes.get(
+  '/counts',
+  requireAuth,
+  requirePermission(PERMISSION.SUBMISSION_READ),
+  enquiryController.counts,
+)
+/** Dashboard ka ✉ card + "last 7 days" ke bars (A-54). Wahi pehra — `/:id` se pehle. */
+enquiryRoutes.get(
+  '/stats',
+  requireAuth,
+  requirePermission(PERMISSION.SUBMISSION_READ),
+  enquiryController.stats,
+)
 enquiryRoutes.get(
   '/export',
   requireAuth,

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useAuth } from '../../lib/auth.jsx'
+import EnquiryBadge from './EnquiryBadge.jsx'
 import './AdminBar.css'
 
 /** Naam se do-akshar ka avatar — "Aditya Kumar" → "AK". */
@@ -39,11 +40,9 @@ export default function AdminBar({ siteName = 'CMS' }) {
 
       <div className="spacer" />
 
-      {/*
-        Design me yahan Enquiries ka count badge aur "⟳ Cache" hain. Dono Phase 7b aur
-        Phase 3 ke module pe depend karte hain — tab tak inhe **khaali** dikhane se
-        behtar hai na dikhana, warna hamesha 0 wala badge jhoot bolta rehta.
-      */}
+      <EnquiryBadge />
+
+      {/* Design me yahan "⟳ Cache" bhi hai — A-53 ka doosra hissa, abhi nahi bana. */}
 
       <span className="ab-item">
         <span className="ab-avatar">{initials(user?.name)}</span>

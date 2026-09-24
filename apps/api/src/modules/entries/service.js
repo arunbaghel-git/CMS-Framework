@@ -1291,6 +1291,35 @@ export async function entryCounts(type, siteId = DEFAULT_SITE_ID, locale = DEFAU
   }
 }
 
+/**
+ * Dashboard ke cards — client, 24 Sep (A-54): Packages · Blog Posts · Tour Pages.
+ *
+ * - `all` — **`entryCounts()` wala hi `all`** (trash ke bina, har status). Card ka number aur
+ *   list ka `All (N)` tab kabhi alag nahi dikhne chahiye
+ * - `recent` — pichhle 30 din me **bane** (`createdAt`, publish nahi) — reference ka `+4`
+ */
+export async function entryStats(
+  types,
+  siteId = DEFAULT_SITE_ID,
+  locale = DEFAULT_LOCALE,
+  now = new Date(),
+) {
+  const since = new Date(now - 30 * 86_400_000)
+
+  const rows = await Promise.all(
+    types.map(async (type) => {
+      const live = { ...scope(siteId, locale), type, deletedAt: null }
+      const [all, recent] = await Promise.all([
+        Entry.countDocuments(live),
+        Entry.countDocuments({ ...live, createdAt: { $gte: since } }),
+      ])
+      return [type, { all, recent }]
+    }),
+  )
+
+  return Object.fromEntries(rows)
+}
+
 /** Ek entry — trash me padi ho to bhi milti hai, taaki Trash screen use dikha sake. */
 export async function getEntry(id, siteId = DEFAULT_SITE_ID, locale = DEFAULT_LOCALE) {
   const doc = await Entry.findOne({ _id: id, ...scope(siteId, locale) }).lean()

@@ -4,7 +4,8 @@
 >
 > ## ⏭️ Agli session — yahan se shuru karo (24 Sep ka handoff) — **Topbar + Dashboard**
 >
-> 1. **Kaam: A-53 (Topbar) aur A-54 (Dashboard)** — dono ki poori jaanch `09-OPEN-ITEMS.md` me hai (reference ki line,
+> 1. ✅ **A-53 ka ✉ Enquiry badge** (`/api/enquiries/counts`, click → All Enquiries) aur ✅ **A-54 Dashboard** (client ne scope chhota kiya: 4 card + 7 din ke bars, bas) — dono 24 Sep shaam. **⟳ Cache baaki.** Suite **1594/1595**.
+>    **Kaam: A-53 (Topbar) aur A-54 (Dashboard)** — dono ki poori jaanch `09-OPEN-ITEMS.md` me hai (reference ki line,
 >    har hisse ke peeche data hai ya nahi, plan). **Dobara jaanch mat karo, wahan se padho.** Code abhi kuch nahi likha.
 > 2. **Topbar me SIRF ✉ Enquiry badge aur ⟳ Cache** (client: _"only enquiry and cache not other"_). ＋ New, Howdy ▾, site
 >    ka naam ("CMS") aur Visit Site ka link **mat chhuo**. Khula sawaal: Cache button kaun daba sake (mashwara: sirf

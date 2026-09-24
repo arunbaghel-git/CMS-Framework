@@ -7,6 +7,7 @@ import {
   entryCountsQuerySchema,
   entryCreateSchema,
   entryListQuerySchema,
+  entryStatsQuerySchema,
   entryUpdateSchema,
   publishEntrySchema,
   revisionListQuerySchema,
@@ -60,6 +61,16 @@ export async function counts(req, res, next) {
     const { type } = entryCountsQuerySchema.parse(req.query)
 
     res.json({ data: { counts: await entryService.entryCounts(type) } })
+  } catch (err) {
+    next(err)
+  }
+}
+
+export async function stats(req, res, next) {
+  try {
+    const { types } = entryStatsQuerySchema.parse(req.query)
+
+    res.json({ data: { stats: await entryService.entryStats(types) } })
   } catch (err) {
     next(err)
   }

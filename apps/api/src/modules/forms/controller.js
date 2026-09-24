@@ -130,6 +130,24 @@ export const enquiryController = {
     }
   },
 
+  /** Topbar ka badge — wahi `enquiryCounts()` jo list ke tabs ko milta hai, alag ginti nahi. */
+  async counts(req, res, next) {
+    try {
+      res.json({ data: { counts: await formService.enquiryCounts() } })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  /** Dashboard — hamesha 7 din (reference); koi query param nahi, to validate karne ko kuch nahi. */
+  async stats(req, res, next) {
+    try {
+      res.json({ data: await formService.enquiryStats(7) })
+    } catch (err) {
+      next(err)
+    }
+  },
+
   async get(req, res, next) {
     try {
       const data = await formService.getEnquiry(req.params.id)

@@ -434,7 +434,14 @@ hoga — warna team dono padhegi. **Client ki ijaazat baaki hai.**
 
 ## 🔴 Ab bhi baaki
 
-#### A-54 · Dashboard — reference ke hisaab se (24 Sep, jaanch hui, **code nahi**, client ke 4 faisle baaki)
+#### A-54 · Dashboard — ✅ **ban gaya (24 Sep shaam)**, client ne scope khud chhota kiya
+
+Client: _"only packages card, blog post card, tour card and enquiry card in a row only 4, then Enquiries — last 7 days
+full width, nothing else"_. Isse neeche ke **chaaron faisle bemaani** ho gaye — wo hisse bane hi nahi. Poora hisaab
+`04-ADMIN-UX.md` §8. Naye: `GET /api/entries/stats`, `GET /api/enquiries/stats` (din site ke timezone se),
+`screens/Dashboard.css`. 4 naye API test. Koi migration nahi. ✅ Client ne admin me dekh liya (24 Sep).
+
+(Neeche 24 Sep dopahar ki jaanch — itihaas.)
 
 Aaj `screens/Dashboard.jsx` sirf placeholder hai (Welcome + email/role + permissions ki ginti). Reference ka Dashboard
 paanchon admin-design files (v1–v4, `travel-cms-admin_v2`) me **hu-ba-hu ek jaisa** hai; uski CSS (`.stats` · `.dash-grid`
@@ -470,9 +477,11 @@ Client: _"in topbar i want only enquiry and cache not other"_. Reference (paanch
 ke baaki item — **＋ New**, **Howdy ▾ dropdown**, site ka naam (aaj hamesha "CMS") aur **Visit Site** ka link (aaj `/`,
 dev me admin ka hi root kholta hai) — **nahi banenge / nahi chhue jaayenge**. Aaj ka `Howdy` + alag `Log Out` waise hi.
 
-**✉ Enquiry badge** — backend pehle se hai: `enquiryCounts()` (`forms/service.js`) har status ki ginti deta hai, aaj sirf
-list ke saath (`GET /api/enquiries`). Plan: ginti-only chhota endpoint, badge = `new` ki ginti, sirf `submission.read`
-wale ko, `0` pe badge nahi. Click → inbox `New` filter. Update: route badalne pe + ~60s poll.
+**✅ ✉ Enquiry badge — ban gaya (24 Sep).** `GET /api/enquiries/counts` (sirf ginti, wahi `enquiryCounts()` jo inbox ke
+tabs ko milta hai — do ginti kabhi alag nahi ho sakti), `components/admin/EnquiryBadge.jsx`. Badge = `new` ki ginti, sirf
+`submission.read` wale ko (baaki ko ✉ dikhta hi nahi), `0` pe sirf ✉, `99+` ki chhat. **Click → All Enquiries** (client ne
+`New` filter nahi, _all_ kaha). Update: route badalne pe + har 60s (tab chhupa ho to nahi). 2 naye API test. Deploy pe API
+restart + admin build, koi migration nahi. ✅ Client ne admin me dekh liya (24 Sep).
 
 **⟳ Cache** — "poori site ka cache abhi saaf karo" (A-26/A-29 jaise chhoote tag ka seedha ilaaj). Aaj **koi common tag
 nahi** hai (`apps/web/lib/cms.js` ka `getJson()` har fetch pe apne tag lagata hai), isliye "sab saaf" ka raasta hi nahi.

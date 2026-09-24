@@ -46,6 +46,15 @@ export async function getSettings(siteId = DEFAULT_SITE_ID) {
 }
 
 /**
+ * Site ka timezone — "aaj" aur "Mon/Tue" site ke din se gine jaate hain, server ke nahi
+ * (Dashboard, A-54). Server UTC pe ho to IST ki raat 12–5:30 ki enquiry kal me gir jaati.
+ */
+export async function getSiteTimezone(siteId = DEFAULT_SITE_ID) {
+  const doc = await Settings.findOne({ siteId }, { timezone: 1 }).lean()
+  return doc?.timezone || 'Asia/Kolkata'
+}
+
+/**
  * Media ki id store karne wale fields, aur unka user-facing naam (R17 — message English).
  */
 const MEDIA_ID_FIELDS = Object.freeze({

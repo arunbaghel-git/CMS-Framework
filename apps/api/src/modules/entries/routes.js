@@ -26,6 +26,9 @@ entryRoutes.get('/', requireAuth, requirePermission(PERMISSION.ENTRY_READ), cont
  */
 entryRoutes.get('/counts', requireAuth, requirePermission(PERMISSION.ENTRY_READ), controller.counts)
 
+/** Dashboard ke cards (A-54) — wahi pehra, `/:id` se pehle. */
+entryRoutes.get('/stats', requireAuth, requirePermission(PERMISSION.ENTRY_READ), controller.stats)
+
 /**
  * Revisions ki list `/:id` se **pehle** hai — warna Express `/:id` ko pehle match kar
  * leta aur `revisions` ek entry id ki tarah padha jaata.

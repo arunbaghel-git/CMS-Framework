@@ -1031,6 +1031,42 @@ describe('GET /api/entries/counts', () => {
   })
 })
 
+// ── Dashboard ke cards (A-54) ────────────────────────────────────────────────
+
+describe('GET /api/entries/stats', () => {
+  it('har type ka all (counts wala hi) aur 30 din me bane', async () => {
+    const old = (await createEntry(adminJar, { title: 'Old One' })).body.data.entry
+    const gone = (await createEntry(adminJar, { title: 'Trashed One' })).body.data.entry
+    await createEntry(adminJar, { title: 'New One' })
+    await createPage(adminJar, { title: 'Page' })
+
+    await authed('post', `/api/entries/${gone.id}/trash`, adminJar).send({})
+    // createdAt Mongoose me immutable hai — native update chahiye
+    const { _id } = await Entry.findById(old.id).lean()
+    await Entry.collection.updateOne(
+      { _id },
+      { $set: { createdAt: new Date(Date.now() - 45 * 86_400_000) } },
+    )
+
+    const res = await authed('get', '/api/entries/stats?types=package,page,post', adminJar)
+    const counts = await authed('get', '/api/entries/counts?type=package', adminJar)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.stats).toEqual({
+      package: { all: 2, recent: 1 },
+      page: { all: 1, recent: 1 },
+      post: { all: 0, recent: 0 },
+    })
+    // Card aur list ka "All (N)" tab ek hi ginti
+    expect(res.body.data.stats.package.all).toBe(counts.body.data.counts.all)
+  })
+
+  it('types ke bina ya ajeeb naam pe 400', async () => {
+    expect((await authed('get', '/api/entries/stats', adminJar)).status).toBe(400)
+    expect((await authed('get', '/api/entries/stats?types=package,$ne', adminJar)).status).toBe(400)
+  })
+})
+
 // ── bulk actions (Slice 3) ───────────────────────────────────────────────────
 
 describe('POST /api/entries/bulk', () => {

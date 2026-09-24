@@ -394,6 +394,30 @@ hai, `menu.update` nahi. `author`/`contributor` ko (jinke paas `menu.read` hai p
 
 ## 8. Dashboard
 
+> ⚠️ **Neeche ka wireframe itihaas hai.** 24 Sep ko client ne asli dashboard tay kiya (A-54) —
+> `admin-design-v2.html:341` ka **chhota** hissa, bas itna:
+>
+> ```
+> ┌──────────────┬──────────────┬──────────────┬──────────────┐
+> │ 🧳 64  +4     │ ✎ 212  +9     │ 🗺 9          │ ✉ 7  +7 today │
+> │ Packages     │ Blog Posts   │ Tour Pages   │ New Enquiries│
+> ├──────────────┴──────────────┴──────────────┴──────────────┤
+> │ Enquiries — last 7 days                                 ▾ │
+> │   ▂   ▅   ▃   ▇   ▄   █   ▄                               │
+> │  Fri Sat Sun Mon Tue Wed Thu                              │
+> │ Total 38 enquiries                          View all →    │
+> └───────────────────────────────────────────────────────────┘
+> ```
+>
+> - Card ka number = list ka `All (N)` (trash ke bina). `+N` = 30 din me **bane**; `0` pe nahi dikhta.
+>   Enquiry card = `new` status ki ginti (topbar badge wali), `+N today` = aaj aayi. Har card apni list kholta hai
+> - Bars ke din **site ke timezone** se (`settings.timezone`), khaali din bhi. Total = sirf in 7 din ka
+> - Card sirf permission pe — `entry.read` · `submission.read`. Ginti server pe: `GET /api/entries/stats?types=…`
+>   aur `GET /api/enquiries/stats`
+> - **Nahi bane (client):** Site healthy notice · Quoted value · Sessions · Recent Enquiries · Quick Draft · Top Packages
+> - Reference se farak: chaar card **ek row me** (tablet 2, phone 1), 7 din wala panel **poori chaudai**, Tour Pages ka
+>   card naya (rang Sessions wale card ka), bar pe number nahi — tooltip me
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │ ⚠ Search engines are blocked. Turn off in Settings → Reading.   │

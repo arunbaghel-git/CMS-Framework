@@ -17,7 +17,7 @@ import { logger } from '../../core/logger.js'
 import { sendMail } from '../../core/mailer.js'
 import { revalidateTags } from '../../core/revalidate.js'
 import { sanitizeBlockHtml } from '../../core/sanitize-html.js'
-import { getMailConfig } from '../settings/service.js'
+import { getMailConfig, getSiteTimezone } from '../settings/service.js'
 /**
  * ⚠️ Circular nahi hai — `entries/service.js` forms ko import nahi karti. Sirf ek query chahiye:
  * kaunse pages ke sections is form ko use karte hain (D-96).
@@ -560,6 +560,60 @@ export async function enquiryCounts(siteId = DEFAULT_SITE_ID) {
   }
 
   return counts
+}
+
+/** `2026-09-24` — `timeZone` ke hisaab se us pal ki taareekh. `en-CA` ka format hi ISO hai. */
+function dayKey(date, timeZone) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
+}
+
+/**
+ * Dashboard ke enquiry hisse — client, 24 Sep (A-54): ✉ card aur "last 7 days" ke bars.
+ *
+ * ⚠️ **Ginti server pe**, list admin me laa kar nahi — enquiries hazaron ho sakti hain aur
+ * list waise bhi ek page ki hoti hai (R14). Aur din **site ke timezone** se (`getSiteTimezone`).
+ *
+ * - `days` — purane se naye, har din ek row, **khaali din bhi** (`count: 0`), warna chart
+ *   ke daant gayab ho jaate aur Wed ke baad seedha Fri dikhta
+ * - `today` — aaj aayi (har status ki), `new` — abhi `new` status me (topbar badge wali ginti)
+ * - `total` — sirf in din ki, poori inbox ki nahi (chart ke neeche wahi likha jaata hai)
+ */
+export async function enquiryStats(days = 7, siteId = DEFAULT_SITE_ID, now = new Date()) {
+  const timeZone = await getSiteTimezone(siteId)
+
+  const keys = []
+  for (let i = days - 1; i >= 0; i--) keys.push(dayKey(new Date(now - i * 86_400_000), timeZone))
+
+  // Ek din ka buffer — timezone ka farak pehle din ki subah na kaate; bahar ke din neeche girte hain
+  const since = new Date(now - (days + 1) * 86_400_000)
+
+  const [rows, counts] = await Promise.all([
+    Enquiry.aggregate([
+      { $match: { ...liveEnquiries(siteId), createdAt: { $gte: since } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: timeZone } },
+          n: { $sum: 1 },
+        },
+      },
+    ]),
+    enquiryCounts(siteId),
+  ])
+
+  const byDay = new Map(rows.map((row) => [row._id, row.n]))
+  const series = keys.map((date) => ({ date, count: byDay.get(date) ?? 0 }))
+
+  return {
+    days: series,
+    total: series.reduce((sum, day) => sum + day.count, 0),
+    today: series.at(-1).count,
+    new: counts.new,
+  }
 }
 
 export async function getEnquiry(id, siteId = DEFAULT_SITE_ID) {

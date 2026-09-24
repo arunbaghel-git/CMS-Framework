@@ -9,7 +9,7 @@ import { COOKIE } from '../core/tokens.js'
 import { CSRF_HEADER } from '../middleware/csrf.js'
 import { RefreshToken } from '../modules/auth/model.js'
 import { Enquiry, Form } from '../modules/forms/model.js'
-import { notifyEnquiry } from '../modules/forms/service.js'
+import { enquiryStats, notifyEnquiry } from '../modules/forms/service.js'
 import { Role } from '../modules/roles/model.js'
 import { Settings } from '../modules/settings/model.js'
 import { ensureDefaultRoles, invalidateRoleCache } from '../modules/roles/service.js'
@@ -422,6 +422,66 @@ describe('enquiries inbox', () => {
     expect(res.body.data.enquiries[0].values.fullName).toBe('Rahul Sethi')
     expect(res.body.data.counts).toMatchObject({ all: 2, new: 2, contacted: 0 })
     expect(res.body.meta).toMatchObject({ page: 1, limit: 20, total: 2 })
+  })
+
+  it('topbar ka badge — sirf ginti, list wale counts se hu-ba-hu (A-53)', async () => {
+    const form = await makeForm()
+    await makeEnquiry(form, { fullName: 'Priya', email: 'priya@example.com' })
+    await makeEnquiry(form, { fullName: 'Rahul', email: 'rahul@example.com' })
+    await authed('patch', `/api/enquiries/${await firstEnquiryId()}`, adminJar).send({
+      status: 'contacted',
+    })
+
+    const res = await authed('get', '/api/enquiries/counts', adminJar)
+    const list = await authed('get', '/api/enquiries', adminJar)
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.counts).toMatchObject({ all: 2, new: 1, contacted: 1 })
+    // Do alag ginti ek din alag ho jaati — badge aur inbox ka tab ek hi source se
+    expect(res.body.data.counts).toEqual(list.body.data.counts)
+    expect(res.body.data.enquiries).toBeUndefined()
+  })
+
+  it('dashboard — 7 din ke bars, khaali din bhi, aur din site ke timezone se (A-54)', async () => {
+    const form = await makeForm()
+    for (const name of ['A', 'B', 'C', 'D']) {
+      await makeEnquiry(form, { fullName: name, email: `${name.toLowerCase()}@example.com` })
+    }
+
+    // Enquiry ka waqt haath se — createdAt Mongoose me immutable hai, isliye native update
+    const docs = await Enquiry.find().sort({ createdAt: 1 }).lean()
+    const at = (doc, iso) =>
+      Enquiry.collection.updateOne({ _id: doc._id }, { $set: { createdAt: new Date(iso) } })
+    await at(docs[0], '2026-09-23T20:00:00Z') // IST me 24 Sep, 1:30 raat — UTC me 23 hota
+    await at(docs[1], '2026-09-24T05:00:00Z') // aaj
+    await at(docs[2], '2026-09-20T09:00:00Z') // 20 Sep
+    await at(docs[3], '2026-09-10T09:00:00Z') // 7 din se bahar
+    await Settings.updateOne({}, { $set: { timezone: 'Asia/Kolkata' } })
+
+    const stats = await enquiryStats(7, undefined, new Date('2026-09-24T10:00:00Z'))
+
+    expect(stats.days.map((day) => day.date)).toEqual([
+      '2026-09-18',
+      '2026-09-19',
+      '2026-09-20',
+      '2026-09-21',
+      '2026-09-22',
+      '2026-09-23',
+      '2026-09-24',
+    ])
+    expect(stats.days.map((day) => day.count)).toEqual([0, 0, 1, 0, 0, 0, 2])
+    expect(stats).toMatchObject({ total: 3, today: 2, new: 4 })
+  })
+
+  it('dashboard — route sirf submission.read wale ko', async () => {
+    const res = await authed('get', '/api/enquiries/stats', adminJar)
+    expect(res.status).toBe(200)
+    expect(res.body.data.days).toHaveLength(7)
+    expect((await authed('get', '/api/enquiries/stats', contributorJar)).status).toBe(403)
+  })
+
+  it('topbar ka badge — bina submission.read ke 403', async () => {
+    expect((await authed('get', '/api/enquiries/counts', contributorJar)).status).toBe(403)
   })
 
   it('column form ke type se derive hote hain — label badalne se kuch nahi tootta', async () => {
