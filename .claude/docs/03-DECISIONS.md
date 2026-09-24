@@ -9975,6 +9975,15 @@ Test ab **percentage wala MIN** rokta hai, exact value nahi (§9.7 wala hi tark:
 nahi). §10 me `.pmod__pics` ke `display: grid` ke liye jo "100% grid pe resolve hota hai" wali wajah
 likhi thi, wo ab lagu nahi — grid phir bhi rakha hai (look wahi).
 
+## D-103 §12 — Desktop pe Submit beech me, apni naap ka (client, 24 Sep 2026)
+
+Client: _"popup ka submit button full width le rha hai, small width with center"_. Phone pe ye 23 Sep ko
+pehle hi ho chuka tha (`width: fit-content`, `min-width: 60%`). Desktop pe §10 ka teen column grid button
+ko `grid-column: 1 / -1` deta hai, aur grid ka default `justify-self: stretch` use poori row jitna khinch
+deta tha — `.bkg--page .bkg__b .btn` ka `width: auto` grid me kuch nahi rokta. Ilaaj: usi 761px+ block me
+`justify-self: center`. Chaudai `.bkg--page` wali hi (`min-width: 200px`, 26px padding). Sirf popup
+(`.pmod__body`), baaki forms nahi chhue. Aankh se dekhna client ka.
+
 ---
 
 ## D-106
