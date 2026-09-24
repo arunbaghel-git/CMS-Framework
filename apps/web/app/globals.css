@@ -3899,6 +3899,16 @@ a.mega__gl:hover {
   .pmod__body .bkg--page form > .btn {
     grid-column: 1 / -1;
   }
+
+  /*
+   * Submit **beech me, apni naap ka** (client, 24 Sep: _"full width le rha hai, small width with
+   * center"_). Poori row grid ki hai, par grid ka default `stretch` button ko bhi row jitna khinch
+   * deta tha — `.bkg--page` ka `width: auto` grid me kuch nahi rokta. Chaudai `.bkg--page .bkg__b
+   * .btn` wali hi (`min-width: 200px`, 26px padding). Phone ka rule neeche 760px wale block me hai.
+   */
+  .pmod__body .bkg--page form > .btn {
+    justify-self: center;
+  }
 }
 
 /*
